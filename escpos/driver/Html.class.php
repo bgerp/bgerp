@@ -6,32 +6,32 @@
  *
  * @category  bgerp
  * @package   escprint
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class escpos_driver_Html extends core_BaseClass
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'HTML ESC/POS Принтер';
     
-
+    
     /**
      * Връща конанди за настройка на шрифта
      */
     public function getFont($font, $bold, $underline)
     {
         $style = '';
-
+        
         if ($font == 'F') {
             $style .= 'font-size:1.2em;';
         }
-
+        
         if ($font == 'f') {
             $style .= 'font-size:0.8em;';
         }
@@ -41,11 +41,11 @@ class escpos_driver_Html extends core_BaseClass
         if ($underline) {
             $style .= 'text-decoration:underline;';
         }
-
+        
         return "<span style='{$style}'>";
     }
-
-
+    
+    
     /**
      * Край на задаването на шрифта
      */
@@ -53,8 +53,8 @@ class escpos_driver_Html extends core_BaseClass
     {
         return '</span>';
     }
-
-
+    
+    
     /**
      * Нова линия
      */
@@ -62,15 +62,16 @@ class escpos_driver_Html extends core_BaseClass
     {
         return '<br>';
     }
-
-
+    
+    
     /**
      * Последователност за срязване на хартията
      */
     public function getCutting()
     {
     }
-
+    
+    
     /**
      * Връща символа за интервал
      * Преместване на позицията с един символ, без да отпечатва нищо
@@ -79,27 +80,27 @@ class escpos_driver_Html extends core_BaseClass
     {
         return '&nbsp;';
     }
-
-
+    
+    
     /**
      * Връща максималния брой символи, според вида на шрифта
      */
     public function getWidth($font = null)
     {
         $width = 32;
-
+        
         if ($font == 'f') {
             $width = 48;
         }
-
+        
         if ($font == 'F') {
             $width = 29;
         }
-
+        
         return $width;
     }
-
-
+    
+    
     /**
      * Общо конвертиране за изходния текст
      */

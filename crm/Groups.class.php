@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class crm_Groups extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -45,7 +45,6 @@ class crm_Groups extends core_Master
      * Кои полета да се листват
      */
     public $listFields = 'name=Заглавие,companiesCnt=Фирми,personsCnt=Лица';
-
     
     
     /**
@@ -59,7 +58,7 @@ class crm_Groups extends core_Master
      */
     public $singleIcon = 'img/16/group.png';
     
-        
+    
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
@@ -274,16 +273,16 @@ class crm_Groups extends core_Master
             $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
             $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
         }
-
-     
+        
+        
         $row->companiesCnt = new ET('<b>[#1#]</b>', ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         $row->personsCnt = new ET('<b>[#1#]</b>', ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
-             
+        
         // Ако групата се състои само от фирми
         if ($rec->allow == 'companies') {
             unset($row->personsCnt);
         }
-            
+        
         if ($rec->allow == 'persons') {
             // ще показваме само броя на лицата
             unset($row->companiesCnt);
@@ -364,7 +363,7 @@ class crm_Groups extends core_Master
             
             $rec = $mvc->fetch("#sysId = '{$newRec->sysId}'");
             $flagChange = false;
-
+            
             if (!$rec) {
                 $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->name}')");
                 $flagChange = true;
@@ -390,7 +389,7 @@ class crm_Groups extends core_Master
             if (!$rec->id) {
                 $nAffected++;
             }
-
+            
             if ($flagChange) {
                 $nUpdated++;
             }
@@ -403,7 +402,7 @@ class crm_Groups extends core_Master
         if ($nAffected) {
             $res .= "<li class='debug-new'>Добавени са {$nAffected} групи.</li>";
         }
-
+        
         if ($flagChange) {
             $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
         }
@@ -446,11 +445,12 @@ class crm_Groups extends core_Master
     
     /**
      * Форсира група от визитника
+     *
      * @TODO в cat_Groups има същата функция да се изнесе някъде най-добре
      *
-     * @param string  $name     Име на групата. Съдържа целия път
-     * @param int     $parentId Id на родител
-     * @param boolean $force
+     * @param string $name     Име на групата. Съдържа целия път
+     * @param int    $parentId Id на родител
+     * @param bool   $force
      *
      * @return int|NULL id на групата
      */
@@ -458,7 +458,7 @@ class crm_Groups extends core_Master
     {
         static $groups = array();
         $parentIdNumb = (int) $parentId;
-    
+        
         if (!($res = $groups[$parentIdNumb][$name])) {
             if (strpos($name, '»')) {
                 $gArr = explode('»', $name);
@@ -466,36 +466,36 @@ class crm_Groups extends core_Master
                     $gName = trim($gName);
                     $parentId = self::force($gName, $parentId, $force);
                 }
-    
+                
                 $res = $parentId;
             } else {
                 if ($parentId === null) {
                     $cond = 'AND #parentId IS NULL';
                 } else {
                     expect(is_numeric($parentId), $parentId);
-    
+                    
                     $cond = "AND #parentId = {$parentId}";
                 }
-    
+                
                 $gRec = self::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
-    
+                
                 if (isset($gRec->name)) {
                     $res = $gRec->id;
                 } else {
                     if ($force) {
                         $gRec = (object) array('name' => $name, 'companiesCnt' => 0, 'personsCnt' => 0, 'parentId' => $parentId);
                         self::save($gRec);
-    
+                        
                         $res = $gRec->id;
                     } else {
                         $res = null;
                     }
                 }
             }
-    
+            
             $groups[$parentIdNumb][$name] = $res;
         }
-    
+        
         return $res;
     }
     
@@ -569,7 +569,7 @@ class crm_Groups extends core_Master
                 $arr['tel'] = 'crm_Persons::tel';
                 $arr['mobile'] = 'crm_Persons::mobile';
                 $arr['fax'] = 'crm_Persons::fax';
-                
+            
             break;
             
             case self::$pPersonsBiz:
@@ -587,7 +587,7 @@ class crm_Groups extends core_Master
             break;
             
             default:
-                
+            
             break;
         }
         
@@ -598,9 +598,9 @@ class crm_Groups extends core_Master
     /**
      * Връща масив с възможните избори за персонализиране на групата
      *
-     * @param integer $id
-     * @param boolean $escaped
-     * @param boolean $useTitle
+     * @param int  $id
+     * @param bool $escaped
+     * @param bool $useTitle
      *
      * @return array
      */
@@ -644,9 +644,10 @@ class crm_Groups extends core_Master
         return $resArr;
     }
     
-
+    
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param string $id
@@ -667,10 +668,11 @@ class crm_Groups extends core_Master
     
     /**
      * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param string  $id
-     * @param integer $limit
+     * @param string $id
+     * @param int    $limit
      *
      * @return array
      */
@@ -717,10 +719,11 @@ class crm_Groups extends core_Master
     
     /**
      * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param string|object $id
-     * @param boolean       $verbal
+     * @param bool          $verbal
      *
      * @return string
      */
@@ -754,12 +757,13 @@ class crm_Groups extends core_Master
     
     /**
      * Дали потребителя може да използва дадения източник на персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param string  $id
-     * @param integer $userId
+     * @param string $id
+     * @param int    $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canUsePersonalization($id, $userId = null)
     {
@@ -778,10 +782,11 @@ class crm_Groups extends core_Master
     
     /**
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $userId
-     * @param integer $folderId
+     * @param int $userId
+     * @param int $folderId
      *
      * @return array
      */
@@ -838,9 +843,10 @@ class crm_Groups extends core_Master
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
      * за съответния запис,
      * които са достъпни за посочения потребител
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
@@ -854,6 +860,7 @@ class crm_Groups extends core_Master
     
     /**
      * Връща линк, който сочи към източника за персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param string $id
@@ -880,9 +887,10 @@ class crm_Groups extends core_Master
     
     /**
      * Връща езика за източника на персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */

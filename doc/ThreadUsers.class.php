@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Регистър за отношенията на потребители към тредове
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_ThreadUsers extends core_Manager
 {
-    
-    
     /**
      * Необходими мениджъри
      */
@@ -69,7 +68,7 @@ class doc_ThreadUsers extends core_Manager
         $this->setDbIndex('containerId');
         $this->setDbUnique('threadId,containerId,userId,relation');
     }
-
+    
     
     /**
      * Добавя споделен потребител(и) към дадената нишка
@@ -80,31 +79,32 @@ class doc_ThreadUsers extends core_Manager
     public static function addShared($threadId, $containerId, $users, $relation = 'shared')
     {
         if (!$users) {
+            
             return;
         }
-
+        
         if (is_int($users)) {
             $usersArr = array($users => $users);
         } else {
             $usersArr = keylist::toArray($users);
         }
-
+        
         if (count($usersArr)) {
             foreach ($usersArr as $userId) {
                 if ($userId > 0) {
                     $rec = (object) array(
-                            'threadId' => $threadId,
-                            'containerId' => $containerId,
-                            'userId' => $userId,
-                            'relation' => $relation,
-                        );
+                        'threadId' => $threadId,
+                        'containerId' => $containerId,
+                        'userId' => $userId,
+                        'relation' => $relation,
+                    );
                     static::save($rec, null, 'IGNORE');
                 }
             }
         }
     }
-
-
+    
+    
     /**
      * Добавя 'абониран' потребител(и) към дадената нишка
      * Абонирания потребител, получава нотификации, когато в нишката има нов документ
@@ -115,8 +115,8 @@ class doc_ThreadUsers extends core_Manager
     {
         return static::addShared($threadId, $containerId, $users, 'subscribed');
     }
-
-
+    
+    
     /**
      * Връща всички потребители, за които посочената нишка е споделена
      */
@@ -129,11 +129,11 @@ class doc_ThreadUsers extends core_Manager
         while ($rec = $query->fetch(array("#threadId = [#1#] AND #relation = '[#2#]'", $threadId, $relation))) {
             $res[$rec->userId] = $rec->userId;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Връща всички потребители, които са абонирани за посочената нишка
      */
@@ -142,7 +142,7 @@ class doc_ThreadUsers extends core_Manager
         return static::getShared($threadId, 'subscribed');
     }
     
-
+    
     /**
      * Проверява дали посочения потребител е в посоченото отношение към посочената нишка
      */
@@ -152,11 +152,11 @@ class doc_ThreadUsers extends core_Manager
             
             return true;
         }
-
+        
         return false;
     }
-
-
+    
+    
     /**
      * Премахва цялата информация за даден контейнер
      */

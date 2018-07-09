@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Actions extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -62,7 +61,7 @@ class log_Actions extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -73,7 +72,6 @@ class log_Actions extends core_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'action';
-    
     
     
     public static $actionsArr = array();
@@ -96,7 +94,7 @@ class log_Actions extends core_Manager
      *
      * @param string $action
      *
-     * @return integer
+     * @return int
      */
     public static function getActionCrc($action)
     {
@@ -124,11 +122,11 @@ class log_Actions extends core_Manager
             if (self::fetch("#crc = {$crc}")) {
                 continue;
             }
-
+            
             $rec = new stdClass();
             $rec->crc = $crc;
             $rec->action = $action;
-           
+            
             self::save($rec, null, 'IGNORE');
         }
     }
@@ -137,7 +135,7 @@ class log_Actions extends core_Manager
     /**
      * Връща действието от crc стойността
      *
-     * @param integer $crc
+     * @param int $crc
      *
      * @return string
      */

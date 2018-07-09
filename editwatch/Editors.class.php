@@ -7,16 +7,16 @@
  *
  * @category  vendors
  * @package   editwatch
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class editwatch_Editors extends core_Manager
 {
-    
-    
     /**
      * Описание на модела (таблицата)
      */

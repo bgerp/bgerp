@@ -1,32 +1,36 @@
  <?php
 
+
 /**
  * Логическо действие за присвояване на стойност
  *
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_ScriptActionAssign
 {
     public $oldClassName = 'sens2_LogicActionAssign';
-
+    
+    
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'sens2_ScriptActionIntf';
-
-
+    
+    
     /**
      * Наименование на действието
      */
     public $title = 'Задаване на променлива';
-
-
+    
+    
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
@@ -48,7 +52,7 @@ class sens2_ScriptActionAssign
         foreach ($inds as $i => $v) {
             $suggestions[$i] = $i;
         }
-
+        
         if (!count($opt)) {
             redirect(array('sens2_Scripts', 'single', $vars), false, '|Моля, дефинирайте поне една променлива');
         }
@@ -57,7 +61,7 @@ class sens2_ScriptActionAssign
         $form->setSuggestions('expr', $suggestions);
         $form->setSuggestions('cond', $suggestions);
     }
-   
+    
     
     /**
      * Проверява след  субмитване формата с настройки на контролера
@@ -69,26 +73,27 @@ class sens2_ScriptActionAssign
     public function checkActionForm($form)
     {
     }
-
+    
     public function toVerbal($rec)
     {
         $varId = sens2_Scripts::highliteExpr($rec->varId, $rec->scriptId);
         $expr = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
         $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
-
+        
         $res = "{$output} = {$expr}";
         if ($rec->cond) {
             $res .= ", ако {$cond}";
         }
-     
+        
         $res = "{$varId} = {$expr}";
         if ($rec->cond) {
             $res .= ", ако {$cond}";
         }
-
+        
         return $res;
     }
-
+    
+    
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
@@ -106,14 +111,14 @@ class sens2_ScriptActionAssign
                 return 'closed';
             }
         }
-
+        
         // Изчисляваме израза
         $value = sens2_Scripts::calcExpr($rec->expr, $rec->scriptId);
         if ($value === sens2_Scripts::CALC_ERROR) {
             
             return 'stopped';
         }
-
+        
         // Задаваме го на изхода
         $res = sens2_ScriptDefinedVars::setValue($rec->scriptId, $rec->varId, $value);
         
@@ -121,7 +126,7 @@ class sens2_ScriptActionAssign
             
             return 'active';
         }
-
+        
         return 'stopped';
     }
 }

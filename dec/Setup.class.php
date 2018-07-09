@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Дефолтен шаблон за декларации на български
  */
@@ -21,15 +22,15 @@ defIfNot('DEC_DEF_TPL_EN', '');
  *
  * @category  bgerp
  * @package   dec
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class dec_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -52,32 +53,32 @@ class dec_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Декларации за съответствия';
-
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'dec_Declarations',
-            'dec_Statements',
-            'dec_Materials',
-        );
-
-        
+        'dec_Declarations',
+        'dec_Statements',
+        'dec_Materials',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'dec';
-
+    
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-
+        
         'DEC_DEF_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Декларация за съответствие->Български,optionsFunc=dec_Declarations::getTemplateBgOptions'),
         'DEC_DEF_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Декларация за съответствие->Английски,optionsFunc=dec_Declarations::getTemplateEnOptions'),
-  
+    
     );
     
     
@@ -99,16 +100,16 @@ class dec_Setup extends core_ProtoSetup
     public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
-         
+        
         // Ако няма посочени от потребителя сметки за синхронизация
         $config = core_Packs::getConfig('dec');
-         
+        
         // Поставяме първия намерен шаблон на български за дефолтен на Декларация за съответствие
         if (strlen($config->DEC_DEF_TPL_BG) === 0) {
             $key = key(dec_Declarations::getTemplateBgOptions());
             core_Packs::setConfig('dec', array('DEC_DEF_TPL_BG' => $key));
         }
-         
+        
         // Поставяме първия намерен шаблон на английски за дефолтен на Декларация за съответствие
         if (strlen($config->DEC_DEF_TPL_EN) === 0) {
             $key = key(dec_Declarations::getTemplateEnOptions());

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class sens2_Setup
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -54,54 +53,55 @@ class sens2_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'sens2_Indicators',
-            'sens2_DataLogs',
-            'sens2_Controllers',
-            'sens2_Scripts',
-            'sens2_ScriptActions',
-            'sens2_ScriptDefinedVars',
-            'sens2_IOPorts',
-        );
+        'sens2_Indicators',
+        'sens2_DataLogs',
+        'sens2_Controllers',
+        'sens2_Scripts',
+        'sens2_ScriptActions',
+        'sens2_ScriptDefinedVars',
+        'sens2_IOPorts',
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'sens';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Мониторинг', 'Сензори', 'sens2_Indicators', 'default', 'sens, ceo,admin'),
-        );
+        array(3.4, 'Мониторинг', 'Сензори', 'sens2_Indicators', 'default', 'sens, ceo,admin'),
+    );
     
-
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = array(
-            'sens2_reports_DataLog',
-            'sens2_MockupDrv',
-            'sens2_ServMon',
-            'sens2_ScriptActionAssign',
-            'sens2_ScriptActionSignal',
-            'sens2_ScriptActionSMS',
-            'sens2_ScriptActionNotify',
-            'sens2_ioport_AI',
-            'sens2_ioport_DI',
-            'sens2_ioport_DO',
-            'sens2_ioport_AO',
+        'sens2_reports_DataLog',
+        'sens2_MockupDrv',
+        'sens2_ServMon',
+        'sens2_ScriptActionAssign',
+        'sens2_ScriptActionSignal',
+        'sens2_ScriptActionSMS',
+        'sens2_ScriptActionNotify',
+        'sens2_ioport_AI',
+        'sens2_ioport_DI',
+        'sens2_ioport_DO',
+        'sens2_ioport_AO',
     );
-        
+    
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-         
+        
         $rec = new stdClass();
         $rec->systemId = 'sens2_UpdateIndications';
         $rec->description = 'Взима данни от активни сензори';
@@ -121,7 +121,7 @@ class sens2_Setup extends core_ProtoSetup
         $rec->delay = 15;
         $rec->timeLimit = 55;
         $html .= core_Cron::addOnce($rec);
-         
+        
         return $html;
     }
     

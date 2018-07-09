@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на Задания за производство
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Задания за производство
  */
 class planning_Jobs extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -88,6 +87,7 @@ class planning_Jobs extends core_Master
     
     /**
      * Кой може да променя активирани записи
+     *
      * @see change_Plugin
      */
     public $canChangerec = 'ceo, job';
@@ -151,13 +151,13 @@ class planning_Jobs extends core_Master
      * Вербални наименования на състоянията
      */
     private static $actionNames = array('created' => 'Създаване',
-                                        'active' => 'Активиране',
-                                        'edited' => 'Редактиране',
-                                        'stopped' => 'Спиране',
-                                        'closed' => 'Приключване',
-                                        'rejected' => 'Оттегляне',
-                                        'restore' => 'Възстановяване',
-                                        'wakeup' => 'Събуждане');
+        'active' => 'Активиране',
+        'edited' => 'Редактиране',
+        'stopped' => 'Спиране',
+        'closed' => 'Приключване',
+        'rejected' => 'Оттегляне',
+        'restore' => 'Възстановяване',
+        'wakeup' => 'Събуждане');
     
     
     /**
@@ -166,10 +166,10 @@ class planning_Jobs extends core_Master
      * @see planning_plg_StateManager
      */
     public $notifyActionNamesArr = array('active' => 'Активиране',
-                                         'closed' => 'Приключване',
-                                         'wakeup' => 'Събуждане',
-                                         'stopped' => 'Спиране',
-                                         'rejected' => 'Оттегляне');
+        'closed' => 'Приключване',
+        'wakeup' => 'Събуждане',
+        'stopped' => 'Спиране',
+        'rejected' => 'Оттегляне');
     
     
     /**
@@ -238,8 +238,9 @@ class planning_Jobs extends core_Master
     /**
      * Връща последните валидни задания за артикула
      *
-     * @param  int   $productId - ид на артикул
-     * @param  int   $id        - ид на текущото задание
+     * @param int $productId - ид на артикул
+     * @param int $id        - ид на текущото задание
+     *
      * @return array $res    - масив с предишните задания
      */
     private static function getOldJobs($productId, $id, $folderId)
@@ -354,14 +355,16 @@ class planning_Jobs extends core_Master
     /**
      * Дефолтна дата на падеж
      *
-     * @param  int       $productId - ид на артикул
-     * @param  int       $saleId    - ид на сделка
+     * @param int $productId - ид на артикул
+     * @param int $saleId    - ид на сделка
+     *
      * @return NULL|date - дефолтния падеж
      */
     private static function getDefaultDueDate($productId, $saleId, &$deliveryDate)
     {
         $saleRec = sales_Sales::fetch($saleId);
         if (empty($saleId)) {
+            
             return;
         }
         
@@ -372,6 +375,7 @@ class planning_Jobs extends core_Master
         }
         
         if (empty($deliveryDate)) {
+            
             return;
         }
         $deliveryDate = dt::verbal2mysql($deliveryDate, false);
@@ -529,7 +533,7 @@ class planning_Jobs extends core_Master
         $tpl = parent::renderSingle_($data);
         
         $tpl->push('planning/tpl/styles.css', 'CSS');
-         
+        
         // Рендираме историята на действията със заданието
         if (count($data->row->history)) {
             foreach ($data->row->history as $hRow) {
@@ -539,11 +543,11 @@ class planning_Jobs extends core_Master
                 $clone->append2master();
             }
         }
-         
+        
         $data->packagingData->listFields['packagingId'] = 'Опаковка';
         $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
         $tpl->replace($packagingTpl, 'PACKAGINGS');
-         
+        
         if (count($data->components)) {
             $componentTpl = cat_Products::renderComponents($data->components);
             $tpl->append($componentTpl, 'JOB_COMPONENTS');
@@ -565,7 +569,7 @@ class planning_Jobs extends core_Master
                 $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
             }
         }
-
+        
         // Бутон за добавяне на документ за производство
         if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
@@ -614,7 +618,7 @@ class planning_Jobs extends core_Master
             if ($rec->dueDate < dt::today()) {
                 $form->setWarning('dueDate', 'Падежът е в миналото');
             }
-                
+            
             if (empty($rec->id)) {
                 if (isset($rec->department)) {
                     $rec->folderId = planning_Centers::forceCoverAndFolder($rec->department);
@@ -645,9 +649,10 @@ class planning_Jobs extends core_Master
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+            
             return;
         }
-    
+        
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
     
@@ -726,7 +731,7 @@ class planning_Jobs extends core_Master
             
             $row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
         }
-         
+        
         if (isset($rec->saleId)) {
             $row->saleId = sales_Sales::getlink($rec->saleId);
             $saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress,state');
@@ -751,7 +756,7 @@ class planning_Jobs extends core_Master
                 $row->{$fld} = ht::createHint($row->{$fld}, 'Произведено е повече от планираното', 'warning', false);
                 $color = 'red';
             }
-             
+            
             if ($rec->{$fld} != 0) {
                 $quantityRow = new core_ET("<span style='color:[#color#]'>[#quantity#]</span>");
                 $quantityRow->placeArray(array('color' => $color, 'quantity' => $row->{$fld}));
@@ -764,7 +769,7 @@ class planning_Jobs extends core_Master
                 $row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
             }
         }
-            
+        
         if (isset($fields['-single'])) {
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
             $row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
@@ -864,12 +869,12 @@ class planning_Jobs extends core_Master
                     $res = 'no_one';
                 } else {
                     $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
-                     
+                    
                     // Трябва да е активиран
                     if ($productRec->state != 'active') {
                         $res = 'no_one';
                     }
-                     
+                    
                     // Трябва и да е производим
                     if ($res != 'no_one') {
                         if ($productRec->canManifacture == 'no') {
@@ -886,12 +891,12 @@ class planning_Jobs extends core_Master
                     }
                 }
             }
-                
+            
             if ($action == 'add' && empty($rec)) {
                 $res = 'no_one';
             }
         }
-         
+        
         // Ако няма ид, не може да се активира
         if ($action == 'activate' && empty($rec->id)) {
             $res = 'no_one';
@@ -930,10 +935,11 @@ class planning_Jobs extends core_Master
     /**
      * Добавя действие към историята
      *
-     * @param  array    $history - масив с историята
-     * @param  string   $action  - действие
-     * @param  datetime $date    - кога
-     * @param  int      $userId  - кой
+     * @param array    $history - масив с историята
+     * @param string   $action  - действие
+     * @param datetime $date    - кога
+     * @param int      $userId  - кой
+     *
      * @return void
      */
     private static function addToHistory(&$history, $action, $date, $userId, $reason = null)
@@ -985,9 +991,9 @@ class planning_Jobs extends core_Master
                 $historyRec['action'] = tr($historyRec['action']);
                 
                 $historyRow = (object) array('date' => cls::get('type_DateTime')->toVerbal($historyRec['date']),
-                                            'user' => crm_Profiles::createLink($historyRec['user']),
-                                            'action' => "<span>{$historyRec['action']}</span>",
-                                            'stateclass' => "state-{$historyRec['engaction']}");
+                    'user' => crm_Profiles::createLink($historyRec['user']),
+                    'action' => "<span>{$historyRec['action']}</span>",
+                    'stateclass' => "state-{$historyRec['engaction']}");
                 
                 if (isset($historyRec['reason'])) {
                     $historyRow->reason = cls::get('type_Text')->toVerbal($historyRec['reason']);
@@ -1046,7 +1052,8 @@ class planning_Jobs extends core_Master
     /**
      * Преизчисляваме какво количество е произведено по заданието
      *
-     * @param  int  $id - ид на запис
+     * @param int $id - ид на запис
+     *
      * @return void
      */
     public static function updateProducedQuantity($id)
@@ -1160,13 +1167,13 @@ class planning_Jobs extends core_Master
                 redirect(array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $actionArr[1], 'ret_url' => true));
             }
         }
-         
+        
         $form->toolbar->addSbBtn('Напред', 'default', 'ef_icon = img/16/move.png, title=Създаване на нова операция');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-         
+        
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
-         
+        
         return $tpl;
     }
     
@@ -1174,38 +1181,39 @@ class planning_Jobs extends core_Master
     /**
      * Помощен метод подготвящ опциите за създаване на задача към задание
      *
-     * @param  int   $jobRec - към кое задание
+     * @param int $jobRec - към кое задание
+     *
      * @return array $options - масив с опции при създаване на задача
      */
     private function getTaskOptions($rec)
     {
         $options = array();
-         
+        
         // Има ли дефолтни задачи от артикула
         $defaultTasks = cat_Products::getDefaultProductionTasks($rec->productId, $rec->quantity);
         if (count($defaultTasks)) {
             foreach ($defaultTasks as $k => $defRec) {
                 $options["sys|{$k}"] = $defRec->title;
             }
-             
+            
             $options = array('d' => (object) array('group' => true, 'title' => tr('Шаблонни операции от артикула'))) + $options;
         }
-    
+        
         // Имали задачи за клониране
         if (isset($rec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($rec->oldJobId);
-    
+            
             if (count($oldTasks)) {
                 $options1 = array();
                 foreach ($oldTasks as $k1 => $oldTitle) {
                     $tRec = planning_Tasks::fetch($k1);
                     $options1["c|{$k1}"] = $oldTitle;
                 }
-    
+                
                 $options += array('c' => (object) array('group' => true, 'title' => tr('Клониране от предходни операции'))) + $options1;
             }
         }
-    
+        
         // За всички цехове, добавя се опция за добавяне
         $options2 = array();
         $departments = cls::get('planning_Centers')->makeArray4Select('name');
@@ -1215,7 +1223,7 @@ class planning_Jobs extends core_Master
                 $options2["new|{$depFolderId}"] = 'В ' . planning_Centers::getTitleById($dId);
             }
         }
-         
+        
         $options += array('new' => (object) array('group' => true, 'title' => tr('Нови операции'))) + $options2;
         
         // Връщане на опциите за избор
@@ -1226,7 +1234,8 @@ class planning_Jobs extends core_Master
     /**
      * Намира всички производими артикули по една продажба, към които може да се създават задания
      *
-     * @param  int   $saleId
+     * @param int $saleId
+     *
      * @return array $res
      */
     private function getSelectableProducts($saleId)
@@ -1245,7 +1254,8 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param  date  $date
+     * @param date $date
+     *
      * @return array $result
      */
     public static function getIndicatorNames()
@@ -1256,7 +1266,7 @@ class planning_Jobs extends core_Master
         
         $rec = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
         $result[$rec->id] = $rec->name;
-    
+        
         return $result;
     }
     
@@ -1265,7 +1275,8 @@ class planning_Jobs extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param  date  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
      * @return array $result  - масив с обекти
      *
      * 			o date        - дата на стайноста

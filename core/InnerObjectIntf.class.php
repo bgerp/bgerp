@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_InnerObjectIntf
 {
-    
-    
     /**
      * Инстанция на класа имплементиращ интерфейса
      */

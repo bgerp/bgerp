@@ -8,16 +8,16 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class planning_ProductionNoteDetails extends deals_ManifactureDetail
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -28,8 +28,8 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
      * Заглавие
      */
     public $title = 'Детайли на протокола от производство';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -77,7 +77,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
      */
     public $listFields = 'productId, jobId, bomId, packagingId, packQuantity';
     
-        
+    
     /**
      * Активен таб
      */
@@ -140,7 +140,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
             } else {
                 $rec->bomId = null;
             }
-                
+            
             // Не показваме полето за себестойност ако има активна рецепта и задание
             if (isset($rec->jobId, $rec->bomId)) {
                 $showSelfvalue = false;
@@ -184,7 +184,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     protected static function on_AfterPrepareListRows($mvc, &$res)
     {
         $recs = &$res->recs;
-    
+        
         $hasBomFld = $hasJobFld = false;
         
         if (count($recs)) {
@@ -192,7 +192,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
                 $hasJobFld = !empty($rec->jobId) ? true : $hasJobFld;
                 $hasBomFld = !empty($rec->bomId) ? true : $hasBomFld;
             }
-             
+            
             if ($hasJobFld === false) {
                 unset($res->listFields['jobId']);
             }

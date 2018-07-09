@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Споделяне в социалните мрежи
  *
  *
  * @category  bgerp
  * @package   social
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class social_SharingCnts extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -26,7 +25,7 @@ class social_SharingCnts extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Брой споделяния';
-
+    
     
     /**
      * Разглеждане на листов изглед
@@ -40,13 +39,12 @@ class social_SharingCnts extends core_Master
     public $loadList = 'social_Wrapper, plg_Created';
     
     
-   
     /**
      * Полета за листовия изглед
      */
     public $listFields = 'networkId,url,cnt,createdOn=Създаване';
-
-
+    
+    
     /**
      * Поле за инструментите на реда
      */
@@ -57,13 +55,13 @@ class social_SharingCnts extends core_Master
      * Кой има право да чете?
      */
     public $canRead = 'cms, social, admin, ceo';
-        
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'cms, social, admin, ceo';
-
+    
     
     /**
      * Описание на модела
@@ -74,19 +72,19 @@ class social_SharingCnts extends core_Master
         $this->FLD('url', 'varchar(128)', 'caption=URL, input=none, hint=URL за споделяне');
         $this->FLD('cnt', 'int', 'caption=Споделяния, input=none,notNull');
     }
-
+    
     public static function addHit($networkId, $url)
     {
         // Взимаме записите от модела, който брои споделянията
         $rec = self::fetch(array("#networkId = '{$networkId}' AND #url = '[#1#]'", $url));
-                        
+        
         // Ако нямаме записи, създаваме записа
         if (!$rec) {
             $rec = new stdClass();
             $rec->networkId = $networkId;
             $rec->url = $url;
         }
-                           
+        
         // Уваеличаваме брояча и записваме
         $rec->cnt++;
         self::save($rec);
@@ -101,7 +99,7 @@ class social_SharingCnts extends core_Master
         $row->url = ht::createLink(type_Varchar::escape($rec->url), $rec->url);
     }
     
-
+    
     /**
      * Преди извличане на записите за листови изглед - подреждане
      */

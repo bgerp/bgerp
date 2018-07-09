@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * @todo Чака за документация...
  */
@@ -20,24 +19,22 @@ defIfNot('EF_DOWNLOAD_DIR', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
 defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
 
 
-
-
 /**
  * Клас 'fileman_Download' -
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class fileman_Download extends core_Manager
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -66,9 +63,9 @@ class fileman_Download extends core_Manager
         $this->FLD('fileName', 'varchar(255)', 'notNull,caption=Име');
         
         $this->FLD(
-        
+            
             'prefix',
-        
+            
             'varchar(' . strlen(EF_DOWNLOAD_PREFIX_PTR) . ')',
             array('notNull' => true, 'caption' => 'Префикс')
         
@@ -99,9 +96,9 @@ class fileman_Download extends core_Manager
     /**
      * Връща URL за сваляне на файла с валидност publicTime часа
      *
-     * @param string  $src      - Манипулатор на файл, път до файл или URL
-     * @param integer $lifeTime - Колко време да се пази линка (в часове)
-     * @param string  $type     -  - Типа на сорса - handler, url, path
+     * @param string $src      - Манипулатор на файл, път до файл или URL
+     * @param int    $lifeTime - Колко време да се пази линка (в часове)
+     * @param string $type     -  - Типа на сорса - handler, url, path
      *
      * @return URL - Линк към файла
      */
@@ -115,7 +112,7 @@ class fileman_Download extends core_Manager
             
             return false;
         }
-
+        
         // Ако типа е URL
         if ($type == 'url') {
             
@@ -143,7 +140,7 @@ class fileman_Download extends core_Manager
             $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
         } else {
             // Ако е път до файл
-
+            
             // Ако не е подаден целия път до файла
             if (!is_file($src)) {
                 
@@ -176,7 +173,7 @@ class fileman_Download extends core_Manager
         
         // Записите за файла
         $dRec = static::fetch("#fileId = '{$fileId}'");
-
+        
         // Ако имаме линк към файла, тогава използваме същия линк
         if ($dRec) {
             
@@ -437,7 +434,7 @@ class fileman_Download extends core_Manager
                         continue;
                     }
                 }
-
+                
                 if (copy($src, $dest)) {
                     $res .= "<li class=\"debug-new\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 } else {
@@ -462,8 +459,8 @@ class fileman_Download extends core_Manager
     /**
      * Връща SBF линк за сваляне на файла
      *
-     * @param object  $rec      - Записа за файла
-     * @param boolean $absolute - Дали линка да е абсолютен или не
+     * @param object $rec      - Записа за файла
+     * @param bool   $absolute - Дали линка да е абсолютен или не
      *
      * @return string $link - Текстов линк за сваляне
      */
@@ -508,7 +505,7 @@ class fileman_Download extends core_Manager
             
             // Директорията, в която се намира
             $dir = static::getDownloadDir($rec);
-        
+            
             // Изтриваме директорията
             core_Os::deleteDir($dir);
             

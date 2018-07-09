@@ -7,15 +7,16 @@
  *
  * @category  vendors
  * @package   thumb
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  *
  */
 class thumb_M extends core_Mvc
 {
-    
     /**
      * Масив с файлове за оптимизиране от външни програми
      *
@@ -23,12 +24,11 @@ class thumb_M extends core_Mvc
      */
     public $forOptimization = array();
     
-
+    
     /**
      * Имидж, който е бил зареден през екшъна
      */
     protected $thumb;
-    
     
     
     public function act_R()
@@ -37,9 +37,9 @@ class thumb_M extends core_Mvc
         
         // Премахва фиктивното файлово разширение
         list($id, $ext) = explode('.', $id);
-
+        
         $arguments = core_Crypt::decodeVar($id, thumb_Img::getCryptKey());
-
+        
         $this->thumb = new thumb_Img($arguments);
         
         if (file_exists($file = $this->thumb->getThumbPath())) {
@@ -48,7 +48,7 @@ class thumb_M extends core_Mvc
             header('Content-Length: ' . filesize($file));
             readfile($file);
             flush();
-
+            
             shutdown();
         } else {
             self::addTypeHeader($ext);
@@ -56,7 +56,7 @@ class thumb_M extends core_Mvc
             return new Redirect($this->thumb->getUrl('forced'));
         }
     }
-
+    
     
     /**
      * Добавя хедър за mime тип, в зависимост от разширението на графичния файл
@@ -68,7 +68,7 @@ class thumb_M extends core_Mvc
             header("Content-Type: image/{$type}");
         }
     }
-
+    
     
     /**
      * Изпълнява се на затваряне
@@ -78,10 +78,10 @@ class thumb_M extends core_Mvc
         if (isset($this->thumb)) {
             $this->thumb->getUrl('forced');
         }
-
+        
         if (count($this->forOptimization)) {
             $optmizators = arr::make(thumb_Setup::get('OPTIMIZATORS'), true);
-
+            
             foreach ($this->forOptimization as $path => $type) {
                 foreach ($optmizators as $o) {
                     list($program, $t) = explode('/', $o);
@@ -94,8 +94,8 @@ class thumb_M extends core_Mvc
             }
         }
     }
-
-
+    
+    
     /**
      *  Изпълнява команда за оптимизиране на графичен файл
      */
@@ -132,15 +132,15 @@ class thumb_M extends core_Mvc
             log_System::add('thumb_Img', 'Прескочено оптимизиране, защото е било заключено: ' . $cmd, null, 'debug');
         }
     }
-
-
+    
+    
     /**
      * Изтриване на кешираните изображения
      */
     public function act_Clear()
     {
         $deleted = core_Os::deleteOldFiles(thumb_Setup::get('IMG_PATH'), 1);
-
+        
         return followRetUrl(null, "Изтрити са|* {$deleted} |файла.");
     }
 }

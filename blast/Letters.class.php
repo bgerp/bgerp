@@ -1,22 +1,21 @@
 <?php 
 
-
 /**
  * Циркулярни писма
  *
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/148
  */
 class blast_Letters extends core_Master
 {
-    
-    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -119,7 +118,7 @@ class blast_Letters extends core_Master
      */
     public $loadList = 'blast_Wrapper, plg_State, plg_RowTools, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
     
-
+    
     /**
      * Кой може да оттелгя имейла
      */
@@ -201,8 +200,9 @@ class blast_Letters extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
-     * @param  int     $folderId - id на папката
-     * @return boolean
+     * @param int $folderId - id на папката
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -284,6 +284,7 @@ class blast_Letters extends core_Master
                 $form->setOptions('listId', $files, $form->rec->id);
             } else {
                 $file = array();
+                
                 //Ако редактираме, показваме списъка, който го редактираме
                 $file[$form->rec->listId] = $files[$form->rec->listId];
                 $form->setOptions('listId', $file, $form->rec->id);
@@ -422,7 +423,6 @@ class blast_Letters extends core_Master
      */
     public function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = null)
     {
-        
         // Ако има id
         if ($id) {
             
@@ -1229,8 +1229,8 @@ class blast_Letters extends core_Master
     /**
      * Връща масив с данни за заместване за съответното писмо
      *
-     * @param string  $group - Групата
-     * @param integer $id    - id' то на записа от съответната група
+     * @param string $group - Групата
+     * @param int    $id    - id' то на записа от съответната група
      *
      * @return array $data - Масив с данни
      */
@@ -1332,8 +1332,8 @@ class blast_Letters extends core_Master
     /**
      * @param blast_Letters $mvc
      * @param array         $res
-     * @param integer       $id
-     * @param integer       $userId
+     * @param int           $id
+     * @param int           $userId
      * @param object        $data
      */
     public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId = null, $data = null)

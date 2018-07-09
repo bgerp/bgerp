@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Длъжности в организацията
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_Positions extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -56,7 +55,7 @@ class hr_Positions extends core_Master
      */
     public $canWrite = 'ceo,hrMaster';
     
-      
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -78,7 +77,7 @@ class hr_Positions extends core_Master
         $this->FLD('frequensity', 'enum(mountly=Ежемесечно, weekly=Ежеседмично, daily=Ежедневно)', 'caption=Възнаграждение->Периодичност');
         $this->FLD('downpayment', 'enum(yes=Да,no=Не)', 'caption=Възнаграждение->Аванс');
         $this->FLD('formula', 'text(rows=3)', 'caption=Възнаграждение->Формула');
-
+        
         // Срокове
         $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', 'caption=Срокове->Изпитателен срок,unit=месеца,width=6em');
         $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', 'caption=Срокове->Годишен отпуск,unit=дни,width=6em');
@@ -88,7 +87,7 @@ class hr_Positions extends core_Master
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
     }
     
-
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -100,8 +99,8 @@ class hr_Positions extends core_Master
         $form = $data->form;
         $form->setSuggestions('formula', hr_IndicatorNames::getFormulaSuggestions());
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -136,7 +135,7 @@ class hr_Positions extends core_Master
         if ($this->haveRightFor('add', (object) array('departmentId' => $data->masterId))) {
             $data->addUrl = array($this, 'add', 'departmentId' => $data->masterId, 'ret_url' => true);
         }
-
+        
         $data->listFields = 'id,professionId,departmentId,employmentTotal,employmentOccupied';
         
         self::prepareDetail($data);
@@ -162,8 +161,8 @@ class hr_Positions extends core_Master
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Вербално представяне
      */

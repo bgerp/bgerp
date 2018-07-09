@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Смени
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_Shifts extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -45,6 +44,7 @@ class hr_Shifts extends core_Master
      * Кой има право да чете?
      */
     public $canRead = 'ceo,hrMaster';
+    
     
     /**
      * @todo Чака за документация...
@@ -92,20 +92,21 @@ class hr_Shifts extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         static $shiftMap = array(
-             0 => 'п',
-             1 => 'I',
-             2 => 'II',
-             3 => 'н',
-             4 => 'д',
-             5 => 'о',
-             6 => 'б',
-             7 => 'к',
+            0 => 'п',
+            1 => 'I',
+            2 => 'II',
+            3 => 'н',
+            4 => 'д',
+            5 => 'о',
+            6 => 'б',
+            7 => 'к',
         );
         
         $month = Request::get('cal_month', 'int');
@@ -174,7 +175,7 @@ class hr_Shifts extends core_Master
             
             $d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($data->rec, $date)] . '</span>';
             $d[$i]->type = (string) static::getShiftDay($data->rec, $date);
-
+            
             if ($d[$i]->type == '0') {
                 $res->row->shift0 = ' rest';
             } elseif ($d[$i]->type == '1') {
@@ -197,6 +198,7 @@ class hr_Shifts extends core_Master
         $res->row->month = dt::getMonth($month, $format = 'F', $lg = 'bg');
         $res->row->calendar = cal_Calendar::renderCalendar($year, $month, $d, $header);
     }
+    
     
     /**
      * @todo Чака за документация...

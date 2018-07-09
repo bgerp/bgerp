@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'type_Int' - Тип за цели числа
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Int extends core_Type
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -72,6 +71,7 @@ class type_Int extends core_Type
         $val = $this->prepareVal($val, $allowOct, $allowHex);
         
         if ($val === '') {
+            
             return;
         }
         
@@ -103,7 +103,7 @@ class type_Int extends core_Type
             $val = '0';
         }
         $code = "\$val = ${val};";
-
+        
         // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
         $signP = '(\*|\/|\+|\-|\.|\,)';
         $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))|\=|[^0-9\(\)]{1}[^0-9\(\)]{1}/";
@@ -114,7 +114,7 @@ class type_Int extends core_Type
             return (int) $val;
         }
         $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
-            
+        
         return false;
     }
     
@@ -166,6 +166,7 @@ class type_Int extends core_Type
     public function toVerbal_($value)
     {
         if (!isset($value)) {
+            
             return;
         }
         
@@ -174,7 +175,7 @@ class type_Int extends core_Type
         if (strlen($value) > 4) {
             $ts = Mode::is('forSearch') ? '' : $conf->EF_NUMBER_THOUSANDS_SEP;
             $value = number_format($value, 0, html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($ts));
-        
+            
             // Ако е сетнат флаг да няма интервали в номера да няма
             if (isset($this->params['noWhitespace'])) {
                 $value = str::removeWhitespaces($value);
@@ -201,10 +202,10 @@ class type_Int extends core_Type
     /**
      * Проверява дали стойността е int
      *
-     * @param string  $val
-     * @param boolean $unsigned
+     * @param string $val
+     * @param bool   $unsigned
      *
-     * @return boolean
+     * @return bool
      */
     public static function isInt($val, $unsigned = false)
     {
@@ -233,9 +234,9 @@ class type_Int extends core_Type
     /**
      * Премахва символите за осмична и шестнайсетична бройна система, ако не са позволени
      *
-     * @param integer $number
-     * @param boolean $allowOct
-     * @param boolean $allowHex
+     * @param int  $number
+     * @param bool $allowOct
+     * @param bool $allowHex
      *
      * @return string
      */

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'cat_products_Packagings'
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cat_products_Packagings extends core_Detail
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -40,13 +39,13 @@ class cat_products_Packagings extends core_Detail
      * Единично заглавие
      */
     public $singleTitle = 'Опаковка';
- 
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити, eanCode=';
-
+    
     
     /**
      * Плъгини за зареждане
@@ -71,12 +70,12 @@ class cat_products_Packagings extends core_Detail
      */
     public $canDelete = 'ceo,sales,purchase,packEdit';
     
-
+    
     /**
      * Предлог в формата за добавяне/редактиране
      */
     public $formTitlePreposition = 'на';
-
+    
     
     /**
      * Полета, които при клониране да не са попълнени
@@ -142,7 +141,7 @@ class cat_products_Packagings extends core_Detail
             }
             
             if ($rec->eanCode) {
-                    
+                
                 // Проверяваме дали има продукт с такъв код (като изключим текущия)
                 $check = $mvc->Master->getByCode($rec->eanCode);
                 if (($check && ($check->productId != $rec->productId)) ||
@@ -150,7 +149,7 @@ class cat_products_Packagings extends core_Detail
                     $form->setError('eanCode', 'Има вече продукт с такъв код!');
                 }
             }
-                
+            
             // Ако за този продукт има друга основна опаковка, тя става не основна
             if ($rec->isBase == 'yes' && $packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes'")) {
                 $packRec->isBase = 'no';
@@ -175,9 +174,10 @@ class cat_products_Packagings extends core_Detail
     /**
      * Колко опаковки от същия вид има артикула
      *
-     * @param  int    $productId
-     * @param  int    $sysId
-     * @return double
+     * @param int $productId
+     * @param int $sysId
+     *
+     * @return float
      */
     public static function countSameTypePackagings($productId, $sysId)
     {
@@ -185,7 +185,7 @@ class cat_products_Packagings extends core_Detail
         unset($uoms['']);
         
         $count = cat_products_Packagings::count("#productId = {$productId} AND #packagingId IN (" . implode(array_keys($uoms), ',') . ')');
-
+        
         return $count;
     }
     
@@ -229,15 +229,17 @@ class cat_products_Packagings extends core_Detail
     /**
      * Проверява количеството на теглото, допустимо ли е
      *
-     * @param  int         $productId
-     * @param  int         $packagingId
-     * @param  double      $quantity
+     * @param int   $productId
+     * @param int   $packagingId
+     * @param float $quantity
+     *
      * @return string|NULL
      */
     public static function checkWeightQuantity($productId, $packagingId, $quantity)
     {
         // Ако не е тегловна не се прави нищо
         if (!cat_UoM::isWeightMeasure($packagingId)) {
+            
             return;
         }
         
@@ -258,6 +260,7 @@ class cat_products_Packagings extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -322,6 +325,7 @@ class cat_products_Packagings extends core_Detail
      *
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
+     *
      * @return array $options - опциите
      */
     public static function getRemainingOptions($productId, $id = null)
@@ -335,12 +339,12 @@ class cat_products_Packagings extends core_Detail
         if ($id) {
             $query->where("#id != {$id}");
         }
-
+        
         while ($rec = $query->fetch("#productId = ${productId}")) {
             unset($uomArr[$rec->packagingId]);
             unset($packArr[$rec->packagingId]);
         }
-
+        
         // Групираме опциите, ако има такива
         $options = array();
         if (count($packArr)) {
@@ -354,7 +358,7 @@ class cat_products_Packagings extends core_Detail
         // Връщане на намерените опции
         return $options;
     }
-
+    
     
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
@@ -417,7 +421,7 @@ class cat_products_Packagings extends core_Detail
         }
     }
     
-   
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -467,7 +471,7 @@ class cat_products_Packagings extends core_Detail
         $data->recs = $data->rows = array();
         $fields = $this->selectFields();
         $fields['-list'] = true;
-      
+        
         $query = self::getQuery();
         $query->where("#productId = {$data->masterId}");
         $query->orderBy('quantity', 'ASC');
@@ -496,6 +500,7 @@ class cat_products_Packagings extends core_Detail
     public function renderPackagings($data)
     {
         if ($data->notStorable === true && !count($data->recs)) {
+            
             return;
         }
         $tpl = (isset($data->tpl)) ? $data->tpl : getTplFromFile('cat/tpl/PackigingDetail.shtml');
@@ -528,8 +533,9 @@ class cat_products_Packagings extends core_Detail
     /**
      * Връща опаковката ако има такава
      *
-     * @param  int      $productId   - ид на продукта
-     * @param  int      $packagingId - ид на опаковката
+     * @param int $productId   - ид на продукта
+     * @param int $packagingId - ид на опаковката
+     *
      * @return stdClass
      */
     public static function getPack($productId, $packagingId)
@@ -537,7 +543,7 @@ class cat_products_Packagings extends core_Detail
         return self::fetch("#productId = {$productId} AND #packagingId = '{$packagingId}'");
     }
     
-
+    
     /**
      * Връща количеството на дадения продукт в посочената опаковка
      */
@@ -553,14 +559,14 @@ class cat_products_Packagings extends core_Detail
         }
     }
     
-
+    
     /**
      * Връща най-голямата опаковка, която има по-малко бройки в себе си, от посоченото
      */
     public static function getLowerPack($productId, $quantity)
     {
         $bestRec = null;
-
+        
         $query = self::getQuery();
         while ($rec = $query->fetch("#productId = {$productId}")) {
             if ($rec->quantity < $quantity) {
@@ -569,10 +575,10 @@ class cat_products_Packagings extends core_Detail
                 }
             }
         }
-
+        
         return $bestRec;
     }
-
+    
     
     /**
      * Извиква се след успешен запис в модела
@@ -590,15 +596,16 @@ class cat_products_Packagings extends core_Detail
     /**
      * Дали в бизнес документите е използван артикула с посочената опаковка
      *
-     * @param  int     $productId - ид на артикул
-     * @param  int     $uomId     - мярка на артикула
-     * @param  boolean $cache     - дали искаме данните да се кешират при използване или не
-     * @return boolean $isUsed -използван или не
+     * @param int  $productId - ид на артикул
+     * @param int  $uomId     - мярка на артикула
+     * @param bool $cache     - дали искаме данните да се кешират при използване или не
+     *
+     * @return bool $isUsed -използван или не
      */
     public static function isUsed($productId, $uomId, $cache = false)
     {
         $cacheKey = "{$productId}|{$uomId}";
-
+        
         // Ако искаме кеширани данни
         if ($cache === true) {
             $isUsed = false;
@@ -627,20 +634,20 @@ class cat_products_Packagings extends core_Detail
         
         // Детайли в които ще проверяваме
         $details = array('sales_SalesDetails',
-                         'purchase_PurchasesDetails',
-                         'store_ShipmentOrderDetails',
-                         'store_ReceiptDetails',
-                         'sales_QuotationsDetails',
-                         'sales_InvoiceDetails',
-                         'purchase_InvoiceDetails',
-                         'planning_DirectProductNoteDetails',
-                         'planning_ConsumptionNoteDetails',
-                         'cat_BomDetails',
-                         'sales_ProformaDetails',
-                         'sales_ServicesDetails',
-                         'purchase_ServicesDetails',
-                         'store_ConsignmentProtocolDetailsReceived',
-                         'store_ConsignmentProtocolDetailsSend');
+            'purchase_PurchasesDetails',
+            'store_ShipmentOrderDetails',
+            'store_ReceiptDetails',
+            'sales_QuotationsDetails',
+            'sales_InvoiceDetails',
+            'purchase_InvoiceDetails',
+            'planning_DirectProductNoteDetails',
+            'planning_ConsumptionNoteDetails',
+            'cat_BomDetails',
+            'sales_ProformaDetails',
+            'sales_ServicesDetails',
+            'purchase_ServicesDetails',
+            'store_ConsignmentProtocolDetailsReceived',
+            'store_ConsignmentProtocolDetailsSend');
         
         // За всеки от изброените документи проверяваме дали е избран артикула с мярката
         $isUsed = false;
@@ -664,7 +671,7 @@ class cat_products_Packagings extends core_Detail
         } else {
             core_Cache::set('cat_Products', $cacheKey, 'n', 10080);
         }
-
+        
         // Връщаме резултат
         return $isUsed;
     }

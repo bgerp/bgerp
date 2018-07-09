@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Папка в Bulmar Office
  */
@@ -16,6 +17,7 @@ defIfNot('BULMAR_INV_TAX_OPERATION_SALE_PRODUCTS', '2');
  * Номер на счетоводната операция на продажбата на услуга в Bulmar Office
  */
 defIfNot('BULMAR_INV_TAX_OPERATION_SALE_SERVICES', '3');
+
 
 /**
  * Номер на счетоводната операция на плащането в Bulmar Office
@@ -80,15 +82,15 @@ defIfNot('BULMAR_INV_CREDIT_AV', 'K412');
  *
  * @category  bgerp
  * @package   bulmar
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bulmar_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -117,19 +119,19 @@ class bulmar_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'BULMAR_INV_CONTR_FOLDER' => array('int', 'caption=Експорт на изходящи фактури->Папка'),
-            'BULMAR_INV_TAX_OPERATION_SALE_PRODUCTS' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на продажба на стока №'),
-            'BULMAR_INV_TAX_OPERATION_SALE_SERVICES' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на продажба на услуга №'),
-            'BULMAR_INV_TAX_OPERATION_PAYMENT' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на плащане №'),
-            'BULMAR_INV_DEBIT_SALE' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка на клиента №'),
-            'BULMAR_INV_FIRST_CREDIT_SALE_PRODUCTS' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка продажба на стока'),
-            'BULMAR_INV_FIRST_CREDIT_SALE_SERVICES' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка продажба на услуга'),
-            'BULMAR_INV_SECOND_CREDIT_SALE' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Кредитна сметка ДДС'),
-            'BULMAR_INV_DEBIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка плащане'),
-            'BULMAR_INV_CREDIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Кредитна сметка плащане'),
-            'BULMAR_INV_AV_OPERATION' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на авансово плащане'),
-            'BULMAR_INV_CREDIT_AV' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Кредитна сметка за авансово плащане'),
-            );
+        'BULMAR_INV_CONTR_FOLDER' => array('int', 'caption=Експорт на изходящи фактури->Папка'),
+        'BULMAR_INV_TAX_OPERATION_SALE_PRODUCTS' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на продажба на стока №'),
+        'BULMAR_INV_TAX_OPERATION_SALE_SERVICES' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на продажба на услуга №'),
+        'BULMAR_INV_TAX_OPERATION_PAYMENT' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на плащане №'),
+        'BULMAR_INV_DEBIT_SALE' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка на клиента №'),
+        'BULMAR_INV_FIRST_CREDIT_SALE_PRODUCTS' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка продажба на стока'),
+        'BULMAR_INV_FIRST_CREDIT_SALE_SERVICES' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка продажба на услуга'),
+        'BULMAR_INV_SECOND_CREDIT_SALE' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Кредитна сметка ДДС'),
+        'BULMAR_INV_DEBIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Дебитна сметка плащане'),
+        'BULMAR_INV_CREDIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Кредитна сметка плащане'),
+        'BULMAR_INV_AV_OPERATION' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Сч. Операция на авансово плащане'),
+        'BULMAR_INV_CREDIT_AV' => array('varchar(10)', 'caption=Експорт на изходящи фактури->Кредитна сметка за авансово плащане'),
+    );
     
     
     /**

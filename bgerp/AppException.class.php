@@ -5,6 +5,7 @@ class bgerp_AppException extends Exception
     
     public $message;
     
+    
     /**
      * Конструктор
      */
@@ -20,9 +21,10 @@ class bgerp_AppException extends Exception
     /**
      * Генерира exception от съотв. клас, в случай че зададеното условие не е изпълнено
      *
-     * @param  boolean $condition
-     * @param  string  $message
-     * @param  array   $options
+     * @param bool   $condition
+     * @param string $message
+     * @param array  $options
+     *
      * @throws static
      */
     public static function expect($condition, $message, $options = array())
@@ -31,6 +33,7 @@ class bgerp_AppException extends Exception
             throw new static($message, $options);
         }
     }
+    
     
     /**
      * Конвертира към стринг

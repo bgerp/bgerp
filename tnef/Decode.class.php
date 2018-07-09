@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   tnef
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tnef_Decode extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -73,7 +73,6 @@ class tnef_Decode extends core_Manager
      * Разделител на файловете
      */
     protected static $filesDelimiter = ',';
-    
     
     
     public function description()

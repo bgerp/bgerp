@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Фирми доставчици на храна
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_Companies extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -116,7 +115,7 @@ class catering_Companies extends core_Manager
             }
             
             unset($recCrmCompanies);
-            
+        
         // END Редактираме записа
         } else {
             
@@ -175,8 +174,8 @@ class catering_Companies extends core_Manager
             $name = crm_Companies::fetchField("#id = '{$rec->companyId}'", 'name');
             $row->name = ht::createLink($name, array('crm_Companies', 'single', 'id' => $rec->companyId), null, 'ef_icon = img/16/vcard.png');
         }
-      
-       
+        
+        
         /*$row->address = type_Varchar::escape($companyDetails->pCode);
 
         $row->address = type_Varchar::escape($companyDetails->pCode) . ",

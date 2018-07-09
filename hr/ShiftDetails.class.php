@@ -1,25 +1,25 @@
 <?php 
 
-
 /**
  * Детайл на смените
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_ShiftDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Графици - детайли';
+    
     
     /**
      * @todo Чака за документация...
@@ -38,10 +38,12 @@ class hr_ShiftDetails extends core_Detail
      */
     public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_RowZebra, Shifts=hr_Shifts';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,startingOn,day,mode=Режим,start,duration,break';
+    
     
     /**
      * @todo Чака за документация...

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'sens_Wrapper'
  *
@@ -10,16 +9,16 @@
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class sens2_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
@@ -29,8 +28,9 @@ class sens2_Wrapper extends plg_ProtoWrapper
         $this->TAB('sens2_DataLogs', 'Записи');
         $this->TAB('sens2_Controllers', 'Контролери');
         $this->TAB('sens2_Scripts', 'Скриптове');
-
+        
         $this->title = 'В/И Контролери';
+        
         //Mode::set('pageMenu', 'Мониторинг');
         //Mode::set('pageSubMenu', 'MOM');
     }

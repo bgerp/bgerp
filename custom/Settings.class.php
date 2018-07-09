@@ -6,16 +6,16 @@
  *
  * @category  bgerp
  * @package   custom
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class custom_Settings extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -45,7 +45,7 @@ class custom_Settings extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -83,8 +83,8 @@ class custom_Settings extends core_Manager
      * Добавя бутон в тулбара, който отваря формата за персонализиране
      *
      * @param core_Toolbar $toolbar
-     * @param integer      $classId
-     * @param integer      $objectId
+     * @param int          $classId
+     * @param int          $objectId
      * @param string       $title
      */
     public static function addBtn(core_Toolbar $toolbar, $classId, $objectId, $title = 'Персонализиране')
@@ -100,10 +100,10 @@ class custom_Settings extends core_Manager
     /**
      * Връща масив с потребители и стойностите за съответното свойство
      *
-     * @param integer $classId
-     * @param integer $objectId
-     * @param string  $property
-     * @param string  $value
+     * @param int    $classId
+     * @param int    $objectId
+     * @param string $property
+     * @param string $value
      */
     public static function fetchUsers($classId, $objectId, $property, $value = null)
     {
@@ -134,9 +134,9 @@ class custom_Settings extends core_Manager
     /**
      * Въща масив с всички стойности на свойствата за даден клас и документ за съответния потребител
      *
-     * @param integer $classId
-     * @param integer $objectId
-     * @param integer $userId
+     * @param int $classId
+     * @param int $objectId
+     * @param int $userId
      *
      * @return array
      */
@@ -202,7 +202,7 @@ class custom_Settings extends core_Manager
         
         // Трябва да има такъв запис
         expect($cRec);
-    
+        
         // Опитваме се да определим ret_url-то
         $retUrl = getRetUrl();
         if (!$retUrl) {
@@ -371,7 +371,7 @@ class custom_Settings extends core_Manager
         return $this->renderWrapping($form->renderHtml(), $data);
     }
     
-
+    
     /**
      * Променяме wrapper' а да сочи към врапера на търсения клас
      *
@@ -386,7 +386,7 @@ class custom_Settings extends core_Manager
             
             return ;
         }
-           
+        
         // Рендираме изгледа
         $res = $data->cClass->renderWrapping($tpl, $data);
         

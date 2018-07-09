@@ -19,15 +19,15 @@ defIfNot('TNEF_MAX_SIZE', 104857600);
  *
  * @category  bgerp
  * @package   tnef
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tnef_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -88,7 +88,7 @@ class tnef_Setup extends core_ProtoSetup
     /**
      * Проверява дали програмата е инсталирана в сървъра
      *
-     * @return boolean
+     * @return bool
      */
     public function checkConfig()
     {

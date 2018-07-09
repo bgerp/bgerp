@@ -1,22 +1,20 @@
 <?php 
 
-
-
 /**
  * Мениджър за департаменти
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_Departments extends core_Master
 {
-    
-    
     /**
      * Ид на основния департамент
      */
@@ -111,7 +109,7 @@ class hr_Departments extends core_Master
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id,name';
-   
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -135,7 +133,7 @@ class hr_Departments extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', 'caption=Локация,width=100%');
         $this->FLD('orderStr', 'varchar', 'caption=Подредба,input=none,column=none');
         $this->FLD('state', 'enum(active=Активно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-       
+        
         $this->setDbUnique('name');
     }
     
@@ -163,7 +161,7 @@ class hr_Departments extends core_Master
         $fRec = &$data->form->rec;
         $data->form->setField('parentId', 'remember');
         $mvc->setField('makeDescendantsFeatures', 'input=none');
-                
+        
         self::expandRec($fRec);
         $data->form->setOptions('locationId', crm_Locations::getOwnLocations());
         $data->form->setDefault('parentId', self::ROOT_DEPARTMENT_ID);
@@ -196,7 +194,7 @@ class hr_Departments extends core_Master
         }
     }
     
-
+    
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -212,7 +210,7 @@ class hr_Departments extends core_Master
         
         $row->STATE_CLASS = "state-{$rec->state}";
     }
-
+    
     
     /**
      * Изчертаване на структурата с данни от базата
@@ -234,6 +232,7 @@ class hr_Departments extends core_Master
             // Ако имаме родител
             if ($rec->parentId == null) {
                 $parent = '0';
+                
                 // взимаме чистото име на наследника
                 $name = self::fetchField($rec->id, 'name');
             } else {
@@ -245,7 +244,7 @@ class hr_Departments extends core_Master
                     $parent = $rec->parentId;
                 }
             }
-         
+            
             $res[] = array('id' => $rec->id, 'title' => $name, 'parent_id' => $parent);
         }
         
@@ -288,7 +287,7 @@ class hr_Departments extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $chartType = Request::get('Chart');
-    
+        
         if ($chartType == 'Structure') {
             $tpl = static::getChart($data);
             $mvc->currentTab = 'Структура->Графика';
@@ -312,7 +311,8 @@ class hr_Departments extends core_Master
     /**
      * Синхронизиране на името на първия департамент с това на 'Моята фирма'
      *
-     * @param  string $myCompanyName - името на моята фирма
+     * @param string $myCompanyName - името на моята фирма
+     *
      * @return int
      */
     public static function forceFirstDepartment($myCompanyName)
@@ -327,7 +327,7 @@ class hr_Departments extends core_Master
         
         if ($rec->name != $myCompanyName) {
             $rec->name = $myCompanyName;
-        
+            
             core_Users::forceSystemUser();
             self::save($rec, null, 'REPLACE');
             core_Users::cancelSystemUser();

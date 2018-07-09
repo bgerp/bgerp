@@ -1,20 +1,22 @@
 <?php
 
+
 /**
  * Клас 'plg_Created' - Поддръжка на createdOn и createdBy
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Created extends core_Plugin
 {
-
     /**
      * Извиква се след описанието на модела
      */
@@ -51,7 +53,7 @@ class plg_Created extends core_Plugin
         }
     }
     
-
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -71,7 +73,7 @@ class plg_Created extends core_Plugin
             // Определяме кой е създал продажбата
             if (!isset($rec->createdBy) && $mustHaveCreatedBy) {
                 $rec->createdBy = Users::getCurrent();
-
+                
                 if (!$rec->createdBy) {
                     $rec->createdBy = core_Users::ANONYMOUS_USER;
                 }
@@ -83,8 +85,8 @@ class plg_Created extends core_Plugin
             }
         }
     }
-
-
+    
+    
     /**
      * След поготовката на формата, премахва възможността за редакция на системни полета
      */

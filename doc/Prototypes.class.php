@@ -1,28 +1,27 @@
 <?php
 
 
-
 /**
  * Клас 'doc_Prototypes' - Модел за шаблонни документи
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Prototypes extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2,plg_Created,plg_Modified,doc_Wrapper,plg_Rejected';
-
-
+    
+    
     /**
      * Заглавие
      */
@@ -89,8 +88,8 @@ class doc_Prototypes extends core_Manager
      * Кой може да възстановява
      */
     public $canRestore = 'no_one';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -156,7 +155,7 @@ class doc_Prototypes extends core_Manager
                 // Трябва потребителя да има достъп до документа
                 if (!$doc->haveRightFor('single')) {
                     $requiredRoles = 'no_one';
-                    
+                
                 // И документа да не е оттеглен
                 } elseif ($state == 'rejected' || $state == 'closed') {
                     $requiredRoles = 'no_one';
@@ -260,6 +259,7 @@ class doc_Prototypes extends core_Manager
     public static function sync($containerId)
     {
         if (!$rec = self::fetch(array('#originId = [#1#]', $containerId))) {
+            
             return;
         }
         
@@ -275,8 +275,9 @@ class doc_Prototypes extends core_Manager
     /**
      * Намира наличните шаблони за документа
      *
-     * @param  mixed $class  - документ
-     * @param  mixed $driver - драйвер, ако има
+     * @param mixed $class  - документ
+     * @param mixed $driver - драйвер, ако има
+     *
      * @return array $arr   - намерените шаблони
      */
     public static function getPrototypes($class, $driver = null, $folderId = null)
@@ -327,7 +328,7 @@ class doc_Prototypes extends core_Manager
         }
         
         asort($arr);
-
+        
         // Връщане на намерените шаблони
         return $arr;
     }
@@ -337,7 +338,7 @@ class doc_Prototypes extends core_Manager
      *
      *
      * @param mixed       $class
-     * @param integer     $docId
+     * @param int         $docId
      * @param string|NULL $field
      *
      * @return stdClass|string
@@ -371,13 +372,13 @@ class doc_Prototypes extends core_Manager
         $Class = cls::get($class);
         
         $rec = (object) array('title' => $title,
-                             'originId' => $Class->fetchField($docId, 'containerId'),
-                             'classId' => $Class->getClassId(),
-                             'docId' => $docId,
-                             'driverClassId' => $driverClassId,
-                             'sharedWithRoles' => $sharedWithRoles,
-                             'sharedWithUsers' => $sharedWithUsers,
-                             'state' => 'active',
+            'originId' => $Class->fetchField($docId, 'containerId'),
+            'classId' => $Class->getClassId(),
+            'docId' => $docId,
+            'driverClassId' => $driverClassId,
+            'sharedWithRoles' => $sharedWithRoles,
+            'sharedWithUsers' => $sharedWithUsers,
+            'state' => 'active',
         );
         
         cls::get(get_called_class())->isUnique($rec, $fields, $exRec);
@@ -392,8 +393,9 @@ class doc_Prototypes extends core_Manager
     /**
      * Връща дефолтното име на шаблона
      *
-     * @param  mixed  $classId
-     * @param  int    $docId
+     * @param mixed $classId
+     * @param int   $docId
+     *
      * @return string
      */
     public static function getTemplateTitle($classId, $docId)

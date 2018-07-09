@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * При вербализиране на телефонния номер използва кода на държавата, вместо COUNTRY_PHONE_CODE
  *
  * @category  vendors
  * @package   vendors
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class drdata_PhonePlg extends core_Plugin
 {
-    
-    
     /**
      * Преди вземане на вербалната стойност
      *
@@ -84,7 +83,7 @@ class drdata_PhonePlg extends core_Plugin
                     (!$mvc->fields[$fieldName]->type instanceof drdata_PhoneType)) {
                     continue;
                 }
-                    
+                
                 $mvc->phoneFields[$fieldName] = $mvc->fields[$fieldName]->type;
             }
         }
@@ -103,7 +102,7 @@ class drdata_PhonePlg extends core_Plugin
             
             return ;
         }
-
+        
         // Инстанция на класа
         $PhoneTypeInst = $mvc->phoneFields[$field];
         
@@ -117,7 +116,7 @@ class drdata_PhonePlg extends core_Plugin
         if ($PhoneTypeInst->params['countryPhoneCode'] == '359') {
             $PhoneTypeInst->params['areaPhoneCode'] = '2';
         }
-
+        
         // Вземаме вербалната стойност на телефона
         $phone = $PhoneTypeInst->toVerbal($rec->{$field});
         

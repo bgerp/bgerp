@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   selec2
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class select2_PluginSelect extends core_Plugin
 {
-    
-    
     /**
      * Дали може да се изчистват всичките записи едновременно
      */
@@ -102,9 +102,10 @@ class select2_PluginSelect extends core_Plugin
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
         
         $optionsCnt = isset(self::$optCnt) ? self::$optCnt : count($invoker->options);
-
+        
         // Ако опциите са под минималното - нищо не правим
         if ($optionsCnt <= $minItems) {
+            
             return;
         }
         
@@ -113,6 +114,7 @@ class select2_PluginSelect extends core_Plugin
         
         // Ако няма JS нищо не правим
         if (Mode::is('javascript', 'no')) {
+            
             return;
         }
         
@@ -173,8 +175,8 @@ class select2_PluginSelect extends core_Plugin
     /**
      *
      *
-     * @param type_Key     $invoker
-     * @param integer|NULL $res
+     * @param type_Key $invoker
+     * @param int|NULL $res
      */
     public function on_AfterGetMaxSuggestions($invoker, &$res)
     {

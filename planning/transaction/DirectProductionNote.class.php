@@ -6,21 +6,22 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class planning_transaction_DirectProductionNote extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -30,12 +31,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-                'reason' => "Протокол за производство №{$rec->id}",
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => "Протокол за производство №{$rec->id}",
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
-    
+        
         // Ако има ид, добавяме записите
         $entries = $this->getEntries($rec, $result->totalAmount);
         if (count($entries)) {
@@ -112,7 +113,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         
         if ($canStore === true) {
             $array = array('321', array('store_Stores', $rec->storeId),
-                                  array('cat_Products', $rec->productId));
+                array('cat_Products', $rec->productId));
         } else {
             if (isset($pInfo->meta['fixedAsset'])) {
                 $expenseItem = array('cat_Products', $rec->productId);
@@ -146,13 +147,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $array['quantity'] = $rec->quantity;
                 
                 $entry = array('amount' => $amount,
-                               'debit' => $array,
-                               'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-                    
+                    'debit' => $array,
+                    'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
+                
                 $entries[] = $entry;
             } else {
                 foreach ($dRecs as $dRec) {
-                
+                    
                     // Влагаме артикула, само ако е складируем, ако не е
                     // се предполага ,че вече е вложен в незавършеното производство
                     if ($dRec->type == 'input') {
@@ -163,29 +164,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                             }
                             
                             $entry = array('debit' => array('61101',
-                                                            array('cat_Products', $dRec->productId),
-                                                            'quantity' => $dRec->quantity),
-                                           'credit' => array('321',
-                                                             array('store_Stores', $dRec->storeId),
-                                                             array('cat_Products', $dRec->productId),
-                                                            'quantity' => $dRec->quantity),
-                                           'reason' => 'Влагане на материал в производството');
+                                array('cat_Products', $dRec->productId),
+                                'quantity' => $dRec->quantity),
+                            'credit' => array('321',
+                                array('store_Stores', $dRec->storeId),
+                                array('cat_Products', $dRec->productId),
+                                'quantity' => $dRec->quantity),
+                            'reason' => 'Влагане на материал в производството');
                         } else {
                             $item = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                             $entry = array('debit' => array('61101',
-                                                        array('cat_Products', $dRec->productId),
-                                                        'quantity' => $dRec->quantity),
-                                           'credit' => array('60201',
-                                                            $item,
-                                                            array('cat_Products', $dRec->productId),
-                                                            'quantity' => $dRec->quantity),
-                                           'reason' => 'Влагане на нескладируема услуга или консуматив в производството');
+                                array('cat_Products', $dRec->productId),
+                                'quantity' => $dRec->quantity),
+                            'credit' => array('60201',
+                                $item,
+                                array('cat_Products', $dRec->productId),
+                                'quantity' => $dRec->quantity),
+                            'reason' => 'Влагане на нескладируема услуга или консуматив в производството');
                         }
-                            
+                        
                         $entries[] = $entry;
                     }
                 }
-
+                
                 arr::sortObjects($dRecs, 'type');
                 
                 $costAmount = $index = 0;
@@ -215,18 +216,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     
                     $pAmount = $sign * $primeCost;
                     $costAmount += $pAmount;
-                
+                    
                     $quantity = ($index == 0) ? $rec->quantity : 0;
-                
+                    
                     // Ако е материал го изписваме към произведения продукт
                     if ($dRec1->type == 'input') {
                         $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : ((!isset($productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
-                
+                        
                         $array['quantity'] = $quantity;
                         $entry['debit'] = $array;
-                
+                        
                         $entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
-                                'quantity' => $dRec1->quantity);
+                            'quantity' => $dRec1->quantity);
                         $entry['reason'] = $reason;
                         
                         $entries[] = $entry;
@@ -245,7 +246,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         $entry2['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
                         $entries[] = $entry2;
                     }
-                
+                    
                     $index++;
                 }
             }
@@ -265,11 +266,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $array['quantity'] = 0;
                 
                 $costArray = array(
-                        'amount' => $costAmount,
-                        'debit' => $array,
-                        'credit' => array('61102'),
-                        'reason' => 'Разпределени режийни разходи');
-                    
+                    'amount' => $costAmount,
+                    'debit' => $array,
+                    'credit' => array('61102'),
+                    'reason' => 'Разпределени режийни разходи');
+                
                 $entries[] = $costArray;
             }
             
@@ -283,16 +284,15 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     if ($diff > 0) {
                         $array['quantity'] = 0;
                         $array1 = array(
-                                'amount' => $diff,
-                                'debit' => $array,
-                                'credit' => array('61102'),
+                            'amount' => $diff,
+                            'debit' => $array,
+                            'credit' => array('61102'),
                         );
-                            
+                        
                         $entries[] = $array1;
                     }
                 }
             }
-            
             
             
             // Разпределяне към продажба ако разходния обект е продажба
@@ -306,12 +306,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 if ($eItem->classId == sales_Sales::getClassId()) {
                     $saleRec = sales_Sales::fetch($eItem->objectId, 'contragentClassId, contragentId');
                     $entry4 = array('debit' => array('703',
-                                                    array($saleRec->contragentClassId, $saleRec->contragentId),
-                                                    array($eItem->classId, $eItem->objectId),
-                                                    array('cat_Products', $rec->productId),
-                                                    'quantity' => 0),
-                                    'credit' => $array,
-                                    'reason' => 'Себестойност на услугата');
+                        array($saleRec->contragentClassId, $saleRec->contragentId),
+                        array($eItem->classId, $eItem->objectId),
+                        array('cat_Products', $rec->productId),
+                        'quantity' => 0),
+                    'credit' => $array,
+                    'reason' => 'Себестойност на услугата');
                     
                     $entries[] = $entry4;
                 }

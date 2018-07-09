@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_LikesPlg extends core_Plugin
 {
-    
-    
     /**
      * Брой харесали потребители, над които няма да се показват имената им
      */
@@ -78,7 +78,7 @@ class doc_LikesPlg extends core_Plugin
      * @param core_Redirect $res
      * @param string        $action
      *
-     * @return NULL|boolean
+     * @return NULL|bool
      */
     public function on_BeforeAction($mvc, &$res, $action)
     {
@@ -176,7 +176,7 @@ class doc_LikesPlg extends core_Plugin
                 $res = doc_Containers::getDocumentForAjaxShow($rec->containerId);
             }
         }
-
+        
         return false;
     }
     
@@ -291,8 +291,8 @@ class doc_LikesPlg extends core_Plugin
     /**
      * Връща стринг за нотификация с потребителите, които са харесали
      *
-     * @param array   $recArr
-     * @param boolean $also
+     * @param array $recArr
+     * @param bool  $also
      *
      * @return string
      */
@@ -337,6 +337,7 @@ class doc_LikesPlg extends core_Plugin
         return $notifyStr;
     }
     
+    
     /**
      * След рендиране на документ отбелязва акта на виждането му от тек. потребител
      *
@@ -359,8 +360,8 @@ class doc_LikesPlg extends core_Plugin
     /**
      * Подготвя лога за харесванията
      *
-     * @param integer $cid
-     * @param integer $threadId
+     * @param int $cid
+     * @param int $threadId
      *
      * @return string
      */
@@ -369,7 +370,7 @@ class doc_LikesPlg extends core_Plugin
         $html = '';
         
         $likedArr = doc_Likes::getLikedArr($cid, $threadId);
-            
+        
         if ($likedArr) {
             foreach ($likedArr as $likeRec) {
                 $nick = crm_Profiles::createLink($likeRec->createdBy);
@@ -436,7 +437,7 @@ class doc_LikesPlg extends core_Plugin
                             } else {
                                 $linkClass .= ' disable';
                             }
-                        
+                            
                             $attr['ef_icon'] = 'img/16/heart_empty.png';
                             $attr['class'] = $linkClass;
                             $attr['title'] = 'Харесване';

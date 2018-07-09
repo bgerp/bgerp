@@ -1,6 +1,5 @@
 <?php 
 
-
 /**
  * Обръщения, които ще се търсят
  * Включва 'Здравейте,Здравей,Привет,Скъпи,Скъпа,Скъпо,Уважаеми,Уважаема,Уважаемо,Dear,Gentlemen,Ladies,Hi;
@@ -13,26 +12,26 @@ defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравей,Привет,Скъп,Ува
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Salutations extends core_Manager
 {
-    
-    
     /**
      * Шаблона за обръщение
      */
     protected static $salutationsPattern;
-
+    
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'email_Wrapper, plg_Sorting, plg_Created, plg_RowTools2, plg_Search, plg_State';
-
+    
     
     /**
      * Заглавие
@@ -66,10 +65,10 @@ class email_Salutations extends core_Manager
     
     /**
      * Полета от които се генерират ключови думи за търсене
+     *
      * @see plg_Search
      */
     public $searchFields = 'salutation, toEmail';
-    
     
     
     public function description()
@@ -85,7 +84,7 @@ class email_Salutations extends core_Manager
         $this->setDbIndex('createdBy');
     }
     
-
+    
     /**
      * Добавя обръщение
      *
@@ -132,7 +131,7 @@ class email_Salutations extends core_Manager
     /**
      * Връща потребителя, за обръщението в контейнера
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return FALSE|int
      */
@@ -224,7 +223,7 @@ class email_Salutations extends core_Manager
      * @param core_Query $query
      * @param string     $email
      *
-     * @return boolean|string
+     * @return bool|string
      */
     protected static function getSalutationFromQuery($query, $email = null)
     {
@@ -260,6 +259,7 @@ class email_Salutations extends core_Manager
         return $salutation;
     }
     
+    
     /**
      * Проверяваме дали от дадената папка или нишка можем да извлечем съответните данни
      * От всички нишки може. Ако не е подадена нишка, само от папки с корица контрагент
@@ -268,7 +268,7 @@ class email_Salutations extends core_Manager
      * @param doc_Threads $threadId - id на нишка
      * @param string      $email    - имейл
      *
-     * @return boolean - Дали можем да извлечем запис
+     * @return bool - Дали можем да извлечем запис
      */
     protected static function isGoodRec($folderId = null, $threadId = null, $email = null)
     {
@@ -284,7 +284,7 @@ class email_Salutations extends core_Manager
             // Папката
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
-
+        
         // Ако не може да се намери папката
         if (!$folderId) {
             
@@ -359,7 +359,7 @@ class email_Salutations extends core_Manager
         
         // Намираме обръщенито
         preg_match($pattern, $text, $matche);
- 
+        
         // Тримваме и връщаме текста
         return trim($matche['allText']);
     }
@@ -402,7 +402,7 @@ class email_Salutations extends core_Manager
                 self::$salutationsPattern = false;
             }
         }
-      
+        
         // Връщаме резултата
         return self::$salutationsPattern;
     }
@@ -426,7 +426,7 @@ class email_Salutations extends core_Manager
         } catch (core_exception_Expect $e) {
             $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->containerId . '</span>';
         }
-
+        
         try {
             // Записите за папката
             $folderRec = doc_Folders::fetch($rec->folderId);

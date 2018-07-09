@@ -6,7 +6,7 @@
  */
 defIfNot('TESSERACT_PATH', 'tesseract');
 
- 
+
 /**
  * Езици за търсене
  */
@@ -17,7 +17,6 @@ defIfNot('TESSERACT_LANGUAGES', 'bul+eng');
  * Стойността на -psm
  */
 defIfNot('TESSERACT_PAGES_MODE', '1');
-
 
 
 /**
@@ -31,15 +30,15 @@ defIfNot('TESSERACT_OCR_MODE', '-1');
  *
  * @category  vendors
  * @package   tesseract
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tesseract_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -72,18 +71,16 @@ class tesseract_Setup extends core_ProtoSetup
     );
     
     
-        
-    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-       'TESSERACT_LANGUAGES' => array('varchar', 'caption=Езици за разпознаване, title=Инсталирани езици за разпознаване'),
-       'TESSERACT_PAGES_MODE' => array('int', 'caption=Стойността на psm, title=Page segmentation modes от настройките'),
-       'TESSERACT_OCR_MODE' => array('int', 'caption=Стойността на oem, title=OCR Engine modes от настройките'),
-     );
-     
-     
+        'TESSERACT_LANGUAGES' => array('varchar', 'caption=Езици за разпознаване, title=Инсталирани езици за разпознаване'),
+        'TESSERACT_PAGES_MODE' => array('int', 'caption=Стойността на psm, title=Page segmentation modes от настройките'),
+        'TESSERACT_OCR_MODE' => array('int', 'caption=Стойността на oem, title=OCR Engine modes от настройките'),
+    );
+    
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -111,7 +108,7 @@ class tesseract_Setup extends core_ProtoSetup
         return $html;
     }
     
-
+    
     /**
      * Проверява дали програмата е инсталирана в сървъра
      *
@@ -146,30 +143,30 @@ class tesseract_Setup extends core_ProtoSetup
         $versionArr = self::getVersionAndSubVersion();
         
         if ($versionArr['version'] < 4) {
-    
+            
             // Добавяме съобщение
             return "Версията на tesseract e {$versionArr['version']}.{$versionArr['subVersion']}. За по-добро разпознаване трябва да инсталирате версия над 4.x";
         }
-            
+        
         @exec($tesseract . ' -v', $outputArr, $code);
-            
+        
         // Проверка на версията на leptonica - под 1.74 не работи добре с невронна мрежа
         if ($outputArr) {
             foreach ($outputArr as $oStr) {
                 if (stripos($oStr, 'leptonica') === false) {
                     continue;
                 }
-                    
+                
                 list(, $lVersion) = explode('-', $oStr);
-                    
+                
                 $lVersion = trim($lVersion);
-                    
+                
                 if (!$lVersion) {
                     continue;
                 }
-                    
+                
                 list($v, $sv) = explode('.', $lVersion);
-                    
+                
                 if (($v <= 1) && ($sv < 74)) {
                     
                     return "Версията на 'leptonica' e {$lVersion}. С тази версия има проблем.";

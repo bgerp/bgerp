@@ -1,24 +1,21 @@
 <?php
 
 
-
-
-
 /**
  * Базов клас за наследяване от другите драйвери
  *
  *
  * @category  bgerp
  * @package   frame
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class frame_BaseDriver extends core_ProtoInner
 {
-    
-    
     /**
      * След активация на репорта
      */
@@ -58,8 +55,8 @@ abstract class frame_BaseDriver extends core_ProtoInner
     {
         return core_Users::haveRole($this->canSelectSource, $userId);
     }
-
-
+    
+    
     /**
      * Подготвя данните необходими за показването на вградения обект
      *
@@ -73,7 +70,7 @@ abstract class frame_BaseDriver extends core_ProtoInner
             
             return $this->innerState;
         }
-         
+        
         return $this->prepareInnerState();
     }
     
@@ -127,11 +124,11 @@ abstract class frame_BaseDriver extends core_ProtoInner
         $this->prepareEmbeddedForm($form);
         
         $form->class = 'simpleForm';
-         
+        
         $tpl->prepend($form->renderStaticHtml(), $placeholder);
     }
-
-
+    
+    
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
      *

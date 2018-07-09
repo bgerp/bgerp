@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Лог на документи за контрактори
  *
  * @category  bgerp
  * @package   colab
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class colab_DocumentLog extends core_Manager
 {
-    
-    
     /**
      * Брой елементи на страница
      */
@@ -69,7 +68,6 @@ class colab_DocumentLog extends core_Manager
     public $loadList = 'plg_Created';
     
     
-    
     public $canRenderview = 'powerUser';
     
     
@@ -77,7 +75,6 @@ class colab_DocumentLog extends core_Manager
      * Екшъна за виждане
      */
     const ACTION_VIEW = 'view';
-    
     
     
     public static $recForAdd = array();
@@ -110,8 +107,8 @@ class colab_DocumentLog extends core_Manager
     /**
      * Отбелязва документа, като видян
      *
-     * @param integer $containerId
-     * @param integer $userId
+     * @param int $containerId
+     * @param int $userId
      */
     public static function markAsViewed($containerId, $userId = null)
     {
@@ -133,7 +130,7 @@ class colab_DocumentLog extends core_Manager
     /**
      * Връща линк с икона, за показванията
      *
-     * @param integer $containerId
+     * @param int $containerId
      */
     public static function renderViewedLink($containerId)
     {
@@ -143,6 +140,7 @@ class colab_DocumentLog extends core_Manager
                 $cRec = doc_Containers::fetch($containerId);
                 if ((($cRec->state == 'draft') || ($cRec->state == 'rejected')) && !haveRole('partner', $cRec->createdBy)) {
                     $isHiddenNow = true;
+
 //                     if ($cRec->state == 'rejected') {
 //                         try {
 //                             $doc = doc_Containers::getDocument($cRec->id);
@@ -165,7 +163,7 @@ class colab_DocumentLog extends core_Manager
             
             $attr = array('title' => $title, 'class' => 'eyeIcon');
             $attr = ht::addBackgroundIcon($attr, 'img/16/eye-open.png');
-
+            
             $viewLink = ht::createElement('span', $attr, '', true);
         }
         
@@ -200,7 +198,6 @@ class colab_DocumentLog extends core_Manager
     }
     
     
-    
     public function act_ShowViewed()
     {
         expect(Request::get('ajax_mode'));
@@ -230,7 +227,7 @@ class colab_DocumentLog extends core_Manager
     /**
      * Подготвя лога за виждания
      *
-     * @param integer $cid
+     * @param int $cid
      *
      * @return string
      */
@@ -278,10 +275,10 @@ class colab_DocumentLog extends core_Manager
     /**
      * Връща броя на вижданията на документа от колабораторите
      *
-     * @param integer $cid
-     * @param boolean $group
+     * @param int  $cid
+     * @param bool $group
      *
-     * @return integer
+     * @return int
      */
     protected static function getViewCount($cid, $group = true)
     {
@@ -305,10 +302,10 @@ class colab_DocumentLog extends core_Manager
     /**
      * Проверява дали има съответното действия за съответния документ
      *
-     * @param integer $containerId
-     * @param string  $action
+     * @param int    $containerId
+     * @param string $action
      *
-     * @return boolean
+     * @return bool
      */
     protected static function haveAction($containerId, $action)
     {
@@ -324,9 +321,9 @@ class colab_DocumentLog extends core_Manager
     /**
      * Връща всички дейстив за документа
      *
-     * @param integer $containerId
-     * @param string  $action
-     * @param integer limit
+     * @param int    $containerId
+     * @param string $action
+     * @param int limit
      *
      * @return array
      */

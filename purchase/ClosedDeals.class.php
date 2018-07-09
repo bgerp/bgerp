@@ -7,9 +7,11 @@
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class purchase_ClosedDeals extends deals_ClosedDeals
@@ -18,8 +20,8 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      * Заглавие
      */
     public $title = 'Документи за приключване на покупка';
-
-
+    
+    
     /**
      * Абревиатура
      */
@@ -56,7 +58,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      */
     public $canAdd = 'ceo,purchase';
     
-  
+    
     /**
      * Кой може да контира документите?
      */
@@ -67,8 +69,8 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,purchase';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -79,13 +81,13 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      * Заглавие в единствено число
      */
     public $singleTitle = 'Приключване на покупка';
-   
+    
     
     /**
      * Групиране на документите
      */
     public $newBtnGroup = '3.8|Търговия';
-   
+    
     
     /**
      * Полета свързани с цени
@@ -98,7 +100,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      * абонираните потребители не се нотифицират
      */
     public $muteNotificationsBy = 'system';
-
+    
     
     /**
      * След дефиниране на полетата на модела
@@ -112,6 +114,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     
     /**
      * Имплементиране на интерфейсен метод
+     *
      * @see deals_ClosedDeals::getDocumentRow()
      */
     public function getDocumentRow($id)
@@ -127,18 +130,20 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     
     /**
      * Връща разликата с която ще се приключи сделката
-     * @param  mixed  $threadId - ид на нишката или core_ObjectReference
-     *                          към първия документ в нишката
-     * @return double $amount - разликата на платеното и експедираното
+     *
+     * @param mixed $threadId - ид на нишката или core_ObjectReference
+     *                        към първия документ в нишката
+     *
+     * @return float $amount - разликата на платеното и експедираното
      */
     public static function getClosedDealAmount($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
-         
+        
         $cost = acc_Balances::getBlAmounts($jRecs, '6912', 'debit')->amount;
         $inc = acc_Balances::getBlAmounts($jRecs, '7912', 'credit')->amount;
-         
+        
         // Разликата между платеното и доставеното
         return $inc - $cost;
     }
@@ -176,6 +181,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($res == 'no_one') {
+            
             return;
         }
         
@@ -209,7 +215,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
             
             return false;
         }
-         
+        
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         
         // Може само към нишка, породена от покупка
@@ -217,7 +223,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
             
             return false;
         }
-         
+        
         return true;
     }
 }

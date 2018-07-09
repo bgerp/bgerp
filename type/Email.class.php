@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас  'type_Email' - Тип за имейл
  *
@@ -10,16 +9,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Email extends type_Varchar
 {
-    
-    
     /**
      * Дължина на полето в mySql таблица
      */
@@ -46,22 +45,22 @@ class type_Email extends type_Varchar
         $value = trim($value);
         
         $value = static::replaceEscaped($value);
-
+        
         if (empty($value)) {
+            
             return;
         }
-                
+        
         if (!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
             
             return false;
         }
-            
+        
         return $value;
     }
-
-
-
+    
+    
     /**
      * Замества низове, които се използват за скриване на ймейл адресите от ботовете
      */
@@ -78,7 +77,7 @@ class type_Email extends type_Varchar
         $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
         
         $value = str_ireplace($from, $to, $value);
-
+        
         return $value;
     }
     
@@ -102,6 +101,7 @@ class type_Email extends type_Varchar
     public static function isValidEmail($email)
     {
         if (!strlen($email)) {
+            
             return;
         }
         
@@ -133,6 +133,7 @@ class type_Email extends type_Varchar
     public function toVerbal($email)
     {
         if (empty($email)) {
+            
             return;
         }
         
@@ -144,7 +145,7 @@ class type_Email extends type_Varchar
         } else {
             $verbal = $email;
         }
-
+        
         if (Mode::is('text', 'plain') || Mode::is('htmlEntity', 'none')) {
             $verbal = $email;
         } elseif ($this->params['link'] != 'no') {
@@ -152,7 +153,7 @@ class type_Email extends type_Varchar
         } else {
             $verbal = str_replace('@', '&#64;', $email);
         }
-
+        
         return $verbal;
     }
     
@@ -218,7 +219,8 @@ class type_Email extends type_Varchar
     /**
      * Извлича домейна (частта след `@`) от имейл адрес
      *
-     * @param  string $value имейл адрес
+     * @param string $value имейл адрес
+     *
      * @return string
      */
     public static function domain($value)
@@ -231,7 +233,7 @@ class type_Email extends type_Varchar
         
         return $domain;
     }
-
+    
     
     /**
      * Връща масив от всички под-стрингове, които
@@ -248,7 +250,7 @@ class type_Email extends type_Varchar
                 }
             }
         }
-
+        
         return $matches[0];
     }
 }

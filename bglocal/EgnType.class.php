@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_EgnType' -
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_EgnType extends type_Varchar
 {
-    
-    
     /**
      * Колко символа е дълго полето в базата
      */
@@ -33,12 +32,14 @@ class bglocal_EgnType extends type_Varchar
     /**
      * Performs the parity check - we expect a 10-digit number!
      *
-     * @param  string  $egn_string
-     * @return boolean
+     * @param string $egn_string
+     *
+     * @return bool
      */
     public function isValid($value)
     {
         if (!$value) {
+            
             return;
         }
         
@@ -74,6 +75,7 @@ class bglocal_EgnType extends type_Varchar
     public function toVerbal($value)
     {
         if (!$value) {
+            
             return;
         }
         

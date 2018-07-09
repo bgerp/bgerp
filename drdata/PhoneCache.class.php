@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_PhoneCache' - Кеш за телефонните номера
  *
  *
  * @category  bgerp
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class drdata_PhoneCache extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -27,7 +26,8 @@ class drdata_PhoneCache extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'drdata_Wrapper,plg_Sorting,plg_Modified';
-
+    
+    
     /**
      * Кой има право да променя?
      *
@@ -66,9 +66,9 @@ class drdata_PhoneCache extends core_Manager
         $this->FLD('tel', 'varchar(128)', 'caption=Телефон');
         $this->FLD('dCC', 'varchar(32)', 'caption=Код по подразбиране->На държава');
         $this->FLD('dAC', 'varchar(32)', 'caption=Код по подразбиране->На място');
-
+        
         $this->FLD('res', 'blob(serialize)', 'caption=Резултат');
-         
+        
         $this->setDbUnique('tel,dCC,dAC');
     }
     
@@ -97,7 +97,7 @@ class drdata_PhoneCache extends core_Manager
             'dCC' => $dCC,
             'dAC' => $dAC,
             'res' => $res,
-            );
+        );
         self::save($rec, null, 'REPLACE');
     }
 }

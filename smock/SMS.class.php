@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   smock
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class smock_SMS extends core_Manager
 {
-    
-    
     /**
      * Кой има право да чете?
      */
@@ -57,9 +57,7 @@ class smock_SMS extends core_Manager
     public $interfaces = 'callcenter_SentSMSIntf';
     
     
-    
     public $title = 'Smock';
-            
     
     
     public function description()
@@ -90,7 +88,7 @@ class smock_SMS extends core_Manager
             'number' => $number,
             'message' => $message,
             'sender' => $sender,
-            );
+        );
         
         $this->save($rec);
         
@@ -99,7 +97,7 @@ class smock_SMS extends core_Manager
         $nRes['sendStatus'] = 'sended';
         $nRes['uid'] = $rec->id;
         $nRes['msg'] = '|Успешно изпратен SMS';
-
+        
         return $nRes;
     }
     

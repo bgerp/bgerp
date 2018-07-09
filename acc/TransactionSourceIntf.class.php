@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Интерфейс за документ, генериращ счетоводни транзакции
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title:    Интерфейс източник на счетоводни транзакции
  */
 class acc_TransactionSourceIntf
 {
-    
-    
     /**
      * Връща линк към документа с посоченото id
      */
@@ -89,8 +88,8 @@ class acc_TransactionSourceIntf
      * )
      * )
      *
+     * @param int $id ид на документ
      *
-     * @param  int      $id ид на документ
      * @return stdClass
      */
     public function getTransaction($id)

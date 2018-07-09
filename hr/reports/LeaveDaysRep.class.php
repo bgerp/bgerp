@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от Задание за производство
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Персонал » Присъствена форма 76
  */
 class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'hrMaster,ceo,';
-
+    
     
     /**
      * Полета от таблицата за скриване, ако са празни
@@ -43,6 +42,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField = 'containerId';
@@ -60,8 +60,8 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      * Видовете почивни дни
      */
     public static $typeMap = array('sickDay' => 'Болничен',
-                               'tripDay' => 'Командировка',
-                               'leaveDay' => 'Отпуск');
+        'tripDay' => 'Командировка',
+        'leaveDay' => 'Отпуск');
     
     
     /**
@@ -73,8 +73,8 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
     {
         $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title,single=none');
     }
-      
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -90,8 +90,9 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -99,8 +100,8 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         $recs = array();
         $persons = array();
         $date = acc_Periods::fetch($rec->periods);
-
-    
+        
+        
         $querySick = hr_Sickdays::getQuery();
         $querySick->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
         
@@ -111,11 +112,12 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         $queryLeave->where("((#leaveFrom >= '{$date->start}' AND #leaveTo <= '{$date->end}')) AND #state = 'active'");
         
         $num = 1;
+        
         // добавяме болничните
         while ($recSick = $querySick->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recSick->personId;
-
+            
             // добавяме в масива събитието
             $recs[$recSick->id.'|'.$id] =
                 (object) array(
@@ -127,7 +129,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
                     'count' => self::getLeaveDays($recSick->startDate, $recSick->toDate, $id)->workDays,
                     'type' => 'sickDay',
                 );
-                
+            
             $num++;
         }
         
@@ -135,7 +137,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         while ($recTrip = $queryTrip->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recTrip->personId;
-
+            
             // добавяме в масива събитието
             $recs[$recTrip->id.'|'.$id] =
                 (object) array(
@@ -147,7 +149,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
                     'count' => self::getLeaveDays($recTrip->startDate, $recTrip->toDate, $id)->workDays,
                     'type' => 'tripDay',
                 );
-                
+            
             $num++;
         }
         
@@ -155,22 +157,21 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         while ($recLeave = $queryLeave->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recLeave->personId;
-
+            
             $recs[$recLeave->id.'|'.$id] =
                (object) array(
-                    'num' => $num,
-                    'containerId' => $recLeave->containerId,
-                    'person' => $recLeave->personId,
-                    'dateFrom' => $recLeave->leaveFrom,
-                    'dateTo' => $recLeave->leaveTo,
-                    'count' => self::getLeaveDays($recLeave->leaveFrom, $recLeave->leaveTo, $id)->workDays,
-                    'type' => 'leaveDay',
-                );
-               
+                   'num' => $num,
+                   'containerId' => $recLeave->containerId,
+                   'person' => $recLeave->personId,
+                   'dateFrom' => $recLeave->leaveFrom,
+                   'dateTo' => $recLeave->leaveTo,
+                   'count' => self::getLeaveDays($recLeave->leaveFrom, $recLeave->leaveTo, $id)->workDays,
+                   'type' => 'leaveDay',
+               );
+            
             $num++;
         }
-
-
+        
         return $recs;
     }
     
@@ -178,21 +179,22 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-    
+        
         $fld->FLD('num', 'varchar', 'caption=№');
         $fld->FLD('person', 'key(mvc=crm_Persons,select=name)', 'caption=Служител');
         $fld->FLD('dateFrom', 'date', 'caption=Дата->От');
         $fld->FLD('dateTo', 'date', 'smartCenter,caption=Дата->До');
         $fld->FLD('count', 'int', 'smartCenter,caption=Бр. дни');
         $fld->FLD('type', 'enum(sickDay=Болничен,tripDay=Командировка,leaveDay=Отпуск)', 'smartCenter,caption=Вид');
-    
+        
         return $fld;
     }
     
@@ -200,8 +202,9 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -209,7 +212,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $row = new stdClass();
-
+        
         // Линк към служителя
         $row->person = crm_Persons::fetchField($dRec->person, 'name');
         $row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
@@ -217,7 +220,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         if (isset($dRec->num)) {
             $row->num = $Int->toVerbal($dRec->num);
         }
-
+        
         if (isset($dRec->dateFrom)) {
             $row->dateFrom = $Date->toVerbal($dRec->dateFrom);
         }
@@ -233,7 +236,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         if (isset($dRec->type)) {
             $row->type = self::$typeMap[$dRec->type];
         }
-
+        
         return $row;
     }
     
@@ -251,11 +254,11 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small></fieldset><!--ET_END BLOCK-->"));
-      
+        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
-   
+    
     /**
      * Изчисляване на дните - присъствени, неприсъствени, почивни
      *
@@ -265,7 +268,6 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      */
     public static function getLeaveDays($from, $to, $personId)
     {
-    
         // изисляване на непресъствените бр дни
         $state = hr_EmployeeContracts::getQuery();
         $state->where("#personId='{$personId}'");
@@ -281,6 +283,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
             // изчисляваме дните по него
             if ($schedule) {
                 $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $from, $to);
+            
             // в противен случай ги изсичляваме на основание на калндара
             } else {
                 $days = cal_Calendar::calcLeaveDays($from, $to);

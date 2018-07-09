@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   change
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class change_Plugin extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -55,7 +55,7 @@ class change_Plugin extends core_Plugin
             $rowRes = array('versionAndDate' => array('name' => tr('Версия'), 'val' => '<!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#][#LastVersion#]/[#LastVersionDate#]<!--ET_END REMOVE_BLOCK--><!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_BEGIN FirstSelectedVersionDate-->/[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]/<!--ET_END LastSelectedVersion--><!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END REMOVE_BLOCK-->'));
         } else {
             $rowRes = array('date' => array('name' => tr('Дата'), 'val' => '[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersionDate--> / [#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END DATE_REMOVE-->'),
-                               'version' => array('name' => tr('Версия'), 'val' => '[#LastVersion#]<!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_END FirstSelectedVersion--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]<!--ET_END LastSelectedVersion--><!--ET_END VERSIONREMOVE-->'));
+                'version' => array('name' => tr('Версия'), 'val' => '[#LastVersion#]<!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_END FirstSelectedVersion--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]<!--ET_END LastSelectedVersion--><!--ET_END VERSIONREMOVE-->'));
         }
         
         return $rowRes;
@@ -82,7 +82,6 @@ class change_Plugin extends core_Plugin
     }
     
     
-    
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         // Ако екшъна не е changefields, да не се изпълнява
@@ -95,7 +94,7 @@ class change_Plugin extends core_Plugin
         $mvc->requireRightFor('changerec');
         
         $data = new stdClass();
-
+        
         $data->action = 'changefields';
         
         // Създаване и подготвяне на формата
@@ -158,7 +157,7 @@ class change_Plugin extends core_Plugin
                 $form->setError($fields, 'Вече съществува запис със същите данни');
             }
         }
-
+        
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
         $form->rec->__isBeingChanged = true;
         $mvc->invoke('AfterInputEditForm', array($form));
@@ -222,7 +221,7 @@ class change_Plugin extends core_Plugin
                 
                 // Увеличаваме подверсията
                 $subVersion++;
-            
+                
                 // Добавяме подверсията
                 $fRec->subVersion = $subVersion;
                 
@@ -260,7 +259,7 @@ class change_Plugin extends core_Plugin
                 
                 // Ако има първа версия
                 if ($versionArr['first']) {
-
+                    
                     // Версията, която ще използваме е първата
                     $versionKey = $versionArr['first'];
                 }
@@ -332,7 +331,7 @@ class change_Plugin extends core_Plugin
             
             // Вземаме стринга
             $versionStr = change_Log::getVersionStrFromKey($mvc, $versionKey);
-                
+            
             // Към заглавието добавяме вербалното представяне на версията
             $form->title .= "|* <b style='color:red;'>{$versionStr}</b>";
         }
@@ -342,7 +341,6 @@ class change_Plugin extends core_Plugin
         
         return false;
     }
-    
     
     
     public static function on_AfterPrepareSingle($mvc, $res, $data)
@@ -542,7 +540,7 @@ class change_Plugin extends core_Plugin
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
-
+            
             if ($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
                 unset($allowedFieldsArr[$field]);
             }
@@ -608,19 +606,19 @@ class change_Plugin extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param core_Et  $res
-     * @param integer  $id
+     * @param int      $id
      * @param string   $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
      */
     public static function on_AfterGetChangeLink(&$mvc, &$res, $id, $title = false)
     {
         // URL' то за промяна
         $changeUrl = $mvc->getChangeUrl($id);
-
+        
         $iconSize = 16;
         if (log_Browsers::isRetina()) {
             $iconSize = 32;
         }
-
+        
         // Създаваме линк с загллавието
         $res = ht::createLink($title, $changeUrl, null, "ef_icon=img/{$iconSize}/edit.png");
     }
@@ -631,7 +629,7 @@ class change_Plugin extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param array    $res
-     * @param integer  $id
+     * @param int      $id
      */
     public static function on_AfterGetChangeUrl(&$mvc, &$res, $id)
     {
@@ -662,7 +660,7 @@ class change_Plugin extends core_Plugin
      * Проверява дали може да се променя записа в зависимост от състоянието на документа
      *
      * @param core_Mvc $mvc
-     * @param boolean  $res
+     * @param bool     $res
      * @param string   $state
      */
     public static function on_AfterCanChangeRec($mvc, &$res, $rec)

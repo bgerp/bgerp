@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса import_DriverIntf
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Импорт на артикули от задачи
  */
 class planning_interface_ImportTaskProducts extends planning_interface_ImportDriver
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -32,8 +31,9 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
     /**
      * Добавя специфични полета към формата за импорт на драйвера
      *
-     * @param  core_Manager  $mvc
-     * @param  core_FieldSet $form
+     * @param core_Manager  $mvc
+     * @param core_FieldSet $form
+     *
      * @return void
      */
     public function addImportFields($mvc, core_FieldSet $form)
@@ -64,13 +64,13 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
                 
                 // Ако има партидност и тя е от определен тип
                 if (is_object($Def) && $Def->getClassId() == batch_definitions_Varchar::getClassId()) {
-                
+                    
                     // Стойноста на партидата ще е задачата
                     $taskId = (!empty($dRec->taskId)) ? $dRec->taskId : $dRec->id;
                     $dRec->batch = planning_Tasks::getBatchName($taskId);
                     $key .= "+{$dRec->batch}";
                     $dRec->caption .= " / |*<i>{$dRec->batch}</i>";
-                     
+                    
                     // Колко е изпълнено досега
                     if (count($containers)) {
                         $bQuery = batch_BatchesInDocuments::getQuery();
@@ -82,7 +82,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
                     }
                 }
             }
-        
+            
             // Ако няма партиди гледа се колко е изпълнено досега
             if (empty($dRec->selectedByNow) && count($containers)) {
                 $dQuery = $mvc->getQuery();
@@ -112,7 +112,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             if ($defaultQuantity > 0) {
                 $form->setDefault($key, $defaultQuantity);
             }
-             
+            
             $rec->detailsDef[$key] = $cRec;
         }
     }
@@ -121,8 +121,9 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
     /**
      * Проверява събмитнатата форма
      *
-     * @param  core_Manager  $mvc
-     * @param  core_FieldSet $form
+     * @param core_Manager  $mvc
+     * @param core_FieldSet $form
+     *
      * @return void
      */
     public function checkImportForm($mvc, core_FieldSet $form)
@@ -155,7 +156,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             return $recs;
         }
         foreach ($rec->detailsDef as $key => $dRec) {
-
+            
             // Ако има въведено количество записва се
             if (!empty($rec->{$key})) {
                 unset($dRec->id);
@@ -173,10 +174,11 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
     /**
      * Връща артикулите, които са вложени/произведени по задачи към документа
      *
-     * @param  int      $threadId - ид на тред
-     * @param  int      $storeId  - ид на склад
-     * @param  string   $type     - тип на операцията
-     * @param  int|NULL $limit    - лимит
+     * @param int      $threadId - ид на тред
+     * @param int      $storeId  - ид на склад
+     * @param string   $type     - тип на операцията
+     * @param int|NULL $limit    - лимит
+     *
      * @return void
      */
     private static function getProductsFromTasks($threadId, $storeId, $type, $limit = null)
@@ -199,11 +201,11 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
             $tQuery->XPR('quantity', 'double', '#totalQuantity');
             $tQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
             $tQuery->show('productId,quantityInPack,packagingId,quantity,id,storeId');
-             
+            
             if (isset($limit)) {
                 $tQuery->limit($limit);
             }
-             
+            
             $res = array_merge($dQuery->fetchAll(), $tQuery->fetchAll());
         } else {
             $res = $dQuery->fetchAll();
@@ -220,7 +222,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
      * @param int|NULL     $masterId - ако импортираме в детайл, id на записа на мастъра му
      * @param int|NULL     $userId   - ид на потребител
      *
-     * @return boolean - може ли драйвера да бъде избран
+     * @return bool - може ли драйвера да бъде избран
      */
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {

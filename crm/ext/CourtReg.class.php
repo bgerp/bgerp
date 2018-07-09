@@ -6,26 +6,26 @@
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     0.12
  */
 class crm_ext_CourtReg extends core_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'companyId';
-
+    
     
     /**
      * Заглавие
      */
     public $title = 'Съдебни регистрации';
-
+    
     
     /**
      * Единично заглавие
@@ -44,13 +44,13 @@ class crm_ext_CourtReg extends core_Detail
      */
     public $currentTab = 'Фирми';
     
-   
+    
     /**
      * Кой може да редактира
      */
     public $canEdit = 'powerUser';
-
-
+    
+    
     /**
      * Предлог в формата за добавяне/редактиране
      */
@@ -72,11 +72,11 @@ class crm_ext_CourtReg extends core_Detail
         // Фирмено дело
         $this->FLD('regCompanyFileNumber', 'varchar(16)', 'caption=Фирмено дело->Номер');
         $this->FLD('regCompanyFileYear', 'int', 'caption=Фирмено дело->Година');
-
+        
         $this->setDbUnique('companyId');
     }
     
-
+    
     /**
      * Подготовка за показване в указателя
      */
@@ -85,15 +85,16 @@ class crm_ext_CourtReg extends core_Detail
         $data->TabCaption = 'Регистрация';
         
         if ($data->isCurrent === false) {
+            
             return;
         }
-
+        
         expect($data->masterId);
         
         if (!$data->CourtReg) {
             $data->CourtReg = new stdClass();
         }
-
+        
         $data->CourtReg->rec = static::fetch("#companyId = {$data->masterId}");
         if ($data->CourtReg->rec) {
             $data->CourtReg->row = static::recToVerbal($data->CourtReg->rec);
@@ -101,7 +102,7 @@ class crm_ext_CourtReg extends core_Detail
         $data->canChange = static::haveRightFor('edit');
     }
     
-
+    
     /**
      * Рендиране на списъчния изглед в указателя
      */
@@ -110,10 +111,10 @@ class crm_ext_CourtReg extends core_Detail
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Съдебна регистрация'), 'title');
-
+        
         if ($data->canChange && !Mode::is('printing')) {
             $rec = $data->CourtReg->rec;
-
+            
             if ($rec->regCourt || $rec->regDecisionNumber || $rec->regDecisionDate || $rec->regCompanyFileNumber || $rec->regCompanyFileYear) {
                 $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => true);
                 $courtRegTpl = new ET(getFileContent('crm/tpl/CourtReg.shtml'));

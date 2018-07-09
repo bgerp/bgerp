@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Драйвер за IP камера Edimax IC-9000
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cams_driver_EdimaxIC9000 extends cams_driver_IpDevice
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -29,7 +28,7 @@ class cams_driver_EdimaxIC9000 extends cams_driver_IpDevice
         
         setIfNot($this->user, 'admin');
         setIfNot($this->password, '1234');
-                
+        
         setIfNot($this->rtspPort, 554);
         
         setIfNot($this->httpPort, 80);
@@ -58,7 +57,8 @@ class cams_driver_EdimaxIC9000 extends cams_driver_IpDevice
         $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за Mpeg4 потока,input');
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
     }
-
+    
+    
     /**
      * Записва снимка от камерата в указания файл - предефинира ф-та от родителя щото тая камера е особена
      */
@@ -68,22 +68,22 @@ class cams_driver_EdimaxIC9000 extends cams_driver_IpDevice
             $img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
         } else {
             $url = $this->getPictureUrl();
-
+            
             // Преди да вземем картинката трябва да фечнем линка само, че с cgi отзад вместо с jpg
             $urlCgi = str_replace('.jpg', '.cgi', $url);
             core_Url::loadUrl($urlCgi);
             
             $img = core_Url::loadUrl($url);
-    
+            
             if (!empty($img)) {
                 $img = imagecreatefromstring($img);
             }
-    
+            
             if (!$img) {
                 $img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
             }
         }
-    
+        
         return $img;
     }
     
@@ -102,7 +102,7 @@ class cams_driver_EdimaxIC9000 extends cams_driver_IpDevice
     public function applyPtzCommands($cmdArr)
     {
     }
-
+    
     public function normalizeCameraId()
     {
         $res = str_replace('-', '', $this->cameraId);

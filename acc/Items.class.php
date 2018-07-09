@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър регистър на счетоводните пера
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Items extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -88,6 +87,7 @@ class acc_Items extends core_Manager
      * Опашка от записи за записване в on_Shutdown
      *
      * @var array Масив от записи на acc_Items (с ключове - ид-та на записи)
+     *
      * @see acc_Items::touch()
      */
     protected $touched = array();
@@ -111,7 +111,7 @@ class acc_Items extends core_Manager
      * Кеш на уникален индекс
      */
     protected $unique = 0;
-
+    
     
     /**
      * Описание на модела (таблицата)
@@ -130,12 +130,12 @@ class acc_Items extends core_Manager
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists
         $this->FLD(
- 
+            
             'classId',
- 
+            
             'class(interface=acc_RegisterIntf,select=title,allowEmpty)',
             'caption=Регистър,input=hidden,silent'
- 
+        
         );
         
         // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
@@ -211,7 +211,7 @@ class acc_Items extends core_Manager
                 
                 $id = (is_object($rec)) ? $rec->id : $rec;
                 $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
-
+                
                 $arrowImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
                 $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за перото')), $arrowImg, true);
                 $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
@@ -399,6 +399,7 @@ class acc_Items extends core_Manager
         
         if ($action == 'add' && isset($rec->lists)) {
             if (!is_array($rec->lists)) {
+                
                 return;
             }
             
@@ -525,9 +526,9 @@ class acc_Items extends core_Manager
     /**
      * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
      *
-     * @param int     $class
-     * @param int     $objectId
-     * @param boolean $useCachedItems - дали да се използва кеширане на информацията за перата
+     * @param int  $class
+     * @param int  $objectId
+     * @param bool $useCachedItems - дали да се използва кеширане на информацията за перата
      */
     public static function fetchItem($class, $objectId, $useCachedItems = false)
     {
@@ -541,7 +542,7 @@ class acc_Items extends core_Manager
             
             return $cache['indexedItems'][$index];
         }
-
+        
         return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
     }
     
@@ -586,9 +587,10 @@ class acc_Items extends core_Manager
     /**
      * Създава (ако липсва) перо, добавя го в номенклатира (ако не е) и го маркира като използвано
      *
-     * @param  int $classId
-     * @param  int $objectId
-     * @param  int $listId
+     * @param int $classId
+     * @param int $objectId
+     * @param int $listId
+     *
      * @return int ИД на перото
      */
     public static function force($classId, $objectId, $listId, $useCachedItems = false)
@@ -680,7 +682,8 @@ class acc_Items extends core_Manager
     /**
      * Метод пораждащ събитие 'AfterJournalItemAffect'в мениджъра на перото
      *
-     * @param  mixed $id - обект или запис на перо
+     * @param mixed $id - обект или запис на перо
+     *
      * @return void
      */
     public static function notifyObject($id)
@@ -715,7 +718,7 @@ class acc_Items extends core_Manager
         $this->prepareInsertForm($form, $options, $listId);
         
         $form->input();
-       
+        
         if ($form->isSubmitted()) {
             $count = 0;
             $rec = $form->rec;
@@ -741,14 +744,14 @@ class acc_Items extends core_Manager
                 return followRetUrl(null, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
-       
+        
         // Добавяне на бутони
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logInfo('Разглеждане на формата за добавяне на пера към номенклатура');
-       
+        
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -817,7 +820,7 @@ class acc_Items extends core_Manager
             $suggestions = array();
             core_Mode::push('text', 'plain');
             while ($cRec = $query->fetch()) {
-            
+                
                 // Ако е документ и е чернова, не може да стане перо
                 if ($isDoc && $cRec->state != 'active') {
                     continue;
@@ -835,30 +838,33 @@ class acc_Items extends core_Manager
     /**
      * Помощен метод за намиране на всички записи от даден мениджър,
      * които са пера в определена номенклатура
-     * @param  mixed $class  - име на клас
-     * @param  int   $listId - ид на намонклатура
+     *
+     * @param mixed $class  - име на клас
+     * @param int   $listId - ид на намонклатура
+     *
      * @return array $items - списък с ид-та на обектите, които са пера
      */
     public static function getClassItems($class, $listId)
     {
         $items = array();
         expect($Class = cls::get($class));
-    
+        
         $itemsQuery = static::getQuery();
         $itemsQuery->like('lists', "|{$listId}|");
         $itemsQuery->where("#classId = {$Class->getClassId()}");
         $itemsQuery->show('objectId');
-    
+        
         while ($itemRec = $itemsQuery->fetch()) {
             $items[] = $itemRec->objectId;
         }
-    
+        
         return $items;
     }
     
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
+     *
      * @param int $objectId
      */
     public static function getItemRec($objectId)
@@ -967,7 +973,7 @@ class acc_Items extends core_Manager
             $row = new stdClass();
             $row->link = "<span style='color:red'>" . tr('Проблем с показването') . '</span>';
         }
-       
+        
         $tpl = getTplFromFile('acc/tpl/ItemTooltip.shtml');
         $tpl->placeObject($row);
         
@@ -978,7 +984,7 @@ class acc_Items extends core_Manager
             
             return array($resObj);
         }
-
+        
         return $tpl;
     }
     
@@ -1011,8 +1017,9 @@ class acc_Items extends core_Manager
      * Обновява датата на най-ранно използване на перото, като по-малката от
      * текущата спрямо датата за сравняване
      *
-     * @param  mixed $id            - ид или запис
-     * @param  date  $dateToCompare - Дата
+     * @param mixed $id            - ид или запис
+     * @param date  $dateToCompare - Дата
+     *
      * @return void
      */
     public static function updateEarliestUsedOn($id, $dateToCompare)
@@ -1028,8 +1035,8 @@ class acc_Items extends core_Manager
         
         $Items->db->query($query);
     }
-
-
+    
+    
     /**
      * Извлича перата с които може да са правени счетоводни операции в посочения
      * интервал дати и евентуално са от определена номенклатура
@@ -1045,28 +1052,28 @@ class acc_Items extends core_Manager
         if (isset($toDate)) {
             $cond = "(#createdOn <= '{$toDate}')";
         }
-
+        
         if (isset($fromDate)) {
             if (!strpos($toDate, ' ')) {
                 $fromDate .= ' 23:59:59';
             }
             $cond .= ($cond ? ' OR ' : '') . "('${fromDate}' <= #lastUseOn)";
         }
-
+        
         if ($cond) {
             $query->where($cond);
         }
-
+        
         if (isset($listId)) {
             $query->like('lists', '|' . $listId . '|');
         }
-
+        
         $query->show('id,title');
         $res = array();
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec->title;
         }
-
+        
         return $res;
     }
     
@@ -1074,10 +1081,11 @@ class acc_Items extends core_Manager
     /**
      * Проверява дали даден обект е перо в дадена номенклатура
      *
-     * @param  mixed   $class        - клас
-     * @param  int     $objectId     - ид на обект
-     * @param  string  $listSystemId - систем ид на номенклатура
-     * @return boolean $res         - резултат
+     * @param mixed  $class        - клас
+     * @param int    $objectId     - ид на обект
+     * @param string $listSystemId - систем ид на номенклатура
+     *
+     * @return bool $res         - резултат
      */
     public static function isItemInList($class, $objectId, $listSystemId)
     {

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class swf_Object
  *
@@ -10,14 +9,17 @@
  *
  * @category  vendors
  * @package   swf
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class swf_Object extends core_BaseClass
 {
     public $vars = array();
+    
     
     /**
      * @todo Чака за документация...
@@ -33,6 +35,7 @@ class swf_Object extends core_BaseClass
         
         // Задава параметрите
         $this->vars->params = array(
+            
             // Specifies whether the movie begins playing immediately on loading in the browser.
             // The default value is true if this attribute is omitted.
             'play' => '', // true, false
@@ -126,6 +129,7 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава Url към .swf файла
+     *
      * @param string $url
      */
     public function setSwfFile($url)
@@ -136,6 +140,7 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава алтернативен html, който ще се показва в случай на липса на JS или Flash
+     *
      * @param string $html
      */
     public function setAlternativeContent($html)
@@ -146,7 +151,8 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава ширина
-     * @param integer $width
+     *
+     * @param int $width
      */
     public function setWidth($width)
     {
@@ -156,7 +162,8 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава височина
-     * @param integer $height
+     *
+     * @param int $height
      */
     public function setHeight($height)
     {
@@ -166,6 +173,7 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава минимално изискваната версия на flash
+     *
      * @param string $version
      */
     public function setMinFlashVersion($version)
@@ -176,6 +184,7 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава атрибутите на флаш обекта
+     *
      * @param array $attr
      */
     public function setAttributes($attr, $value = null)
@@ -192,6 +201,7 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава параметрите, както е показано в документацията на swfobject
+     *
      * @param array $params
      */
     public function setParams($param, $value = null)
@@ -208,6 +218,7 @@ class swf_Object extends core_BaseClass
     
     /**
      * Задава параметрите, които ще бъдат предадени на флаш обекта
+     *
      * @param array $flashvars
      */
     public function setFlashvars($flashvar, $value = null)

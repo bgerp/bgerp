@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на нормите за производство
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_AssetResourcesNorms extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -98,7 +97,8 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Подготовка на детайла
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public function prepareDetail_(&$data)
@@ -155,8 +155,9 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Рендиране на детайла
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderDetail_($data)
     {
@@ -236,11 +237,12 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Намира норма за артикула
      *
-     * @param  mixed      $class     - клас към който е нормата
-     * @param  int        $objectId  - ид на обект
-     * @param  int|NULL   $productId - ид на точен артикул
-     * @param  array|NULL $notIn     - ид на артикули да се изключат
-     * @return array      $res	        - запис на нормата
+     * @param mixed      $class     - клас към който е нормата
+     * @param int        $objectId  - ид на обект
+     * @param int|NULL   $productId - ид на точен артикул
+     * @param array|NULL $notIn     - ид на артикули да се изключат
+     *
+     * @return array $res	        - запис на нормата
      */
     public static function fetchNormRec($class, $objectId, $productId = null, $notIn = null)
     {
@@ -266,9 +268,10 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Връща опциите за избор на действия за оборудването
      *
-     * @param  mixed      $assets - списък с оборудвания
-     * @param  array|NULL $notIn  - ид-та на артикули, които да се игнорират
-     * @return array      $options   - имена на действия, групирани по оборудвания
+     * @param mixed      $assets - списък с оборудвания
+     * @param array|NULL $notIn  - ид-та на артикули, които да се игнорират
+     *
+     * @return array $options   - имена на действия, групирани по оборудвания
      */
     public static function getNormOptions($assets, $notIn = null)
     {

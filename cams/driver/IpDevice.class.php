@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Прототип на драйвер за IP устройство
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cams_driver_IpDevice extends core_BaseClass
 {
-    
-    
     /**
      * IP на устройството
      */
@@ -39,13 +38,13 @@ class cams_driver_IpDevice extends core_BaseClass
      * Парола за достъп
      */
     public $pass;
-
+    
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'cams_DriverIntf';
-
+    
     
     /**
      * Съответствие между означенията на кодеците в камерите и в VLC плеъра
@@ -98,13 +97,13 @@ class cams_driver_IpDevice extends core_BaseClass
     public function captureVideo($savePath, $duration)
     {
         $url = $this->getStreamUrl();
-        
+
 //        $cmd = dirname (__FILE__) . "/vlcschedule.sh {$url} " .
 //        "{$savePath} {$duration} " . $this->vlcCodec["$this->codec"] . " < /dev/null > /dev/null 2>&1 &";
-
+        
         $cmd = dirname(__FILE__) . "/LIVE555.sh {$url} " .
         "{$savePath} {$duration} {$this->width} {$this->height} {$this->FPS} < /dev/null > /dev/null 2>&1 &";
-
+        
         exec($cmd, $arrOutput);
         
         if (isDebug()) {
@@ -112,6 +111,7 @@ class cams_driver_IpDevice extends core_BaseClass
             log_System::add(get_called_class(), "Команда: {$cmd} Резултат: {$res}", null, 'debug');
         }
     }
+    
     
     /**
      * Взимаме настройките на камерата за резолюцията и скоростта на записа
@@ -193,8 +193,10 @@ class cams_driver_IpDevice extends core_BaseClass
                  $suffix = '/snapshot.jpg';
             break;
             case 'cams_driver_Hikvision':
+                
                 // Шот по http
                  $suffix = '/Streaming/channels/1/picture';
+                
                 // Път до файла генериран от RTSP
                 //return EF_TEMP_PATH . "HikvisionShot.jpg";
             break;
@@ -202,7 +204,7 @@ class cams_driver_IpDevice extends core_BaseClass
         
         return $this->getDeviceUrl('http') . $suffix;
     }
-
+    
     
     /**
      *
@@ -226,7 +228,7 @@ class cams_driver_IpDevice extends core_BaseClass
             case 'cams_driver_Hikvision':
             break;
         }
-
+        
         return $this->getDeviceUrl('rtsp') . $suffix;
     }
     
@@ -248,7 +250,7 @@ class cams_driver_IpDevice extends core_BaseClass
         
         return $this->getDeviceUrl('http') . $suffix;
     }
-
+    
     
     /**
      *
@@ -272,7 +274,7 @@ class cams_driver_IpDevice extends core_BaseClass
         
         return $protocol . '://' . $url;
     }
-
+    
     
     /**
      * Проверява дали данните във формата са въведени правилно
@@ -289,8 +291,8 @@ class cams_driver_IpDevice extends core_BaseClass
     {
         $a = 1;
     }
-
-
+    
+    
     /**
      * Дали има отдалечено управление?
      */

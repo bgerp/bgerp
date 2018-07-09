@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'cond_Parameters' - Търговски условия
  *
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_Parameters extends bgerp_ProtoParam
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -39,8 +38,8 @@ class cond_Parameters extends bgerp_ProtoParam
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -69,15 +68,15 @@ class cond_Parameters extends bgerp_ProtoParam
     {
         $file = 'cond/csv/Parameters.csv';
         $fields = array(
-                0 => 'name',
-                1 => 'driverClass',
-                2 => 'sysId',
-                3 => 'group',
-                4 => 'suffix',
-                5 => 'csv_roles',
-                6 => 'options',
+            0 => 'name',
+            1 => 'driverClass',
+            2 => 'sysId',
+            3 => 'group',
+            4 => 'suffix',
+            5 => 'csv_roles',
+            6 => 'options',
         );
-         
+        
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
         
@@ -94,15 +93,17 @@ class cond_Parameters extends bgerp_ProtoParam
      *    4. От условието за всички държави за контрагенти
      *    5. NULL ако нищо не е намерено
      *
-     * @param  int    $cClass         - клас на контрагента
-     * @param  int    $cId            - ид на контрагента
-     * @param  string $conditionSysId - sysId на параметър (@see cond_Parameters)
+     * @param int    $cClass         - клас на контрагента
+     * @param int    $cId            - ид на контрагента
+     * @param string $conditionSysId - sysId на параметър (@see cond_Parameters)
+     *
      * @return string $value         - стойността на параметъра
      */
     public static function getParameter($cClass, $cId, $conditionSysId)
     {
         // Ако няма клас и ид на документ да не връща нищо
         if (!isset($cClass) && !isset($cId)) {
+            
             return;
         }
         
@@ -152,12 +153,13 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Форсира параметър
      *
-     * @param  string      $sysId   - систем ид на параметър
-     * @param  string      $name    - име на параметъра
-     * @param  string      $type    - тип на параметъра
-     * @param  NULL|text   $options - опции на параметъра само за типовете enum и set
-     * @param  NULL|string $suffix  - наставка
-     * @return float       - ид на параметъра
+     * @param string      $sysId   - систем ид на параметър
+     * @param string      $name    - име на параметъра
+     * @param string      $type    - тип на параметъра
+     * @param NULL|text   $options - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix  - наставка
+     *
+     * @return float - ид на параметъра
      */
     public static function force($sysId, $name, $type, $options = array(), $suffix = null)
     {
@@ -167,7 +169,7 @@ class cond_Parameters extends bgerp_ProtoParam
             
             return $id;
         }
-            
+        
         // Създаване на параметъра
         return self::save(self::makeNewRec($sysId, $name, $type, $options, $suffix));
     }

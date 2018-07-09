@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на записите в баланс
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_BalanceDetails extends core_Detail
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -106,13 +105,13 @@ class acc_BalanceDetails extends core_Detail
      */
     public $title = 'Детайли на баланса';
     
-
+    
     /**
      * По-голямо поле за id
      */
     protected $idType = 'bigint';
     
-
+    
     /**
      * Описание на модела
      */
@@ -169,6 +168,7 @@ class acc_BalanceDetails extends core_Detail
             }
             
             if (!count($data->recs)) {
+                
                 return;
             }
             
@@ -186,7 +186,7 @@ class acc_BalanceDetails extends core_Detail
             
             $start = $data->pager->rangeStart;
             $end = $data->pager->rangeEnd - 1;
-           
+            
             // Махаме тези записи които не са в диапазона на страницирането
             foreach ($data->recs as $id => $rec1) {
                 if (!($count >= $start && $count <= $end)) {
@@ -218,7 +218,7 @@ class acc_BalanceDetails extends core_Detail
             $iQuery = acc_Items::getQuery();
             $iQuery->show('num');
             $iQuery->in('id', $usedItems);
-        
+            
             while ($iRec = $iQuery->fetch()) {
                 $usedItems[$iRec->id] = $iRec->num;
             }
@@ -232,14 +232,14 @@ class acc_BalanceDetails extends core_Detail
                 if (empty($listFields["ent{$i}Id"])) {
                     continue;
                 }
-        
+                
                 if (isset($rec->{"grouping{$i}"})) {
                     $sortField .= $rec->{"grouping{$i}"};
                 } else {
                     $sortField .= $usedItems[$rec->{"ent{$i}Id"}];
                 }
             }
-             
+            
             // канонизираме полето за сортиране
             $rec->sortField = strtolower(str::utf2ascii($sortField));
         }
@@ -260,7 +260,7 @@ class acc_BalanceDetails extends core_Detail
             
             return 0;
         }
-         
+        
         return (strnatcasecmp($a->sortField, $b->sortField) < 0) ? -1 : 1;
     }
     
@@ -280,6 +280,7 @@ class acc_BalanceDetails extends core_Detail
             $rows = &$data->rows;
             
             if (empty($rows)) {
+                
                 return;
             }
             
@@ -302,10 +303,12 @@ class acc_BalanceDetails extends core_Detail
     private function prepareSummary(&$data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
         if (!$this->isDetailed()) {
+            
             return;
         }
         
@@ -336,8 +339,9 @@ class acc_BalanceDetails extends core_Detail
      * Дали потребителя може да вижда детайл от баланса, може ако има достъп
      * до всички негови пера
      *
-     * @param  stdClass $rec - запис от модела
-     * @return boolean
+     * @param stdClass $rec - запис от модела
+     *
+     * @return bool
      */
     private function canReadRecord($rec)
     {
@@ -349,7 +353,7 @@ class acc_BalanceDetails extends core_Detail
             }
             
             $itemRec = acc_Items::fetch($ent, 'classId,objectId');
-           
+            
             if ($itemRec->classId) {
                 $AccRegMan = cls::get($itemRec->classId);
                 
@@ -383,18 +387,20 @@ class acc_BalanceDetails extends core_Detail
      * 		o blQuantity     -  крайно к-во
      * 		o blAmount       -  крайна сума
      *
-     * @param  array  $recs  - записите за групиране
-     * @param  int    $item1 - ид на перо на първа позиция
-     * @param  int    $item2 - ид на перо на втора позиция
-     * @param  int    $item3 - ид на перо на трета позиция
-     * @param  string $feat1 - име на свойство на перото на първа позиция
-     * @param  string $feat2 - име на свойство на перото на втора позиция
-     * @param  string $feat3 - име на свойство на перото на трета позиция
+     * @param array  $recs  - записите за групиране
+     * @param int    $item1 - ид на перо на първа позиция
+     * @param int    $item2 - ид на перо на втора позиция
+     * @param int    $item3 - ид на перо на трета позиция
+     * @param string $feat1 - име на свойство на перото на първа позиция
+     * @param string $feat2 - име на свойство на перото на втора позиция
+     * @param string $feat3 - име на свойство на перото на трета позиция
+     *
      * @return void
      */
     public static function filterRecs(&$recs, $item1 = null, $item2 = null, $item3 = null, $feat1 = null, $feat2 = null, $feat3 = null)
     {
         if (!count($recs)) {
+            
             return;
         }
         
@@ -442,21 +448,23 @@ class acc_BalanceDetails extends core_Detail
      * 		o blQuantity     -  крайно к-во
      * 		o blAmount       -  крайна сума
      *
-     * @param  array  $recs  - записите за групиране
-     * @param  int    $item1 - ид на перо на първа позиция
-     * @param  int    $item2 - ид на перо на втора позиция
-     * @param  int    $item3 - ид на перо на трета позиция
-     * @param  string $feat1 - име на свойство на перото на първа позиция
-     * @param  string $feat2 - име на свойство на перото на втора позиция
-     * @param  string $feat3 - име на свойство на перото на трета позиция
+     * @param array  $recs  - записите за групиране
+     * @param int    $item1 - ид на перо на първа позиция
+     * @param int    $item2 - ид на перо на втора позиция
+     * @param int    $item3 - ид на перо на трета позиция
+     * @param string $feat1 - име на свойство на перото на първа позиция
+     * @param string $feat2 - име на свойство на перото на втора позиция
+     * @param string $feat3 - име на свойство на перото на трета позиция
+     *
      * @return void
      */
     public static function groupRecs(&$recs, $item1 = null, $item2 = null, $item3 = null, $feat1 = null, $feat2 = null, $feat3 = null)
     {
         if (!count($recs)) {
+            
             return;
         }
-         
+        
         // Извличаме всички записани свойства за показваните пера
         $featuresArr = acc_Features::getFeaturesByItems();
         
@@ -483,11 +491,11 @@ class acc_BalanceDetails extends core_Detail
                             // Ако групираме със специалния символ '*', с-та на свойството е името на перото
                             $rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
                         } elseif (isset($featuresArr[$rec->{"ent{$i}Id"}][$feat])) {
-                             
+                            
                             // Ако има свойство за това перо, взимаме стойността му
                             $rec->{"grouping{$i}"} = $featuresArr[$rec->{"ent{$i}Id"}][$feat];
                         } else {
-                    
+                            
                             // Ако няма отива към "Други"
                             $rec->{"grouping{$i}"} = 'others';
                         }
@@ -509,7 +517,7 @@ class acc_BalanceDetails extends core_Detail
             foreach (array('ent1Id', 'ent2Id', 'ent3Id', 'accountNum', 'balanceId') as $fld) {
                 $r->{$fld} = $rec1->{$fld};
             }
-             
+            
             // Събираме числовите данни
             foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
                 if (!is_null($rec1->{$fld})) {
@@ -597,7 +605,7 @@ class acc_BalanceDetails extends core_Detail
         $data->qCopy = clone $data->query;
         
         $data->groupingForm = $this->getGroupingForm($data->masterId, $data->query);
-       
+        
         // Извличаме записите за номенклатурите, по които е разбита сметката
         $listRecs = array();
         
@@ -613,13 +621,14 @@ class acc_BalanceDetails extends core_Detail
             $data->listFields['history'] = ' ';
         }
         
+        
         /**
          * Указва дали редом с паричните стойности да се покажат и колони с количества.
          *
          * Количествата има смисъл да се виждат само за сметки, на които поне една от
          * аналитичностите е измерима.
          *
-         * @var boolean true - показват се и количества, false - не се показват
+         * @var bool true - показват се и количества, false - не се показват
          */
         $bShowQuantities = false;
         
@@ -726,6 +735,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         if (empty($listRecs)) {
+            
             return;
         }
         
@@ -895,14 +905,14 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         }
-
+        
         $res = true;
-
+        
         $sum = self::getCheckSum($balanceId);
         
         // Изтриваме всякакви записи за баланс с id == -1
         $this->delete('#balanceId = -1');
-
+        
         // Записваме всички данни наведнъж
         $this->saveArray($toSave);
         
@@ -911,10 +921,10 @@ class acc_BalanceDetails extends core_Detail
         
         // Заключваме показването на информацията от баланса в кориците и документи
         core_Locks::get(acc_Balances::saveLockKey);
-
+        
         // Изтриваме старите данни за текущия баланс
         $this->delete("#balanceId = {$balanceId}");
-                
+        
         // Ъпдейтваме данните за баланс -1 да са към текущия баланс
         // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
         // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
@@ -923,15 +933,15 @@ class acc_BalanceDetails extends core_Detail
         
         // Освобождаваме заключването
         core_Locks::release(acc_Balances::saveLockKey);
-
+        
         if ($sum == self::getCheckSum($balanceId)) {
             $res = false;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     public static function getCheckSum($balanceId)
     {
         $query = self::getQuery();
@@ -939,9 +949,9 @@ class acc_BalanceDetails extends core_Detail
         $query->where("#balanceId = {$balanceId}");
         
         $rec = $query->fetch();
-
+        
         $rec2 = $query->fetch();
- 
+        
         return $rec->checkSum;
     }
     
@@ -954,7 +964,7 @@ class acc_BalanceDetails extends core_Detail
         $query = $this->getQuery();
         
         $this->balance = array();
-
+        
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
         
         // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
@@ -971,7 +981,6 @@ class acc_BalanceDetails extends core_Detail
             // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
             if ($rec->blQuantity >= 0) {
                 if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
-                
                     $strategy->feed($rec->blQuantity, $rec->blAmount);
                 }
             }
@@ -1009,10 +1018,11 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Изчислява стойността на счетоводен баланс за зададен период от време.
      *
-     * @param  string  $from            дата в MySQL формат
-     * @param  string  $to              дата в MySQL формат
-     * @param  boolean $isMiddleBalance - дали се изчислява зареждането на данни от междинния баланс
-     * @return boolean $hasUpdatedJournal - дали да продължи преизчисляването или не
+     * @param string $from            дата в MySQL формат
+     * @param string $to              дата в MySQL формат
+     * @param bool   $isMiddleBalance - дали се изчислява зареждането на данни от междинния баланс
+     *
+     * @return bool $hasUpdatedJournal - дали да продължи преизчисляването или не
      */
     public function calcBalanceForPeriod($from, $to, $isMiddleBalance = false)
     {
@@ -1020,7 +1030,7 @@ class acc_BalanceDetails extends core_Detail
             list($d, $t) = explode(' ', $cronRec->lastStart);
             log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from  . ' - ' . $to . ' (Cron at ' . $t . ')', null, 'notice');
         }
-
+        
         $JournalDetails = &cls::get('acc_JournalDetails');
         
         $query = $JournalDetails->getQuery();
@@ -1059,7 +1069,6 @@ class acc_BalanceDetails extends core_Detail
             }
             
             foreach ($recs as $rec) {
-                
                 $this->calcAmount($rec);
                 $update = $this->calcPrice($rec);
                 
@@ -1069,7 +1078,7 @@ class acc_BalanceDetails extends core_Detail
                 // Обновява се записа само ако има промяна с цената
                 if ($update) {
                     $JournalDetails->save_($rec);
-                   
+                    
                     // Дигаме флага за преизчисляване
                     $hasUpdatedJournal = true;
                 }
@@ -1085,7 +1094,7 @@ class acc_BalanceDetails extends core_Detail
      * Проверява дали сумата на записа се различава от тази по стратегия
      * Ако не участват сметки по стратегия или няма променени цени по стратегия
      * не се прави промяна на записа
-     * 
+     *
      * @param $rec stdClass запис от детайла на журнала
      *
      * @return bool дали трябва да се обнови журнала с новата цена
@@ -1093,13 +1102,13 @@ class acc_BalanceDetails extends core_Detail
     private function calcPrice(&$rec)
     {
         $res = false;
-         
+        
         // Обхождаме дебита и кредита
         //@TODO трябва да се раздели на две обхождания за в случая когато дебтната сметка има стратегия
         foreach (array('credit', 'debit') as $type) {
             $quantityField = "{$type}Quantity";
             $priceField = "{$type}Price";
-    
+            
             // Ако има количество
             if ($rec->{$quantityField}) {
                 
@@ -1139,7 +1148,7 @@ class acc_BalanceDetails extends core_Detail
                                     // Извличаме дефолт цената му според записа
                                     $Register = cls::get($itemRec->classId);
                                     $defCost = $Register->getDefaultCost($itemRec->objectId);
-                                        
+                                    
                                     // Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
                                     $rec->amount = $defCost * $rec->{$quantityField};
                                     if (!empty($rec->{$quantityField})) {
@@ -1158,7 +1167,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         }
-         
+        
         return $res;
     }
     
@@ -1329,8 +1338,8 @@ class acc_BalanceDetails extends core_Detail
      * Ако $v = '', $add = '', то след $v += $add, $v ще има стойност нула. Целта на този метод
      * е стойността на $v да остане непроменена (празна) в такива случаи.
      *
-     * @param float  $v
-     * @param mixed  $add
+     * @param float $v
+     * @param mixed $add
      */
     private function inc(&$v, $add)
     {
@@ -1372,14 +1381,15 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Филтрира заявка към модела за показване на определени данни
      *
-     * @param  core_Query $query     - Заявка към модела
-     * @param  int        $balanceId - ид на баланса
-     * @param  mixed      $accs      - списък от систем ид-та на сметките
-     * @param  mixed      $itemsAll  - списък от пера, за които може да са на произволна позиция
-     * @param  mixed      $items1    - списък с пера, от които поне един може да е на първа позиция
-     * @param  mixed      $items2    - списък с пера, от които поне един може да е на втора позиция
-     * @param  mixed      $items3    - списък с пера, от които поне един може да е на трета позиция
-     * @return array      - масив със всички извлечени записи
+     * @param core_Query $query     - Заявка към модела
+     * @param int        $balanceId - ид на баланса
+     * @param mixed      $accs      - списък от систем ид-та на сметките
+     * @param mixed      $itemsAll  - списък от пера, за които може да са на произволна позиция
+     * @param mixed      $items1    - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed      $items2    - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed      $items3    - списък с пера, от които поне един може да е на трета позиция
+     *
+     * @return array - масив със всички извлечени записи
      */
     public static function filterQuery(core_Query &$query, $balanceId, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null)
     {

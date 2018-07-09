@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Мениджър за записване на изпратените факсове
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_Fax extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -63,9 +62,7 @@ class callcenter_Fax extends core_Manager
     public $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_Created, callcenter_ListOperationsPlg';
     
     
-    
     public $refreshRowsTime = 15000;
-    
     
     
     public $listFields = 'faxNumData, faxNum, cid, createdOn=Изпратен->На, createdBy=Изпратен->От';
@@ -85,8 +82,8 @@ class callcenter_Fax extends core_Manager
     /**
      * Записва изпращането на факса
      *
-     * @param integer $faxNum - Факс номера, до който се праща
-     * @param integer $cid    - id на документа
+     * @param int $faxNum - Факс номера, до който се праща
+     * @param int $cid    - id на документа
      */
     public static function saveSend($faxNum, $cid)
     {
@@ -105,7 +102,7 @@ class callcenter_Fax extends core_Manager
         static::save($rec);
     }
     
-
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -120,7 +117,7 @@ class callcenter_Fax extends core_Manager
         
         // Ако има данни за търсещия
         if ($rec->faxNumData) {
-         
+            
             // Вземаме записа
             $numRec = callcenter_Numbers::fetch($rec->faxNumData);
             
@@ -162,7 +159,7 @@ class callcenter_Fax extends core_Manager
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-                
+            
             // Дива за разстояние
             $div = "<div style='margin-top:5px;'>";
             
@@ -185,6 +182,7 @@ class callcenter_Fax extends core_Manager
     /**
      *
      * Enter description here ...
+     *
      * @param unknown_type $mvc
      * @param unknown_type $data
      */
@@ -197,7 +195,6 @@ class callcenter_Fax extends core_Manager
             $data->listFields = arr::make('faxNum=Получател, cid=Документ, created=Изпратен');
         }
     }
-    
     
     
     public static function on_AfterPrepareListFilter($mvc, $data)

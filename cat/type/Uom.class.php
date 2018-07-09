@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас  'cat_type_Uom'
  * Тип за мерни еденици. Представлява на един ред числов инпут и до него комбобокс
@@ -11,17 +10,16 @@
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cat_type_Uom extends type_Varchar
 {
-    
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -39,7 +37,7 @@ class cat_type_Uom extends type_Varchar
      */
     public $defaultValue = 0;
     
-
+    
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
@@ -71,24 +69,26 @@ class cat_type_Uom extends type_Varchar
     {
         // Ако няма стойност
         if (!$value) {
+            
             return;
         }
         
         // Ако стойността е двоично число
         if (is_numeric($value)) {
             $value = $this->double->fromVerbal($value);
-        
+            
             // Ако има проблем при обръщането сетва се грешка
             if ($value === false) {
                 $this->error = 'Не е въведено валидно число';
-        
+                
                 return false;
             }
-        
+            
             return $value;
         }
         
         if (!strlen($value['lP'])) {
+            
             return;
         }
         
@@ -107,7 +107,7 @@ class cat_type_Uom extends type_Varchar
         // Ако има проблем при обръщането сетва се грешка
         if ($numPart === false) {
             $this->error = 'Не е въведено валидно число';
-                
+            
             return false;
         }
         
@@ -116,7 +116,7 @@ class cat_type_Uom extends type_Varchar
             // Конвертиране в основна мярка на числото от избраната мярка
             $numPart = cat_UoM::convertToBaseUnit($numPart, $value['rP']);
         }
-      
+        
         // Връщане на сумата в основна мярка
         return $numPart;
     }
@@ -148,7 +148,7 @@ class cat_type_Uom extends type_Varchar
         // Извличане на всички производни мярки
         $options = cat_UoM::getSameTypeMeasures($baseUnitId, true);
         unset($options['']);
-
+        
         $inputRight = ' &nbsp;' . ht::createSmartSelect($options, $name . '[rP]', $convObject->measure);
         $inputRight = "<span style='vertical-align: top'>" . $inputRight . '</span>';
         
@@ -166,10 +166,11 @@ class cat_type_Uom extends type_Varchar
     public function toVerbal_($value)
     {
         if (!isset($value) || !is_numeric($value)) {
+            
             return;
         }
         $value = abs($value);
-           
+        
         return cat_UoM::smartConvert($value, $this->params['unit']);
     }
 }

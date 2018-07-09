@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'type_Blob' - Представя двоични данни
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Blob extends core_Type
 {
-    
-    
     /**
      * Стойност по подразбиране
      */
@@ -38,7 +37,7 @@ class type_Blob extends core_Type
         }
         
         $attr['cols'] = $name;
-
+        
         return ht::createElement('textarea', $attr, $value, true);
     }
     
@@ -73,16 +72,17 @@ class type_Blob extends core_Type
     public function toVerbal($value)
     {
         if (empty($value)) {
+            
             return;
         }
         $value = $this->fromMysql($value);
-
+        
         if ($value && !$this->params['binary']) {
             $value = ht::wrapMixedToHtml(ht::mixedToHtml($value, 1));
-
+            
             return $value;
         }
-
+        
         setIfNot($rowLen, $this->params['rowLen'], 16);
         setIfNot($maxRows, $this->params['maxRows'], 100);
         $len = min(strlen($value), $rowLen * $maxRows);
@@ -99,7 +99,7 @@ class type_Blob extends core_Type
         $res = new ET("<pre style='font-family:Courier New;'>[#ROWS#]</pre>");
         
         $rowsCnt = $len / $rowLen;
-
+        
         for ($i = 0; $i < $rowsCnt; $i++) {
             $offset = sprintf("%0{$offsetLen}X", $i * $rowLen);
             $str = '';
@@ -136,7 +136,8 @@ class type_Blob extends core_Type
      * Връща представяне подходящо за MySQL на дълги двоични данни
      * По-точно това е дълго 16-тично число
      *
-     * @param  string $value
+     * @param string $value
+     *
      * @return string
      */
     public function toMysql($value, $db, $notNull, $defValue)
@@ -154,13 +155,13 @@ class type_Blob extends core_Type
                 $value = gzcompress($value);
             }
         }
-
+        
         if ($value !== null && $value !== '') {
             $value = (string) $value;
-
+            
             if ($value) {
                 $res = "'" . $db->escape($value) . "'";
-
+            
             //$res = '0x' . bin2hex($value);
             } else {
                 $res = "''";
@@ -171,11 +172,13 @@ class type_Blob extends core_Type
         
         return $res;
     }
-
-
+    
+    
     /**
      * @see core_Type::fromMysql()
-     * @param  string $value
+     *
+     * @param string $value
+     *
      * @return mixed
      */
     public function fromMysql($value)

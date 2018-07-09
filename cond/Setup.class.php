@@ -10,15 +10,15 @@
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -47,32 +47,32 @@ class cond_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Дефиниции на фирмата';
-        
-        
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'cond_Texts',
-            'cond_Groups',
-            'cond_PaymentMethods',
-            'cond_DeliveryTerms',
-            'cond_Parameters',
-            'cond_ConditionsToCustomers',
-            'cond_Payments',
-            'cond_Countries',
-            'cond_TaxAndFees',
-        );
-
+        'cond_Texts',
+        'cond_Groups',
+        'cond_PaymentMethods',
+        'cond_DeliveryTerms',
+        'cond_Parameters',
+        'cond_ConditionsToCustomers',
+        'cond_Payments',
+        'cond_Countries',
+        'cond_TaxAndFees',
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(1.9, 'Система', 'Дефиниции', 'cond_DeliveryTerms', 'default', 'ceo, admin'),
-        );
-
-
+        array(1.9, 'Система', 'Дефиниции', 'cond_DeliveryTerms', 'default', 'ceo, admin'),
+    );
+    
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
@@ -81,6 +81,7 @@ class cond_Setup extends core_ProtoSetup
     
     /**
      * Инсталиране на пакета
+     *
      * @TODO Да се премахне след като кода се разнесе до всички бранчове
      * и старата роля 'salecond' бъде изтрита
      */
@@ -92,12 +93,12 @@ class cond_Setup extends core_ProtoSetup
         if ($roleRec = core_Roles::fetch("#role = 'salecond'")) {
             core_Roles::delete("#role = 'salecond'");
         }
-
+        
         $Plugins = cls::get('core_Plugins');
-
+        
         // Замества handle' ите на документите с линк към документа
         $html .= $Plugins->installPlugin('Плъгин за пасажи в RichEdit', 'cond_RichTextPlg', 'type_Richtext', 'private');
-
+        
         // Кофа за файлове от тип параметър
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('paramFiles', 'Прикачени файлови параметри', null, '1GB', 'user', 'user');

@@ -19,15 +19,15 @@ defIfNot('TCOST_ADD_PER_KG', 0);
  *
  * @category  bgerp
  * @package   tcost
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tcost_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -62,33 +62,33 @@ class tcost_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'tcost_FeeZones',
-            'tcost_Zones',
-            'tcost_Fees',
-        );
-
-        
+        'tcost_FeeZones',
+        'tcost_Zones',
+        'tcost_Fees',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'tcost';
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.5, 'Логистика', 'Навла', 'tcost_FeeZones', 'default', 'tcost, ceo'),
-        );
+        array(3.5, 'Логистика', 'Навла', 'tcost_FeeZones', 'default', 'tcost, ceo'),
+    );
     
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'TCOST_ADD_TAX' => array('double(smartRound=2)', 'caption=Надценки за транспорт->Твърда,unit=BGN'),
-            'TCOST_ADD_PER_KG' => array('double(smartRound=2)', 'caption=Надценки за транспорт->За 1 кг,unit=BGN'),
-
+        'TCOST_ADD_TAX' => array('double(smartRound=2)', 'caption=Надценки за транспорт->Твърда,unit=BGN'),
+        'TCOST_ADD_PER_KG' => array('double(smartRound=2)', 'caption=Надценки за транспорт->За 1 кг,unit=BGN'),
+    
     );
     
     
@@ -113,7 +113,7 @@ class tcost_Setup extends core_ProtoSetup
             try {
                 $Fees = cls::get('tcost_Fees');
                 $Fees->setupMVC();
-                 
+                
                 $currencyId = acc_Periods::getBaseCurrencyCode();
                 $query = $Fees->getQuery();
                 $query->where('#currencyId IS NULL');

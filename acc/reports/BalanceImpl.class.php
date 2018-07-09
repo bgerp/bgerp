@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_BalanceImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -59,10 +58,10 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $form->FLD('to', 'date', 'caption=До,mandatory');
         $form->FLD('action', 'varchar', 'caption=Действие,width=330px,silent,input=hidden,removeAndRefreshForm=grouping1|grouping2|grouping3|feat1|feat2|feat3');
         $form->setOptions('action', array('' => '', 'filter' => 'Филтриране по пера', 'group' => 'Групиране по пера'));
-    
+        
         $form->FLD('orderField', 'enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)', 'caption=Подредба->По,formOrder=110000');
         $form->FLD('orderBy', 'enum(,asc=Възходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
-    
+        
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
@@ -88,10 +87,10 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             // Ако е избрано действие филтриране или групиране
             if ($form->rec->action) {
                 $accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
-                 
+                
                 // Показваме номенкалтурите на сметката като предложения за селектиране
                 $options = array();
-                 
+                
                 if (count($accInfo->groups)) {
                     foreach ($accInfo->groups as $i => $gr) {
                         $options["ent{$i}Id"] .= $gr->rec->name;
@@ -122,11 +121,11 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     protected function prependStaticForm(core_ET &$tpl, $placeholder = null)
     {
         $form = cls::get('core_Form');
-    
+        
         $this->addEmbeddedFields($form);
         $form->rec = $this->innerForm;
         $form->class = 'simpleForm';
-            
+        
         $tpl->prepend($form->renderStaticHtml(), $placeholder);
     }
     
@@ -169,14 +168,14 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     {
         $data = new stdClass();
         $data->rec = $this->innerForm;
-       
+        
         $this->prepareListFields($data);
         
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
         $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => false, 'keepUnique' => true));
-
+        
         $data->recs = $Balance->getBalance($accSysId);
-          
+        
         $productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
         
         foreach ($data->recs as $id => $rec) {
@@ -186,7 +185,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         }
         
         $this->filterRecsByItems($data);
-
+        
         return $data;
     }
     
@@ -198,11 +197,11 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     {
         // Подготвяме страницирането
         $data = $res;
-
+        
         $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-       
+        
         $pager->itemsCount = count($data->recs);
         $pager->calc();
         $data->pager = $pager;
@@ -230,7 +229,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
                     $row = $mvc->getVerbalDetail($rec);
                     $data->rows[$id] = $row;
                 }
-
+                
                 
                 // Сумираме всички суми и к-ва
                 foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld) {
@@ -280,13 +279,14 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
         
         $tpl = $this->getReportLayout();
-
+        
         $explodeTitle = explode(' » ', $this->title);
-            
+        
         $title = tr("|{$explodeTitle[1]}|*");
         
         $tpl->replace($title, 'TITLE');
@@ -326,7 +326,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         $embedderTpl->append($tpl, 'data');
     }
-
+    
     
     /**
      * Подготвя хедърите на заглавията на таблицата
@@ -334,27 +334,27 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
-    
+        
         $bShowQuantities = ($data->accInfo->isDimensional === true) ? true : false;
         
         $data->bShowQuantities = $bShowQuantities;
-         
+        
         $data->listFields = array();
-            
+        
         foreach ($data->accInfo->groups as $i => $list) {
             $caption = acc_Lists::getVerbal($list->rec, 'name');
             $data->listFields["ent{$i}Id"] = tr("|{$caption}|*");
         }
-
+        
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
         $productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
-         
+        
         if ($productPosition) {
             $data->listFields += array(
-                 'code' => 'Код',
-                 );
+                'code' => 'Код',
+            );
         }
-         
+        
         if ($data->bShowQuantities) {
             $data->listFields += array(
                 'baseQuantity' => 'Начално салдо->ДК->К-во',
@@ -382,14 +382,14 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     private function recToVerbal($data)
     {
         $data->row = new stdClass();
-
+        
         foreach (range(1, 3) as $i) {
             if (!empty($data->rec->{"ent{$i}Id"})) {
                 $data->row->{"ent{$i}Id"} = '<b>' . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . '</b>: ';
                 $data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
             }
         }
-
+        
         if (!empty($data->rec->action)) {
             $data->row->action = ($data->rec->action == 'filter') ? tr('Филтриране по') : tr('Групиране по');
             $data->row->groupBy = '';
@@ -411,8 +411,8 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             }
         }
     }
-     
-     
+    
+    
     /**
      * Оставяме в записите само тези, които трябва да показваме
      */
@@ -422,14 +422,14 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
             $by = (array) $data->rec;
             acc_BalanceDetails::modifyListFields($data->listFields, $cmd, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
-              
+            
             if ($cmd == 'default') {
                 acc_BalanceDetails::filterRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
             } else {
                 acc_BalanceDetails::groupRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
             }
         }
-         
+        
         // Ако е посочено поле за сортиране, сортираме по него
         if ($this->innerForm->orderField) {
             arr::sortObjects($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
@@ -437,8 +437,8 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             acc_BalanceDetails::sortRecsByNum($data->recs, $data->listFields);
         }
     }
-       
-       
+    
+    
     /**
      * Вербалното представяне на ред от таблицата
      */
@@ -447,21 +447,21 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $Varchar = cls::get('type_Varchar');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-
+        
         $Int = cls::get('type_Int');
-
+        
         $row = new stdClass();
         $row->id = $Int->toVerbal($rec->id);
-       
+        
         foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld) {
             $row->{$fld} = $Double->toVerbal($rec->{$fld});
             $row->{$fld} = (($rec->{$fld}) < 0) ? "<span style='color:red'>{$row->{$fld}}</span>" : $row->{$fld};
         }
-       
+        
         foreach (range(1, 3) as $i) {
             if (isset($rec->{"grouping{$i}"})) {
                 $row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
-           
+                
                 if ($row->{"ent{$i}Id"} == 'others') {
                     $row->{"ent{$i}Id"} = '<i>' . tr('Други') . '</i>';
                 }
@@ -471,15 +471,15 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         if ($rec->measure) {
             $row->measure = cat_UoM::fetchField($rec->measure, 'shortName');
         }
-           
+        
         if ($rec->code) {
             $row->code = $rec->code;
         }
-           
+        
         if ($rec->mark) {
             $arrMark = keylist::toArray($rec->mark);
             foreach ($arrMark as $mark) {
@@ -489,18 +489,18 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
                     $row->mark = cat_Groups::fetchField($mark, 'name');
                 }
             }
-               
+            
             if (strpos($row->mark, ',')) {
                 $row->mark = substr($row->mark, 0, strlen($row->mark) - 2);
             }
         }
-       
+        
         $row->ROW_ATTR['class'] = ($rec->id % 2 == 0) ? 'zebra0' : 'zebra1';
-       
+        
         return $row;
     }
-
-      
+    
+    
     /**
      * Добавяме полета за търсене
      *
@@ -511,13 +511,13 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         if (!empty($this->innerForm)) {
             $accVerbal = acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
             $num = acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
-                      
+            
             $str = $accVerbal . ' ' . $num;
             $searchKeywords .= ' ' . plg_Search::normalizeText($str);
         }
     }
-      
-      
+    
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -526,22 +526,22 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-              
+        
         unset($innerState->recs);
     }
-      
-      
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->to} 23:59:59";
-              
+        
         return $activateOn;
     }
-
-
+    
+    
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
      *
@@ -560,7 +560,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $exportFields = $this->innerState->listFields;
         
         $summary->colspan = count($exportFields);
-      
+        
         if (!$this->innerState->bShowQuantities || $this->innerState->rec->action === 'group') {
             $summary->colspan -= 4;
         } else {
@@ -569,9 +569,9 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         if (count($this->innerState->recs)) {
             $afterRow = 'ОБЩО';
-
+            
             $rec = $this->prepareEmbeddedData($this->innerState->recs)->summaryRec;
-             
+            
             foreach ($rec as $f => $value) {
                 $rCsv = '';
                 
@@ -585,13 +585,13 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         foreach ($this->innerState->recs as $id => $rec) {
             $dataRecs[$id] = $this->getVerbalDetail($rec);
             foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
                 $dataRecs[$id]->{$ent} = acc_Items::getVerbal($rec->{$ent}, 'title');
             }
-
+            
             foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld) {
                 if (!is_null($rec->{$fld})) {
                     $dataRecs[$id]->{$fld} = $rec->{$fld};
@@ -600,19 +600,20 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         }
         
         $fields = $this->getFields();
-       
+        
         $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
         $csv .= "\n".$afterRow.$rCsv;
-
+        
         return $csv;
     }
-
-
+    
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -635,7 +636,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         return $f;
     }
-
+    
     
     public static function setFilterAndGroupFields(&$form, $listId, $i)
     {
@@ -644,13 +645,13 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         $items = cls::get('acc_Items')->makeArray4Select('title', "#lists LIKE '%|{$listId}|%'", 'id');
         $form->setOptions("grouping{$i}", $items);
-         
+        
         if (count($items)) {
             $form->setOptions("grouping{$i}", $items);
         } else {
             $form->setReadOnly("grouping{$i}");
         }
-         
+        
         $features = acc_Features::getFeatureOptions(array_keys(array($items)));
         $features = array('' => '') + $features + array('*' => $caption);
         $form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойство|*,width=330px,input");

@@ -9,15 +9,15 @@
  *
  * @category  vendors
  * @package   vtotal
+ *
  * @author    Christian Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     Ком
  */
 class vtotal_Plugin extends core_Plugin
 {
-
-
     /**
      * Добавя бутон за ръчно сканирване на файл
      */
@@ -26,10 +26,10 @@ class vtotal_Plugin extends core_Plugin
         if ($mvc->haveRightFor('single', $data->rec) && haveRole('admin, debug')) {
             try {
                 $rec = $data->rec;
-
+                
                 $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
                 $url = array('vtotal_Checks', 'manualCheck', 'md5' => $vtotalFilemanDataObject->md5, 'fileHnd' => $rec->fileHnd);
-
+                
                 // Добавяме бутона
                 $data->toolbar->addBtn(
                     'VT Scan',

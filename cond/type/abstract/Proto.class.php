@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Базов тип параметри
  */
 abstract class cond_type_abstract_Proto extends core_BaseClass
 {
-    
-    
     /**
      * Интерфейси които имплементира
      */
@@ -84,11 +84,12 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     /**
      * Връща инстанция на типа
      *
-     * @param  stdClass    $rec         - запис на параметъра
-     * @param  mixed       $domainClass - клас на домейна
-     * @param  mixed       $domainId    - ид на домейна
-     * @param  NULL|string $value       - стойност
-     * @return core_Type   - готовия тип
+     * @param stdClass    $rec         - запис на параметъра
+     * @param mixed       $domainClass - клас на домейна
+     * @param mixed       $domainId    - ид на домейна
+     * @param NULL|string $value       - стойност
+     *
+     * @return core_Type - готовия тип
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
@@ -103,19 +104,20 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     /**
      * Обръща подадени опции в подходящ текст за вътрешно съхранение
      *
-     * @param  array|string $options - масив или текст от опции
-     * @return string       - текстовия вид, в който ще се съхраняват
+     * @param array|string $options - масив или текст от опции
+     *
+     * @return string - текстовия вид, в който ще се съхраняват
      */
     public static function options2text($options)
     {
         $options = arr::make($options);
         expect(count($options));
-    
+        
         $opts = '';
         foreach ($options as $k => $v) {
             $opts .= "{$k}={$v}" . PHP_EOL;
         }
-    
+        
         return trim($opts);
     }
     
@@ -123,8 +125,9 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     /**
      * Подготвя опциите на типа от вътрешен формат
      *
-     * @param  string $text - опциите във вътрешен вид
-     * @return array  $res  - обработените опции
+     * @param string $text - опциите във вътрешен вид
+     *
+     * @return array $res  - обработените опции
      */
     public static function text2options($text)
     {
@@ -142,7 +145,7 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
                 $res[trim($k)] = trim($v);
             }
         }
-    
+        
         return $res;
     }
     
@@ -150,8 +153,9 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     /**
      * Задаване на домейна
      *
-     * @param  mixed $class
-     * @param  int   $id
+     * @param mixed $class
+     * @param int   $id
+     *
      * @return void;
      */
     public function setObject($class, $id)

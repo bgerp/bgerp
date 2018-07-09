@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   google
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class mp_PrintMockupPlg extends core_Plugin
 {
-    
-    
     /**
      *
      * @param core_Manager $mvc
@@ -35,12 +35,12 @@ class mp_PrintMockupPlg extends core_Plugin
             );
             
             $data->toolbar->addBtn(
-            
+                
                 'Принтер',
-            
+                
                 array($mvc, 'sendtoprint', 'containerId' => $data->rec->containerId),
                             "id=mp1{$data->rec->containerId},class=fright,row=2, order=39,title=" . 'Тестов печат чрез bluetoot принтер',
-            
+                
                 'ef_icon = img/16/print_go.png'
             
             );
@@ -59,7 +59,7 @@ class mp_PrintMockupPlg extends core_Plugin
     {
         if (strtolower($action) == strtolower('sendtoprint')) {
             //$mvc->requireRightFor('sendtoprint');
-                
+            
             expect($containerId = Request::get('containerId', 'int'));
             expect($document = doc_Containers::getDocument($containerId));
             
@@ -70,13 +70,14 @@ class mp_PrintMockupPlg extends core_Plugin
                 $dQuery = sales_SalesDetails::getQuery();
                 $dQuery->where("#saleId = {$saleRec->id}");
                 $recs = $dQuery->fetchAll();
-                 
+                
                 $Sales = $document->getInstance();
                 deals_Helper::fillRecs($Sales, $recs, $saleRec);
                 
                 
                 //core_Mode::push('text', 'plain');
                 $saleRow = $document->getInstance()->recToVerbal($saleRec);
+                
                 //$info = deals_Helper::getDocumentHeaderInfo($saleRec->contragentClassId, $saleRec->contragentId);
                 
                 $summary = deals_Helper::prepareSummary($Sales->_total, $saleRec->valior, $saleRec->currencyRate, $saleRec->currencyId, $saleRec->chargeVat, false, $saleRec->tplLang);

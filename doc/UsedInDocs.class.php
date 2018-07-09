@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class doc_UsedInDocs extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -46,7 +46,6 @@ class doc_UsedInDocs extends core_Manager
     protected $objectArr = array();
     
     
-    
     public function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер, input=none');
@@ -61,9 +60,9 @@ class doc_UsedInDocs extends core_Manager
     /**
      *
      *
-     * @param mixed   $val
-     * @param integer $cId
-     * @param string  $type
+     * @param mixed  $val
+     * @param int    $cId
+     * @param string $type
      */
     public static function addObject($val, $cId, $type)
     {
@@ -79,7 +78,7 @@ class doc_UsedInDocs extends core_Manager
      * Добавяне контейнера към списъка с проверени, ако няма запис
      * При флъшване, ако няма запис - ще се изтрие
      *
-     * @param integer $cId
+     * @param int $cId
      */
     public static function addToChecked($cId)
     {
@@ -96,9 +95,9 @@ class doc_UsedInDocs extends core_Manager
     /**
      *
      *
-     * @param integer      $cId
-     * @param integer|NULL $userId
-     * @param NULL|string  $type
+     * @param int         $cId
+     * @param int|NULL    $userId
+     * @param NULL|string $type
      *
      * @return NULL|array $type
      */
@@ -121,7 +120,7 @@ class doc_UsedInDocs extends core_Manager
             
             return $rec->data;
         }
-
+        
         return $rec->data[$type];
     }
     
@@ -141,15 +140,15 @@ class doc_UsedInDocs extends core_Manager
             if (!isset($cidDataArr)) {
                 continue;
             }
-        
+            
             foreach ($cidDataArr as $cId => $dataArr) {
                 $rec = self::fetch(array("#userId = '[#1#]' AND #containerId = '[#2#]'", $userId, $cId));
-        
+                
                 if (!$rec) {
                     if (!$dataArr) {
                         continue;
                     }
-        
+                    
                     $rec = new stdClass();
                 } else {
                     if (!$dataArr && $rec->id) {
@@ -158,12 +157,12 @@ class doc_UsedInDocs extends core_Manager
                         continue;
                     }
                 }
-        
+                
                 $rec->userId = $userId;
                 $rec->data = $dataArr;
                 $rec->containerId = $cId;
                 $rec->last = dt::now();
-        
+                
                 $me->save($rec);
             }
         }
@@ -181,7 +180,6 @@ class doc_UsedInDocs extends core_Manager
     {
         $mvc->flushArr();
     }
-    
     
     
     public static function cron_deleteOldObject()

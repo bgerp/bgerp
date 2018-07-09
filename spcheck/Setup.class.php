@@ -8,15 +8,15 @@
  *
  * @category  bgerp
  * @package   spcheck
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class spcheck_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -49,7 +49,7 @@ class spcheck_Setup extends core_ProtoSetup
         'migrate::addLg',
         'migrate::removeBadRecs'
     );
-        
+    
     
     /**
      * Инсталиране на пакета

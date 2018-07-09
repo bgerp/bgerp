@@ -19,16 +19,16 @@ defIfNot('CHOSEN_MIN_ITEMS', 30);
  *
  * @category  vendors
  * @package   chosen
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      http://harvesthq.github.com/chosen/
  */
 class chosen_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -53,7 +53,6 @@ class chosen_Setup extends core_ProtoSetup
     public $info = 'Удобно избиране от множества. По-стара алтернатива на Select2';
     
     
-    
     public $deprecated = true;
     
     
@@ -61,11 +60,11 @@ class chosen_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
+        
+        // Минималния брой елементи, за които няма да сработи Chosen
+        'CHOSEN_MIN_ITEMS' => array('int', 'caption=Минимален брой опции за да сработи Chosen->Опции, suggestions=10|20|30|40|50'),
     
-            // Минималния брой елементи, за които няма да сработи Chosen
-            'CHOSEN_MIN_ITEMS' => array('int', 'caption=Минимален брой опции за да сработи Chosen->Опции, suggestions=10|20|30|40|50'),
-    
-        );
+    );
     
     
     /**
@@ -92,7 +91,7 @@ class chosen_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('ChosenSelectItem', 'chosen_PluginSelect', 'acc_type_Item', 'private');
         $html .= $Plugins->forcePlugin('ChosenSelectAccount', 'chosen_PluginSelect', 'acc_type_Account', 'private');
         $html .= $Plugins->forcePlugin('ChosenAccounts', 'chosen_Plugin', 'acc_type_Accounts', 'private');
-
+        
         return $html;
     }
     
@@ -114,11 +113,11 @@ class chosen_Setup extends core_ProtoSetup
         // Премахваме от type_Key полета
         $Plugins->deinstallPlugin('chosen_PluginSelect');
         $html .= "<li>Премахнати са всички инсталации на 'chosen_PluginSelect'";
-       
+        
         return $html;
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */

@@ -1,23 +1,23 @@
 <?php
 
 
-
 /**
  * Клас 'batch_plg_DocumentMovementDetail' - За генериране на партидни движения от документите
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @todo да се разработи
  */
 class batch_plg_DocumentMovementDetail extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -44,13 +44,16 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         $rec = &$form->rec;
         $storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
         if (!$storeId) {
+            
             return;
         }
         
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
+            
             return;
         }
         if (isset($rec->id)) {
+            
             return;
         }
         $form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
@@ -102,19 +105,22 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         $rec = &$form->rec;
         $storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
         if (haveRole('partner')) {
+            
             return;
         }
         
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
             $rec->isEdited = true;
-
+            
             return;
         }
         if (isset($rec->id)) {
+            
             return;
         }
         
         if (!$storeId) {
+            
             return;
         }
         
@@ -137,7 +143,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                         $productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
                         $quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
                         $quantity = ($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
-                            
+                        
                         if (!$BatchClass->isValid($rec->batch, $quantity, $msg)) {
                             $form->setError('batch', $msg);
                         }
@@ -157,6 +163,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
         if (is_object($BatchClass)) {
             if (!$BatchClass->canAutoAllocate()) {
+                
                 return;
             }
             
@@ -260,10 +267,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         // Само за детайли
         if ($mvc instanceof core_Master) {
+            
             return;
         }
         
         if (!count($data->rows) || haveRole('partner')) {
+            
             return;
         }
         
@@ -289,9 +298,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_BeforeRenderListTable($mvc, &$res, &$data)
     {
         if ($mvc instanceof core_Master) {
+            
             return;
         }
         if (!count($data->rows) || haveRole('partner')) {
+            
             return;
         }
         
@@ -302,6 +313,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : (($mvc->Master->storeFieldName && $data->masterData->rec->{$mvc->Master->storeFieldName}) ? $data->masterData->rec->{$mvc->Master->storeFieldName} : null);
             if (!$storeId) {
+                
                 return;
             }
             
@@ -315,13 +327,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     }
     
     
-    
     /**
      * Метод по реализация на определянето на движението генерирано от реда
      *
-     * @param  core_Mvc $mvc
-     * @param  string   $res
-     * @param  stdClass $rec
+     * @param core_Mvc $mvc
+     * @param string   $res
+     * @param stdClass $rec
+     *
      * @return void
      */
     public static function on_AfterGetBatchMovementDocument($mvc, &$res, $rec)
@@ -338,13 +350,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
         if (isset($res)) {
+            
             return;
         }
         
         $rec = $mvc->fetchRec($rec);
         if (isset($mvc->rowInfo[$rec->id])) {
             $res = $mvc->rowInfo[$rec->id];
-
+            
             return;
         }
         
@@ -358,14 +371,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         }
         
         $res = (object) array('productId' => $rec->{$mvc->productFieldName},
-                             'packagingId' => $rec->packagingId,
-                             'quantity' => $rec->quantity,
-                             'quantityInPack' => $rec->quantityInPack,
-                             'containerId' => $masterRec->containerId,
-                             'date' => $masterRec->{$Master->valiorFld},
-                             'state' => $masterRec->state,
-                             'operation' => array($operation => $masterRec->{$Master->storeFieldName}),
-                             );
+            'packagingId' => $rec->packagingId,
+            'quantity' => $rec->quantity,
+            'quantityInPack' => $rec->quantityInPack,
+            'containerId' => $masterRec->containerId,
+            'date' => $masterRec->{$Master->valiorFld},
+            'state' => $masterRec->state,
+            'operation' => array($operation => $masterRec->{$Master->storeFieldName}),
+        );
         
         $mvc->rowInfo[$rec->id] = $res;
         $res = $mvc->rowInfo[$rec->id];
@@ -431,6 +444,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         }
         
         if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) {
+            
             return;
         }
         $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});

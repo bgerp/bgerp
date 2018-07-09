@@ -6,18 +6,17 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_DocumentTransactionSource
  *
  */
 abstract class acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var core_Mvc
@@ -40,17 +39,17 @@ abstract class acc_DocumentTransactionSource
     {
         // Извличаме записа
         $rec = $this->class->fetchRec($id);
-    
+        
         // Промяна на състоянието на документа
         $rec->state = $this->finalizedState;
-    
+        
         // Запазване на промененото състояние
         if ($id = $this->class->save($rec)) {
             
             // Ако записа е успешен, нотифицираме документа, че е бил активиран
             $this->class->invoke('AfterActivation', array($rec));
         }
-    
+        
         return $id;
     }
 }

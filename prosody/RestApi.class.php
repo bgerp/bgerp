@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * Мениджър на чат клиент към prosody - https://github.com/snowblindroan/mod_admin_rest
  *
  *
  * @category  bgerp
  * @package   prosody
+ *
  * @author    Dimitar Minekov <mitko@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class prosody_RestApi
 {
-    
-
     /**
      * Създава заявка и връща резултати
      *
-     * @param  string      $type     http метод
-     * @param  string      $endpoint API суфикс
-     * @param  array       $params   Параметри
+     * @param string $type     http метод
+     * @param string $endpoint API суфикс
+     * @param array  $params   Параметри
+     *
      * @return array|false Масив с данни или грешка
      */
     private static function doRequest($type, $endpoint, $params = array())
@@ -51,9 +51,9 @@ class prosody_RestApi
         }
         
         expect(in_array($type, array('GET', 'POST', 'PUT', 'PATCH', 'DELETE')));
-
+        
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
-         
+        
         $result = curl_exec($ch);
         $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);   //get status code
         curl_close($ch);
@@ -67,6 +67,7 @@ class prosody_RestApi
      *
      * @param $user
      * @param $message
+     *
      * @return $res: 201 - offline msg, 200 - OK, 404 - no user
      */
     public static function sendMessage($user, $message)
@@ -85,6 +86,7 @@ class prosody_RestApi
      *
      * @param $user
      * @param $roster - име на потребител
+     *
      * @return $res: 201 - OK, 409 - user exist
      */
     public static function addUser($user, $password)
@@ -93,16 +95,17 @@ class prosody_RestApi
         $endpoint = 'user' . '/' . $user;
         
         $res = self::doRequest('POST', $endpoint, array('password' => $password));
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Променя паролата на потребителя
      *
      * @param $user - име на потребител
      * @param $password - новата парола
+     *
      * @return $res: 201 - OK, 409 - user exist
      */
     public static function changePassword($user, $password)
@@ -111,34 +114,36 @@ class prosody_RestApi
         $endpoint = 'user' . '/' . $user . '/password';
         
         $res = self::doRequest('PATCH', $endpoint, array('password' => $password));
-
+        
         return $res;
     }
-
-     
+    
+    
     /**
      * Изтрива потребител
      *
      * @param $user
      * @param $roster - име на потребител
+     *
      * @return $res: 200 - OK, 404 - no user
      */
     public static function removeUser($user)
     {
         $user = strtolower($user);
         $endpoint = 'user' . '/' . $user;
-    
+        
         $res = self::doRequest('DELETE', $endpoint);
-    
+        
         return $res;
     }
     
-
+    
     /**
      * Добавя контакт на потребител
      *
      * @param $user
      * @param $roster - име на потребител
+     *
      * @return $res: 200 - OK, 404 - no user
      */
     public static function addRoster($user, $contact)
@@ -154,15 +159,17 @@ class prosody_RestApi
         }
         
         $res = self::doRequest($type, $endpoint, array('contact' => $contact));
-
+        
         return $res;
     }
+    
     
     /**
      * Изтрива контакт от потребител
      *
      * @param $user
      * @param $roster - име на потребител
+     *
      * @return $res: 200 - OK, 404 - no user
      */
     public static function deleteRoster($user, $contact)
@@ -184,6 +191,7 @@ class prosody_RestApi
      * Взима списък на потребител
      *
      * @param $user
+     *
      * @return $res: 200 - OK, 404 - no user
      */
     public static function getRoster($user)
@@ -192,13 +200,14 @@ class prosody_RestApi
         $endpoint = 'roster' . '/' . $user;
         $type = 'GET';
         $res = self::doRequest($type, $endpoint);
-
+        
         return $res;
     }
     
     
     /**
      * @param string $user
+     *
      * @return
      */
     public static function getConnectedUsers()

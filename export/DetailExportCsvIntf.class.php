@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   export
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за типове за експортиране на документи
  */
 class export_DetailExportCsvIntf
 {
-    
-    
     /**
      * Клас имплементиращ мениджъра
      */
@@ -51,7 +51,7 @@ class export_DetailExportCsvIntf
      * @param core_Master   $masterMvc
      * @param stdClass      $mRec
      * @param core_FieldSet $csvFields
-     * @param integer       $activatedBy
+     * @param int           $activatedBy
      *
      * @return array
      */

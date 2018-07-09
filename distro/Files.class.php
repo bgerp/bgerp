@@ -1,25 +1,23 @@
 <?php 
 
-
 /**
  * Детайл на разпределена файлова група
  *
  * @category  bgerp
  * @package   distro
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class distro_Files extends core_Detail
 {
-    
-    
     /**
      * Заглавие на модела
      */
     public $title = 'Разпределена файлова група';
-    
     
     
     public $singleTitle = 'Файл';
@@ -35,7 +33,6 @@ class distro_Files extends core_Detail
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
-    
     
     
     public $canEditsysdata = 'no_one';
@@ -83,7 +80,6 @@ class distro_Files extends core_Detail
     public $masterKey = 'groupId';
     
     
-    
     public $depends = 'fileman=0.1';
     
     
@@ -99,6 +95,7 @@ class distro_Files extends core_Detail
      * При колко линка в тулбара на реда да не се показва дропдауна
      *
      * @param int
+     *
      * @see plg_RowTools2
      */
     public $rowToolsMinLinksToShow = 2;
@@ -114,7 +111,6 @@ class distro_Files extends core_Detail
      * Флаг, който указва дали да се изтрие и файла след изтриване на хранилището
      */
     public $onlyDelRepo = false;
-    
     
     
     public $currentTab = 'Групи';
@@ -148,7 +144,7 @@ class distro_Files extends core_Detail
      *
      * @param int $masterId - id на мастъра
      *
-     * @return boolean
+     * @return bool
      */
     public static function haveRec($me, $masterId)
     {
@@ -169,10 +165,10 @@ class distro_Files extends core_Detail
     /**
      * Връща пълния път до файла в хранилището
      *
-     * @param stdClass|integer $id
-     * @param NULL|integer     $repoId
-     * @param NULL|integer     $groupId
-     * @param NULL|string      $name
+     * @param stdClass|int $id
+     * @param NULL|int     $repoId
+     * @param NULL|int     $groupId
+     * @param NULL|string  $name
      */
     public function getRealPathOfFile($id, $repoId = null, $groupId = null, $name = null)
     {
@@ -196,8 +192,8 @@ class distro_Files extends core_Detail
     /**
      * Връща уникално име за файла, който ще се добавя в хранилището
      *
-     * @param integer      $id
-     * @param NULL|integer $repoId
+     * @param int      $id
+     * @param NULL|int $repoId
      *
      * @return FALSE|string
      */
@@ -236,10 +232,10 @@ class distro_Files extends core_Detail
     /**
      * Връща масив със записи, където се среща съответния файл
      *
-     * @param integer     $groupId
+     * @param int         $groupId
      * @param string|NULL $md5
      * @param string|NULL $name
-     * @param boolean     $group
+     * @param bool        $group
      *
      * @return array
      */
@@ -279,13 +275,13 @@ class distro_Files extends core_Detail
         if (($underscorePos = mb_strrpos($nameArr['name'], '_')) !== false) {
             $name = mb_substr($nameArr['name'], 0, $underscorePos);
             $nameId = mb_substr($nameArr['name'], $underscorePos + 1);
-        
+            
             if (is_numeric($nameId)) {
                 $nameId++;
             } else {
                 $nameId .= '_1';
             }
-        
+            
             $nameArr['name'] = $name . '_' . $nameId;
         } else {
             $nameArr['name'] .= '_1';
@@ -300,8 +296,8 @@ class distro_Files extends core_Detail
     /**
      * Форсира синхронизирането на файловете в хранилището с БД
      *
-     * @param integer $groupId
-     * @param integer $repoId
+     * @param int $groupId
+     * @param int $repoId
      *
      * @return FALSE|array
      */
@@ -507,12 +503,12 @@ class distro_Files extends core_Detail
     /**
      * Добавя запис за файла в БД
      *
-     * @param integer       $groupId
+     * @param int           $groupId
      * @param string        $name
-     * @param integer       $repoId
+     * @param int           $repoId
      * @param NULL|datetime $date
      *
-     * @return NULL|integer
+     * @return NULL|int
      */
     protected function addFileToDB($groupId, $name, $repoId, $date = null)
     {
@@ -525,26 +521,26 @@ class distro_Files extends core_Detail
         $fRec = $this->getRecForFile($groupId, $name, $repoId);
         
         if ($fRec) {
-        
+            
             // Ако хешовете им съвпадат
             if ($fRec->md5 == $nRec->md5) {
                 $this->logNotice('Съществуващ файл', $fRec->id);
                 
                 return;
             }
-        
+            
             // Ако са различни файлове, преименуваме единия
             $ssh = distro_Repositories::connectToRepo($repoId);
             if ($ssh) {
                 $uniqName = $this->getUniqFileName($fRec->id, $repoId);
                 $newName = escapeshellarg($uniqName);
-        
+                
                 $oldName = $this->getRealPathOfFile($fRec->id, $repoId);
                 $oldName = escapeshellarg($oldName);
-        
+                
                 $exec = "mv {$oldName} {$newName}";
                 $ssh->exec($exec);
-        
+                
                 $name = pathinfo($uniqName, PATHINFO_BASENAME);
             }
         }
@@ -569,9 +565,9 @@ class distro_Files extends core_Detail
     /**
      * Връща md5 стойността на файла
      *
-     * @param integer $repoId
-     * @param string  $dir
-     * @param string  $name
+     * @param int    $repoId
+     * @param string $dir
+     * @param string $name
      *
      * @return FALSE|string
      */
@@ -586,10 +582,10 @@ class distro_Files extends core_Detail
     /**
      * Връща запис за файла от съответната група
      *
-     * @param integer $groupId
-     * @param string  $name
-     * @param integer $repoId
-     * @param boolean $cache
+     * @param int    $groupId
+     * @param string $name
+     * @param int    $repoId
+     * @param bool   $cache
      *
      * @return stdClass|FALSE
      */
@@ -605,7 +601,7 @@ class distro_Files extends core_Detail
      *
      * @param datetime $date
      *
-     * @return boolean
+     * @return bool
      */
     protected function checkDate($date)
     {
@@ -675,7 +671,7 @@ class distro_Files extends core_Detail
             
             // Ако има мастер
             if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
-            
+                
                 // Вземаме масива с хранилищата, които са зададени в мастера
                 $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
             }
@@ -751,7 +747,7 @@ class distro_Files extends core_Detail
         }
     }
     
-
+    
     /**
      * Извиква се след успешен запис в модела
      *
@@ -1008,7 +1004,6 @@ class distro_Files extends core_Detail
      */
     public function cron_SyncFiles()
     {
-        
         // Извикваме функцията и връщаме резултата му
         return core_Type::mixedToString($this->syncFiles());
     }

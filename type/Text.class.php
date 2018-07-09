@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'type_Text' - Тип за дълъг текст
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Text extends core_Type
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -42,7 +41,7 @@ class type_Text extends core_Type
         }
         
         $attr['class'] .= ' w100';
-
+        
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
         setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
         
@@ -57,7 +56,7 @@ class type_Text extends core_Type
         }
         
         $attr['name'] = $name;
-
+        
         return ht::createElement('textarea', $attr, $value, true);
     }
     
@@ -103,10 +102,11 @@ class type_Text extends core_Type
     /**
      * Разбива произволно дълъг текст на линии с определена максимална дължина
      *
-     * @param  string $text      текста за разбиване
-     * @param  int    $width     максимален брой символи на линия
-     * @param  int    $firstLine отместване на първата линия в текста. Останалите линии ще бъдат
-     *                           попълнени отпред с интервали за да се подравнят отляво с първата.
+     * @param string $text      текста за разбиване
+     * @param int    $width     максимален брой символи на линия
+     * @param int    $firstLine отместване на първата линия в текста. Останалите линии ще бъдат
+     *                          попълнени отпред с интервали за да се подравнят отляво с първата.
+     *
      * @return string
      */
     public static function formatTextBlock($text, $width, $firstLine)
@@ -135,8 +135,9 @@ class type_Text extends core_Type
     /**
      * Разбива текст на линии с определена макс. дължина на линията
      *
-     * @param  string $text
-     * @param  int    $width макс. брой символи на линия
+     * @param string $text
+     * @param int    $width макс. брой символи на линия
+     *
      * @return array
      */
     public static function splitToLines($text, $width)
@@ -159,8 +160,9 @@ class type_Text extends core_Type
      * @TODO да се ограничи на кои символи може да завършва парчето, за да не реже думите по
      * средата.
      *
-     * @param  string $text  извлеченото парче се отрязва от текста.
-     * @param  int    $width максимална дължина на парчето
+     * @param string $text  извлеченото парче се отрязва от текста.
+     * @param int    $width максимална дължина на парчето
+     *
      * @return string
      */
     public static function getChunk(&$text, $width)
@@ -180,7 +182,7 @@ class type_Text extends core_Type
         if (!$this->suggestions) {
             $this->prepareSuggestions();
         }
-
+        
         return $this->suggestions;
     }
     

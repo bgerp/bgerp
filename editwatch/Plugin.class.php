@@ -7,15 +7,15 @@
  *
  * @category  vendors
  * @package   editwatch
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class editwatch_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -65,7 +65,7 @@ class editwatch_Plugin extends core_Plugin
         
         // Шаблон за информацията
         $info = new ET("<div id='editStatus'>[#1#]</div>", $status);
-   
+        
         // Абонираме процеса
         core_Ajax::subscribe($info, array($mvc, 'showEditwatchStatus', $recId, 'refreshUrl' => $refreshUrlLocal), 'editwatch', $time);
         
@@ -111,6 +111,7 @@ class editwatch_Plugin extends core_Plugin
     public function on_BeforeAction($mvc, &$res, $act)
     {
         if ($act != 'showeditwatchstatus') {
+            
             return;
         }
         
@@ -185,8 +186,8 @@ class editwatch_Plugin extends core_Plugin
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
      *
-     * @param array   $refreshUrl
-     * @param integer $hitTime
+     * @param array $refreshUrl
+     * @param int   $hitTime
      */
     public static function getNameHash($refreshUrl, $hitTime)
     {

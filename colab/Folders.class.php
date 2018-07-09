@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   colab
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.12
  */
 class colab_Folders extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -102,7 +102,7 @@ class colab_Folders extends core_Manager
         }
         
         Mode::set('currentExternalTab', 'cms_Profiles');
-       
+        
         return parent::act_List();
     }
     
@@ -125,7 +125,7 @@ class colab_Folders extends core_Manager
                 $data->rows[$id] = $row;
             }
         }
-    
+        
         return $data;
     }
     
@@ -154,7 +154,7 @@ class colab_Folders extends core_Manager
         $res->in('id', $sharedFolders);
         
         $res->orderBy('#last', 'DESC');
-
+        
         return $res;
     }
     
@@ -167,7 +167,7 @@ class colab_Folders extends core_Manager
         // Ако пакета 'colab' не е инсталиран, никой не може нищо
         if (!core_Packs::isInstalled('colab')) {
             $requiredRoles = 'no_one';
-
+            
             return;
         }
         
@@ -189,15 +189,15 @@ class colab_Folders extends core_Manager
     }
     
     
-    
     /**
      * Връща всички споделени папки до този партньор
      *
-     * @param  int|NULL $cu                       - потребител
-     * @param  boolean  $showTitle                - дали папките да са заглавия
-     * @param  string   $interface                - интерфейс
-     * @param  boolean  $skipPrivateFolderIfEmpty - да се пропусне ли частната папка ако е празна
-     * @return array    $sharedFolders           - масив със споделените папки
+     * @param int|NULL $cu                       - потребител
+     * @param bool     $showTitle                - дали папките да са заглавия
+     * @param string   $interface                - интерфейс
+     * @param bool     $skipPrivateFolderIfEmpty - да се пропусне ли частната папка ако е празна
+     *
+     * @return array $sharedFolders           - масив със споделените папки
      */
     public static function getSharedFolders($cu = null, $showTitle = false, $interface = null, $skipPrivateFolderIfEmpty = true)
     {
@@ -222,10 +222,10 @@ class colab_Folders extends core_Manager
         // Трябва ли да се пропусне личната папка
         if ($skipPrivateFolderIfEmpty === true) {
             $personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
-
+            
             // Коя е личната папка на партньора
             if ($personId && ($privateFolderId = crm_Persons::fetchField($personId, 'folderId'))) {
-                    
+                
                 // Ако в нея няма видими документи за него, пропуска се
                 $count = doc_Threads::count("#folderId = {$privateFolderId} AND #visibleForPartners = 'yes'");
                 if (!$count) {
@@ -250,7 +250,8 @@ class colab_Folders extends core_Manager
     /**
      * Връща споделените партнори в посочената папка
      *
-     * @param  int   $folderId - папка
+     * @param int $folderId - папка
+     *
      * @return array $users - споделени партньори
      */
     public static function getSharedUsers($folderId)
@@ -303,6 +304,7 @@ class colab_Folders extends core_Manager
      * @param string $status
      *
      * @return string
+     *
      * @see plg_RefreshRows
      */
     public static function getContentHash_(&$status)
@@ -321,16 +323,19 @@ class colab_Folders extends core_Manager
     {
         $cu = isset($cu) ? $cu : core_Users::getCurrent('id', false);
         if (empty($cu)) {
+            
             return;
         }
         
         $folderId = isset($folderId) ? $folderId : colab_FolderToPartners::getLastSharedContragentFolder($cu);
         if (empty($folderId)) {
+            
             return;
         }
         
         $Cover = doc_Folders::getCover($folderId);
         if (!$Cover->haveInterface('crm_ContragentAccRegIntf')) {
+            
             return;
         }
         

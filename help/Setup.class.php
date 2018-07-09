@@ -1,10 +1,12 @@
 <?php
 
+
 /**
  * Колко пъти поне да се покаже дадена помощна информация на даден потребител
  * в отворено състояние
  */
 defIfNot('HELP_MAX_OPEN_DISPLAY_CNT', 3);
+
 
 /**
  * Колко време след първото показване, да се показва дадена помощна информация
@@ -12,11 +14,13 @@ defIfNot('HELP_MAX_OPEN_DISPLAY_CNT', 3);
  */
 defIfNot('HELP_MAX_OPEN_DISPLAY_TIME', 1 * 24 * 60 * 60);
 
+
 /**
  * Колко пъти поне да се покаже дадена помощна информация на даден потребител
  * в затворено състояние
  */
 defIfNot('HELP_MAX_CLOSE_DISPLAY_CNT', 30);
+
 
 /**
  * Колко време след първото показване, да се показва дадена помощна информация
@@ -37,7 +41,6 @@ defIfNot('HELP_BGERP_INACTIVE_SECS', 15);
 defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/cal_Tasks/new/?systemId=1');
 
 
-
 /**
  * class help_Setup
  *
@@ -47,15 +50,15 @@ defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/cal_Tasks/new/?systemId=1');
  *
  * @category  bgerp
  * @package   help
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class help_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -78,17 +81,17 @@ class help_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Подсистема за помощ';
-
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'help_Info',
-            'help_Log',
-        );
-
-        
+        'help_Info',
+        'help_Log',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
@@ -99,7 +102,7 @@ class help_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-           
+        
         'HELP_MAX_OPEN_DISPLAY_TIME' => array('time', 'caption=Отворен изглед за помощната информация->Максимално време'),
         
         'HELP_MAX_OPEN_DISPLAY_CNT' => array('int', 'caption=Отворен изглед за помощната информация->Максимален брой пъти'),
@@ -111,8 +114,8 @@ class help_Setup extends core_ProtoSetup
         'HELP_BGERP_INACTIVE_SECS' => array('time(suggestions=10 сек.|15 сек.|30 сек.|1 мин)', 'caption=След колко време на бездействие трябва да се покаже прозореца за помощ->Време'),
     
     );
-
-
+    
+    
     /**
      * Път до js файла
      */
@@ -139,7 +142,7 @@ class help_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('helpHint', 'help_Plugin', 'plg_ProtoWrapper', 'family');
         
         $html .= $Plugins->installPlugin('Въпроси за bgERP', 'help_BgerpPlg', 'core_Manager', 'family');
-    
+        
         return $html;
     }
     

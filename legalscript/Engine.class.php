@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'legalscript_Engine' - Генериране на юридически текст по шаблон
  *
  *
  * @category  vendors
  * @package   legalscript
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class legalscript_Engine extends core_BaseClass
 {
-    
-    
     /**
      * Инициализиране на обекта
      */

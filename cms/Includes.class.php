@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_Includes extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -33,8 +33,6 @@ class cms_Includes extends core_Master
      */
     public $loadList = 'plg_Created, plg_Modified, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper';
     
-         
-     
     
     /**
      * Описание на модела (таблицата)
@@ -45,8 +43,8 @@ class cms_Includes extends core_Master
         $this->FLD('mode', 'enum(append, prepend, replace, push)', 'caption=Метод');
         $this->FLD('code', 'text', 'caption=Код,mandatory,width=100%');
     }
-
-
+    
+    
     /**
      * Добавя кодовете в посочения шаблон
      */

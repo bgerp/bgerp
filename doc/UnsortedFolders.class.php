@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'doc_UnsortedFolders' - Корици на папки с несортирани документи
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_UnsortedFolders extends core_Master
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -27,7 +26,7 @@ class doc_UnsortedFolders extends core_Master
      * Да се създаде папка при създаване на нов запис
      */
     public $autoCreateFolder = 'instant';
-   
+    
     
     /**
      * Заглавие
@@ -70,13 +69,13 @@ class doc_UnsortedFolders extends core_Master
      */
     public $rowToolsSingleField = 'name';
     
-
+    
     /**
      * Кое поле да се използва за линк към нишките на папката
      */
     public $listFieldForFolderLink = 'folder';
-
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -153,63 +152,63 @@ class doc_UnsortedFolders extends core_Master
      * Кой има право да оттегля системните данни?
      */
     public $canRejectsysdata = 'admin';
-  
+    
     
     /**
      * масив с цветове
      */
     public static $colors = array('#610b7d',
-                        '#1b7d23',
-                        '#4a4e7d',
-                        '#7d6e23',
-                        '#33757d',
-                        '#211b7d',
-                        '#72142d',
-                        '#EE82EE',
-                        '#0080d0',
-                        '#FF1493',
-                        '#C71585',
-                        '#0d777d',
-                        '#4B0082',
-                        '#7d1c24',
-                        '#483D8B',
-                        '#7b237d',
-                        '#8B008B',
-                        '#FFC0CB',
-                        '#cc0000',
-                        '#00cc00',
-                        '#0000cc',
-                        '#cc00cc',
-                        '#3366CC',
-                        '#FF9999',
-                        '#FF3300',
-                        '#9999FF',
-                        '#330033',
-                        '#003300',
-                        '#0000FF',
-                        '#FFFF33',
-                        '#66CDAA',
-                        '#98FB98',
-                        '#4169E1',
-                        '#D2B48C',
-                        '#9ACD32',
-                        '#00FF7F',
-                        '#4169E1',
-                        '#EEE8AA',
-                        '#9370DB',
-                        '#3CB371',
-                        '#FFB6C1',
-                        '#DAA520',
-                        '#483D8B',
-                        '#8B0000',
-                        '#00FFFF',
-                        '#DC143C',
-                        '#8A2BE2',
-                        '#D2B48C',
-                        '#3CB371',
-                        '#AFEEEE',
-                        );
-
+        '#1b7d23',
+        '#4a4e7d',
+        '#7d6e23',
+        '#33757d',
+        '#211b7d',
+        '#72142d',
+        '#EE82EE',
+        '#0080d0',
+        '#FF1493',
+        '#C71585',
+        '#0d777d',
+        '#4B0082',
+        '#7d1c24',
+        '#483D8B',
+        '#7b237d',
+        '#8B008B',
+        '#FFC0CB',
+        '#cc0000',
+        '#00cc00',
+        '#0000cc',
+        '#cc00cc',
+        '#3366CC',
+        '#FF9999',
+        '#FF3300',
+        '#9999FF',
+        '#330033',
+        '#003300',
+        '#0000FF',
+        '#FFFF33',
+        '#66CDAA',
+        '#98FB98',
+        '#4169E1',
+        '#D2B48C',
+        '#9ACD32',
+        '#00FF7F',
+        '#4169E1',
+        '#EEE8AA',
+        '#9370DB',
+        '#3CB371',
+        '#FFB6C1',
+        '#DAA520',
+        '#483D8B',
+        '#8B0000',
+        '#00FFFF',
+        '#DC143C',
+        '#8A2BE2',
+        '#D2B48C',
+        '#3CB371',
+        '#AFEEEE',
+    );
+    
     
     /**
      * Описание на полетата на модела
@@ -223,6 +222,7 @@ class doc_UnsortedFolders extends core_Master
         
         $this->setDbUnique('name');
     }
+    
     
     /**
      * Малко манипулации след подготвянето на формата за филтриране
@@ -265,8 +265,8 @@ class doc_UnsortedFolders extends core_Master
         
         $data->query->orderBy('#createdOn=DESC');
     }
-
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -277,9 +277,9 @@ class doc_UnsortedFolders extends core_Master
     public static function recToVerbal_($rec, &$fields = array())
     {
         $row = parent::recToVerbal_($rec, $fields);
-
+        
         $row->folder = 'Папка';
-
+        
         return $row;
     }
     
@@ -294,10 +294,11 @@ class doc_UnsortedFolders extends core_Master
     {
         // от текущото Url, намираме папката
         $currUrl = getCurrentUrl();
+        
         // правим заявка към таблицата на Задачите
         $queryTasks = cal_Tasks::getQuery();
         $queryTasks->where("#folderId = '{$data->rec->folderId}'");
-  
+        
         // ако можем да извлечем данни, то ще определим,
         // кой е най-подходящия тип на Гант-а и
         // ще сложим бутон за него
@@ -309,23 +310,22 @@ class doc_UnsortedFolders extends core_Master
         if (!empty($source)) {
             // намираме типа на Ганта
             $ganttType = cal_Tasks::getGanttTimeType($source);
-    
+            
             $data->toolbar->addBtn(
-    
+                
                 'Гант',
-    
+                
                 array(
-                            $mvc,
-                            'Gant',
-                            $data->rec->id,
-                            'View' => $ganttType
-                        ),
+                    $mvc,
+                    'Gant',
+                    $data->rec->id,
+                    'View' => $ganttType
+                ),
                         'ef_icon = img/16/barchart-multicolor-16.png'
-    
+            
             );
         }
     }
-
     
     
     public function on_AfterPrepareRetUrl($mvc, $res, $data)
@@ -347,9 +347,10 @@ class doc_UnsortedFolders extends core_Master
         $currUrl = getCurrentUrl();
         
         $data = self::fetch($currUrl['id']);
-
+        
         //Очакваме потребителя да има права за спиране
         $tpl = getTplFromFile('doc/tpl/SingleLayoutUnsortedFolderGantt.shtml');
+        
         //Права за работа с екшън-а
         requireRole('powerUser');
         
@@ -360,10 +361,10 @@ class doc_UnsortedFolders extends core_Master
         $btns = ht::createBtn(
             'Редакция',
             array(
-                        $mvc,
-                        'edit',
-                        $data->id
-                    ),
+                $mvc,
+                'edit',
+                $data->id
+            ),
             null,
             null,
                     'ef_icon = img/16/edit-icon.png'
@@ -371,30 +372,30 @@ class doc_UnsortedFolders extends core_Master
         $btns .= ht::createBtn(
             'Папка',
             array(
-                        'doc_Threads',
-                        'list',
-                        'folderId' => $data->folderId
-                    ),
+                'doc_Threads',
+                'list',
+                'folderId' => $data->folderId
+            ),
             null,
             null,
                     'ef_icon = img/16/folder-y.png'
         );
-                    
+        
         $btns .= ht::createBtn(
-                    
+            
             'Корица',
-                    
+            
             array(
-                        $mvc,
-                        'single',
-                        $data->id
-                    ),
-                    
+                $mvc,
+                'single',
+                $data->id
+            ),
+            
             null,
-                    
+            
             null,
                     'ef_icon = img/16/project-archive.png'
-                    
+        
         );
         
         // иконата за пред името на проекта
@@ -402,7 +403,7 @@ class doc_UnsortedFolders extends core_Master
         
         // подготвените данни за Гант
         $res = self::prepareGantt($data);
-
+        
         // изчертаваме Гант
         $chart = gantt_Adapter::render($res);
         
@@ -433,7 +434,7 @@ class doc_UnsortedFolders extends core_Master
 					        	  alphabetic=Азбучно)', 'caption=Подредба,width=100%,input,silent,autoFilter');
         
         $form->view = 'horizontal';
-         
+        
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $recForm = $form->input('order', 'silent');
@@ -442,7 +443,6 @@ class doc_UnsortedFolders extends core_Master
             $form->setDefault('order', 'start');
         }
         
-        
         return $form;
     }
     
@@ -450,7 +450,8 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Подготовка на данните за Гант табличния изглед
      *
-     * @param  StdClass $folderData
+     * @param StdClass $folderData
+     *
      * @return StdClass
      */
     public static function prepareGantt($folderData)
@@ -462,7 +463,7 @@ class doc_UnsortedFolders extends core_Master
         
         // заявка към базата на "нишките"
         $queryTasks = cal_Tasks::getQuery();
-         
+        
         // търсим всички дали в тази папка има задачи
         $queryContainers->where("#folderId = '{$folderData->folderId}' AND #docClass = '{$idTaskDoc}'");
         
@@ -470,6 +471,7 @@ class doc_UnsortedFolders extends core_Master
         while ($recContainers = $queryContainers->fetch()) {
             $queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'waiting' OR #state = 'active' OR #state = 'closed')");
             $recs = array();
+            
             // заявка към таблицата на Задачите
             while ($recTask = $queryTasks->fetch()) {
                 if ($recTask->timeStart) {
@@ -494,7 +496,7 @@ class doc_UnsortedFolders extends core_Master
                     } else {
                         $timeDuration = $recTask->timeDuration;
                     }
-
+                    
                     // Ако имаме права за достъп до сингъла
                     if (cal_Tasks::haveRightFor('single', $recTask)) {
                         // ще се сложи URL
@@ -502,23 +504,22 @@ class doc_UnsortedFolders extends core_Master
                     } else {
                         $flagUrl = false;
                     }
-
-                   
+                    
+                    
                     $resTask[] = array(
-                                            'taskId' => $recTask->id,
-                                            'rowId' => '',
-                                            'timeline' => array(
-                                                                '0' => array(
-                                                                'duration' => $timeDuration,
-                                                                'startTime' => dt::mysql2timestamp($timeStart))),
-                                            
-                                            'color' => self::$colors[$recTask->id % 50],
-                                            'hint' => $recTask->title,
-                                            'url' => $flagUrl,
-                                            'progress' => $recTask->progress
-                            );
-                            
-
+                        'taskId' => $recTask->id,
+                        'rowId' => '',
+                        'timeline' => array(
+                            '0' => array(
+                                'duration' => $timeDuration,
+                                'startTime' => dt::mysql2timestamp($timeStart))),
+                        
+                        'color' => self::$colors[$recTask->id % 50],
+                        'hint' => $recTask->title,
+                        'url' => $flagUrl,
+                        'progress' => $recTask->progress
+                    );
+                    
                     
                     $recs[$recTask->id] = $recTask;
                     $forTask = (object) array('recs' => $recs);
@@ -526,12 +527,12 @@ class doc_UnsortedFolders extends core_Master
                 }
             }
         }
-
+        
         $others = cal_Tasks::renderGanttTimeType($forTask);
-    
+        
         $params = $others->otherParams;
         $header = $others->headerInfo;
-
+        
         $cntResTask = count($resTask);
         
         for ($i = 0; $i <= ($cntResTask); $i++) {
@@ -563,34 +564,34 @@ class doc_UnsortedFolders extends core_Master
                             return ($a['timeline'][$i]['startTime'] < $b['timeline'][$i]['startTime']) ? -1 : 1;
                         }
                     });
-                   
+                    
                     $i = 0;
                     foreach ($resTask as $id => $task) {
                         $rowArr = array();
                         $rowArr[$id] = $i;
-            
+                        
                         $resTask[$id]['rowId'] = $rowArr;
                         
                         $icon = cal_Tasks::getIcon($task['taskId']);
                         
                         $recTitle = cal_Tasks::fetchField($task['taskId'], 'title');
-           
+                        
                         $attr = array();
                         $attr['ef_icon'] = $icon;
                         $attr['title'] = $recTitle;
                         
                         $title = ht::createLink(
-                        
+                            
                             str::limitLen($recTitle, 35),
                                 array('cal_Tasks', 'single', $task['taskId']),
                                 null,
-                        
+                            
                             $attr
                         
                         );
                         
                         $resources[$id] = array('name' => $title->content, 'id' => $task['taskId']);
-                    
+                        
                         $i++;
                     }
                     
@@ -601,16 +602,16 @@ class doc_UnsortedFolders extends core_Master
                         for ($i = 0; $i < count($a['timeline']); $i++) {
                             $cmpA = $a['timeline'][$i]['startTime'] + $a['timeline'][$i]['duration'];
                             $cmpB = $b['timeline'][$i]['startTime'] + $b['timeline'][$i]['duration'];
-
+                            
                             return ($cmpA < $cmpB) ? -1 : 1;
                         }
                     });
-                    
+                        
                         $i = 0;
                         foreach ($resTask as $id => $task) {
                             $rowArr = array();
                             $rowArr[$id] = $i;
-                    
+                            
                             $resTask[$id]['rowId'] = $rowArr;
                             
                             $icon = cal_Tasks::getIcon($task['taskId']);
@@ -618,34 +619,34 @@ class doc_UnsortedFolders extends core_Master
                             $attr = array();
                             $attr['ef_icon'] = $icon;
                             $attr['title'] = $recTitle;
-                             
+                            
                             $title = ht::createLink(
-                             
+                                
                                 str::limitLen($recTitle, 25),
                                     array('cal_Tasks', 'single', $task['taskId']),
                                     null,
-                             
+                                
                                 $attr
-                             
+                            
                             );
-    
+                            
                             $resources[$id] = array('name' => $title->content, 'id' => $task['taskId']);
-                    
+                            
                             $i++;
                         }
                     break;
                 case 'alphabetic':
-            
+                    
                     usort($resTask, function ($a, $b) {
                         
                         return strnatcmp(mb_strtolower($a['hint'], 'UTF-8'), mb_strtolower($b['hint'], 'UTF-8'));
                     });
-            
+                        
                         $i = 0;
                         foreach ($resTask as $id => $task) {
                             $rowArr = array();
                             $rowArr[$id] = $i;
-                    
+                            
                             $resTask[$id]['rowId'] = $rowArr;
                             
                             $icon = cal_Tasks::getIcon($task['taskId']);
@@ -655,27 +656,27 @@ class doc_UnsortedFolders extends core_Master
                             $attr['title'] = $recTitle;
                             
                             $title = ht::createLink(
-                            
+                                
                                 str::limitLen($recTitle, 25),
                                     array('cal_Tasks', 'single', $task['taskId']),
                                     null,
-                            
+                                
                                 $attr
                             
                             );
-    
+                            
                             $resources[$id] = array('name' => $title->content, 'id' => $task['taskId']);
                             $i++;
                         }
                     break;
             }
         }
-
+        
         // само в случайте когато имаме 'година'=>'месец'
         // искаме да добавим още един параметър, който
         // ще ни указва, кога е 1 ден от новия месец в милисекунди
         if ($params['mainHeaderCaption'] == 'година' && $params['subHeaderCaption'] = 'седмица') {
-
+            
             // от първия пълен месец намерен от началото на ганта
             // до края на ганта
             // добавяме по един месец и търсим 1 ден в милисекунди
@@ -684,7 +685,7 @@ class doc_UnsortedFolders extends core_Master
                 $params['monthDelimiter'][] = $a;
             }
         }
-
+        
         // връщаме един обект от всички масиви
         return (object) array('tasksData' => $resTask, 'headerInfo' => $header, 'resources' => $resources, 'otherParams' => $params);
     }
@@ -724,7 +725,8 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кои документи да се показват като бързи бутони в папката на корицата
      *
-     * @param  int   $id - ид на корицата
+     * @param int $id - ид на корицата
+     *
      * @return array $res - възможните класове
      */
     public function getDocButtonsInFolder($id)

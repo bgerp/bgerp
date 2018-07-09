@@ -7,29 +7,32 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_tpl_InvoiceAccView extends doc_TplScript
 {
-    
-    
     /**
      * Метод който подава данните на детайла на мастъра, за обработка на скрипта
      *
-     * @param  core_Mvc $detail - Детайл на документа
-     * @param  stdClass $data   - данни
+     * @param core_Mvc $detail - Детайл на документа
+     * @param stdClass $data   - данни
+     *
      * @return void
      */
     public function modifyDetailData(core_Mvc $detail, &$data)
     {
         if (!count($data->rows)) {
+            
             return;
         }
         $exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM');
         if (!$exportParamId) {
+            
             return;
         }
         $exportParamName = cat_Params::getTitleById($exportParamId);

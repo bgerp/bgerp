@@ -6,16 +6,15 @@
  *
  * @category  bgerp
  * @package   help
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class help_BgerpPlg extends core_Plugin
 {
-
-    
-    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -82,7 +81,7 @@ class help_BgerpPlg extends core_Plugin
         }
         $res->push('help/lib/style.css', 'CSS');
         $res->push('help/lib/script.js', 'JS');
-
+        
         $inactiveTime = $conf->HELP_BGERP_INACTIVE_SECS;
         
         $text = tr('Имате ли въпроси за') . ' <span class="logo">bgERP</span>?';

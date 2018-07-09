@@ -70,15 +70,15 @@ defIfNot('BLAST_STOP_CHECKING_EMAILS_PERIOD', 15778476);
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blast_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -202,7 +202,7 @@ class blast_Setup extends core_ProtoSetup
         $blsInst->db->connect();
         
         $listId = str::phpToMysqlName('listId');
-       
+        
         if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) {
             
             return ;
@@ -345,7 +345,7 @@ class blast_Setup extends core_ProtoSetup
         
         while ($rec = $query->fetch()) {
             $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
-                
+            
             blast_Emails::save($rec, 'progress');
         }
     }

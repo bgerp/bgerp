@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_plg_StoreFilter'
  * Плъгин за филтър по склад и състояние на складови документи
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_plg_StoreFilter extends core_Plugin
 {
-    
-    
     /**
      *  Подготовка на филтър формата
      */
@@ -32,9 +31,9 @@ class store_plg_StoreFilter extends core_Plugin
             $data->listFilter->showFields .= ',store,dState';
             $data->listFilter->input();
             $data->listFilter->setDefault('dState', 'all');
-             
+            
             if ($rec = $data->listFilter->rec) {
-    
+                
                 // Филтър по състояние
                 if ($rec->dState) {
                     if ($rec->dState != 'all') {
@@ -50,7 +49,7 @@ class store_plg_StoreFilter extends core_Plugin
                         }
                     }
                 }
-                 
+                
                 // Филтър по склад
                 if ($rec->store) {
                     $fields = arr::make($storeFields, true);

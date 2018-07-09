@@ -6,35 +6,36 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
     {
         // Извличане на мастър-записа
         expect($rec = $this->class->fetchRec($id));
-    
+        
         $result = (object) array(
-                'reason' => "Протокол от производство №{$rec->id}",
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => "Протокол от производство №{$rec->id}",
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
-    
+        
         // Ако има ид, добавяме записите
         if (isset($rec->id)) {
             $entries = $this->getEntries($rec, $result->totalAmount);
@@ -79,84 +80,84 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
             
             if (isset($dRec->bomId)) {
                 $quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
-                    
+                
                 $quantityProduced = planning_Jobs::fetchField($dRec->jobId, 'quantityProduced');
                 $quantityToProduce = $dRec->quantity + $quantityProduced;
-                    
+                
                 // Извличаме информацията за ресурсите в рецептата за двете количества
                 $resourceInfoProduced = cat_Boms::getResourceInfo($dRec->bomId, $quantityProduced, $rec->valior);
                 $resourceInfo = cat_Boms::getResourceInfo($dRec->bomId, $quantityToProduce, $rec->valior);
-                    
+                
                 $mapArr = $resourceInfo['resources'];
                 if (count($mapArr)) {
                     foreach ($mapArr as $index => $res) {
                         $res->propQuantity = $res->propQuantity - $resourceInfoProduced['resources'][$index]->propQuantity;
-                            
+                        
                         // Подготвяме количеството
                         $resQuantity = $dRec->quantity * ($res->propQuantity / $resourceInfo['quantity']);
                         $res->propQuantity = core_Math::roundNumber($resQuantity);
                     }
-                        
+                    
                     arr::sortObjects($mapArr, 'propQuantity', 'DESC');
                     arr::sortObjects($mapArr, 'type', 'ASC');
-                        
+                    
                     foreach ($mapArr as $index => $res) {
                         $pQuantity = ($index == 0) ? $dRec->quantity : 0;
-                            
+                        
                         if ($res->type == 'input') {
                             $pInfo = cat_Products::getProductInfo($res->productId);
                             $reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($pInfo->meta['canStore'])) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложени материали в производството на артикул');
-                                
+                            
                             $entry = array(
-                                        'debit' => array('321', array('store_Stores', $rec->storeId),
-                                                              array('cat_Products', $dRec->productId),
-                                                'quantity' => $pQuantity),
-                                        'credit' => array('61101', array('cat_Products', $res->productId),
-                                                'quantity' => $res->propQuantity),
-                                        'reason' => $reason,
-                                );
+                                'debit' => array('321', array('store_Stores', $rec->storeId),
+                                    array('cat_Products', $dRec->productId),
+                                    'quantity' => $pQuantity),
+                                'credit' => array('61101', array('cat_Products', $res->productId),
+                                    'quantity' => $res->propQuantity),
+                                'reason' => $reason,
+                            );
                         } else {
                             $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $res->productId, null, $rec->valior);
-                                
+                            
                             // Сумата на дебита е себестойността на отпадния ресурс
                             $amount = $res->propQuantity * $selfValue;
-                                
+                            
                             $entry = array(
-                                        'amount' => $amount,
-                                        'debit' => array('61101', array('cat_Products', $res->productId),
-                                                        'quantity' => $resQuantity),
-                                        'credit' => array('321', array('store_Stores', $rec->storeId),
-                                                                 array('cat_Products', $dRec->productId),
-                                                            'quantity' => $pQuantity),
-                                        'reason' => 'Приспадане себестойността на отпадък от произведен продукт',
-                                );
-                                
+                                'amount' => $amount,
+                                'debit' => array('61101', array('cat_Products', $res->productId),
+                                    'quantity' => $resQuantity),
+                                'credit' => array('321', array('store_Stores', $rec->storeId),
+                                    array('cat_Products', $dRec->productId),
+                                    'quantity' => $pQuantity),
+                                'reason' => 'Приспадане себестойността на отпадък от произведен продукт',
+                            );
+                            
                             $total += $amount;
                         }
-                            
+                        
                         $entries[] = $entry;
                     }
                 }
-                    
+                
                 // Ако има режийни разходи за разпределение
                 if ($resourceInfo['expenses']) {
                     $primeCost1 = $resourceInfoProduced['primeCost'];
                     $primeCost2 = $resourceInfo['primeCost'];
                     $amount = $primeCost2 * $quantityToProduce - $primeCost1 * $quantityProduced;
-                        
+                    
                     $costAmount = $resourceInfo['expenses'] * $amount;
                     $costAmount = round($costAmount, 2);
-                        
+                    
                     if ($costAmount) {
                         $costArray = array(
-                                    'amount' => $costAmount,
-                                    'debit' => array('321', array('store_Stores', $rec->storeId),
-                                            array('cat_Products', $dRec->productId),
-                                            'quantity' => 0),
-                                    'credit' => array('61102'),
-                                    'reason' => 'Разпределени режийни разходи',
-                            );
-                            
+                            'amount' => $costAmount,
+                            'debit' => array('321', array('store_Stores', $rec->storeId),
+                                array('cat_Products', $dRec->productId),
+                                'quantity' => 0),
+                            'credit' => array('61102'),
+                            'reason' => 'Разпределени режийни разходи',
+                        );
+                        
                         $total += $costAmount;
                         $entries[] = $costArray;
                     }
@@ -169,7 +170,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
                     break;
                 }
             }
-                
+            
             if (!$entry) {
                 $errorArr[] = cat_Products::getTitleById($dRec->productId);
             }

@@ -1,21 +1,21 @@
 <?php
 
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа bank_IncomeDocuments
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  */
 class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var bank_IncomeDocuments
@@ -74,19 +74,19 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         }
         
         $entry1 = array('amount' => $sign * $amount,
-                'debit' => array($rec->debitAccId,
-                        array('bank_OwnAccounts', $rec->ownAccount),
-                        array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * $rec->amount),
-                 
-                'credit' => array($rec->creditAccId,
-                        array($rec->contragentClassId, $rec->contragentId),
-                        array($origin->className, $origin->that),
-                        array('currency_Currencies', $rec->dealCurrencyId),
-                        'quantity' => $sign * $rec->amountDeal),);
+            'debit' => array($rec->debitAccId,
+                array('bank_OwnAccounts', $rec->ownAccount),
+                array('currency_Currencies', $rec->currencyId),
+                'quantity' => $sign * $rec->amount),
+            
+            'credit' => array($rec->creditAccId,
+                array($rec->contragentClassId, $rec->contragentId),
+                array($origin->className, $origin->that),
+                array('currency_Currencies', $rec->dealCurrencyId),
+                'quantity' => $sign * $rec->amountDeal),);
         
         $entry[] = $entry1;
-
+        
         if ($reverse === true && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')) {
             $entry2 = $entry[0];
             $entry2['amount'] = abs($entry2['amount']);

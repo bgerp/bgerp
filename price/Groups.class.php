@@ -1,24 +1,23 @@
 <?php
 
 
-
 /**
  * Ценови групи
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  * @title     Групи
  */
 class price_Groups extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -35,7 +34,7 @@ class price_Groups extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper';
-   
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -65,8 +64,8 @@ class price_Groups extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'priceMaster,ceo';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -78,19 +77,19 @@ class price_Groups extends core_Master
      */
     public $canAdd = 'priceMaster,ceo';
     
-        
+    
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'priceMaster,ceo';
-
+    
     
     /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'priceMaster,ceo';
     
-
+    
     /**
      * Поле за връзка към единичния изглед
      */
@@ -112,7 +111,7 @@ class price_Groups extends core_Master
         $this->setDbUnique('title');
     }
     
-
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -154,7 +153,9 @@ class price_Groups extends core_Master
     
     /**
      * Преброява броя на продуктите в групата
-     * @param  int $id - ид на група
+     *
+     * @param int $id - ид на група
+     *
      * @return int - броя уникални продукти в група
      */
     public function countProductsInGroup($id)
@@ -172,7 +173,7 @@ class price_Groups extends core_Master
             }
             $used[$rec->productId] = true;
         }
-       
+        
         return $i;
     }
 }

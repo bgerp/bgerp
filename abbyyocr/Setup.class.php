@@ -6,7 +6,7 @@
  */
 defIfNot('ABBYYOCR_PATH', 'abbyyocr9');
 
- 
+
 /**
  * Езици за търсене
  */
@@ -18,15 +18,15 @@ defIfNot('ABBYYOCR_LANGUAGES', 'Bulgarian English');
  *
  * @category  vendors
  * @package   abbyyocr
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class abbyyocr_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -55,22 +55,20 @@ class abbyyocr_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'abbyyocr_Converter',
-        );
+        'abbyyocr_Converter',
+    );
     
-    
-        
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-           
-       'ABBYYOCR_LANGUAGES' => array('varchar', 'caption=Езици за търсене'),
-
-     );
-     
-     
+        
+        'ABBYYOCR_LANGUAGES' => array('varchar', 'caption=Езици за търсене'),
+    
+    );
+    
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -88,7 +86,7 @@ class abbyyocr_Setup extends core_ProtoSetup
             
             // Премахваме го
             $data['FILEMAN_OCR'] = null;
-
+            
             // Добавяме в записите
             core_Packs::setConfig('fileman', $data);
             
@@ -98,7 +96,7 @@ class abbyyocr_Setup extends core_ProtoSetup
         return $html;
     }
     
-
+    
     /**
      * Проверява дали програмата е инсталирана в сървъра
      *
@@ -114,7 +112,7 @@ class abbyyocr_Setup extends core_ProtoSetup
         $conf = core_Packs::getConfig('abbyyocr');
         
         $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
- 
+        
         if (core_Os::isWindows()) {
             $res = @exec($abbyocr . ' --help', $output, $code);
             if ($code != 0) {

@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Клас 'page_Html' - Общ шаблон за всички HTML страници
  *
  *
  * @category  ef
  * @package   page
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class page_Html extends core_ET
 {
-    
-    
     /**
      * Конструктор, който генерира лейаута на шаблона
      */
@@ -24,14 +23,14 @@ class page_Html extends core_ET
         $bodyClass = Mode::is('screenMode', 'narrow') ? 'narrow narrow-scroll' : 'wide';
         
         $bodyId = str::getRand();
-
+        
         parent::__construct(
             '<!doctype html>' .
             
             (Mode::is('screenMode', 'narrow') ?
                 "\n<html xmlns=\"http://www.w3.org/1999/xhtml\" [#OG_PREFIX#]>" :
                 "\n<html [#OG_PREFIX#]>") .
-                
+            
             "\n<head>" .
             "\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=2\">" .
             "\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=[#ENCODING#]\">" .
@@ -71,16 +70,16 @@ class page_Html extends core_ET
                 }
             }
         }
-
+        
         // Добавяне на файловете
         $files = (object) array(
-                            'css' => $invoker->getArray('CSS'),
-                            'js' => $invoker->getArray('JS'),
-                            'invoker' => $invoker
-                          );
-            
+            'css' => $invoker->getArray('CSS'),
+            'js' => $invoker->getArray('JS'),
+            'invoker' => $invoker
+        );
+        
         $inst = cls::get(get_called_class());
-
+        
         $inst->appendFiles($files);
     }
     
@@ -112,7 +111,7 @@ class page_Html extends core_ET
         
         // Вземане на времето на бездействие в съответния таб
         static::idleTimerJs($tpl);
-
+        
         $tpl->push('context/'.  context_Setup::get('VERSION') . '/contextMenu.css', 'CSS');
         $tpl->push('context/'.  context_Setup::get('VERSION') . '/contextMenu.js', 'JS');
         
@@ -190,7 +189,7 @@ class page_Html extends core_ET
     {
         // Дали връзките да са абсолютни
         $absolute = (boolean) (Mode::is('text', 'xhtml'));
-      
+        
         if (is_array($files->css)) {
             foreach ($files->css as $file) {
                 $file = $this->getFileForAppend($file, $absolute);
@@ -213,8 +212,8 @@ class page_Html extends core_ET
      * Връща файла за добавя. Ако е от системата минава през sbf.
      * Ако е външен линк, не го променя
      *
-     * @param string       $filePath
-     * @param NULL|boolean $absolute
+     * @param string    $filePath
+     * @param NULL|bool $absolute
      *
      * @return string
      */

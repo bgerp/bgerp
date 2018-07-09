@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Помощен детайл подготвящ и обединяващ заедно детайлите на артикулите свързани
  * с ценовата информация на артикулите
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_products_PriceDetails extends core_Manager
 {
-    
-    
     /**
      * Кои мениджъри ще се зареждат
      */
@@ -48,20 +47,20 @@ class cat_products_PriceDetails extends core_Manager
     {
         if ($data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template') {
             $data->hide = true;
-
+            
             return;
         }
         
         $data->TabCaption = 'Цени';
         $data->Tab = 'top';
         $data->Order = 5;
-         
+        
         $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
         $isPublic = ($data->masterData->rec->isPublic == 'yes') ? true : false;
         
         if (!(($isPublic === true && (empty($Param) || $Param == 'Prices')) || ($isPublic === false && $Param == 'Prices'))) {
             $data->hide = true;
-
+            
             return;
         }
         
@@ -84,6 +83,7 @@ class cat_products_PriceDetails extends core_Manager
     public function renderPrices($data)
     {
         if ($data->hide === true) {
+            
             return;
         }
         
@@ -160,17 +160,17 @@ class cat_products_PriceDetails extends core_Manager
             $uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
             if (is_object($uRec)) {
                 $uRow = price_Updates::recToVerbal($uRec);
-            
+                
                 $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('Ежечасово'));
                 $tpl = new core_ET(tr('|*[#tools#]<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#] |с надценка|* <b>[#costAdd#]</b>'));
-            
+                
                 $type = '';
                 foreach (array($uRow->costSource1, $uRow->costSource2, $uRow->costSource3) as $cost) {
                     if (isset($cost)) {
                         $type .= '<b>' . $cost . '</b>, ';
                     }
                 }
-            
+                
                 $tpl->append($arr[$uRec->updateMode], 'updateMode');
                 $tpl->append($type, 'type');
                 $tpl->append($uRow->costAdd, 'costAdd');
@@ -221,18 +221,18 @@ class cat_products_PriceDetails extends core_Manager
                 $verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, true);
                 $priceRow = (is_null($primeCost)) ? $verbPrice : '<b>' . $verbPrice . "</b> {$baseCurrencyCode}";
                 $primeCostRows[] = (object) array('type' => $type,
-                                                 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
-                                                 'price' => $priceRow,
-                                                 'buttons' => $btns,
-                                                 'ROW_ATTR' => array('class' => 'state-active'));
+                    'modifiedOn' => $DateTime->toVerbal($primeCostDate),
+                    'price' => $priceRow,
+                    'buttons' => $btns,
+                    'ROW_ATTR' => array('class' => 'state-active'));
             }
             
             if (isset($futurePrimeCost)) {
                 $verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $futurePrimeCost, true);
                 $primeCostRows[] = (object) array('type' => tr('|Бъдеща|* |себестойност|*'),
-                                                 'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate),
-                                                 'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",
-                                                 'ROW_ATTR' => array('class' => 'state-draft'));
+                    'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate),
+                    'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",
+                    'ROW_ATTR' => array('class' => 'state-draft'));
             }
         }
         
@@ -259,9 +259,9 @@ class cat_products_PriceDetails extends core_Manager
             
             $verbPrice = price_Lists::roundPrice(cat_Setup::get('DEFAULT_PRICELIST'), $catalogCost, true);
             $primeCostRows[] = (object) array('type' => $type,
-                                             'modifiedOn' => $DateTime->toVerbal($catalogCostDate),
-                                             'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",
-                                             'ROW_ATTR' => array('class' => 'state-active'));
+                'modifiedOn' => $DateTime->toVerbal($catalogCostDate),
+                'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",
+                'ROW_ATTR' => array('class' => 'state-active'));
         }
         
         $data->primeCostRows = $primeCostRows;
@@ -271,7 +271,8 @@ class cat_products_PriceDetails extends core_Manager
     /**
      * Рендира подготвената ценова информация
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return core_ET
      */
     private function renderPriceInfo($data)
@@ -298,7 +299,7 @@ class cat_products_PriceDetails extends core_Manager
             } else {
                 $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
                 $afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
-                 
+                
                 if (price_Updates::haveRightFor('add', (object) array('type' => 'product', 'objectId' => $data->masterId))) {
                     $afterRowTpl->append(ht::createLink('Задаване', array('price_Updates', 'add', 'type' => 'product', 'objectId' => $data->masterId, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/arrow_refresh.png'), 'button');
                 }

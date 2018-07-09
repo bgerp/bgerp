@@ -6,9 +6,11 @@
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_ListOperationsPlg extends core_Plugin
@@ -40,12 +42,12 @@ class callcenter_ListOperationsPlg extends core_Plugin
         // Вземаме стринга от номер
         $numberDial = drdata_PhoneType::getNumStrFromObj($numberArr[0], '00');
         $numberShow = drdata_PhoneType::getNumStrFromObj($numberArr[0], '+');
-
+        
         $numberShow = drdata_PhoneType::escape($numberShow) . " <small style='color:#666;'>({$numberArr[0]->country}/{$numberArr[0]->area})</small>";
         
         // Променяме полето за заглавеи
         $data->title = "|*<small style='color:#666;'>|Номер|*:</small> " . $numberShow;
-                
+        
         // Добавяме бутон за избиране
         $data->callLink = ht::createBtn('Избиране', "tel: {$numberDial}", false, false, 'ef_icon=/img/16/call.png,class=out-btn,title=Набиране на този номер');
         
@@ -100,7 +102,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $tpl->append($buttonTpl);
     }
     
-
+    
     /**
      * Подготвя URL за търсене на телефонен номер
      *
@@ -119,7 +121,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
             $areaCode .= $number{0};
             $number = substr($number, 1);
         }
-
+        
         $numArr = self::parseNumber("{$number}");
         $sNum = "0{$areaCode}_". implode('_', $numArr);
         
@@ -130,7 +132,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         if (strlen($number) == 6) {
             $q .= " | 0{$areaCode}_" . substr($number, 0, 2) . '_' . substr($number, 2, 2) . '_' . substr($number, 4, 2);
         }
-
+        
         $q = urlencode($q);
         $url = "https://www.google.bg/search?q={$q}";
         

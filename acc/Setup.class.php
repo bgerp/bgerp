@@ -1,14 +1,17 @@
 <?php
 
+
 /**
  * Задължителен параметър за експорт на ф-ра
  */
 defIfNot('ACC_INVOICE_MANDATORY_EXPORT_PARAM', '');
 
+
 /**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
 defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
+
 
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
@@ -16,51 +19,61 @@ defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
  */
 defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
 
+
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
  * Използва се по време на инициализацията на системата, при създаването на първия период
  */
 defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
+
 /**
  * Кои документи могат да са разходни пера
  */
 defIfNot('ACC_COST_OBJECT_DOCUMENTS', '');
+
 
 /**
  * Толеранс за допустимо разминаване на суми
  */
 defIfNot('ACC_MONEY_TOLERANCE', '0.05');
 
+
 /**
  * Колко реда да се показват в детайлния баланс
  */
 defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
+
 
 /**
  * Основание за неначисляване на ДДС за контрагент контрагент от държава в ЕС (без България)
  */
 defIfNot('ACC_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
 
+
 /**
  * Основание за неначисляване на ДДС за контрагент извън ЕС
  */
 defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
+
 
 /**
  * Роли за всички при филтриране
  */
 defIfNot('ACC_SUMMARY_ROLES_FOR_ALL', 'ceo,admin');
 
+
 /**
  * Роли за екипите при филтриране
  */
 defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin,manager');
 
+
 /**
  * Ден от месеца за изчисляване на Счетоводна дата на входяща фактура
  */
 defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
+
 
 /**
  * class acc_Setup
@@ -71,39 +84,45 @@ defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
  *
  * @category bgerp
  * @package acc
+ *
  * @author Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license GPL 3
+ *
  * @since v 0.1
  */
 class acc_Setup extends core_ProtoSetup
 {
-
     /**
      * Версия на пакета
      */
     public $version = '0.1';
-
+    
+    
     /**
      * Необходими пакети
      */
     public $depends = 'currency=0.1';
-
+    
+    
     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'acc_Lists';
-
+    
+    
     /**
      * Екшън - входна точка в пакета
      */
     public $startAct = 'default';
-
+    
+    
     /**
      * Описание на модула
      */
     public $info = 'Двустранно счетоводство: Настройки, Журнали';
-
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
@@ -133,7 +152,7 @@ class acc_Setup extends core_ProtoSetup
         'migrate::recalcAllGlobalRole'
     );
     
-
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -179,7 +198,8 @@ class acc_Setup extends core_ProtoSetup
             'caption=Артикул за експорт на данъчна фактура->Параметър'
         )
     );
-
+    
+    
     /**
      * Роли за достъп до модула
      */
@@ -287,7 +307,8 @@ class acc_Setup extends core_ProtoSetup
             'acc, ceo, admin'
         )
     );
-
+    
+    
     /**
      * Описание на системните действия
      */
@@ -305,7 +326,8 @@ class acc_Setup extends core_ProtoSetup
             )
         )
     );
-
+    
+    
     /**
      * Настройки за Cron
      */
@@ -354,7 +376,8 @@ class acc_Setup extends core_ProtoSetup
             'timeLimit' => 60
         )
     );
-
+    
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
@@ -364,7 +387,8 @@ class acc_Setup extends core_ProtoSetup
     					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
                         acc_reports_MovementsBetweenAccounts,acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices,
                         acc_reports_UnactiveContableDocs,acc_reports_NegativeQuantities';
-
+    
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -375,7 +399,8 @@ class acc_Setup extends core_ProtoSetup
         
         return $res;
     }
-
+    
+    
     /**
      * Зареждане на данни
      */
@@ -394,7 +419,8 @@ class acc_Setup extends core_ProtoSetup
         
         return $res;
     }
-
+    
+    
     /**
      *
      * @param core_Type $type
@@ -406,7 +432,8 @@ class acc_Setup extends core_ProtoSetup
     {
         return core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title');
     }
-
+    
+    
     /**
      * Кои документи по дефолт да са разходни обекти
      */
@@ -434,7 +461,8 @@ class acc_Setup extends core_ProtoSetup
             'ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)
         ));
     }
-
+    
+    
     /**
      * Помощна функция връщаща всички класове, които са документи
      */
@@ -444,7 +472,8 @@ class acc_Setup extends core_ProtoSetup
         
         return $options;
     }
-
+    
+    
     /**
      * Миграция за премахване на грешно изписана роля
      */
@@ -457,7 +486,8 @@ class acc_Setup extends core_ProtoSetup
             ));
         }
     }
-
+    
+    
     /**
      * Миграция за премахване на грешно изписана роля
      */

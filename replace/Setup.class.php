@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   oembed
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class replace_Setup extends core_ProtoSetup
 {
-
-
     /**
      * Версията на пакета
      */
@@ -26,7 +26,7 @@ class replace_Setup extends core_ProtoSetup
      */
     public $info = 'Заместване на текст в richtext';
     
-
+    
     /**
      * Мениджър - входна точка в пакета
      */
@@ -37,15 +37,16 @@ class replace_Setup extends core_ProtoSetup
      * Екшън - входна точка в пакета
      */
     public $startAct = 'default';
-
+    
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
         
-          // 'OEMBED_MAX_WIDTH' => array ('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
-             );
+        // 'OEMBED_MAX_WIDTH' => array ('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
+    );
+    
     
     /**
      * Инсталиране на пакета

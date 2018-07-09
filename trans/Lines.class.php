@@ -1,28 +1,27 @@
 <?php
 
 
-
 /**
  * Клас 'trans_Lines' - Документ за Транспортни линии
  *
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class trans_Lines extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Транспортни линии';
-
-
+    
+    
     /**
      * Абревиатура
      */
@@ -33,7 +32,6 @@ class trans_Lines extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close';
-
     
     
     /**
@@ -70,7 +68,7 @@ class trans_Lines extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, trans';
-
+    
     
     /**
      * Кой има право да прави документа на заявка?
@@ -82,8 +80,8 @@ class trans_Lines extends core_Master
      * Кой има право да пише?
      */
     public $canWrite = 'ceo, trans';
-
-
+    
+    
     /**
      * Кой може да пише?
      */
@@ -107,7 +105,7 @@ class trans_Lines extends core_Master
      */
     public $listFields = 'start, handler=Документ, folderId, state,createdOn, createdBy';
     
-
+    
     /**
      * Кои полета да могат да се променят след активацията на документа
      */
@@ -124,20 +122,20 @@ class trans_Lines extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'trans/tpl/SingleLayoutLines.shtml';
-
+    
     
     /**
      * Файл за единичния изглед в мобилен
      */
     public $singleLayoutFileNarrow = 'trans/tpl/SingleLayoutLinesNarrow.shtml';
-            
-            
+    
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/door_in.png';
     
-   
+    
     /**
      * Групиране на документите
      */
@@ -202,7 +200,7 @@ class trans_Lines extends core_Master
             
             return "{$start}/{$titleArr[1]} ({$rec->countReady}/{$rec->countTotal})";
         }
-
+        
         return "{$start}/{$rec->title} ({$rec->countReady}/{$rec->countTotal})";
     }
     
@@ -220,8 +218,8 @@ class trans_Lines extends core_Master
         $data->query->orderBy('#state');
         $data->query->orderBy('#start', 'DESC');
     }
-
-
+    
+    
     /**
      * След подготовка на тулбара на единичен изглед
      */
@@ -234,7 +232,7 @@ class trans_Lines extends core_Master
                 $data->toolbar->setError('btnClose', 'Линията не може да бъде затворена докато има чернови документи към нея|*!');
             }
         }
-
+        
         if ($mvc->haveRightFor('single', $data->rec) && $rec->state != 'rejected') {
             $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
             $data->toolbar->addBtn('Печат (Детайли)', $url, 'target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
@@ -294,11 +292,11 @@ class trans_Lines extends core_Master
             $ownCompanyData = crm_Companies::fetchOwnCompany();
             $row->myCompany = ht::createLink($ownCompanyData->company, crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
             $row->logistic = (core_Mode::isReadOnly()) ? core_Users::getVerbal($rec->createdBy, 'names') : crm_Profiles::createLink($rec->createdBy);
-        
+            
             if (isset($rec->forwarderPersonId) && !Mode::isReadOnly()) {
                 $row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
             }
-             
+            
             if (isset($rec->forwarderId)) {
                 $row->forwarderId = ht::createLink(crm_Companies::getVerbal($rec->forwarderId, 'name'), crm_Companies::getSingleUrlArray($rec->forwarderId));
             }
@@ -405,7 +403,7 @@ class trans_Lines extends core_Master
     {
         $tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
-
+    
     
     /**
      * Връща броя на документите в посочената линия
@@ -417,7 +415,7 @@ class trans_Lines extends core_Master
         $query = trans_LineDetails::getQuery();
         $query->where("#lineId = {$id}");
         $query->in('containerState', $states);
-       
+        
         return $query->count();
     }
     
@@ -425,7 +423,8 @@ class trans_Lines extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -496,12 +495,13 @@ class trans_Lines extends core_Master
     /**
      * Дефолтни данни, които да се попълват към коментар от документа
      *
-     * @param  mixed    $rec   - ид или запис
-     * @param  int|NULL $detId - допълнително ид, ако е нужно
-     * @return array    $res     - дефолтните данни за коментара
-     *                        ['subject']     - събджект на коментара
-     *                        ['body']        - тяло на коментара
-     *                        ['sharedUsers'] - споделени потребители
+     * @param mixed    $rec   - ид или запис
+     * @param int|NULL $detId - допълнително ид, ако е нужно
+     *
+     * @return array $res     - дефолтните данни за коментара
+     *               ['subject']     - събджект на коментара
+     *               ['body']        - тяло на коментара
+     *               ['sharedUsers'] - споделени потребители
      */
     public function getDefaultDataForComment($rec, $detId = null)
     {
@@ -524,7 +524,8 @@ class trans_Lines extends core_Master
     /**
      * Метод опресняващ затварящ транспортната линия
      *
-     * @param  stdClass $data - дата
+     * @param stdClass $data - дата
+     *
      * @return void
      */
     public static function callback_closeAfterDate($data)
@@ -532,6 +533,7 @@ class trans_Lines extends core_Master
         try {
             expect($rec = self::fetch($data->id));
             if (in_array($rec->state, array('closed', 'rejected'))) {
+                
                 return;
             }
             $me = cls::get(get_called_class());
@@ -548,7 +550,8 @@ class trans_Lines extends core_Master
     /**
      * Премахване на зададените времена за обновяване
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return void
      */
     private static function removeAllSetCloseTimes($id)
@@ -589,7 +592,8 @@ class trans_Lines extends core_Master
     /**
      * Задаване на следващи времена, когато линията да бъде затворена
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return void
      */
     private function setAutoClose($rec)
@@ -603,7 +607,7 @@ class trans_Lines extends core_Master
         foreach (range(0, 2) as $i) {
             $closeTime = dt::addSecs(7200, $closeTime);
             $data = (object) array('id' => (string) $rec->id, 'index' => (string) $i);
-        
+            
             core_CallOnTime::setOnce($this->className, 'closeAfterDate', $data, $closeTime);
         }
     }

@@ -1,21 +1,22 @@
 <?php
 
+
 /**
  * Клас 'cat_products_Params' - продуктови параметри
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cat_products_SharedInFolders extends core_Manager
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -95,7 +96,7 @@ class cat_products_SharedInFolders extends core_Manager
     {
         $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent,input=hidden');
         $this->FLD('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Споделено с,mandatory');
-    
+        
         $this->setDbUnique('productId,folderId');
     }
     
@@ -103,8 +104,9 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Клонира споделените папки от един артикул на друг
      *
-     * @param  int      $fromProductId - ид на артикула от който ще се клонира
-     * @param  int      $toProductId   - ид на артикула, към който ще се клонира
+     * @param int $fromProductId - ид на артикула от който ще се клонира
+     * @param int $toProductId   - ид на артикула, към който ще се клонира
+     *
      * @return int|NULL - ид на клонриания запис, или NULL ако няма
      */
     public static function cloneFolders($fromProductId, $toProductId)
@@ -199,7 +201,7 @@ class cat_products_SharedInFolders extends core_Manager
         
         if (($masterRec->isPublic == 'yes' && !$data->isProto && !isset($data->changeStateUrl)) && !self::fetch("#productId = {$masterRec->id}")) {
             $data->hide = true;
-
+            
             return;
         }
         
@@ -247,16 +249,17 @@ class cat_products_SharedInFolders extends core_Manager
     }
     
     
-    
     /**
      * Рендиране на детайла
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderShared($data)
     {
         if ($data->hide == true) {
+            
             return;
         }
         
@@ -282,7 +285,7 @@ class cat_products_SharedInFolders extends core_Manager
                 $dTpl = new core_ET("<div>[#folderId#] <span class='custom-rowtools'>[#tools#]</span></div>");
                 $dTpl->placeObject($row);
                 $dTpl->removeBlocks();
-            
+                
                 $tpl->append($dTpl, 'content');
             }
         }
@@ -305,7 +308,8 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Кои са споделените артикули към дадена папка
      *
-     * @param  int   $folderId - ид на папка
+     * @param int $folderId - ид на папка
+     *
      * @return array $res - масив със споделените артикули
      */
     public static function getSharedProducts($folderId)
@@ -326,8 +330,9 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Лимитира заявката за достъпни артикули в папка
      *
-     * @param  core_Query $query
-     * @param  int        $folderId
+     * @param core_Query $query
+     * @param int        $folderId
+     *
      * @return void
      */
     public static function limitQuery(&$query, $folderId)

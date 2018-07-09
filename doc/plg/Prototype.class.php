@@ -1,46 +1,45 @@
 <?php
 
 
-
 /**
  * Плъгин за добавяне на възможността документи да стават шаблони
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_Prototype extends core_Plugin
 {
-    
-    
     /**
      * Полета които да се ънсетват при зареждане на данни
      *
      * @var array
      */
     public static $unsetFields = array('id',
-                                       'threadId',
-                                       'folderId',
-                                       'state',
-                                       'containerId',
-                                       'createdBy',
-                                       'createdOn',
-                                       'originId',
-                                       'modifiedBy',
-                                       'modifiedOn',
-                                       'searchKeywords',
-                                       'lastUsedOn',
-                                       'prototypeId',
-                                       'proto',
-                                       'version',
-                                       'subVersion',
-                                       'changeModifiedOn',
-                                       'changeModifiedBy',
-                                       'brState');
+        'threadId',
+        'folderId',
+        'state',
+        'containerId',
+        'createdBy',
+        'createdOn',
+        'originId',
+        'modifiedBy',
+        'modifiedOn',
+        'searchKeywords',
+        'lastUsedOn',
+        'prototypeId',
+        'proto',
+        'version',
+        'subVersion',
+        'changeModifiedOn',
+        'changeModifiedBy',
+        'brState');
     
     
     /**
@@ -74,6 +73,7 @@ class doc_plg_Prototype extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if ($mvc instanceof core_Embedder) {
+            
             return;
         }
         
@@ -107,7 +107,7 @@ class doc_plg_Prototype extends core_Plugin
         if (count($prototypes)) {
             $form->setField($mvc->protoFieldName, 'input');
             $form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
-                
+            
             // Определяне на кои полета ще се попълват от прототипа
             $fields = arr::make(array_keys($mvc->selectFields()), true);
             if ($mvc instanceof core_Embedder) {
@@ -139,7 +139,7 @@ class doc_plg_Prototype extends core_Plugin
                 $refresh = implode('|', array_keys($fields));
                 $form->setField($mvc->protoFieldName, "removeAndRefreshForm={$refresh}");
             }
-                
+            
             // При редакция прототипа не може да се сменя
             if (isset($form->rec->id)) {
                 $form->setField($mvc->protoFieldName, 'input=hidden');
@@ -233,6 +233,7 @@ class doc_plg_Prototype extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         

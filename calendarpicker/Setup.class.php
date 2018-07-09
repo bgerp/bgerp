@@ -1,28 +1,26 @@
 <?php
 
 
-
 /**
  * Клас 'calendarpicker_Setup' -
  *
  *
  * @category  vendors
  * @package   calendarpicker
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class calendarpicker_Setup extends core_ProtoSetup
 {
-    
-    
-    
 //    var $commonCSS = 'calendarpicker/skins/aqua/theme.css';
-    
-    
-    
+
+
+
 //    var $commonJS = 'calendarpicker/calendar.js, calendarpicker/lang/calendar-[#CORE::EF_DEFAULT_LANGUAGE#].js, calendarpicker/calendar-setup.js';
     
     

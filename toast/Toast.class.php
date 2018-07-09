@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Плъгин за визуализиране на статус съобщенията, като toast съобщянията при Android
  *
  * @category  vendors
  * @package   toast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class toast_Toast extends core_Plugin
 {
-    
-    
     /**
      * Абонира за показване на статус съобщения
      *
@@ -45,11 +44,11 @@ class toast_Toast extends core_Plugin
     /**
      * Връща javascript за показване на статус съобщения
      *
-     * @param integer $hitTime  - Timestamp на показване на страницата
-     * @param integer $idleTime - Време на бездействие на съответния таб
-     * @param string  $hitId    - Уникално ID на хита
+     * @param int    $hitTime  - Timestamp на показване на страницата
+     * @param int    $idleTime - Време на бездействие на съответния таб
+     * @param string $hitId    - Уникално ID на хита
      *
-     * @return boolean - FALSE за да не се изпълняват другите
+     * @return bool - FALSE за да не се изпълняват другите
      */
     public static function on_BeforeGetStatusesData($mvc, &$resStatus, $hitTime, $idleTime, $hitId = null)
     {
@@ -102,14 +101,14 @@ class toast_Toast extends core_Plugin
         
         return false;
     }
-        
+    
     
     /**
      * В зависимост от типа определяме дали статуса е да лепкав или не (да не се маха от екрана)
      *
      * @param string $type - Типа на статуса
      *
-     * @return boolean - Дали статус съобщението да е лепкаво или не
+     * @return bool - Дали статус съобщението да е лепкаво или не
      */
     public static function isSticky($type)
     {
@@ -145,7 +144,7 @@ class toast_Toast extends core_Plugin
      *
      * @param string $type - Типа на статуса
      *
-     * @return integer - Колко дълго да се показва статуса на екрана
+     * @return int - Колко дълго да се показва статуса на екрана
      */
     public static function getStayTime($type)
     {

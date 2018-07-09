@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'rack_plg_Document'
  * Плъгин за връзка между експедиционни документи и палетния склад
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   rack
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rack_plg_Document extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -38,11 +37,13 @@ class rack_plg_Document extends core_Plugin
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         if (!count($data->rows)) {
+            
             return;
         }
         
         // Само за 'Заявки'
         if ($data->masterData->rec->state != 'pending') {
+            
             return;
         }
         $storeId = $data->masterData->rec->{$mvc->masterStoreFld};

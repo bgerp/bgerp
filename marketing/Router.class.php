@@ -4,16 +4,16 @@
  *
  * @category  bgerp
  * @package   marketing
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  *
  */
 class marketing_Router
 {
-    
-    
     /**
      * Работен кеш
      */
@@ -28,9 +28,10 @@ class marketing_Router
      * 3. Ако има корпоративен имейл и има папка за този имейл, взимаме нейния отговорник
      * 4. Първия регистриран потребител с роля 'ceo'
      *
-     * @param  string $city      - град
-     * @param  int    $countryId - ид на държава
-     * @return int    $inCharge - ид на потребител
+     * @param string $city      - град
+     * @param int    $countryId - ид на държава
+     *
+     * @return int $inCharge - ид на потребител
      */
     public static function getInChargeUser($city, $countryId)
     {
@@ -44,7 +45,7 @@ class marketing_Router
             $city = str::mbUcfirst($city);
             $unsortedName = sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $city);
             $inCharge = doc_UnsortedFolders::fetchField(array("#name = '[#1#]'", $unsortedName), 'inCharge');
-        
+            
             // Ако има такава папка, взимаме и отговорника
             if ($inCharge) {
                 
@@ -90,14 +91,15 @@ class marketing_Router
         // Връщаме този с най-малко ид от тях
         return reset($ceos);
     }
-
+    
     
     /**
      * Рутира в папка на фирма с подадения имейл
      *
-     * @param  string $email    - имейл
-     * @param  int    $inCharge - отговорника на папката
-     * @return int    - ид на папката
+     * @param string $email    - имейл
+     * @param int    $inCharge - отговорника на папката
+     *
+     * @return int - ид на папката
      */
     public static function routeByCompanyEmail($email, $inCharge)
     {
@@ -107,7 +109,7 @@ class marketing_Router
             $emails = type_Emails::toArray($companyRec->email);
             if (in_array($email, $emails)) {
                 $rec = (object) array('id' => $companyRec->id, 'inCharge' => $inCharge);
-                    
+                
                 return crm_Companies::forceCoverAndFolder($rec);
             }
         }
@@ -119,9 +121,10 @@ class marketing_Router
     /**
      * Рутира в папка на лице с подадения имейл
      *
-     * @param  string $email    - имейл
-     * @param  int    $inCharge - отговорника на папката
-     * @return int    - ид на папката
+     * @param string $email    - имейл
+     * @param int    $inCharge - отговорника на папката
+     *
+     * @return int - ид на папката
      */
     public static function routeByPersonEmail($email, $inCharge)
     {
@@ -132,7 +135,7 @@ class marketing_Router
             
             if (in_array($email, $emails)) {
                 $rec = (object) array('id' => $personRec->id, 'inCharge' => $inCharge);
-                    
+                
                 return crm_Persons::forceCoverAndFolder($rec);
             }
         }
@@ -144,14 +147,16 @@ class marketing_Router
     /**
      * Рутира в папка, намерена от имейл-рутера, само ако е от посочените корици
      *
-     * @param  string                          $email        - Имейл
-     * @param  enum(contragent,company,person) $allowedCover - разрешена корица
-     * @return int                             - ид на папка
+     * @param string                          $email        - Имейл
+     * @param enum(contragent,company,person) $allowedCover - разрешена корица
+     *
+     * @return int - ид на папка
      */
     public static function routeByEmail($email, $allowedCover)
     {
         $folderId = email_Router::getEmailFolder($email);
         if (empty($folderId)) {
+            
             return;
         }
         
@@ -178,15 +183,17 @@ class marketing_Router
     /**
      * Рутира в папка на лице с подобно име от същата държава
      *
-     * @param  string $name      - име на лице
-     * @param  int    $countryId - ид на държава
-     * @return int    - ид на папка
+     * @param string $name      - име на лице
+     * @param int    $countryId - ид на държава
+     *
+     * @return int - ид на папка
      */
     public static function routeByPerson($name, $countryId, $inCharge)
     {
         $nameArr = explode(' ', $name);
         
         if (count($nameArr) == 1) {
+            
             return;
         }
         
@@ -217,15 +224,16 @@ class marketing_Router
     /**
      * Форсиране на папка на лице с подадените адресни данни
      *
-     * @param  string $name     - име
-     * @param  string $email    - имейл
-     * @param  int    $country  - държава
-     * @param  string $tel      - телефон
-     * @param  string $pCode    - п. код
-     * @param  string $place    - населено място
-     * @param  string $address  - адрес
-     * @param  int    $inCharge - отговорник
-     * @return int    - ид на папка
+     * @param string $name     - име
+     * @param string $email    - имейл
+     * @param int    $country  - държава
+     * @param string $tel      - телефон
+     * @param string $pCode    - п. код
+     * @param string $place    - населено място
+     * @param string $address  - адрес
+     * @param int    $inCharge - отговорник
+     *
+     * @return int - ид на папка
      */
     public static function forcePersonFolder($name, $email, $country, $tel, $pCode, $place, $address, $inCharge)
     {
@@ -250,15 +258,16 @@ class marketing_Router
     /**
      * Форсиране на папка на фирма с подадените адресни данни
      *
-     * @param  string $name     - име
-     * @param  string $email    - имейл
-     * @param  int    $country  - държава
-     * @param  string $tel      - телефон
-     * @param  string $pCode    - п. код
-     * @param  string $place    - населено място
-     * @param  string $address  - адрес
-     * @param  int    $inCharge - отговорник
-     * @return int    - ид на папка
+     * @param string $name     - име
+     * @param string $email    - имейл
+     * @param int    $country  - държава
+     * @param string $tel      - телефон
+     * @param string $pCode    - п. код
+     * @param string $place    - населено място
+     * @param string $address  - адрес
+     * @param int    $inCharge - отговорник
+     *
+     * @return int - ид на папка
      */
     public static function forceCompanyFolder($name, $email, $country, $tel, $pCode, $place, $address, $inCharge)
     {
@@ -283,9 +292,10 @@ class marketing_Router
     /**
      * Рутира в папка на лице с подобно име от същата държава
      *
-     * @param  string $name      - име на лице
-     * @param  int    $countryId - ид на държава
-     * @return int    - ид на папка
+     * @param string $name      - име на лице
+     * @param int    $countryId - ид на държава
+     *
+     * @return int - ид на папка
      */
     public static function routeByCompanyName($name, $countryId, $inCharge)
     {
@@ -326,7 +336,8 @@ class marketing_Router
     /**
      * Нормализира името на фирмата
      *
-     * @param  string $name - името на фирмата
+     * @param string $name - името на фирмата
+     *
      * @return string $name - нормализираното име на фирмата
      */
     public static function normalizeCompanyName($name)
@@ -358,13 +369,14 @@ class marketing_Router
         
         return $name;
     }
-        
+    
     
     /**
      * Връща всички нормализирани всички фирми от същата държава
      *
-     * @param  int|NULL $countryId - ид на държава или NULL за всички
-     * @return array    $normalized  - нормализирани имена на фирмите
+     * @param int|NULL $countryId - ид на държава или NULL за всички
+     *
+     * @return array $normalized  - нормализирани имена на фирмите
      */
     public static function getCompaniesByCountry($countryId = null)
     {

@@ -7,10 +7,13 @@
  *
  * @category  bgerp
  * @package   [име на пакет]
+ *
  * @author    [Име на автора] <[имейл на автора]>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @todo      Текстовете в [правоъгълни скоби] да се заменят със съотв. стойности
  */
 class boilerplate_Manager extends core_Manager
@@ -29,8 +32,8 @@ class boilerplate_Manager extends core_Manager
      * var string|array
      */
     public $loadList;
-
-
+    
+    
     /**
      * Поддържани интерфейси
      *
@@ -45,6 +48,7 @@ class boilerplate_Manager extends core_Manager
      * @var string
      */
     public $menuPage;
+    
     
     /**
      * Кой има право да чете?
@@ -89,7 +93,7 @@ class boilerplate_Manager extends core_Manager
     /**
      * Брой записи на страница
      *
-     * @var integer
+     * @var int
      */
     public $listItemsPerPage;
     
@@ -104,18 +108,19 @@ class boilerplate_Manager extends core_Manager
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      *
      * @var string
+     *
      * @see plg_RowTools2
      */
     public $rowToolsField;
     
-
+    
     /**
      * Заглавие в единствено число
      *
      * @var string
      */
     public $singleTitle;
-
+    
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
@@ -131,8 +136,8 @@ class boilerplate_Manager extends core_Manager
     public function description()
     {
     }
-
-
+    
+    
     /**
      * След дефиниране на полетата на модела
      *
@@ -142,7 +147,7 @@ class boilerplate_Manager extends core_Manager
     {
     }
     
-
+    
     /**
      * Извиква се след успешен запис в модела
      *
@@ -154,7 +159,7 @@ class boilerplate_Manager extends core_Manager
     {
     }
     
-
+    
     /**
      * Извиква се преди изпълняването на екшън
      *
@@ -225,8 +230,8 @@ class boilerplate_Manager extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     }
-
-
+    
+    
     /**
      * След изтриване на записи
      *
@@ -235,7 +240,7 @@ class boilerplate_Manager extends core_Manager
      * @param core_Query   $query
      * @param string|array $cond
      *
-     * @return bool|null   Дали да продължи обработката на опашката от събития
+     * @return bool|null Дали да продължи обработката на опашката от събития
      */
     public static function on_AfterDelete($mvc, $numRows, $query, $cond)
     {
@@ -253,8 +258,8 @@ class boilerplate_Manager extends core_Manager
     public static function on_AfterRead($mvc, $rec)
     {
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на листовия изглед
      *
@@ -262,12 +267,12 @@ class boilerplate_Manager extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
     }
-   
+    
     
     /**
      * Изпълнява се след подготвянето на формата за филтриране
@@ -276,13 +281,13 @@ class boilerplate_Manager extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготвянето на тулбара в листовия изглед
      *
@@ -290,13 +295,13 @@ class boilerplate_Manager extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
     }
-
-
+    
+    
     /**
      * Изпълнява се преди опаковане на съдаржанието от мениджъра
      *
@@ -305,13 +310,13 @@ class boilerplate_Manager extends core_Manager
      * @param string|core_ET|null $tpl
      * @param stdClass|null       $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_BeforeRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {
     }
-
-
+    
+    
     /**
      * Изпълнява се след опаковане на съдаржанието от мениджъра
      *
@@ -320,7 +325,7 @@ class boilerplate_Manager extends core_Manager
      * @param string|core_ET $tpl
      * @param stdClass       $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {

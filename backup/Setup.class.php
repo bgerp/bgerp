@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Уникален префикс за имената на архивираните файлове
  */
@@ -92,6 +91,7 @@ defIfNot('BACKUP_FILEMAN_OFFSET', 0);
  */
 defIfNot('BACKUP_FILEMAN_PATH', 'fileman');
 
+
 /**
  * Поддиректория където ще се архивират файловете от fileman-a
  */
@@ -133,21 +133,22 @@ defIfNot('AMAZON_SECRET', '');
  */
 defIfNot('AMAZON_BUCKET', '');
 
+
 /**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
  *
  *
  * @category  bgerp
  * @package   backup
+ *
  * @author    Dimitar Minekov<mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class backup_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -191,6 +192,7 @@ class backup_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
+        
         // Архивиране в локалната файлова система;
         //'backup_Local',
         // Архивиране на Amazon
@@ -215,7 +217,7 @@ class backup_Setup extends core_ProtoSetup
         backup_Start::unLock();
         
         $cfgRes = $this->checkConfig();
-
+        
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
             
@@ -271,7 +273,7 @@ class backup_Setup extends core_ProtoSetup
         return $html;
     }
     
-
+    
     /**
      * Проверява дали MySql-а е конфигуриран за binlog логове
      *
@@ -280,12 +282,13 @@ class backup_Setup extends core_ProtoSetup
     public function checkConfig()
     {
         $caller = debug_backtrace(false, 2);
-
+        
         if ($caller[1]['function'] != 'act_Config' && $caller[1]['function'] != 'full') {
+            
             return;
         }
         $conf = core_Packs::getConfig('backup');
-
+        
         $storage = core_Cls::get('backup_' . $conf->BACKUP_STORAGE_TYPE);
         
         // Проверяваме дали имаме права за писане в сториджа
@@ -296,7 +299,7 @@ class backup_Setup extends core_ProtoSetup
             unlink($touchFile);
         } else {
             unlink($touchFile);
-
+            
             return "|*<li class='debug-error'>|Няма права за писане в |*" . get_class($storage) . '</li>';
         }
         
@@ -328,14 +331,16 @@ class backup_Setup extends core_ProtoSetup
         
         // Проверка дали MySql сървъра е настроен за binlog
         $res = @exec('mysql -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
+        
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'log_binon') {
             
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
-    
+        
         $res = @exec('mysql -u' . EF_DB_USER . '  -p' . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
+        
         // Премахваме всички табулации, нови редове и шпации - server_id 1
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'server_id1') {

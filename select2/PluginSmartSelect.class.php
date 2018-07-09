@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   selec2
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class select2_PluginSmartSelect extends core_Plugin
 {
-    
-    
     /**
      * Дали може да се изчистват всичките записи едновременно
      */
@@ -43,7 +43,7 @@ class select2_PluginSmartSelect extends core_Plugin
         ht::setUniqId($attr);
     }
     
-
+    
     /**
      *
      *
@@ -73,11 +73,13 @@ class select2_PluginSmartSelect extends core_Plugin
         
         // Ако опциите са под минималното - нищо не правим
         if ($optionsCnt <= $minItems) {
+            
             return;
         }
         
         // Ако няма JS нищо не правим
         if (Mode::is('javascript', 'no')) {
+            
             return;
         }
         

@@ -6,19 +6,19 @@
  *
  * @category  bgerp
  * @package   selec2
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class select2_Adapter
 {
-    
-    
     /**
      * Проверка дали може да се изполва select2
      *
-     * @return boolean
+     * @return bool
      */
     public static function canUseSelect2()
     {
@@ -37,7 +37,7 @@ class select2_Adapter
      * @param core_Et           $tpl
      * @param string            $id
      * @param string|NULL       $placeHolder
-     * @param boolean           $allowClear
+     * @param bool              $allowClear
      * @param string|NULL|FALSE $lg
      */
     public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '')
@@ -73,7 +73,7 @@ class select2_Adapter
         
         $tpl->push('select2/' . $conf->SELECT2_VERSION . '/select2.min.css', 'CSS');
         $tpl->push('select2/' . $conf->SELECT2_VERSION . '/select2.min.js', 'JS');
-
+        
         // custom стилове за плъгина
         $tpl->push('select2/css/select2-custom.css', 'CSS');
         
@@ -98,7 +98,7 @@ class select2_Adapter
      * @param core_Et           $tpl
      * @param string            $id
      * @param string|NULL       $placeHolder
-     * @param boolean           $allowClear
+     * @param bool              $allowClear
      * @param string|NULL|FALSE $lg
      */
     public static function run(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '')
@@ -146,7 +146,7 @@ class select2_Adapter
         }
         
         $select2Str .= ',templateResult: formatSelect2Data,templateSelection: formatSelect2DataSelection, matcher: modelMatcher';
-                    
+        
         $select2Str .= '});';
         
         jquery_Jquery::run($tpl, $select2Str, true);
@@ -159,11 +159,12 @@ class select2_Adapter
      * Връща резултат за показване в AJAX формат
      * Показва резултата в JSON формат и вика shutdown()
      *
-     * @param  string  $type
-     * @param  string  $hnd
-     * @param  string  $q
-     * @param  integer $maxSuggestions
-     * @return boolean
+     * @param string $type
+     * @param string $hnd
+     * @param string $q
+     * @param int    $maxSuggestions
+     *
+     * @return bool
      */
     public static function getAjaxRes($type, $hnd, $q, $maxSuggestions = 100)
     {
@@ -188,7 +189,7 @@ class select2_Adapter
             $isGroup = false;
             
             $titleArr = (array) $titleArr;
-
+            
             $title = $titleArr['title'];
             $titleNormalized = $titleArr['id'];
             

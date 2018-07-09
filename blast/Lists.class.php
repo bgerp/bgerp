@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'blast_Lists' -
  *
@@ -10,16 +9,16 @@
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Списъци с контакти
  */
 class blast_Lists extends core_Master
 {
-    
-    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -155,13 +154,13 @@ class blast_Lists extends core_Master
      */
     public $showLetterHead = true;
     
-
+    
     /**
      * Масив, където се записват списъците с ID-та за обновяване
      */
     protected $mustUpdate = array();
     
-
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -187,8 +186,9 @@ class blast_Lists extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
-     * @param  int     $folderId - id на папката
-     * @return boolean
+     * @param int $folderId - id на папката
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -277,8 +277,8 @@ class blast_Lists extends core_Master
     {
         $mvc->mustUpdate[$id] = $detailMvc;
     }
-
-
+    
+    
     public static function on_Shutdown($mvc)
     {
         if (count($mvc->mustUpdate)) {
@@ -338,7 +338,7 @@ class blast_Lists extends core_Master
     {
         if ($data->rec->keyField == 'email' && blast_Emails::haveRightFor('add') && $data->rec->state != 'draft' && $data->rec->state != 'rejected') {
             Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
-        
+            
             $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id, 'ret_url' => true), 'id=btnEmails', 'ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
         }
     }
@@ -506,9 +506,10 @@ class blast_Lists extends core_Master
     
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
@@ -531,10 +532,11 @@ class blast_Lists extends core_Master
     
     /**
      * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
-     * @param integer $limit
+     * @param int $id
+     * @param int $limit
      *
      * @return array
      */
@@ -564,10 +566,11 @@ class blast_Lists extends core_Master
     
     /**
      * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer|object $id
-     * @param boolean        $verbal
+     * @param int|object $id
+     * @param bool       $verbal
      *
      * @return string
      */
@@ -592,12 +595,13 @@ class blast_Lists extends core_Master
     
     /**
      * Дали потребителя може да използва дадения източник на персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
-     * @param integer $userId
+     * @param int $id
+     * @param int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canUsePersonalization($id, $userId = null)
     {
@@ -613,9 +617,10 @@ class blast_Lists extends core_Master
     
     /**
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $userId
+     * @param int $userId
      *
      * @return array
      */
@@ -653,7 +658,7 @@ class blast_Lists extends core_Master
      * за съответния запис,
      * които са достъпни за посочения потребител
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
@@ -667,9 +672,10 @@ class blast_Lists extends core_Master
     
     /**
      * Връща линк, който сочи към източника за персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return core_ET
      */
@@ -685,9 +691,10 @@ class blast_Lists extends core_Master
     
     /**
      * Връща езика за източника на персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -712,12 +719,12 @@ class blast_Lists extends core_Master
         $resArr = arr::make($resArr);
         
         $allFieldsArr = array('title' => 'Заглавие',
-                                'keyField' => 'Ключово поле',
-                                'allFields' => 'Всички полета',
-                                'DetailsCnt' => 'Брой абонати',
-                                'lg' => 'Език',
-                                'lastUsedOn' => 'Последна употреба'
-                            );
+            'keyField' => 'Ключово поле',
+            'allFields' => 'Всички полета',
+            'DetailsCnt' => 'Брой абонати',
+            'lg' => 'Език',
+            'lastUsedOn' => 'Последна употреба'
+        );
         foreach ($allFieldsArr as $fieldName => $val) {
             if ($row->{$fieldName}) {
                 $resArr[$fieldName] = array('name' => tr($val), 'val' => "[#{$fieldName}#]");

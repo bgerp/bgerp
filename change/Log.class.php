@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Клас 'change_Log - Логове
  *
  * @category  vendors
  * @package   change
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class change_Log extends core_Manager
 {
-    
-    
     /**
      * Име на перманентните данни
      */
@@ -269,7 +268,7 @@ class change_Log extends core_Manager
         
         // Ако има дата и потребител
         if (isset($docRec->changeModifiedBy, $docRec->changeModifiedOn)) {
-        
+            
             // Вземаме вербалните им стойности
             $lastVerRow = $class->recToVerbal($docRec, 'changeModifiedBy, changeModifiedOn, -single');
             $row->createdBy = $lastVerRow->changeModifiedBy;
@@ -320,7 +319,7 @@ class change_Log extends core_Manager
         
         // Вземаме данните за докуемнта
         $cRec = $class->fetch($docId);
-
+        
         // Очакваме да имаме права до сингъла или до треда
         expect($class->haveRightFor('single', $docId) || doc_Threads::haveRightFor('single', $cRec->threadId));
         
@@ -349,13 +348,13 @@ class change_Log extends core_Manager
         
         // Линка, към който ще редиректнем
         $link = array(
-                     $class,
-                     'single',
-                     $cRec->id,
-                     'Cid' => $cRec->containerId,
-                     'Tab' => $tab,
-                    );
-
+            $class,
+            'single',
+            $cRec->id,
+            'Cid' => $cRec->containerId,
+            'Tab' => $tab,
+        );
+        
         return new Redirect($link);
     }
     
@@ -465,10 +464,10 @@ class change_Log extends core_Manager
     /**
      * Връща линк към с версията
      *
-     * @param object  $rec
-     * @param string  $versionStr
-     * @param string  $versionId
-     * @param boolean $lastVer
+     * @param object $rec
+     * @param string $versionStr
+     * @param string $versionId
+     * @param bool   $lastVer
      *
      * @return string
      */
@@ -505,7 +504,7 @@ class change_Log extends core_Manager
             
             // Вземаме последната версия
             $versionStr = static::getLastVersionFromDoc($rec->docClass, $rec->docId);
-
+            
             // Идентификатора за избраната версия
             $versionId = static::getLastVersionIdFromDoc($rec->docClass, $rec->docId);
         }
@@ -530,10 +529,10 @@ class change_Log extends core_Manager
             // Флаг, да маркираме последната
             $markLast = true;
         }
-                
+        
         // Ескейпваме стринга
         $versionStrRaw = static::escape($versionStr);
-           
+        
         // Задаваме линка
         $link = array('change_Log', 'logVersion', 'docClass' => $rec->docClass, 'docId' => $rec->docId, 'versionStr' => $versionStr, 'versionId' => $versionId, 'tab' => Request::get('Tab'), 'action' => $action);
         
@@ -570,10 +569,10 @@ class change_Log extends core_Manager
             // Връщаме целия масив
             return $versionArr;
         }
-            
+        
         // Ключа за версиите
         $versionKey = static::getVersionKey($classId, $docId);
-            
+        
         // Връщаме масива за съответния ключ
         return $versionArr[$versionKey];
     }
@@ -662,13 +661,13 @@ class change_Log extends core_Manager
         return $versionStr;
     }
     
-
+    
     /**
      * Събира версията и подверсията и връща един стринг
      *
-     * @param mixed   $docClass - Името или id на класа
-     * @param integer $docId    - id' на документа
-     * @param integer $id       - id на версията
+     * @param mixed $docClass - Името или id на класа
+     * @param int   $docId    - id' на документа
+     * @param int   $id       - id на версията
      *
      * @return string
      */
@@ -727,7 +726,7 @@ class change_Log extends core_Manager
      *
      * @param core_Mvc $mvc
      * @param string   $key
-     * @param boolean  $key
+     * @param bool     $key
      *
      * @return array
      */
@@ -787,7 +786,7 @@ class change_Log extends core_Manager
      *
      * @param core_Mvc $mvc
      * @param string   $key
-     * @param boolean  $key
+     * @param bool     $key
      *
      * @return string
      */
@@ -961,7 +960,7 @@ class change_Log extends core_Manager
      * @param int    $docId      - id на документ
      * @param string $versionStr - Версия
      *
-     * @return boolean
+     * @return bool
      */
     public static function isSelected($docClass, $docId, $versionId)
     {
@@ -1087,9 +1086,9 @@ class change_Log extends core_Manager
     /**
      * Връща за дадено поле
      *
-     * @param integer $docClass
-     * @param intege  $docId
-     * @param mixed   $field
+     * @param int    $docClass
+     * @param intege $docId
+     * @param mixed  $field
      */
     public static function getRec($docClass, $docId, $field = false)
     {

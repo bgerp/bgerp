@@ -7,21 +7,21 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_interface_FreeShipping extends core_BaseClass
 {
-
-
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'cond_TransportCalc';
-
-
+    
+    
     /**
      * Заглавие
      */
@@ -37,10 +37,10 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param double $weight - Тегло на товара
-     * @param double $volume - Обем  на товара
+     * @param float $weight - Тегло на товара
+     * @param float $volume - Обем  на товара
      *
-     * @return double - Обемно тегло на товара
+     * @return float - Обемно тегло на товара
      */
     public function getVolumicWeight($weight, $volume)
     {
@@ -50,12 +50,12 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int    $deliveryTermId - условие на доставка
-     * @param double $singleWeight   - тегло
-     * @param double $singleVolume   - обем
-     * @param int    $totalWeight    - Общо тегло на товара
-     * @param int    $totalVolume    - Общ обем на товара
-     * @param array  $params         - Други параметри
+     * @param int   $deliveryTermId - условие на доставка
+     * @param float $singleWeight   - тегло
+     * @param float $singleVolume   - обем
+     * @param int   $totalWeight    - Общо тегло на товара
+     * @param int   $totalVolume    - Общ обем на товара
+     * @param array $params         - Други параметри
      *
      * @return array
      *               ['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
@@ -70,8 +70,9 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Добавя полета за доставка към форма
      *
-     * @param  core_FieldSet $form
-     * @param  string|NULL   $userId
+     * @param core_FieldSet $form
+     * @param string|NULL   $userId
+     *
      * @return void
      */
     public function addFields(core_FieldSet &$form, $userId = null)
@@ -103,7 +104,8 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Проверява форма
      *
-     * @param  core_FieldSet $form
+     * @param core_FieldSet $form
+     *
      * @return void
      */
     public function checkForm(core_FieldSet &$form)
@@ -115,6 +117,7 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * Рендира информацията
      *
      * @param stdClass rec
+     *
      * @return core_ET $tpl
      */
     public function renderDeliveryInfo($rec)

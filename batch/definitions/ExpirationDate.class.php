@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Базов драйвер за партиден клас 'срок на годност'
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title Срок на годност
  */
 class batch_definitions_ExpirationDate extends batch_definitions_Date
 {
-    
-    
     /**
      * Име на полето за партида в документа
      *
@@ -41,11 +40,12 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param  mixed     $documentClass - класа за който ще връщаме партидата
-     * @param  int       $id            - ид на документа за който ще връщаме партидата
-     * @param  int       $storeId       - склад
-     * @param  date|NULL $date          - дата
-     * @return mixed     $value        - автоматичния партиден номер, ако може да се генерира
+     * @param mixed     $documentClass - класа за който ще връщаме партидата
+     * @param int       $id            - ид на документа за който ще връщаме партидата
+     * @param int       $storeId       - склад
+     * @param date|NULL $date          - дата
+     *
+     * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
      */
     public function getAutoValue($documentClass, $id, $storeId, $date = null)
     {
@@ -126,9 +126,10 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     /**
      * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
      *
-     * @param  core_Query $query          - заявка към batch_Items
-     * @param  string     $value          -стойност на филтъра
-     * @param  string     $featureCaption - Заглавие на колоната на филтъра
+     * @param core_Query $query          - заявка към batch_Items
+     * @param string     $value          -стойност на филтъра
+     * @param string     $featureCaption - Заглавие на колоната на филтъра
+     *
      * @return void
      */
     public function filterItemsQuery(core_Query &$query, $value, &$featureCaption)
@@ -205,17 +206,18 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
     /**
      * Какви са свойствата на партидата
      *
-     * @param  string $value - номер на партидара
-     * @return array  - свойства на партидата
-     *                      o name    - заглавие
-     *                      o classId - клас
-     *                      o value   - стойност
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               o name    - заглавие
+     *               o classId - клас
+     *               o value   - стойност
      */
     public function getFeatures($value)
     {
         $res = array();
         $res[] = (object) array('name' => 'Срок на годност', 'classId' => $this->getClassId(), 'value' => $value);
-    
+        
         return $res;
     }
 }

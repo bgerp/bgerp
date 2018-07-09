@@ -6,17 +6,17 @@
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class cash_transaction_Rko extends acc_DocumentTransactionSource
 {
-    
     /**
      *
      * @var cash_Rko
@@ -32,7 +32,7 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     {
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
-    
+        
         $origin = $this->class->getOrigin($rec);
         
         if ($rec->isReverse == 'yes') {
@@ -49,11 +49,11 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
-                'reason' => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),   // основанието за ордера
-                'valior' => $rec->valior,   // датата на ордера
-                'entries' => $entry,
+            'reason' => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),   // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'entries' => $entry,
         );
-    
+        
         return $result;
     }
     
@@ -64,7 +64,8 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
      *    Dt: XXX. Разчетна сметка  (Доставчик, Сделки, Валута)
      *    Ct: 501. Каси             (Каса, Валута)
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     private function getEntry($rec, $origin, $reverse = false)
@@ -82,17 +83,17 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
         }
         
         $entry[] = array('amount' => $sign * $amount,
-                
-                       'debit' => array($rec->debitAccount,
-                                        array($rec->contragentClassId, $rec->contragentId),
-                                        array($origin->className, $origin->that),
-                                        array('currency_Currencies', $rec->dealCurrencyId),
-                                        'quantity' => $sign * $rec->amountDeal),
-                
-                       'credit' => array($rec->creditAccount,
-                                        array('cash_Cases', $rec->peroCase),
-                                        array('currency_Currencies', $rec->currencyId),
-                                        'quantity' => $sign * $rec->amount));
+            
+            'debit' => array($rec->debitAccount,
+                array($rec->contragentClassId, $rec->contragentId),
+                array($origin->className, $origin->that),
+                array('currency_Currencies', $rec->dealCurrencyId),
+                'quantity' => $sign * $rec->amountDeal),
+            
+            'credit' => array($rec->creditAccount,
+                array('cash_Cases', $rec->peroCase),
+                array('currency_Currencies', $rec->currencyId),
+                'quantity' => $sign * $rec->amount));
         
         if ($reverse === true && $rec->operationSysId == 'supplier2caseRet' || $rec->operationSysId == 'supplierAdvance2caseRet') {
             $entry2 = $entry[0];

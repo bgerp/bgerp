@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_IP' -
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_IP
 {
-
     /**
      * Масив за държавите
      */
     public $countries = array();
-
-
+    
+    
     /**
      * Add hyper link to RIPE.net on IP
      */

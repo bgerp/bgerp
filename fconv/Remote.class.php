@@ -7,15 +7,15 @@
  *
  * @category  bgep
  * @package   fconv
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fconv_Remote extends core_Manager
 {
-    
-    
     /**
      * Име на директорията, където ще се свалят файловете
      */
@@ -288,7 +288,7 @@ class fconv_Remote extends core_Manager
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tempDir), RecursiveIteratorIterator::SELF_FIRST);
         } catch (ErrorException $e) {
             reportException($e);
-        
+            
             return $res;
         }
         
@@ -300,10 +300,10 @@ class fconv_Remote extends core_Manager
         $iterator->setFlags(FilesystemIterator::NEW_CURRENT_AND_KEY | FilesystemIterator::SKIP_DOTS);
         
         $tempDir = rtrim($tempDir, '/');
-
+        
         // Обхождаме итератора
         while ($iterator->valid()) {
-        
+            
             // Вземаме името на файла
             $fileName = $iterator->key();
             
@@ -338,7 +338,7 @@ class fconv_Remote extends core_Manager
                 
                 $res[$dir][$fileName] = fileman_Download::getDownloadUrl($fPath, '1', 'path');
             }
-        
+            
             // Преместваме итератора
             $iterator->next();
         }
@@ -374,7 +374,7 @@ class fconv_Remote extends core_Manager
         $nScript->runAsynch = $scriptObj->runAsynch;
         $nScript->callBack('fconv_Remote::afterRemoteConv');
         $nScript->remoteAfterConvertCallback = $scriptObj->remoteAfterConvertCallback;
-        
+
 //         $nScript->stopRemote = TRUE;
         
         $nScript->run($nScript->params['asynch']);

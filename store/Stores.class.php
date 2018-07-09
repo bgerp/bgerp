@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на складове
  *
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_Stores extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -57,7 +56,7 @@ class store_Stores extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,storeWorker';
-
+    
     
     /**
      * Кой може да пише
@@ -188,11 +187,11 @@ class store_Stores extends core_Master
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-
+        
         if (core_Packs::isInstalled('pallet')) {
             $this->FLD('strategy', 'class(interface=pallet_ArrangeStrategyIntf,allowEmpty)', 'caption=Управление на стелажите->Стратегия');
         }
-
+        
         $this->setDbUnique('name');
     }
     
@@ -217,6 +216,7 @@ class store_Stores extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
+     *
      * @param int $objectId
      */
     public static function getItemRec($objectId)
@@ -238,14 +238,15 @@ class store_Stores extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
     {
         // @todo!
     }
-
-
+    
+    
     /**
      * След показване на едит формата
      */
@@ -257,7 +258,7 @@ class store_Stores extends core_Master
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-    
+            
             // Да има само 2 колони
             $data->form->setField('workersIds', array('maxColumns' => 2));
         }
@@ -311,7 +312,8 @@ class store_Stores extends core_Master
     /**
      * Кои документи да се показват като бързи бутони в папката на корицата
      *
-     * @param  int   $id - ид на корицата
+     * @param int $id - ид на корицата
+     *
      * @return array $res - възможните класове
      */
     public function getDocButtonsInFolder($id)

@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин за работа с файлове
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_File extends core_Plugin
 {
-    
-    
     /**
      * Прихващаме генерирането на имейл.
      * Ако мода е xhtml, тогава сработва и прекъсва по нататъшното изпълнение на функцията.

@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Кеш на данните на документи
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_DocumentCache extends core_Master
 {
-    
-    
     /**
      * Масив с containerId, които да се инвалидират
      */
@@ -25,7 +26,7 @@ class doc_DocumentCache extends core_Master
      * Необходими плъгини
      */
     public $loadList = 'plg_RowTools, doc_Wrapper';
-     
+    
     
     /**
      * Заглавие на мениджъра
@@ -79,7 +80,7 @@ class doc_DocumentCache extends core_Master
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'cat/tpl/SingleLayoutTplCache.shtml';
-
+    
     
     /**
      * Описание на модела
@@ -91,7 +92,7 @@ class doc_DocumentCache extends core_Master
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=none,caption=Документ');
         $this->FLD('cache', 'blob(10000000, serialize, compress,maxRows=5)', 'input=none,caption=Html,column=none');
         $this->FLD('createdOn', 'datetime(format=smartTime)', 'input=none,caption=Създаване, oldFieldName=time');
-
+        
         $this->setDbUnique('key');
     }
     
@@ -113,12 +114,12 @@ class doc_DocumentCache extends core_Master
         }
         
         $key = $document->generateCacheKey($cRec);
-
+        
         if ($key && $rec = self::fetch("#key = '{$key}'")) {
             if (dt::addSecs(doc_Setup::get('CACHE_LIFETIME'), $rec->createdOn) < dt::now()) {
                 $me = cls::get('doc_DocumentCache');
                 $me->invalidate();
-
+                
                 return false;
             }
             
@@ -134,10 +135,10 @@ class doc_DocumentCache extends core_Master
     {
         if ($key = $document->generateCacheKey($cRec)) {
             $rec = (object) array('key' => $key,
-                                    'userId' => core_Users::getCurrent(),
-                                    'containerId' => $cRec->id,
-                                    'createdOn' => dt::now(),
-                                    'cache' => $tpl);
+                'userId' => core_Users::getCurrent(),
+                'containerId' => $cRec->id,
+                'createdOn' => dt::now(),
+                'cache' => $tpl);
             
             return self::save($rec, null, 'REPLACE');
         }
@@ -169,7 +170,7 @@ class doc_DocumentCache extends core_Master
         
         // Изтриваме с по-голяма вероятност, записите, които са стоели по-дълго след края на кеша
         $cnt = $query->delete("TIME_TO_SEC(TIMEDIFF('{$now}', #createdOn)) >= (" . doc_Setup::get('CACHE_LIFETIME') . ' - (RAND() * 120))');
-
+        
         self::logDebug('Изтрити кеширани документа: ' . $cnt);
         
         // Ресетваме ид-та веднъж на 1000 минути
@@ -183,7 +184,8 @@ class doc_DocumentCache extends core_Master
     /**
      * Инвалидира кеша на документите в нишката
      *
-     * @param  int $threadId - ид на нишка
+     * @param int $threadId - ид на нишка
+     *
      * @return int $res - броя на изтритите записи
      */
     public static function threadCacheInvalidation($threadId)
@@ -214,7 +216,8 @@ class doc_DocumentCache extends core_Master
     /**
      * Инвалидира кеша на посочения документ
      *
-     * @param  int $containerId - ид на контейнер на документ
+     * @param int $containerId - ид на контейнер на документ
+     *
      * @return int - броя на изтритите записи
      */
     public static function cacheInvalidation($containerId)
@@ -228,7 +231,8 @@ class doc_DocumentCache extends core_Master
     /**
      * Инвалидира кешовете на документите с посочен originId
      *
-     * @param  int $originId - ид на контейнера, на източника на документа
+     * @param int $originId - ид на контейнера, на източника на документа
+     *
      * @return int $deleted - броя изтрити записи
      */
     public static function invalidateByOriginId($originId)
@@ -255,10 +259,11 @@ class doc_DocumentCache extends core_Master
         return $deleted;
     }
     
+    
     /**
      * Добавя containerId, за инвалидиране в on_Shutdown
      *
-     * @param integer $cId
+     * @param int $cId
      */
     public static function addToInvalidateCId($cId)
     {

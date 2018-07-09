@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на документ за приключване на счетоводен период
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_ClosePeriods extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -50,10 +49,9 @@ class acc_ClosePeriods extends core_Master
     /**
      * Дали при възстановяване/контиране/оттегляне да се заключва баланса
      *
-     * @var boolean TRUE/FALSE
+     * @var bool TRUE/FALSE
      */
     public $lockBalances = true;
-    
     
     
     /**
@@ -138,7 +136,7 @@ class acc_ClosePeriods extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
+    
     
     /**
      * Описание на модела
@@ -156,7 +154,7 @@ class acc_ClosePeriods extends core_Master
         $this->FLD('amountKeepBalance', 'double(decimals=2,min=0)', 'caption=Други разходи->Салдо за поддържане,notNull,default=0');
         
         $this->FLD(
-        
+            
             'state',
                 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
                 'caption=Статус, input=none'
@@ -245,7 +243,7 @@ class acc_ClosePeriods extends core_Master
     {
         if ($fields['-single']) {
             $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
-        
+            
             foreach (range(1, 4) as $id) {
                 if (isset($row->{"amountVatGroup{$id}"})) {
                     $row->{"amountVatGroup{$id}"} .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
@@ -302,7 +300,7 @@ class acc_ClosePeriods extends core_Master
             
             return true;
         }
-    
+        
         return false;
     }
     
@@ -313,16 +311,16 @@ class acc_ClosePeriods extends core_Master
     public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-    
+        
         $row = new stdClass();
-    
+        
         $row->title = $this->getRecTitle($rec);
         $row->subTitle = $this->getVerbal($rec, 'periodId');
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-    
+        
         return $row;
     }
     
@@ -376,7 +374,8 @@ class acc_ClosePeriods extends core_Master
     /**
      * Подготвя информацията за направените транзакции в журнала
      *
-     * @param  stdClass $rec - запис на документа
+     * @param stdClass $rec - запис на документа
+     *
      * @return stdClass $info - подготвената информация
      */
     private function prepareInfo($rec)
@@ -397,6 +396,7 @@ class acc_ClosePeriods extends core_Master
         }
         
         if (!count($accounts)) {
+            
             return;
         }
         
@@ -406,7 +406,7 @@ class acc_ClosePeriods extends core_Master
         $dQuery->where("#balanceId = {$bId}");
         $dQuery->where('#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL');
         $dQuery->in('accountId', $accounts);
-             
+        
         // Подготвяме какво е променено по всяка сметка
         while ($dRec = $dQuery->fetch()) {
             $nRow = new stdClass();

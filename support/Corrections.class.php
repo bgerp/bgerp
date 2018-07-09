@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Коригиращи действия
  *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class support_Corrections extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -106,6 +105,7 @@ class support_Corrections extends core_Master
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'support/tpl/SingleLayoutCorrections.shtml';
+    
     
     /**
      * Икона по подразбиране за единичния обект
@@ -198,8 +198,9 @@ class support_Corrections extends core_Master
      * Проверка дали нов документ може да бъде
      * добавен в посочената нишк-а
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
@@ -212,8 +213,9 @@ class support_Corrections extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
-     * @param  int     $folderId - id на папката
-     * @return boolean
+     * @param int $folderId - id на папката
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {

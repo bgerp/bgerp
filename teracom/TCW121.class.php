@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Драйвер контролер TCW-121 на фирма Тераком ООД
  *
@@ -9,6 +8,7 @@
  *
  * @category  vendors
  * @package   teracom
+ *
  * @author    Dimiter Minekov <mitko@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -16,13 +16,12 @@
  */
 class teracom_TCW121 extends sens2_ProtoDriver
 {
-    
     /**
      * Заглавие на драйвера
      */
     public $title = 'TCW121';
     
-        
+    
     /**
      * Описание на входовете
      */
@@ -60,13 +59,12 @@ class teracom_TCW121 extends sens2_ProtoDriver
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory');
         $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory, value=admin, notNull');
         $form->FNC('password', 'password(show)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
-
+        
         // Параметри по подразбиране за настройките
         $form->setDefault('port', 80);
     }
     
-
-
+    
     /**
      * Прочита стойностите от сензорните входове
      *
@@ -86,7 +84,7 @@ class teracom_TCW121 extends sens2_ProtoDriver
         $url = $url->getContent();
         
         // echo "<li> $url";
-
+        
         // Извличаме XML-a
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -95,7 +93,7 @@ class teracom_TCW121 extends sens2_ProtoDriver
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         $xml = curl_exec($ch);
         curl_close($ch);
-     
+        
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
@@ -104,7 +102,7 @@ class teracom_TCW121 extends sens2_ProtoDriver
         
         // Малък бъгфикс на фирмуеъра на контролера
         $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
-
+        
         // Парсираме XML-а
         $result = array();
         @core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
@@ -114,7 +112,7 @@ class teracom_TCW121 extends sens2_ProtoDriver
             
             return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
         }
-
+        
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
             if ($inputs[$name]) {
@@ -144,10 +142,10 @@ class teracom_TCW121 extends sens2_ProtoDriver
                 }
             }
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Записва стойностите на изходите на контролера
@@ -176,7 +174,7 @@ class teracom_TCW121 extends sens2_ProtoDriver
             $res[$out] = curl_exec($ch);
             curl_close($ch);
         }
-
+        
         return $res;
     }
 }

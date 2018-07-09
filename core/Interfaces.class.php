@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'core_Interfaces' - Регистър на интерфейсите
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Interfaces extends core_Manager
 {
-    
-    
     /**
      * Плъгини и класове за начално зареждане
      */
@@ -28,13 +27,13 @@ class core_Interfaces extends core_Manager
      */
     public $canList = 'admin';
     
-
+    
     /**
      * Никой потребител не може да добавя или редактира тази таблица
      */
     public $canWrite = 'no_one';
-
-
+    
+    
     /**
      * Заглавие на мениджъра
      */
@@ -64,10 +63,10 @@ class core_Interfaces extends core_Manager
     public static function add($interface)
     {
         $rec = new stdClass();
-
+        
         $rec->name = $interface;
         $rec->title = cls::getTitle($interface);
-
+        
         $exRec = self::fetch("#name = '{$interface}'");
         if ($exRec) {
             $rec->id = $exRec->id;
@@ -80,7 +79,7 @@ class core_Interfaces extends core_Manager
                 }
             }
         }
-
+        
         if (!$exRec || ($exRec->title != $rec->title)) {
             self::save($rec);
         }
@@ -105,7 +104,8 @@ class core_Interfaces extends core_Manager
     /**
      * Връща масив с ид-та на поддържаните от класа интерфейси
      *
-     * @param  mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     *
      * @return array ключове - ид на интерфейси, стойности - TRUE
      */
     public static function getInterfaceIds($class)
@@ -117,7 +117,7 @@ class core_Interfaces extends core_Manager
         }
         
         cls::prepareInterfaces($instance);
-
+        
         $list = $instance->interfaces;
         
         $result = array();
@@ -137,7 +137,8 @@ class core_Interfaces extends core_Manager
     /**
      * Връща keylist с поддържаните от класа интерфейси
      *
-     * @param  mixed  $class string (име на клас) или object (инстанция) или int (ид на клас)
+     * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     *
      * @return string keylist от ид-тата на интерфейсите
      */
     public static function getKeylist($class)

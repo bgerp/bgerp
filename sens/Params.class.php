@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за параметрите на сензорите
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens_Params extends core_Manager
 {
-    
-    
     /**
      * Необходими мениджъри
      */
@@ -45,8 +44,8 @@ class sens_Params extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,sens';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -61,7 +60,7 @@ class sens_Params extends core_Manager
         $this->FLD('unit', 'varchar(16)', 'caption=Означение, mandatory');
         $this->FLD('param', 'varchar(255)', 'caption=Параметър, mandatory');
         $this->FLD('details', 'varchar(255)', 'caption=Детайли');
-
+        
         $this->setDbUnique('unit', 'params');
     }
     
@@ -106,7 +105,7 @@ class sens_Params extends core_Manager
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, 'sens/data/Params.csv');
-            
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Шаблони за създаване на етикети
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_Templates extends core_Master
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -97,14 +96,14 @@ class label_Templates extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, lastUsedOn=Последно, state';
-
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
     
-
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -173,7 +172,7 @@ class label_Templates extends core_Master
     {
         // Ако имаме права за добавяне на етикет
         if (label_Prints::haveRightFor('add', (object) array('templateId' => $data->rec->id))) {
-        
+            
             // Добавяме бутон за нов етикет
             $data->toolbar->addBtn('Нов етикет', array('label_Prints', 'add', 'templateId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/price_tag_label.png, title=Създаване на нов етикет');
         }
@@ -183,7 +182,7 @@ class label_Templates extends core_Master
     /**
      * Връща всички медии, които отговарят на размерите на медията на шаблона
      *
-     * @param integer $id
+     * @param int $id
      */
     public static function getMediaForTemplate($id)
     {
@@ -197,7 +196,7 @@ class label_Templates extends core_Master
     /**
      * Връща шаблона
      *
-     * @param integer $id - id на записа
+     * @param int $id - id на записа
      *
      * @return core_Et - Шаблона на записа
      */
@@ -246,7 +245,7 @@ class label_Templates extends core_Master
     /**
      * Вкарва CSS-a към шаблона, като инлайн
      *
-     * @param integer $id
+     * @param int     $id
      * @param core_Et $template
      */
     public static function addCssToTemplate($id, $template = null)
@@ -280,10 +279,10 @@ class label_Templates extends core_Master
     /**
      * Проверява подадения плейсхолдер дали се съдържа в шаблона
      *
-     * @param integer $id          - id на записа
-     * @param string  $placeHolder - Име на плейсхолдера
+     * @param int    $id          - id на записа
+     * @param string $placeHolder - Име на плейсхолдера
      *
-     * @return boolean
+     * @return bool
      */
     public static function isPlaceExistInTemplate($id, $placeHolder)
     {
@@ -389,7 +388,7 @@ class label_Templates extends core_Master
         
         // Подреждане по състояние
         $data->query->orderBy('createdOn', 'DESC');
-
+        
         if ($state = $data->listFilter->rec->fState) {
             $data->query->where(array("#state = '[#1#]'", $state));
         }
@@ -407,7 +406,7 @@ class label_Templates extends core_Master
     /**
      * Активира шаблона
      *
-     * @param integer $id - id на записа
+     * @param int $id - id на записа
      *
      * @retunr integer|NULL - id на записа
      */
@@ -478,7 +477,7 @@ class label_Templates extends core_Master
         
         $nArr = array();
         $placeholders = self::getPlaceholders($string);
-       
+        
         // Всички плейсхолдъри, подменяме ги с главни букви
         if (is_array($placeholders)) {
             $replacePlaceholders = array();
@@ -500,9 +499,9 @@ class label_Templates extends core_Master
             $key = self::toPlaceholder($key);
             $nArr[$key] = $val;
         }
-       
+        
         $replacedStr = strtr($string, $nArr);
-       
+        
         // Връщане на заместения стринг
         return $replacedStr;
     }
@@ -559,12 +558,13 @@ class label_Templates extends core_Master
     /**
      * Добавя шаблон от файл. Обновява съществуващ файл само ако има промяна в някой от параметрите му
      *
-     * @param  string         $title    - име на шаблона
-     * @param  string         $filePath - път към файла на шаблона
-     * @param  string         $sysId    - систем ид на шаблона
-     * @param  array          $sizes    - размери на шаблона, масив с 2 елемента: широчина и височина
-     * @param  string|NULL    $lang     - език на шаблона
-     * @param  mixed          $class    - клас към който да е шаблона
+     * @param string      $title    - име на шаблона
+     * @param string      $filePath - път към файла на шаблона
+     * @param string      $sysId    - систем ид на шаблона
+     * @param array       $sizes    - размери на шаблона, масив с 2 елемента: широчина и височина
+     * @param string|NULL $lang     - език на шаблона
+     * @param mixed       $class    - клас към който да е шаблона
+     *
      * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
     public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null)
@@ -628,7 +628,7 @@ class label_Templates extends core_Master
         $res = '';
         $modified = $skipped = 0;
         $array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
-                       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
+            'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
         );
         
         core_Users::forceSystemUser();
@@ -668,7 +668,7 @@ class label_Templates extends core_Master
         
         $class = ($modified > 0) ? ' class="green"' : '';
         $res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
-         
+        
         return $res;
     }
     
@@ -676,9 +676,9 @@ class label_Templates extends core_Master
     /**
      * Връща шаблоните достъпни за избор от даден документ
      *
-     * @param mixed   $class
-     * @param integer $objectId
-     * @param boolean $onlyIds
+     * @param mixed $class
+     * @param int   $objectId
+     * @param bool  $onlyIds
      *
      * @return array $res
      */

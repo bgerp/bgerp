@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   rtac
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rtac_TextPlugin extends core_Plugin
 {
-    
-    
     /**
      *
      * Изпълнява се преди рендирането на input

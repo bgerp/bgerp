@@ -1,27 +1,26 @@
 <?php 
 
-
 /**
  * Клас 'email_Returned' - регистър на върнатите имейли
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Milen Georgiev <milen2experta.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Returned extends email_ServiceEmails
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
     public $title = 'Неполучени, върнати писма';
-
-
+    
+    
     /**
      * Описание на модела
      */
@@ -30,7 +29,7 @@ class email_Returned extends email_ServiceEmails
         $this->addFields();
     }
     
-
+    
     /**
      * Проверява дали в $mime се съдържа върнато писмо и
      * ако е така - съхраняваго за определено време в този модел
@@ -56,6 +55,7 @@ class email_Returned extends email_ServiceEmails
             }
             
             if (empty($matches)) {
+                
                 return;
             }
         }
@@ -78,19 +78,20 @@ class email_Returned extends email_ServiceEmails
         
         if ($isReturnedMail) {
             $rec = new stdClass();
+            
             // Само първите 100К от писмото
             $rec->data = substr($mime->getData(), 0, 100000);
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
-
+            
             self::save($rec);
             
             self::logNotice('Върнат имейл', $rec->id);
             
             blast_BlockedEmails::addSentEmailFromText($mid, $mime, 'error');
         }
-
+        
         return $isReturnedMail;
     }
 }

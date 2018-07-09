@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'import2_Setup' - Пакет за импорт
  *
  *
  * @category  bgerp
  * @package   import2
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class import2_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */

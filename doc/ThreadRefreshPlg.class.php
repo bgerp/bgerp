@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_ThreadRefreshPlg extends core_Plugin
 {
-    
-    
     /**
      * Преди рендиране на врапера
      *
@@ -99,9 +99,9 @@ class doc_ThreadRefreshPlg extends core_Plugin
      *
      * @param ingeter $threadId
      * @param array   $recsArr
-     * @param boolean $setNew
+     * @param bool    $setNew
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkHash($threadId, $recsArr, $setNew = true)
     {
@@ -126,8 +126,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
     /**
      *
      *
-     * @param integer $threadId
-     * @param array   $recsArr
+     * @param int   $threadId
+     * @param array $recsArr
      *
      * @return string
      */
@@ -155,7 +155,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
     /**
      *
      *
-     * @param  array       $recsArr
+     * @param array $recsArr
+     *
      * @return string|NULL
      */
     protected static function getDocumentStatesHash($recsArr)
@@ -181,7 +182,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
     /**
      *
      *
-     * @param integer $threadId
+     * @param int $threadId
      *
      * @return string
      */
@@ -309,7 +310,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         jquery_Jquery::runAfterAjax($tpl, 'removeNarrowScroll');
         jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
         jquery_Jquery::runAfterAjax($tpl, 'setThreadElemWidth');
-
+        
         // Стойности на плейсхолдера
         $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
         
@@ -334,7 +335,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         if ($docsArr) {
             $modifiedDocsArr = array();
             $cu = core_Users::getCurrent();
-
+            
             foreach ((array) $docsArr as $cid => $docId) {
                 $cRec = doc_Containers::fetch($cid);
                 if ($cRec) {
@@ -345,7 +346,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
                     if ($cu == $cRec->modifiedBy) {
                         continue;
                     }
-
+                    
                     $user = crm_Profiles::createLink($cRec->modifiedBy);
                     $action = ($cRec->modifiedOn == $cRec->createdOn) ? tr('добави') : tr('промени');
                     $msg = "{$user} {$action} {$link}";
@@ -360,7 +361,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
                     $statusObj = new stdClass();
                     $statusObj->func = 'showToast';
                     $statusObj->arg = $statusData;
-
+                    
                     $resStatus[] = $statusObj;
                 }
             }
@@ -423,10 +424,10 @@ class doc_ThreadRefreshPlg extends core_Plugin
             // Намира всички документи, които са променени
             if ($lastSend && count($data->recs)) {
                 foreach ($data->recs as $id => $r) {
-            
+                    
                     // Ако са променени след последно изтегленото време
                     if ($r->modifiedOn >= $lastSend) {
-            
+                        
                         // Добавяме хендълуте в масива
                         $docsArr[$id] = $data->rows[$id]->ROW_ATTR['id'];
                     }

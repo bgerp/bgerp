@@ -1,13 +1,16 @@
 <?php
 
+
 /**
  * Речник за текстовете за заместване
  *
  * @category  vendors
  * @package   replace
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class replace_Dictionary extends core_Manager
@@ -41,7 +44,7 @@ class replace_Dictionary extends core_Manager
      */
     public static $replace;
     
-
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -52,7 +55,7 @@ class replace_Dictionary extends core_Manager
         $this->FLD('groupId', 'key(mvc=replace_Groups,select=name)', 'caption=Групи');
     }
     
-
+    
     /**
      * Връща заместванията дефинирани от една група
      */
@@ -66,9 +69,9 @@ class replace_Dictionary extends core_Manager
                 self::$replace[strtolower($gRec->name)][$rec->from] = $rec->to;
             }
         }
-
+        
         $groups = arr::make($groups);
-
+        
         foreach ($groups as $groupName) {
             $groupName = strtolower($groupName);
             if (is_array(self::$replace[$groupName])) {
@@ -77,7 +80,7 @@ class replace_Dictionary extends core_Manager
                 }
             }
         }
- 
+        
         return $res;
     }
 }

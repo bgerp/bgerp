@@ -8,21 +8,21 @@
  *
  * @category  bgerp
  * @package   findeals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на авансовия отчет';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -125,10 +125,10 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     protected function getProducts($masterRec)
     {
         $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-    
+        
         // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
         $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
-         
+        
         return $products;
     }
     
@@ -141,7 +141,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
         $masterRec = findeals_AdvanceReports::fetch($rec->reportId);
         $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
-                
+        
         if ($rec->notes) {
             $row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
         }

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Драйвер за IP камера поддържаща ONVIF
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cams_driver_ONVIF
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -43,7 +42,7 @@ class cams_driver_ONVIF
         $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
     }
-
+    
     
     /**
      * Подготвя формата за PTZ контрола
@@ -59,7 +58,7 @@ class cams_driver_ONVIF
     public function applyPtzCommands($cmdArr)
     {
     }
-
+    
     public function normalizeCameraId()
     {
     }

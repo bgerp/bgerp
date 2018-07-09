@@ -1,20 +1,21 @@
 <?php 
 
-
 /**
  * Шаблон за писма за масово разпращане
  *
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  *
  * @method string getHandle(integer $id)
  * @method string getVerbalSizesFromArray(array $arr)
- * @method boolean checkMaxAttachedSize(array $attachSizeArr)
+ * @method bool checkMaxAttachedSize(array $attachSizeArr)
  * @method array getFilesSizes(array $sizeArr)
  * @method array getDocumentsSizes(array $docsArr)
  * @method array getAttachments(object $aRec)
@@ -22,7 +23,6 @@
  */
 class blast_Emails extends core_Master
 {
-    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -130,7 +130,7 @@ class blast_Emails extends core_Master
      * Кой може да спира имейла
      */
     protected $canStop = 'ceo, blast';
-   
+    
     
     /**
      * Кой може да го изтрие?
@@ -146,6 +146,7 @@ class blast_Emails extends core_Master
     
     /**
      * Кой може да променя активирани записи
+     *
      * @see change_Plugin
      */
     protected $canChangerec = 'blast, ceo';
@@ -165,6 +166,7 @@ class blast_Emails extends core_Master
     
     /**
      * Полета от които се генерират ключови думи за търсене
+     *
      * @see plg_Search
      */
     public $searchFields = 'subject, body';
@@ -256,13 +258,13 @@ class blast_Emails extends core_Master
     /**
      * Създава имейл с посочените данни
      *
-     * @param integer $perSrcClassId
-     * @param integer $perSrcObjectId
-     * @param string  $text
-     * @param string  $subject
-     * @param array   $otherParams
+     * @param int    $perSrcClassId
+     * @param int    $perSrcObjectId
+     * @param string $text
+     * @param string $subject
+     * @param array  $otherParams
      *
-     * @return integer
+     * @return int
      */
     public static function createEmail($perSrcClassId, $perSrcObjectId, $text, $subject, $otherParams = array())
     {
@@ -301,8 +303,8 @@ class blast_Emails extends core_Master
     /**
      * Активира имейла, като добавя и списъка с имейлите
      *
-     * @param integer|object $id
-     * @param integer        $sendPerCall
+     * @param int|object $id
+     * @param int        $sendPerCall
      */
     public static function activateEmail($id, $sendPerCall = 5)
     {
@@ -325,12 +327,13 @@ class blast_Emails extends core_Master
         return $updateCntArr['add'];
     }
     
+    
     /**
      * Обновява списъка с имейлите
      *
-     * @param integer|object $id
+     * @param int|object $id
      *
-     * @return integer
+     * @return int
      */
     protected static function updateEmailList($id)
     {
@@ -378,7 +381,7 @@ class blast_Emails extends core_Master
     /**
      * Връща записа
      *
-     * @param integer|object $id
+     * @param int|object $id
      *
      * @return object
      */
@@ -401,7 +404,7 @@ class blast_Emails extends core_Master
     /**
      * Проверява дали не трябва да се спира процеса
      *
-     * @return boolean
+     * @return bool
      */
     protected static function checkTimelimit()
     {
@@ -566,7 +569,7 @@ class blast_Emails extends core_Master
                 
                 // Клонираме записа
                 $cRec = clone $rec;
-
+                
                 // Имейла да се рендира и да се праща с правата на активатора
                 $sudoUser = core_Users::sudo($cRec->activatedBy);
                 
@@ -634,8 +637,8 @@ class blast_Emails extends core_Master
             $this->touchRec($rec->id);
         }
     }
-
-
+    
+    
     /**
      * Преди записване на клонирания запис
      *
@@ -723,7 +726,7 @@ class blast_Emails extends core_Master
     /**
      * Връща URL за отписване
      *
-     * @param integer     $id
+     * @param int         $id
      * @param string|NULL $lg
      * @param string|NULL $midPlace
      * @param array       $otherParams
@@ -740,7 +743,7 @@ class blast_Emails extends core_Master
             $url['m'] = $midPlace;
             $preParams['m'] = 'm';
         }
-    
+        
         if ($lg) {
             $url['lg'] = $lg;
             $preParams['lg'] = 'lg';
@@ -759,6 +762,7 @@ class blast_Emails extends core_Master
         
         return toUrl($url, $absolute, true, $preParams);
     }
+    
     
     /**
      * Връща тялото на съобщението
@@ -859,9 +863,9 @@ class blast_Emails extends core_Master
     /**
      * Взема HTML частта на имейл-а
      *
-     * @param object  $rec     - Данни за имейла
-     * @param array   $detArr  - Масив с данните
-     * @param boolean $sending - Дали се изпраща в момента
+     * @param object $rec     - Данни за имейла
+     * @param array  $detArr  - Масив с данните
+     * @param bool   $sending - Дали се изпраща в момента
      *
      * @return core_ET $res
      */
@@ -914,7 +918,7 @@ class blast_Emails extends core_Master
         
         //Изчистваме HTMl коментарите
         $content = email_Outgoings::clearHtmlComments($content);
-    
+        
         if ($res instanceof core_ET) {
             $res->setContent($content);
         } else {
@@ -953,6 +957,7 @@ class blast_Emails extends core_Master
         
         return $res;
     }
+    
     
     /**
      * Намира предполагаемия език на текста
@@ -1017,6 +1022,7 @@ class blast_Emails extends core_Master
         
         return $docs;
     }
+    
     
     /**
      * Връща масив с полетата, които са инстанции на type_Email или type_Emails
@@ -1147,7 +1153,7 @@ class blast_Emails extends core_Master
             // Редиректваме
             return new Redirect($link, '|Успешно активирахте бласт имейл-а');
         }
-            
+        
         // Стойности по подразбиране
         $perMin = $rec->sendPerCall ? $rec->sendPerCall : 5;
         $form->setDefault('sendPerCall', $perMin);
@@ -1446,6 +1452,7 @@ class blast_Emails extends core_Master
         
         $defPerSrcClassId = null;
         $currUserId = core_Users::getCurrent();
+        
         // Ако не е подаден клас да е blast_List
         $listClassId = blast_Lists::getClassId();
         
@@ -1453,7 +1460,7 @@ class blast_Emails extends core_Master
             $cover = doc_Folders::getCover($form->rec->folderId);
             
             $coverClassName = strtolower($cover->className);
-        
+            
             if ($coverClassName != 'doc_unsortedfolders') {
                 $defPerSrcClassId = $cover->getInstance()->getClassId();
             }
@@ -1600,14 +1607,14 @@ class blast_Emails extends core_Master
             $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));
             
             $fieldsArr = array('company' => 'company',
-                               'person' => 'person',
-                               'email' => 'email',
-                               'tel' => 'tel',
-                               'fax' => 'fax',
-                               'country' => 'country',
-                               'pCode' => 'pCode',
-                               'place' => 'place',
-                               'address' => 'address');
+                'person' => 'person',
+                'email' => 'email',
+                'tel' => 'tel',
+                'fax' => 'fax',
+                'country' => 'country',
+                'pCode' => 'pCode',
+                'place' => 'place',
+                'address' => 'address');
             
             if ($perSrcObjId) {
                 $fieldsArr = $perClsInst->getPersonalizationDescr($perSrcObjId);
@@ -1839,7 +1846,7 @@ class blast_Emails extends core_Master
     /**
      * Връща допустимия размер на прикачените файлове/докумети
      *
-     * @return integer
+     * @return int
      */
     public static function getMaxAttachFileSizeLimit_()
     {
@@ -2149,7 +2156,7 @@ class blast_Emails extends core_Master
      *
      * @param blast_Emails $mvc
      * @param core_ET      $res
-     * @param integer      $id
+     * @param int          $id
      * @param string       $mode
      * @param object|NULL  $options
      */
@@ -2223,8 +2230,8 @@ class blast_Emails extends core_Master
      *
      * @param blast_Emails $mvc
      * @param array        $res
-     * @param integer      $id
-     * @param integer      $userId
+     * @param int          $id
+     * @param int          $userId
      * @param object       $data
      */
     public static function on_BeforeGetLinkedDocuments($mvc, &$res, $id, $userId = null, $data = null)
@@ -2261,7 +2268,7 @@ class blast_Emails extends core_Master
             $attachedDocs = (array) doc_RichTextPlg::getAttachedDocs($rec->body);
         } catch (core_exception_Expect $e) {
             core_Users::exitSudo();
-
+            
             return ;
         }
         
@@ -2285,7 +2292,7 @@ class blast_Emails extends core_Master
      *
      * @param int $folderId - id на папката
      *
-     * @return boolean
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -2383,7 +2390,7 @@ class blast_Emails extends core_Master
      *
      * @param blast_Emails $mvc
      * @param array        $res
-     * @param integer      $id
+     * @param int          $id
      */
     public function on_AfterGetUsedDocs($mvc, &$res, $id)
     {

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за справка на движенията по каса
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_reports_CashImpl extends acc_reports_PeriodHistoryImpl
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -54,7 +53,7 @@ class cash_reports_CashImpl extends acc_reports_PeriodHistoryImpl
     {
         $cItemPosition = acc_Lists::getPosition($mvc->defaultAccount, 'cash_CaseAccRegIntf');
         $currencyPosition = acc_Lists::getPosition($mvc->defaultAccount, 'currency_CurrenciesAccRegIntf');
-         
+        
         $form->setField("ent{$cItemPosition}Id", 'caption=Каса');
         $form->setField("ent{$currencyPosition}Id", 'caption=Валута');
         

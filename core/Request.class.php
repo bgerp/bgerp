@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_Request' ['Request'] - Достъп до данните от заявката
  *
@@ -10,15 +9,16 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Request
 {
-    
     /**
      * Масив от масиви с променлива => стойност
      * Стойностите от по-последните масиви са с по-висок приоритет
@@ -57,13 +57,13 @@ class core_Request
         // Избягваме кофти-ефекта на magic_quotes
         if (get_magic_quotes_gpc()) {
             self::push(array_map(array(
-                        'core_Request',
-                        '_stripSlashesDeep'
-                    ), $_GET), '_GET', false, true);
+                'core_Request',
+                '_stripSlashesDeep'
+            ), $_GET), '_GET', false, true);
             self::push(self::checkUrlHash(array_map(array(
-                        'core_Request',
-                        '_stripSlashesDeep'
-                    ), $_POST)), '_POST', false, true);
+                'core_Request',
+                '_stripSlashesDeep'
+            ), $_POST)), '_POST', false, true);
         } else {
             self::push($_GET, '_GET', false, true);
             self::push($_POST, '_POST', false, true);
@@ -98,18 +98,18 @@ class core_Request
             self::push(array('id' => $id));
         }
     }
-
-
+    
+    
     /**
      * Декодира защитеното id
      */
     public static function unprotectId($id, $mvc)
     {
         // Има вероятност да се подаден несъществуващ клас
-       
+        
         if (is_string($mvc) && cls::load($mvc, true)) {
             $mvc = cls::get($mvc);
-
+            
             return $mvc->unprotectId($id);
         }
         
@@ -123,11 +123,11 @@ class core_Request
     public static function getSessHash($c, $len = 4)
     {
         $res = substr(base64_encode(md5(Mode::getPermanentKey() . $c)), 0, $len);
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Проверка дали заявката съдържа код за сесийно потвърждаване
      */
@@ -135,12 +135,12 @@ class core_Request
     {
         $id = self::get('id');
         $act = self::get('Act');
-
+        
         if (self::get('Cf') === self::getSessHash($act . $id)) {
             
             return true;
         }
-
+        
         return false;
     }
     
@@ -151,9 +151,9 @@ class core_Request
     public function _stripSlashesDeep($value)
     {
         $value = is_array($value) ? array_map(array(
-                'core_Request',
-                '_stripSlashesDeep'
-            ), $value) : stripslashes($value);
+            'core_Request',
+            '_stripSlashesDeep'
+        ), $value) : stripslashes($value);
         
         return $value;
     }
@@ -175,7 +175,8 @@ class core_Request
     /**
      * Премахва защитени полета от урл-то
      *
-     * @param  mixed $protArr - масив с полета за премахване
+     * @param mixed $protArr - масив с полета за премахване
+     *
      * @return void
      */
     public static function removeProtected($protArr)
@@ -214,7 +215,7 @@ class core_Request
         // Защита на ИД-то
         if ($arr['id'] && $arr['Ctr']) {
             $mvc = cls::get($arr['Ctr']);
-
+            
             $arr['id'] = $mvc->protectId($arr['id']);
         }
     }
@@ -227,12 +228,12 @@ class core_Request
     public static function get($name, $type = null)
     {
         $value = null;
-
+        
         foreach (self::$vars as $key => $arr) {
             if (self::$protected[$name] && ($key == '_POST' || $key == '_GET')) {
                 continue;
             }
-
+            
             if (isset($arr[$name])) {
                 $value = $arr[$name];
                 break;
@@ -246,7 +247,7 @@ class core_Request
                 error('@Некоректна стойност за входен параметър', $name, $inputType->error);
             }
         }
-       
+        
         return $value;
     }
     
@@ -257,7 +258,7 @@ class core_Request
     public static function getVarsStartingWith($nameStart)
     {
         $res = array();
-
+        
         foreach (self::$vars as $key => $arr) {
             foreach ($arr as $name => $val) {
                 if (strpos($name, $nameStart) === 0) {
@@ -270,7 +271,7 @@ class core_Request
         
         return $res;
     }
-  
+    
     
     /**
      * Връща масив с всички параметри в рекуеста,
@@ -286,7 +287,7 @@ class core_Request
             if ($push && ("{$push}" != "{$dummy}")) {
                 continue;
             }
- 
+            
             foreach ((array) $arr as $name => $val) {
                 
                 // Ако преди не е сетната стойността и не е игнорирана, тогава я добавяме в масива
@@ -306,7 +307,7 @@ class core_Request
     public static function push($array, $name = null, $unShift = false, $mustValidUrlHash = false)
     {
         self::checkUrlHash($array, $mustValidUrlHash);
-
+        
         if ($name) {
             $element[$name] = $array;
         } else {
@@ -362,7 +363,7 @@ class core_Request
         static $count = 0;
         $count++;
         $varsName = 'forward' . $count;
-
+        
         // Преобразуваме от поредни към именовани параметри
         if (isset($vars[0]) && !isset($vars['Ctr'])) {
             $vars['Ctr'] = $vars[0];
@@ -376,7 +377,7 @@ class core_Request
         
         $point = self::get('Ctr') . '::' . self::get('Act') . '::' . self::get('id');
         Debug::log('Forward => ' . $point);
-
+        
         try {
             // Ако не е бил сетнат
             if (!Mode::get('hitTime')) {
@@ -390,6 +391,7 @@ class core_Request
         $Request = & cls::get('core_Request');
         
         $ctr = $Request::get('Ctr');
+        
         // Проверяваме за криптиран линк
         if (!$Request::get('Act') &&
             strlen($ctr) == core_Forwards::CORE_FORWARD_SYSID_LEN &&
@@ -397,7 +399,7 @@ class core_Request
             
             return core_Forwards::go($ctr);
         }
-
+        
         $vars = arr::make($vars, true);
         
         if (count($vars)) {
@@ -441,10 +443,10 @@ class core_Request
         }
         
         Debug::log('Forward <= ' . $point);
-
+        
         return $content;
     }
-
+    
     
     /**
      * Защитава служебно някои параметри на URL-то
@@ -452,9 +454,10 @@ class core_Request
     public static function addUrlHash(&$params, $mustValidUrlHash = false)
     {
         if (!is_array($params)) {
+            
             return;
         }
-
+        
         if (isset($params['ret_url'])) {
             if (is_array($params['ret_url'])) {
                 $params['ret_url'] = toUrl($params['ret_url'], 'local');
@@ -464,8 +467,8 @@ class core_Request
             }
         }
     }
-
-
+    
+    
     /**
      * Проверява дали в посочените параметри, служебно защитените променливи са с коректен хеш
      *
@@ -474,12 +477,13 @@ class core_Request
     public static function checkUrlHash(&$params, $mustValidUrlHash = false)
     {
         if (!is_array($params)) {
+            
             return;
         }
         
         if (isset($params['ret_url'])) {
             $retUrl = str::checkHash($params['ret_url'], 8, 'ret_url');
-
+            
             if ($retUrl) {
                 $params['ret_url'] = $retUrl;
             } elseif ($mustValidUrlHash) {

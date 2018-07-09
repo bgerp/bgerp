@@ -1,61 +1,71 @@
 <?php
 
+
 /**
  * Мениджър на отчети относно задания за артикули с възложени задачи
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Задания » Задания за артикули с възложени задачи
  */
 class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,powerUser';
-
+    
+    
     /**
      * Полета от таблицата за скриване, ако са празни
      *
      * @var int
      */
     protected $filterEmptyListFields;
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Sorting';
-
+    
+    
     /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField = 'productId , jobsId';
-
+    
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
      * @var string
      */
     protected $newFieldToCheck = 'productId';
-
+    
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = '';
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -75,7 +85,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             'caption=Подредени по->Дата,maxRadio=2,columns=2,mandatory,after=title'
         );
     }
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -89,12 +100,14 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $form->setDefault('typeOfSorting', 'up');
         $form->setDefault('orderingDate', 'activated');
     }
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -105,6 +118,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $jobsQuery = planning_Jobs::getQuery();
         
         $jobsQuery->where("#state = 'active' OR #state = 'wakeup'");
+        
         // $jobsQuery->where("#saleId IS NOT NULL");
         
         /*
@@ -117,7 +131,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 foreach ($jobses->history as $v) {
                     if ($v['action'] == 'Активиране');
                     {
-                        
                         $activatedDate = $v['date'];
                     }
                 }
@@ -280,7 +293,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     {
         return $a->deliveryDate > $b->deliveryDate;
     }
-
+    
     public function orderByPayDateDown($a, $b)
     {
         return $a->deliveryDate < $b->deliveryDate;
@@ -291,19 +304,21 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     {
         return $a->activatedDate > $b->activatedDate;
     }
-
+    
     public function orderByActivatedDateDown($a, $b)
     {
         return $a->activatedDate < $b->activatedDate;
     }
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec
-     *                               - записа
-     * @param  boolean       $export
-     *                               - таблицата за експорт ли е
+     * @param stdClass $rec
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -320,14 +335,16 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         return $fld;
     }
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec
-     *                        - записа
-     * @param  stdClass $dRec
-     *                        - чистия запис
+     * @param stdClass $rec
+     *                       - записа
+     * @param stdClass $dRec
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -392,11 +409,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" . ht::createLink(
                 "#{$handle}",
-            
+                
                 $singleUrl,
-            
+                
                 false,
-            
+                
                 "ef_icon={$Task->singleIcon}"
             
             ) . '</span>' . ' »  ' .
@@ -442,7 +459,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             if ($doc->haveRightFor('single')) {
                 $row->btn = ht::createBtn(
-                
+                    
                     'Връзка',
                     array(
                         'doc_Linked',
@@ -451,11 +468,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                         'inType' => 'doc',
                         'ret_url' => true
                     ),
-                
+                    
                     false,
-                
+                    
                     false,
-                
+                    
                     'ef_icon = img/16/doc_tag.png, title=Връзка към документа'
                 
                 );
@@ -464,7 +481,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         return $row;
     }
-
+    
+    
     /**
      * След подготовка на реда за експорт
      *
@@ -491,12 +509,14 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $res->tasks = implode(', ', $taskArr);
         }
     }
-
+    
+    
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
-     * @param  stdClass $rec
-     * @return boolean  $res
+     * @param stdClass $rec
+     *
+     * @return bool $res
      */
     public function canSendNotificationOnRefresh($rec)
     {
@@ -533,7 +553,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                     
                     return true;
                 }
-                    
+                
                 // Ако има промяна в крайния срок - известяване
                 if ($new->dueDate != $old->dueDate) {
                     
@@ -544,12 +564,14 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         
         return false;
     }
-
+    
+    
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param  stdClass    $rec
-     *                          - запис
+     * @param stdClass $rec
+     *                      - запис
+     *
      * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
      */
     public function getNextRefreshDates($rec)

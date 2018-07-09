@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Keylist с избрани потребители
  *
@@ -14,9 +13,11 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       core_Users
  */
@@ -38,7 +39,7 @@ class type_UserList extends type_Keylist
         
         setIfNot($this->params['roles'], 'executive,officer,manager,ceo');
         $this->params['roles'] = str_replace('|', ',', $this->params['roles']);
-       
+        
         setIfNot($this->params['rolesForAll'], 'user');
         $this->params['rolesForAll'] = str_replace('|', ',', $this->params['rolesForAll']);
     }
@@ -62,7 +63,7 @@ class type_UserList extends type_Keylist
             }
             setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
         }
-
+        
         $mvc = cls::get($this->params['mvc']);
         
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
@@ -71,7 +72,7 @@ class type_UserList extends type_Keylist
             
             return $this->suggestions;
         }
-
+        
         // извличане на потребителите с информация
         $pQuery = crm_Profiles::getQuery();
         $pQuery->show('id');
@@ -82,7 +83,7 @@ class type_UserList extends type_Keylist
             }
         }
         $this->info = $iUsers;
-
+        
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип
         if (!haveRole($this->params['rolesForAll'])) {
             $ownRoles = core_Users::getCurrent('roles');
@@ -96,7 +97,7 @@ class type_UserList extends type_Keylist
         
         $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
         $teams = self::toArray($teams);
-
+        
         $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
         
         // id на текущия потребител
@@ -113,16 +114,16 @@ class type_UserList extends type_Keylist
         
         // Броя на групите
         $cnt = $uQueryAll->count();
-      
+        
         // Ако броя е под максимално допустимите или са избрани всичките
         if ((trim($this->params['autoOpenGroups']) == '*') || ($cnt < $this->params['maxOptForOpenGroups'])) {
             
             // Отваряме всички групи
             $openAllGroups = true;
         }
- 
+        
         $userArr = core_Users::getRolesWithUsers();
-    
+        
         $rolesArr = type_Keylist::toArray($roles);
         
         foreach ($teams as $t) {
@@ -134,7 +135,7 @@ class type_UserList extends type_Keylist
             $group->title = tr('Екип') . ' "' . $tRole . '"';
             $group->attr = array('class' => 'team');
             $group->group = true;
-
+            
             $this->suggestions[$t . ' team'] = $group;
             
             $teamMembers = 0;
@@ -152,7 +153,7 @@ class type_UserList extends type_Keylist
                 }
                 
                 $uRec->id = $uId;
-
+                
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
                 if ($openAllGroups) {
                     
@@ -171,13 +172,13 @@ class type_UserList extends type_Keylist
                         $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
                     }
                 }
-
+                
                 if ($uId == core_Users::getCurrent() && !$ids) {
                     $group->autoOpen = true;
                     $haveOpenedGroup = true;
                 }
             }
-
+            
             if (!$teamMembers) {
                 unset($this->suggestions[$t . ' team']);
             }
@@ -231,8 +232,8 @@ class type_UserList extends type_Keylist
         
         return parent::fromVerbal_($value);
     }
-
-
+    
+    
     /**
      * Форматира числото в удобна за четене форма
      */
@@ -243,19 +244,18 @@ class type_UserList extends type_Keylist
         $uar = core_Users::getRolesWithUsers();
         
         $res = '';
-
+        
         foreach ($ids as $id) {
             if (!($nick = $uar['r'][$id]->nick)) {
                 $res = parent::toVerbal_($value);
                 break;
             }
-
+            
             $res .= ($res ? ', ' : '') . $nick;
         }
- 
+        
         return $res;
     }
-
     
     
     /**
@@ -300,7 +300,7 @@ class type_UserList extends type_Keylist
             
             $value = $nValArr;
         }
-    
+        
         $res = parent::renderInput_($name, $value, $attr);
         
         return $res;
@@ -321,11 +321,11 @@ class type_UserList extends type_Keylist
         $res = '';
         
         if (is_array($value) && !empty($value)) {
-
+            
             // Сортираме ключовете на масива, за да има
             // стринга винаги нормализиран вид - от по-малките към по-големите
             ksort($value);
-
+            
             foreach ($value as $id => $val) {
                 if (empty($id) && empty($val)) {
                     continue;
@@ -404,8 +404,8 @@ class type_UserList extends type_Keylist
     /**
      * Връща ключа от ид на ролята и потребителя
      *
-     * @param integer $roleId
-     * @param integer $uId
+     * @param int $roleId
+     * @param int $uId
      *
      * @return string
      */
@@ -422,7 +422,7 @@ class type_UserList extends type_Keylist
      *
      * @param string $key
      *
-     * @return integer
+     * @return int
      */
     protected function getUserIdFromKey($key)
     {

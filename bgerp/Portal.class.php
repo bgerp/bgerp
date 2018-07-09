@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Портален изглед на състоянието на системата
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_Portal extends core_Manager
 {
-    
-    
     /**
      * Неща за зареждане в началото
      */
@@ -61,7 +60,7 @@ class bgerp_Portal extends core_Manager
                 
                 return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId));
             }
-
+            
             // Редирект към профила на партньора
             return new Redirect(array('cms_Profiles', 'single'));
         }
@@ -95,7 +94,7 @@ class bgerp_Portal extends core_Manager
             </table>
             ");
         }
-
+        
         // Задачи
         if (Mode::is('listTasks', 'by')) {
             $taskTitle = tr('Задачи от');
@@ -138,7 +137,7 @@ class bgerp_Portal extends core_Manager
         $calMvc = cls::get('cal_Calendar');
         $searchForm = $calMvc->getForm();
         self::prepareSearchForm($calMvc, $searchForm);
-
+        
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
             <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '
             ' . $searchForm->renderHtml() . '
@@ -147,20 +146,24 @@ class bgerp_Portal extends core_Manager
             </div>');
         
         $calendarHeader->append(cal_Calendar::renderPortal(), 'CALENDAR_DETAILS');
-
+        
         $Recently = cls::get('bgerp_Recently');
         $Notifications = cls::get('bgerp_Notifications');
         $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-
+        
         if (Mode::is('screenMode', 'narrow')) {
             // подаваме времето на последната нотификация
             jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime(core_Users::getCurrent())) . "'); ");
+            
             // Добавяме календара
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
+            
             // Добавяме "Наскоро" - документи и папки с които е работено наскоро
             $tpl->append($Recently->render(), 'RECENTLY_COLUMN');
+            
             // Добавяме нотификации
             $tpl->append($Notifications->render(), 'NOTIFICATIONS_COLUMN');
+            
             // Добавяме задачи
             $tpl->append($tasksTpl, 'TASK_COLUMN');
         } else {
@@ -172,30 +175,36 @@ class bgerp_Portal extends core_Manager
             if ($portalArrange == 'recentlyNotifyTaskCal') {
                 // Добавяме "Наскоро" - документи и папки с които е работено наскоро
                 $tpl->append($Recently->render(), 'LEFT_COLUMN');
+                
                 // Добавяме нотификации
                 $tpl->append($Notifications->render(), 'MIDDLE_COLUMN');
+                
                 // Добавяме задачи
                 $tpl->append($tasksTpl, 'RIGHT_COLUMN');
             } elseif ($portalArrange == 'taskNotifyRecentlyCal') {
                 // Добавяме "Наскоро" - документи и папки с които е работено наскоро
                 $tpl->append($Recently->render(), 'RIGHT_COLUMN');
+                
                 // Добавяме нотификации
                 $tpl->append($Notifications->render(), 'MIDDLE_COLUMN');
+                
                 // Добавяме задачи
                 $tpl->append($tasksTpl, 'LEFT_COLUMN');
             } else {
                 // Добавяме "Наскоро" - документи и папки с които е работено наскоро
                 $tpl->append($Recently->render(), 'RIGHT_COLUMN');
+                
                 // Добавяме нотификации
                 $tpl->replace($Notifications->render(), 'LEFT_COLUMN');
+                
                 // Добавяме задачи
                 $tpl->append($tasksTpl, 'MIDDLE_COLUMN');
             }
         }
-
+        
         $tpl->push('js/PortalSearch.js', 'JS');
         jquery_Jquery::run($tpl, 'portalSearch();');
-
+        
         bgerp_LastTouch::set('portal');
         
         self::logRead('Разглеждане на портала');
@@ -206,6 +215,7 @@ class bgerp_Portal extends core_Manager
     
     /**
      * Подготвя форма за търсене в портала
+     *
      * @param core_Mvc  $mvc  - викащия клас
      * @param core_Form $form - филтър форма
      */
@@ -217,9 +227,9 @@ class bgerp_Portal extends core_Manager
         if ($search = Request::get($mvc->searchInputField)) {
             $form->layout->replace($search, 'VALUE');
         }
-
+        
         $findIcon = sbf('img/16or32/find.png');
-     
+        
         $form->layout->replace($mvc->className, 'LIST');
         $form->layout->replace($findIcon, 'ICON');
         static::prepareSearchDataList($mvc, $form);

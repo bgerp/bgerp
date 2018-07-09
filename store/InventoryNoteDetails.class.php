@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_InventoryNoteDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_InventoryNoteDetails extends doc_Detail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за инвентаризация';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -77,7 +76,7 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     public $canDelete = 'ceo, storeMaster';
     
-        
+    
     /**
      * Активен таб
      */
@@ -143,9 +142,10 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->quantity) || !isset($rec->quantityInPack)) {
+            
             return;
         }
-    
+        
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
     
@@ -157,7 +157,7 @@ class store_InventoryNoteDetails extends doc_Detail
     {
         $data->TabCaption = 'Въвеждане';
         $data->Tab = 'top';
-         
+        
         $tab = Request::get($data->masterData->tabTopParam, 'varchar');
         if ($tab == get_called_class()) {
             parent::prepareDetail_($data);
@@ -278,6 +278,7 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterPrepareRetUrl($mvc, $data)
     {
         if (!isset($data->form) || !$data->form->isSubmitted()) {
+            
             return;
         }
         
@@ -380,6 +381,7 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($data->masterData->rec->state == 'rejected') {
+            
             return;
         }
         

@@ -6,18 +6,17 @@
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var cash_ExchangeDocument
@@ -49,24 +48,24 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         
         $toCase = array('501',
-                array('cash_Cases', $rec->peroTo),
-                array('currency_Currencies', $rec->debitCurrency),
-                'quantity' => $rec->debitQuantity);
-                
+            array('cash_Cases', $rec->peroTo),
+            array('currency_Currencies', $rec->debitCurrency),
+            'quantity' => $rec->debitQuantity);
+        
         $fromCase = array('501',
-                array('cash_Cases', $rec->peroFrom),
-                array('currency_Currencies', $rec->creditCurrency),
-                'quantity' => $rec->creditQuantity);
+            array('cash_Cases', $rec->peroFrom),
+            array('currency_Currencies', $rec->creditCurrency),
+            'quantity' => $rec->creditQuantity);
         if ($rec->debitCurrency == $baseCurrencyId && $rec->creditCurrency != $baseCurrencyId) {
             $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
             $rate = currency_CurrencyRates::getRate($rec->valior, $dCode, null);
             $entry = array();
             $entry[] = array('amount' => $rec->debitQuantity,
-                    'debit' => $toCase,
-                    'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
+                'debit' => $toCase,
+                'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
             $entry[] = array(
-                    'debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
-                    'credit' => $fromCase);
+                'debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
+                'credit' => $fromCase);
         } else {
             $entry = array('debit' => $toCase, 'credit' => $fromCase);
             $entry = array($entry);
@@ -74,11 +73,11 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
-                'reason' => $rec->reason,   // основанието за ордера
-                'valior' => $rec->valior,   // датата на ордера
-                'entries' => $entry,
+            'reason' => $rec->reason,   // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'entries' => $entry,
         );
-    
+        
         return $result;
     }
 }

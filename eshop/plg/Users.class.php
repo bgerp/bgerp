@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'eshop_plg_Users'
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_plg_Users extends core_Plugin
 {
-    
-    
     /**
      * Прихващаме всяко логване в системата
      */

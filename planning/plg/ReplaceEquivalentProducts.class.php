@@ -5,15 +5,15 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -80,7 +80,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                 if ($mvc->isUnique($nRec, $nFields)) {
                     $nRec->autoAllocate = true;
                     $mvc->save($nRec);
-
+                    
                     return followRetUrl();
                 }
                 $form->setError($nFields, 'Вече съществува запис със същите данни');
@@ -109,6 +109,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
     {
         $rows = &$data->rows;
         if (!count($rows)) {
+            
             return;
         }
         

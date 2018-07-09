@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * История с кеширани цени
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     История с кеширани цени
  */
 class price_History extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -34,7 +33,7 @@ class price_History extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper';
-                    
+    
     
     /**
      * Детайла, на модела
@@ -76,26 +75,26 @@ class price_History extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'admin,debug';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'priceMaster,ceo';
-
+    
     
     /**
      * Масив с всички ремена, които имат отношение към историята на цените
      */
     protected static $timeline = array();
-
-
+    
+    
     /**
      * Масив с кеш на изчислените стойности
      */
     protected static $cache = array();
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -105,10 +104,10 @@ class price_History extends core_Manager
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent, autoFilter');
         $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
-
+        
         $this->setDbUnique('listId,validFrom,productId');
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -153,7 +152,7 @@ class price_History extends core_Manager
             
             return self::$cache[$datetime];
         }
-
+        
         // Ако времевата линия липсва, опитваме се да я извадим от кеша
         if (!count($timeline)) {
             self::$timeline = core_Cache::get('price_History', 'timeline');
@@ -172,31 +171,31 @@ class price_History extends core_Manager
                     $timeline[$rec->validUntil] = true;
                 }
             }
-
+            
             // Вземаме всички времена от ценоразписите на клиентите
             $query = price_ListToCustomers::getQuery();
             $query->show('validFrom');
             while ($rec = $query->fetch()) {
                 $timeline[$rec->validFrom] = true;
             }
-  
+            
             // Сортираме обратно масива, защото очакваме да търсим предимно съвременни цени
             krsort($timeline);
             $timeline = array_keys($timeline);
             core_Cache::set('price_History', 'timeline', $timeline, 300000);
         }
-       
+        
         // Връщаме първото срещнато време, което е по-малко от аргумента
         foreach ($timeline as $t) {
             if ($datetime >= $t) {
                 self::$cache[$datetime] = $t;
-
+                
                 return $t;
             }
         }
     }
-
-
+    
+    
     /**
      * Инвалидира кеша с времевата линия
      */
@@ -205,8 +204,8 @@ class price_History extends core_Manager
         // Изтриваме кеша
         core_Cache::remove('price_History', 'timeline');
     }
-
-
+    
+    
     /**
      * Връща кешираната цена за продукта
      */
@@ -214,13 +213,14 @@ class price_History extends core_Manager
     {
         $validFrom = self::canonizeTime($datetime);
         if (!$validFrom) {
+            
             return;
         }
         
         $cond = "#listId = {$listId} AND #validFrom = '{$validFrom}' AND #productId = {$productId}";
-
+        
         $price = self::fetchField($cond, 'price');
-
+        
         return $price;
     }
     
@@ -233,6 +233,7 @@ class price_History extends core_Manager
         $validFrom = self::canonizeTime($datetime);
         
         if (!$validFrom) {
+            
             return;
         }
         
@@ -242,10 +243,10 @@ class price_History extends core_Manager
         $rec->productId = $productId;
         $rec->price = $price;
         self::save($rec, null, 'REPLACE');
-
+        
         return $rec;
     }
-
+    
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед

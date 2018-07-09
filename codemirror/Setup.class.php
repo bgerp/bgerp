@@ -9,16 +9,16 @@
  *
  * @category  bgerp
  * @package   codemirror
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class codemirror_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -30,7 +30,7 @@ class codemirror_Setup extends core_ProtoSetup
      */
     public $info = 'Гъвкав текстов редактор за код';
     
-
+    
     /**
      * Пакет без инсталация
      */

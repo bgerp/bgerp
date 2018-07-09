@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_ReceiptDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_ReceiptDetails extends deals_DeliveryDocumentDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на складовите разписки';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -79,7 +78,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем';
     
-        
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -130,7 +129,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
         $this->FLD('baseQuantity', 'double(minDecimals=2)', 'after=showMode,caption=Допълнителна мярка->Засклаждане,input=hidden,autohide');
         $this->setFieldTypeParams('packQuantity', 'min=0');
     }
-
+    
     
     /**
      * Достъпните продукти
@@ -145,8 +144,8 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
         
         return $products;
     }
-
-
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -168,7 +167,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
         if (count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
-    
+                
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang, 1, false);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'purchase_PurchasesDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class purchase_PurchasesDetails extends deals_DealDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на покупки';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -85,7 +84,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
     
-
+    
     /**
      * Активен таб
      */

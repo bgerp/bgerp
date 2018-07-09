@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Драйвър за импортиране на артикули
  * в cat_Products, изпозва се плъгина bgerp_plg_Import той подава
@@ -24,17 +23,16 @@
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @deprecated
  */
 class cat_BaseImporter extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -107,10 +105,12 @@ class cat_BaseImporter extends core_Manager
     
     /**
      * Инпортиране на csv-файл в cat_Products
-     * @param  array  $rows   - масив с обработени csv данни,
-     *                        получен от Експерта в bgerp_Import
-     * @param  array  $fields - масив с съответстията на колоните от csv-то и
-     *                        полетата от модела array[{поле_от_модела}] = {колона_от_csv}
+     *
+     * @param array $rows   - масив с обработени csv данни,
+     *                      получен от Експерта в bgerp_Import
+     * @param array $fields - масив с съответстията на колоните от csv-то и
+     *                      полетата от модела array[{поле_от_модела}] = {колона_от_csv}
+     *
      * @return string $html - съобщение с резултата
      */
     public function import($rows, $fields)
@@ -145,7 +145,9 @@ class cat_BaseImporter extends core_Manager
     
     /**
      * Филтрира продуктовите групи и създава масив с неповтарящи се групи
-     * @param  array $rows - масив получен от csv файл или текст
+     *
+     * @param array $rows - масив получен от csv файл или текст
+     *
      * @return array $fields - масив със съотвествия на полетата
      */
     private function filterImportParams($rows, $fields)
@@ -174,10 +176,14 @@ class cat_BaseImporter extends core_Manager
     
     /**
      * Импортиране на групите от csv-то(ако ги няма)
-     * @param  array  $rows - масив получен от csv файл или текст
-     * @return array  $fields - масив със съответствия
-     * @param  string $html - Съобщение
-     * @return array  масив със съответствия група от системата
+     *
+     * @param array $rows - масив получен от csv файл или текст
+     *
+     * @return array $fields - масив със съответствия
+     *
+     * @param string $html - Съобщение
+     *
+     * @return array масив със съответствия група от системата
      */
     private function importParams(&$rows, $fields, &$html)
     {
@@ -192,14 +198,14 @@ class cat_BaseImporter extends core_Manager
                 $id = cat_UoM::save((object) array('name' => $measure, 'shortName' => $measure));
                 $addedMeasures++;
             }
-        
+            
             $measures[$measure] = $id;
         }
         
         // Импортиране на групите
         foreach ($params['groups'] as $gr) {
             $dev = csv_Lib::getDevider($gr);
- 
+            
             $grArr = explode($dev, $gr);
             foreach ($grArr as $markerName) {
                 if ($markerName === '') {
@@ -230,6 +236,7 @@ class cat_BaseImporter extends core_Manager
     
     /**
      * Импортиране на артикулите
+     *
      * @param array  $rows   - парсирани редове от csv файл-а
      * @param array  $params - Масив с външни ключове на полета
      * @param array  $fields - масив със съответствия
@@ -275,14 +282,13 @@ class cat_BaseImporter extends core_Manager
         
         $html .= "Добавени {$added} нови артикула, Обновени {$updated} съществуващи артикула<br/>";
     }
-
+    
     
     /**
      * Драйвъра може да се показва само към инстанция на cat_Products
      */
     public static function isApplicable($className)
     {
-        
 //     	return $className == self::$applyOnlyTo;
     }
 }

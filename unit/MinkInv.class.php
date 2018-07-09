@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   tests
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class unit_MinkInv extends core_Manager
 {
-
-    
     /**
      * Логване
      */
@@ -24,14 +24,16 @@ class unit_MinkInv extends core_Manager
     {
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
+        
         //потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-
+        
         return $browser;
     }
+    
     
     /**
      * Избор на фирма
@@ -44,9 +46,10 @@ class unit_MinkInv extends core_Manager
         $Company = 'Фирма bgErp';
         $browser->click($Company);
         $browser->press('Папка');
-
+        
         return $browser;
     }
+    
     
     /**
      *  Създаване на параметър - текст.
@@ -54,9 +57,9 @@ class unit_MinkInv extends core_Manager
     //http://localhost/unit_MinkInv/CreateParam/
     public function act_CreateParam()
     {
-         
         // Логване
         $browser = $this->SetUp();
+        
         // Създаване на нов параметър
         $browser->click('Каталог');
         $browser->click('Параметри');
@@ -68,10 +71,11 @@ class unit_MinkInv extends core_Manager
         $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]');
         $browser->setValue('rows', '2');
         $browser->press('Запис');
+        
         //return $browser->getHtml();
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-
+            
             return Дублиране;
         }
         if (strpos($browser->gettext(), '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]]')) {
@@ -80,6 +84,7 @@ class unit_MinkInv extends core_Manager
             return 'Грешно име';
         }
     }
+    
     
     /**
      * Създаване на фирма и папка към нея, допуска дублиране - ОК
@@ -90,11 +95,12 @@ class unit_MinkInv extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нова фирма
         $company = '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]';
         $browser->click('Визитник');
         $browser->press('Нова фирма');
+        
         //$browser->setValue('name', '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]');
         $browser->setValue('name', $company);
         $browser->setValue('place', 'Ст. Загора');
@@ -106,32 +112,33 @@ class unit_MinkInv extends core_Manager
         $browser->setValue('Клиенти', '1');
         $browser->setValue('Доставчици', '2');
         $browser->press('Запис');
+        
         //return $browser->getText();
         
         if (strpos($browser->getText(), 'Предупреждение:')) {
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
         }
+        
         //if(strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " &lt; &#9829; \' [#title#]')) {
         if (strpos($browser->gettext(), '<FONT COLOR=RED>!!! red BUG !!!</FONT> " <&#9829; \' [#title#]')) {
             
             return 'Име';
         }
-
+        
         return $company . ' Грешно име';
     }
     
-   
+    
     /**
      * Създаване на параметър - избор.
      */
     //http://localhost/unit_MinkInv/CreateParamChoice/
     public function act_CreateParamChoice()
     {
-         
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нов параметър
         $browser->click('Каталог');
         $browser->click('Параметри');
@@ -139,14 +146,16 @@ class unit_MinkInv extends core_Manager
         $browser->setValue('driverClass', 'Избор');
         $browser->refresh('Запис');
         $browser->setValue('name', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]');
+        
         //$browser->setValue('name', '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
         //CR, за да се избират като опции
         $browser->setValue('options', 'text');
         $browser->setValue('options', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]');
         $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \'[#title#]');
+        
         //bp($browser->gettext());
         $browser->press('Запис');
-       
+        
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
         }
@@ -155,9 +164,10 @@ class unit_MinkInv extends core_Manager
             
             return 'Грешно име';
         }
-
+        
         return $browser->getHtml();
     }
+    
     
     /**
      * Търсим фирма, ако я има - отваряме и редактираме, ако не - създаваме нова фирма. Ако има повече от една страница, не работи добре.  Да се търси по буква!!!
@@ -167,17 +177,17 @@ class unit_MinkInv extends core_Manager
     //http://localhost/unit_MinkInvPbgERP/TestFirm/
     public function act_TestFirm()
     {
-    
         // Логване
         $browser = $this->SetUp();
-         
+        
         //$browser->hasText('Известия');
         //$browser->hasText('Pavlinka');
         $browser->click('Визитник');
+        
         // търсим фирмата
         //$browser->click('P');
         $Company = 'Пролет ООД';
-         
+        
         //$browser->open("/crm_Companies/?id=&Rejected=&alpha=&Cmd[default]=1&search={$Company}&users=all_users&order=alphabetic&groupId=&Cmd[default]=Филтрирай");
         //if(strpos($browser->gettext(), $Company)  && 0) {  - не намира съществуваща фирма
         //if(strpos($browser->gettext(), $Company)) { намира фирмата, но дава грешка при търсене на несъществуваща, заради търсенето
@@ -187,10 +197,11 @@ class unit_MinkInv extends core_Manager
             $browser->click($Company);
             $browser->press('Редакция');
         } else {
-             
+            
             // Създаване на нова фирма
             $browser->press('Нова фирма');
             bp($browser->getText());
+            
             //$browser->hasText('Добавяне на запис');
             //$browser->hasText('Фирма');
         }
@@ -203,6 +214,7 @@ class unit_MinkInv extends core_Manager
         $browser->setValue('info', 'Тази фирма е редактирана');
         $browser->setValue('Клиенти', '1');
         $browser->press('Запис');
+        
         // Създаване на папка
         $browser->press('Папка');
     }

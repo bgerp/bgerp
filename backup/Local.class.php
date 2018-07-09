@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Четене и записване на локални файлове
  *
  *
  * @category  bgerp
  * @package   backup
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Локален файлов архив
  */
 class backup_Local extends core_BaseClass
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -38,7 +37,7 @@ class backup_Local extends core_BaseClass
      *
      * @param string $fileName
      *
-     * @return boolean
+     * @return bool
      */
     public static function getFile($sourceFile, $destFile)
     {
@@ -47,16 +46,16 @@ class backup_Local extends core_BaseClass
         
         return $result;
     }
-
-
+    
+    
     /**
      * Записва файл в локалния архив
      *
      * Част от интерфейса: backup_StorageIntf
      *
      * @param string $fileName
+     * @param null   $subDir
      *
-     * @param  null $subDir
      * @return bool
      */
     public static function putFile($fileName, $subDir = null)
@@ -72,7 +71,7 @@ class backup_Local extends core_BaseClass
         } else {
             $destFileName = $conf->BACKUP_LOCAL_PATH . '/' . basename($fileName);
         }
-
+        
         $result = @copy($fileName, $destFileName);
         
         return $result;
@@ -86,7 +85,7 @@ class backup_Local extends core_BaseClass
      *
      * @param string $fileName
      *
-     * @return boolean
+     * @return bool
      */
     public static function removeFile($fileName)
     {

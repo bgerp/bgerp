@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * История на файловете
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_F extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -28,21 +27,16 @@ class bgerp_F extends core_Manager
     public $protectId = false;
     
     
-    
     public $loadList = 'plg_Created';
-    
     
     
     public $canAdd = 'no_one';
     
     
-    
     public $canDelete = 'no_one';
     
     
-    
     public $canEdit = 'no_one';
-    
     
     
     public function description()
@@ -137,7 +131,7 @@ class bgerp_F extends core_Manager
                     // TODO - remove !isset($bucketId)
                     if (!isset($bucketId) || $fRec->bucketId == $bucketId) {
                         $resFileHnd = $fh;
-                
+                        
                         break;
                     }
                 }
@@ -182,7 +176,7 @@ class bgerp_F extends core_Manager
             
             // Вземаме документа
             $doc = doc_Containers::getDocument($actRec->containerId);
-        
+            
             // Ако екшъна не е за изпращане вземаме него
             if ($actRec->action != doclog_Documents::ACTION_SEND) {
                 $actRecSend = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
@@ -293,6 +287,7 @@ class bgerp_F extends core_Manager
     {
         $query = self::getQuery();
         $query->where(array("#fileHnd = '[#1#]'", $fileHnd));
+
 //         $query->where(array("#createdBy = '[#1#]'", core_Users::getCurrent()));
         $query->XPR('expireOn', 'datetime', 'DATE_ADD(#createdOn, INTERVAL #validity SECOND)');
         
@@ -345,7 +340,7 @@ class bgerp_F extends core_Manager
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
-        
+            
             $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . '</div>';
         }
         
@@ -363,7 +358,7 @@ class bgerp_F extends core_Manager
             $form->info .= '<b>' . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . self::getShortLink($rec->key, $fRec->name) . '</span>';
             
             $form->setField('validity', 'input=none');
-                
+            
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към файла') . ', class=fright');
             
             $form->title = 'Линк за сваляне активен|* ' . $this->getVerbal($rec, 'validity');

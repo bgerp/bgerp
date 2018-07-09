@@ -9,16 +9,16 @@
  *
  * @category  bgerp
  * @package   zbar
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class zbar_Setup extends core_ProtoSetup
 {
-
-    
     /**
      * Версия на пакета
      */
@@ -58,7 +58,7 @@ class zbar_Setup extends core_ProtoSetup
                 $haveError = true;
             }
         }
-    
+        
         if ($haveError) {
             
             return "Програмата '{$program}' не е инсталирана.";

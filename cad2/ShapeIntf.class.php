@@ -1,11 +1,11 @@
 <?php
 
+
 /**
  * Интерфейс за рисувач на фигура
  */
 class cad2_ShapeIntf extends embed_DriverIntf
 {
-
     /**
      * Метод за изрисуване на фигурата
      */

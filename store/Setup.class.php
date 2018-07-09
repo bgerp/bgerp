@@ -16,15 +16,15 @@ defIfNot('STORE_ACC_ACCOUNTS', '');
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Систем ид-та на счетоводните сметки за синхронизация
      */
@@ -59,38 +59,38 @@ class store_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Управление на складове и складови документи';
-        
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'store_Stores',
-            'store_Products',
-            'store_DocumentPackagingDetail',
-            'store_ShipmentOrders',
-            'store_ShipmentOrderDetails',
-            'store_Receipts',
-            'store_ReceiptDetails',
-            'store_Transfers',
-            'store_TransfersDetails',
-            'store_ConsignmentProtocols',
-            'store_ConsignmentProtocolDetailsSend',
-            'store_ConsignmentProtocolDetailsReceived',
-            'store_InventoryNotes',
-            'store_InventoryNoteSummary',
-            'store_InventoryNoteDetails',
-        );
+        'store_Stores',
+        'store_Products',
+        'store_DocumentPackagingDetail',
+        'store_ShipmentOrders',
+        'store_ShipmentOrderDetails',
+        'store_Receipts',
+        'store_ReceiptDetails',
+        'store_Transfers',
+        'store_TransfersDetails',
+        'store_ConsignmentProtocols',
+        'store_ConsignmentProtocolDetailsSend',
+        'store_ConsignmentProtocolDetailsReceived',
+        'store_InventoryNotes',
+        'store_InventoryNoteSummary',
+        'store_InventoryNoteDetails',
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('storeWorker'),
-            array('inventory'),
-            array('store', 'storeWorker'),
-            array('storeMaster', 'store'),
+        array('storeWorker'),
+        array('inventory'),
+        array('store', 'storeWorker'),
+        array('storeMaster', 'store'),
     );
     
     
@@ -98,15 +98,15 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.2, 'Логистика', 'Склад', 'store_Stores', 'default', 'storeWorker,ceo'),
-        );
+        array(3.2, 'Логистика', 'Склад', 'store_Stores', 'default', 'storeWorker,ceo'),
+    );
     
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
+        'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
     );
     
     
@@ -146,13 +146,14 @@ class store_Setup extends core_ProtoSetup
         return $html;
     }
     
-
+    
     /**
      * Зареждане на данните
      */
     public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
+        
         // Ако няма посочени от потребителя сметки за синхронизация
         $config = core_Packs::getConfig('store');
         if (strlen($config->STORE_ACC_ACCOUNTS) === 0) {

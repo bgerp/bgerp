@@ -8,15 +8,15 @@
  *
  * @category  bgerp
  * @package   satec
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class satec_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -28,20 +28,20 @@ class satec_Setup extends core_ProtoSetup
      */
     public $depends = '';
     
-      
+    
     /**
      * Описание на модула
      */
     public $info = 'Драйвер за електромер SATEC - Израел';
     
-            
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-                                 
+        
         // Добавяме наличните драйвери
         $drivers = array(
             'satec_PM175',
@@ -50,7 +50,7 @@ class satec_Setup extends core_ProtoSetup
         foreach ($drivers as $drvClass) {
             $html .= core_Classes::add($drvClass);
         }
-         
+        
         return $html;
     }
 }

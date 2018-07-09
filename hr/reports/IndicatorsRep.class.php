@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети за Индикаторите за ефективност
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Персонал » Индикатори за ефективност
  */
 class hr_reports_IndicatorsRep extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -35,8 +34,8 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      * @var string
      */
     protected $newFieldToCheck = 'docId';
-
-
+    
+    
     /**
      * Полета с възможност за промяна
      */
@@ -55,8 +54,8 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $fieldset->FLD('personId', 'type_UserList', 'caption=Потребители,after=indocators');
         $fieldset->FLD('formula', 'text(rows=2)', 'caption=Формула,after=indocators,single=none');
     }
-      
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -77,15 +76,16 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
         $periodRec = acc_Periods::fetch($rec->periods);
-
+        
         // Ако има избрани потребители, взимат се те. Ако няма всички потребители
         $users = (!empty($rec->personId)) ? keylist::toArray($rec->personId) : core_Users::getByRole('powerUser');
         
@@ -135,12 +135,12 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 }
                 
                 $recs[$key] = (object) array('num' => 0,
-                                             'date' => $recIndic->date,
-                                             'docId' => $recIndic->docId,
-                                             'person' => $recIndic->personId,
-                                             'indicatorId' => $recIndic->indicatorId,
-                                             'value' => $recIndic->value,
-                                             'personName' => $personNames[$recIndic->personId],
+                    'date' => $recIndic->date,
+                    'docId' => $recIndic->docId,
+                    'person' => $recIndic->personId,
+                    'indicatorId' => $recIndic->indicatorId,
+                    'value' => $recIndic->value,
+                    'personName' => $personNames[$recIndic->personId],
                 );
             } else {
                 $obj = &$recs[$key];
@@ -213,8 +213,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -232,8 +233,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -243,7 +245,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $row = new stdClass();
-
+        
         // Линк към служителя
         if (isset($dRec->person)) {
             if ($dRec->person > 0) {
@@ -254,11 +256,11 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 $row->person = 'Общо';
             }
         }
-
+        
         if (isset($dRec->num)) {
             $row->num = $Int->toVerbal($dRec->num);
         }
-
+        
         if (isset($dRec->indicatorId)) {
             if ($dRec->indicatorId != 'formula') {
                 $row->indicatorId = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
@@ -269,30 +271,30 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 $row->value = (is_numeric($value)) ? '<b>' . $Double->toVerbal($value) . '</b>' : "<small style='font-style:italic;color:red;'>{$value}</small>";
             }
         }
-
+        
         if (isset($dRec->value) && empty($row->value)) {
             $row->value = $Double->toVerbal($dRec->value);
             $row->value = ht::styleNumber($row->value, $dRec->value);
-                
+            
             $start = acc_Periods::fetchField($rec->periods, 'start');
             $date = new DateTime($start);
             $startMonth = $date->format('Y-m-01');
-                
+            
             $haveRight = hr_Indicators::haveRightFor('list');
             $url = array('hr_Indicators', 'list', 'period' => $startMonth, 'indicatorId' => $dRec->indicatorId);
             if (!empty($dRec->person)) {
                 $url['personId'] = $dRec->person;
             }
-                
+            
             if ($haveRight !== true) {
                 core_Request::setProtected('period,personId,indicatorId,force');
                 $url['force'] = true;
             }
-                
+            
             if (!Mode::isReadOnly()) {
                 $row->value = ht::createLinkRef($row->value, toUrl($url), false, 'target=_blank,title=Към документите формирали записа');
             }
-                
+            
             if ($haveRight !== true) {
                 core_Request::removeProtected('period,personId,indicatorId,force');
             }
@@ -305,8 +307,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Калкулира формулата
      *
-     * @param  string $formula
-     * @param  array  $context
+     * @param string $formula
+     * @param array  $context
+     *
      * @return string $value
      */
     private static function calcFormula($formula, $context)
@@ -314,7 +317,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $newContext = self::fillMissingIndicators($context, $formula);
         if (($expr = str::prepareMathExpr($formula, $newContext)) !== false) {
             $value = str::calcMathExpr($expr, $success);
-           
+            
             if ($success === false) {
                 $value = tr('Невъзможно изчисление');
             }
@@ -350,9 +353,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     /**
      * Допълване на липсващите индикатори от формулата с такива със стойност 0
      *
-     * @param  array  $context
-     * @param  string $formula
-     * @return array  $arr
+     * @param array  $context
+     * @param string $formula
+     *
+     * @return array $arr
      */
     private static function fillMissingIndicators($context, $formula)
     {
@@ -395,7 +399,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $row->persons = implode(', ', $persons);
         }
         
-
+        
         if (isset($rec->periods)) {
             // избраният месец
             $row->month = acc_Periods::fetchField("#id = '{$rec->periods}'", 'title');
@@ -420,13 +424,13 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Формула|*</b></small></legend>
 							    <!--ET_BEGIN formula--><small>[#formula#]</small></div><!--ET_END formula--></fieldset><!--ET_END BLOCK-->"));
-    
+        
         foreach (array('indocators', 'formula') as $fld) {
             if (!empty($data->rec->{$fld})) {
                 $fieldTpl->append($data->row->{$fld}, $fld);
             }
         }
-    
+        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 }

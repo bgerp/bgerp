@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за "Продуктови Категории"
  *
  *
  * @category  bgerp
  * @package   pos
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class pos_FavouritesCategories extends core_Manager
 {
-    
     /**
      * Заглавие
      */
@@ -27,7 +27,7 @@ class pos_FavouritesCategories extends core_Manager
      */
     public $loadList = 'plg_Created, plg_RowTools2, plg_Printing,
     				 pos_Wrapper';
-
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -57,8 +57,8 @@ class pos_FavouritesCategories extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,pos';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -91,6 +91,7 @@ class pos_FavouritesCategories extends core_Manager
     
     /**
      * Връща всички продуктови категории
+     *
      * @return array $categories - Масив от всички категории
      */
     public static function prepareAll($pointId)

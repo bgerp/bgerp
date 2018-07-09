@@ -6,18 +6,17 @@
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var bank_ExchangeDocument
@@ -50,36 +49,36 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
         
         $cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
         $dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
-    
+        
         $toBank = array('503',
-                array('bank_OwnAccounts', $rec->peroTo),
-                array('currency_Currencies', $dOwnAcc->currencyId),
-                'quantity' => $rec->debitQuantity);
+            array('bank_OwnAccounts', $rec->peroTo),
+            array('currency_Currencies', $dOwnAcc->currencyId),
+            'quantity' => $rec->debitQuantity);
         
         $fromBank = array('503',
-                array('bank_OwnAccounts', $rec->peroFrom),
-                array('currency_Currencies', $cOwnAcc->currencyId),
-                'quantity' => $rec->creditQuantity);
-
+            array('bank_OwnAccounts', $rec->peroFrom),
+            array('currency_Currencies', $cOwnAcc->currencyId),
+            'quantity' => $rec->creditQuantity);
+        
         if ($dOwnAcc->currencyId == $baseCurrencyId && $cOwnAcc->currencyId != $baseCurrencyId) {
             $entry = array();
             $entry[] = array('amount' => $rec->debitQuantity,
-                             'debit' => $toBank,
-                             'credit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity));
+                'debit' => $toBank,
+                'credit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity));
             $entry[] = array('debit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity),
-                             'credit' => $fromBank);
+                'credit' => $fromBank);
         } else {
             $entry = array('debit' => $toBank, 'credit' => $fromBank);
             $entry = array($entry);
         }
-    
+        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
-                'reason' => $rec->reason,   // основанието за ордера
-                'valior' => $rec->valior,   // датата на ордера
-                'entries' => $entry
+            'reason' => $rec->reason,   // основанието за ордера
+            'valior' => $rec->valior,   // датата на ордера
+            'entries' => $entry
         );
-    
+        
         return $result;
     }
 }

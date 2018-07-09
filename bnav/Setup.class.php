@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class bnav_Setup
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   bnav
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bnav_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -71,6 +70,7 @@ class bnav_Setup extends core_ProtoSetup
     public function deinstall()
     {
         $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

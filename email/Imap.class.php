@@ -1,15 +1,16 @@
 <?php 
 
-
 /**
  * Апита за използване на IMAP
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Imap extends core_BaseClass
@@ -32,7 +33,7 @@ class email_Imap extends core_BaseClass
     protected function getServerString()
     {
         $accRec = $this->accRec;
-
+        
         // Определяне на хоста и евентуално порта
         $hostArr = explode(':', $accRec->server);
         
@@ -42,7 +43,7 @@ class email_Imap extends core_BaseClass
         } else {
             $host = $hostArr[0];
         }
-
+        
         expect($host);
         
         // Определяне на порта, ако не е зададен в хоста
@@ -62,11 +63,11 @@ class email_Imap extends core_BaseClass
                 }
             }
         }
-            
+        
         expect($port);
-
+        
         $portArr = explode('/', $port, 2);
-
+        
         if (count($portArr) == 2) {
             $port = $portArr[0];
             $params = $portArr[1];
@@ -75,7 +76,7 @@ class email_Imap extends core_BaseClass
         if (!$params) {
             $params = $this->getParams($accRec);
         }
-
+        
         $str = '{' . "{$host}:{$port}/{$params}" . '}' . $accRec->folder;
         
         return $str;
@@ -91,7 +92,7 @@ class email_Imap extends core_BaseClass
         expect(in_array($protocol = $accRec->protocol, array('imap', 'pop3')));
         expect(in_array($security = $accRec->security, array('default', 'tls', 'notls', 'ssl')));
         expect(in_array($cert = $accRec->cert, array('noValidate', 'validate')));
-
+        
         if ($cert == 'noValidate' || $security == 'notls') {
             $cert = '/novalidate-cert';
         } else {
@@ -104,13 +105,13 @@ class email_Imap extends core_BaseClass
         } else {
             $security = "/{$security}";
         }
-
+        
         $params = $protocol . $security . $cert;
-
+        
         return $params;
     }
     
-
+    
     /**
      * Свързва се към пощенската кутия
      */
@@ -144,8 +145,8 @@ class email_Imap extends core_BaseClass
         
         return $this->statistic->{$varName};
     }
-
-
+    
+    
     /**
      * Еръща UID на съобщението с пореден номер $msgNo
      * Не работи с POP3 сървери
@@ -164,8 +165,8 @@ class email_Imap extends core_BaseClass
     {
         return imap_msgno($this->connection, $uid);
     }
-
-
+    
+    
     /**
      * Връща състоянието на писмата или посоченото писмо
      *
@@ -204,7 +205,7 @@ class email_Imap extends core_BaseClass
     public function getHeaders($msgNo)
     {
         $header = trim(imap_fetchheader($this->connection, $msgNo, FT_INTERNAL));
-
+        
         return $header;
     }
     
@@ -227,7 +228,7 @@ class email_Imap extends core_BaseClass
      *
      * @param int $msgId - Индекса на съобщението, което да бъде изтрито
      *
-     * @return boolean
+     * @return bool
      */
     public function delete($msgNo)
     {
@@ -236,7 +237,7 @@ class email_Imap extends core_BaseClass
         return $res;
     }
     
-
+    
     /**
      * Поставя флага, че съобщението е прочетено
      */
@@ -245,7 +246,7 @@ class email_Imap extends core_BaseClass
         return imap_setflag_full($this->connection, "{$msgNo}:{$msgNo}", '\\Seen');
     }
     
-
+    
     /**
      * Изтрива флага, че съобщението е прочетено
      */
@@ -253,14 +254,14 @@ class email_Imap extends core_BaseClass
     {
         return imap_clearflag_full($this->connection, "{$msgNo}:{$msgNo}", '\\Seen');
     }
-
+    
     
     /**
      * Изтрива e които са маркирани за изтриване
      *
      * @param resource $connection - Връзката към пощенската кутия
      *
-     * @return boolean
+     * @return bool
      */
     public function expunge()
     {
@@ -277,7 +278,7 @@ class email_Imap extends core_BaseClass
      * @param const    $flag       - Ако е CL_EXPUNGE тогава преди затварянето на конекцията
      *                             се изтриват всички имейли, които са маркирани за изтриване
      *
-     * @return boolean
+     * @return bool
      */
     public function close($flag = 0)
     {

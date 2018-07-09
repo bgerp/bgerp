@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Клас 'planning_ReturnNotes' - Документ за Протокол за връщане
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_ReturnNotes extends deals_ManifactureMaster
 {
-    
-    
     /**
      * Заглавие
      */
@@ -88,7 +87,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      */
     public $singleLayoutFile = 'planning/tpl/SingleLayoutReturnNote.shtml';
     
-     
+    
     /**
      * Групиране на документите
      */
@@ -155,8 +154,9 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кои детайли да се клонират с промяна
      *
-     * @param  stdClass $rec
-     * @param  mixed    $Detail
+     * @param stdClass $rec
+     * @param mixed    $Detail
+     *
      * @return array
      */
     public function getDetailsToCloneAndChange($rec, &$Detail)
@@ -174,7 +174,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
-            
+        
         return $dQuery->fetchAll();
     }
     
@@ -185,7 +185,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     public function prepareEditForm_($data)
     {
         parent::prepareEditForm_($data);
-                
+        
         $form = &$data->form;
         $rec = &$form->rec;
         
@@ -194,7 +194,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->isInstanceOf('planning_ConsumptionNotes')) {
                 $data->action = 'clone';
-
+                
                 return $data;
             }
         }

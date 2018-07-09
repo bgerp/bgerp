@@ -1,27 +1,26 @@
 <?php
 
 
-
 /**
  * Мениджър на входно-изходни контролери
  *
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_Controllers extends core_Master
 {
-    
-    
     /**
      * Необходими плъгини
      */
     public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
-                      
+    
     
     /**
      * Заглавие
@@ -33,26 +32,26 @@ class sens2_Controllers extends core_Master
      * Полето "Наименование" да е хипервръзка към единичния изглед
      */
     public $rowToolsSingleField = 'name';
-
-
+    
+    
     /**
      * Заглавие в единичния изглед
      */
     public $singleTitle = 'Контролер';
-
-
+    
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/network-ethernet-icon.png';
     
-
+    
     /**
      * Единичен изглед за контролера
      */
     public $singleLayoutFile = 'sens2/tpl/SingleLayout.shtml';
-
-
+    
+    
     /**
      * Права за писане
      */
@@ -75,14 +74,14 @@ class sens2_Controllers extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,sens';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin,sens';
     
-
+    
     /**
      * Кой може да обновява състоянието на дайвера
      */
@@ -93,21 +92,21 @@ class sens2_Controllers extends core_Master
      * Кой може да променя състоянието на Условията на доставка
      */
     public $canChangestate = 'sens,admin';
-
-
+    
+    
     /**
      * Масиви за кеширане пер хит на инсталираните портове
      */
     public static $inputs;
     public static $outputs;
     
-
+    
     /**
      * Детайл за входно-изходните портове
      */
     public $details = 'sens2_IOPorts';
-
-
+    
+    
     /**
      * Описание на модела
      */
@@ -118,28 +117,28 @@ class sens2_Controllers extends core_Master
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
         $this->FLD('persistentState', 'blob(serialize)', 'caption=Персистентно състояние,input=none,single=none,column=none');
-
+        
         $this->setDbUnique('name');
     }
-
-
+    
+    
     /**
      * Връща инстанция на драйвера за посочения контролер
      */
     public static function getDriver($controllerId)
     {
         static $drivers = array();
-
+        
         if (!isset($drivers[$controllerId])) {
             $rec = self::fetch($controllerId);
             $drivers[$controllerId] = cls::get($rec->driver);
             $drivers[$controllerId]->driverRec = $rec;
         }
-
+        
         return $drivers[$controllerId];
     }
     
-
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -152,11 +151,11 @@ class sens2_Controllers extends core_Master
         $rec = $form->rec;
         
         $exFields = $form->selectFields();
-
+        
         if ($rec->driver) {
             self::prepareConfigForm($form, $rec->driver);
         }
- 
+        
         if ($rec->id) {
             $form->setReadOnly('driver');
             $config = (array) self::fetch($rec->id)->config;
@@ -180,22 +179,22 @@ class sens2_Controllers extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Връща активните портове на посочения контролер
      */
     public static function getActivePorts($controllerId, $type = 'all')
     {
         static $ap = array();
-
+        
         if (!$ap[$controllerId . '_' . $type]) {
             $ap[$controllerId . '_' . $type] = array();
             $rec = self::fetch($controllerId);
             $drv = self::getDriver($controllerId);
             
             $ports = array();
-
+            
             if ($type != 'outputs') {
                 $ports = $drv->getInputPorts($rec->config);
             }
@@ -203,7 +202,7 @@ class sens2_Controllers extends core_Master
             if ($type != 'inputs') {
                 $ports += $drv->getOutputPorts($rec->config);
             }
- 
+            
             $config = $rec->config;
             foreach ($ports as $port => $params) {
                 $partName = $port . '_name';
@@ -220,12 +219,11 @@ class sens2_Controllers extends core_Master
                 $ap[$controllerId . '_' . $type][$port] = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
             }
         }
-  
+        
         return  $ap[$controllerId . '_' . $type];
     }
-
-
-
+    
+    
     /**
      * Подготвя конфигурационната форма на посочения драйвер
      */
@@ -233,18 +231,18 @@ class sens2_Controllers extends core_Master
     {
         $drv = cls::get($driver);
         $drv->prepareConfigForm($form);
-
+        
         $ports = $drv->getInputPorts();
-
+        
         if (!$ports) {
             $ports = array();
         }
-
+        
         expect(is_array($ports));
-
+        
         foreach ($ports as $port => $params) {
             $prefix = $port . ($params->caption ? " ({$params->caption})" : '');
-
+            
             $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
@@ -254,16 +252,16 @@ class sens2_Controllers extends core_Master
                 $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, true)));
             }
         }
-
+        
         $ports = $drv->getOutputPorts();
-
+        
         if (!$ports) {
             $ports = array();
         }
         
         foreach ($ports as $port => $params) {
             $prefix = $port . ($params->caption ? " ({$params->caption})" : '');
-
+            
             $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             if (trim($params->uom)) {
@@ -279,12 +277,13 @@ class sens2_Controllers extends core_Master
     public static function isValidExpr($value, &$res)
     {
         if (!trim($value)) {
+            
             return;
         }
-
+        
         $value = strtolower(str_replace(' ', '', $value));
         $value = preg_replace('/(^|[^a-z0-9])x([^a-z0-9]|$)/', '$1X$2', $value);
- 
+        
         if (strpos($value, 'X') === false) {
             $res['error'] = 'В израза трябва да се съдържа променливата `X`';
         } elseif (preg_match('/ХХ/', $value)) {
@@ -295,8 +294,8 @@ class sens2_Controllers extends core_Master
             $res['value'] = str_replace(array('+', '-', '*', '/'), array(' + ', ' - ', ' * ', ' / '), $value);
         }
     }
-
-
+    
+    
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
@@ -315,43 +314,43 @@ class sens2_Controllers extends core_Master
         }
     }
     
-
+    
     public function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if ($mvc->haveRightFor('update', $data->rec)) {
             $data->toolbar->addBtn('Обноваване', array($mvc, 'updateInputs', $data->rec->id));
         }
     }
-
-
+    
+    
     /**
      * Обновява стойностите на посочения контролер
      */
     public function act_UpdateInputs()
     {
         $this->requireRightFor('update');
-
+        
         expect($id = Request::get('id', 'int'));
-
+        
         expect($rec = self::fetch($id));
- 
+        
         $drv = self::getDriver($id);
-    
+        
         $ports = $drv->getInputPorts($rec->config);
- 
+        
         foreach ($ports as $name => $def) {
             $part = "{$name}_update";
             if ($rec->config->{$part} > 0) {
                 $force[$name] = $name;
             }
         }
-
+        
         $res = $this->updateInputs($id, $force, false);
-
+        
         return new Redirect(array($this, 'Single', $id), "|Обновени са|* <b>{$res}</b> |входа на контролера");
     }
-
-
+    
+    
     /**
      * Обновява стойностите на входовете за посочения контролер
      * Новите стойности се записват в sens2_Ports, а тези, за които е дошло време се логват
@@ -363,17 +362,17 @@ class sens2_Controllers extends core_Master
     public function updateInputs($id, $force = array(), $save = true)
     {
         expect($rec = self::fetch($id));
-
+        
         $config = (array) $rec->config;
-
+        
         $Driver = self::getDriver($id);
-
+        
         $ports = $Driver->getInputPorts($rec->config);
-
+        
         $nowMinutes = round(time() / 60);
         
         $inputs = $force;
-
+        
         $updatedCnt = 0;
         
         if (is_array($ports)) {
@@ -382,7 +381,7 @@ class sens2_Controllers extends core_Master
                 if ($updateMinutes && ($nowMinutes % $updateMinutes) == 0) {
                     $inputs[$port] = $port;
                 }
-
+                
                 $logMinutes = abs(round($config[$port . '_log'] / 60));
                 if ($logMinutes && ($nowMinutes % $logMinutes) == 0) {
                     $inputs[$port] = $port;
@@ -390,25 +389,25 @@ class sens2_Controllers extends core_Master
                 }
             }
         }
-
-
+        
+        
         if (is_array($inputs) && count($inputs)) {
-
+            
             // Прочитаме състоянието на входовете от драйвера
             if ($rec->persistentState) {
                 $hash = md5(serialize($rec->persistentState));
             }
-
+            
             // Извличане на входовете
             $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
             
             if ($rec->persistentState && ($hash != md5(serialize($rec->persistentState)))) {
                 self::save($rec, 'persistentState');
             }
-
+            
             // Текущото време
             $time = dt::now();
-
+            
             foreach ($inputs as $port) {
                 if (is_array($values)) {
                     $value = $values[$port];
@@ -423,25 +422,25 @@ class sens2_Controllers extends core_Master
                     $expr = str_replace('X', $value, $expr);
                     $value = str::calcMathExpr($expr);
                 }
-                   
+                
                 // Обновяваме индикатора за стойността на текущия контролерен порт
                 $indicatorId = sens2_Indicators::setValue($rec->id, $port, $value, $time);
                 
                 if ($indicatorId) {
                     $updatedCnt++;
                 }
-
+                
                 // Ако е необходимо, записваме стойноста на входа в дата-лог-а
                 if ($log[$port] && $indicatorId && $save) {
                     sens2_DataLogs::addValue($indicatorId, $value, $time);
                 }
             }
         }
-
+        
         return $updatedCnt;
     }
-
-
+    
+    
     /**
      * Задава стойност на физически изход. Те се записва и в модела.
      */
@@ -459,7 +458,7 @@ class sens2_Controllers extends core_Master
             
             // Вземаме му всички изходни портове
             $ports = $drv->getOutputPorts($rec->config);
-
+            
             foreach ($ports as $p => $pObj) {
                 $part = $p . '_name';
                 if ($p == $name || $rec->config->{$part} == $name) {
@@ -467,7 +466,7 @@ class sens2_Controllers extends core_Master
                     break;
                 }
             }
-
+            
             if ($portName) {
                 $sets = array($portName => $value);
                 
@@ -480,7 +479,7 @@ class sens2_Controllers extends core_Master
                 }
             }
         }
-     
+        
         if (!$res[$portName]) {
             $value = 'Грешка при запис';
         }
@@ -489,10 +488,9 @@ class sens2_Controllers extends core_Master
         if ($rec->id && $portName) {
             sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
         }
-
+        
         return $res;
     }
-
     
     
     /**
@@ -516,7 +514,7 @@ class sens2_Controllers extends core_Master
         }
     }
     
-
+    
     /**
      * Стартира се на всяка минута от cron-a
      * Извиква по http sens_Sensors->act_Process
@@ -535,13 +533,13 @@ class sens2_Controllers extends core_Master
         }
         
         $sleepNanoSec = round(min(0.5, 25 / $cnt) * 1000000000);
- 
-
+        
+        
         while ($rec = $query->fetch("#state = 'active'")) {
             if ($mustSleep) {
                 time_nanosleep(0, $sleepNanoSec);
             }
-
+            
             $url = toUrl(array($this, 'Update', str::addHash($rec->id)), 'absolute');
             
             $curl = curl_init();
@@ -552,11 +550,11 @@ class sens2_Controllers extends core_Master
             curl_setopt($curl, CURLOPT_HTTPHEADER, array('Connection: close'));
             $data = curl_exec($curl);
             curl_close($curl);
-
+            
             // $data = file_get_contents($url);
-
+            
             $res .= '<li>' . $data . '</li>';
-
+            
             $mustSleep = true;
         }
         
@@ -564,8 +562,8 @@ class sens2_Controllers extends core_Master
             echo $res;
         }
     }
-
-
+    
+    
     /**
      * За да не могат да се изтриват активните контролери
      */
@@ -616,19 +614,19 @@ class sens2_Controllers extends core_Master
         if (!haveRole('debug')) {
             core_App::flushAndClose();
         }
-
+        
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
         if (session_id()) {
             session_write_close();
         }
-
-
+        
+        
         if ($id) {
             // Извършваме обновяването "на сянка""
             $this->updateInputs($id);
         }
-
+        
         core_App::shutdown(false);
     }
 }

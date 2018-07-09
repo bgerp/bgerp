@@ -41,25 +41,25 @@ defIfNot('EF_DB_CHARSET_CLIENT', EF_DB_CHARSET);
 defIfNot('EF_DB_VARCHAR_INDEX_PREFIX', EF_DB_CHARSET == 'utf8mb4' ? 100 : 255);
 
 
-
 /**
  * Клас 'core_Db' - Манипулиране на MySQL-ски бази данни
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Db extends core_BaseClass
 {
-    
-    
     /**
      * Името на БД
+     *
      * @var string
      */
     public $dbName;
@@ -67,6 +67,7 @@ class core_Db extends core_BaseClass
     
     /**
      * Потребителя към БД
+     *
      * @var string
      */
     public $dbUser;
@@ -74,6 +75,7 @@ class core_Db extends core_BaseClass
     
     /**
      * Парола за БД
+     *
      * @var string
      */
     public $dbPass;
@@ -81,6 +83,7 @@ class core_Db extends core_BaseClass
     
     /**
      * Сървър за БД
+     *
      * @var string
      */
     public $dbHost;
@@ -91,8 +94,8 @@ class core_Db extends core_BaseClass
      * @access private
      */
     public $link;
-
-
+    
+    
     /**
      * Глобална константа за всички линкове
      */
@@ -110,19 +113,21 @@ class core_Db extends core_BaseClass
      */
     const MYSQLI_MISSING_TABLE = 1146;
     
-
+    
     /**
      * Номер на mySQL код за грешка при непозната колона в таблица
      */
     const MYSQLI_UNKNOWN_COLUMN = 1054;
-
+    
     public function __construct()
     {
         $this->init();
     }
     
+    
     /**
      * Инициализиране на обекта
+     *
      * @param string $dbName
      * @param string $user
      * @param string $password
@@ -157,9 +162,9 @@ class core_Db extends core_BaseClass
             } else {
                 $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
             }
-
+            
             self::$links[$this->dbHost][$this->dbUser][$this->dbName] = $link;
-
+            
             if ($err = mysqli_connect_errno()) {
                 // Грешка при свързване с MySQL сървър
                 error(500, $this->dbHost, $err);
@@ -170,7 +175,7 @@ class core_Db extends core_BaseClass
             unset($this->dbPass);
             
             $sqlMode = "SQL_MODE = ''";
-            
+
 //             if (BGERP_GIT_BRANCH == 'dev') {
 //                 $sqlMode = "SQL_MODE = 'strict_trans_tables'";
 //             }
@@ -178,7 +183,7 @@ class core_Db extends core_BaseClass
             if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== false)) {
                 $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
             }
-
+            
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
                 // Грешка при избиране на база
@@ -211,11 +216,12 @@ class core_Db extends core_BaseClass
      * Ако няма осъществена връзка с базата данни, тази функция се опитва
      * първо да направи връзка и след това да изпълни SQL заявката.
      *
-     * @param  string   $sqlQuery
-     * @param  bool     $silent   Ако е TRUE, функцията не прекъсва изпълнението на
-     *                            скрипта и не отпечатва съобщението за грешка на MySQL.
-     *                            В този случай извикващия трябва да провери стойностите на
-     *                            {$link DB::errno()} и {@link DB::error()} и да реагира според тях.
+     * @param string $sqlQuery
+     * @param bool   $silent   Ако е TRUE, функцията не прекъсва изпълнението на
+     *                         скрипта и не отпечатва съобщението за грешка на MySQL.
+     *                         В този случай извикващия трябва да провери стойностите на
+     *                         {$link DB::errno()} и {@link DB::error()} и да реагира според тях.
+     *
      * @return resource
      */
     public function query($sqlQuery, $silent = false)
@@ -223,11 +229,11 @@ class core_Db extends core_BaseClass
         if (isDebug() && ($fnd = Request::get('_bp')) && stripos(preg_replace('!\\s+!', ' ', $sqlQuery), $fnd) !== false) {
             bp($sqlQuery);
         }
-
+        
         DEBUG::startTimer('DB::query()');
         DEBUG::log("${sqlQuery}");
-
-
+        
+        
         $link = $this->connect();
         $this->query = $sqlQuery;
         $dbRes = $link->query($sqlQuery);
@@ -235,7 +241,7 @@ class core_Db extends core_BaseClass
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         
         DEBUG::stopTimer('DB::query()');
-   
+        
         return $dbRes;
     }
     
@@ -243,7 +249,8 @@ class core_Db extends core_BaseClass
     /**
      * Връща броя записи, върнати от SELECT заявка.
      *
-     * @param  resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     *
      * @return int
      */
     public function numRows($dbRes)
@@ -262,7 +269,7 @@ class core_Db extends core_BaseClass
     public function affectedRows()
     {
         $link = $this->connect();
-
+        
         return $link->affected_rows;
     }
     
@@ -270,13 +277,14 @@ class core_Db extends core_BaseClass
     /**
      * Връща id-то (Primary Key) на записа, които е бил последен вмъкнат чрез INSERT заявка.
      *
-     * @param  resource $handle резултат на функцията {@link DB::query()}, извикана с INSERT заявка.
+     * @param resource $handle резултат на функцията {@link DB::query()}, извикана с INSERT заявка.
+     *
      * @return mixed
      */
     public function insertId($silent = null)
     {
         $link = $this->connect();
-
+        
         $insertId = $link->insert_id;
         
         $this->checkForErrors('определяне индекса на последния вмъкнат ред', $silent, $link);
@@ -288,7 +296,8 @@ class core_Db extends core_BaseClass
     /**
      * Връща един запис, под формата на обект
      *
-     * @param  resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     *
      * @return object
      */
     public function fetchObject($dbRes)
@@ -296,7 +305,7 @@ class core_Db extends core_BaseClass
         if ($dbRes) {
             $res = $dbRes->fetch_object();
             $this->checkForErrors('извличане от резултата');
-
+            
             return $res;
         }
     }
@@ -315,8 +324,7 @@ class core_Db extends core_BaseClass
         if ($dbRes) {
             $res = $dbRes->fetch_array($resultType);
             $this->checkForErrors('извличане от резултата');
-                
-
+            
             return $res;
         }
     }
@@ -332,7 +340,7 @@ class core_Db extends core_BaseClass
     {
         $dbRes = $this->query("SHOW TABLE STATUS LIKE \"${table}\"");
         $lmt = 0;
-    
+        
         if ($this->numRows($dbRes) == 1) {
             $res = $dbRes->fetch_array(MYSQLI_ASSOC);
             $lmt = $res['Update_time'];
@@ -365,19 +373,21 @@ class core_Db extends core_BaseClass
     
     /**
      * Има ли такава таблица текущата БД?
-     * @param  string $tableName
+     *
+     * @param string $tableName
+     *
      * @return bool
      */
     public function tableExists($tableName)
     {
         $tableName = $this->escape($tableName);
-
+        
         $dbRes = $this->query("SHOW TABLES LIKE '{$tableName}'", true);
-     
+        
         $res = $dbRes->num_rows > 0;
-
+        
         $this->freeResult($dbRes);
-
+        
         return $res;
     }
     
@@ -389,9 +399,9 @@ class core_Db extends core_BaseClass
     {
         $tableName = $this->escape($tableName);
         $fieldName = $this->escape($fieldName);
-
+        
         $dbRes = $this->query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '{$this->dbName}' AND TABLE_NAME='{$tableName}' AND column_name='{$fieldName}'");
-
+        
         $res = $dbRes->num_rows > 0;
         
         $this->freeResult($dbRes);
@@ -407,15 +417,15 @@ class core_Db extends core_BaseClass
     {
         // Установяване на параметрите по подразбиране
         setIfNot($params, array(
-                'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
-                'CHARACTER' => $this->dbCharset,
-                'COLLATION' => $this->dbCollation
-            ));
-
+            'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
+            'CHARACTER' => $this->dbCharset,
+            'COLLATION' => $this->dbCollation
+        ));
+        
         // Ако таблицата съществува, връщаме сигнал, че нищо не сме направили
         if ($res = $this->tableExists($tableName)) {
             $tableName = $this->escape($tableName);
-
+            
             $dbRes = $this->query("SHOW TABLE STATUS LIKE '{$tableName}'", true);
             $tableParams = $dbRes->fetch_array(MYSQLI_ASSOC);
             foreach ($tableParams as $key => $value) {
@@ -444,7 +454,7 @@ class core_Db extends core_BaseClass
         return true;
     }
     
-
+    
     /**
      * Връща посочената MySQL променлива
      */
@@ -461,11 +471,11 @@ class core_Db extends core_BaseClass
         
         // Извличаме резултата
         $res = $this->fetchObject($dbRes);
-
+        
         return $res->Value;
     }
     
-
+    
     /**
      * Връща атрибутите на посоченото поле от таблицата
      */
@@ -602,7 +612,7 @@ class core_Db extends core_BaseClass
         if ($field->unsigned) {
             $unsigned = ' UNSIGNED';
         }
-
+        
         
         if ($field->notNull) {
             $notNull = ' NOT NULL';
@@ -611,18 +621,18 @@ class core_Db extends core_BaseClass
         if ($field->default !== null) {
             $default = " DEFAULT '{$field->default}'";
         }
-
+        
         if (strtolower($field->name) == 'id') {
             $autoIncrement = ' AUTO_INCREMENT';
             $default = '';
             $notNull = '';
         }
-
+        
         if ($field->field) {
             
             return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
         }
-
+        
         return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
     }
     
@@ -650,15 +660,16 @@ class core_Db extends core_BaseClass
         
         // Ако типът е DROP - не създаваме нов индекс
         if ($type == 'DROP') {
+            
             return;
         }
         
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
                 list($name, $len) = explode('(', $f);
-
+                
                 $name = str::phpToMysqlName($name);
-
+                
                 if ($len) {
                     $fields .= ($fields ? ',' : '') . "`{$name}`({$len}\n";
                 } else {
@@ -679,9 +690,10 @@ class core_Db extends core_BaseClass
      * Връща полетата и типовете им в една таблица
      *
      *
-     * @param  string $tableName
-     * @param  string $fieldName
-     * @param  int    $fieldLength
+     * @param string $tableName
+     * @param string $fieldName
+     * @param int    $fieldLength
+     *
      * @return int
      */
     public function getFields($tableName)
@@ -726,11 +738,11 @@ class core_Db extends core_BaseClass
                 $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = $rec->Sub_part ? $rec->Sub_part : true;
             }
         }
-  
+        
         return $indexes;
     }
-
-
+    
+    
     /**
      * Преброява редовете в една MySQL таблица
      */
@@ -739,7 +751,7 @@ class core_Db extends core_BaseClass
         $dbRes = $this->query("SELECT COUNT(*) AS cnt FROM `{$table}`");
         $res = $this->fetchObject($dbRes);
         $count = $res->cnt;
-
+        
         return $count;
     }
     
@@ -772,12 +784,12 @@ class core_Db extends core_BaseClass
         }
         
         if ($link->errno) {
-            
+                
                 // Грешка в базата данни
             $dump = array('query' => $this->query, 'mysqlErrCode' => $link->errno, 'mysqlErrMsg' => $link->error, 'dbLink' => $link);
             throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
         }
-
+        
         return $link->errno;
     }
     
@@ -785,19 +797,20 @@ class core_Db extends core_BaseClass
     /**
      * Ескейпва служебните символи в MySQl стойности
      *
-     * @param  string $value
+     * @param string $value
+     *
      * @return string
      */
     public function escape($value)
     {
         $link = $this->connect();
-
+        
         expect(is_scalar($value) || !$value, $value);
         
         return $link->real_escape_string($value);
     }
-
-
+    
+    
     /**
      * Празна ли е базата данни?
      *

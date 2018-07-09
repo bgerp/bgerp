@@ -37,15 +37,15 @@ defIfNot('NETFINITY_ALLOWED_USER_NAMES', '');
  *
  * @category  vendors
  * @package   netfinity
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class netfinity_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -56,7 +56,6 @@ class netfinity_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'SMS изпращане чрез Нетфинити';
-    
     
     
     public $configDescription = array(

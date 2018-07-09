@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Интерфейс за драйвер на IP камера
  *
@@ -10,15 +9,16 @@
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за драйвер на IP камера
  */
 class cams_DriverIntf
 {
-    
     /****************************************************************************************
      *                                                                                      *
      *    Видео                                                                             *
@@ -66,8 +66,8 @@ class cams_DriverIntf
     {
         return $this->class->width;
     }
-
-
+    
+    
     /**
      * Връща височината на картинката
      */
@@ -75,7 +75,8 @@ class cams_DriverIntf
     {
         return $this->class->height;
     }
-
+    
+    
     /**
      *
      * Връща резолюцията и скоростта на запис зададени в камерата

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Документ за Корекция на стойности
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_ValueCorrections extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -51,8 +50,8 @@ class acc_ValueCorrections extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, acc';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -99,7 +98,7 @@ class acc_ValueCorrections extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'folderId,notes,action';
-
+    
     
     /**
      * Дали в листовия изглед да се показва бутона за добавяне
@@ -229,6 +228,7 @@ class acc_ValueCorrections extends core_Master
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if (!count($data->rec->productsData)) {
+            
             return;
         }
         
@@ -299,7 +299,7 @@ class acc_ValueCorrections extends core_Master
         $form->allProducts = $products;
         
         if (count($products)) {
-        
+            
             // Добавяме всички възможни артикули като опции в SET поле
             $nProducts = array();
             foreach ($products as $p) {
@@ -315,7 +315,7 @@ class acc_ValueCorrections extends core_Master
             if ($form->rec->id && $form->rec->{$dataField}) {
                 $products = array_intersect_key($products, $form->rec->{$dataField});
             }
-        
+            
             // Задаване на избран дефолт, така двете полета се синхронизирват
             $defaults = cls::get('type_Set')->fromVerbal($products);
             $form->setDefault('chosenProducts', $defaults);
@@ -432,14 +432,14 @@ class acc_ValueCorrections extends core_Master
      * 		K(i) = М(i)*Q(i) / SUM(М*Q);
      * 		Ако някой артикул няма тегло не може да се разпредели
      *
-     * @param array  $products - масив с информация за артикули
-     *                         o productId       - ид на артикул
-     *                         o name            - име на артикула
-     *                         o quantity        - к-во
-     *                         o amount          - сума на артикула
-     *                         o transportWeight - транспортно тегло на артикула
-     *                         o transportVolume - транспортен обем на артикула
-     * @param double $amount   - сумата за разпределяне
+     * @param array $products - масив с информация за артикули
+     *                        o productId       - ид на артикул
+     *                        o name            - име на артикула
+     *                        o quantity        - к-во
+     *                        o amount          - сума на артикула
+     *                        o transportWeight - транспортно тегло на артикула
+     *                        o transportVolume - транспортен обем на артикула
+     * @param float $amount   - сумата за разпределяне
      * @param value|quantity|volume|weight - режим на разпределяне
      *
      * @return mixed
@@ -452,6 +452,7 @@ class acc_ValueCorrections extends core_Master
         // Първо обхождаме записите и изчисляване на знаменателя, чрез който ще изчислим коефициента
         switch ($allocateBy) {
             case 'value':
+                
                 // Ако се разпределя по стойност изчисляване на общата сума
                 foreach ($products as $p) {
                     if (!isset($p->amount)) {
@@ -597,8 +598,9 @@ class acc_ValueCorrections extends core_Master
     /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
@@ -621,13 +623,13 @@ class acc_ValueCorrections extends core_Master
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
-    
+        
         $row->title = $this->singleTitle . " №{$rec->id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-    
+        
         return $row;
     }
     
@@ -656,11 +658,11 @@ class acc_ValueCorrections extends core_Master
     public static function getIndicatorNames()
     {
         $result = array();
-            
+        
         // Индикатор за делта на търговеца
         $rec = hr_IndicatorNames::force('priceCorrection', __CLASS__, 1);
         $result[$rec->id] = $rec->name;
-    
+        
         return $result;
     }
     
@@ -669,7 +671,8 @@ class acc_ValueCorrections extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param  date  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
      * @return array $result  - масив с обекти
      *
      * 			o date        - дата на стайноста

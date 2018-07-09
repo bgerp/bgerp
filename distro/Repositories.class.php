@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   distro
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class distro_Repositories extends core_Master
 {
-    
-    
     /**
      * Папка за системните файлове
      */
@@ -45,7 +45,6 @@ class distro_Repositories extends core_Master
     public $title = 'Път до хранилище';
     
     
-    
     public $singleTitle = 'Хранилище';
     
     
@@ -53,7 +52,6 @@ class distro_Repositories extends core_Master
      * Път към картинка 16x16
      */
     public $singleIcon = 'img/16/repository.png';
-    
     
     
     public $canSingle = 'admin';
@@ -107,7 +105,6 @@ class distro_Repositories extends core_Master
     public $loadList = 'distro_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
     
     
-    
     public $listFields = 'id, name, hostId, path, info, createdOn, createdBy';
     
     
@@ -115,8 +112,8 @@ class distro_Repositories extends core_Master
      * Полетата, които ще се показват в единичния изглед
      */
     public $singleFields = 'id, hostId, name, path, info, createdOn, createdBy';
-
-
+    
+    
     /**
      * Кои полета да се извличат при изтриване
      */
@@ -143,9 +140,9 @@ class distro_Repositories extends core_Master
     /**
      * Парсира и връща линиите от системния файл в отдалечената директория
      *
-     * @param integer $repoId
-     * @param float   $linesCnt
-     * @param boolean $removeDuplicated
+     * @param int   $repoId
+     * @param float $linesCnt
+     * @param bool  $removeDuplicated
      *
      * @return array
      */
@@ -195,7 +192,7 @@ class distro_Repositories extends core_Master
     /**
      * Създава директория в хранилището
      *
-     * @param integer     $repoId
+     * @param int         $repoId
      * @param string|NULL $name
      *
      * @return FALSE|string
@@ -230,7 +227,7 @@ class distro_Repositories extends core_Master
     /**
      * Проверява дали съществува такава директория - без значние дали има нещо в нея или не
      *
-     * @param integer     $repoId
+     * @param int         $repoId
      * @param string|NULL $name
      *
      * @return FALSE|string
@@ -242,6 +239,7 @@ class distro_Repositories extends core_Master
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {
+            
             return;
         }
         
@@ -266,7 +264,7 @@ class distro_Repositories extends core_Master
     /**
      * Връща изпълнимия стринг за създаване на директрояита
      *
-     * @param integer     $repoId
+     * @param int         $repoId
      * @param string|NULL $name
      *
      * @return string
@@ -287,9 +285,9 @@ class distro_Repositories extends core_Master
     /**
      * Връща md5 стойността на файла
      *
-     * @param integer $repoId
-     * @param string  $dir
-     * @param string  $name
+     * @param int    $repoId
+     * @param string $dir
+     * @param string $name
      *
      * @return FALSE|string
      */
@@ -325,9 +323,9 @@ class distro_Repositories extends core_Master
     /**
      * Активира състоянието на хранилището
      *
-     * @param integer $id - id на хранилище
+     * @param int $id - id на хранилище
      *
-     * @return integer|NULL - id на записа, ако се е активирал
+     * @return int|NULL - id на записа, ако се е активирал
      */
     public static function activateRepo($id)
     {
@@ -348,7 +346,7 @@ class distro_Repositories extends core_Master
     /**
      * Задава стойност за хеша за реда
      *
-     * @param integer $repoId
+     * @param int $repoId
      */
     public static function setLineHash($repoId, $lineHash)
     {
@@ -371,7 +369,7 @@ class distro_Repositories extends core_Master
         
         $query = self::getQuery();
         $query->where("#state != 'rejected'");
-
+        
         while ($rec = $query->fetch()) {
             $resArr[$rec->id] = $rec->lineHash;
         }
@@ -383,7 +381,7 @@ class distro_Repositories extends core_Master
     /**
      * Ако в хранилището е зададено URL, генерираме линк към самия файл в него
      *
-     * @param integer     $id
+     * @param int         $id
      * @param string      $subDir
      * @param string      $file
      * @param string|NULL $link
@@ -406,8 +404,9 @@ class distro_Repositories extends core_Master
         $url = rtrim($url, '/');
         
         $url .= '/' . $subDir . '/' . $file;
-
+        
         $ext = fileman_Files::getExt($file);
+        
         //Иконата на файла, в зависимост от разширението на файла
         $icon = "fileman/icons/16/{$ext}.png";
         
@@ -425,7 +424,7 @@ class distro_Repositories extends core_Master
     /**
      * Връща настройките на хост за съответното хранилище
      *
-     * @param integer|stdObjec $id
+     * @param int|stdObjec $id
      *
      * @return FALSE|array
      */
@@ -448,7 +447,7 @@ class distro_Repositories extends core_Master
     /**
      * Връща пътя до директрията с грешките файл, където ще се записват данните от inotifywait
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -461,11 +460,12 @@ class distro_Repositories extends core_Master
         return $errPath;
     }
     
+    
     /**
      * Парсира подадения ред от файла
      *
-     * @param integer $repoId
-     * @param string  $line
+     * @param int    $repoId
+     * @param string $line
      *
      * @return array - [lineHash, rPath, date, name, isDir, act]
      */
@@ -512,9 +512,9 @@ class distro_Repositories extends core_Master
     /**
      * Връща линиите от системния файл в отдалечената директория
      *
-     * @param integer $repoId
-     * @param number  $linesCnt
-     * @param boolean $removeDuplicated
+     * @param int    $repoId
+     * @param number $linesCnt
+     * @param bool   $removeDuplicated
      *
      * @return array
      */
@@ -554,7 +554,7 @@ class distro_Repositories extends core_Master
     /**
      * Прави връзка към сървъра по SSH
      *
-     * @param stdClass|integer $rec
+     * @param stdClass|int $rec
      *
      * @return FALSE|ssh_Actions
      */
@@ -841,7 +841,7 @@ class distro_Repositories extends core_Master
         }
     }
     
-
+    
     /**
      * След изтриване на запис
      */
@@ -895,7 +895,7 @@ class distro_Repositories extends core_Master
             
             // Ако състоянието е активно
             if ($rec->state == 'active' || $rec->state == 'rejected') {
-            
+                
                 // Да не може да се изтрие
                 $requiredRoles = 'no_one';
             }

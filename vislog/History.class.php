@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'vislog_History' -
  *
  *
  * @category  vendors
  * @package   vislog
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class vislog_History extends core_Manager
 {
-    
-    
     /**
      * Страница от менюто
      */
@@ -46,8 +45,8 @@ class vislog_History extends core_Manager
      * На колко време да обновява списъка на екрана
      */
     public $refreshRowsTime = 60000;
-
-
+    
+    
     /**
      * Кой  може да пише?
      */
@@ -88,13 +87,14 @@ class vislog_History extends core_Manager
     
     /**
      * Добавя нов запис в лога
-     * @param string  $query
-     * @param boolean $returnCnt
+     *
+     * @param string $query
+     * @param bool   $returnCnt
      */
     public static function add($query, $returnCnt = false)
     {
         vislog_Adwords::add();
-
+        
         $rec = new stdClass();
         
         $rec->query = $query;
@@ -207,7 +207,7 @@ class vislog_History extends core_Manager
         if ($ref) {
             $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
         }
-
+        
         $row->brid = log_Browsers::getLink($rec->brid);
     }
 }

@@ -1,6 +1,8 @@
 <?php 
+
 require_once getFullPath('ograph/open-graph-protocol-tools/media.php');
 require_once getFullPath('ograph/open-graph-protocol-tools/objects.php');
+
 
 /**
  * Фактори клас за генериране на Open Graph Protocol елементи
@@ -8,9 +10,11 @@ require_once getFullPath('ograph/open-graph-protocol-tools/objects.php');
  *
  * @category  vendors
  * @package   ograph
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class ograph_Factory extends core_Master
@@ -20,49 +24,51 @@ class ograph_Factory extends core_Master
      * Open Graph Protocol обекти
      */
     protected static $allowed = array(
-    'Default' => array(
-        'locale',
-        'sitename',
-        'description',
-        'title',
-        'type',
-        'url',
-        'determiner',),
-    'Audio' => array(
-        'url',
-        'secureurl',
-        'type',),
-    'Video' => array(
-        'url',
-        'secureurl',
-        'type',
-        'height',
-        'width',),
-    'Article' => array(
-        'published',
-        'modified',
-        'expiration',),
-    'Profile' => array(
-        'firstname',
-        'lastname',
-        'username',
-        'gender'),
-    'VideoEpisode' => array('series'),
-    'Book' => array('isbn','releasedate'),
-    'VideoObject' => array('releasedate','duration'),
-    'Image' => array(
-        'url',
-        'secureurl',
-        'type',
-        'height',
-        'width'));
+        'Default' => array(
+            'locale',
+            'sitename',
+            'description',
+            'title',
+            'type',
+            'url',
+            'determiner',),
+        'Audio' => array(
+            'url',
+            'secureurl',
+            'type',),
+        'Video' => array(
+            'url',
+            'secureurl',
+            'type',
+            'height',
+            'width',),
+        'Article' => array(
+            'published',
+            'modified',
+            'expiration',),
+        'Profile' => array(
+            'firstname',
+            'lastname',
+            'username',
+            'gender'),
+        'VideoEpisode' => array('series'),
+        'Book' => array('isbn','releasedate'),
+        'VideoObject' => array('releasedate','duration'),
+        'Image' => array(
+            'url',
+            'secureurl',
+            'type',
+            'height',
+            'width'));
     
     
     /**
      *  По подразбиране връща OpenGraphProtocol обект, Ако е зададен стринг
      *  се връща съответния OpenGraphProtocolObject
+     *
      *  @param array $params с какви параметри искаме да е обекта
      *  @param string $str какъв обект искаме, по подразбиране NULL
+     *
      *  @return OpenGraphProtocol $ogp
      */
     public static function get($params = array(), $str = null)
@@ -96,10 +102,12 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Аудио обект
-     * @param  array                  $params
-     *                                        $params['Url'] - Адрес
-     *                                        $params['secureUrl'] - Защитен адрес
-     *                                        $params['Type'] - Разширение
+     *
+     * @param array $params
+     *                      $params['Url'] - Адрес
+     *                      $params['secureUrl'] - Защитен адрес
+     *                      $params['Type'] - Разширение
+     *
      * @return OpenGraphProtocolAudio $ogp
      */
     public static function getAudio($params = array())
@@ -118,10 +126,12 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Article обект
-     * @param  array                    $params параметри
-     *                                          $params['Published'] - Дата на публикуване
-     *                                          $params['Modified'] - Последна редакция
-     *                                          $params['Expiration'] - Дата на изтичане
+     *
+     * @param array $params параметри
+     *                      $params['Published'] - Дата на публикуване
+     *                      $params['Modified'] - Последна редакция
+     *                      $params['Expiration'] - Дата на изтичане
+     *
      * @return OpenGraphProtocolArticle $ogp
      */
     public static function getArticle($params = array())
@@ -140,11 +150,13 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Профил обект
-     * @param  array                    $params параметри
-     *                                          $params['FirstName'] - Малко име
-     *                                          $params['LastName'] - Последно име
-     *                                          $params['Username'] - Потребителско име
-     *                                          $params['Gender'] - Пол
+     *
+     * @param array $params параметри
+     *                      $params['FirstName'] - Малко име
+     *                      $params['LastName'] - Последно име
+     *                      $params['Username'] - Потребителско име
+     *                      $params['Gender'] - Пол
+     *
      * @return OpenGraphProtocolProfile $ogp
      */
     public static function getProfile($params = array())
@@ -163,9 +175,11 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Book обект
-     * @param  array                 $params параметри
-     *                                       $params['Isbn'] - ISBN
-     *                                       $params['ReleaseDate'] - Дата на пускане
+     *
+     * @param array $params параметри
+     *                      $params['Isbn'] - ISBN
+     *                      $params['ReleaseDate'] - Дата на пускане
+     *
      * @return OpenGraphProtocolBook $ogp
      */
     public static function getBook($params = array())
@@ -184,12 +198,14 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Видео обект
-     * @param  array                  $params
-     *                                        $params['Url'] - Адрес
-     *                                        $params['secureUrl'] - Защитен адрес
-     *                                        $params['Type'] string mime-type
-     *                                        $params['Height'] int
-     *                                        $params['Width']	 int
+     *
+     * @param array $params
+     *                      $params['Url'] - Адрес
+     *                      $params['secureUrl'] - Защитен адрес
+     *                      $params['Type'] string mime-type
+     *                      $params['Height'] int
+     *                      $params['Width']	 int
+     *
      * @return OpenGraphProtocolVideo $ogp
      */
     public static function getVideo($params = array())
@@ -208,9 +224,11 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Видео обект
-     * @param  array                        $params параметри
-     *                                              $params['ReleaseDate'] - Дата на пускане
-     *                                              $params['Duration'] - Продължителност
+     *
+     * @param array $params параметри
+     *                      $params['ReleaseDate'] - Дата на пускане
+     *                      $params['Duration'] - Продължителност
+     *
      * @return OpenGraphProtocolVideoObject $ogp
      */
     public static function getVideoObject($params = array())
@@ -229,8 +247,10 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Видео Епизод обект
-     * @param  array                  $params
-     *                                        $params['Series']
+     *
+     * @param array $params
+     *                      $params['Series']
+     *
      * @return OpenGraphProtocolAudio $ogp
      */
     public static function getVideoepisode($params = array())
@@ -246,12 +266,14 @@ class ograph_Factory extends core_Master
     
     /**
      * Връщаме нов Image обект
-     * @param  array                  $params
-     *                                        $params['Url'] - Адрес
-     *                                        $params['secureUrl'] - Защитен адрес
-     *                                        $params['Type'] string mime-type
-     *                                        $params['Height'] int
-     *                                        $params['Width']	 int
+     *
+     * @param array $params
+     *                      $params['Url'] - Адрес
+     *                      $params['secureUrl'] - Защитен адрес
+     *                      $params['Type'] string mime-type
+     *                      $params['Height'] int
+     *                      $params['Width']	 int
+     *
      * @return OpenGraphProtocolImage $ogp
      */
     public static function getImage($params = array())
@@ -271,8 +293,10 @@ class ograph_Factory extends core_Master
     /**
      * Инстанцираме и генерираме Ографа по зададените данни
      * Enter description here ...
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     *
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public static function generateOgraph($data)
     {

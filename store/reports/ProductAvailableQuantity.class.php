@@ -1,49 +1,54 @@
 <?php
 
+
 /**
  * Мениджър на отчети за налични количества
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Склад » Артикули наличности и лимити
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
     const NUMBER_OF_ITEMS_TO_ADD = 50;
-
+    
     const MAX_POST_ART = 10;
-
+    
+    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,manager,store,planing,purchase';
-
+    
+    
     /**
      * Брой записи на страница
      *
      * @var int
      */
     protected $listItemsPerPage = 30;
-
-
+    
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
      * @var string
      */
     protected $newFieldToCheck = 'conditionQuantity';
-
-
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId';
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -58,16 +63,16 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         );
         
         $fieldset->FLD(
-        
+            
             'typeOfQuantity',
-        
+            
             'enum(FALSE=Налично,TRUE=Разполагаемо)',
             'caption=Количество за показване,maxRadio=2,columns=2,after=limmits'
         
         );
         
         $fieldset->FLD(
-        
+            
             'additional',
             'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)',
             'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none'
@@ -81,7 +86,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm'
         );
     }
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -98,7 +104,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $form->setDefault('typeOfQuantity', 'TRUE');
     }
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -130,7 +137,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     if ($arts > $maxPost) {
                         $form->setError(
-                        
+                            
                             'droupId',
                             'Лимита за следени продукти е достигнат.
             				За да добавите нов артикул трябва да премахнете поне един от вече включените. '
@@ -174,7 +181,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         if ($details->minQuantity[$key] && $details->maxQuantity[$key]) {
                             if ($details->minQuantity[$key] > $details->maxQuantity[$key]) {
                                 $form->setError(
-                                
+                                    
                                     'additional',
                                     'Максималното количество не може да бъде по-малко от минималното'
                                 
@@ -223,7 +230,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     if (($arts + $grInArts) > $maxPost) {
                         $form->setError(
-                        
+                            
                             'droupId',
                             "Лимита за следени продукти е достигнат.
             				За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула "
@@ -311,7 +318,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                                 
                                 $form->setWarning(
-                                
+                                    
                                     'groupId',
                                     "${countUnset} артикула от група ${groupName} няма да  бъдат добавени.
             						Максимален брой артикули за еднократно добавяне - ${maxArt}.
@@ -329,12 +336,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
         }
     }
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -376,7 +385,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             
                             if (! array_key_exists($id, $recs)) {
                                 $recs[$id] =
-
+                                
                                 (object) array(
                                     
                                     'measure' => cat_Products::fetchField($id, 'measureId'),
@@ -446,7 +455,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         
                         if (! array_key_exists($id, $recs)) {
                             $recs[$id] =
-
+                            
                             (object) array(
                                 
                                 'measure' => cat_Products::fetchField($id, 'measureId'),
@@ -495,14 +504,16 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             return $recs;
         }
     }
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec
-     *                               - записа
-     * @param  boolean       $export
-     *                               - таблицата за експорт ли е
+     * @param stdClass $rec
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -521,17 +532,19 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
             $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
         }
-
+        
         return $fld;
     }
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec
-     *                        - записа
-     * @param  stdClass $dRec
-     *                        - чистия запис
+     * @param stdClass $rec
+     *                       - записа
+     * @param stdClass $dRec
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -564,7 +577,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         return $row;
     }
-
+    
+    
     /**
      * След подготовка на реда за експорт
      *
@@ -578,12 +592,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $code = cat_Products::fetchField($dRec->productId, 'code');
         $res->code = (! empty($code)) ? $code : "Art{$dRec->productId}";
     }
-
+    
+    
     /**
      * Изчиства повтарящи се стойности във формата
      *
      * @param
      *            $arr
+     *
      * @return array
      */
     public static function removeRpeadValues($arr)

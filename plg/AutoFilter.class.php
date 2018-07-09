@@ -5,15 +5,18 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_AutoFilter extends core_Plugin
 {
     const EMPTY_STR = '__EMPTY__';
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -27,7 +30,7 @@ class plg_AutoFilter extends core_Plugin
     {
         $form = $data->form;
         $rec = $form->rec;
-
+        
         $autoFields = $mvc->selectFields('autoFilter');
         
         if (!$rec->id) {
@@ -42,7 +45,7 @@ class plg_AutoFilter extends core_Plugin
             }
         }
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -51,7 +54,7 @@ class plg_AutoFilter extends core_Plugin
     {
         $form = $data->listFilter;
         $rec = $form->rec;
-
+        
         $autoFields = $form->selectFields('#autoFilter');
         foreach ($autoFields as $name => &$field) {
             $attr = &$field->attr;
@@ -60,7 +63,7 @@ class plg_AutoFilter extends core_Plugin
             }
             
             $modeName = 'lastAutoFielter_' . $name;
-
+            
             if (($value = Request::get($name)) !== false) {
                 $valueInt = $field->type->fromVerbal($value);
                 if (!$field->type->error) {
@@ -72,9 +75,10 @@ class plg_AutoFilter extends core_Plugin
             } else {
                 if ($value = Mode::get($modeName)) {
                     if ($value == '') {
+                        
                         return;
                     }
-                       
+                    
                     Request::push(array($name => $value));
                 }
             }

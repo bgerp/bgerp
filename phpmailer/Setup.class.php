@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Подразбиращата се кодировка на съобщенията
  */
@@ -95,21 +96,21 @@ defIfNot('PML_SMTPSECURE', 0);
  *
  * @category  vendors
  * @package   phpmailer
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class phpmailer_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
     public $version = '0.1';
     
-
+    
     /**
      * Описание на модула
      */
@@ -120,21 +121,21 @@ class phpmailer_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'PML_CHARSET' => array('varchar', 'mandatory, caption=Имейл съобщение->Кодировка'),
-            'PML_FROM_EMAIL' => array('email', 'mandatory, caption=Имейл съобщение->Адрес `From`'),
-            'PML_FROM_NAME' => array('varchar', 'mandatory, caption=Имейл съобщение->Име `From`'),
-            'PML_MAILER' => array('enum(mail=mail, sendmail=sendmail, smtp=smtp)', 'caption=Изпращане на писма->Метод'),
-            'SENDMAIL_PATH' => array('varchar', 'caption=Sendmail->Пътя до папката'),
-            'PML_HOST' => array('varchar', 'caption=Smtp->Хост'),
-               'PML_PORT' => array('int', 'caption=Smtp->Порт'),
-            'PML_SMTPAUTH' => array('enum(TRUE=да, FALSE=не)', 'caption=Smtp->Оторизация'),
-            'PML_USERNAME' => array('varchar', 'caption=Smtp->Потребител'),
-            'PML_PASSWORD' => array('varchar', 'caption=Smtp->Парола'),
-            'PML_SMTPSECURE' => array('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптиране'),
-            'PML_VERSION' => array('enum(5.2.8, 5.2.22)', 'caption=PML->Версия'),
-        );
-
-        
+        'PML_CHARSET' => array('varchar', 'mandatory, caption=Имейл съобщение->Кодировка'),
+        'PML_FROM_EMAIL' => array('email', 'mandatory, caption=Имейл съобщение->Адрес `From`'),
+        'PML_FROM_NAME' => array('varchar', 'mandatory, caption=Имейл съобщение->Име `From`'),
+        'PML_MAILER' => array('enum(mail=mail, sendmail=sendmail, smtp=smtp)', 'caption=Изпращане на писма->Метод'),
+        'SENDMAIL_PATH' => array('varchar', 'caption=Sendmail->Пътя до папката'),
+        'PML_HOST' => array('varchar', 'caption=Smtp->Хост'),
+        'PML_PORT' => array('int', 'caption=Smtp->Порт'),
+        'PML_SMTPAUTH' => array('enum(TRUE=да, FALSE=не)', 'caption=Smtp->Оторизация'),
+        'PML_USERNAME' => array('varchar', 'caption=Smtp->Потребител'),
+        'PML_PASSWORD' => array('varchar', 'caption=Smtp->Парола'),
+        'PML_SMTPSECURE' => array('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптиране'),
+        'PML_VERSION' => array('enum(5.2.8, 5.2.22)', 'caption=PML->Версия'),
+    );
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */

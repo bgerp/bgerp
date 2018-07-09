@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Модел "Складови наличности", Показва текущите наличности на продукта в склада на точката.
  * Синхронизира данните извлечени от счетоводството с тези на неотчетените бележки да показва приблизително
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   pos
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pos_Stocks extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -30,7 +29,7 @@ class pos_Stocks extends core_Manager
      */
     public $loadList = 'pos_Wrapper,plg_Sorting,plg_StyleNumbers,plg_State';
     
-
+    
     /**
      *  Брой елементи на страница
      */
@@ -41,13 +40,12 @@ class pos_Stocks extends core_Manager
      * Кой има право да чете?
      */
     public $canRead = 'pos, ceo';
- 
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
-    
     
     
     /**
@@ -129,7 +127,7 @@ class pos_Stocks extends core_Manager
             while ($rec = $closeQuery->fetch()) {
                 $rec->state = 'closed';
                 $rec->quantity = 0;
-            
+                
                 $self->save($rec);
             }
         }
@@ -168,6 +166,7 @@ class pos_Stocks extends core_Manager
         
         // Ако няма не-отчетени бележки, не правим нищо
         if (!count($activeReceipts)) {
+            
             return;
         }
         
@@ -238,9 +237,10 @@ class pos_Stocks extends core_Manager
     /**
      * Връща количеството на даден продукт, на дадена точка
      *
-     * @param  int    $productId - ид на продукт
-     * @param  int    $pointId   - ид на точка
-     * @return double - количеството на продукта в склада на точката
+     * @param int $productId - ид на продукт
+     * @param int $pointId   - ид на точка
+     *
+     * @return float - количеството на продукта в склада на точката
      */
     public static function getQuantity($productId, $pointId)
     {
@@ -259,10 +259,10 @@ class pos_Stocks extends core_Manager
     public function act_Truncate()
     {
         requireRole('admin,debug');
-    
+        
         // Изчистваме записите от моделите
         pos_Stocks::truncate();
-    
+        
         return new Redirect(array($this, 'list'));
     }
     

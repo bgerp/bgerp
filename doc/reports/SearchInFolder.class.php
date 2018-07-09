@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Документи » Търсене в папка
  */
 class doc_reports_SearchInFolder extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -83,8 +83,9 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -94,16 +95,16 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
         // За всяка дума
         $words = explode("\n", $rec->text);
         foreach ($words as $word) {
-                
+            
             // Подготовка на заявка, намираща колко пъти се среща в документи в папка
             $cQuery = doc_Containers::getQuery();
             $cQuery->where("#folderId = {$rec->folder}");
             plg_Search::applySearch($word, $cQuery);
-                
+            
             // Нормализиране на думата
             $key = $this->normalizeString($word);
             $r = (object) array('string' => $word, 'count' => $cQuery->count(), 'index' => $key);
-                
+            
             $recs[$key] = $r;
         }
         
@@ -117,7 +118,8 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
     /**
      * Нормализиране на думите
      *
-     * @param  string $string
+     * @param string $string
+     *
      * @return string
      */
     private function normalizeString($string)
@@ -129,8 +131,9 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -139,7 +142,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
         $fld->FLD('string', 'varchar', 'caption=Дума');
         $fld->FLD('diff', 'int', 'caption=Нови,tdClass=small-field');
         $fld->FLD('count', 'int', 'smartCenter,caption=Резултат,tdClass=small-field');
-    
+        
         return $fld;
     }
     
@@ -147,9 +150,10 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
     /**
      * Вербализиране на данните
      *
-     * @param  stdClass $rec     - запис на отчета
-     * @param  stdClass $dRec    - запис от детайла
-     * @param  array    $oldData - записа на предишната версия
+     * @param stdClass $rec     - запис на отчета
+     * @param stdClass $dRec    - запис от детайла
+     * @param array    $oldData - записа на предишната версия
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -196,9 +200,10 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
     /**
      * Връща разликата
      *
-     * @param  stdClass $rec  - запис на отчета
-     * @param  stdClass $dRec - запис от детайла
-     * @return double   $diff  - разликата
+     * @param stdClass $rec  - запис на отчета
+     * @param stdClass $dRec - запис от детайла
+     *
+     * @return float $diff  - разликата
      */
     private static function getDiff($rec, $dRec)
     {
@@ -237,8 +242,9 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
     /**
      * Връща данните от предишната версия
      *
-     * @param  stdClass $rec - записа на отчета
-     * @return array    $versionBeforeData - данните от предишната версия
+     * @param stdClass $rec - записа на отчета
+     *
+     * @return array $versionBeforeData - данните от предишната версия
      */
     private static function getVersionBeforeData($rec)
     {
@@ -265,8 +271,9 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
-     * @param  stdClass $rec
-     * @return boolean  $res
+     * @param stdClass $rec
+     *
+     * @return bool $res
      */
     public function canSendNotificationOnRefresh($rec)
     {

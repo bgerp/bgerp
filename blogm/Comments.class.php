@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Коментари на статиите
  *
  *
  * @category  bgerp
  * @package   blogm
+ *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blogm_Comments extends core_Detail
 {
-
-    
     /**
      * Заглавие на страницата
      */
@@ -44,7 +45,7 @@ class blogm_Comments extends core_Detail
      */
     public $listFields = 'name, email, web, ip, brid, userDelay, spamRate, articleId, comment=@, createdOn=Създаване||Created';
     
-        
+    
     /**
      * Кой може да изтрива коментари
      */
@@ -55,8 +56,8 @@ class blogm_Comments extends core_Detail
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, admin, cms, blog';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -68,12 +69,12 @@ class blogm_Comments extends core_Detail
      */
     public $canWrite = 'cms, ceo, admin,blog';
     
-
+    
     /**
      * Кой има достъп до Спосъка с коментати
      */
     public $canDelete = 'cms, ceo, admin,blog';
-
+    
     
     /**
      * Мастър ключ към статиите
@@ -86,7 +87,7 @@ class blogm_Comments extends core_Detail
      * Стойност '0' означава, че детайла няма да се странира
      */
     public $listItemsPerPage = 200;
-
+    
     
     /**
      * Описание на модела
@@ -103,12 +104,12 @@ class blogm_Comments extends core_Detail
         $this->FLD('ip', 'ip', 'caption=IP,input=none');
         $this->FLD('userDelay', 'time', 'caption=Спам->Закъснение,input=none');
         $this->FLD('spamRate', 'int', 'caption=Спам->Рейтинг,input=none');
-
+        
         $this->setDbIndex('ip');
         $this->setDbIndex('brid');
     }
-
-
+    
+    
     /**
      * Моделна функиця за подготовка на данните, необходими за показването на
      * коментарите към дадена статия и форма за добавянето на нов
@@ -140,9 +141,9 @@ class blogm_Comments extends core_Detail
                 $data->commentsRows[$rec->id]->status = 'Затворен';
                 $data->commentsRows[$rec->id]->stateColor = '#cccccc';
             }
-
+            
             $data->commentsRows[$rec->id]->name = str::limitLen($data->commentsRows[$rec->id]->name, 32);
-
+            
             if ($data->commentsRows[$rec->id]->web) {
                 $data->commentsRows[$rec->id]->name = ht::createLink(
                     $data->commentsRows[$rec->id]->name,
@@ -151,11 +152,11 @@ class blogm_Comments extends core_Detail
                     'target=_blank,rel=external nofollow'
                 );
             }
-
+            
             // Аватара на коментиращия
             $data->commentsRows[$rec->id]->avatar = avatar_Plugin::getImg(0, $rec->email, 50);
         }
-
+        
         // Към статията може ли да има форма за коментари?
         $cRec = (object) array('articleId' => $data->articleId);
         if (self::haveRightFor('add', $cRec)) {
@@ -168,7 +169,7 @@ class blogm_Comments extends core_Detail
             $key = Mode::getPermanentKey();
             $now = $Crypt->encodeVar(time(), $key);
             $data->commentForm->setHidden('renderOn', $now);
-
+            
             $valsArr = log_Browsers::getVars(array('name', 'email', 'web'));
             
             foreach ($valsArr as $vName => $val) {
@@ -193,13 +194,13 @@ class blogm_Comments extends core_Detail
                 $layout->append($commentTpl, 'COMMENTS');
             }
         }
-
+        
         if ($data->commentForm) {
             $data->commentForm->layout = $data->ThemeClass->getCommentFormLayout();
             $data->commentForm->fieldsLayout = $data->ThemeClass->getCommentFormFieldsLayout();
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
         }
-    
+        
         // Връщаме шаблона
         return $layout;
     }
@@ -216,9 +217,9 @@ class blogm_Comments extends core_Detail
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
             }
-
+            
             $rec->ip = core_Users::getRealIpAddr();
-
+            
             $rec->brid = log_Browsers::getBrid();
             
             $Crypt = cls::get('core_Crypt');
@@ -228,10 +229,10 @@ class blogm_Comments extends core_Detail
             // Да се записва само при нов запис и и когато няма регистриран потребител
             log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
         }
-
+        
         // Начален рейтинг
         $sr = 0;
- 
+        
         // Ако потребителя е посочил уеб-сайт +1
         if ($rec->web) {
             ++$sr;
@@ -245,24 +246,24 @@ class blogm_Comments extends core_Detail
         
         // Ако в името на сайта има директория
         $sr += explode('/', $rec->web) > 2 ? 0.5 : 0;
-    
+        
         // Ако има линкове в описанието
         $sr += self::hasWord($rec->comment, array('href=', 'src='));
- 
+        
         // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы
         $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
-
+        
         // Ако в коментара има http://
         $sr += self::hasWord($rec->comment, 'http://');
         
         // Ако в коментара има линк
         $sr += self::hasWord($rec->comment, array('[link=')) ? 2 : 0;
-
+        
         // Ако е написано за под 50 секунди
         if (isset($rec->userDelay) && $rec->userDelay < 20) {
             ++$sr;
         }
-
+        
         // Ако е написано за под 10 секунди
         if (isset($rec->userDelay) && $rec->userDelay < 10) {
             ++$sr;
@@ -272,19 +273,19 @@ class blogm_Comments extends core_Detail
         if (isset($rec->userDelay) && $rec->userDelay < 65) {
             $sr += 0.5;
         }
-
+        
         // Ако е написано за над 24 часа
         if (isset($rec->userDelay) && $rec->userDelay > 24 * 3600) {
             $sr += round($rec->userDelay / (24 * 3600));
         }
-
+        
         // Изключваме текущия запис, ако е записан
         if ($rec->id) {
             $idCond = " AND #id != {$rec->id}";
         } else {
             $idCond = '';
         }
-            
+        
         // Има ли от същото IP
         $query = self::getQuery();
         $query->limit(28);
@@ -292,7 +293,7 @@ class blogm_Comments extends core_Detail
         if ($cnt > 1) {
             $sr += pow($cnt, 1 / 3);
         }
-
+        
         // Има ли от същия brid?
         $query = self::getQuery();
         $query->limit(28);
@@ -302,7 +303,7 @@ class blogm_Comments extends core_Detail
         }
         
         $rec->spamRate = (int) $sr;
-
+        
         if (!$rec->id && $rec->spamRate <= 3) {
             $artRec = $mvc->Master->fetch($rec->articleId);
             $title = $mvc->Master->getVerbal($artRec, 'title');
@@ -313,8 +314,8 @@ class blogm_Comments extends core_Detail
             );
         }
     }
-
-
+    
+    
     /**
      * Проверка дали стринг съдържа дума от подаден списък.
      * caseinsensitive
@@ -322,18 +323,18 @@ class blogm_Comments extends core_Detail
     public static function hasWord($str, $words)
     {
         $words = arr::make($words);
- 
+        
         foreach ($words as $w) {
             if (stripos($str, $w) !== false) {
                 
                 return true;
             }
         }
-
+        
         return false;
     }
-
-
+    
+    
     /**
      * Махаме articleId когато показваме списък коментари към конкретна статия
      */
@@ -342,7 +343,7 @@ class blogm_Comments extends core_Detail
         if ($data->masterMvc) {
             unset($data->listFields['articleId']);
         }
-
+        
         $data->query->orderBy('#createdOn', 'DESC');
     }
     
@@ -354,16 +355,16 @@ class blogm_Comments extends core_Detail
     {
         // Конфигурацията на пакета 'blogm'
         static $conf;
-
+        
         if (!$conf) {
             $conf = core_Packs::getConfig('blogm');
         }
-
+        
         // Проверяваме имаме ли запис и дали екшъна е 'add'
         if ($action == 'add') {
             if (isset($rec->articleId)) {
                 $artRec = $mvc->Master->fetch($rec->articleId);
-
+                
                 // Ако записа е то статията е заключена за коментиране
                 if ($artRec->commentsMode == 'disabled' ||
                     $artRec->commentsMode == 'stopped' ||
@@ -422,8 +423,8 @@ class blogm_Comments extends core_Detail
         
         $data->query->orderBy('#createdOn=DESC');
     }
-
-
+    
+    
     /**
      * Изтрива спам коментарите
      */
@@ -432,12 +433,12 @@ class blogm_Comments extends core_Detail
         // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 10 и са по-стари от 1 ден
         // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 5 и са по-стари от 7 дни
         // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 3 и са по-стари от 10 дни
-
+        
         $before25m = dt::addSecs(-25 * 60);
         $before5d = dt::addDays(-5);
         $before14d = dt::addDays(-14);
         $deleteCnt = $deleteCnt = 0;
-
+        
         // Оттегляме, всички, които по-голям рейтинг от 5 и са на повече от 25 минути или имат по-голям рейтинг от 3 и са от преди повече от 5 дни
         $query = $this->getQuery();
         $query->where("#state = 'pending' AND ((#spamRate > 5 AND #createdOn < '{$before25m}') OR (#spamRate > 3 AND #createdOn < '{$before5d}'))");
@@ -446,13 +447,13 @@ class blogm_Comments extends core_Detail
             $this->save_($rec, 'state');
             $rejectedCnt++;
         }
-
+        
         $deleteCnt = $this->delete("#state = 'rejected' AND #createdOn < '{$before14d}'");
         
         if ($deleteCnt + $deleteCnt) {
             $res = "Бяха оттеглени {$rejectedCnt} и изтрити {$deleteCnt} СПАМ коментара от блога.";
         }
-
+        
         return $res;
     }
 }

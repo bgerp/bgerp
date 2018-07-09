@@ -6,25 +6,24 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var acc_BalanceTransfers
      */
     public $class;
-
-
+    
+    
     /**
      * @var array
      */
@@ -33,14 +32,16 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
     
     /**
      *
-     * @var double
+     * @var float
      */
     public $total = 0;
     
     
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -50,10 +51,10 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         
         $result = (object) array(
-                'reason' => $this->class->getRecTitle($id),
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => $this->class->getRecTitle($id),
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
         
         $to = $rec->valior;
@@ -61,13 +62,13 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
         
         // Подготвяме активен баланс за посочените сметки
         $Balance = new acc_ActiveShortBalance(array('from' => $to,
-                                                    'to' => $to,
-                                                    'accs' => $accs,
-                                                    'item1' => $rec->fromEnt1Id,
-                                                    'item2' => $rec->fromEnt2Id,
-                                                    'item3' => $rec->fromEnt3Id,
-                                                    'strict' => true,
-                                                    'cacheBalance' => false));
+            'to' => $to,
+            'accs' => $accs,
+            'item1' => $rec->fromEnt1Id,
+            'item2' => $rec->fromEnt2Id,
+            'item3' => $rec->fromEnt3Id,
+            'strict' => true,
+            'cacheBalance' => false));
         
         $this->Balance = $Balance->getBalanceBefore($accs);
         
@@ -81,8 +82,9 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
     /**
      * Подготвя записите на транзакцията
      *
-     * @param  stdClass $rec - запис на документ
-     * @return array    $entries - генерираните записи
+     * @param stdClass $rec - запис на документ
+     *
+     * @return array $entries - генерираните записи
      */
     private function getEntries($rec)
     {

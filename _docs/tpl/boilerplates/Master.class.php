@@ -7,9 +7,11 @@
  *
  * @category  bgerp
  * @package   [име на пакет]
+ *
  * @author    [Име на автора] <[имейл на автора]>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPLv3
+ *
  * @since     v 0.1
  */
 class boilerplate_Master extends core_Manager
@@ -28,8 +30,8 @@ class boilerplate_Master extends core_Manager
      * var string|array
      */
     public $loadList;
-
-
+    
+    
     /**
      * Поддържани интерфейси
      *
@@ -44,6 +46,7 @@ class boilerplate_Master extends core_Manager
      * @var string
      */
     public $menuPage;
+    
     
     /**
      * Кой има право да чете?
@@ -88,7 +91,7 @@ class boilerplate_Master extends core_Manager
     /**
      * Брой записи на страница
      *
-     * @var integer
+     * @var int
      */
     public $listItemsPerPage;
     
@@ -103,11 +106,12 @@ class boilerplate_Master extends core_Manager
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      *
      * @var string
+     *
      * @see plg_RowTools2
      */
     public $rowToolsField;
-
-
+    
+    
     /**
      * Детайла, на модела
      *
@@ -115,14 +119,14 @@ class boilerplate_Master extends core_Manager
      */
     public $details;
     
-
+    
     /**
      * Заглавие в единствено число
      *
      * @var string
      */
     public $singleTitle;
-
+    
     
     /**
      * Описание на модела (таблицата)
@@ -130,8 +134,8 @@ class boilerplate_Master extends core_Manager
     public function description()
     {
     }
-
-
+    
+    
     /**
      * Извиква се преди изпълняването на екшън
      *

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от Печалба от продажби по клиенти
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
 {
-
-
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -28,13 +27,13 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo, acc';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Счетоводство » Печалба по клиенти';
-
+    
     
     /**
      * Дефолт сметка
@@ -46,15 +45,14 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      * Кореспондент сметка
      */
     public $corespondentAccountId = '123';
-
-
+    
+    
     /**
      * След подготовката на ембеднатата форма
      */
     public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
-
-       // Искаме да покажим оборотната ведомост за сметката на касите
+        // Искаме да покажим оборотната ведомост за сметката на касите
         $baseAccId = acc_Accounts::getRecBySystemId($mvc->baseAccountId)->id;
         $form->setDefault('baseAccountId', $baseAccId);
         $form->setHidden('baseAccountId');
@@ -67,15 +65,15 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $form->setHidden('side');
         
         $form->setDefault('orderBy', 'DESC');
-
+        
         $form->setDefault('orderField', 'blAmount');
         $form->setOptions('orderField', array('blAmount' => 'Сума'));
         
         $form->setField('from', 'refreshForm,silent');
         $form->setField('to', 'refreshForm,silent');
     }
-
-
+    
+    
     /**
      * След подготовката на ембеднатата форма
      */
@@ -86,9 +84,9 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         foreach (range(1, 3) as $i) {
             $form->setHidden("feat{$i}");
         }
-
+        
         $contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'crm_ContragentAccRegIntf');
-
+        
         $form->setDefault("feat{$contragentPositionId}", '*');
         
         // Поставяме удобни опции за избор на период
@@ -110,12 +108,12 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
             $optionsFrom[$op->start] = $op->title;
             $optionsTo[$op->end] = $op->title;
         }
-   
+        
         $form->setSuggestions('from', array('' => '') + $optionsFrom);
         $form->setSuggestions('to', array('' => '') + $optionsTo);
     }
     
-
+    
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
         unset($data->listFields['debitQuantity']);
@@ -134,11 +132,11 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
             $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
             $toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
             $prefixOld = (string) $fromVerbalOld . ' - ' . $toVerbalOld;
-        
+            
             $fromVerbal = dt::mysql2verbal($mvc->innerForm->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
             $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
-        
+            
             $fields = arr::make("id=№,item1=Контрагенти,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", true);
             $data->listFields = $fields;
         } else {
@@ -147,8 +145,8 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
             $data->listFields['blAmountCompare'] = str_replace('->Остатък', '', $data->listFields['blAmountCompare']);
         }
     }
-
-
+    
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -157,18 +155,18 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-
+        
         unset($innerState->recs);
     }
-
-
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->to} 23:59:59";
-
+        
         return $activateOn;
     }
     
@@ -181,11 +179,11 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $explodeTitle = explode(' » ', $this->title);
         
         $title = tr("|{$explodeTitle[1]}|*");
-         
+        
         return $title;
     }
-
-
+    
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
@@ -197,7 +195,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $exportFields['item1'] = 'Контрагенти';
         $exportFields['blAmount'] = 'Сума';
         $exportFields['delta'] = 'Дял';
-
+        
         return $exportFields;
     }
 }

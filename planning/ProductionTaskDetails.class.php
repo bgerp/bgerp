@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'planning_ProductionTaskDetails'
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_ProductionTaskDetails extends core_Detail
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -28,8 +27,8 @@ class planning_ProductionTaskDetails extends core_Detail
      * Заглавие
      */
     public $title = 'Прогрес на производствените операции';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -158,7 +157,7 @@ class planning_ProductionTaskDetails extends core_Detail
         $query = $mvc->getQuery();
         $query->where("#taskId = {$rec->taskId}");
         $query->orderBy('id', 'DESC');
-         
+        
         // Задаваме последно въведените данни
         if ($lastRec = $query->fetch()) {
             $form->setDefault('employees', $lastRec->employees);
@@ -253,14 +252,14 @@ class planning_ProductionTaskDetails extends core_Detail
         }
     }
     
-
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-         
+        
         if ($form->isSubmitted()) {
             $masterRec = planning_Tasks::fetch($rec->taskId);
             if (empty($rec->serial) && empty($rec->productId)) {
@@ -346,15 +345,17 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Информация за серийния номер
      *
-     * @param  string   $serial
-     * @param  int      $productId
-     * @param  int      $packagingId
-     * @param  int|NULL $id
-     * @return array    $res
+     * @param string   $serial
+     * @param int      $productId
+     * @param int      $packagingId
+     * @param int|NULL $id
+     *
+     * @return array $res
      */
     private static function fetchSerialInfo($serial, $productId, $packagingId, $id)
     {
         if (!$Driver = cat_Products::getDriver($productId)) {
+            
             return;
         }
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
@@ -389,11 +390,11 @@ class planning_ProductionTaskDetails extends core_Detail
         if (isset($rec->fixedAsset)) {
             $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset);
         }
-         
+        
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
         $row->modified .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->modifiedBy) . '</div>';
-         
+        
         if (isset($rec->serial)) {
             $row->serial = "<b>{$row->serial}</b>";
         }
@@ -428,12 +429,12 @@ class planning_ProductionTaskDetails extends core_Detail
         }
         
         $row->shortUoM = tr($shortUom);
-         
+        
         if (!empty($rec->notes)) {
             $notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
             $row->productId .= "<small>{$notes}</small>";
         }
-            
+        
         if (!empty($rec->serial)) {
             $row->serial = self::getLink($rec->taskId, $rec->serial);
         }
@@ -447,8 +448,9 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Връща серийния номер като линк, ако е от друга операция
      *
-     * @param  int            $taskId - в коя операция ще се показва
-     * @param  string         $serial - серийния номер
+     * @param int    $taskId - в коя операция ще се показва
+     * @param string $serial - серийния номер
+     *
      * @return core_ET|string $serialVerbal  - серийния номер като линк, или вербалното му представяне
      */
     public static function getLink($taskId, $serial)
@@ -458,12 +460,12 @@ class planning_ProductionTaskDetails extends core_Detail
             
             return $serialVerbal;
         }
-    
+        
         // Линк към прогреса филтриран по сериен номер
         if (planning_ProductionTaskDetails::haveRightFor('list')) {
             $serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serialVerbal), false, 'title=Към историята на серийния номер');
         }
-    
+        
         return $serialVerbal;
     }
     
@@ -480,12 +482,13 @@ class planning_ProductionTaskDetails extends core_Detail
         
         $rows = &$data->rows;
         if (!count($rows)) {
+            
             return;
         }
-    
+        
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-                
+            
             if (!empty($row->shortUoM)) {
                 $row->quantity = "<b>{$row->quantity}</b>";
                 
@@ -501,7 +504,8 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Показва вербалното име на служителите
      *
-     * @param  text   $employees - кейлист от служители
+     * @param text $employees - кейлист от служители
+     *
      * @return string $verbalEmployees
      */
     public static function getVerbalEmployees($employees)
@@ -553,8 +557,8 @@ class planning_ProductionTaskDetails extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Подготвя детайла
      */
@@ -562,11 +566,11 @@ class planning_ProductionTaskDetails extends core_Detail
     {
         $data->TabCaption = 'Прогрес';
         $data->Tab = 'top';
-    
+        
         parent::prepareDetail_($data);
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготвянето на формата за филтриране
      */
@@ -586,12 +590,12 @@ class planning_ProductionTaskDetails extends core_Detail
             $data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions());
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             $data->listFilter->input('');
-             
+            
             if ($filter = $data->listFilter->rec) {
                 if (isset($filter->fixedAsset)) {
                     $data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
                 }
-            
+                
                 if (isset($filter->employees)) {
                     $data->query->where("LOCATE('|{$filter->employees}|', #employees)");
                 }
@@ -639,8 +643,8 @@ class planning_ProductionTaskDetails extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Преди подготовка на заглавието на формата
      */
@@ -655,7 +659,8 @@ class planning_ProductionTaskDetails extends core_Detail
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param  date  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
      * @return array $result  - масив с обекти
      *
      * 			o date        - дата на стайноста
@@ -692,12 +697,12 @@ class planning_ProductionTaskDetails extends core_Detail
                 $key = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$indicatorId}";
                 if (!array_key_exists($key, $result)) {
                     $result[$key] = (object) array('date' => $date,
-                                                  'personId' => $personId,
-                                                  'docId' => $rec->taskId,
-                                                  'docClass' => $classId,
-                                                  'indicatorId' => $indicatorId,
-                                                  'value' => 0,
-                                                  'isRejected' => ($rec->state == 'rejected'));
+                        'personId' => $personId,
+                        'docId' => $rec->taskId,
+                        'docClass' => $classId,
+                        'indicatorId' => $indicatorId,
+                        'value' => 0,
+                        'isRejected' => ($rec->state == 'rejected'));
                 }
                 
                 $result[$key]->value += $timePerson;
@@ -706,12 +711,13 @@ class planning_ProductionTaskDetails extends core_Detail
         
         return $result;
     }
-
+    
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param  date  $date
+     * @param date $date
+     *
      * @return array $result
      */
     public static function getIndicatorNames()
@@ -719,7 +725,7 @@ class planning_ProductionTaskDetails extends core_Detail
         $result = array();
         $rec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $result[$rec->id] = $rec->name;
-         
+        
         return $result;
     }
     
@@ -727,9 +733,10 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Проверка дали лимита е надвишен
      *
-     * @param  stdClass $rec
-     * @param  double   $limit
-     * @return boolean
+     * @param stdClass $rec
+     * @param float    $limit
+     *
+     * @return bool
      */
     private function checkLimit($rec, &$limit = null)
     {
@@ -749,7 +756,7 @@ class planning_ProductionTaskDetails extends core_Detail
         
         if ($sum > $info->limit) {
             $limit = $info->limit;
-
+            
             return false;
         }
         
@@ -767,7 +774,7 @@ class planning_ProductionTaskDetails extends core_Detail
         if (!$mvc->checkLimit($rec, $limit)) {
             $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
             core_Statuses::newStatus("Не може да се възстанови, защото ще се надвиши максималното количество от|*: <b>{$limit}</b>", 'error');
-
+            
             return false;
         }
     }

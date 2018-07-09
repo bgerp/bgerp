@@ -1,27 +1,32 @@
 <?php
 
+
 /**
  * Мениджър на отчети за дефицит на складове
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Склад » Дефицит на складове
  */
 class store_reports_DeficitInStores extends frame2_driver_TableData
 {
     const NUMBER_OF_ITEMS_TO_ADD = 50;
-
+    
     const MAX_POST_ART = 10;
-
+    
+    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,manager,store,planing,purchase';
-
+    
+    
     /**
      * Брой записи на страница
      *
@@ -40,27 +45,32 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField;
-
+    
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
      * @var string
      */
     protected $newFieldToCheck = 'conditionQuantity';
-
+    
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId';
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -74,7 +84,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=groupId');
     }
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -90,7 +101,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         
         $form->setDefault('typeOfQuantity', 'TRUE');
     }
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -245,12 +257,14 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             }
         }
     }
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -304,7 +318,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             $recArr[] = $receiptArt;
             if (! array_key_exists($receiptArt->productId, $receiptProducts)) {
                 $receiptProducts[$receiptArt->productId] =
-
+                
                 (object) array(
                     
                     'productId' => $receiptArt->productId,
@@ -324,7 +338,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         while ($shipmentDet = $shipDetQuery->fetch()) {
             if (! array_key_exists($shipmentDet->productId, $shipmentProducts)) {
                 $shipmentProducts[$shipmentDet->productId] =
-
+                
                 (object) array(
                     
                     'productId' => $shipmentDet->productId,
@@ -346,7 +360,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             
             if (! array_key_exists($jobsProdId, $productsForJobs)) {
                 $productsForJobs[$jobsProdId] =
-
+                
                 (object) array(
                     
                     'productId' => $jobsProdId,
@@ -377,7 +391,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                         
                         if (! array_key_exists($material->productId, $bommsMaterials)) {
                             $bommsMaterials[$material->productId] =
-
+                            
                             (object) array(
                                 
                                 'productId' => $material->productId,
@@ -393,6 +407,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 }
             }
         }
+        
         /*
          * От продуктите по експедиционни нареждания
          * изваждаме продуктите за които има задание за производство ????
@@ -482,7 +497,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 
                 if (! array_key_exists($id, $recs)) {
                     $recs[$id] =
-
+                    
                     (object) array(
                         
                         'measure' => cat_Products::fetchField($id, 'measureId'),
@@ -504,14 +519,16 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         
         return $recs;
     }
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec
-     *                               - записа
-     * @param  boolean       $export
-     *                               - таблицата за експорт ли е
+     * @param stdClass $rec
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -542,13 +559,14 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         
         return $fld;
     }
-
+    
     
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -611,7 +629,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         
         return $row;
     }
-
+    
     
     /**
      * След подготовка на реда за експорт
@@ -636,6 +654,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
      *
      * @param
      *            $arr
+     *
      * @return array
      */
     public static function removeRpeadValues($arr)

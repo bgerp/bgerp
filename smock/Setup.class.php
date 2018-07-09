@@ -1,7 +1,5 @@
 <?php
 
- 
-
 
 /**
  * class smock_Setup
@@ -10,15 +8,15 @@
  *
  *
  * @package   smock
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class smock_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -31,14 +29,15 @@ class smock_Setup extends core_ProtoSetup
     public $info = 'SMS изпращане мокъп';
     
     public $startCtr = 'smock_SMS';
-      
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'smock_SMS',
-        );
-
+        'smock_SMS',
+    );
+    
     
     /**
      * Де-инсталиране на пакета

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_InventoryNoteSummary'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_InventoryNoteSummary extends doc_Detail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за инвентаризация';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -83,7 +82,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,delta,charge,groupName';
     
-        
+    
     /**
      * По кое поле да се групира
      */
@@ -107,7 +106,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Брой записи на страница
      *
-     * @var integer
+     * @var int
      */
     public $listItemsPerPage = null;
     
@@ -150,7 +149,8 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Заявка за редовете за начет към МОЛ
      *
-     * @param  int        $noteId - ид на протокол
+     * @param int $noteId - ид на протокол
+     *
      * @return core_Query $query - заявка
      */
     public static function getResponsibleRecsQuery($noteId)
@@ -173,9 +173,10 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_CalcDelta(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->blQuantity) || !isset($rec->quantity)) {
+            
             return;
         }
-    
+        
         $rec->delta = $rec->quantity - $rec->blQuantity;
     }
     
@@ -222,8 +223,9 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Рендира разликата
      *
-     * @param  stdClass $rec - запис
-     * @return core_ET  - стойноста на клетката
+     * @param stdClass $rec - запис
+     *
+     * @return core_ET - стойноста на клетката
      */
     public static function renderDeltaCell($rec)
     {
@@ -260,6 +262,7 @@ class store_InventoryNoteSummary extends doc_Detail
      * След рендиране на името на групата
      *
      * @see plg_GroupByField
+     *
      * @param core_Mvc $mvc             - модела
      * @param string   $res             - името на групата
      * @param stdClass $data            - датата
@@ -290,8 +293,9 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Помощна ф-я връщаща линкове към заявките в които участва артикула
      *
-     * @param  date  $valior
-     * @param  int   $storeId
+     * @param date $valior
+     * @param int  $storeId
+     *
      * @return array $res
      */
     private static function getPendingDocuments($valior, $storeId)
@@ -347,6 +351,7 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!$data->rows) {
+            
             return;
         }
         
@@ -439,6 +444,7 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($data->masterData->rec->state == 'rejected') {
+            
             return;
         }
         
@@ -454,8 +460,9 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Форсира запис
      *
-     * @param  int $noteId    - ид на протокол
-     * @param  int $productId - ид на артикула
+     * @param int $noteId    - ид на протокол
+     * @param int $productId - ид на артикула
+     *
      * @return int - ид на форсирания запис
      */
     public static function force($noteId, $productId)
@@ -467,8 +474,8 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         $sRec = (object) array('noteId' => $noteId,
-                              'productId' => $productId,
-                              'groups' => cat_Products::fetchField($productId, 'groups'));
+            'productId' => $productId,
+            'groups' => cat_Products::fetchField($productId, 'groups'));
         
         // Ако няма запис, създаваме го
         return self::save($sRec);
@@ -484,13 +491,13 @@ class store_InventoryNoteSummary extends doc_Detail
         
         if (!$id = Request::get('id', 'int')) {
             core_Statuses::newStatus('|Невалиден ред|*!', 'error');
-
+            
             return status_Messages::returnStatusesArray();
         }
         
         if (!$rec = $this->fetch($id)) {
             core_Statuses::newStatus('|Невалиден ред|*!', 'error');
-
+            
             return status_Messages::returnStatusesArray();
         }
         
@@ -550,6 +557,7 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -634,14 +642,16 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Филтрираме записи по подходящ начин
      *
-     * @param  stdClass $masterRec
-     * @param  array    $recs
+     * @param stdClass $masterRec
+     * @param array    $recs
+     *
      * @return void
      */
     private function filterRecs($masterRec, &$recs)
     {
         // Ако няма записи не правим нищо
         if (!is_array($recs)) {
+            
             return;
         }
         $ordered = array();
@@ -657,10 +667,10 @@ class store_InventoryNoteSummary extends doc_Detail
             $res = array_filter($recs, function (&$e) use ($grId, $groupName) {
                 if (keylist::isIn($grId, $e->groups)) {
                     $e->groupName = $groupName;
-
+                    
                     return true;
                 }
-
+                
                 return false;
             });
             
@@ -693,7 +703,7 @@ class store_InventoryNoteSummary extends doc_Detail
             
             // Подреждаме ги по име
             arr::sortObjects($rest, 'orderCode');
-        
+            
             // Добавяме ги най-накрая
             $ordered += $rest;
         }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин позволяващ да се зададе само време за изпъление/срок на документ имащ такова поле
  * Документа трябва да има дефиниран $termDateFld
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_plg_SetTermDate extends core_Plugin
 {
-    
-    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -28,12 +27,15 @@ class deals_plg_SetTermDate extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (!isset($mvc->termDateFld)) {
+            
             return;
         }
         if (!isset($fields['-single'])) {
+            
             return;
         }
         if (Mode::isReadOnly()) {
+            
             return;
         }
         
@@ -78,6 +80,7 @@ class deals_plg_SetTermDate extends core_Plugin
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action != 'settermdate') {
+            
             return;
         }
         
@@ -110,7 +113,7 @@ class deals_plg_SetTermDate extends core_Plugin
         
         $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', $mvc->getSingleUrlArray($id), 'ef_icon = img/16/close-red.png');
-             
+        
         // Рендиране на формата
         $res = $form->renderHtml();
         $res = $mvc->renderWrapping($res);

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Помощен клас моделиращ дебитна или кредитна част на ред от счетоводна транзакция
  *
@@ -7,15 +8,16 @@
  *
  * @category bgerp
  * @package acc
+ *
  * @author Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license GPL 3
+ *
  * @since v 0.1
  * @see acc_journal_Entry
  */
 class acc_journal_EntrySide
 {
-    
     /**
      * @var string
      */
@@ -27,11 +29,13 @@ class acc_journal_EntrySide
      */
     const CREDIT = 'credit';
     
+    
     /**
      *
      * @var acc_journal_Account
      */
     protected $account;
+    
     
     /**
      *
@@ -39,11 +43,13 @@ class acc_journal_EntrySide
      */
     protected $items;
     
+    
     /**
      *
      * @var float
      */
     protected $amount;
+    
     
     /**
      *
@@ -51,11 +57,13 @@ class acc_journal_EntrySide
      */
     protected $quantity;
     
+    
     /**
      *
      * @var float
      */
     protected $price;
+    
     
     /**
      * @var string
@@ -91,7 +99,7 @@ class acc_journal_EntrySide
         acc_journal_Exception::expect(
             $d = $transactionData[$this->type],
             "Липсва {$this->type} част на транзакция",
-        
+            
             array('data' => $transactionData)
         );
         
@@ -124,10 +132,12 @@ class acc_journal_EntrySide
         $this->init($data);
     }
     
+    
     /**
      * Инициализира транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public function init($data)
@@ -157,8 +167,9 @@ class acc_journal_EntrySide
     /**
      * Има ли зададена стойност поле на класа
      *
-     * @param  string  $name
-     * @return boolean
+     * @param string $name
+     *
+     * @return bool
      */
     public function __isset($name)
     {
@@ -179,8 +190,10 @@ class acc_journal_EntrySide
     /**
      * Readonly достъп до полетата на обекта
      *
-     * @param  string                $name
+     * @param string $name
+     *
      * @return mixed
+     *
      * @throws core_exception_Expect когато полето не е дефинирано в класа
      */
     public function __get($name)
@@ -201,7 +214,7 @@ class acc_journal_EntrySide
      *
      * @see acc_journal_Account::accepts()
      *
-     * @return boolean
+     * @return bool
      */
     public function checkItems()
     {
@@ -298,7 +311,7 @@ class acc_journal_EntrySide
                 
                 return $this->amount / $this->quantity;
             }
-                
+            
             // Зада няма деление на нула, ако к-то е нула
             return 0;
         }

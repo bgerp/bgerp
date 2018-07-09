@@ -1,17 +1,17 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_Receipts
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
@@ -32,9 +32,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Валути)
      *
-     * @param  int|object            $id първичен ключ или запис на покупка
-     * @return object                NULL означава, че документа няма отношение към счетоводството, няма да генерира
-     *                                  счетоводни транзакции
+     * @param int|object $id първичен ключ или запис на покупка
+     *
+     * @return object NULL означава, че документа няма отношение към счетоводството, няма да генерира
+     *                счетоводни транзакции
+     *
      * @throws core_exception_Expect когато възникне грешка при генерирането на транзакция
      */
     public function getTransaction($id)
@@ -123,7 +125,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     protected function getDeliveryPart($rec, $origin, $reverse = false)
@@ -148,24 +151,24 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = round($amount, 2);
             
             $debitAccId = '321';
-                
+            
             $debit = array(
-                  $debitAccId,
-                       array('store_Stores', $rec->storeId), // Перо 1 - Склад
-                       array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
-                  'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
+                $debitAccId,
+                array('store_Stores', $rec->storeId), // Перо 1 - Склад
+                array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
+                'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
             );
             
             $entries[] = array(
-                 'amount' => $sign * $amount * $rec->currencyRate,
-                 'debit' => $debit,
-                 'credit' => array(
-                       $rec->accountId,
-                       array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-                        array($origin->className, $origin->that),		   // Перо 2 - Сделка
-                       array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                'amount' => $sign * $amount * $rec->currencyRate,
+                'debit' => $debit,
+                'credit' => array(
+                    $rec->accountId,
+                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
+                    array($origin->className, $origin->that),		   // Перо 2 - Сделка
+                    array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                     'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
-                 ),
+                ),
             );
         }
         
@@ -177,19 +180,19 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 
                 'credit' => array(
                     $rec->accountId,
-                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array($origin->className, $origin->that),			// Перо 2 - Сделка
-                        array('currency_Currencies', $currencyId), // Перо 3 - Валута
+                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                    array($origin->className, $origin->that),			// Перо 2 - Сделка
+                    array('currency_Currencies', $currencyId), // Перо 3 - Валута
                     'quantity' => $sign * $vat, // "брой пари" във валутата на продажбата
                 ),
                 
                 'debit' => array(
                     '4530',
-                        array($origin->className, $origin->that),
+                    array($origin->className, $origin->that),
                 ),
             );
         }
-       
+        
         $class = ($reverse) ? cls::get('store_ShipmentOrders') : $this->class;
         $entries2 = store_DocumentPackagingDetail::getEntries($class, $rec, $reverse);
         if (count($entries2)) {
@@ -206,7 +209,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
     public function getReverseEntries($rec, $origin)
     {
         $entries = $this->getDeliveryPart($rec, $origin, true);
-         
+        
         return $entries;
     }
 }

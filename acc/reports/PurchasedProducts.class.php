@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от Закупени продукти
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
 {
-
-
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -28,32 +27,31 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo, acc';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Счетоводство » Закупени продукти';
-
-
+    
+    
     /**
      * Дефолт сметка
      */
     public $baseAccountId = '321';
-
-
+    
+    
     /**
      * Кореспондент сметка
      */
     public $corespondentAccountId = '401';
-
-
+    
+    
     /**
      * След подготовката на ембеднатата форма
      */
     public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
-     
         // Искаме да покажим оборотната ведомост за сметката на касите
         $baseAccId = acc_Accounts::getRecBySystemId($mvc->baseAccountId)->id;
         $form->setDefault('baseAccountId', $baseAccId);
@@ -78,10 +76,10 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         foreach (range(4, 6) as $i) {
             $form->setHidden("feat{$i}");
         }
-
+        
         $articlePositionId = acc_Lists::fetchField("#systemId = 'catProducts'", 'id');
         $storePositionId = acc_Lists::getPosition($mvc->baseAccountId, 'store_AccRegIntf');
-         
+        
         foreach (range(1, 3) as $i) {
             if ($form->rec->{"list{$i}"} == $articlePositionId) {
                 $form->setDefault("feat{$i}", '*');
@@ -100,9 +98,9 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
                 $form->FLD("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty, select=titleNum)", 'caption=Контрагенти->Име,input');
             }
         }
-
+        
         $contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'cat_ProductAccRegIntf');
-         
+        
         $form->setDefault("feat{$contragentPositionId}", '*');
         $form->setHidden("feat{$contragentPositionId}");
     }
@@ -116,11 +114,11 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     public function getReportLayout_()
     {
         $tpl = getTplFromFile('acc/tpl/PurchaseReportLayout.shtml');
-    
+        
         if ($this->innerForm->compare == 'no') {
             $tpl->removeBlock('summeryNew');
         }
-    
+        
         return $tpl;
     }
     
@@ -134,7 +132,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
             if ($data->compare != 'no') {
                 foreach ($data->recsAll as $id => $rec) {
                     $contragentId = strstr($id, '|', true);
-                
+                    
                     if ($data->contragent != $contragentId) {
                         unset($data->recsAll[$id]);
                     }
@@ -156,7 +154,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
             $data->summBottom->quantity += $r->debitQuantity;
             $data->summBottom->amount += $r->debitAmount;
         }
-
+        
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $data->summBottomVer->quantity = $Double->toVerbal($r->debitQuantity);
@@ -171,13 +169,13 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         $tpl->removeBlock('debitNew');
         $tpl->removeBlock('creditNew');
         $tpl->removeBlock('blName');
-
+        
         if ($mvc->innerForm->compare == 'no') {
             $tpl->removeBlock('summeryNew');
         }
     }
     
-
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -186,18 +184,18 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-
+        
         unset($innerState->recs);
     }
-
-
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->to} 23:59:59";
-
+        
         return $activateOn;
     }
     
@@ -210,7 +208,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         $explodeTitle = explode(' » ', $this->title);
         
         $title = tr("|{$explodeTitle[1]}|*");
-         
+        
         return $title;
     }
     
@@ -222,7 +220,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     {
         $form = $mvc->innerForm;
         $newFields = array();
-
+        
         if (!$data->contragent) {
             $data->listFields['item2'] = 'Контрагенти';
             $data->listFields['item3'] = 'Артикул';
@@ -235,7 +233,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
             $data->listFields['blAmount'] = 'Сума';
             $data->listFields['delta'] = 'Дял';
         }
-
+        
         // Кои полета ще се показват
         if ($mvc->innerForm->compare != 'no') {
             $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
@@ -245,7 +243,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
             $fromVerbal = dt::mysql2verbal($form->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
             $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
-
+            
             if (!$data->contragent) {
                 $fields = arr::make("id=№,item2=Контрагенти,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", true);
             } else {
@@ -262,7 +260,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
                 }
             }
         }
-         
+        
         unset($data->listFields['debitQuantity'],$data->listFields['debitAmount'],$data->listFields['creditQuantity'],$data->listFields['creditAmount']);
     }
     
@@ -275,28 +273,28 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         $tpl = $this->getReportLayout();
-    
+        
         $explodeTitle = explode(' » ', $this->title);
-    
+        
         $title = tr("|{$explodeTitle[1]}|*");
-    
+        
         $tpl->replace($title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
         
         $tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
         
         $tpl->placeObject($data->row);
-    
+        
         $tableMvc = new core_Mvc;
-
+        
         $tableMvc->FLD('blQuantity', 'double', 'tdClass=accCell');
         $tableMvc->FLD('blAmount', 'double', 'tdClass=accCell');
         $tableMvc->FLD('delta', 'percent', 'tdClass=accCell');
-    
+        
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
-
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-
+        
         $data->summBottomVer->colspan = count($data->listFields);
         if ($data->summBottom) {
             $data->summBottomVer->colspan -= 3;
@@ -304,17 +302,17 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
                 $afterRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#quantity#]</b></td><td style='text-align:right'><b>[#amount#]</b></td><td style='text-align:right'></td></tr>");
             }
         }
-    
+        
         if ($afterRow) {
             $afterRow->placeObject($data->summBottomVer);
             $tpl->append($afterRow, 'ROW_AFTER');
         }
-    
+        
         if ($data->pager) {
             $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
             $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }
-    
+        
         $embedderTpl->append($tpl, 'data');
     }
 }

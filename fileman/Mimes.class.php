@@ -7,15 +7,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Mimes extends core_Mvc
 {
-    
-    
     /**
      * Заглавие на модула
      */
@@ -27,12 +27,12 @@ class fileman_Mimes extends core_Mvc
      */
     public static $ext2mime;
     
-
+    
     /**
      * Масив със съответствие на mime типове към разширения
      */
     public static $mime2ext;
-
+    
     
     /**
      * Зареждане на self::$ext2mime, ако не е зареден
@@ -63,40 +63,41 @@ class fileman_Mimes extends core_Mvc
             
             //Инклудваме го, за да можем да му използваме променливите
             include($inc);
-
+            
             // Зареждаме масива в статична променлива
             self::$mime2ext = $mime2ext;
         }
     }
-
-
+    
+    
     /**
      * Връща най-подходящия mime тип за даденото разширение
      */
     public static function getMimeByExt($ext)
     {
         if (!$ext) {
+            
             return;
         }
-
+        
         self::loadExt2Mime();
-
+        
         $ext = trim(strtolower($ext));
-
+        
         return self::$ext2mime[$ext];
     }
     
-
+    
     /**
      * регенериране на ext2mime
      */
     public function act_Ext()
     {
         requireRole('admin,debug');
-
+        
         self::loadExt2Mime();
         self::loadMime2Ext();
-
+        
         foreach (self::$mime2ext as $mime => $exts) {
             foreach (explode(' ', $exts) as $ext) {
                 if (!isset(self::$ext2mime[$ext])) {
@@ -106,7 +107,7 @@ class fileman_Mimes extends core_Mvc
         }
         
         ksort(self::$ext2mime);
-
+        
         foreach (self::$ext2mime as $ext => $mime) {
             $res .= "    \"{$ext}\" => \"{$mime}\",<br>";
         }
@@ -114,7 +115,7 @@ class fileman_Mimes extends core_Mvc
         return $res;
     }
     
-
+    
     /**
      * Връща масив с файловите разширения за даден mime тип
      * Първия елемент на масива е най-подходящото разширение
@@ -122,23 +123,24 @@ class fileman_Mimes extends core_Mvc
     public static function getExtByMime($mime)
     {
         if (!$mime) {
+            
             return;
         }
-
+        
         self::loadMime2Ext();
-
+        
         $mime = trim(strtolower($mime));
-
+        
         $exts = self::$mime2ext[$mime];
-
+        
         if (!$exts) {
             
             return array();
         }
-
+        
         return explode(' ', $exts);
     }
-
+    
     
     /**
      * Добавя коректното разшитение на файл, като отчита неговия mime тип
@@ -146,12 +148,12 @@ class fileman_Mimes extends core_Mvc
     public static function addCorrectFileExt($fileName, $mime)
     {
         expect($fileName);
-
+        
         if (!$mime) {
             
             return $fileName;
         }
-
+        
         $extArr = self::getExtByMime($mime);
         
         if (count($extArr)) {
@@ -160,7 +162,7 @@ class fileman_Mimes extends core_Mvc
             $ext = fileman_Files::getExt($fileName);
             
             $ext = mb_strtolower($ext);
-
+            
             if (!$ext || !in_array($ext, $extArr)) {
                 
                 // TODO става много сложно
@@ -211,7 +213,7 @@ class fileman_Mimes extends core_Mvc
      * @param string $mimeType - Миме типа на файла
      * @param string $ext      - Разширението на файла
      *
-     * @return boolean
+     * @return bool
      */
     public static function isCorrectExt($mimeType, $ext)
     {

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас за парсиране на български ЕГН
  *
@@ -9,49 +10,58 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @internal  да се поиска разрешението от автора за използването в GPL проект
  */
 class bglocal_BulgarianEGN
 {
-    
     /**
      * @var string
      */
     public $egn;
     
+    
     /**
-     * @var integer
+     * @var int
      */
     public $birth_day;
     
+    
     /**
-     * @var integer
+     * @var int
      */
     public $birth_month;
     
+    
     /**
-     * @var integer
+     * @var int
      */
     public $birth_year;
+    
     
     /**
      * @var string
      */
     public $region;
     
+    
     /**
-     * @var boolean
+     * @var bool
      */
     public $is_male;
     
+    
     /**
-     * @var boolean
+     * @var bool
      */
     public $is_female;
+    
     
     /**
      * Taken from http://georgi.unixsol.org/programs/egn.php/view/
@@ -90,6 +100,7 @@ class bglocal_BulgarianEGN
         'Друг/Неизвестен' => 999, /* от 926 до 999 */
     );
     
+    
     /**
      * @var array
      */
@@ -97,12 +108,12 @@ class bglocal_BulgarianEGN
     
     
     /**
-     * @param  string                $egn_string
+     * @param string $egn_string
+     *
      * @throws bglocal_exception_EGN
      */
     public function __construct($egn_string)
     {
-        
         // must be 10-digit number:
         if (!preg_match('/^[0-9]{10}$/', $egn_string)) {
             throw new bglocal_exception_EGN('Полето трябва да съдържа 10 цифри.');
@@ -118,6 +129,7 @@ class bglocal_BulgarianEGN
         $year = (int) substr($egn_string, 0, 2);
         $month = (int) substr($egn_string, 2, 2);
         $day = (int) substr($egn_string, 4, 2);
+        
         
         /**
          * Month:
@@ -165,8 +177,9 @@ class bglocal_BulgarianEGN
     /**
      * Performs the parity check - we expect a 10-digit number!
      *
-     * @param  string  $egn_string
-     * @return boolean
+     * @param string $egn_string
+     *
+     * @return bool
      */
     public static function isValid($egn_string)
     {
@@ -177,8 +190,9 @@ class bglocal_BulgarianEGN
     /**
      * Computes the parity digit based on the first 9 digits
      *
-     * @param  string  $egn_string
-     * @return integer
+     * @param string $egn_string
+     *
+     * @return int
      */
     public static function getParityDigit($egn_string)
     {
@@ -196,7 +210,8 @@ class bglocal_BulgarianEGN
      * Creates a new BulgarianEGN object
      * Usage example: echo BulgarianEGN::factory('0000000000')->region;
      *
-     * @param  string       $egn_string
+     * @param string $egn_string
+     *
      * @return BulgarianEGN
      */
     public static function factory($egn_string)
@@ -210,7 +225,8 @@ class bglocal_BulgarianEGN
      * This is only relatively dependable, since it relies on common
      * practices instead of clear rules and regulations
      *
-     * @param  string $egn_string
+     * @param string $egn_string
+     *
      * @return string
      */
     private static function getRegion($egn_string)

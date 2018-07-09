@@ -7,20 +7,20 @@
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_DataLogs extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sens2_Wrapper, plg_Sorting, plg_RefreshRows, plg_AlignDecimals,plg_Chart';
-
+    
     
     /**
      * Заглавие
@@ -50,8 +50,8 @@ class sens2_DataLogs extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,sens';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -79,7 +79,7 @@ class sens2_DataLogs extends core_Manager
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност, chart=ay');
         $this->FLD('time', 'datetime', 'caption=Към момент,chart=ax');
         $this->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input=silent,autoFilter');
-
+        
         $this->setDbIndex('time');
         
         $this->dbEngine = 'InnoDB';
@@ -92,9 +92,9 @@ class sens2_DataLogs extends core_Manager
     public static function addValue($indicatorId, $value, $time)
     {
         $rec = (object) array('indicatorId' => $indicatorId, 'value' => $value, 'time' => $time);
-
+        
         self::save($rec);
-
+        
         return $rec->id;
     }
     
@@ -118,8 +118,8 @@ class sens2_DataLogs extends core_Manager
         if ($indicatorId = $data->listFilter->rec->indicatorId) {
             $data->query->where("#indicatorId = {$indicatorId}");
         }
-
-
+        
+        
         if ($rec->groupBy == 'all' || !$rec->groupBy) {
             $data->query->XPR('timeGroup', 'date', '#time');
         } elseif ($rec->groupBy == 'day') {
@@ -147,7 +147,7 @@ class sens2_DataLogs extends core_Manager
             $data->query->groupBy('indicatorId,timeGroup');
             $data->query->show('id,indicatorId,value,time,timeGroup,valueRes');
         }
-       
+        
         $data->query->orderBy('#time', 'DESC');
     }
     
@@ -158,7 +158,7 @@ class sens2_DataLogs extends core_Manager
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->indicatorId = sens2_Indicators::getTitleById($rec->indicatorId);
-
+        
         if ($rec->timeGroup) {
             $row->time = $rec->timeGroup;
         }
@@ -166,7 +166,7 @@ class sens2_DataLogs extends core_Manager
             $color = dt::getColorByTime($rec->time);
             $row->time = ht::createElement('span', array('style' => "color:#{$color}"), $row->time);
         }
-
+        
         if ($rec->valueRec) {
             $rec->value = $rec->valueRec;
             $row->value = self::getVerbal($rec, 'value');

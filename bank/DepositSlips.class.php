@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Документ за Вносни бележки
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_DepositSlips extends bank_DocumentBlank
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -111,7 +110,7 @@ class bank_DepositSlips extends bank_DocumentBlank
         $this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory');
         $this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка');
         $this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
-
+        
         $this->setDbIndex('valior');
     }
     
@@ -163,6 +162,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     protected static function getContragentInfo(core_Form $form)
     {
         if (isset($form->rec->beneficiaryName)) {
+            
             return;
         }
         $folderId = $form->rec->folderId;
@@ -216,9 +216,11 @@ class bank_DepositSlips extends bank_DocumentBlank
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {

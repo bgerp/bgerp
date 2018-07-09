@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Следене в социалните мрежи
  *
  *
  * @category  bgerp
  * @package   social
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class social_Followers extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -26,7 +25,7 @@ class social_Followers extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Проследяване';
-        
+    
     
     /**
      * Плъгини за зареждане
@@ -38,19 +37,20 @@ class social_Followers extends core_Master
      * Полета за листовия изглед
      */
     public $listFields = 'title,url,icon,followersCnt,state,order';
-
+    
     
     /**
      * Кой има право да чете?
      */
     public $canRead = 'cms, social, admin, ceo';
-            
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'cms, social, admin, ceo';
-
+    
+    
     /**
      * Кои може да гледа сингъла
      */
@@ -70,7 +70,7 @@ class social_Followers extends core_Master
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
     }
     
- 
+    
     /**
      * Създаване на бутони за споделяне
      */
@@ -93,37 +93,36 @@ class social_Followers extends core_Master
             if ($socialNetwork->icon) {
                 $imgInst = new thumb_Img(array($socialNetwork->icon, 24, 24, 'fileman', 'isAbsolute' => true, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
                 $icon = $imgInst->getUrl('forced');
-
+            
             // Ако тя липсва
             } else {
-                    
+                
                 // Вземаме URL от базата
                 $socUrl = $socialNetwork->url;
-                    
+                
                 // Намираме името на функцията
                 $name = social_Sharings::getServiceNameByUrl($socUrl);
-
-
-
+                
+                
                 if (log_Browsers::isRetina()) {
                     $size = 48;
                 } else {
                     $size = 24;
                 }
-
+                
                 // Намираме иконата в sbf папката
                 $icon = sbf("cms/img/{$size}/{$name}.png", '');
             }
-                
+            
             // Създаваме иконата за бутона
             $img = ht::createElement('img', array('src' => $icon, 'alt' => $socialNetwork->title, 'width' => 24, 'height' => 24));
-                
+            
             // Генерираме URL-то на бутона
             $url = array('social_Followers', 'Redirect', $socialNetwork->id);
-                
+            
             // Създаваме линка на бутона
             $link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, null, array('class' => 'soc-following noSelect', 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
-       
+            
             // Добавямего към шаблона
             $tpl->append($link);
         }
@@ -131,8 +130,8 @@ class social_Followers extends core_Master
         // Връщаме тулбар за споделяне в социалните мреци
         return $tpl;
     }
-
-
+    
+    
     /**
      * Функция за споделяне
      */
@@ -148,7 +147,7 @@ class social_Followers extends core_Master
             if (core_Packs::fetch("#name = 'vislog'") &&
                vislog_History::add('Последване в ' . $rec->title)) {
                 if (Mode::is('javascript', 'yes') && !log_Browsers::detectBot()) {
-                                   
+                   
                    // Увеличаване на брояча на споделянията
                     $rec->followersCnt++;
                     self::save($rec, 'followersCnt');
@@ -168,13 +167,13 @@ class social_Followers extends core_Master
     {
         // Ако е субмитната формата
         if ($data->form && $data->form->isSubmitted()) {
-
+            
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'list'));
         }
     }
-
-
+    
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране

@@ -13,24 +13,25 @@ defIfNot('CRM_REMOTE_COMPANY_LOGO_CREATOR', 'https://experta.bg/api_Companies/ge
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  *
  * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Companies extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = array(
+        
         // Интерфейс на всички счетоводни пера, които представляват контрагенти
         'crm_ContragentAccRegIntf',
-
+        
         // Интерфейс за счетоводни пера, отговарящи на фирми
         'crm_CompanyAccRegIntf',
         
@@ -42,12 +43,12 @@ class crm_Companies extends core_Master
         
         // Интерфейс за данните на контрагента
         'doc_ContragentDataIntf',
-            
+        
         // Интерфейс за корица на папка в която може да се създава артикул
         'cat_ProductFolderCoverIntf',
     );
     
- 
+    
     /**
      * Заглавие
      */
@@ -98,7 +99,7 @@ class crm_Companies extends core_Master
      * Полетата, които ще видим в таблицата
      */
     public $listFields = 'nameList=Фирма,phonesBox=Комуникации,addressBox=Адрес,name=';
-
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -117,7 +118,7 @@ class crm_Companies extends core_Master
      */
     public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id';
     
-
+    
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
@@ -152,8 +153,8 @@ class crm_Companies extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'powerUser';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -164,13 +165,13 @@ class crm_Companies extends core_Master
      * Кой  може да групира "С избраните"?
      */
     public $canGrouping = 'powerUser';
-
+    
     
     /**
      * Кой може да оттегля
      */
     public $canReject = 'powerUser';
- 
+    
     
     /**
      * Кой може да го възстанови?
@@ -194,7 +195,7 @@ class crm_Companies extends core_Master
      * Поле, в което да се постави връзка към папката в листови изглед
      */
     public $listFieldForFolderLink = 'folder';
- 
+    
     
     /**
      * Детайли, на модела
@@ -241,6 +242,7 @@ class crm_Companies extends core_Master
     
     /**
      * Полето, което ще се разширява
+     *
      * @see plg_ExpandInput
      */
     public $expandFieldName = 'groupList';
@@ -269,7 +271,7 @@ class crm_Companies extends core_Master
         'vatId' => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
         'pCode' => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
         'website' => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
-        );
+    );
     
     
     /**
@@ -301,7 +303,7 @@ class crm_Companies extends core_Master
         $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
         $this->FLD('folderName', 'varchar', 'caption=Име на папка');
-
+        
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
         
@@ -313,7 +315,7 @@ class crm_Companies extends core_Master
         $this->setDbIndex('country');
         $this->setDbIndex('email');
     }
-
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -363,7 +365,7 @@ class crm_Companies extends core_Master
         
         // Според заявката за сортиране, показваме различни полета
         $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
-
+        
         if ($showColumns) {
             $showColumns = arr::make($showColumns, true);
             foreach ($showColumns as $field => $title) {
@@ -380,7 +382,7 @@ class crm_Companies extends core_Master
             }
             $data->query->orderBy($orderCond);
         }
-
+        
         
         if ($data->listFilter->rec->alpha) {
             if ($data->listFilter->rec->alpha{0} == '0') {
@@ -400,17 +402,17 @@ class crm_Companies extends core_Master
             
             $data->query->where($cond);
         }
-
+        
         // Филтриране по потребител/и
         if (!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
-
+        
         if (($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === false)) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
-
+        
         if (!empty($data->listFilter->rec->groupId)) {
             $data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
         }
@@ -438,8 +440,7 @@ class crm_Companies extends core_Master
             }
         }
     }
-        
-
+    
     
     /**
      * Премахване на бутон и добавяне на нови два в таблицата
@@ -514,17 +515,17 @@ class crm_Companies extends core_Master
                     $oldValArr[$fName] = $form->rec->{$fName};
                     $form->rec->{$fName} = $fVal;
                 }
-            
+                
                 if ($oldValArr) {
                     foreach ($oldValArr as $fName => $fVal) {
                         if (!$form->fields[$fName]) {
                             continue;
                         }
-            
+                        
                         if ($form->fields[$fName]->type instanceof type_Key || $form->fields[$fName]->type instanceof type_Keylist) {
                             $form->fields[$fName]->unit = '|*(' . $form->fields[$fName]->type->toVerbal($fVal) . ')';
                         }
-            
+                        
                         $form->fields[$fName]->hint = 'Предишна стойност|*: ' . $fVal;
                         $form->fields[$fName]->class .= ' flashElem';
                     }
@@ -570,7 +571,7 @@ class crm_Companies extends core_Master
                 }
                 
                 $similarCompany .= ht::createLink(self::getVerbal($similarRec, 'name'), $singleUrl, null, $otherParamArr);
-        
+                
                 if ($haveRightForSingle && $similarRec->vatId) {
                     $similarCompany .= ', ' . self::getVerbal($similarRec, 'vatId');
                 }
@@ -592,7 +593,7 @@ class crm_Companies extends core_Master
             
             $resStr = "Възможно е дублиране със {$sledniteFirmi}|*: <ul>{$similarCompany}</ul>";
         }
-    
+        
         return $resStr;
     }
     
@@ -622,14 +623,14 @@ class crm_Companies extends core_Master
             $companyTypesArr = explode("\n", $companyTypes);
             arr::combine($companyTypesArr, array('ет','еоод','сд', 'ад', 'еад'));
         }
-   
+        
         foreach ($companyTypesArr as $word) {
             $word = trim($word, '|');
             $nameL = str_replace(array("#{$word}", "{$word}#"), array('', ''), $nameL);
         }
         
         $nameL = trim(str_replace('#', '', $nameL));
-  
+        
         $oQuery = self::getQuery();
         self::restrictAccess($oQuery);
         
@@ -688,7 +689,7 @@ class crm_Companies extends core_Master
         }
         
         $fields = implode(',', $fieldsArr);
-      
+        
         return $similarsArr;
     }
     
@@ -800,7 +801,7 @@ class crm_Companies extends core_Master
             
             $VatType = new drdata_VatType();
             $row->vat = $VatType->toVerbal($rec->vatId);
-
+            
             if ($rec->folderName) {
                 $row->title = $row->name;
             }
@@ -839,7 +840,7 @@ class crm_Companies extends core_Master
             // Добавяме линк към профила на потребителя, който е inCharge на визитката
             $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
         }
-     
+        
         $ownCompany = crm_Companies::fetchOurCompany();
         if ($ownCompany->country != $rec->country) {
             $country = $row->country;
@@ -847,19 +848,19 @@ class crm_Companies extends core_Master
             $currentCountry = $mvc->getVerbal($rec, 'place');
             $country = $currentCountry;
         }
-                
+        
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
         $row->id = $mvc->getVerbal($rec, 'id');
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : '');
-
+        
         if (!$row->title) {
             $row->title .= $mvc->getTitleById($rec->id);
         }
- 
+        
         if ($rec->folderName) {
             $row->folderName = "<div style='color:blue;'>" . $mvc->getVerbal($rec, 'folderName') . '</div>';
         }
-   
+        
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         if ($rec->vatId && $rec->uicId) {
@@ -874,7 +875,7 @@ class crm_Companies extends core_Master
      * След добавяне на запис в модела
      *
      * @param crm_Companies $mvc
-     * @param integer       $id
+     * @param int           $id
      * @param stdClass      $rec
      * @param string|NULL   $saveFileds
      */
@@ -883,6 +884,7 @@ class crm_Companies extends core_Master
         $mvc->updateGroupsCnt = true;
         
         $mvc->updatedRecs[$id] = $rec;
+        
         
         /**
          * @TODO Това не трябва да е тук, но по някаква причина не сработва в on_Shutdown()
@@ -906,7 +908,7 @@ class crm_Companies extends core_Master
     protected static function prepareCompanyLogo()
     {
         self::setCompanyLogo('BGERP_COMPANY_LOGO_SVG');
-    
+        
         core_Lg::push('en');
         self::setCompanyLogo('BGERP_COMPANY_LOGO_SVG_EN');
         core_Lg::pop();
@@ -918,12 +920,12 @@ class crm_Companies extends core_Master
      *
      * @param string $companyName
      *
-     * @return float 
+     * @return float
      */
     public static function getCompanyFontSize($companyName)
     {
         $companyNameLen = mb_strlen($companyName);
-
+        
         if ($companyNameLen > 48) {
             $companyFontSize = 80;
         } elseif ($companyNameLen > 42) {
@@ -1014,7 +1016,7 @@ class crm_Companies extends core_Master
             $fAddres .= (trim($fAddres)) ? ', ' : '';
             $fAddres .= transliterate($cRec->pCode);
         }
-
+        
         if (trim($cRec->place)) {
             if (trim($fAddres)) {
                 $fAddres .= (trim($cRec->pCode)) ? ' ' : ', ';
@@ -1022,7 +1024,7 @@ class crm_Companies extends core_Master
             
             $fAddres .= transliterate(tr($cRec->place));
         }
-
+        
         if (trim($cRec->address)) {
             $fAddres .= (trim($fAddres)) ? ', ' : '';
             $fAddres .= transliterate(tr($cRec->address));
@@ -1048,7 +1050,7 @@ class crm_Companies extends core_Master
                 $email = $emailsArr[0];
             }
         }
-
+        
         if (mb_strlen($cRec->website) > 32 || mb_strlen($email) > 20) {
             $tpl->append(58, 'smallFontSize');
         } else {
@@ -1100,29 +1102,29 @@ class crm_Companies extends core_Master
             if (empty($pngHnd)) {
                 if (defined('CRM_REMOTE_COMPANY_LOGO_CREATOR')) {
                     $url = CRM_REMOTE_COMPANY_LOGO_CREATOR;
-            
+                    
                     $data = array('myCompanyName' => $companyName,
-                            'address' => $fAddres,
-                            'tel' => $tel,
-                            'fax' => $fax,
-                            'email' => $email,
-                            'site' => $cRec->website,
-                            'baseColor' => $baseColor,
-                            'activeColor' => $activeColor,
-                            'lg' => core_Lg::getCurrent()
+                        'address' => $fAddres,
+                        'tel' => $tel,
+                        'fax' => $fax,
+                        'email' => $email,
+                        'site' => $cRec->website,
+                        'baseColor' => $baseColor,
+                        'activeColor' => $activeColor,
+                        'lg' => core_Lg::getCurrent()
                     );
-            
+                    
                     $options = array(
-                            'http' => array(
-                                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                                    'method' => 'POST',
-                                    'content' => http_build_query($data),
-                            ),
+                        'http' => array(
+                            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                            'method' => 'POST',
+                            'content' => http_build_query($data),
+                        ),
                     );
-            
+                    
                     $context = stream_context_create($options);
                     $result = @file_get_contents($url, false, $context);
-            
+                    
                     if ($result) {
                         $result = json_decode($result);
                         if ($result && $url = $result->url) {
@@ -1152,39 +1154,39 @@ class crm_Companies extends core_Master
     {
         if ($typeKey->params['select'] == 'name') {
             $query = $mvc->getQuery();
-           
+            
             $viewAccess = true;
             if ($typeKey->params['restrictViewAccess'] == 'yes') {
                 $viewAccess = false;
             }
-           
+            
             $mvc->restrictAccess($query, null, $viewAccess);
             $query->where("#state != 'rejected'");
-           
+            
             if (trim($where)) {
                 $query->where($where);
             }
-           
+            
             while ($rec = $query->fetch()) {
                 $typeKey->options[$rec->id] = $rec->name . " ({$rec->id})";
             }
         }
     }
-
-
+    
+    
     /**
      * Подготовка на опции за key2
      */
     public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $ownCountry = self::fetchOurCompany()->country;
-
+        
         if (core_Lg::getCurrent() == 'bg') {
             $countryNameField = 'commonNameBg';
         } else {
             $countryNameField = 'commonName';
         }
-
+        
         $query = self::getQuery();
         $query->orderBy('modifiedOn=DESC');
         
@@ -1192,23 +1194,23 @@ class crm_Companies extends core_Master
         if ($params['restrictViewAccess'] == 'yes') {
             $viewAccess = false;
         }
-
+        
         $me = cls::get(get_called_class());
         $me->restrictAccess($query, null, $viewAccess);
         
         if (!$includeHiddens) {
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
-           
+        
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
                 
                 return array();
             }
-
+            
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-
+            
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
@@ -1224,7 +1226,7 @@ class crm_Companies extends core_Master
             if ($q{0} == '"') {
                 $strict = true;
             }
-
+            
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
             $q = mb_strtolower($q);
@@ -1240,11 +1242,11 @@ class crm_Companies extends core_Master
                 $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
- 
+        
         if ($limit) {
             $query->limit($limit);
         }
-
+        
         $query->show('id,searchFieldXpr');
         
         $res = array();
@@ -1252,10 +1254,9 @@ class crm_Companies extends core_Master
         while ($rec = $query->fetch()) {
             $res[$rec->id] = trim($rec->searchFieldXpr);
         }
- 
+        
         return $res;
     }
-
     
     
     /**
@@ -1392,6 +1393,7 @@ class crm_Companies extends core_Master
         }
     }
     
+    
     /**
      * Създава `From` и `Doman` правила за рутиране след запис на визитка
      *
@@ -1399,6 +1401,7 @@ class crm_Companies extends core_Master
      * правила
      *
      * @access protected
+     *
      * @param mixed $emails   един или повече имейли, зададени като стринг или като масив
      * @param int   $objectId
      */
@@ -1406,7 +1409,7 @@ class crm_Companies extends core_Master
     {
         // Приоритетът на всички правила, генериране след запис на визитка е среден и нарастващ с времето
         $priority = email_Router::dateToPriority(dt::now(), 'mid', 'asc');
-
+        
         // Нормализираме параметъра $emails - да стане масив от валидни имейл адреси
         if (!is_array($emails)) {
             $emails = type_Emails::toArray($emails);
@@ -1440,15 +1443,15 @@ class crm_Companies extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Връща информацията, която има за нашата фирма
      */
     public static function fetchOurCompany()
     {
         $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
-
+        
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');
         }
@@ -1518,13 +1521,15 @@ class crm_Companies extends core_Master
      * 		1 . Не е от ЕС
      * 		2.  Има ЕИК от ЕС, различен от BG
      * Ако няма държава начисляваме ДДС
-     * @param  int     $id - id' то на записа
-     * @return boolean TRUE/FALSE
+     *
+     * @param int $id - id' то на записа
+     *
+     * @return bool TRUE/FALSE
      */
     public static function shouldChargeVat($id)
     {
         $rec = static::fetch($id);
-       
+        
         // Ако не е посочена държава, вингаи начисляваме ДДС
         if (!$rec->country) {
             
@@ -1536,7 +1541,7 @@ class crm_Companies extends core_Master
             
             return false;
         }
- 
+        
         $ownCompany = crm_Companies::fetchOurCompany();
         
         // Ако няма VAT номер или има валиден ват и не е от държавата на myCompany не начисляваме
@@ -1545,22 +1550,22 @@ class crm_Companies extends core_Master
             return false;
         }
         
- 
         return true;
     }
-
-
+    
+    
     /**
      * Връща валутата по подразбиране за търговия дадения контрагент
      * в зависимост от дъжавата му
      *
-     * @param  int       $id - ид на записа
+     * @param int $id - ид на записа
+     *
      * @return string(3) - BGN|EUR|USD за дефолт валутата
      */
     public static function getDefaultCurrencyId($id)
     {
         $rec = self::fetch($id);
-
+        
         // Ако контрагента няма държава, то дефолт валутата е BGN
         if (empty($rec->country)) {
             
@@ -1572,7 +1577,7 @@ class crm_Companies extends core_Master
             
             return 'BGN';
         }
-            
+        
         // Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
         if (drdata_Countries::isEur($rec->country)) {
             
@@ -1656,6 +1661,7 @@ class crm_Companies extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
+     *
      * @param int $objectId
      */
     public static function getItemRec($objectId)
@@ -1668,7 +1674,7 @@ class crm_Companies extends core_Master
                 'num' => $rec->id . ' f',
                 'title' => $rec->name,
                 'features' => array('Държава' => $self->getVerbal($rec, 'country'),
-                                    'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)
+                    'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)
             );
             
             // Добавяме свойствата от групите, ако има такива
@@ -1686,12 +1692,14 @@ class crm_Companies extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
     {
         // @todo!
     }
+    
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
@@ -1700,8 +1708,9 @@ class crm_Companies extends core_Master
     
     /**
      * Връща данните на фирмата
-     * @param integer $id    - id' то на записа
-     * @param email   $email - Имейл
+     *
+     * @param int   $id    - id' то на записа
+     * @param email $email - Имейл
      *
      * return object
      */
@@ -1730,16 +1739,18 @@ class crm_Companies extends core_Master
             // Вземаме груповите имейли
             $contrData->groupEmails = crm_Persons::getGroupEmails($company->id);
         }
-
+        
         return $contrData;
     }
     
     
     /**
      * Връща опции със всички лица свързани към тази фирма
-     * @param  int     $id      - ид на фирма
-     * @param  boolean $intKeys - дали ключовете на масива да са int
-     * @return array   $options
+     *
+     * @param int  $id      - ид на фирма
+     * @param bool $intKeys - дали ключовете на масива да са int
+     *
+     * @return array $options
      */
     public static function getPersonOptions($id, $intKeys = true)
     {
@@ -1749,7 +1760,7 @@ class crm_Companies extends core_Master
             if (!$intKeys) {
                 $options = array_combine($options, $options);
             }
-        
+            
             $options = array('' => ' ') + $options;
         }
         
@@ -1776,12 +1787,12 @@ class crm_Companies extends core_Master
         $rec->tel = $tel;
         $rec->fax = $fax;
         $rec->website = $website;
-            
+        
         // Достъп/права
         $rec->inCharge = $inCharge;
         $rec->access = $access;
         $rec->shared = $shared;
-
+        
         
         if ($vatId) {
             // Данъчен номер на фирмата
@@ -1790,12 +1801,12 @@ class crm_Companies extends core_Master
         }
         
         $Companies = cls::get('crm_Companies');
-   
+        
         $folderId = $Companies->forceCoverAndFolder($rec);
-         
+        
         return $folderId;
     }
-
+    
     
     /**
      * Функция, която задава правата за достъп до дадена фирма в търсенето
@@ -1836,7 +1847,7 @@ class crm_Companies extends core_Master
         $query->where("#state != 'rejected'");
     }
     
-
+    
     /**
      * Манипулация на списъка с екстендерите
      *
@@ -1856,13 +1867,13 @@ class crm_Companies extends core_Master
      *
      * @param email $email - Имейл, за който търсим
      *
-     * @return integet|boolean $fodlerId - id на папката
+     * @return integet|bool $fodlerId - id на папката
      */
     public static function getFolderFromEmail($email)
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
-    
+        
         // Вземаме компанията с този имейл
         $companyId = static::fetchField(array("LOWER(#email) LIKE '%[#1#]%'", $email));
         
@@ -1960,19 +1971,20 @@ class crm_Companies extends core_Master
                     // Ако телефона е същия
                     if (($cTel->countryCode == $oTel->countryCode) && ($cTel->areaCode == $oTel->areaCode)
                         && ($cTel->number == $oTel->number)) {
-                            
+                        
                         // Премахваме от масива на контрагента
                         unset($cTelArr[$key]);
                     }
                 }
             }
-
+            
             $newCTel = '';
+            
             // Обхождаме останалия масив
             foreach ($cTelArr as $cTel) {
                 
                 // Добавяме в стринга телефона
-
+                
                 $newCTel .= ($newCTel) ? ', ' . $cTel->original : $cTel->original;
             }
             
@@ -1988,7 +2000,7 @@ class crm_Companies extends core_Master
             
             // Масив с факсове на контрагента
             $cFaxArr = drdata_PhoneType::toArray($contrData->fax);
-
+            
             // Обхождаме масива с факсове на нашата фирма
             foreach ($oFaxArr as $oFax) {
                 
@@ -1998,25 +2010,26 @@ class crm_Companies extends core_Master
                     // Ако факса е същия
                     if (($cFax->countryCode == $oFax->countryCode) && ($cFax->areaCode == $oFax->areaCode)
                         && ($cTel->number == $oFax->number)) {
-                            
+                        
                         // Премахваме от масива на контрагента
                         unset($cFaxArr[$key]);
                     }
                 }
             }
             $newCFax = '';
+            
             // Обхождаме останалия масив
             foreach ($cFaxArr as $cFax) {
                 
                 // Добавяме в стринга факса
-
+                
                 $newCFax .= ($newCFax) ? ', ' . $cFax->original : $cFax->original;
             }
             
             // Заместваме новия стринг с данните на котрагента
             $contrData->fax = $newCFax;
         }
-
+        
         // Ако адреса е същия
         if (mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address)) {
             
@@ -2073,7 +2086,7 @@ class crm_Companies extends core_Master
             
             // Масив с груповите имейли
             $cGroupEmailArr = type_Emails::toArray($contrData->groupEmails);
-
+            
             // Ако има стойности в масива
             if (count($cGroupEmailArr)) {
                 
@@ -2093,7 +2106,7 @@ class crm_Companies extends core_Master
             // Останалите имейли ги записва в груповите
             $contrData->groupEmails = type_Emails::fromArray($cGroupEmailArr);
         }
-
+        
         // Ако сме премахнали имейлите и има имейли в групите
         if (!$contrData->email && count($cGroupEmailArr)) {
             
@@ -2106,11 +2119,12 @@ class crm_Companies extends core_Master
     /**
      * Връща пълния конкатениран адрес на контрагента
      *
-     * @param  int          $id            - ид на контрагент
-     * @param  boolean      $translitarate - дали да се транслитерира адреса
-     * @param  boolean|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
-     * @param  boolean      $showAddress   - да се показва ли адреса
-     * @return core_ET      $tpl - адреса
+     * @param int       $id            - ид на контрагент
+     * @param bool      $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param bool      $showAddress   - да се показва ли адреса
+     *
+     * @return core_ET $tpl - адреса
      */
     public function getFullAdress($id, $translitarate = false, $showCountry = null, $showAddress = true)
     {
@@ -2156,9 +2170,9 @@ class crm_Companies extends core_Master
     /**
      * Форсира контрагент в дадена група
      *
-     * @param int     $id         -ид на продукт
-     * @param string  $groupSysId - sysId или ид на група
-     * @param boolean $isSysId    - дали е систем ид
+     * @param int    $id         -ид на продукт
+     * @param string $groupSysId - sysId или ид на група
+     * @param bool   $isSysId    - дали е систем ид
      */
     public static function forceGroup($id, $groupSysId, $isSysId = true)
     {
@@ -2190,7 +2204,8 @@ class crm_Companies extends core_Master
     /**
      * Връща мета дефолт мета данните на папката
      *
-     * @param  int   $id - ид на папка
+     * @param int $id - ид на папка
+     *
      * @return array $meta - масив с дефолт мета данни
      */
     public function getDefaultMeta($id)
@@ -2223,17 +2238,18 @@ class crm_Companies extends core_Master
     /**
      * Кои документи да се показват като бързи бутони в папката на корицата
      *
-     * @param  int   $id - ид на корицата
+     * @param int $id - ид на корицата
+     *
      * @return array $res - възможните класове
      */
     public function getDocButtonsInFolder($id)
     {
         $res = array();
-         
+        
         $rec = $this->fetch($id);
         
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
-
+        
         if (!isset($clientGroupId)) {
             $clientGroupId = crm_Groups::getIdFromSysId('customers');
             $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
@@ -2253,13 +2269,13 @@ class crm_Companies extends core_Master
             $res[] = 'sales_Sales';
             $res[] = 'sales_Quotations';
         }
-         
+        
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
             $res[] = 'purchase_Purchases';
             $res[] = 'purchase_Offers';
         }
-         
+        
         return $res;
     }
     
@@ -2268,9 +2284,10 @@ class crm_Companies extends core_Master
      * Връща мета дефолт параметрите със техните дефолт стойностти, които да се добавят във формата на
      * универсален артикул, създаден в папката на корицата
      *
-     * @param  int   $id - ид на корицата
+     * @param int $id - ид на корицата
+     *
      * @return array $params - масив с дефолтни параметри И техните стойности
-     *                  <ид_параметър> => <дефолтна_стойност>
+     *               <ид_параметър> => <дефолтна_стойност>
      */
     public function getDefaultProductParams($id)
     {
@@ -2378,9 +2395,10 @@ class crm_Companies extends core_Master
      * В случая че държавата е България или няма държава, проверяваме
      * дали е валиден ЕИК номер. Във всички други случаи приемаме че е валиден
      *
-     * @param  string  $uicNo     - националния номер на контрагента
-     * @param  string  $countryId - id на държавата, NULL за България
-     * @return boolean - валиден ли е националния номер
+     * @param string $uicNo     - националния номер на контрагента
+     * @param string $countryId - id на държавата, NULL за България
+     *
+     * @return bool - валиден ли е националния номер
      */
     public static function checkUicId($uicNo, $countryId = null)
     {
@@ -2409,8 +2427,8 @@ class crm_Companies extends core_Master
     {
         return 'private';
     }
-
-
+    
+    
     /**
      * Добавя ключовио думи за държавата и на bg и на en
      */
@@ -2418,8 +2436,8 @@ class crm_Companies extends core_Master
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
     }
-
-
+    
+    
     /**
      * След взимане на иконката за единичния изглед
      *
@@ -2440,7 +2458,8 @@ class crm_Companies extends core_Master
             }
         }
     }
-
+    
+    
     /**
      * След взимане на заглавието за единичния изглед
      *
@@ -2451,6 +2470,7 @@ class crm_Companies extends core_Master
     public static function on_AfterGetSingleTitle($mvc, &$res, $id)
     {
         if (core_Users::isContractor()) {
+            
             return;
         }
         
@@ -2465,13 +2485,14 @@ class crm_Companies extends core_Master
     /**
      * Обновяване на адресните данни на фирмата
      *
-     * @param  int         $folderId  - ид на папка
-     * @param  string      $name      - име на папката
-     * @param  string      $vatId     - ват номер
-     * @param  int         $countryId - ид на държава
-     * @param  string|NULL $pCode     - п. код
-     * @param  string|NULL $place     - населено място
-     * @param  string|NULL $address   - адрес
+     * @param int         $folderId  - ид на папка
+     * @param string      $name      - име на папката
+     * @param string      $vatId     - ват номер
+     * @param int         $countryId - ид на държава
+     * @param string|NULL $pCode     - п. код
+     * @param string|NULL $place     - населено място
+     * @param string|NULL $address   - адрес
+     *
      * @return void
      */
     public static function updateContactDataByFolderId($folderId, $name, $vatId, $countryId, $pCode, $place, $address)

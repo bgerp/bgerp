@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'planning_DirectProductionNote' - Документ за производство
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_DirectProductionNote extends planning_ProductionDocument
 {
-    
-    
     /**
      * Заглавие
      */
@@ -206,6 +205,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+            
             return;
         }
         
@@ -339,7 +339,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $row->subTitle = tr($row->subTitle);
         
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-    
+        
         if (isset($rec->inputStoreId)) {
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
         }
@@ -418,8 +418,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Намира количествата за влагане от задачите
      *
-     * @param  stdClass $rec
-     * @return array    $res
+     * @param stdClass $rec
+     *
+     * @return array $res
      */
     protected function getDefaultDetails($rec)
     {
@@ -482,8 +483,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Намира количествата за влагане от задачите
      *
-     * @param  stdClass $rec
-     * @return array    $details
+     * @param stdClass $rec
+     *
+     * @return array $details
      */
     protected function getDefaultDetailsFromTasks($rec)
     {
@@ -520,8 +522,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Връща дефолт детайлите на документа, които съотвестват на ресурсите
      * в последната активна рецепта за артикула
      *
-     * @param  stdClass $rec - запис
-     * @return array    $details - масив с дефолтните детайли
+     * @param stdClass $rec - запис
+     *
+     * @return array $details - масив с дефолтните детайли
      */
     protected function getDefaultDetailsFromBom($rec, &$bomId)
     {
@@ -566,12 +569,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $index = $dRec->productId . '|' . $dRec->type;
             $details[$index] = $dRec;
         }
-    
+        
         // Връщаме генерираните детайли
         return $details;
     }
-
-
+    
+    
     /**
      * Изпълнява се след създаване на нов запис
      */
@@ -579,14 +582,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         // Ако записа е клониран не правим нищо
         if ($rec->_isClone === true) {
+            
             return;
         }
         
         // Ако могат да се генерират детайли от артикула да се
         $details = $mvc->getDefaultDetails($rec);
-    
+        
         if ($details !== false) {
-                
+            
             // Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
             if (count($details)) {
                 foreach ($details as $dRec) {
@@ -619,21 +623,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if ($rec->state == 'active' || $rec->state == 'rejected') {
             if (isset($rec->originId)) {
                 $origin = doc_Containers::getDocument($rec->originId);
-                    
+                
                 planning_Jobs::updateProducedQuantity($origin->that);
                 doc_DocumentCache::threadCacheInvalidation($rec->threadId);
             }
         }
     }
-
-
+    
+    
     /**
      * След подготовка на тулбара на единичен изглед
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-    
+        
         if ($rec->state == 'active') {
             if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}")) {
                 if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->originId))) {
@@ -656,8 +660,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Връща дефолтната себестойност за артикула
      *
-     * @param  mixed stdClass $rec
-     * @return mixed          $price
+     * @param mixed stdClass $rec
+     *
+     * @return mixed $price
      */
     private static function getDefaultDebitPrice($rec)
     {
@@ -761,10 +766,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $index = "{$dRec->productId}|{$dRec->type}";
             if (!array_key_exists($index, $recsToSave)) {
                 $recsToSave[$index] = (object) array('resourceId' => $dRec->productId,
-                                                    'type' => $dRec->type,
-                                                    'propQuantity' => 0,
-                                                    'packagingId' => $dRec->packagingId,
-                                                    'quantityInPack' => $dRec->quantityInPack);
+                    'type' => $dRec->type,
+                    'propQuantity' => 0,
+                    'packagingId' => $dRec->packagingId,
+                    'quantityInPack' => $dRec->quantityInPack);
             }
             
             $recsToSave[$index]->propQuantity += $dRec->quantity;
@@ -821,17 +826,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
+     *
      * @see acc_AllowArticlesCostCorrectionDocsIntf
      *
-     * @param  mixed $id - ид или запис
+     * @param mixed $id - ид или запис
+     *
      * @return array $products        - масив с информация за артикули
-     *                  o productId       - ид на артикул
-     *                  o name            - име на артикула
-     *                  o quantity        - к-во
-     *                  o amount          - сума на артикула
-     *                  o inStores        - масив с ид-то и к-то във всеки склад в който се намира
-     *                  o transportWeight - транспортно тегло на артикула
-     *                  o transportVolume - транспортен обем на артикула
+     *               o productId       - ид на артикул
+     *               o name            - име на артикула
+     *               o quantity        - к-во
+     *               o amount          - сума на артикула
+     *               o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+     *               o transportWeight - транспортно тегло на артикула
+     *               o transportVolume - транспортен обем на артикула
      */
     public function getCorrectableProducts($id)
     {
@@ -839,9 +846,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = $this->fetchRec($id);
         
         $products[$rec->productId] = (object) array('productId' => $rec->productId,
-                                                   'quantity' => $rec->quantity,
-                                                   'name' => cat_Products::getTitleById($rec->productId, false),
-                                                   'amount' => $rec->quantity);
+            'quantity' => $rec->quantity,
+            'name' => cat_Products::getTitleById($rec->productId, false),
+            'amount' => $rec->quantity);
         
         if ($transportWeight = cat_Products::getTransportWeight($rec->productId, 1)) {
             $products[$rec->productId]->transportWeight = $transportWeight;
@@ -863,8 +870,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
@@ -879,16 +887,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Създаване на протокол за производство на артикул
      * Ако може след създаването ще зареди артикулите от активната рецепта и/или задачите
      *
-     * @param int    $jobId     - ид на задание
-     * @param int    $productId - ид на артикул
-     * @param double $quantity  - к-во за произвеждане
-     * @param date   $valior    - вальор
-     * @param array  $fields    - допълнителни параметри
-     *                          ['storeId']       - ид на склад за засклаждане
-     *                          ['expenseItemId'] - ид на перо на разходен обект
-     *                          ['expenses']      - режийни разходи
-     *                          ['batch']         - партиден номер
-     *                          ['inputStoreId']  - дефолтен склад за влагане
+     * @param int   $jobId     - ид на задание
+     * @param int   $productId - ид на артикул
+     * @param float $quantity  - к-во за произвеждане
+     * @param date  $valior    - вальор
+     * @param array $fields    - допълнителни параметри
+     *                         ['storeId']       - ид на склад за засклаждане
+     *                         ['expenseItemId'] - ид на перо на разходен обект
+     *                         ['expenses']      - режийни разходи
+     *                         ['batch']         - партиден номер
+     *                         ['inputStoreId']  - дефолтен склад за влагане
      */
     public static function createDraft($jobId, $productId, $quantity, $valior = null, $fields = array())
     {
@@ -937,7 +945,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 if ($msg) {
                     expect(false, tr($msg));
                 }
-                 
+                
                 $rec->batch = $Def->normalize($fields['batch']);
                 $rec->isEdited = true;
             }
@@ -945,7 +953,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         // Създаване на запис
         self::route($rec);
-         
+        
         return self::save($rec);
     }
     
@@ -956,9 +964,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param int      $id             - ид на артикул
      * @param int      $productId      - ид на продукт
      * @param int      $packagingId    - ид на опаковка
-     * @param double   $packQuantity   - к-во опаковка
-     * @param double   $quantityInPack - к-во в опаковка
-     * @param boolean  $isWaste        - дали е отпадък или не
+     * @param float    $packQuantity   - к-во опаковка
+     * @param float    $quantityInPack - к-во в опаковка
+     * @param bool     $isWaste        - дали е отпадък или не
      * @param int|NULL $storeId        - ид на склад, или NULL ако е от незавършеното производство
      */
     public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null)
@@ -995,11 +1003,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         // Подготовка на записа
         $rec = (object) array('noteId' => $id,
-                             'type' => ($isWaste) ? 'pop' : 'input',
-                             'productId' => $productId,
-                             'packagingId' => $packagingId,
-                             'quantityInPack' => $quantityInPack,
-                             'quantity' => $quantity,
+            'type' => ($isWaste) ? 'pop' : 'input',
+            'productId' => $productId,
+            'packagingId' => $packagingId,
+            'quantityInPack' => $quantityInPack,
+            'quantity' => $quantity,
         );
         
         if (isset($storeId)) {
@@ -1013,34 +1021,35 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Какво да е предупреждението на бутона за контиране
      *
-     * @param int $id            - ид
+     * @param int    $id         - ид
      * @param string $isContable - какво е действието
-     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     *
+     * @return NULL|string - текста на предупреждението или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
-    	$warning = NULL;
-    	$rec = $this->fetchRec($id);
-    	$dQuery = planning_DirectProductNoteDetails::getQuery();
-    	$dQuery->where("#noteId = {$id} AND #storeId IS NOT NULL");
-    	
-    	$productsWithNegativeQuantity = array();
-    	while ($dRec = $dQuery->fetch()){
-    		$available = deals_Helper::getAvailableQuantityAfter($dRec->productId, $dRec->storeId, $dRec->quantity);
-    		if ($available < 0){
-    			$productsWithNegativeQuantity[$dRec->storeId][] = cat_Products::getTitleById($dRec->productId, FALSE);
-    		}
-    	}
-    
-    	if (count($productsWithNegativeQuantity)){
-    		$warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ';
-    		foreach ($productsWithNegativeQuantity as $storeId => $products){
-    			$warning .= implode(', ', $products) . ", |в склад|* " . store_Stores::getTitleById($storeId) . " |и|* ";
-    		}
-    		
-    		$warning = rtrim($warning, " |и|* ");
-    	}
-    	
-    	return $warning;
+        $warning = null;
+        $rec = $this->fetchRec($id);
+        $dQuery = planning_DirectProductNoteDetails::getQuery();
+        $dQuery->where("#noteId = {$id} AND #storeId IS NOT NULL");
+        
+        $productsWithNegativeQuantity = array();
+        while ($dRec = $dQuery->fetch()) {
+            $available = deals_Helper::getAvailableQuantityAfter($dRec->productId, $dRec->storeId, $dRec->quantity);
+            if ($available < 0) {
+                $productsWithNegativeQuantity[$dRec->storeId][] = cat_Products::getTitleById($dRec->productId, false);
+            }
+        }
+        
+        if (count($productsWithNegativeQuantity)) {
+            $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ';
+            foreach ($productsWithNegativeQuantity as $storeId => $products) {
+                $warning .= implode(', ', $products) . ', |в склад|* ' . store_Stores::getTitleById($storeId) . ' |и|* ';
+            }
+            
+            $warning = rtrim($warning, ' |и|* ');
+        }
+        
+        return $warning;
     }
 }

@@ -214,15 +214,15 @@ defIfNot('EMAIL_REJECT_SPAM_SCORE', 4);
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -257,133 +257,134 @@ class email_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-                
-            // Максимално време за еднократно фетчване на писма
-            'EMAIL_MAX_FETCHING_TIME' => array('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
-    
-            // Максималното време за изчакване на буфера
-            'EMAIL_POP3_TIMEOUT' => array('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
-
-            // Максималната разрешена памет за използване
-            'EMAIL_MAX_ALLOWED_MEMORY' => array('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
-
-            // Шаблон за име на папки
-            'EMAIL_UNSORTABLE_COUNTRY' => array('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
-            
-            // Потребител, който ще е отговорник на несортираните имейли
-            'EMAIL_UNSORTABLE_INCHARGE' => array('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
-
-            // Максималната големина на файловете, които ще се приемат за CID
-            'EMAIL_MAXIMUM_CID_LEN' => array('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
-            
-            // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане)
-            'EMAIL_RESENDING_TIME' => array('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
-            
-            // Максимален брой символи в текстовата част на входящите имейли
-            'EMAIL_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
-            
-            // Тип на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_POS' => array('enum(BEFORE_SUBJECT=Преди събджекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
-            
-            // Позиция на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_TYPE' => array('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
-            
-            // Позиция на манипулатора в събджекта
-            'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
-            
-            // Домейни за заменяне
-            'EMAIL_REPLACE_DOMAINS' => array('varchar', 'caption=Домейни за заменяне->Списък,columns=1', array('hint' => 'OldDomain1=NewDomain1,OldDomain2=NewDomain2,...')),
-
-            // Максимален размер на прикачените файлове и документи
-            'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
-            
-            'EMAIL_DEFAULT_SENT_INBOX' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
-            
-            'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array('int', 'caption=Автоматично попълване на имейлите в полето копие|*&comma; |когато са до->Брой, customizeBy=powerUser'),
-            
-            'EMAIL_RESTRICT_ROUTE' => array('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутурането по папки->Избор'),
-            
-            'EMAIL_OUTGOING_HEADER_TEXT' => array('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
-    
-            'EMAIL_OUTGOING_HEADER_TEXT_EN' => array('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На английски, customizeBy=powerUser'),
-    
-            'EMAIL_OUTGOING_FOOTER_TEXT' => array('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На български, customizeBy=powerUser'),
-    
-            'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На английски, customizeBy=powerUser'),
-    
-            'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщенията по имейл за нова нишка->Време'),
-            
-            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array('varchar', 'caption=Текст по подразбиране при отговор на имейл->На български, customizeBy=powerUser'),
-            
-            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array('varchar', 'caption=Текст по подразбиране при отговор на имейл->На английски, customizeBy=powerUser'),
-    
-            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На български, customizeBy=powerUser'),
-    
-            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
-            
-            'EMAIL_STOP_SEND_TO' => array('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
-            
-            'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
-            
-            'EMAIL_HARD_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
-            
-            'EMAIL_REJECT_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
-        );
         
+        // Максимално време за еднократно фетчване на писма
+        'EMAIL_MAX_FETCHING_TIME' => array('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
         
+        // Максималното време за изчакване на буфера
+        'EMAIL_POP3_TIMEOUT' => array('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
+        
+        // Максималната разрешена памет за използване
+        'EMAIL_MAX_ALLOWED_MEMORY' => array('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
+        
+        // Шаблон за име на папки
+        'EMAIL_UNSORTABLE_COUNTRY' => array('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
+        
+        // Потребител, който ще е отговорник на несортираните имейли
+        'EMAIL_UNSORTABLE_INCHARGE' => array('user(roles=powerUser, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Потребител|*&comma;| който ще е отговорник на несортираните имейли->Потребител'),
+        
+        // Максималната големина на файловете, които ще се приемат за CID
+        'EMAIL_MAXIMUM_CID_LEN' => array('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
+        
+        // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане)
+        'EMAIL_RESENDING_TIME' => array('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
+        
+        // Максимален брой символи в текстовата част на входящите имейли
+        'EMAIL_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
+        
+        // Тип на манипулатора в събджекта
+        'EMAIL_THREAD_HANDLE_POS' => array('enum(BEFORE_SUBJECT=Преди събджекта,AFTER_SUBJECT=След събджекта)', 'caption=Манипулатор на нишка в събджект на имейл->Позиция'),
+        
+        // Позиция на манипулатора в събджекта
+        'EMAIL_THREAD_HANDLE_TYPE' => array('enum(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Тип'),
+        
+        // Позиция на манипулатора в събджекта
+        'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
+        
+        // Домейни за заменяне
+        'EMAIL_REPLACE_DOMAINS' => array('varchar', 'caption=Домейни за заменяне->Списък,columns=1', array('hint' => 'OldDomain1=NewDomain1,OldDomain2=NewDomain2,...')),
+        
+        // Максимален размер на прикачените файлове и документи
+        'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
+        
+        'EMAIL_DEFAULT_SENT_INBOX' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
+        
+        'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array('int', 'caption=Автоматично попълване на имейлите в полето копие|*&comma; |когато са до->Брой, customizeBy=powerUser'),
+        
+        'EMAIL_RESTRICT_ROUTE' => array('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутурането по папки->Избор'),
+        
+        'EMAIL_OUTGOING_HEADER_TEXT' => array('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
+        
+        'EMAIL_OUTGOING_HEADER_TEXT_EN' => array('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На английски, customizeBy=powerUser'),
+        
+        'EMAIL_OUTGOING_FOOTER_TEXT' => array('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На български, customizeBy=powerUser'),
+        
+        'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На английски, customizeBy=powerUser'),
+        
+        'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщенията по имейл за нова нишка->Време'),
+        
+        'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array('varchar', 'caption=Текст по подразбиране при отговор на имейл->На български, customizeBy=powerUser'),
+        
+        'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array('varchar', 'caption=Текст по подразбиране при отговор на имейл->На английски, customizeBy=powerUser'),
+        
+        'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На български, customizeBy=powerUser'),
+        
+        'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
+        
+        'EMAIL_STOP_SEND_TO' => array('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
+        
+        'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
+        
+        'EMAIL_HARD_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
+        
+        'EMAIL_REJECT_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
+    );
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'email_Incomings',
-            'email_Outgoings',
-            'email_Inboxes',
-            'email_Accounts',
-            'email_Router',
-            'email_Addresses',
-            'email_FaxSent',
-            'email_Filters',
-            'email_Returned',
-            'email_Receipts',
-            'email_Spam',
-            'email_Fingerprints',
-            'email_Unparsable',
-            'email_Salutations',
-            'email_ThreadHandles',
-            'email_SendOnTime',
-            'email_SpamRules',
-            'migrate::transferThreadHandles',
-            'migrate::fixEmailSalutations',
-            'migrate::repairRecsInFilters',
-            'migrate::repairSendOnTimeClasses',
-            'migrate::updateUserInboxesD',
-            'migrate::repairSalutations',
-            'migrate::repairDelayTime',
-            'migrate::fieldDeleteAfterRetrieval',
-            'migrate::checkMailBox',
-            'migrate::removeDearSirs',
-            'migrate::spamFilter',
-        );
+        'email_Incomings',
+        'email_Outgoings',
+        'email_Inboxes',
+        'email_Accounts',
+        'email_Router',
+        'email_Addresses',
+        'email_FaxSent',
+        'email_Filters',
+        'email_Returned',
+        'email_Receipts',
+        'email_Spam',
+        'email_Fingerprints',
+        'email_Unparsable',
+        'email_Salutations',
+        'email_ThreadHandles',
+        'email_SendOnTime',
+        'email_SpamRules',
+        'migrate::transferThreadHandles',
+        'migrate::fixEmailSalutations',
+        'migrate::repairRecsInFilters',
+        'migrate::repairSendOnTimeClasses',
+        'migrate::updateUserInboxesD',
+        'migrate::repairSalutations',
+        'migrate::repairDelayTime',
+        'migrate::fieldDeleteAfterRetrieval',
+        'migrate::checkMailBox',
+        'migrate::removeDearSirs',
+        'migrate::spamFilter',
+    );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'email_reports_Spam';
-
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'email, fax';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'admin, email, fax, user'),
-        );
-        
+        array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'admin, email, fax, user'),
+    );
+    
     
     /**
      * Инсталиране на пакета
@@ -391,11 +392,11 @@ class email_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
-            
+        
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', null, '104857600', 'user', 'user');
-             
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -424,8 +425,8 @@ class email_Setup extends core_ProtoSetup
         
         return $res;
     }
-
-
+    
+    
     /**
      * Миграция, която прехвърля манипулаторите на нишки от модел doc_Threads
      * в email_ThreadHandles
@@ -437,9 +438,9 @@ class email_Setup extends core_ProtoSetup
         if ($docThreads->db->isFieldExists($docThreads->dbTableName, 'handle')) {
             // Манипулатор на нишката (thread handle)
             $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
-
+            
             $tQuery = $docThreads->getQuery();
-
+            
             while ($rec = $tQuery->fetch('#handle IS NOT NULL')) {
                 $rec->handle = strtoupper($rec->handle);
                 if ($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
@@ -505,9 +506,9 @@ class email_Setup extends core_ProtoSetup
                 email_Filters::delete($rec->id);
                 continue;
             }
-                
+            
             $systemArr[$systemId] = $systemId;
-        
+            
             $rec->systemId = $systemId;
             
             email_Filters::save($rec);
@@ -620,8 +621,8 @@ class email_Setup extends core_ProtoSetup
             email_Salutations::save($rec, 'userId');
         }
     }
-
-
+    
+    
     /**
      * Миграция за поправка на полетата за изчакване от time в datetime
      */
@@ -651,22 +652,23 @@ class email_Setup extends core_ProtoSetup
             $cls->save($eRec, 'delaySendOn');
         }
     }
-
-
+    
+    
     /**
      * Миграция за полето deleteAfterPeriod
      */
     public function fieldDeleteAfterRetrieval()
     {
         $accMvc = cls::get('email_Accounts');
-
+        
         if (!$accMvc->db->isFieldExists($accMvc->dbTableName, 'delete_after_retrieval')) {
+            
             return;
         }
-
+        
         $query = $accMvc->getQuery();
         $query->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)', 'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
-
+        
         while ($rec = $query->fetch()) {
             if ($rec->deleteAfterRetrieval == 'yes' && empty($rec->deleteAfterPeriod)) {
                 $rec->deleteAfterPeriod = 7 * 24 * 60 * 60;

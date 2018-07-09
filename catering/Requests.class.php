@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Заявки на столуващи хора
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_Requests extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -98,7 +97,8 @@ class catering_Requests extends core_Master
     /**
      * Подготвя титлата в единичния изглед
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return stdClass $data
      */
     public function prepareSingleTitle_($data)
@@ -314,23 +314,23 @@ class catering_Requests extends core_Master
         $data->toolbar->removeBtn('btnEdit');
         
         $data->toolbar->addBtn('Назад', array('Ctr' => $mvc,
-                'Act' => 'list',
-                'ret_url' => true));
+            'Act' => 'list',
+            'ret_url' => true));
         
         if ($data->rec->state == 'active') {
             $data->toolbar->addBtn('Приключи', array('Ctr' => $mvc,
-                    'Act' => 'deactivateRequest',
-                    'id' => $data->rec->id,
-                    'ret_url' => true));
+                'Act' => 'deactivateRequest',
+                'id' => $data->rec->id,
+                'ret_url' => true));
         }
         
         if ($data->rec->state == 'closed') {
             // Само, ако няма създадени поръчки за този $requestId
             if (!$recOrder = $mvc->Orders->fetch("#requestId = {$data->rec->id}")) {
                 $data->toolbar->addBtn('Активирай за корекция', array('Ctr' => $mvc,
-                        'Act' => 'activateRequest',
-                        'id' => $data->rec->id,
-                        'ret_url' => true));
+                    'Act' => 'activateRequest',
+                    'id' => $data->rec->id,
+                    'ret_url' => true));
             }
         }
     }
@@ -349,6 +349,7 @@ class catering_Requests extends core_Master
             $data->toolbar->removeBtn('btnAdd');
         }
     }
+    
     
     /**
      * Ако state е closed, то не можем да редактираме и и изтриваме

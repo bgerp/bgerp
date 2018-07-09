@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на настройки за ешопа
  *
  *
  * @category  bgerp
  * @package   eshop
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_Settings extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -76,7 +75,7 @@ class eshop_Settings extends core_Manager
      */
     const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "Уважаеми [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n
        Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от този [#link#], който изтича след 7 дни";
-      
+    
     
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
@@ -89,7 +88,7 @@ class eshop_Settings extends core_Manager
      */
     const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "Dear [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#],
     \nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days";
-     
+    
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
@@ -97,17 +96,16 @@ class eshop_Settings extends core_Manager
     const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "Dear [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#]";
     
     
-    
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_ADD_TO_CART_TEXT_BG = "Вече има [#packQuantity#] [#packagingId#] от [#productName#] в количката";
+    const DEFAULT_ADD_TO_CART_TEXT_BG = 'Вече има [#packQuantity#] [#packagingId#] от [#productName#] в количката';
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на en
      */
-    const DEFAULT_ADD_TO_CART_TEXT_EN = "There are already [#packQuantity#] [#packagingId#] from [#productName#] in the cart";
+    const DEFAULT_ADD_TO_CART_TEXT_EN = 'There are already [#packQuantity#] [#packagingId#] from [#productName#] in the cart';
     
     
     /**
@@ -279,9 +277,10 @@ class eshop_Settings extends core_Manager
     /**
      * Връща настройките на класа
      *
-     * @param  int            $classId  - клас
-     * @param  int            $objectId - ид на обект
-     * @param  datetime|NULL  $date     - дата
+     * @param int           $classId  - клас
+     * @param int           $objectId - ид на обект
+     * @param datetime|NULL $date     - дата
+     *
      * @return FALSE|stdClass $foundRec - намерения запис
      */
     public static function getSettings($classId, $objectId, $date = null)
@@ -310,13 +309,13 @@ class eshop_Settings extends core_Manager
             if (empty($settingRec->emailBodyWithReg)) {
                 $settingRec->emailBodyWithReg = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN;
             }
-        
+            
             if (empty($settingRec->emailBodyWithoutReg)) {
                 $settingRec->emailBodyWithoutReg = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
             }
             
             if (empty($settingRec->addProductText)) {
-            	$settingRec->addProductText = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
+                $settingRec->addProductText = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
             }
             
             // Какъв е живота на количките на регистрираните потребители
@@ -337,9 +336,10 @@ class eshop_Settings extends core_Manager
     /**
      * Фечва запис
      *
-     * @param  int            $classId  - клас
-     * @param  int            $objectId - ид на обект
-     * @param  datetime|NULL  $date     - дата
+     * @param int           $classId  - клас
+     * @param int           $objectId - ид на обект
+     * @param datetime|NULL $date     - дата
+     *
      * @return FALSE|stdClass $foundRec - намерения запис
      */
     private static function get($classId, $objectId, $date)
@@ -371,9 +371,10 @@ class eshop_Settings extends core_Manager
     /**
      * Връща начините за доставка на домейна
      *
-     * @param  mixed    $class
-     * @param  int|NULL $domainId
-     * @return array    $options
+     * @param mixed    $class
+     * @param int|NULL $domainId
+     *
+     * @return array $options
      */
     public static function getDeliveryTermOptions($class, $domainId = null)
     {
@@ -392,9 +393,10 @@ class eshop_Settings extends core_Manager
     /**
      * Връща методите на плащане за домейна
      *
-     * @param  mixed    $class
-     * @param  int|NULL $domainId
-     * @return array    $options
+     * @param mixed    $class
+     * @param int|NULL $domainId
+     *
+     * @return array $options
      */
     public static function getPaymentMethodOptions($class, $domainId = null)
     {
@@ -405,7 +407,7 @@ class eshop_Settings extends core_Manager
         array_walk($payments, function ($paymentId) use (&$options) {
             $options[$paymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
         });
-         
+        
         return $options;
     }
 }

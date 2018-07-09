@@ -45,12 +45,14 @@
  * --
  *
  * @package JSMin
+ *
  * @author Ryan Grove <ryan@wonko.com> (PHP port)
  * @author Steve Clay <steve@mrclay.org> (modifications + cleanup)
  * @author Andrea Giammarchi <http://www.3site.eu> (spaceBeforeRegExp)
  * @copyright 2002 Douglas Crockford <douglas@crockford.com> (jsmin.c)
  * @copyright 2008 Ryan Grove <ryan@wonko.com> (PHP port)
  * @license http://opensource.org/licenses/mit-license.php MIT License
+ *
  * @link http://code.google.com/p/jsmin-php/
  */
 class minify_Js
@@ -60,7 +62,7 @@ class minify_Js
     const ACTION_KEEP_A = 1;
     const ACTION_DELETE_A = 2;
     const ACTION_DELETE_A_B = 3;
-
+    
     protected $a = "\n";
     protected $b = '';
     protected $input = '';
@@ -70,7 +72,8 @@ class minify_Js
     protected $output = '';
     protected $lastByteOut = '';
     protected $keptComment = '';
-
+    
+    
     /**
      * Minify Javascript.
      *
@@ -81,10 +84,11 @@ class minify_Js
     public static function process($js)
     {
         $jsmin = new minify_Js($js);
-
+        
         return $jsmin->min();
     }
-
+    
+    
     /**
      * @param string $input
      */
@@ -92,7 +96,8 @@ class minify_Js
     {
         $this->input = $input;
     }
-
+    
+    
     /**
      * Perform minification, return result
      *
@@ -104,7 +109,7 @@ class minify_Js
             
             return $this->output;
         }
-
+        
         $mbIntEnc = null;
         if (function_exists('mb_strlen') && ((int) ini_get('mbstring.func_overload') & 2)) {
             $mbIntEnc = mb_internal_encoding();
@@ -112,9 +117,9 @@ class minify_Js
         }
         $this->input = str_replace("\r\n", "\n", $this->input);
         $this->inputLength = strlen($this->input);
-
+        
         $this->action(self::ACTION_DELETE_A_B);
-
+        
         while ($this->a !== null) {
             // determine next command
             $command = self::ACTION_KEEP_A; // default
@@ -129,7 +134,7 @@ class minify_Js
             } elseif ($this->a === "\n") {
                 if ($this->b === ' ') {
                     $command = self::ACTION_DELETE_A_B;
-
+                
                 // in case of mbstring.func_overload & 2, must check for null b,
                     // otherwise mb_strpos will give WARNING
                 } elseif ($this->b === null
@@ -147,20 +152,22 @@ class minify_Js
             $this->action($command);
         }
         $this->output = trim($this->output);
-
+        
         if ($mbIntEnc !== null) {
             mb_internal_encoding($mbIntEnc);
         }
-
+        
         return $this->output;
     }
-
+    
+    
     /**
      * ACTION_KEEP_A = Output A. Copy B to A. Get the next B.
      * ACTION_DELETE_A = Copy B to A. Get the next B.
      * ACTION_DELETE_A_B = Get the next B.
      *
-     * @param  int                                                                 $command
+     * @param int $command
+     *
      * @throws JSMin_UnterminatedRegExpException|JSMin_UnterminatedStringException
      */
     protected function action($command)
@@ -176,19 +183,19 @@ class minify_Js
                 $command = self::ACTION_KEEP_A;
             }
         }
-
+        
         switch ($command) {
             case self::ACTION_KEEP_A: // 1
                 $this->output .= $this->a;
-
+                
                 if ($this->keptComment) {
                     $this->output = rtrim($this->output, "\n");
                     $this->output .= $this->keptComment;
                     $this->keptComment = '';
                 }
-
+                
                 $this->lastByteOut = $this->a;
-
+                
                 // fallthrough intentional
                 // no break
             case self::ACTION_DELETE_A: // 2
@@ -198,7 +205,7 @@ class minify_Js
                     for (;;) {
                         $this->output .= $this->a;
                         $this->lastByteOut = $this->a;
-
+                        
                         $this->a = $this->get();
                         if ($this->a === $this->b) { // end quote
                             break;
@@ -213,13 +220,13 @@ class minify_Js
                         if ($this->a === '\\') {
                             $this->output .= $this->a;
                             $this->lastByteOut = $this->a;
-
+                            
                             $this->a = $this->get();
                             $str .= $this->a;
                         }
                     }
                 }
-
+                
                 // fallthrough intentional
                 // no break
             case self::ACTION_DELETE_A_B: // 3
@@ -251,7 +258,7 @@ class minify_Js
                                 }
                             }
                         }
-
+                        
                         if ($this->a === '/') { // end pattern
                             break; // while (true)
                         } elseif ($this->a === '\\') {
@@ -269,10 +276,12 @@ class minify_Js
                     }
                     $this->b = $this->next();
                 }
+            
             // end case ACTION_DELETE_A_B
         }
     }
-
+    
+    
     /**
      * @return bool
      */
@@ -282,11 +291,11 @@ class minify_Js
             // we obviously aren't dividing
             return true;
         }
-
+        
         // we have to check for a preceding keyword, and we don't need to pattern
         // match over the whole output.
         $recentOutput = substr($this->output, -10);
-
+        
         // check if return/typeof directly precede a pattern without a space
         foreach (array('return', 'typeof') as $keyword) {
             if ($this->a !== substr($keyword, -1)) {
@@ -300,7 +309,7 @@ class minify_Js
                 }
             }
         }
-
+        
         // check all keywords
         if ($this->a === ' ' || $this->a === "\n") {
             if (preg_match('~(^|[\\s\\S])(?:case|else|in|return|typeof)$~', $recentOutput, $m)) {
@@ -310,10 +319,11 @@ class minify_Js
                 }
             }
         }
-
+        
         return false;
     }
-
+    
+    
     /**
      * Return the next character from stdin. Watch out for lookahead. If the character is a control character,
      * translate it to a space or linefeed.
@@ -341,21 +351,24 @@ class minify_Js
             
             return "\n";
         }
-
+        
         return ' ';
     }
-
+    
+    
     /**
      * Does $a indicate end of input?
      *
-     * @param  string $a
+     * @param string $a
+     *
      * @return bool
      */
     protected function isEOF($a)
     {
         return ord($a) <= self::ORD_LF;
     }
-
+    
+    
     /**
      * Get next char (without getting it). If is ctrl character, translate to a space or newline.
      *
@@ -364,10 +377,11 @@ class minify_Js
     protected function peek()
     {
         $this->lookAhead = $this->get();
-
+        
         return $this->lookAhead;
     }
-
+    
+    
     /**
      * Return true if the character is a letter, digit, underscore, dollar sign, or non-ASCII character.
      *
@@ -379,7 +393,8 @@ class minify_Js
     {
         return (preg_match('/^[a-z0-9A-Z_\\$\\\\]$/', $c) || ord($c) > 126);
     }
-
+    
+    
     /**
      * Consume a single line comment from input (possibly retaining it)
      */
@@ -394,12 +409,13 @@ class minify_Js
                 if (preg_match('/^\\/@(?:cc_on|if|elif|else|end)\\b/', $comment)) {
                     $this->keptComment .= "/{$comment}";
                 }
-
+                
                 return;
             }
         }
     }
-
+    
+    
     /**
      * Consume a multiple line comment from input (possibly retaining it)
      *
@@ -425,7 +441,7 @@ class minify_Js
                         // IE conditional
                         $this->keptComment .= "/*{$comment}*/";
                     }
-
+                    
                     return;
                 }
             } elseif ($get === null) {
@@ -436,7 +452,8 @@ class minify_Js
             $comment .= $get;
         }
     }
-
+    
+    
     /**
      * Get the next character, skipping over comments. Some comments may be preserved.
      *
@@ -457,7 +474,7 @@ class minify_Js
                     break;
             }
         }
-
+        
         return $get;
     }
 }

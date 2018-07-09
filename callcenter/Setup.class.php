@@ -48,15 +48,15 @@ defIfNot('CALLCENTER_SMS_SENDER', '');
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -99,13 +99,13 @@ class callcenter_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-       'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Ключ, width=100%'),
-       'CALLCENTER_DRAFT_TO_NOANSWER' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=След колко време да се промени от празно състояние в без отговор->Време, width=100px'),
-       'CALLCENTER_MAX_CALL_DURATION' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимално време на продължителност на разговорите->Време, width=100px'),
-       'CALLCENTER_DEVIATION_BETWEEN_TIMES' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Допустимото отклонение при регистриране на обажданията->Време, width=100px'),
-       'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се регистрира обаждане->IP адрес'),
-       'CALLCENTER_SMS_SERVICE' => array('class(interface=callcenter_SentSMSIntf, select=title, allowEmpty)', 'caption=Изпращане на SMS->Услуга'),
-       'CALLCENTER_SMS_SENDER' => array('varchar', 'caption=Изпращане на SMS->Изпращач'),
+        'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Ключ, width=100%'),
+        'CALLCENTER_DRAFT_TO_NOANSWER' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=След колко време да се промени от празно състояние в без отговор->Време, width=100px'),
+        'CALLCENTER_MAX_CALL_DURATION' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимално време на продължителност на разговорите->Време, width=100px'),
+        'CALLCENTER_DEVIATION_BETWEEN_TIMES' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Допустимото отклонение при регистриране на обажданията->Време, width=100px'),
+        'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се регистрира обаждане->IP адрес'),
+        'CALLCENTER_SMS_SERVICE' => array('class(interface=callcenter_SentSMSIntf, select=title, allowEmpty)', 'caption=Изпращане на SMS->Услуга'),
+        'CALLCENTER_SMS_SENDER' => array('varchar', 'caption=Изпращане на SMS->Изпращач'),
     );
     
     
@@ -113,23 +113,23 @@ class callcenter_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', 'user'),
-        );
+        array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', 'user'),
+    );
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'callcenter_Talks',
-            'callcenter_Fax',
-            'callcenter_SMS',
-            'callcenter_Numbers',
-            'callcenter_Hosts',
-            'migrate::nullWrongAnswerAndEndTime',
-            'migrate::fixDurationField',
-            'migrate::clearBrokenNotificaions'
-        );
+        'callcenter_Talks',
+        'callcenter_Fax',
+        'callcenter_SMS',
+        'callcenter_Numbers',
+        'callcenter_Hosts',
+        'migrate::nullWrongAnswerAndEndTime',
+        'migrate::fixDurationField',
+        'migrate::clearBrokenNotificaions'
+    );
     
     
     /**
@@ -138,7 +138,7 @@ class callcenter_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
-          
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -164,7 +164,7 @@ class callcenter_Setup extends core_ProtoSetup
         return $res;
     }
     
-
+    
     /**
      * Проверява дали услугата позволява съответния изпращач
      *

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'punymce_PunyMCE' -
  *
  *
  * @category  vendors
  * @package   punymce
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class punymce_PunyMCE extends core_BaseClass
 {
-    
-    
     /**
      * Return the HTML code required to run PunyMCE.
      *

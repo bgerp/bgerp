@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_TableView' - Изглед за таблични данни
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_TableView extends core_BaseClass
 {
-    
-    
     /**
      * ET шаблон за таблицата
      */
@@ -55,9 +54,10 @@ class core_TableView extends core_BaseClass
     /**
      * Филтрира връща колоните, които трябва да се показват
      *
-     * @param  array $rows         - записи
-     * @param  mixed $fields       - масив или списък с колони, които ще се филтрират
-     * @param  mixed $filterFields - масив или списък с имена на колони, които могат да се скриват
+     * @param array $rows         - записи
+     * @param mixed $fields       - масив или списък с колони, които ще се филтрират
+     * @param mixed $filterFields - масив или списък с имена на колони, които могат да се скриват
+     *
      * @return array $fields      - масив с филтрираните колони
      */
     public static function filterEmptyColumns($rows, $fields, $filterFields = '*')
@@ -158,7 +158,7 @@ class core_TableView extends core_BaseClass
                     
                     // Задаваме класа на колоната
                     $class = '';
-
+                    
                     if (is_object($this->mvc->fields[$place]->type)) {
                         $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass();
                         if ($this->mvc->fields[$place]->smartCenter) {
@@ -175,7 +175,7 @@ class core_TableView extends core_BaseClass
                     if ($colWithClass[$place]) {
                         $class .= " {$colWithClass[$place]}";
                     }
- 
+                    
                     if (($place{0} == '_')) {
                         $class .= ' centerCol';
                     }
@@ -224,7 +224,7 @@ class core_TableView extends core_BaseClass
                     } else {
                         $row .= "<td{$attr}>[#{$place}#]</td>";
                     }
-                   
+                    
                     $colspan++;
                 } else {
                     $tdClass = $attr = '';
@@ -247,18 +247,18 @@ class core_TableView extends core_BaseClass
                     $lastRowStart = $curTH;     // Започва последният хедър
                     $lastRowFlag = true;
                 }
-               
+                
                 $headerRowCnt = count($headerRow);
                 $j = 0;
                 foreach ($headerRow as $h) {
                     $attr = array();
- 
+                    
                     if ($lastRowFlag) {
                         if ($h->tdClass) {
                             $attr['class'] = $h->tdClass;
                         }
                     }
-
+                    
                     if ($h->rowspan > 1) {
                         $attr['rowspan'] = $h->rowspan;
                     }
@@ -267,7 +267,7 @@ class core_TableView extends core_BaseClass
                         $attr['colspan'] = $h->colspan;
                     }
                     $th = ht::createElement('th', $attr, $h->name);
-             
+                    
                     $hr[$i] .= $th->getContent();
                     
                     $curTH++;
@@ -303,7 +303,7 @@ class core_TableView extends core_BaseClass
                 if ($r instanceof core_Et) {
                     $rowTpl->replace($r);
                 }
-
+                
                 if (is_object($r)) {
                     $r = get_object_vars($r);
                 }

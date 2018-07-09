@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * "Подправка" за кодиране на баркода
  */
@@ -14,15 +13,15 @@ defIfNot('BARCODE_SALT', md5(EF_SALT . '_BARCODE'));
  *
  * @category  bgerp
  * @package   barcode
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class barcode_Qr extends core_Manager
 {
-    
-    
     /**
      * Екшън за генериране на QR изображения
      */

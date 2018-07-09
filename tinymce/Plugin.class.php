@@ -1,24 +1,21 @@
 <?php
 
 
-
-
 /**
  * Клас 'tinymce_Plugin' - добавя редактов към HTML инпут полета
  *
  * @category  bgerp
  * @package   tinymce
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see       https://www.tinymce.com/
  */
 class tinymce_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Изпълнява се преди рендирането на input
      *
@@ -32,8 +29,8 @@ class tinymce_Plugin extends core_Plugin
     {
         ht::setUniqId($attr);
     }
-
-
+    
+    
     /**
      * Извиква се след рендирането на HTML input
      */

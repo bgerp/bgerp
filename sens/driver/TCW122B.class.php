@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Драйвер за IP сензор Teracom TCW-121 - следи състоянието на цифров и аналогов вход
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Драйвер за IP сензор Teracom TCW-121
  */
 class sens_driver_TCW122B extends sens_driver_IpDevice
 {
-    
     /**
      * Заглавие на драйвера
      */
     public $title = 'TCW122B';
-
+    
     
     /**
      * Параметри които чете или записва драйвера
@@ -35,6 +35,7 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
         'InD2' => array('unit' => 'InD2', 'param' => 'Цифров вход 2', 'details' => '(OPEN,CLOSED)', 'xmlPath' => '/DigitalInput2[1]'),
         'InA1' => array('unit' => 'InA1', 'param' => 'Аналогов вход 1', 'details' => 'V', 'xmlPath' => '/AnalogInput1[1]'),
         'InA2' => array('unit' => 'InA2', 'param' => 'Аналогов вход 2', 'details' => 'V', 'xmlPath' => '/AnalogInput2[1]'),
+        
         // Описваме и изходите за да можем да ги следим в логовете
         'OutD1' => array('unit' => 'OutD1', 'param' => 'Цифров изход 1', 'details' => '(ON,OFF)', 'xmlPath' => '/Relay1[1]'),
         'OutD2' => array('unit' => 'OutD2', 'param' => 'Цифров изход 2', 'details' => '(ON,OFF)', 'xmlPath' => '/Relay2[1]')
@@ -109,7 +110,7 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         $xml = curl_exec($ch);
         curl_close($ch);
-                
+        
         if (empty($xml) || !$xml) {
             $this->stateArr = null;
             
@@ -123,10 +124,10 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
         if (!$pRes) {
             sens_MsgLog::add($this->id, 'Грешка при парсиране!', 3);
             $this->stateArr = null;
-
+            
             return false;
         }
-
+        
         $this->XMLToArrayFlat($pRes, $result);
         
         foreach ($this->params as $param => $details) {
@@ -137,7 +138,7 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
                 $paramValue = $settingsArr["angular_{$param}"] * $state["{$param}"] + $settingsArr["linear_{$param}"];
                 $state["{$settingsArr["name_{$param}"]}"] = $paramValue;
             }
-                   
+            
             
             if ($details['details'] == '(ON,OFF)' || $details['details'] == '(OPEN,CLOSED)') {
                 $state[$param] = trim(strtoupper($result[$details['xmlPath']]));

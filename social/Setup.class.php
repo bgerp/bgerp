@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class dec_Setup
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   social
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class social_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -42,19 +41,19 @@ class social_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Бутони за споделяне и проследяване в социални мрежи';
-
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'social_Sharings',
-            'social_Followers',
-            'social_SharingCnts',
-  
-        );
-
-        
+        'social_Sharings',
+        'social_Followers',
+        'social_SharingCnts',
+    
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
@@ -65,17 +64,17 @@ class social_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.9, 'Сайт', 'Соц', 'social_Sharings', 'list', 'cms, social, admin, ceo'),
-        );
-
-        
+        array(3.9, 'Сайт', 'Соц', 'social_Sharings', 'list', 'cms, social, admin, ceo'),
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-         
+        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('social', 'Прикачени файлове в социални мрежи', 'png,gif,ico,bmp,jpg,jpeg,image/*', '1MB', 'user', 'powerUser');

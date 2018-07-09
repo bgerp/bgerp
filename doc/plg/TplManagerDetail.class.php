@@ -10,22 +10,22 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_TplManagerDetail extends core_Plugin
 {
-    
-    
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
     public static function on_BeforeRecToVerbal($mvc, &$row, &$rec)
     {
         if ($rec->id) {
-                 
+            
             // Ако няма шаблон, за шаблон се приема първия такъв за модела
             $template = $mvc->Master->getTemplate($rec->{$mvc->masterKey});
             $rec->tplLang = doc_TplManager::fetchField($template, 'lang');
@@ -52,18 +52,18 @@ class doc_plg_TplManagerDetail extends core_Plugin
     {
         $masterRec = $data->masterData->rec;
         $toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
-            
+        
         if (count($toggleFields) && $toggleFields[$mvc->className] !== null) {
-                
+            
             // Полетата които трябва да се показват
             $fields = arr::make($toggleFields[$mvc->className]);
-                
+            
             // Всички полета, които могат да се скриват/показват
             $toggleFields = arr::make($mvc->toggleFields);
             $intersect = array_intersect_key($data->listFields, $toggleFields);
-                
+            
             foreach ($intersect as $k => $v) {
-                    
+                
                 // За всяко от опционалните полета: ако не е избран да се показва, се маха
                 if (!in_array($k, $fields)) {
                     unset($data->listFields[$k]);

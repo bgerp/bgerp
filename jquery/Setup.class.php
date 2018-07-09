@@ -7,7 +7,6 @@
 defIfNot('JQUERY_VERSION', '1.11.2');
 
 
-
 /**
  * Клас 'jquery_Setup'
  *
@@ -16,16 +15,16 @@ defIfNot('JQUERY_VERSION', '1.11.2');
  *
  * @category  bgerp
  * @package   jquery
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class jquery_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */

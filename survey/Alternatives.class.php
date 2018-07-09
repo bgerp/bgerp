@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел "Анкетни отговори"
  *
  *
  * @category  bgerp
  * @package   survey
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class survey_Alternatives extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -28,7 +27,7 @@ class survey_Alternatives extends core_Detail
      */
     public $loadList = 'plg_RowTools, survey_Wrapper, plg_SaveAndNew,options=survey_Options,plg_Clone';
     
-  
+    
     /**
      * Мастър ключ към дъските
      */
@@ -168,7 +167,7 @@ class survey_Alternatives extends core_Detail
             
             $imgLink = sbf('survey/img/question.png', '');
             $row->icon = ht::createElement('img', array('src' => $imgLink, 'style' => 'vertical-align:middle', 'width' => 16));
-                
+            
             if ($rec->image) {
                 $Fancybox = cls::get('fancybox_Fancybox');
                 $row->image = $Fancybox->getImage($rec->image, array(400, 140), array(700, 500), null, array('class' => 'question-image'));
@@ -179,6 +178,7 @@ class survey_Alternatives extends core_Detail
     
     /**
      *  Рендираме въпросите от анкетата
+     *
      *  @return core_ET $tpl
      */
     public function renderAlternatives($data)
@@ -233,9 +233,11 @@ class survey_Alternatives extends core_Detail
     
     /**
      * Метод преброяващ колко гласа е получила всяка от опциите на въпроса
-     * @param  stdClass $rec - запис на въпрос
+     *
+     * @param stdClass $rec - запис на въпрос
+     *
      * @return stdClass $res - Обект показващ колко гласа е получил
-     *                      Всеки възможен отговор
+     *                  Всеки възможен отговор
      */
     public function prepareResults($rec)
     {
@@ -314,7 +316,8 @@ class survey_Alternatives extends core_Detail
     /**
      * Метод проверяващ дали даден потребител вече е отговорил на
      * даден въпрос
-     * @return boolean TRUE/FALSE дали е гласувал
+     *
+     * @return bool TRUE/FALSE дали е гласувал
      */
     public static function hasUserVoted($alternativeId)
     {

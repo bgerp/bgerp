@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_RichTextPlg extends core_Plugin
 {
-    
-    
     /**
      * Шаблон за намиране на линкове към документи
      * # (от 1 до 3 букви)(от 1 до 10 цифри). Без да се прави разлика за малки и големи букви.
@@ -31,9 +31,7 @@ class doc_RichTextPlg extends core_Plugin
     public static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))(?'endDs'(\!)?)){1}/iu";
     
     
-    
     public static $identPattern = "/(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})(?'endDs'(\!)?))/i";
-    
     
     
     public static $identEnd = '!';
@@ -180,11 +178,11 @@ class doc_RichTextPlg extends core_Plugin
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
             $this->mvc->_htmlBoard[$place] = $href->getContent();
         }
-
+        
         //Стойността, която ще заместим в регулярния израз
         //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
         $res = $match['begin'] . "[#{$place}#]";
-
+        
         return  $res;
     }
     
@@ -216,13 +214,14 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Намира всички цитирания на хендъли на документи в текст
      *
-     * @param  string $rt - Стринг, в който ще търсим.
-     * @return array  $docs - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
-     *                   array(
-     *                   'name' => хендъл, също като ключа
-     *                   'mvc'  => мениджър на документа с този хендъл
-     *                   'rec'  => запис за документа с този хендъл
-     *                   )
+     * @param string $rt - Стринг, в който ще търсим.
+     *
+     * @return array $docs - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
+     *               array(
+     *               'name' => хендъл, също като ключа
+     *               'mvc'  => мениджър на документа с този хендъл
+     *               'rec'  => запис за документа с този хендъл
+     *               )
      */
     public static function getAttachedDocs($rt)
     {
@@ -236,11 +235,12 @@ class doc_RichTextPlg extends core_Plugin
                 if (!$doc = doc_Containers::getDocumentByHandle($match)) {
                     continue;
                 }
+                
                 // Проверяваме дали имаме достъп до някакъв еденичен изглед
                 // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
                 $singleUrl = $doc->getSingleUrlArray();
                 if (is_array($singleUrl) && !count($singleUrl)) {
-                         
+                        
                         // Ако масива е празен значи няма достъп потребителя да преглежда документа
                     continue;
                 }
@@ -421,14 +421,16 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Връща всички документи които са цитирани във всички richtext полета
      * на даден мениджър
-     * @param  core_Mvc $mvc - мениджър
-     * @param  stdClass $rec - запис, за който проверяваме
-     * @return array    - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
-     *                      array(
-     *                      'name' => хендъл, също като ключа
-     *                      'mvc'  => мениджър на документа с този хендъл
-     *                      'rec'  => запис за документа с този хендъл
-     *                      )
+     *
+     * @param core_Mvc $mvc - мениджър
+     * @param stdClass $rec - запис, за който проверяваме
+     *
+     * @return array - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
+     *               array(
+     *               'name' => хендъл, също като ключа
+     *               'mvc'  => мениджър на документа с този хендъл
+     *               'rec'  => запис за документа с този хендъл
+     *               )
      */
     public static function getDocsInRichtextFields(core_Mvc $mvc, $rec)
     {
@@ -442,7 +444,7 @@ class doc_RichTextPlg extends core_Plugin
             }
             
             $fields = $mvc->selectFields();
-             
+            
             foreach ($fields as $name => $fld) {
                 if ($fld->type instanceof type_Richtext) {
                     if ($fld->type->params['hndToLink'] == 'no') {

@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Помощен детайл подготвящ и обединяващ заедно ресурсите на центровете на дейност
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_FolderResources extends core_Manager
 {
-    
-    
     /**
      * Единично заглавие
      */
@@ -53,6 +52,7 @@ class doc_FolderResources extends core_Manager
     {
         $resourceTypes = $data->masterMvc->getResourceTypeArray($data->masterData->rec);
         if (empty($resourceTypes)) {
+            
             return;
         }
         
@@ -60,6 +60,7 @@ class doc_FolderResources extends core_Manager
         
         $Tab = Request::get('Tab', 'varchar');
         if ($Tab != 'Resources') {
+            
             return;
         }
         
@@ -79,7 +80,7 @@ class doc_FolderResources extends core_Manager
             $this->prepareResourceData($data->eData, 'planning_Hr');
         }
     }
-
+    
     
     /**
      * Подготвя ресурсите
@@ -200,7 +201,8 @@ class doc_FolderResources extends core_Manager
     /**
      * Рендира таблицата с документите
      *
-     * @param  stdClass     $data
+     * @param stdClass $data
+     *
      * @return void|core_ET
      */
     public function renderResources_(&$data)
@@ -270,6 +272,7 @@ class doc_FolderResources extends core_Manager
             $removeArr = array_diff_key($default, $selected);
             
             $Folders = cls::get('planning_AssetResourceFolders');
+            
             // Избраните се обновява департамента им
             foreach ($selected as $id => $name) {
                 $r = (object) array('classId' => $classId, 'objectId' => $id, 'folderId' => $folderId);
@@ -285,7 +288,7 @@ class doc_FolderResources extends core_Manager
                     $Folders->save($r);
                 }
             }
-                
+            
             // Махане на съществуващите
             $removeArr = array_diff_key($default, $selected);
             foreach ($removeArr as $rId => $rName) {
@@ -304,7 +307,7 @@ class doc_FolderResources extends core_Manager
         $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на промените');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         $this->logInfo('Промяна на ресурсите');
-         
+        
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -338,8 +341,9 @@ class doc_FolderResources extends core_Manager
     /**
      * Всички папки в които може да се добавя посочения ресурс
      *
-     * @param  string|NULL $forType - 'assets' за оборудване, 'hr' за служители или NULL за всички
-     * @return array       $suggestions  - опции за избор на папките
+     * @param string|NULL $forType - 'assets' за оборудване, 'hr' за служители или NULL за всички
+     *
+     * @return array $suggestions  - опции за избор на папките
      */
     public static function getFolderSuggestions($forType = null)
     {

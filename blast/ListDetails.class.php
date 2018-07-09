@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'blast_Lists' - Списъци за масово разпращане
  *
@@ -11,14 +10,15 @@
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blast_ListDetails extends doc_Detail
 {
-    
     /**
      * Плъгини за зареждане
      */
@@ -105,16 +105,17 @@ class blast_ListDetails extends doc_Detail
     
     /**
      * Стойност по подразбиране на състоянието
+     *
      * @see plg_State
      */
     public $defaultState = 'active';
     
-
+    
     /**
      * Предлог в формата за добавяне/редактиране
      */
     public $formTitlePreposition = 'в';
-
+    
     
     /**
      * Описание на полетата на модела
@@ -134,10 +135,10 @@ class blast_ListDetails extends doc_Detail
     /**
      * Връща броя на записите
      *
-     * @param integer     $listId
+     * @param int         $listId
      * @param NULL|string $state
      *
-     * @return integer
+     * @return int
      */
     public static function getCnt($listId, $state = null)
     {
@@ -205,6 +206,7 @@ class blast_ListDetails extends doc_Detail
     public static function on_AfterInputEditForm($mvc, $form)
     {
         if (!$form->isSubmitted()) {
+            
             return;
         }
         
@@ -271,11 +273,11 @@ class blast_ListDetails extends doc_Detail
         
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
             if ($rec->state != 'stopped') {
-            
+                
                 // Бутон за спиране
                 $row->state = ht::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => true), false, false, 'title=Прекратяване на изпращане към този имейл');
             } else {
-            
+                
                 // Бутон за активиране
                 $row->state = ht::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => true), false, false, 'title=Започване на изпращане към този имейл');
             }
@@ -303,11 +305,13 @@ class blast_ListDetails extends doc_Detail
         }
     }
     
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getExportFields_()
@@ -315,7 +319,7 @@ class blast_ListDetails extends doc_Detail
         // Кои полета ще се показват
         $fields = arr::make('email=Имейл,
     					     company=Компания', true);
-    
+        
         return $fields;
     }
     
@@ -330,24 +334,24 @@ class blast_ListDetails extends doc_Detail
         
         // Проверка за права
         $this->requireRightFor('export', $rec);
-
+        
         // взимаме от базата целия списък отговарящ на този бюлетин
         $query = self::getQuery();
         $query->where("#listId = '{$rec->listId}'");
-
+        
         $allFields = blast_Lists::fetch($rec->listId, 'allFields');
         
         $fieldSet = cls::get('blast_ListDetails');
         $fieldSet->addFNC($allFields->allFields);
         
         $listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
-
+        
         while ($fRec = $query->fetch()) {
             $data[] = (object) unserialize($fRec->data);
         }
         
         $csv = csv_Lib::createCsv($data, $fieldSet, $listFields);
-
+        
         $listTitle = blast_Lists::fetchField("#id = '{$rec->listId}'", 'title');
         
         // името на файла на кирилица
@@ -361,9 +365,9 @@ class blast_ListDetails extends doc_Detail
         header("Content-Disposition: attachment; filename={$fileName}.csv");
         header('Pragma: no-cache');
         header('Expires: 0');
-    
+        
         echo $csv;
-    
+        
         shutdown();
     }
     
@@ -505,7 +509,7 @@ class blast_ListDetails extends doc_Detail
     public function exp_Import($exp)
     {
         core_App::setTimeLimit(50);
-
+        
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
@@ -554,7 +558,7 @@ class blast_ListDetails extends doc_Detail
         $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', 'mandatory');
         $exp->SUGGESTIONS('#delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
         $exp->ASSUME('#delimiter', '"|"');
-
+        
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS('#enclosure', array('"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
@@ -582,7 +586,7 @@ class blast_ListDetails extends doc_Detail
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
-
+        
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
         $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
         
@@ -612,9 +616,9 @@ class blast_ListDetails extends doc_Detail
             core_App::setTimeLimit($time);
             
             $newCnt = $skipCnt = $updateCnt = 0;
-
+            
             $errLinesArr = array();
-       
+            
             if (count($csvRows)) {
                 foreach ($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
@@ -652,7 +656,7 @@ class blast_ListDetails extends doc_Detail
                     $rec->key = str::convertToFixedKey($key);
                     $rec->listId = $listId;
                     $rec->state = 'active';
-                   
+                    
                     if ($exRec = $this->fetch(array("#listId = {$listId} AND #key = '[#1#]'", $rec->key))) {
                         // Ако имаме съществуващ $exRec със същия ключ, имаме две възможности
                         // 1. Да го обновим с новите данни
@@ -684,7 +688,7 @@ class blast_ListDetails extends doc_Detail
                     
                     $this->save_($rec);
                 }
-
+                
                 $exp->message = tr('Добавени са') . " {$newCnt} " . tr('нови записа') . ', ' . tr('обновени') . " - {$updateCnt}, " . tr('пропуснати') . " - {$skipCnt}";
                 
                 // Ако има грешни линни да се добавят в 'csv' файл
@@ -866,7 +870,7 @@ class blast_ListDetails extends doc_Detail
         $listRec = blast_Lists::fetch($listId);
         
         core_Lg::push($listRec->lg);
-
+        
         $mvc = cls::get($className);
         
         $cQuery = $mvc->getQuery();
@@ -874,7 +878,7 @@ class blast_ListDetails extends doc_Detail
         $cQuery->where("#state != 'rejected' AND #groupList like '%|{$groupId}|%'");
         
         $csv = array();
-
+        
         while ($cRec = $cQuery->fetch()) {
             $rCsv = '';
             
@@ -917,7 +921,7 @@ class blast_ListDetails extends doc_Detail
         $csv = array_merge(array($columns), (array) $csv);
         
         core_Lg::pop();
-
+        
         return $csv;
     }
 }

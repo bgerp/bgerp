@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class catering_Setup
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -54,29 +53,29 @@ class catering_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'catering_Menu',
-            'catering_MenuDetails',
-            'catering_Companies',
-            'catering_EmployeesList',
-            'catering_Requests',
-            'catering_RequestDetails',
-            'catering_Orders'
-        );
-
-        
+        'catering_Menu',
+        'catering_MenuDetails',
+        'catering_Companies',
+        'catering_EmployeesList',
+        'catering_Requests',
+        'catering_RequestDetails',
+        'catering_Orders'
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'catering';
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.39, 'Обслужване', 'Кетъринг', 'catering_Menu', 'default', 'catering, ceo'),
-        );
-
+        array(2.39, 'Обслужване', 'Кетъринг', 'catering_Menu', 'default', 'catering, ceo'),
+    );
+    
     
     /**
      * Де-инсталиране на пакета

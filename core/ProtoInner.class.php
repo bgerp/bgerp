@@ -1,26 +1,26 @@
 <?php
 
 
-
 /**
  * Дефолтна имплементация на вътрешен обект за core_Embedder (драйвер)
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev (milen2experta.bg)
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_ProtoInner extends core_BaseClass
 {
-
     /**
      * Обект с информация за ембедъра
      */
     public $EmbedderRec;
-
-
+    
+    
     /**
      * Вътрешно, изчислено състояние на драйвъра
      */
@@ -31,7 +31,7 @@ class core_ProtoInner extends core_BaseClass
      * Записа на формата, с която е създаден/модифициран драйвера
      */
     protected $innerForm;
-
+    
     
     /**
      * Може ли вградения обект да се избере
@@ -40,8 +40,8 @@ class core_ProtoInner extends core_BaseClass
     {
         return true;
     }
-
-
+    
+    
     /**
      * Задава вътрешната форма
      *
@@ -62,7 +62,7 @@ class core_ProtoInner extends core_BaseClass
     {
         $this->innerState = $state;
     }
-
+    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -100,8 +100,8 @@ class core_ProtoInner extends core_BaseClass
     public function prepareEmbeddedData_()
     {
     }
-
-
+    
+    
     /**
      * Рендира вградения обект
      *
@@ -110,7 +110,7 @@ class core_ProtoInner extends core_BaseClass
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
     }
-
+    
     
     /**
      * Променя ключовите думи

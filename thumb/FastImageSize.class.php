@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * FastImage - Because sometimes you just want the size!
  * Based on the Ruby Implementation by Steven Sykes (https://github.com/sdsykes/fastimage)
@@ -8,6 +9,7 @@
  * Tom Moor, http://tommoor.com
  *
  * MIT Licensed
+ *
  * @version 0.1
  */
 class thumb_FastImageSize
@@ -17,15 +19,15 @@ class thumb_FastImageSize
     private $type;
     private $handle;
     
-
+    
     public function __construct($uri = null)
     {
         if ($uri) {
             $this->load($uri);
         }
     }
-
-
+    
+    
     public function load($uri)
     {
         if ($this->handle) {
@@ -34,8 +36,8 @@ class thumb_FastImageSize
         
         $this->handle = fopen($uri, 'r');
     }
-
-
+    
+    
     public function close()
     {
         if ($this->handle) {
@@ -45,8 +47,8 @@ class thumb_FastImageSize
             $this->str = null;
         }
     }
-
-
+    
+    
     public function getSize()
     {
         $this->strpos = 0;
@@ -63,8 +65,8 @@ class thumb_FastImageSize
         
         return false;
     }
-
-
+    
+    
     public function getType()
     {
         $this->strpos = 0;
@@ -88,11 +90,11 @@ class thumb_FastImageSize
                     return false;
             }
         }
-
+        
         return $this->type;
     }
-
-
+    
+    
     private function parseSize()
     {
         $this->strpos = 0;
@@ -112,24 +114,24 @@ class thumb_FastImageSize
                 return $this->parseSizeForJPEG();
         }
     }
-
-
+    
+    
     private function parseSizeForPNG()
     {
         $chars = $this->getChars(25);
-
+        
         return unpack('N*', substr($chars, 16, 8));
     }
-
-
+    
+    
     private function parseSizeForGIF()
     {
         $chars = $this->getChars(11);
-
+        
         return unpack('S*', substr($chars, 6, 4));
     }
-
-
+    
+    
     private function parseSizeForBMP()
     {
         $chars = $this->getChars(29);
@@ -138,8 +140,8 @@ class thumb_FastImageSize
         
         return (reset($type) == 40) ? unpack('L*', substr($chars, 4)) : unpack('L*', substr($chars, 4, 8));
     }
-
-
+    
+    
     private function parseSizeForJPEG()
     {
         $state = null;
@@ -150,7 +152,7 @@ class thumb_FastImageSize
                     $this->getChars(2);
                     $state = 'started';
                     break;
-                    
+                
                 case 'started':
                     $b = $this->getByte();
                     if ($b === false) {
@@ -160,7 +162,7 @@ class thumb_FastImageSize
                     
                     $state = $b == 0xFF ? 'sof' : 'started';
                     break;
-                    
+                
                 case 'sof':
                     $b = $this->getByte();
                     if (in_array($b, range(0xe0, 0xef))) {
@@ -173,17 +175,17 @@ class thumb_FastImageSize
                         $state = 'skipframe';
                     }
                     break;
-                    
+                
                 case 'skipframe':
                     $skip = $this->readInt($this->getChars(2)) - 2;
                     $state = 'doskip';
                     break;
-                    
+                
                 case 'doskip':
                     $this->getChars($skip);
                     $state = 'started';
                     break;
-                    
+                
                 case 'readsize':
                     $c = $this->getChars(7);
                     
@@ -191,8 +193,8 @@ class thumb_FastImageSize
             }
         }
     }
-
-
+    
+    
     private function getChars($n)
     {
         $response = null;
@@ -217,8 +219,8 @@ class thumb_FastImageSize
         
         return $result;
     }
-
-
+    
+    
     private function getByte()
     {
         $c = $this->getChars(1);
@@ -231,16 +233,16 @@ class thumb_FastImageSize
         
         return reset($b);
     }
-
-
+    
+    
     private function readInt($str)
     {
         $size = unpack('C*', $str);
         
         return ($size[1] << 8) + $size[2];
     }
-
-
+    
+    
     public function __destruct()
     {
         $this->close();

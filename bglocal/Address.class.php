@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_Address'
  *
@@ -10,9 +9,11 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_Address extends core_MVC
@@ -439,6 +440,7 @@ class bglocal_Address extends core_MVC
         }
         
         if (strpos(trim($line), '>') === 0) {
+            
             return;
         }
         

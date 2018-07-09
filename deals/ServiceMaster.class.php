@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Абстрактен клас за наследяване на протоколи за доствка и приемане на услуги
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_ServiceMaster extends core_Master
 {
-    
-    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -82,7 +81,7 @@ abstract class deals_ServiceMaster extends core_Master
         );
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
-
+        
         $mvc->setDbIndex('valior');
     }
     
@@ -90,20 +89,21 @@ abstract class deals_ServiceMaster extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-         
+        
         $Detail = $this->mainDetail;
         $query = $this->{$Detail}->getQuery();
         $query->where("#{$this->{$Detail}->masterKey} = '{$id}'");
         $recs = $query->fetchAll();
-    
+        
         deals_Helper::fillRecs($this, $recs, $rec);
-    
+        
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
         $amount -= $this->_total->discount;
@@ -125,9 +125,11 @@ abstract class deals_ServiceMaster extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($rec->_isCreated !== true) {
+            
             return;
         }
         if ($rec->_isClone === true) {
+            
             return;
         }
         $origin = $mvc->getOrigin($rec);
@@ -149,21 +151,21 @@ abstract class deals_ServiceMaster extends core_Master
         if (count($agreedProducts)) {
             foreach ($agreedProducts as $index => $product) {
                 $info = cat_Products::getProductInfo($product->productId);
-        
+                
                 if (isset($normalizedProducts[$index])) {
                     $toShip = $normalizedProducts[$index]->quantity;
                 } else {
                     $toShip = $product->quantity;
                 }
-        
+                
                 $price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
                 $discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
-                 
+                
                 // Пропускат се експедираните и складируемите артикули
                 if (isset($info->meta['canStore']) || ($toShip <= 0)) {
                     continue;
                 }
-                    
+                
                 $shipProduct = new stdClass();
                 $shipProduct->shipmentId = $rec->id;
                 $shipProduct->productId = $product->productId;
@@ -173,14 +175,14 @@ abstract class deals_ServiceMaster extends core_Master
                 $shipProduct->discount = $discount;
                 $shipProduct->notes = $product->notes;
                 $shipProduct->quantityInPack = $product->quantityInPack;
-        
+                
                 if (isset($product->expenseItemId)) {
                     $shipProduct->expenseItemId = $product->expenseItemId;
                 }
-        
+                
                 $Detail = $mvc->mainDetail;
                 $dId = $mvc->{$Detail}->save($shipProduct);
-        
+                
                 // Копиране на разпределените разходи
                 if (!empty($product->expenseRecId)) {
                     $aRec = acc_CostAllocations::fetch($product->expenseRecId);
@@ -188,7 +190,7 @@ abstract class deals_ServiceMaster extends core_Master
                     $aRec->detailRecId = $dId;
                     $aRec->detailClassId = $Detail::getClassId();
                     $aRec->containerId = $rec->containerId;
-                        
+                    
                     acc_CostAllocations::save($aRec);
                 }
             }
@@ -229,8 +231,8 @@ abstract class deals_ServiceMaster extends core_Master
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -239,25 +241,25 @@ abstract class deals_ServiceMaster extends core_Master
         // Задаване на стойности на полетата на формата по подразбиране
         $form = &$data->form;
         $rec = &$form->rec;
-    
+        
         $form->setDefault('valior', dt::now());
-    
+        
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-    
+        
         // Поле за избор на локация - само локациите на контрагента по покупката
         $form->getField('locationId')->type->options =
         array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
-    
+        
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {
-             
+            
             // ... проверяваме предхождащия за bgerp_DealIntf
             $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
             expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-             
+            
             $dealInfo = $origin->getAggregateDealInfo();
-    
+            
             $form->setDefault('currencyId', $dealInfo->get('currency'));
             $form->setDefault('currencyRate', $dealInfo->get('rate'));
             $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
@@ -291,12 +293,12 @@ abstract class deals_ServiceMaster extends core_Master
             
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
-                 
+                
                 $contLocationAddress = crm_Locations::getAddress($rec->locationId);
                 if ($contLocationAddress != '') {
                     $row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
                 }
-                 
+                
                 if ($gln = crm_Locations::fetchField($rec->locationId, 'gln')) {
                     $row->deliveryLocationAddress = $gln . ', ' . $row->deliveryLocationAddress;
                     $row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ', ');
@@ -314,33 +316,35 @@ abstract class deals_ServiceMaster extends core_Master
                     $row->operationSysId = tr('Отказ от услуга');
                 }
             }
-
+            
             // Имената в Получил и Доставил да се пренасят, ако са по-дълги
             if (strlen($rec->received) > 60) {
                 $row->receivedClass = 'wrapText';
             }
-
+            
             if (strlen($rec->delivered) > 60) {
                 $row->deliveredClass = 'wrapText';
             }
         }
     }
-
-
+    
+    
     /**
      * Протокола не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      *
      * @param $folderId int ид на папката
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
         return false;
     }
-        
+    
     
     /**
      * @param int $id key(mvc=purchase_Purchases)
+     *
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
@@ -362,35 +366,39 @@ abstract class deals_ServiceMaster extends core_Master
     /**
      * Връща масив от използваните нестандартни артикули в протокола
      *
-     * @param  int   $id - ид на протокола
+     * @param int $id - ид на протокола
+     *
      * @return param $res - масив с използваните документи
-     *                  ['class'] - инстанция на документа
-     *                  ['id'] - ид на документа
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
         return deals_Helper::getUsedDocs($this, $id);
     }
-
+    
+    
     /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
-     * @param  int|object                 $id
+     * @param int|object $id
+     *
      * @return bgerp_iface_DealAggregator
+     *
      * @see bgerp_DealIntf::getDealInfo()
      */
     public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-    
+        
         $aggregator->setIfNot('shippedValior', $rec->valior);
         $aggregator->setIfNot('deliveryLocation', $rec->locationId);
         $aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
-    
+        
         $Detail = $this->mainDetail;
         $dQuery = $this->{$Detail}->getQuery();
         $dQuery->where("#{$this->{$Detail}->masterKey} = {$rec->id}");
-    
+        
         while ($dRec = $dQuery->fetch()) {
             $p = new stdClass();
             $p->productId = $dRec->productId;
@@ -402,51 +410,54 @@ abstract class deals_ServiceMaster extends core_Master
         }
     }
     
-     
+    
     /**
      * Може ли документа да се добави в посочената нишка?
      *
      * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $docState = $firstDoc->fetchField('state');
-     
+        
         // Може да се добавя само към активиран документ
         if ($docState == 'active') {
             if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
                 $operations = $firstDoc->getShipmentOperations();
-                  
+                
                 return (isset($operations[static::$defOperationSysId])) ? true : false;
             }
         }
-          
+        
         return false;
     }
-
-
+    
+    
     /**
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param int $id - ид на документа
-     * @param boolean $forward
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
      * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
         $title = tr(mb_strtolower($this->singleTitle));
-         
+        
         $tpl = new ET(tr('Моля запознайте се с нашия') . " {$title}: #[#handle#]");
         $tpl->append($handle, 'handle');
-     
+        
         return $tpl->getContent();
     }
-
-
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */

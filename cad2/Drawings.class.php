@@ -6,29 +6,26 @@
  */
 class cad2_Drawings extends embed_Manager
 {
-
-    
-    
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
     public $driverInterface = 'cad2_ShapeIntf';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';
-                    
-
+    
     
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Фигура';
     
-
+    
     public $title = 'Фигури';
+    
     
     /**
      * Икона за единичния изглед
@@ -65,7 +62,7 @@ class cad2_Drawings extends embed_Manager
      */
     public $canAdd = 'cad,ceo,admin';
     
-        
+    
     /**
      * Кой може да го разгледа?
      */
@@ -84,7 +81,6 @@ class cad2_Drawings extends embed_Manager
     public $canWrite = 'cad,ceo,admin';
     
     
-    
     /**
      * Нов темплейт за показване
      */
@@ -97,7 +93,6 @@ class cad2_Drawings extends embed_Manager
     public $canSingle = 'cad,ceo,admin';
     
     
-    
     /**
      * Описание на модела
      */
@@ -106,7 +101,7 @@ class cad2_Drawings extends embed_Manager
         $this->FLD('name', 'varchar', 'caption=Наименование, remember=info,width=100%');
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти');
     }
-
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -140,15 +135,15 @@ class cad2_Drawings extends embed_Manager
         $svg = $driver->getCanvas();
         $driver->render($svg, (array) $data->rec);
         $tpl->append('<div class="clearfix21"></div>');
-
+        
         $tpl->append($svg->render());
-
+        
         $tpl->append('<div class="clearfix21"></div>');
-
+        
         $tpl->append($svg->debug);
     }
-
-
+    
+    
     /**
      * След подготвяне на формата за филтриране
      *
@@ -159,21 +154,21 @@ class cad2_Drawings extends embed_Manager
     {
         // Подреждаме записите, като неизпратените да се по-нагоре
         $data->query->orderBy('createdOn', 'DESC');
-       
+        
         $data->listFilter->showFields = 'search';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
-
-
+    
+    
     public static function on_AfterRead($mvc, $rec)
     {
         if (!$rec->name) {
             $rec->name = tr($mvc->getVerbal($rec, 'driverClass')) . "({$rec->id})";
         }
     }
-
-
+    
+    
     protected static function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if (true || $mvc->haveRightFor('update', $data->rec)) {
@@ -181,8 +176,8 @@ class cad2_Drawings extends embed_Manager
             $data->toolbar->addBtn('PDF', array($mvc, 'DownloadPdf', $data->rec->id), null, 'ef_icon=fileman/icons/16/pdf.png');
         }
     }
-
-
+    
+    
     public function act_DownloadSvg()
     {
         requireRole('ceo,admin,cad');
@@ -192,17 +187,17 @@ class cad2_Drawings extends embed_Manager
         $svg = $driver->getCanvas();
         $driver->render($svg, (array) $rec);
         $fileName = trim(fileman_Files::normalizeFileName($rec->name), '_') . '';
-
+        
         header('Content-type: application/svg');
         header("Content-Disposition: attachment; filename={$fileName}.svg");
         header('Pragma: no-cache');
         header('Expires: 0');
-
+        
         echo $svg->render();
         shutdown();
     }
-
-
+    
+    
     /**
      * Сваляне на PDF
      */
@@ -220,17 +215,17 @@ class cad2_Drawings extends embed_Manager
         
         // Добавяме файла в кофата
         $fh = fileman::absorbStr($fileContent, 'archive', $fileName . '.svg');
-
+        
         // Конвертираме
         $pdfFn = fileman_webdrv_Inkscape::toPdf($fh, true);
         
         echo fileman_Files::getContent($pdfFn);
-
+        
         header('Content-type: application/pdf');
         header("Content-Disposition: attachment; filename={$fileName}.pdf");
         header('Pragma: no-cache');
         header('Expires: 0');
-
+        
         shutdown();
     }
 }

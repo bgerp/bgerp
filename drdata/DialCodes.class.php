@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_DialCodes' -
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_DialCodes extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -52,7 +51,7 @@ class drdata_DialCodes extends core_Manager
         $this->setDbIndex('country');
     }
     
-
+    
     /**
      * Изчистване на данните преди запис
      */
@@ -78,7 +77,7 @@ class drdata_DialCodes extends core_Manager
         
         // Импорт на данните
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields, null, $format);
-
+        
         $res .= $cntObj->html;
     }
 }

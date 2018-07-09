@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_type_Files extends type_Keylist
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -56,7 +56,6 @@ class fileman_type_Files extends type_Keylist
         return parent::fromVerbal_($rVal);
     }
     
-
     
     /**
      * @todo Чака за документация...
@@ -66,9 +65,9 @@ class fileman_type_Files extends type_Keylist
         if (fileman::isFileHnd($fhList)) {
             $fhList = '|' . fileman::fhToId($fhList) . '|';
         }
-
+        
         $fhArr = $this->toArray($fhList);
-      
+        
         $res = '';
         
         foreach ($fhArr as $id) {
@@ -83,7 +82,7 @@ class fileman_type_Files extends type_Keylist
         $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
         $align = 'align_' . $align;
         $res = "<span class='{$align}' style='padding-bottom:5px'>" . $res . '</span>';
-         
+        
         return $res;
     }
     

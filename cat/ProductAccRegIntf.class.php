@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Интерфейс за пера - продукти
  *
@@ -11,20 +10,21 @@
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за пера, които са стоки и продукти
  */
 class cat_ProductAccRegIntf extends acc_RegisterIntf
 {
-    
-    
     /**
      * Връща id-то на основната мярка на продукта
      *
-     * @param  int              $productId id на записа на продукта
+     * @param int $productId id на записа на продукта
+     *
      * @return key(mvc=cat_UoM) ключ към записа на основната мярка на продукта
      */
     public function getProductUoM($productId)
@@ -36,19 +36,20 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Метод връщаш информация за продукта и неговите опаковки
      *
-     * @param  int      $productId   - ид на продукта
-     * @param  int      $packagingId - ид на опаковката, по дефолт NULL
+     * @param int $productId   - ид на продукта
+     * @param int $packagingId - ид на опаковката, по дефолт NULL
+     *
      * @return stdClass $res
-     *                              -> productRec - записа на продукта
-     *                              ->isPublic - дали е публичен или частен
-     *                              ->meta - мета данни за продукта ако има
-     *                              meta['canSell'] 		- дали може да се продава
-     *                              meta['canBuy']         - дали може да се купува
-     *                              meta['canConvert']     - дали може да се влага
-     *                              meta['canStore']       - дали може да се съхранява
-     *                              meta['canManifacture'] - дали може да се прозивежда
-     *                              meta['fixedAsset']     - дали е ДМА
-     *                              -> packagings - всички опаковки на продукта, ако не е зададена
+     *                  -> productRec - записа на продукта
+     *                  ->isPublic - дали е публичен или частен
+     *                  ->meta - мета данни за продукта ако има
+     *                  meta['canSell'] 		- дали може да се продава
+     *                  meta['canBuy']         - дали може да се купува
+     *                  meta['canConvert']     - дали може да се влага
+     *                  meta['canStore']       - дали може да се съхранява
+     *                  meta['canManifacture'] - дали може да се прозивежда
+     *                  meta['fixedAsset']     - дали е ДМА
+     *                  -> packagings - всички опаковки на продукта, ако не е зададена
      */
     public function getProductInfo($productId)
     {
@@ -71,13 +72,14 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * 	 Ако е зададен клиент се връщат всички публични + частните за него
      *   Ако не е зададен клиент се връщат всички активни продукти
      *
-     * @param  mixed  $customerClass    - клас/ид на контрагента
-     * @param  int    $customerId       - ид на контрагента
-     * @param  string $datetime         - дата към която извличаме артикулите
-     * @param  mixed  $hasProperties    - мета данни, на които да отговарят артикулите
-     * @param  mixed  $hasnotProperties - мета данни, на които да отговарят артикулите
-     * @param  string $limit            - колко опции да върнем
-     * @return array  - масив с достъпните за контрагента артикули
+     * @param mixed  $customerClass    - клас/ид на контрагента
+     * @param int    $customerId       - ид на контрагента
+     * @param string $datetime         - дата към която извличаме артикулите
+     * @param mixed  $hasProperties    - мета данни, на които да отговарят артикулите
+     * @param mixed  $hasnotProperties - мета данни, на които да отговарят артикулите
+     * @param string $limit            - колко опции да върнем
+     *
+     * @return array - масив с достъпните за контрагента артикули
      */
     public function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null)
     {
@@ -88,7 +90,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Връща цената по себестойност на продукта
      *
-     * @return double
+     * @return float
      */
     public function getSelfValue($productId, $packagingId = null, $quantity = null, $date = null)
     {
@@ -114,9 +116,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Връща транспортното тегло за подаденото количество и опаковка
      *
-     * @param  int         $productId - ид на продукт
-     * @param  int         $quantity  - общо количество
-     * @return double|NULL - транспортното тегло за к-то на артикула
+     * @param int $productId - ид на продукт
+     * @param int $quantity  - общо количество
+     *
+     * @return float|NULL - транспортното тегло за к-то на артикула
      */
     public function getTransportWeight($productId, $quantity)
     {
@@ -128,10 +131,11 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * Връща стойността на параметъра с това име, или
      * всички параметри с техните стойностти
      *
-     * @param  string  $id     - ид на записа
-     * @param  string  $name   - име на параметъра, или NULL ако искаме всички
-     * @param  boolean $verbal - дали да са вербални стойностите
-     * @return mixed   - стойност или FALSE ако няма
+     * @param string $id     - ид на записа
+     * @param string $name   - име на параметъра, или NULL ако искаме всички
+     * @param bool   $verbal - дали да са вербални стойностите
+     *
+     * @return mixed - стойност или FALSE ако няма
      */
     public function getParams($id, $name = null, $verbal = false)
     {
@@ -142,9 +146,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Връща транспортния обем за подаденото количество и опаковка
      *
-     * @param  int    $productId - ид на продукт
-     * @param  int    $quantity  - общо количество
-     * @return double - теглото на единица от продукта
+     * @param int $productId - ид на продукт
+     * @param int $quantity  - общо количество
+     *
+     * @return float - теглото на единица от продукта
      */
     public function getTransportVolume($productId, $quantity)
     {
@@ -155,9 +160,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Връща последната активна рецепта на артикула
      *
-     * @param  mixed            $id   - ид или запис
-     * @param  sales|production $type - вид работна или търговска
-     * @return mixed            $res - записа на рецептата или FALSE ако няма
+     * @param mixed            $id   - ид или запис
+     * @param sales|production $type - вид работна или търговска
+     *
+     * @return mixed $res - записа на рецептата или FALSE ако няма
      */
     public function getLastActiveBom($id, $type = null)
     {
@@ -168,8 +174,8 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
-     * @param mixed  $id       - ид или запис на артикул
-     * @param double $quantity - к-во за произвеждане
+     * @param mixed $id       - ид или запис на артикул
+     * @param float $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
      *               o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
@@ -203,10 +209,11 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Метод позволяващ на артикула да добавя бутони към rowtools-а на документ
      *
-     * @param  int             $id          - ид на артикул
-     * @param  core_RowToolbar $toolbar     - тулбара
-     * @param  mixed           $detailClass - класа на детайла на документа
-     * @param  int             $detailId    - ид на реда от детайла на документа
+     * @param int             $id          - ид на артикул
+     * @param core_RowToolbar $toolbar     - тулбара
+     * @param mixed           $detailClass - класа на детайла на документа
+     * @param int             $detailId    - ид на реда от детайла на документа
+     *
      * @return void
      */
     public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
@@ -218,9 +225,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Колко е толеранса
      *
-     * @param  int         $id       - ид на артикул
-     * @param  double      $quantity - к-во
-     * @return double|NULL - толеранс или NULL, ако няма
+     * @param int   $id       - ид на артикул
+     * @param float $quantity - к-во
+     *
+     * @return float|NULL - толеранс или NULL, ако няма
      */
     public function getTolerance($id, $quantity)
     {
@@ -231,9 +239,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Колко е срока на доставка
      *
-     * @param  int         $id       - ид на артикул
-     * @param  double      $quantity - к-во
-     * @return double|NULL - срока на доставка в секунди или NULL, ако няма
+     * @param int   $id       - ид на артикул
+     * @param float $quantity - к-во
+     *
+     * @return float|NULL - срока на доставка в секунди или NULL, ако няма
      */
     public function getDeliveryTime($id, $quantity)
     {
@@ -244,15 +253,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Връща минималното количество за поръчка
      *
-     * @param  int|NULL    $id - ид на артикул
-     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     * @param int|NULL $id - ид на артикул
+     *
+     * @return float|NULL - минималното количество в основна мярка, или NULL ако няма
      */
     public function getMoq($id = null)
     {
         return $this->class->getMoq($id = null);
     }
     
-
+    
     /**
      * Връща броя на количествата, които ще се показват в запитването
      *
@@ -262,8 +272,8 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getInquiryQuantities();
     }
-
-
+    
+    
     /**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
@@ -281,7 +291,8 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     /**
      * Връща хеша на артикула (стойност която показва дали е уникален)
      *
-     * @param  mixed        $rec - ид или запис на артикул
+     * @param mixed $rec - ид или запис на артикул
+     *
      * @return NULL|varchar - Допълнителните условия за дадения продукт
      */
     public function getHash($rec)

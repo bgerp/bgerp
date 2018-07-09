@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'type_Check' - Тип за избрана/неизбрана стойност
  *
  *
  * @category  bgerp
  * @package   type
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Check extends type_Enum
 {
-    
-    
     /**
      * Параметър по подразбиране
      */
@@ -58,7 +57,7 @@ class type_Check extends type_Enum
         if (isset($this->params['mandatory']) && $value != 'yes') {
             $error = ($this->params['errorIfNotChecked']) ? $this->params['errorIfNotChecked'] : 'Стойността трябва да е избрана|*!';
             $this->error = $error;
-
+            
             return false;
         }
         

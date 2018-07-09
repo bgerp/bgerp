@@ -1,46 +1,45 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка
  * продажби по артикули
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_reports_ArrearsImpl extends frame_BaseDriver
 {
-
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo,sales,cash, bank, store';
-
-
+    
+    
     /**
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Сделки » Задължения и просрочия';
-
-
+    
+    
     /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 50;
-
-
+    
+    
     /**
      * Добавя полетата на вътрешния обект
      *
@@ -52,7 +51,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         $form->FLD('amount', 'double', 'caption=Не показвай под,unit=лв.');
         $form->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец');
         
-
+        
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
@@ -66,16 +65,16 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     {
         // Дефолт периода е текущия ден
         $today = dt::today();
-            
+        
         $form->setDefault('from', date('Y-m-01', strtotime('-1 months', dt::mysql2timestamp(dt::now()))));
         
         $form->setDefault('amount', '1');
-
+        
         $this->inputForm($form);
-    
+        
         $this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
-
+    
     
     /**
      * Проверява въведените данни
@@ -85,8 +84,8 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     public function checkEmbeddedForm(core_Form &$form)
     {
     }
-
-
+    
+    
     /**
      * Подготвя вътрешното състояние, на база въведените данни
      *
@@ -98,20 +97,20 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         $data = new stdClass();
         $data->recs = array();
         $data->summary = new stdClass();
-    
+        
         $data->rec = $this->innerForm;
         $this->prepareListFields($data);
         
         $dealerId = keylist::toArray($data->rec->dealerId);
         $dealerArr = implode(',', $dealerId);
-
+        
         $querySales = sales_Sales::getQuery();
         if ($data->rec->dealerId) {
             $querySales->where("#state = 'active' AND #valior <= '{$data->rec->from}' AND #dealerId IN ({$dealerArr})");
         } else {
             $querySales->where("#state = 'active' AND #valior <= '{$data->rec->from}'");
         }
-
+        
         while ($recSale = $querySales->fetch()) {
             // Правим заявка към "Продажбите"
             $query = sales_Invoices::getQuery();
@@ -129,7 +128,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 } else {
                     $date = $recInvoices->date;
                 }
-
+                
                 if ($date >= $data->rec->from) {
                     $uDelay = $recSale->amountBl;
                 }
@@ -149,26 +148,26 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                         $delay3 = $recSale->amountBl;
                     }
                 }
-
+                
                 $dealer = $recSale->dealerId;
-          
+                
                 $data->recs[] = (object) array(
-                                'count' => '',
-                                'contragentId' => $recInvoices->contragentId,
-                                'contragentClassId' => $recInvoices->contragentClassId,
-                                'invoice' => $recInvoices->id,
-                                'invoiceNum' => $recInvoices->number,
-                                'dealer' => $dealer,
-                                'uDelay' => $uDelay,
-                                'delay1' => $delay1,
-                                'delay2' => $delay2,
-                                'delay3' => $delay3,
-                                'amount' => '',
+                    'count' => '',
+                    'contragentId' => $recInvoices->contragentId,
+                    'contragentClassId' => $recInvoices->contragentClassId,
+                    'invoice' => $recInvoices->id,
+                    'invoiceNum' => $recInvoices->number,
+                    'dealer' => $dealer,
+                    'uDelay' => $uDelay,
+                    'delay1' => $delay1,
+                    'delay2' => $delay2,
+                    'delay3' => $delay3,
+                    'amount' => '',
                 );
             }
         }
- 
-
+        
+        
         // За всички генерирани елементи
         // изчисляваме средната ед. цена
         foreach ($data->recs as $id => $recs) {
@@ -181,19 +180,19 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         arr::sortObjects($data->recs, 'amount', 'DESC');
-
+        
         foreach ($data->recs as $id => $r) {
             if ($r->amount <= $data->rec->amount || $r->amount == '') {
                 unset($data->recs[$id]);
             }
         }
-
+        
         return $data;
     }
     
-
+    
     /**
      * След подготовката на показването на информацията
      */
@@ -206,7 +205,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
             $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-           
+            
             $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
             $data->pager = $pager;
         }
@@ -215,7 +214,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         if (count($data->recs)) {
             foreach ($data->recs as $rec) {
                 $rec->count = 1;
-
+                
                 $rec->count = $id++;
                 if (!Mode::is('printing')) {
                     if (!$pager->isOnPage()) {
@@ -224,15 +223,15 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 }
                 
                 $row = $mvc->getVerbal($rec);
-            
+                
                 $data->rows[] = $row;
             }
         }
-
+        
         $res = $data;
     }
-
-
+    
+    
     /**
      * Връща шаблона на репорта
      *
@@ -244,8 +243,8 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Рендира вградения обект
      *
@@ -254,26 +253,27 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-    
+        
         $tpl = $this->getReportLayout();
-         
+        
         $tpl->replace($this->getReportTitle(), 'TITLE');
-    
+        
         $form = cls::get('core_Form');
-    
+        
         $this->addEmbeddedFields($form);
-    
+        
         $form->rec = $data->rec;
         $form->class = 'simpleForm';
-    
+        
         $tpl->prepend($form->renderStaticHtml(), 'FORM');
-                     
+        
         $tpl->placeObject($data->rec);
-
+        
         $f = $this->getFields();
-          
+        
         $table = cls::get('core_TableView', array('mvc' => $f));
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
@@ -288,15 +288,15 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
             $afterRow->placeObject($data->summary);
             $tpl->append($afterRow, 'ROW_AFTER');
         }
-         
+        
         if ($data->pager) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
-
+        
         $embedderTpl->append($tpl, 'data');
     }
-
-
+    
+    
     /**
      * Подготвя хедърите на заглавията на таблицата
      */
@@ -308,7 +308,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 'contragent' => 'Контрагент',
                 'invoice' => 'Фактура',
                 'dealer' => 'Търговец',
-                   'uDelay' => 'Без закъснение',
+                'uDelay' => 'Без закъснение',
                 'delay1' => '1-15 дни',
                 'delay2' => '16-60 дни',
                 'delay3' => '60+ дни',
@@ -328,6 +328,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         }
     }
     
+    
     /**
      * Вербалното представяне на ред от таблицата
      */
@@ -346,8 +347,8 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         
         return $row;
     }
-
-
+    
+    
     /**
      * Вербалното представяне на ред от таблицата
      */
@@ -356,36 +357,36 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-
+        
         $row = new stdClass();
-
+        
         $row->count = $Int->toVerbal($rec->count);
-
+        
         $row->contragent = cls::get($rec->contragentClassId)->getShortHyperLink($rec->contragentId);
-
+        
         if ($rec->invoice) {
             if (strlen($rec->invoiceNum) < 10) {
                 $number = str_pad($rec->invoiceNum, '10', '0', STR_PAD_LEFT);
             } else {
                 $number = $rec->invoiceNum;
             }
-           
+            
             $url = toUrl(array('sales_Invoices','single', $rec->invoice), 'absolute');
             $row->invoice = ht::createLink($number, $url, false, array('ef_icon' => 'img/16/invoice.png'));
         }
-
+        
         $row->dealer = crm_Profiles::createLink($rec->dealer);
-
+        
         foreach (array('uDelay', 'delay1', 'delay2', 'delay3', 'amount') as $fld) {
             if (isset($rec->{$fld})) {
                 $row->{$fld} = $Double->toVerbal($rec->{$fld});
             }
         }
-
+        
         return $row;
     }
-
-
+    
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -394,35 +395,35 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-
+        
         unset($innerState->recs);
     }
-
-
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->from} 23:59:59";
-            
+        
         return $activateOn;
     }
-
-
+    
+    
     /**
      * Връща дефолт заглавието на репорта
      */
     public function getReportTitle()
     {
         $explodeTitle = explode(' » ', $this->title);
-            
+        
         $title = tr("|{$explodeTitle[1]}|*");
-
+        
         return $title;
     }
-
-
+    
+    
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
      *
@@ -432,16 +433,16 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     public function exportCsv()
     {
         $conf = core_Packs::getConfig('core');
-
+        
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
         $exportFields = $this->innerState->listFields;
-
+        
         foreach ($this->innerState->recs as $id => $rec) {
             $dataRecs[] = $this->getVerbal($rec);
-
+            
             $dataRecs[$id]->count = $id + 1;
             $dataRecs[$id]->contragent = strstr($dataRecs[$id]->contragent, '&', true);
             foreach (array('uDelay', 'delay1', 'delay2', 'delay3', 'amount', 'dealer', 'invoice') as $fld) {
@@ -452,7 +453,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         
         if ($this->innerState->summary) {
             $afterRow = 'ОБЩО';
-
+            
             foreach ($this->innerState->summary as $f => $value) {
                 $rCsv = '';
                 foreach ($exportFields as $field => $caption) {
@@ -465,19 +466,20 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
         $csv .= "\n".$afterRow.$rCsv;
-
+        
         return $csv;
     }
-
-
+    
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -493,7 +495,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         $f->FLD('delay2', 'double', 'tdClass=smartCenter');
         $f->FLD('delay3', 'double', 'tdClass=smartCenter');
         $f->FLD('amount', 'double', 'tdClass=smartCenter');
-    
+        
         return $f;
     }
 }

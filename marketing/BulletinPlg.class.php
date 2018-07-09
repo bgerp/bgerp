@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   marketing
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class marketing_BulletinPlg extends core_Plugin
 {
-    
-    
     /**
      * Прихваща изпращането към изхода, за да постави нотификации, ако има
      */

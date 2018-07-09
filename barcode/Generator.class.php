@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Версията на пакета за генериране на баркодове
  */
@@ -13,10 +12,12 @@ defIfNot('PHP_BARCODE_VERSION', '2.0.3');
  */
 defIfNot('PHP_QRCODE_VERSION', '1.1.4');
 
+
 /**
  * Вкарваме файловете необходими за работа с баркодове
  */
 require_once 'phpbarcode/' . PHP_BARCODE_VERSION . '/php-barcode.php';
+
 
 /**
  * Вкарваме файловете необходими за работа с програмата.
@@ -29,19 +30,20 @@ require_once 'phpqrcode/' . PHP_QRCODE_VERSION . '/qrlib.php';
  *
  * @category  bgerp
  * @package   barcode
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class barcode_Generator extends core_Manager
 {
-    
-    
     /**
      * Сол за генериране на ключ за криптиране
      */
     const KEY_SALT = 'BARCODE IMAGE';
+    
     
     /**
      * Масив с поддържаните баркодове и вербалните им стойности
@@ -61,10 +63,12 @@ class barcode_Generator extends core_Manager
         'codabar' => 'Codabar',
     );
     
+    
     /**
      * Размер на шрифта
      */
     public static $fontSize = 11;
+    
     
     /**
      * Път до шрифта
@@ -106,7 +110,6 @@ class barcode_Generator extends core_Manager
      * $params['addText']['font'] - Определен шрифт от системата
      * $params['addText']['fontSiz'] - Размер на шрифта
      * $params['addText']['bgOnlyText'] - Фона (background) на текста, да е колко дължината му
-     *
      * @param array $output - Масив, в който се записват данните след генерирането на баркода
      *
      * @return resource gdRes
@@ -142,7 +145,7 @@ class barcode_Generator extends core_Manager
         
         // Минималната дължина и широчина на баркода
         $minWidthAndHeightArr = self::getMinWidthAndHeight($type, $content);
-
+        
         // Ако размера не е масив
         if (!is_array($size)) {
             
@@ -257,8 +260,8 @@ class barcode_Generator extends core_Manager
     /**
      * Връща новия размер в зависимост от съотношението
      *
-     * @param float   $size  - Размер
-     * @param integer $ratio - Съотношение
+     * @param float $size  - Размер
+     * @param int   $ratio - Съотношение
      */
     public static function getNewSize($size, $ratio)
     {
@@ -318,7 +321,6 @@ class barcode_Generator extends core_Manager
      * @param string $type    - Типа на баркода, който ще се генерира - Пример: QR, EAN13, EAN8 и т.н.
      * @param string $content - Съдържанието на баркода
      * @param array  $size    - Масив с широчината width и височината height на изображенията. Съща така може да приема и стринг
-     *
      * @param array - img таг с линка
      */
     public static function getLink($type, $content, $size = null, $params = array())
@@ -368,7 +370,6 @@ class barcode_Generator extends core_Manager
      * @param string $type    - Типа на баркода, който ще се генерира - Пример: QR, EAN13, EAN8 и т.н.
      * @param string $content - Съдържанието на баркода
      * @param array  $size    - Масив с широчината width и височината height на изображенията. Съща така може да приема и стринг
-     *
      * @param core_Et - Линк
      */
     public static function getUrl($type, $content, $size = null, $params = array())
@@ -447,8 +448,9 @@ class barcode_Generator extends core_Manager
         
         // Височината е различна само при квадратните баркодове - QR и codabar
         $height = 1;
-
+        
         $text = (string) $text;
+        
         // Опредяляме минималната дъжина и широчина
         switch ($type) {
             
@@ -647,6 +649,7 @@ class barcode_Generator extends core_Manager
                 break;
             
             default:
+            
             // Очакваме да има текст, който да отговаря на размерите
             expect(false, "Размера трябва да е масив с 'width' и 'height' или стринг от изброените: small, medium, large. Въвели сте '{$size}'.");
             break;
@@ -688,7 +691,7 @@ class barcode_Generator extends core_Manager
     /**
      * Връща линк към подадения обект
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */

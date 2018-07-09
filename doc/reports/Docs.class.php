@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от документи
  *
@@ -12,15 +11,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_reports_Docs extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -31,14 +30,14 @@ class doc_reports_Docs extends frame_BaseDriver
      * Заглавие
      */
     public $title = 'Документи » Създадени документи';
-
+    
     
     /**
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
-
-
+    
+    
     /**
      * Брой записи на страница
      */
@@ -79,7 +78,7 @@ class doc_reports_Docs extends frame_BaseDriver
      * Кой може да го разглежда?
      */
     public $canList = 'powerUser';
-
+    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -93,8 +92,8 @@ class doc_reports_Docs extends frame_BaseDriver
         $form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title)', 'caption=Документ,mandatory');
         $form->FLD('user', 'users(rolesForAll = ceo|report, rolesForTeams = manager|ceo|report)', 'caption=Потребител');
     }
-      
-
+    
+    
     /**
      * Подготвя формата за въвеждане на данни за вътрешния обект
      *
@@ -114,7 +113,7 @@ class doc_reports_Docs extends frame_BaseDriver
             $userFromTeamsArr = type_Users::getUserFromTeams($cu);
             $form->setDefault('user', key($userFromTeamsArr));
         }
-
+        
         $today = dt::today();
         
         $form->setDefault('from', date('Y-m-01', strtotime('-1 months', dt::mysql2timestamp(dt::now()))));
@@ -148,13 +147,13 @@ class doc_reports_Docs extends frame_BaseDriver
         $data = new stdClass();
         $data->docCnt = array();
         $fRec = $data->fRec = $this->innerForm;
-      
+        
         $query = doc_Containers::getQuery();
         
         if ($fRec->from) {
             $query->where("#createdOn >= '{$fRec->from} 00:00:00'");
         }
-
+        
         if ($fRec->to) {
             $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
@@ -166,15 +165,15 @@ class doc_reports_Docs extends frame_BaseDriver
         if (($fRec->user != 'all_users') && (strpos($fRec->user, '|-1|') === false)) {
             $query->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
         }
-       
-
+        
+        
         while ($rec = $query->fetch()) {
             $data->docCnt[$rec->docClass][$rec->createdBy]++;
         }
- 
+        
         // Сортиране на данните
         arsort($data->docCnt);
-
+        
         return $data;
     }
     
@@ -207,7 +206,7 @@ class doc_reports_Docs extends frame_BaseDriver
                         continue;
                     }
                 }
-        
+                
                 $data->rows[$id] = $row;
             }
         }
@@ -223,7 +222,7 @@ class doc_reports_Docs extends frame_BaseDriver
         $Class->params['interface'] = 'doc_DocumentIntf';
         $Class->params['select'] = 'title';
         $Class->params['allowEmpty'] = 'allowEmpty';
-
+        
         $Int = cls::get('type_Int');
         
         foreach ($rec as $docClass => $userCnt) {
@@ -231,7 +230,7 @@ class doc_reports_Docs extends frame_BaseDriver
                 $row = new stdClass();
                 $row->docClass = $Class->toVerbal($docClass);
                 $row->cnt = $Int->toVerbal($cnt);
-                 
+                
                 if (!$user) {
                     $row->createdBy = 'Анонимен';
                 } elseif ($user == -1) {
@@ -240,11 +239,11 @@ class doc_reports_Docs extends frame_BaseDriver
                     $names = core_Users::fetchField($user, 'names');
                     $row->createdBy = $names . ' ' . crm_Profiles::createLink($user);
                 }
-
+                
                 $rows[] = $row;
             }
         }
-
+        
         return $rows;
     }
     
@@ -257,7 +256,7 @@ class doc_reports_Docs extends frame_BaseDriver
     public function getReportLayout_()
     {
         $tpl = getTplFromFile('doc/tpl/DocReportLayout.shtml');
-         
+        
         return $tpl;
     }
     
@@ -270,20 +269,21 @@ class doc_reports_Docs extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-         
+        
         $tpl = $this->getReportLayout();
-    
+        
         $docClass = cls::get($data->fRec->docClass);
         $tpl->replace($docClass->singleTitle, 'DOCTYPE');
         
         $this->prependStaticForm($tpl, 'FORM');
-         
+        
         $tpl->placeObject($data->row);
-    
+        
         $f = $this->getFields();
-
+        
         $table = cls::get('core_TableView', array('mvc' => $f));
         
         $tpl->append($table->get($data->rows, 'docClass=Създадени документи->Тип,
@@ -293,16 +293,17 @@ class doc_reports_Docs extends frame_BaseDriver
         if ($data->pager) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
-
+        
         $embedderTpl->append($tpl, 'data');
     }
     
-
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -312,7 +313,7 @@ class doc_reports_Docs extends frame_BaseDriver
         $f->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
         $f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'tdClass=itemClass');
         $f->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
-    
+        
         return $f;
     }
     
@@ -329,7 +330,7 @@ class doc_reports_Docs extends frame_BaseDriver
         $fields = arr::make('docClass=Тип на документа,
     					     createdBy=Автор,
     					     cnt=Създадени документи (бр.)', true);
-    
+        
         return $fields;
     }
     
@@ -345,7 +346,7 @@ class doc_reports_Docs extends frame_BaseDriver
         $exportFields = $this->getExportFields();
         $fields = $this->getFields();
         $dataRec = array();
-
+        
         foreach ($this->innerState->docCnt as $docClass => $docCnt) {
             foreach ($docCnt  as $userId => $cnt) {
                 $row = new stdClass();
@@ -357,12 +358,12 @@ class doc_reports_Docs extends frame_BaseDriver
                 $dataRec[] = $row;
             }
         }
-
+        
         $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
-         
+        
         return $csv;
     }
-     
+    
     
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда

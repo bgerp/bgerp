@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Заглавия на свойствата
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_FeatureTitles extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -39,7 +38,7 @@ class acc_FeatureTitles extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,acc';
-        
+    
     
     /**
      * Заглавие на единичен документ
@@ -82,7 +81,7 @@ class acc_FeatureTitles extends core_Manager
      */
     public $listItemsPerPage = 40;
     
-
+    
     /**
      * Описание на модела
      */
@@ -90,7 +89,7 @@ class acc_FeatureTitles extends core_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Черта');
     }
-
+    
     
     /**
      * Връща id на посочения признак. Ако го няма - създава го.
@@ -103,7 +102,7 @@ class acc_FeatureTitles extends core_Manager
             acc_FeatureTitles::save($ftRec);
             $id = $ftRec->id;
         }
-
+        
         return $id;
     }
 }

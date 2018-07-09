@@ -6,39 +6,34 @@
  *
  * @title Отчитане изпълнението на задачите
  *
- *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @deprecated
  */
 class cal_TaskProgresses extends core_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'taskId';
-
-     
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, cal_Wrapper, plg_Rejected';
     
     
-    
     public $canEdit = 'no_one';
     
     
-    
     public $canDelete = 'no_one';
-    
     
     
     public $canReject = 'powerUser';
@@ -66,13 +61,12 @@ class cal_TaskProgresses extends core_Detail
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/task.png';
-
+    
     
     /**
      * Икона за единичния изглед
      */
     public $singleTitle = 'прогрес';
-    
     
     
     public $canAdd = 'no_one';
@@ -82,8 +76,8 @@ class cal_TaskProgresses extends core_Detail
      * Активен таб на менюто
      */
     public $currentTab = 'Задачи';
-   
-         
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -91,10 +85,10 @@ class cal_TaskProgresses extends core_Detail
     {
         // id на задачата
         $this->FLD('taskId', 'key(mvc=cal_Tasks,select=title)', 'caption=Задача,input=hidden,silent,column=none');
-       
+        
         // Каква част от задачата е изпълнена?
         $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес');
-
+        
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)', 'caption=Отработено време');
         
@@ -110,7 +104,7 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Проверява дали има модел в БД
      *
-     * @return boolean
+     * @return bool
      */
     public static function isInstalled()
     {
@@ -128,8 +122,8 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Връща създателя на последния прогрес
      *
-     * @param integer $taskId
-     * @param boolean $removeRejected
+     * @param int  $taskId
+     * @param bool $removeRejected
      *
      * @return FALSE|stdClass
      */
@@ -264,8 +258,8 @@ class cal_TaskProgresses extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Изпълнява се след опаковане на детайла от мениджъра
      *
@@ -274,6 +268,7 @@ class cal_TaskProgresses extends core_Detail
     public function renderDetail($data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -300,6 +295,7 @@ class cal_TaskProgresses extends core_Detail
     public static function on_AfterRenderListTable($mvc, &$res, $data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -333,7 +329,7 @@ class cal_TaskProgresses extends core_Detail
             }
         }
     }
-
+    
     
     /**
      * Извиква се след успешен запис в модела
@@ -449,6 +445,7 @@ class cal_TaskProgresses extends core_Detail
     {
         if ($action == 'add' && isset($rec->taskId)) {
             if ($requiredRoles == 'no_one') {
+                
                 return;
             }
             
@@ -535,10 +532,10 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Обновява прогреса на задачата
      *
-     * @param integer     $taskId
+     * @param int         $taskId
      * @param NULL|string $state
      *
-     * @return NULL|boolean
+     * @return NULL|bool
      */
     protected static function updateTaskProgress($taskId, $state = null)
     {
@@ -582,8 +579,9 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Връща последно добавения неоттеглен прогрес
      *
-     * @param  integer     $taskId
-     * @return NULL|double
+     * @param int $taskId
+     *
+     * @return NULL|float
      */
     protected static function getLastGoodProgress($taskId)
     {

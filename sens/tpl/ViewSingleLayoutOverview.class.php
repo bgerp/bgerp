@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'cams_tpl_ViewSingleLayoutOverview' -
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class sens_tpl_ViewSingleLayoutOverview extends core_ET
 {
-    
-    
     /**
      * Инициализиране на обекта
      */

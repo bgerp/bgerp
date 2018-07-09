@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Classes' - Регистър на класовете, имащи някакви интерфейси
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Classes extends core_Manager
 {
-    
-    
     /**
      * Списък за начално
      */
@@ -53,18 +52,17 @@ class core_Classes extends core_Manager
      */
     public static $staticInterfaceMehods = array();
     
-
+    
     /**
      * Работен кеш за имената и id-тата na klasowete
      */
     public static $classes = array();
     
-
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'name, title';
-    
     
     
     protected static $classHashName = 'loadClasses1';
@@ -99,7 +97,7 @@ class core_Classes extends core_Manager
         $data->listFilter->showFields = 'search,interface';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    
+        
         $data->listFilter->input();
         
         if ($interfaceId = $data->listFilter->rec->interface) {
@@ -114,6 +112,7 @@ class core_Classes extends core_Manager
     public static function add($class, $title = false)
     {
         $class = cls::get($class);
+        
         
         /**
          * Ако класът е нова версия на някой предишен, съществуващ,
@@ -130,7 +129,7 @@ class core_Classes extends core_Manager
                 }
             }
         }
-      
+        
         $rec = new stdClass();
         
         $rec->interfaces = core_Interfaces::getKeylist($class);
@@ -157,7 +156,7 @@ class core_Classes extends core_Manager
         
         // Очакваме този клас да може да бъде зареден
         expect(cls::load($rec->name), $rec->name);
-                
+        
         $rec->title = $title ? $title : cls::getTitle($rec->name);
         
         $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id');
@@ -185,26 +184,26 @@ class core_Classes extends core_Manager
     public static function getOptionsByInterface($interfaces, $titlePart = 'name')
     {
         $params = array($interfaces, $titlePart, core_Lg::getCurrent());
- 
+        
         return core_Cache::getOrCalc('getOptionsByInterface', $params, function ($params) {
             $interfaces = $params[0];
             $titlePart = $params[1];
-
+            
             $cC = cls::get('core_Classes');
             
             $interfaceCond = '';
-
+            
             if ($interfaces) {
                 $interfacesArr = explode('|', $interfaces);
                 
                 $interfaceCondArr = array();
-
+                
                 foreach ($interfacesArr as $interface) {
                     $interface = trim($interface);
                     if (!$interface) {
                         continue;
                     }
-
+                    
                     // Вземаме инстанция на core_Interfaces
                     $Interfaces = cls::get('core_Interfaces');
                     
@@ -215,12 +214,12 @@ class core_Classes extends core_Manager
                     
                     $interfaceCondArr[] = "#interfaces LIKE '%|{$interfaceId}|%'";
                 }
-
+                
                 if (count($interfaceCondArr)) {
                     $interfaceCond = ' AND ' . '(' . implode(' OR ', $interfaceCondArr) . ')';
                 }
             }
-
+            
             $options = core_Classes::makeArray4Select($titlePart, "#state = 'active'" . $interfaceCond);
             
             if (is_array($options) && $titlePart == 'title') {
@@ -228,7 +227,7 @@ class core_Classes extends core_Manager
                     $name = core_Classes::translateClassName($name);
                 }
             }
-       
+            
             return $options;
         });
     }
@@ -237,7 +236,8 @@ class core_Classes extends core_Manager
     /**
      * Помощна ф-я за превод на име на сложно име на клас
      *
-     * @param  string $name
+     * @param string $name
+     *
      * @return string $name;
      */
     public static function translateClassName($name)
@@ -258,7 +258,7 @@ class core_Classes extends core_Manager
      *
      * @param $interface - Името или id' то на интерфейса
      *
-     * @return integer - Броя на класовете, които имплементират интерфейса
+     * @return int - Броя на класовете, които имплементират интерфейса
      */
     public static function getInterfaceCount($interface)
     {
@@ -271,7 +271,7 @@ class core_Classes extends core_Manager
         } else {
             $interfaceId = $interface;
         }
-
+        
         // Очакваме валиден интерфейс
         expect($interfaceId);
         
@@ -285,8 +285,9 @@ class core_Classes extends core_Manager
     /**
      * Връща ид на клас по (име | инстанция | ид)
      *
-     * @param  mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
-     * @return int   ид на клас
+     * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     *
+     * @return int ид на клас
      */
     public static function getId($class)
     {
@@ -298,20 +299,20 @@ class core_Classes extends core_Manager
             } else {
                 $className = $class;
             }
-
+            
             if (!count(self::$classes)) {
                 self::loadClasses();
             }
             
             $classId = self::$classes[$className];
         }
-
+        
         expect($classId, $class);
-
+        
         return $classId;
     }
-
-
+    
+    
     /**
      * Връща името на класа, според неговото id
      */
@@ -323,12 +324,12 @@ class core_Classes extends core_Manager
         if (!count(self::$classes)) {
             self::loadClasses();
         }
-
+        
         $className = self::$classes[$classId];
         
         return $className;
     }
-
+    
     
     /**
      * Зарежда кеша на класовете
@@ -343,14 +344,14 @@ class core_Classes extends core_Manager
                 $classes[$rec->id] = $rec->name;
                 $classes[$rec->name] = $rec->id;
             }
-
+            
             return $classes;
         });
-
+        
         self::$classes = $classes;
     }
-
-
+    
+    
     /**
      * Инвалидира кеша при обновяване на таблицата
      */
@@ -378,7 +379,6 @@ class core_Classes extends core_Manager
         self::rebuild();
     }
     
-
     
     /**
      * Прецизира информацията за интерфейсите на всички 'активни' класове
@@ -388,7 +388,7 @@ class core_Classes extends core_Manager
     {
         $query = self::getQuery();
         $res = '<li>Обновяване на информацията за класовете</li>';
-
+        
         while ($rec = $query->fetch("#state = 'active'")) {
             $load = cls::load($rec->name, true);
             if ($load) {
@@ -406,7 +406,7 @@ class core_Classes extends core_Manager
                 core_Classes::add($rec->name);
             }
         }
-
+        
         return $res;
     }
     
@@ -434,8 +434,10 @@ class core_Classes extends core_Manager
      * Подготвя интерфейсите на класа за показване в лист изгледа
      * Ако класа не имплементира някои методи на даден итнерфейс, то на
      * итнерфейса има хинт за това кои методи не са имплементирани
-     * @param  stdClass $rec
-     * @return string   $verbalInterfaces
+     *
+     * @param stdClass $rec
+     *
+     * @return string $verbalInterfaces
      */
     private function getVerbalInterfaces($rec)
     {

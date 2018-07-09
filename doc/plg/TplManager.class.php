@@ -11,15 +11,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_TplManager extends core_Plugin
 {
-    
-    
     /**
      * След инициализирането на модела
      *
@@ -65,8 +65,9 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Проверява дали този плъгин е приложим към зададен мениджър
      *
-     * @param  core_Mvc $mvc
-     * @return boolean
+     * @param core_Mvc $mvc
+     *
+     * @return bool
      */
     protected static function checkApplicability(core_Mvc $mvc)
     {
@@ -78,7 +79,7 @@ class doc_plg_TplManager extends core_Plugin
         
         // ... към който е прикачен doc_DocumentPlg
         $plugins = arr::make($mvc->loadList);
-
+        
         if (isset($plugins['doc_DocumentPlg'])) {
             
             return false;
@@ -86,7 +87,6 @@ class doc_plg_TplManager extends core_Plugin
         
         return true;
     }
-    
     
     
     /**
@@ -184,7 +184,7 @@ class doc_plg_TplManager extends core_Plugin
      *
      * @param core_Mvc    $mvc
      * @param NULL|string $res
-     * @param integer     $templateId
+     * @param int         $templateId
      */
     public static function on_AfterPushTemplateLg($mvc, &$res, $templateId)
     {
@@ -249,7 +249,7 @@ class doc_plg_TplManager extends core_Plugin
      *
      * @param core_Mvc      $mvc
      * @param NULL|stdClass $res
-     * @param integer       $id
+     * @param int           $id
      * @param string        $mode
      * @param NULL|stdClass $options
      */
@@ -286,7 +286,7 @@ class doc_plg_TplManager extends core_Plugin
             $form->setOptions('tplId', $tplArr);
             
             $form->setDefault('tplId', $data->rec->template);
-            
+
 //             $form->title = "Избор на изглед за отпечатване";
 //             $form->toolbar->addSbBtn('Избор', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Избор на шаблон за отпечатване, style=display:none;');
             
@@ -371,11 +371,11 @@ class doc_plg_TplManager extends core_Plugin
             
             if ($companyName) {
                 $params = array(
-                        'pixelPerPoint' => 6,
-                        'outFileName' => null,
-                        'quality' => 'L',
-                        'outerFrame' => 0,
-                        'absolute' => true,
+                    'pixelPerPoint' => 6,
+                    'outFileName' => null,
+                    'quality' => 'L',
+                    'outerFrame' => 0,
+                    'absolute' => true,
                 );
                 
                 try {
@@ -399,7 +399,7 @@ class doc_plg_TplManager extends core_Plugin
     {
         if ($rec->tplLang) {
             core_Lg::pop();
-             
+            
             // Заместваме вербалното състояние и име с тези според езика на текущата сесия
             if ($mvc->getFieldType('state', false)) {
                 $row->state = $mvc->getVerbal($rec, 'state');
@@ -427,17 +427,17 @@ class doc_plg_TplManager extends core_Plugin
             $cData = doc_Folders::getContragentData($rec->folderId);
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
             $languages = array();
-             
+            
             if (empty($cData->countryId) || $bgId === $cData->countryId) {
                 $languages['bg'] = 'bg';
             } else {
                 $cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
                 $languages = array_merge(arr::make($cLanguages, true), $languages);
-            
+                
                 $defLang = 'en';
             }
             $languages['en'] = 'en';
-             
+            
             // Намираме първия шаблон на езика който се говори в държавата
             foreach ($languages as $lang) {
                 $tplId = doc_TplManager::fetchField("#lang = '{$lang}' AND #docClassId = '{$mvc->getClassId()}'", 'id');
@@ -445,7 +445,7 @@ class doc_plg_TplManager extends core_Plugin
                     break;
                 }
             }
-             
+            
             $res = $tplId;
         }
     }
@@ -457,15 +457,17 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterGetLangFromRec($mvc, &$res, $id)
     {
         if (!$id) {
+            
             return;
         }
-    
+        
         $rec = $mvc->fetch($id);
-         
+        
         if (!$rec->template) {
+            
             return;
         }
-         
+        
         $lang = doc_TplManager::fetchField($rec->template, 'lang');
         
         $res = $lang;
@@ -557,7 +559,7 @@ class doc_plg_TplManager extends core_Plugin
      *
      * @param core_Mvc $mvc
      * @param core_ET  $container
-     * @param integer  $cnt
+     * @param int      $cnt
      * @param stdClass $rec
      */
     public static function on_AfterRenderPrintCopy($mvc, &$container, $cnt, $rec)

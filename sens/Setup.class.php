@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class acc_Setup
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -54,36 +53,36 @@ class sens_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'sens_Sensors',
-            'sens_IndicationsLog',
-            'sens_MsgLog',
-            'sens_Params',
-            'sens_Overviews',
-            'sens_OverviewDetails'
-        );
+        'sens_Sensors',
+        'sens_IndicationsLog',
+        'sens_MsgLog',
+        'sens_Params',
+        'sens_Overviews',
+        'sens_OverviewDetails'
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'sens';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', 'sens, ceo,admin'),
-        );
+        array(3.4, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', 'sens, ceo,admin'),
+    );
     
-        
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-                                 
+        
         // Добавяме наличните драйвери
         $drivers = array(
             'sens_driver_Mockup',
@@ -100,7 +99,7 @@ class sens_Setup extends core_ProtoSetup
             $drvObject->setParams();
             unset($drvObject);
         }
-         
+        
         $rec = new stdClass();
         $rec->systemId = 'sens_GetIndications';
         $rec->description = 'Вземат се данни от активни сензори';

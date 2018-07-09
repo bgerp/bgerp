@@ -1,13 +1,16 @@
 <?php
 
+
 /**
  * Клас - 'acc_journal_Transaction'
  *
  * @category bgerp
  * @package acc
+ *
  * @author Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license GPL 3
+ *
  * @since v 0.1
  */
 class acc_journal_Transaction
@@ -18,16 +21,19 @@ class acc_journal_Transaction
      */
     protected $entries = array();
     
+    
     /**
      *
      * @var stdClass
      */
     public $rec;
     
+    
     /**
      * @var acc_Journal
      */
     public $Journal;
+    
     
     /**
      * @var acc_JournalDetails
@@ -62,7 +68,8 @@ class acc_journal_Transaction
     /**
      * Инициализира транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public function init($data)
@@ -85,7 +92,8 @@ class acc_journal_Transaction
     /**
      * Добавя нов ред в транзакция
      *
-     * @param  acc_journal_Entry $entry
+     * @param acc_journal_Entry $entry
+     *
      * @return acc_journal_Entry $entry
      */
     public function add($entry = null)
@@ -103,7 +111,8 @@ class acc_journal_Transaction
     /**
      * Проверка на валидността на счетоводна транзакция
      *
-     * @return boolean
+     * @return bool
+     *
      * @throws acc_journal_Exception
      */
     public function check()
@@ -124,7 +133,7 @@ class acc_journal_Transaction
             $roundTotal = core_Math::roundNumber($this->rec->totalAmount);
             
             acc_journal_Exception::expect(
-            
+                
                 trim($roundTotal) == trim($sumItemsAmount),
                 "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$roundTotal}) суми на транзакция"
             
@@ -156,7 +165,7 @@ class acc_journal_Transaction
     /**
      * Записва транзакция в БД
      *
-     * @return boolean
+     * @return bool
      */
     public function save()
     {
@@ -197,7 +206,7 @@ class acc_journal_Transaction
     /**
      * Стартира процеса на записване на транзакция
      *
-     * @return boolean
+     * @return bool
      */
     protected function begin()
     {
@@ -223,7 +232,7 @@ class acc_journal_Transaction
     /**
      * Финализира транзакция след успешно записване
      *
-     * @return boolean
+     * @return bool
      */
     protected function commit()
     {
@@ -243,7 +252,7 @@ class acc_journal_Transaction
     /**
      * Изтрива частично записана транзакция
      *
-     * @return boolean
+     * @return bool
      */
     public function rollback()
     {
@@ -255,6 +264,7 @@ class acc_journal_Transaction
         
         return true;
     }
+    
     
     /**
      * @todo Чака за документация...

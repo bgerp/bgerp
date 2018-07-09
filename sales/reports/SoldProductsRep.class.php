@@ -1,34 +1,37 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети за продадени артикули продукти по групи и търговци
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Продажби » Продадени артикули
  */
 class sales_reports_SoldProductsRep extends frame2_driver_TableData
 {
-    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales';
     
+    
     /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField = '$recIndic';
+    
     
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
@@ -37,15 +40,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected $newFieldToCheck = 'docId';
     
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'group';
     
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'from,to,compare,group,dealers,contragent,articleType';
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -62,6 +68,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal,allowEmpty)', 'caption=Търговци,single=none,after=to');
         $fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
     }
+    
     
     /**
      * След рендиране на единичния изглед
@@ -93,6 +100,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
     
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -113,14 +121,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
     {
         file_put_contents('debug.txt', serialize($rec));
-
+        
         $recs = array();
         
         $query = sales_PrimeCostByDocument::getQuery();
@@ -156,7 +165,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         $query->where("#docState != 'rejected'");
-    
+        
         if (isset($rec->dealers)) {
             if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
                 $dealers = keylist::toArray($rec->dealers);
@@ -176,7 +185,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         
-        
         if (isset($rec->group)) {
             $query->likeKeylist('groupMat', $rec->group);
         }
@@ -188,7 +196,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         // Масив бързи продажби //
         $sQuery = sales_Sales::getQuery();
- 
+        
         if (($rec->compare) == 'no') {
             $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
         }
@@ -230,7 +238,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $quantityPrevious = $quantity = $quantityLastYear = null;
             
             $DetClass = cls::get($recPrime->detailClassId);
-
+            
             if ($DetClass instanceof sales_SalesDetails) {
                 if (is_array($salesWithShipArr)) {
                     if (in_array($recPrime->detailRecId, $salesWithShipArr)) {
@@ -259,7 +267,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     }
                 }
             }
-        
+            
             if ($recPrime->valior >= $rec->from && $recPrime->valior <= $rec->to) {
                 if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
                     $quantity = (- 1) * $recPrime->quantity;
@@ -271,7 +279,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $primeCost = $recPrime->sellCost * $recPrime->quantity;
                 }
             }
-        
+            
             // добавяме в масива събитието
             if (! array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
@@ -284,7 +292,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     'quantityLastYear' => $quantityLastYear,
                     'primeCost' => $primeCost,
                     'group' => cat_Products::fetchField($recPrime->productId, 'groups')
-                         
+                
                 );
             } else {
                 $obj = &$recs[$id];
@@ -320,17 +328,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (! is_null($recs)) {
             arr::sortObjects($recs, 'code', 'asc', 'stri');
         }
-
+        
         return $recs;
     }
+    
     
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec
-     *                               - записа
-     * @param  boolean       $export
-     *                               - таблицата за експорт ли е
+     * @param stdClass $rec
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -352,13 +362,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         return $fld;
     }
     
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec
-     *                        - записа
-     * @param  stdClass $dRec
-     *                        - чистия запис
+     * @param stdClass $rec
+     *                       - записа
+     * @param stdClass $dRec
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -370,7 +382,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $groArr = array();
         $row = new stdClass();
         
-    
+        
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
@@ -382,8 +394,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         foreach (array(
-                'quantity',
-                'primeCost',
+            'quantity',
+            'primeCost',
         ) as $fld) {
             $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
             if ($dRec->{$fld} < 0) {
@@ -431,9 +443,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $row->quantityCompare = "<span class= {$color}>"."{$marker}" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity - $dRec->quantityLastYear) . '</span>';
             }
         }
-
+        
         return $row;
     }
+    
     
     /**
      * След рендиране на единичния изглед
@@ -453,7 +466,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $row->from = $Date->toVerbal($rec->from);
         
         $row->to = $Date->toVerbal($rec->to);
-
+        
         if (isset($rec->group)) {
             // избраната позиция
             $groups = keylist::toArray($rec->group);
@@ -477,14 +490,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         $arrCompare = array(
-                'no' => 'Без сравнение',
-                'previous' => 'С предходен период',
-                'year' => 'С миналогодишен период'
+            'no' => 'Без сравнение',
+            'previous' => 'С предходен период',
+            'year' => 'С миналогодишен период'
         );
         $row->compare = $arrCompare[$rec->compare];
     }
     
-
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -518,7 +531,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
-                
+            
             $fieldTpl->append('<b>'.trim($dealersVerb, ',  ').'</b>', 'dealers');
         } else {
             $fieldTpl->append('<b>'.'Всички'.'</b>', 'dealers');
@@ -527,7 +540,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (isset($data->rec->contragent)) {
             $contragentName = (doc_Folders::getTitleById($data->rec->contragent));
             
-        
+            
             $fieldTpl->append('<b>'.$contragentName.'</b>', 'contragent');
         } else {
             $fieldTpl->append('<b>'.'Всички'.'</b>', 'contragent');
@@ -548,18 +561,20 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
+    
     /**
      * Групиране по продуктови групи
      *
-     * @param  array    $recs
-     * @param  string   $group
-     * @param  stdClass $data
+     * @param array    $recs
+     * @param string   $group
+     * @param stdClass $data
+     *
      * @return array
      */
 // 	    public function groupRecs($recs, $group)
 // 	    {
 // 	        $ordered = array();
-        
+
 // 	        $groups = keylist::toArray($group);
 // 	        if (! count($groups)) {
 // 	            return $recs;
@@ -568,10 +583,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 // 	                &$groups
 // 	            ));
 // 	        }
-    
+
 // 	        // За всеки маркер
 // 	        foreach ($groups as $grId => $groupName) {
-    
+
 // 	                // Отделяме тези записи, които съдържат текущия маркер
 // 	                $res = array_filter($recs,
 // 	                    function (&$e) use($grId, $groupName) {
@@ -581,12 +596,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 // 	                        }
 // 	                        return FALSE;
 // 	                    });
-        
+
 // 	                    if (count($res)) {
 // 	                        arr::natOrder($res, 'kod');
 // 	                        $ordered += $res;
 // 	                    }
 // 	        }
-    
+
 //         }
 }

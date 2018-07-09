@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * File: calendar.php | (c) dynarch.com 2004
  *
@@ -15,15 +14,15 @@
  *
  * @category  vendors
  * @package   calendarpicker
+ *
  * @author
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class calendarpicker_Import
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -84,9 +83,9 @@ class calendarpicker_Import
             }
             $lang = "{$lg}";
         }
-
+        
         $this->calendarLibPath = 'calendarpicker/';
-
+        
         $this->includeCode = new ET();
         $this->includeCode->push($this->calendarLibPath . $theme . '.css', 'CSS', true);
         $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS', true);
@@ -184,7 +183,7 @@ class calendarpicker_Import
     public function _gen_id()
     {
         static $id = 0;
-
+        
         return ++$id;
     }
     

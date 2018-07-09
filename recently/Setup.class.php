@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Максимален брой за предложенията за последно използвани стойности на поле
  */
@@ -21,15 +22,15 @@ defIfNot('RECENTLY_MAX_KEEPING_DAYS', 60);
  *
  * @category  vendors
  * @package   recently
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class recently_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -58,13 +59,14 @@ class recently_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
+        
+        // Максимален брой за предложенията за последно използвани стойности на поле
+        'RECENTLY_MAX_SUGGESTION' => array('int', 'caption=Максимален брой за предложенията за последно използвани стойности на поле->Брой'),
+        
+        // Максимален брой дни за запазване на стойност след нейната последна употреба
+        'RECENTLY_MAX_KEEPING_DAYS' => array('int', 'caption=Максимален брой дни за запазване на стойност след нейната последна употреба->Дни'),
+    );
     
-            // Максимален брой за предложенията за последно използвани стойности на поле
-            'RECENTLY_MAX_SUGGESTION' => array('int', 'caption=Максимален брой за предложенията за последно използвани стойности на поле->Брой'),
-    
-            // Максимален брой дни за запазване на стойност след нейната последна употреба
-            'RECENTLY_MAX_KEEPING_DAYS' => array('int', 'caption=Максимален брой дни за запазване на стойност след нейната последна употреба->Дни'),
-        );
     
     /**
      * Инсталиране на пакета

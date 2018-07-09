@@ -6,18 +6,17 @@
  *
  * @category  bgerp
  * @package   findeals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
 {
-    
-    
     /**
      *
      * @var findeals_ClosedDeals
@@ -55,15 +54,15 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
         $info = $this->class->getDealInfo($rec->threadId);
         $docRec = $firstDoc->fetch();
         $accRec = acc_Accounts::fetch($docRec->accountId);
-         
+        
         $amount = $info->get('blAmount');
         
         // Създаване на обекта за транзакция
         $result = (object) array(
-                'reason' => $rec->notes,
-                'valior' => ($rec->valior) ? $rec->valior : $this->class->getValiorDate($rec),
-                'totalAmount' => 0,
-                'entries' => array(),
+            'reason' => $rec->notes,
+            'valior' => ($rec->valior) ? $rec->valior : $this->class->getValiorDate($rec),
+            'totalAmount' => 0,
+            'entries' => array(),
         );
         
         if ($amount == 0) {
@@ -113,32 +112,32 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
     private function getCloseEntry($amount, $quantity, $index, &$totalAmount, $docRec, $firstDoc)
     {
         $entry = array();
-    
+        
         $dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
-                         array($docRec->contragentClassId, $docRec->contragentId),
-                         array($firstDoc->className, $docRec->id),
-                         $index,
-                        'quantity' => abs($quantity));
+            array($docRec->contragentClassId, $docRec->contragentId),
+            array($firstDoc->className, $docRec->id),
+            $index,
+            'quantity' => abs($quantity));
         
         if ($amount > 0) {
             
             // Ако РС има дебитно салдо
             $entry = array('amount' => $amount,
-                    'debit' => array('6913',
-                               array($docRec->contragentClassId, $docRec->contragentId),
-                               array($firstDoc->className, $firstDoc->that)),
-                    'credit' => $dealArr);
+                'debit' => array('6913',
+                    array($docRec->contragentClassId, $docRec->contragentId),
+                    array($firstDoc->className, $firstDoc->that)),
+                'credit' => $dealArr);
         } else {
             
             // Ако РС има кредитно салдо
             $entry = array('amount' => abs($amount),
-                    'debit' => $dealArr,
-                    'credit' => array('7913',
-                                array($docRec->contragentClassId, $docRec->contragentId),
-                                array($firstDoc->className, $firstDoc->that))
+                'debit' => $dealArr,
+                'credit' => array('7913',
+                    array($docRec->contragentClassId, $docRec->contragentId),
+                    array($firstDoc->className, $firstDoc->that))
             );
         }
-            
+        
         $totalAmount += abs($amount);
         
         // Връщане на записа

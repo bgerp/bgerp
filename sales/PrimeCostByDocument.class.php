@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Модел за делти при продажби
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_PrimeCostByDocument extends core_Manager
 {
-     
     /**
      * Себестойности към документ
      */
@@ -115,8 +115,9 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Изтрива кешираните записи за документа
      *
-     * @param  mixed $class
-     * @param  int   $id
+     * @param mixed $class
+     * @param int   $id
+     *
      * @return void
      */
     public static function removeByDoc($class, $id)
@@ -129,6 +130,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $query->show('id');
         $ids = arr::extractValuesFromArray($query->fetchAll(), 'id');
         if (!count($ids)) {
+            
             return;
         }
         
@@ -161,10 +163,11 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Намиране на дилъра и инициатора на документа, данните се кешират
      *
-     * @param  int   $containerId - контейнер на документ
+     * @param int $containerId - контейнер на документ
+     *
      * @return array
-     *                           ['dealerId']    - Ид на визитката на дилъра
-     *                           ['initiatorId'] - Ид на визитката на инициатора
+     *               ['dealerId']    - Ид на визитката на дилъра
+     *               ['initiatorId'] - Ид на визитката на инициатора
      */
     public static function getDealerAndInitiatorId($containerId)
     {
@@ -212,13 +215,15 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Заявката към записите от модела, чиито документи са променяни след $timeline
      *
-     * @param  datetime   $timeline - времева линия след който ще се филтрират документите
-     * @param  array      $masters  - помощен масив
+     * @param datetime $timeline - времева линия след който ще се филтрират документите
+     * @param array    $masters  - помощен масив
+     *
      * @return core_Query $iQuery - подготвената заявка
      */
     public static function getIndicatorQuery($timeline, &$masters)
     {
         $iQuery = self::getQuery();
+        
         // Кои документи ще се проверяват дали са променяни
         $documents = array('sales_Sales' => 'sales_SalesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails', 'store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails');
         $or = false;
@@ -230,7 +235,7 @@ class sales_PrimeCostByDocument extends core_Manager
             $masterClasId = $Master::getClassId();
             $Detail = cls::get($Detail);
             $detailClassId = $Detail->getClassId();
-                
+            
             // За всеки документ, му извличаме детайлите ако той е променян след $timeline
             $dQuery = $Detail->getQuery();
             $dQuery->EXT('state', $Master, "externalName=state,externalKey={$Detail->masterKey}");
@@ -244,7 +249,7 @@ class sales_PrimeCostByDocument extends core_Manager
                 $dQuery->EXT('isReverse', $Master, "externalName=isReverse,externalKey={$Detail->masterKey}");
                 $fields .= ',isReverse';
             }
-                
+            
             $ids = array();
             $dQuery->show($fields);
             
@@ -258,7 +263,7 @@ class sales_PrimeCostByDocument extends core_Manager
                         continue;
                     }
                 }
-        
+                
                 $ids[$dRec->id] = $dRec->id;
             }
             
@@ -278,9 +283,10 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Връща индикаторите за делта на търговеца и инициаторът
      *
-     * @param  array $indicatorRecs - филтрираните записи
-     * @param  array $masters       - помощен масив
-     * @param  array $personIds     - масив с ид-та на визитките на дилърите
+     * @param array $indicatorRecs - филтрираните записи
+     * @param array $masters       - помощен масив
+     * @param array $personIds     - масив с ид-та на визитките на дилърите
+     *
      * @return array $result       - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
      */
     private static function getDeltaIndicators($indicatorRecs, $masters, &$personIds)
@@ -305,18 +311,18 @@ class sales_PrimeCostByDocument extends core_Manager
                 if (!isset($rec->{$personFld})) {
                     continue;
                 }
-                    
+                
                 // Намиране на визитката на потребителя
                 if (!isset($personIds[$rec->{$personFld}])) {
                     $personIds[$rec->{$personFld}] = crm_Profiles::fetchField("#userId = '{$rec->{$personFld}}'", 'personId');
                 }
-                            
+                
                 $personFldValue = $personIds[$rec->{$personFld}];
                 $indicatorId = ($personFld == 'dealerId') ? $deltaId : $deltaIId;
-                            
+                
                 // Ключа по който ще събираме е лицето, документа и вальора
                 $key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
-                            
+                
                 // Ако документа е обратен
                 $sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
                 $delta = round($sign * $rec->delta, 2);
@@ -325,14 +331,14 @@ class sales_PrimeCostByDocument extends core_Manager
                 // Ако няма данни, добавят се
                 if (!array_key_exists($key, $result)) {
                     $result[$key] = (object) array('date' => $rec->valior,
-                                                  'personId' => $personFldValue,
-                                                  'docId' => $Document->that,
-                                                  'docClass' => $Document->getClassId(),
-                                                  'indicatorId' => $indicatorId,
-                                                  'value' => $delta,
-                                                  'isRejected' => ($masters[$rec->containerId][1] == 'rejected'),);
+                        'personId' => $personFldValue,
+                        'docId' => $Document->that,
+                        'docClass' => $Document->getClassId(),
+                        'indicatorId' => $indicatorId,
+                        'value' => $delta,
+                        'isRejected' => ($masters[$rec->containerId][1] == 'rejected'),);
                 } else {
-            
+                     
                      // Ако има вече се сумират
                     $ref = &$result[$key];
                     $ref->value += $delta;
@@ -348,9 +354,10 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Добавя надценка от артикула към делтата
      *
-     * @param  double $delta
-     * @param  int    $productId
-     * @return double $delta
+     * @param float $delta
+     * @param int   $productId
+     *
+     * @return float $delta
      */
     public static function addSurchargeToDelta($delta, $productId)
     {
@@ -368,7 +375,8 @@ class sales_PrimeCostByDocument extends core_Manager
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param  date  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
      * @return array $result  - масив с обекти
      *
      * 			o date        - дата на стайноста
@@ -433,9 +441,10 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Връща индикаторите за сумата на продадените артикули по групи
      *
-     * @param  array $indicatorRecs - филтрираните записи
-     * @param  array $masters       - помощен масив
-     * @param  array $personIds     - масив с ид-та на визитките на дилърите
+     * @param array $indicatorRecs - филтрираните записи
+     * @param array $masters       - помощен масив
+     * @param array $personIds     - масив с ид-та на визитките на дилърите
+     *
      * @return array $result       - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
      */
     private static function getProductGroupIndicators($indicatorRecs, $masters, $personIds)
@@ -456,7 +465,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         $groupSumId = hr_IndicatorNames::force('GroupSum', __CLASS__, 3)->id;
         $noGroupSumId = hr_IndicatorNames::force('NoGroupSum', __CLASS__, 4)->id;
-    
+        
         // За всеки запис
         foreach ($indicatorRecs as $rec) {
             if (!$rec->dealerId) {
@@ -480,14 +489,14 @@ class sales_PrimeCostByDocument extends core_Manager
                     $indicatorId = $selectedGroups[$groupId]->groupRec->id;
                     $value = $sign * (round(($rec->quantity * $rec->sellCost) / $delimiter, 2));
                     hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
-                
+                    
                     // Индикатор за делта по групите
                     $indicatorDeltaId = $selectedGroups[$groupId]->deltaRec->id;
                     $delta = $sign * (round($rec->delta / $delimiter, 2));
                     $delta = self::addSurchargeToDelta($delta, $rec->productId);
                     
                     hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
-                
+                    
                     // Сумиране по индикатор на общата сума на групите
                     hr_Indicators::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
                 }
@@ -575,7 +584,8 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Помощна ф-я връщаща всички  групи на артикулите
      *
-     * @param  array $indicatorRecs
+     * @param array $indicatorRecs
+     *
      * @return array $groups
      */
     private static function getAllProductGroups($indicatorRecs)
@@ -637,13 +647,15 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Обновява дилърите и инциаторите на подадените документи
      *
-     * @param  array $containerIds
+     * @param array $containerIds
+     *
      * @return void
      */
     public static function updatePersons($containerIds)
     {
         $containerIds = arr::make($containerIds);
         if (!count($containerIds)) {
+            
             return;
         }
         
@@ -667,12 +679,13 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Колко е себестойноста на продажбата
      *
-     * @param  int         $productId
-     * @param  int         $packagingId
-     * @param  double      $quantity
-     * @param  stdClass    $saleRec
-     * @param  int         $listId
-     * @return NULL|double $primeCost
+     * @param int      $productId
+     * @param int      $packagingId
+     * @param float    $quantity
+     * @param stdClass $saleRec
+     * @param int      $listId
+     *
+     * @return NULL|float $primeCost
      */
     public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $listId)
     {
@@ -691,7 +704,7 @@ class sales_PrimeCostByDocument extends core_Manager
                 if (empty($bomRec)) {
                     $bomRec = cat_Products::getLastActiveBom($productId, 'production');
                 }
-        
+                
                 if ($bomRec) {
                     $primeCost = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $saleRec->valior, $listId);
                 }
@@ -704,7 +717,7 @@ class sales_PrimeCostByDocument extends core_Manager
                 $primeCost += $costs[$productId]->fee / $costs[$productId]->quantity;
             }
         }
-            
+        
         // Ако артикулът е 'Надценка' няма себестойност
         if ($productRec->code == 'surcharge') {
             $primeCost = 0;
@@ -717,22 +730,25 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Колко е себестойноста на документа според продажбата към която е
      *
-     * @param  int         $productId
-     * @param  int         $packagingId
-     * @param  double      $quantity
-     * @param  int         $containerId
-     * @param  int|NULL    $listId
-     * @return NULL|double
+     * @param int      $productId
+     * @param int      $packagingId
+     * @param float    $quantity
+     * @param int      $containerId
+     * @param int|NULL $listId
+     *
+     * @return NULL|float
      */
     public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId, $listId = null)
     {
         $threadId = doc_Containers::fetchField($containerId, 'threadId');
         if (empty($threadId)) {
+            
             return;
         }
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         
         if (!$firstDoc->isInstanceOf('sales_Sales')) {
+            
             return;
         }
         

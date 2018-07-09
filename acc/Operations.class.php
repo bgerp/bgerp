@@ -5,15 +5,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Operations extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -81,7 +81,7 @@ class acc_Operations extends core_Manager
      */
     public $listFields = 'id,title';
     
-
+    
     /**
      * Заглавие в единствено число
      *
@@ -104,8 +104,9 @@ class acc_Operations extends core_Manager
     /**
      * Връща ид-то отговарящо на  основанието, ако няма такова се създава
      *
-     * @param  string $title - текст на основанието
-     * @return int    $id - ид на основанието
+     * @param string $title - текст на основанието
+     *
+     * @return int $id - ид на основанието
      */
     public static function getIdByTitle($title)
     {

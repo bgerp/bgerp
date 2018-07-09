@@ -42,20 +42,20 @@ defIfNot('RTAC_DEFAULT_ROLES_FOR_TEXTCOMPLETE', 'user');
  *
  * @category  vendors
  * @package   rtac
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rtac_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
     public $version = '0.1';
-        
+    
     
     /**
      * Описание на модула
@@ -75,13 +75,13 @@ class rtac_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-       'RTAC_AUTOCOMPLETE_CLASS' => array('class(interface=rtac_AutocompleteIntf, select=title)', 'caption=Клас за autocomplete->Клас'),
-       'RTAC_YUKU_VERSION' => array('enum(0.2.4)', 'caption=Версия на YUKU->Версия'),
-       'RTAC_MAX_SHOW_COUNT' => array('int', 'caption=Максималният брой елементи|*&comma;| които ще се показват за autocomplete->Брой'),
-       'RTAC_DEFAUL_SHARE_USER_ROLES' => array('varchar', 'caption=Роли|*&comma;| които трябва да има потребителя|*&comma;| за да се покаже в autocomplete->Роли'),
-       'RTAC_DEFAUL_USER_ROLES_FOR_SHARE' => array('varchar', 'caption=Роли|*&comma;| от които трябва да има потребителя|*&comma;| за да може да ползва autocomplete-a за споделяне->Роли'),
-       'RTAC_DEFAULT_ROLES_FOR_TEXTCOMPLETE' => array('varchar', 'caption=Роли|*&comma;| от които трябва да има потребителя|*&comma;| за да може да ползва autocomplete-a за текстове->Роли'),
-     );
+        'RTAC_AUTOCOMPLETE_CLASS' => array('class(interface=rtac_AutocompleteIntf, select=title)', 'caption=Клас за autocomplete->Клас'),
+        'RTAC_YUKU_VERSION' => array('enum(0.2.4)', 'caption=Версия на YUKU->Версия'),
+        'RTAC_MAX_SHOW_COUNT' => array('int', 'caption=Максималният брой елементи|*&comma;| които ще се показват за autocomplete->Брой'),
+        'RTAC_DEFAUL_SHARE_USER_ROLES' => array('varchar', 'caption=Роли|*&comma;| които трябва да има потребителя|*&comma;| за да се покаже в autocomplete->Роли'),
+        'RTAC_DEFAUL_USER_ROLES_FOR_SHARE' => array('varchar', 'caption=Роли|*&comma;| от които трябва да има потребителя|*&comma;| за да може да ползва autocomplete-a за споделяне->Роли'),
+        'RTAC_DEFAULT_ROLES_FOR_TEXTCOMPLETE' => array('varchar', 'caption=Роли|*&comma;| от които трябва да има потребителя|*&comma;| за да може да ползва autocomplete-a за текстове->Роли'),
+    );
     
     
     /**
@@ -101,8 +101,8 @@ class rtac_Setup extends core_ProtoSetup
         
         return $html;
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */

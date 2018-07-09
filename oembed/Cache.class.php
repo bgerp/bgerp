@@ -1,8 +1,6 @@
 <?php
 class oembed_Cache extends core_Manager
 {
-    
-    
     /**
      * Дължина на полето URL в модела
      */
@@ -77,7 +75,7 @@ class oembed_Cache extends core_Manager
         
         // Брой секунди, през които този запис е валиден
         $this->FLD('expires', 'int', 'caption=Валидност');
-    
+        
         $this->setDbUnique('url');
     }
     

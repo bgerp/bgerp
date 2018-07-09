@@ -1,5 +1,6 @@
 <?php
 
+
 /*************************************************************************
  *                                                                       *
  * class.html2text.inc                                                   *
@@ -88,15 +89,15 @@
  *
  * @category  vendors
  * @package   html2text
+ *
  * @author    Jon Abernathy <jon@chuggnutt.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class html2text_Converter
 {
-    
-    
     /**
      * Contains the HTML content to convert.
      *
@@ -121,7 +122,7 @@ class html2text_Converter
      * Set this value to 0 (or less) to ignore word wrapping
      * and not constrain text to a fixed-width column.
      *
-     * @var integer $width
+     * @var int $width
      * @access public
      */
     public $width = 7000;
@@ -133,6 +134,7 @@ class html2text_Converter
      *
      * @var array $search
      * @access public
+     *
      * @see $replace
      */
     /*
@@ -187,6 +189,7 @@ class html2text_Converter
      *
      * @var array $replace
      * @access public
+     *
      * @see $search
      */
     /*
@@ -240,6 +243,7 @@ class html2text_Converter
      *
      * @var string $allowed_tags
      * @access public
+     *
      * @see set_allowed_tags()
      */
     public $allowed_tags = '';
@@ -257,8 +261,9 @@ class html2text_Converter
     /**
      * Indicates whether content in the $html variable has been converted yet.
      *
-     * @var boolean $_converted
+     * @var bool $_converted
      * @access private
+     *
      * @see $html, $text
      */
     public $_converted = false;
@@ -269,6 +274,7 @@ class html2text_Converter
      *
      * @var string $_link_list
      * @access private
+     *
      * @see _build_link_list()
      */
     public $_link_list = '';
@@ -278,8 +284,9 @@ class html2text_Converter
      * Number of valid links detected in the text, used for plain text
      * display (rendered similar to footnotes).
      *
-     * @var integer $_link_count
+     * @var int $_link_count
      * @access private
+     *
      * @see _build_link_list()
      */
     public $_link_count = 0;
@@ -292,9 +299,10 @@ class html2text_Converter
      * will instantiate with that source propagated, all that has
      * to be done it to call get_text().
      *
-     * @param string  $source    HTML content
-     * @param boolean $from_file Indicates $source is a file to pull content from
+     * @param string $source    HTML content
+     * @param bool   $from_file Indicates $source is a file to pull content from
      * @access public
+     *
      * @return void
      */
     public function __construct($source = '', $from_file = false)
@@ -319,9 +327,10 @@ class html2text_Converter
     /**
      * Loads source HTML into memory, either from $source string or a file.
      *
-     * @param string  $source    HTML content
-     * @param boolean $from_file Indicates $source is a file to pull content from
+     * @param string $source    HTML content
+     * @param bool   $from_file Indicates $source is a file to pull content from
      * @access public
+     *
      * @return void
      */
     public function set_html($source, $from_file = false)
@@ -342,6 +351,7 @@ class html2text_Converter
      * Returns the text, converted from HTML.
      *
      * @access public
+     *
      * @return string
      */
     public function get_text()
@@ -358,6 +368,7 @@ class html2text_Converter
      * Prints the text, converted from HTML.
      *
      * @access public
+     *
      * @return void
      */
     public function print_text()
@@ -370,7 +381,9 @@ class html2text_Converter
      * Alias to print_text(), operates identically.
      *
      * @access public
+     *
      * @return void
+     *
      * @see print_text()
      */
     public function p()
@@ -385,6 +398,7 @@ class html2text_Converter
      * Tags should be in the form "<p>", with no corresponding closing tag.
      *
      * @access public
+     *
      * @return void
      */
     public function set_allowed_tags($allowed_tags = '')
@@ -399,6 +413,7 @@ class html2text_Converter
      * Sets a base URL to handle relative links.
      *
      * @access public
+     *
      * @return void
      */
     public function _set_base_url($matches)
@@ -430,6 +445,7 @@ class html2text_Converter
      * $width characters.
      *
      * @access private
+     *
      * @return void
      */
     public function _convert()
@@ -439,7 +455,7 @@ class html2text_Converter
         $this->_link_list = '';
         
         $text = trim(stripslashes($this->html));
-
+        
         // Run our defined search-and-replace
         
         // <pre>
@@ -471,7 +487,7 @@ class html2text_Converter
         
         // Title
         $text = preg_replace_callback('/<title>(.*?)<\/title>/i', array($this, 'title'), $text);
-
+        
         // <P>
         $text = preg_replace('/<p[^>]*>/i', "\n\n", $text);
         
@@ -484,7 +500,7 @@ class html2text_Converter
         // blockquote
         $text = preg_replace('/<blockquote[^>]*>/i', '[bQuote]', $text);
         $text = preg_replace("/<\/blockquote[^>]*>/i", '[/bQuote]', $text);
-
+        
         // <b>
         $text = preg_replace_callback('/<b[^>]*>(.*?)<\/b[^>]*>/i', array($this, 'bold'), $text);
         
@@ -497,12 +513,12 @@ class html2text_Converter
         // <em>
         $text = preg_replace("/<em[^>]*>(.*?)<\/em[^>]*>/i", '[b]\\1[/b]', $text);
         
-
+        
         // $text = preg_replace("/<table[^>]*>(.*?)<\/table[^>]*>/i", "[table]\\1[/table]", $text);
         // $text = preg_replace("/<tr[^>]*>(.*?)<\/tr[^>]*>/i", "[tr]\\1[/tr]", $text);
         // $text = preg_replace("/<td[^>]*>(.*?)<\/td[^>]*>/i", "[td]\\1[/td]", $text);
         // $text = preg_replace("/<th[^>]*>(.*?)<\/th[^>]*>/i", "[th]\\1[/th]", $text);
-
+        
         // <ul> and </ul>
         $text = preg_replace("/(<ul[^>]*>|<\/ul[^>]*>)/i", "\n\n", $text);
         
@@ -573,7 +589,7 @@ class html2text_Converter
         $text = preg_replace('/[ ]{2,}/', ' ', $text);
         
         $text = preg_replace_callback('/<[0-9]+/i', array($this, '_allowTags'), $text);
-
+        
         // Strip any other HTML tags
         $text = strip_tags($text, $this->allowed_tags);
         
@@ -598,22 +614,22 @@ class html2text_Converter
         }
         
         $this->text = $text;
-
+        
         $this->_converted = true;
     }
     
-
+    
     /**
      * Позволява определни тагове да се показват
      */
     public function _allowTags($matches)
     {
         $res = '&lt;' . substr($matches[0], 1);
-
+        
         return $res;
     }
     
-   
+    
     /**
      * Helper function called by preg_replace() on link replacement.
      *
@@ -625,29 +641,30 @@ class html2text_Converter
      * @param string $link    URL of the link
      * @param string $display Part of the text to associate number with
      * @access private
+     *
      * @return string
      */
     public function _build_link_list($matches)
     {
         $link = $matches[2];
         $display = $matches[4];
-
+        
         $linkArr = explode(':', $link, 2);
         $schema = strtolower(trim($linkArr[0]));
         $path = strtolower(trim($linkArr[1], "\t\n\r/"));
         
         preg_match(type_Richtext::URL_PATTERN, strip_tags($display), $dUrls);
- 
+        
         if (is_array($dUrls) && $dU = $dUrls[0]) {
             if (stripos($dU, 'www.') === 0) {
                 $dU = 'http://' . $dU;
             }
- 
+            
             if (core_Url::getDomain($dU) != core_Url::getDomain($link)) {
                 $alert = ' [em=alert]';
             }
         }
-
+        
         switch ($schema) {
             case 'http':
             case 'https':
@@ -669,12 +686,13 @@ class html2text_Converter
                 } else {
                     $additional = '';
                 }
+                
                 // no break
             default:
             $additional = '';
             break;
         }
-
+        
         return $display . $additional;
     }
     
@@ -688,11 +706,11 @@ class html2text_Converter
     }
     
     
-    
     public function boldt($matches)
     {
         return $this->bold($matches) . "\t";
     }
+    
     
     /**
      * ����� ������ �����, ����� ������� ����� �� ����
@@ -713,7 +731,7 @@ class html2text_Converter
                 array('<br>', "<br>\n", "<br>\n", "<br>\n"),
             $matches[1]
         );
-         
+        
         return '[code=text]' . $text . '[/code]';
     }
     
@@ -725,7 +743,8 @@ class html2text_Converter
     {
         return "[h{$matches[1]}]{$matches[2]}[/h{$matches[1]}]";
     }
-
+    
+    
     /**
      * Конвертира таговете <title>
      */

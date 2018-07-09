@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   netfinity
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class netfinity_SMS extends core_Manager
 {
-    
-    
     /**
      * Кой има право да чете?
      */
@@ -57,9 +57,7 @@ class netfinity_SMS extends core_Manager
     public $interfaces = 'callcenter_SentSMSIntf';
     
     
-    
     public $title = 'Нетфинити';
-    
     
     
     public $protectId = false;
@@ -188,6 +186,7 @@ class netfinity_SMS extends core_Manager
     /**
      * Инрерфейсен метод
      * Връща статуса на съобщението от съоветната услуга
+     *
      * @see callcenter_SentSMSIntf
      *
      * @param string $uid

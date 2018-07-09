@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджира динамичните параметри на продуктите
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Продуктови параметри
  */
 class cat_Params extends bgerp_ProtoParam
 {
-    
-    
     /**
      * Заглавие
      */
@@ -52,8 +51,8 @@ class cat_Params extends bgerp_ProtoParam
      * Кой може да го разглежда?
      */
     public $canList = 'cat,ceo';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -118,18 +117,18 @@ class cat_Params extends bgerp_ProtoParam
     {
         $file = 'cat/csv/Params.csv';
         $fields = array(
-                0 => 'name',
-                1 => 'driverClass',
-                2 => 'suffix',
-                3 => 'sysId',
-                4 => 'options',
-                5 => 'default',
-                6 => 'showInPublicDocuments',
-                7 => 'state',
-                8 => 'csv_params',
-                9 => 'showInTasks',
+            0 => 'name',
+            1 => 'driverClass',
+            2 => 'suffix',
+            3 => 'sysId',
+            4 => 'options',
+            5 => 'default',
+            6 => 'showInPublicDocuments',
+            7 => 'state',
+            8 => 'csv_params',
+            9 => 'showInTasks',
         );
-         
+        
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
         
@@ -141,6 +140,7 @@ class cat_Params extends bgerp_ProtoParam
      * Връща дефолт стойността за параметъра
      *
      * @param $paramId - ид на параметър
+     *
      * @return FALSE|string
      */
     public static function getDefault($paramId)
@@ -160,10 +160,11 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Връща нормализирано име на параметъра
      *
-     * @param  mixed   $rec       - ид или запис на параметър
-     * @param  boolean $upperCase - всички букви да са в долен или в горен регистър
-     * @param  string  $lg        - език на който да е преведен
-     * @return string  $name      - нормализирано име
+     * @param mixed  $rec       - ид или запис на параметър
+     * @param bool   $upperCase - всички букви да са в долен или в горен регистър
+     * @param string $lg        - език на който да е преведен
+     *
+     * @return string $name      - нормализирано име
      */
     public static function getNormalizedName($rec, $upperCase = false, $lg = 'bg')
     {
@@ -183,9 +184,10 @@ class cat_Params extends bgerp_ProtoParam
      * Разбира масив с параметри на масив с ключвове, преведените
      * имена на параметрите
      *
-     * @param  array   $params    - масив с параметри
-     * @param  boolean $upperCase - дали имената да са в долен или горен регистър
-     * @return array   $arr        - масив
+     * @param array $params    - масив с параметри
+     * @param bool  $upperCase - дали имената да са в долен или горен регистър
+     *
+     * @return array $arr        - масив
      */
     public static function getParamNameArr($params, $upperCase = false)
     {
@@ -211,7 +213,8 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Рендира блок с параметри за артикули
      *
-     * @param  array   $paramArr
+     * @param array $paramArr
+     *
      * @return core_ET $tpl
      */
     public static function renderParamBlock($paramArr)
@@ -241,13 +244,14 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Форсира параметър
      *
-     * @param  string       $sysId       - систем ид на параметър
-     * @param  string       $name        - име на параметъра
-     * @param  string       $type        - тип на параметъра
-     * @param  NULL|text    $options     - опции на параметъра само за типовете enum и set
-     * @param  NULL|string  $suffix      - наставка
-     * @param  NULL|boolean $showInTasks - може ли да се показва в производствена операция
-     * @return int          - ид на параметъра
+     * @param string      $sysId       - систем ид на параметър
+     * @param string      $name        - име на параметъра
+     * @param string      $type        - тип на параметъра
+     * @param NULL|text   $options     - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix      - наставка
+     * @param NULL|bool   $showInTasks - може ли да се показва в производствена операция
+     *
+     * @return int - ид на параметъра
      */
     public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false)
     {
@@ -283,19 +287,19 @@ class cat_Params extends bgerp_ProtoParam
     
     /**
      * Кои са публичните параметри
-     * 
+     *
      * @return array $res
      */
     public static function getPublic()
     {
-    	$res = array();
-    	$query = self::getQuery();
-    	$query->where("#showInPublicDocuments = 'yes' AND #state = 'active'");
-    	$query->show('id,typeExt');
-    	while ($rec = $query->fetch()){
-    		$res[$rec->id] = $rec->typeExt;
-    	}
-    	
-    	return $res;
+        $res = array();
+        $query = self::getQuery();
+        $query->where("#showInPublicDocuments = 'yes' AND #state = 'active'");
+        $query->show('id,typeExt');
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->typeExt;
+        }
+        
+        return $res;
     }
 }

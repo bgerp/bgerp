@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Помощен детайл подготвящ и обединяващ заедно търговските
  * детайли на фирмите и лицата
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class crm_PersonsDetails extends core_Manager
 {
-    
-    
     /**
      * Кой може да вижда личните индикатори на служителите
      */
@@ -45,7 +44,7 @@ class crm_PersonsDetails extends core_Manager
         
         $eQuery = planning_Hr::getQuery();
         $eQuery->where("#personId = '{$data->masterId}'");
-    
+        
         while ($eRec = $eQuery->fetch()) {
             $keys = keylist::toArray($eRec->departments);
             if (count($keys) == 1) {
@@ -106,7 +105,7 @@ class crm_PersonsDetails extends core_Manager
             $resTpl->removeBlock('legend');
             $resTpl->removeBlocks();
             $tpl->append($resTpl, 'CYCLES');
-
+            
             if (crm_Persons::haveRightFor('single', (object) array('personId' => $data->masterId))) {
                 // правим url  за принтиране
                 $url = array('hr_WorkingCycles', 'Print', 'Printing' => 'yes', 'masterId' => $data->Cycles->masterId, 'cal_month' => $data->Cycles->month, 'cal_year' => $data->Cycles->year, 'personId' => $data->masterId);
@@ -115,7 +114,7 @@ class crm_PersonsDetails extends core_Manager
                 $tpl->append($link, 'print');
             }
         }
-
+        
         return $tpl;
     }
     

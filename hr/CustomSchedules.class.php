@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Персонални работни цикли
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Gabriela Petrova <gab4eto@gmial.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_CustomSchedules extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -68,16 +67,16 @@ class hr_CustomSchedules extends core_Master
      * Полетата, които ще се показват в листов изглед
      */
     public $listFields = 'date,str=Структура / Служител,type=Вид / Документ,start,duration,break';
-   
+    
     
     /**
      * Карта на видовете дни
      */
     public static $map = array('working' => 'работен',
-                        'nonworking' => 'почивен',
-                        'leave' => 'отпуска',
-                        'traveling' => 'командировка',
-                        'sicDay' => 'болничен',);
+        'nonworking' => 'почивен',
+        'leave' => 'отпуска',
+        'traveling' => 'командировка',
+        'sicDay' => 'болничен',);
     
     
     /**
@@ -91,7 +90,7 @@ class hr_CustomSchedules extends core_Master
         $this->FLD('date', 'date', 'caption=Дата, width=100%,mandatory');
         
         $this->FLD('docId', 'int', 'caption=Документ->№,width=100%,input=hidden');
-
+        
         $this->FLD(
             'docClass',
             'class(interface=doc_DocumentIntf,select=title)',
@@ -115,7 +114,6 @@ class hr_CustomSchedules extends core_Master
     }
     
     
-    
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setField('strukture', array('removeAndRefreshForm' => 'typeDepartmen|typePerson|departmenId|personId'));
@@ -135,7 +133,7 @@ class hr_CustomSchedules extends core_Master
             $data->form->setField('personId', 'input');
             $data->form->setField('personId', 'mandatory');
         }
-
+        
         if ($data->form->rec->typeDepartmen == 'working' || $data->form->rec->typePerson == 'working') {
             $data->form->setField('start', 'input');
             $data->form->setField('duration', 'input');
@@ -164,7 +162,7 @@ class hr_CustomSchedules extends core_Master
             $depName = planning_Centers::fetchField("#id = '{$rec->departmenId}'", 'name');
             $row->departmenId = ht::createLink($depName, array('planning_Centers', 'single', 'id' => $rec->departmenId), null, 'ef_icon = img/16/user_group.png');
         }
-
+        
         if (isset($rec->docClass, $rec->docId)) {
             $Class = cls::get($rec->docClass);
             $title = $Class->getTitleForId($rec->docId);
@@ -224,22 +222,22 @@ class hr_CustomSchedules extends core_Master
         $query = self::getQuery();
         $fromTime = $fromDate . ' 00:00:00';
         $toTime = $toDate   . ' 23:59:59';
-    
+        
         $query->where("#date >= '{$fromTime}' AND #date <= '{$toTime}' AND #key LIKE '{$prefix}%'");
-    
+        
         // Извличаме съществуващите събития за този префикс
         $exEvents = array();
         while ($rec = $query->fetch()) {
             $exEvents[$rec->key] = $rec;
         }
-    
+        
         // Инициализираме резултатния масив
         $res = array(
             'new' => 0,
             'updated' => 0,
             'deleted' => 0
         );
-    
+        
         // Обновяваме информацията за новопостъпилите събития
         if (count($events)) {
             foreach ($events as $e) {
@@ -250,17 +248,17 @@ class hr_CustomSchedules extends core_Master
                 } else {
                     $res['new']++;
                 }
-
+                
                 self::save($e);
             }
         }
-    
+        
         // Изтриваме старите записи, които не са обновени
         foreach ($exEvents as $e) {
             self::delete("#key = '{$e->key}'");
             $res['deleted']++;
         }
-    
+        
         return $res;
     }
     
@@ -285,7 +283,7 @@ class hr_CustomSchedules extends core_Master
         $nonWorking = $leaveDay = $sicDay = $tripDay = $workDays = $allDays = 0;
         
         $workingSecs = $rest = $secsPeriod = 0;
-    
+        
         // Взимаме конкретния работен график
         if ($departmentId) {
             $workingCycles = planning_Centers::fetchField($departmentId, 'schedule');
@@ -297,7 +295,7 @@ class hr_CustomSchedules extends core_Master
             $data->masterData = new stdClass();
             $data->masterMvc = cls::get('crm_Persons');
             $data->masterId = (string) $personId;
-
+            
             $personsDetails = cls::get('crm_PersonsDetails');
             $personsDetails->preparePersonsDetails($data);
             
@@ -308,10 +306,10 @@ class hr_CustomSchedules extends core_Master
         $state = hr_WorkingCycles::getQuery();
         $state->where("#id='{$workingCycles}'");
         $cycleDetails = $state->fetch();
-
+        
         // Намираме кога започва графика
         $startingOn = planning_Centers::fetchField($workingCycles, 'startingOn');
-     
+        
         // Работен цикъл
         $workingCyclesCls = cls::get('hr_WorkingCycles');
         
@@ -323,13 +321,14 @@ class hr_CustomSchedules extends core_Master
         if ($personId) {
             $data->Cycles->personId = $personId;
         }
-
+        
         $days = $workingCyclesCls->prepareGrafic($data, $curDate)->d;
-            
+        
         // Проверяваме всеки ден
         // дали е работен или не
         foreach ($days as $day) {
             $curDate = substr(strstr($day->url, '='), 1);
+            
             // В кой ден от цикъла сме
             $dayIs = (dt::daysBetween($curDate, $startingOn) + 1) % $cycleDetails->cycleDuration;
             
@@ -362,41 +361,40 @@ class hr_CustomSchedules extends core_Master
                 $workingSecs += $dayDuration - $dayBreak;
                 $workDays++;
             }
-
+            
             $allDays++;
         }
         
         $secsPeriod = $allDays * (24 * 60 * 60);
-    
+        
         return (object) array('nonWorking' => $nonWorking,  'leaveDay' => $leaveDay, 'sicDay' => $sicDay, 'tripDay' => $tripDay, 'workDays' => $workDays, 'allDays' => $allDays,'workingSecs' => $workingSecs, 'rest' => $rest, 'secsPeriod' => $secsPeriod);
     }
-
-
+    
     
     public static function colectPersonDaysType()
     {
         $now = dt::today();
-    
+        
         $persons = array();
         
         //масив за проверка с всички данни
         $chekArr = array();
         $next2weeks = dt::addDays(14, dt::today());
-
+        
         $querySick = hr_Sickdays::getQuery();
         $querySick->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}')) AND #state = 'active'");
-    
+        
         $queryTrip = hr_Trips::getQuery();
         $queryTrip->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}')) AND #state = 'active'");
-    
+        
         $queryLeave = hr_Leaves::getQuery();
         $queryLeave->where("((#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') OR (#leaveFrom >= '{$now}' AND #leaveFrom <= '{$next2weeks}')) AND #state = 'active'");
-    
+        
         // добавяме болничните
         while ($recSick = $querySick->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recSick->personId;
- 
+            
             // масив за проверка
             $chekArr[$id][] =
             (object) array('stateInfo' => 'sickDay',
@@ -409,18 +407,20 @@ class hr_CustomSchedules extends core_Master
                 // ако двете дати са в миналото, това събитие не ни интересува
                 if ($recSick->startDate <= $now || $recSick->toDate <= $now) {
                 }
-
+                
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if ($recSick->startDate >= $now && $recSick->toDate >= $now) {
                     $date = ($recSick->startDate >= $recSick->toDate) ? $recSick->startDate :  $recSick->toDate;
+                
                 // началната дата след днес ли е?
                 } elseif ($recSick->startDate >= $now) {
                     $date = $recSick->startDate;
+                
                 // а крайната?
                 } else {
                     $date = $recSick->toDate;
                 }
-    
+                
                 // добавяме в масива събитието
                 $persons[$id] =
                     (object) array('stateInfo' => 'sickDay',
@@ -428,7 +428,7 @@ class hr_CustomSchedules extends core_Master
                         'stateDateTo' => $recSick->toDate,
                         'date' => $date
                     );
-           
+            
             // в противен случай го ъпдейтваме
             } else {
                 $obj = &$persons[$id];
@@ -436,13 +436,15 @@ class hr_CustomSchedules extends core_Master
                 // ако двете дати са в миналото, това събитие не ни интересува
                 if ($recSick->startDate <= $now || $recSick->toDate <= $now) {
                 }
-
+                
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if ($recSick->startDate >= $now && $recSick->toDate >= $now) {
                     $newDate = ($recSick->startDate >= $recSick->toDate) ? $recSick->startDate :  $recSick->toDate;
+                
                 // началната дата след днес ли е?
                 } elseif ($recSick->startDate >= $now) {
                     $newDate = $recSick->startDate;
+                
                 // а крайната?
                 } else {
                     $newDate = $recSick->toDate;
@@ -459,7 +461,7 @@ class hr_CustomSchedules extends core_Master
                 }
             }
         }
-    
+        
         // добавяме командировките
         while ($recTrip = $queryTrip->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
@@ -480,14 +482,16 @@ class hr_CustomSchedules extends core_Master
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if ($recTrip->startDate >= $now && $recTrip->toDate >= $now) {
                     $date = ($recTrip->startDate >= $recTrip->toDate) ? $recTrip->startDate :  $recTrip->toDate;
+                
                 // началната дата след днес ли е?
                 } elseif ($recTrip->startDate >= $now) {
                     $date = $recTrip->startDate;
+                
                 // а крайната?
                 } else {
                     $date = $recTrip->toDate;
                 }
-    
+                
                 // добавяме в масива събитието
                 $persons[$id] =
                     (object) array('stateInfo' => 'tripDay',
@@ -495,11 +499,11 @@ class hr_CustomSchedules extends core_Master
                         'stateDateTo' => $recTrip->toDate,
                         'date' => $date
                     );
-                
+            
             // в противен случай го ъпдейтваме
             } else {
                 $obj = &$persons[$id];
-
+                
                 // ако двете дати са в миналото, това събитие не ни интересува
                 if ($recTrip->startDate <= $now || $recTrip->toDate <= $now) {
                 }
@@ -507,9 +511,11 @@ class hr_CustomSchedules extends core_Master
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if ($recTrip->startDate >= $now && $recTrip->toDate >= $now) {
                     $newDate = ($recTrip->startDate >= $recTrip->toDate) ? $recTrip->startDate :  $recTrip->toDate;
+                
                 // началната дата след днес ли е?
                 } elseif ($recTrip->startDate >= $now) {
                     $newDate = $recTrip->startDate;
+                
                 // а крайната?
                 } else {
                     $newDate = $recTrip->toDate;
@@ -526,7 +532,7 @@ class hr_CustomSchedules extends core_Master
                 }
             }
         }
-    
+        
         // добавяме и отпуските
         while ($recLeave = $queryLeave->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
@@ -537,7 +543,7 @@ class hr_CustomSchedules extends core_Master
                 'stateDateFrom' => $recLeave->leaveFrom,
                 'stateDateTo' => $recLeave->leaveTo,
             );
-             
+            
             // правим масив с всички служители
             if (!array_key_exists($id, $persons)) {
                 // ако двете дати са в миналото, това събитие не ни интересува
@@ -547,14 +553,16 @@ class hr_CustomSchedules extends core_Master
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if ($recLeave->leaveFrom >= $now && $recLeave->leaveTo >= $now) {
                     $date = ($recLeave->leaveFrom >= $recLeave->leaveTo) ?  $recLeave->leaveFrom :  $recLeave->leaveTo;
+                
                 // началната дата след днес ли е?
                 } elseif ($recLeave->leaveFrom >= $now) {
                     $date = $recLeave->leaveFrom;
+                
                 // а крайната?
                 } else {
                     $date = $recLeave->leaveTo;
                 }
-                     
+                
                 // добавяме в масива събитието
                 $persons[$id] =
                     (object) array('stateInfo' => 'leaveDay',
@@ -562,7 +570,7 @@ class hr_CustomSchedules extends core_Master
                         'stateDateTo' => $recLeave->leaveTo,
                         'date' => $date
                     );
-
+            
             // в противен случай го ъпдейтваме
             } else {
                 $obj = &$persons[$id];
@@ -574,17 +582,19 @@ class hr_CustomSchedules extends core_Master
                 // ако двете са в бъдещето, търсим по-малката от двете
                 if ($recLeave->leaveFrom >= $now && $recLeave->leaveTo >= $now) {
                     $newDate = ($recLeave->leaveFrom >= $recLeave->leaveTo) ? $recLeave->leaveFrom :  $recLeave->leaveTo;
+                
                 // началната дата след днес ли е?
                 } elseif ($recLeave->leaveFrom >= $now) {
                     $newDate = $recLeave->leaveFrom;
+                
                 // а крайната?
                 } else {
                     $newDate = $recLeave->leaveTo;
                 }
-    
+                
                 // новата дата на събитието по-малак ли е от текущата дата?
                 if ($newDate <= $obj->date) {
-    
+                    
                     //ъпдейтване на събитието
                     $obj->stateInfo = 'leaveDay';
                     $obj->stateDateFrom = $recLeave->leaveFrom;
@@ -593,19 +603,22 @@ class hr_CustomSchedules extends core_Master
                 }
             }
         }
-
+        
         // взимаме всички профили
         $query = crm_Profiles::getQuery();
+        
         // които са активни
         $query->where("#state = 'active'");
-         
+        
         while ($rec = $query->fetch()) {
-
+            
             // добавяме полетата
             //тип на деня
             $rec->stateInfo = $persons[$rec->personId]->stateInfo;
+            
             //от дата
             $rec->stateDateFrom = $persons[$rec->personId]->stateDateFrom;
+            
             // до дата
             $rec->stateDateTo = $persons[$rec->personId]->stateDateTo;
             

@@ -1,7 +1,6 @@
 <?php
 
 
-
 defIfNot('GMAP3_VERSION', '6.0');
 
 
@@ -11,15 +10,15 @@ defIfNot('GMAP3_VERSION', '6.0');
  *
  * @category  vendors
  * @package   location
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class location_Paths
 {
-    
-    
     /**
      * Рендира показване на координати с google map
      *
@@ -32,18 +31,18 @@ class location_Paths
     public static function renderView($vArr, $attr = array())
     {
         static $n;
-
+        
         if (!$n) {
             $n = 0;
         }
-
+        
         $n++;
-
+        
         $id = 'map' . $n;
-     
+        
         setIfNot($width, $attr['width'], 400);
         setIfNot($height, $attr['height'], 300);
-
+        
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
         

@@ -7,26 +7,27 @@
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_GalleryRichTextPlg extends core_Plugin
 {
-
     /**
      * Регулярен израз за картинките
      */
     const IMG_PATTERN = "/\[img=\#(?'title'[^\]]*)\](?'end'\s*)/si";
-
-
+    
+    
     /**
      * Регулярен израз за галериите
      */
 //    const GALLERY_PATTERN = "/\[gallery(=\#([^\]]*))\](\s*)/si";
-
-
+    
+    
     /**
      * Обработваме елементите линковете, които сочат към докоментната система
      */
@@ -37,9 +38,10 @@ class cms_GalleryRichTextPlg extends core_Plugin
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [images=????]
         $html = preg_replace_callback(self::IMG_PATTERN, array($this, 'catchImages'), $html);
+
 //        $html = preg_replace_callback(self::GALLERY_PATTERN, array($this, 'catchGallery'), $html);
     }
-
+    
     
     // TODO - няма да се добавя цялата група, а отделни картинки, в отделен блок, който ще се показва по подобен начин
 //    /**
@@ -113,16 +115,16 @@ class cms_GalleryRichTextPlg extends core_Plugin
             
             return $match[0];
         }
-
+        
         $groupRec = cms_GalleryGroups::fetch($imgRec->groupId);
         
         $tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
         $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
-            
+        
         $Fancybox = cls::get('fancybox_Fancybox');
         
         $attr = array();
-
+        
         if ($groupRec->style) {
             $attr['style'] = $groupRec->style;
         }
@@ -133,7 +135,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
             // Добавяме атрибута за да използваме абсолютни линкове
             $attr['isAbsolute'] = true;
         }
-
+        
         $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, $attr);
         
         if ($groupRec->position && $groupRec->position != 'none') {
@@ -142,9 +144,9 @@ class cms_GalleryRichTextPlg extends core_Plugin
         }
         
         $place = $this->mvc->getPlace();
-
+        
         $this->mvc->_htmlBoard[$place] = $res;
-
+        
         return "[#{$place}#]" . $match['end'];
     }
     
@@ -170,6 +172,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
         
         return $imagesArr;
     }
+    
     
     /**
      * Добавя бутон за качване на документ

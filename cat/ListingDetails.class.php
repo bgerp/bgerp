@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Списък с листвани артикули за клиента/доставчика
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_ListingDetails extends doc_Detail
 {
-    
-    
     /**
      * Кой  може да изтрива?
      */
@@ -50,8 +49,8 @@ class cat_ListingDetails extends doc_Detail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,moq,multiplicity,price,modifiedOn,modifiedBy';
-            
-
+    
+    
     /**
      * Плъгини за зареждане
      */
@@ -87,7 +86,7 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Брой записи на страница
      *
-     * @var integer
+     * @var int
      */
     public $listItemsPerPage = 50;
     
@@ -236,10 +235,10 @@ class cat_ListingDetails extends doc_Detail
         if (isset($fields['-list'])) {
             $row->productId = cat_Products::getShortHyperlink($rec->productId);
             $row->reff = "<b>{$row->reff}</b>";
-             
+            
             $listRec = cat_Listings::fetch($rec->listId, 'folderId,type,currencyId,vat');
             $Cover = doc_Folders::getCover($listRec->folderId);
-             
+            
             if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
                 if ($listRec->type == 'canBuy') {
                     $policyInfo = cls::get('purchase_PurchaseLastPricePolicy')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
@@ -285,8 +284,9 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Помощна ф-я връщаща намерения артикул и опаковка според кода
      *
-     * @param  int           $listId - ид на продуктовият лист
-     * @param  string        $reff   - чужд код за търсене
+     * @param int    $listId - ид на продуктовият лист
+     * @param string $reff   - чужд код за търсене
+     *
      * @return NULL|stdClass - обект с ид на артикула и опаковката или NULL ако няма
      */
     public static function getProductByReff($listId, $reff)
@@ -300,10 +300,10 @@ class cat_ListingDetails extends doc_Detail
                 
                 return true;
             }
-
+            
             return false;
         });
-
+        
         // Ако има първи елемент, взима се той
         $firstFound = $res[key($res)];
         $reff = (is_object($firstFound)) ? (object) array('productId' => $firstFound->productId, 'packagingId' => $firstFound->packagingId) : null;
@@ -322,7 +322,7 @@ class cat_ListingDetails extends doc_Detail
         expect($listId = Request::get('listId', 'int'));
         expect($listRec = cat_Listings::fetch($listId));
         $this->requireRightFor('add', (object) array('listId' => $listRec->id));
-            
+        
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->method = 'POST';
@@ -346,7 +346,7 @@ class cat_ListingDetails extends doc_Detail
         // Инпутване на скритите полета
         $form->input(null, 'silent');
         $form->input();
-            
+        
         $submit = false;
         
         // Ако е избран източник на импорт
@@ -360,7 +360,7 @@ class cat_ListingDetails extends doc_Detail
                 $form->setField('group', 'input');
                 if (isset($rec->group)) {
                     $products = $this->getFromGroup($rec->group, $rec->listId);
-                
+                    
                     if (!$products) {
                         $form->setError('from,group', 'Няма артикули за импортиране от групата');
                     }
@@ -370,13 +370,13 @@ class cat_ListingDetails extends doc_Detail
                 // Ако е избрано от последни продажби, показват се полетата за избор на период
                 $form->setField('fromDate', 'input');
                 $form->setField('toDate', 'input');
-                    
+                
                 // И се извличат артикулите от продажбите в този период на контрагента
                 if (!empty($rec->fromDate) || !empty($rec->toDate)) {
                     $products = $this->getFromSales($rec->fromDate, $rec->toDate, $rec->from, $rec->listId);
                 }
             }
-        
+            
             // Ако има намерени продукти показват се в друго поле за избор, чекнати по подразбиране
             if (isset($products) && count($products)) {
                 $set = cls::get('type_Set', array('suggestions' => $products));
@@ -384,7 +384,7 @@ class cat_ListingDetails extends doc_Detail
                 $form->setFieldType('selected', $set);
                 $form->input('selected');
                 $form->setDefault('selected', $set->fromVerbal($products));
-                    
+                
                 $submit = true;
             }
         }
@@ -443,7 +443,7 @@ class cat_ListingDetails extends doc_Detail
         }
         
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-            
+        
         // Рендиране на опаковката
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
@@ -455,8 +455,9 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Помощен метод извличащ всички артикули за листване от дадена група
      *
-     * @param  int   $group
-     * @param  int   $listId
+     * @param int $group
+     * @param int $listId
+     *
      * @return array $products
      */
     private function getFromGroup($group, $listId)
@@ -493,9 +494,10 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Помщен метод за намиране на всички продадени артикули на контрагента
      *
-     * @param  date  $from
-     * @param  date  $to
-     * @param  int   $listId
+     * @param date $from
+     * @param date $to
+     * @param int  $listId
+     *
      * @return array $products
      */
     public function getFromSales($from, $to, $ext, $listId)
@@ -526,7 +528,7 @@ class cat_ListingDetails extends doc_Detail
         $query->where("#folderId = {$listRec->folderId}");
         $query->where("#state = 'active' OR #state = 'closed'");
         $query->where("#{$type} = 'yes'");
-    
+        
         if (!empty($from)) {
             $query->where("#valior >= '{$from}'");
         }

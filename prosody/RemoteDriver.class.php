@@ -1,46 +1,45 @@
 <?php
 
+
 /**
  * Драйвер за отдалечен чат сървър
  *
  *
  * @category  bgerp
  * @package   prosody
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class prosody_RemoteDriver extends core_Mvc
 {
-
     /**
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'remote_ServiceDriverIntf,remote_SendMessageIntf';
-
-
+    
+    
     /**
      * Заглавие на драйвера
      */
     public $title = 'Prosody XMPP чат';
-
-
+    
+    
     /**
      * Плъгини и класове за зареждане
      */
     public $loadList = 'crm_Wrapper';
     
-
+    
     /**
      * Таб във wrapper-a
      */
     public $currentTab = 'Профили';
-
-
- 
-
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -55,15 +54,15 @@ class prosody_RemoteDriver extends core_Mvc
         $fieldset->FLD('xmppUser', 'nick', 'caption=Чат ник,hint=XMPP потребител,mandatory');
         $fieldset->FLD('xmppPass', 'password', 'caption=Парола,hint=XMPP парола');
     }
-
-
+    
+    
     /**
      * Създава потребителя, ако трябва
      */
     public function on_AfterInputEditForm($driver, $embedder, $form)
     {
         $setNewPass = false;
-
+        
         $rec = $form->rec;
         if ($rec->id) {
             $exRec = $embedder->fetch($rec->id);
@@ -72,7 +71,7 @@ class prosody_RemoteDriver extends core_Mvc
         if ($form->isSubmitted()) {
             if (!$rec->id) {
                 // Възможни грешки при създаване на нов потребител:
-
+                
                 // 1. Имаме такъв потребител в локалната система, и той не е за който се задава
                 $exUser = core_Users::fetch(array("LOWER(#nick) = LOWER('[#1#]')", $rec->xmppUser));
                 if ($exUser && $exUser->id != $rec->userId) {
@@ -105,7 +104,7 @@ class prosody_RemoteDriver extends core_Mvc
         if ($rec->xmppPass) {
             if ($setNewPass) {
                 $res = prosody_RestApi::changePassword($nick, $rec->xmppPass);
-
+                
                 if (substr($res['status'], 0, 1) != 2) {
                     core_Statuses::newStatus('|Неуспешна смяна на паролата|*!', 'error');
                 } else {
@@ -115,8 +114,8 @@ class prosody_RemoteDriver extends core_Mvc
         } elseif ($exRec && $exRec->xmppPass) {
             $rec->xmppPass = $exRec->xmppPass;
         }
-
-
+        
+        
         // Обикаляме по всички съществуващи потребители и им задаваме Roaster
         if ($form->isSubmitted()) {
             $aQuery = remote_Authorizations::getFiltredQuery('prosody_RemoteDriver');
@@ -129,8 +128,8 @@ class prosody_RemoteDriver extends core_Mvc
             }
         }
     }
-
-
+    
+    
     /**
      * След подготовка на формата за добавяне/редакция
      */
@@ -138,16 +137,16 @@ class prosody_RemoteDriver extends core_Mvc
     {
         $form = $data->form;
         $rec = $form->rec;
-
+        
         $form->setDefault('url', prosody_Setup::get('DOMAIN'));
         $form->setReadonly('url');
-
-
+        
+        
         $form->setDefault('xmppUser', core_Users::fetchField($rec->userId, 'nick'));
         if (!haveRole('admin')) {
             $form->setReadonly('xmppUser');
         }
-
+        
         if (!$rec->id) {
             $form->setDefault('blockNecessitous', 'night');
             $form->setDefault('blockNormal', 'night,nonworking');
@@ -156,8 +155,7 @@ class prosody_RemoteDriver extends core_Mvc
             $rec->xmppPass = '';
         }
     }
-
-
+    
     
     /**
      * След конвертиране към вербални стойности на записа
@@ -165,21 +163,18 @@ class prosody_RemoteDriver extends core_Mvc
     public function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
     {
         $icon = sbf('prosody/img/16/prosody.png', '');
-
+        
         $row->url = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $driver->title . '</span>';
     }
-
-
     
-
+    
     /**
      * За да не могат да се редактират оторизациите с получен ключ
      */
     public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = null, $userId = null)
     {
     }
-
-
+    
     
     /**
      * Може ли вградения обект да се избере
@@ -191,18 +186,18 @@ class prosody_RemoteDriver extends core_Mvc
         if ($userId === null) {
             $userId = core_Users::getCurrent();
         }
-
+        
         $aQuery = remote_Authorizations::getFiltredQuery('prosody_RemoteDriver', $userId);
-
+        
         if ($aQuery->fetch()) {
             
             return haveRole('admin');
         }
-
+        
         return true;
     }
-
-
+    
+    
     /*
     *************************************************************************************
     *
@@ -210,31 +205,31 @@ class prosody_RemoteDriver extends core_Mvc
     *
     **************************************************************************************
     */
-
+    
     /**
      * Връща информация за логин на потребителя
      */
     public function getXmppCredentials($rec)
     {
         $rec = remote_Authorizations::fetchRec($rec);
-
+        
         $res = new stdClass();
         $res->xmppUser = $rec->xmppUser . '@' . prosody_Setup::get('DOMAIN');
         $res->xmppPass = $rec->xmppPass;
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Изпраща съобщение до потребителя
      */
     public function sendMessage($rec, $msg)
     {
         $rec = remote_Authorizations::fetchRec($rec);
- 
+        
         $res = prosody_RestApi::sendMessage($rec->xmppUser, $msg);
- 
+        
         return (substr($res['status'], 0, 1) == 2);
     }
 }

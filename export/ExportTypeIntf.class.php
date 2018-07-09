@@ -1,22 +1,22 @@
 <?php
 
 
-
 /**
  * Интерфейс за типове за експортиране на документи
  *
  *
  * @category  bgerp
  * @package   export
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за типове за експортиране на документи
  */
 class export_ExportTypeIntf
 {
-    
     /**
      * Клас имплементиращ мениджъра
      */
@@ -26,10 +26,10 @@ class export_ExportTypeIntf
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
-     * @return boolean
+     * @return bool
      */
     public function canUseExport($clsId, $objId)
     {
@@ -40,8 +40,8 @@ class export_ExportTypeIntf
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
      * @return string
      */
@@ -54,9 +54,9 @@ class export_ExportTypeIntf
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param core_Form        $form
-     * @param integer          $clsId
-     * @param integer|stdClass $objId
+     * @param core_Form    $form
+     * @param int          $clsId
+     * @param int|stdClass $objId
      *
      * @return NULL|string
      */
@@ -69,10 +69,9 @@ class export_ExportTypeIntf
     /**
      * Връща линк за експортиране във външната част
      *
-     * @param integer $clsId
-     * @param integer $objId
-     * @param string  $mid
-     *
+     * @param int    $clsId
+     * @param int    $objId
+     * @param string $mid
      *
      * @return core_ET|NULL
      */

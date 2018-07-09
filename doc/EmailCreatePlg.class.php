@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'doc_EmailCreatePlg'
  *
@@ -10,14 +9,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_EmailCreatePlg extends core_Plugin
 {
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -31,6 +31,7 @@ class doc_EmailCreatePlg extends core_Plugin
     
     /**
      * Добавя бутон за създаване на имейл
+     *
      * @param stdClass $mvc
      * @param stdClass $data
      */
@@ -53,7 +54,7 @@ class doc_EmailCreatePlg extends core_Plugin
                         'add',
                         'originId' => $data->rec->containerId,
                         'ret_url' => $retUrl
-                ),
+                    ),
                         'ef_icon = img/16/email_edit.png,title=Изпращане на документа по имейл',
                     'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");'
                 );

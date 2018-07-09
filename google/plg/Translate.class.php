@@ -17,7 +17,7 @@ function googleSectionalElementInit() {
 EOT;
     
     protected static $elementJsUrl = '//translate.google.com/translate_a/element.js?cb=googleSectionalElementInit&amp;ug=section&amp;hl=%s';
-
+    
     protected static $markupTpl = <<<EOT
 <div class="goog-trans-section">
     <div class="goog-trans-control"></div>
@@ -45,7 +45,7 @@ EOT;
 }
 
 EOT;
-
+    
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
         if ($rec->lg != core_Lg::getCurrent() &&

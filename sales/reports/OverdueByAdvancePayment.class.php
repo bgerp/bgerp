@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети относно просрочия по аванси
  *
@@ -9,20 +8,21 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Продажби » Просрочия по аванси
  */
 class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,sales,manager';
-
+    
     
     /**
      * Брой записи на страница
@@ -30,7 +30,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      * @var int
      */
     protected $listItemsPerPage = 30;
-
+    
     
     /**
      * Полета от таблицата за скриване, ако са празни
@@ -38,16 +38,17 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      * @var int
      */
     protected $filterEmptyListFields;
-
+    
     
     /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField;
-
+    
     
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
@@ -55,19 +56,19 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      * @var string
      */
     protected $newFieldToCheck = 'condition';
-
+    
     
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
-
+    
     
     /**
      * Дали групиращото поле да е на отделен ред или не
      */
     protected $groupedFieldOnNewRow = true;
-
+    
     
     /**
      * Дилърите
@@ -75,13 +76,13 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      * @var array
      */
     private static $dealers = array();
-
+    
     
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'dealers,tolerance';
-
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -93,7 +94,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Търговци,after=title');
         $fieldset->FLD('tolerance', 'int', 'caption=Толеранс,unit= дни,after=dealers');
     }
-
+    
     
     /**
      * След рендиране на единичния изглед
@@ -116,7 +117,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
             }
         }
     }
-
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -161,13 +162,14 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
             $form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
         }
     }
-
+    
     
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -274,13 +276,14 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
     {
         return $a->termDate > $b->termDate;
     }
-
+    
     
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -303,7 +306,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         
         return $fld;
     }
-
+    
     
     /**
      * След подготовка на реда за експорт
@@ -323,10 +326,11 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec
-     *                        - записа
-     * @param  stdClass $dRec
-     *                        - чистия запис
+     * @param stdClass $rec
+     *                       - записа
+     * @param stdClass $dRec
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)

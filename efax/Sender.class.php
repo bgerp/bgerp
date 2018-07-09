@@ -6,20 +6,19 @@
  *
  * @category  bgerp
  * @package   efax
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class efax_Sender
 {
-    
-    
     /**
      * Интерфейсния клас за изпращане на факс
      */
     public $interfaces = 'email_SentFaxIntf';
-    
     
     
     public $title = 'EFax.com';
@@ -45,7 +44,7 @@ class efax_Sender
         
         //Дали да се добави манипулатора на нишката пред заглавието
         $options['no_thread_hnd'] = 'no_thread_hnd';
-
+        
         //Указва дали е факс или не
         $options['is_fax'] = 'is_fax';
         

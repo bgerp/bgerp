@@ -1,21 +1,22 @@
 <?php
 
+
 /**
  * Драйвър за универсален артикул
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Универсален артикул
  */
 class cat_GeneralProductDriver extends cat_ProductDriver
 {
-    
-    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -108,7 +109,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      * Ако артикула има прототип взимаме неговите параметри,
      * ако няма тези от корицата му
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     private function getDefaultParams($rec, $classId, $action)
@@ -185,9 +187,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 // Има стойност и е разпознато ид на параметър
                 if (cat_Params::fetch($paramId) && !empty($value)) {
                     $dRec = (object) array('productId' => $rec->id,
-                                          'classId' => $classId,
-                                          'paramId' => $paramId,
-                                          'paramValue' => $value);
+                        'classId' => $classId,
+                        'paramId' => $paramId,
+                        'paramValue' => $value);
                     
                     // Записваме продуктовия параметър с въведената стойност
                     if (!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)) {
@@ -214,11 +216,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      * Връща стойността на параметъра с това име, или
      * всички параметри с техните стойностти
      *
-     * @param  int     $classId - ид на клас
-     * @param  string  $id      - ид на записа
-     * @param  string  $name    - име на параметъра, или NULL ако искаме всички
-     * @param  boolean $verbal  - дали да са вербални стойностите
-     * @return mixed   $params - стойност или NULL ако няма
+     * @param int    $classId - ид на клас
+     * @param string $id      - ид на записа
+     * @param string $name    - име на параметъра, или NULL ако искаме всички
+     * @param bool   $verbal  - дали да са вербални стойностите
+     *
+     * @return mixed $params - стойност или NULL ако няма
      */
     public function getParams($classId, $id, $name = null, $verbal = false)
     {
@@ -261,13 +264,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $preview = null;
         $previewHandler = cat_Products::getParams($rec->id, 'preview');
         $handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
-    
+        
         if (!empty($handler)) {
             $Fancybox = cls::get('fancybox_Fancybox');
             $preview = $Fancybox->getImage($handler, $size, $maxSize);
             $preview = $preview->getContent();
         }
-    
+        
         return $preview;
     }
     
@@ -275,7 +278,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     /**
      * Подготвя данните за показване на описанието на драйвера
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return stdClass
      */
     public function prepareProductDescription(&$data)
@@ -291,7 +295,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     /**
      * Рендира данните за показване на артикула
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return core_ET
      */
     public function renderProductDescription($data)
@@ -340,9 +345,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     /**
      * Колко е толеранса
      *
-     * @param  int         $id       - ид на артикул
-     * @param  double      $quantity - к-во
-     * @return double|NULL - толеранс или NULL, ако няма
+     * @param int   $id       - ид на артикул
+     * @param float $quantity - к-во
+     *
+     * @return float|NULL - толеранс или NULL, ако няма
      */
     public function getTolerance($id, $quantity)
     {
@@ -353,9 +359,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     /**
      * Колко е срока на доставка
      *
-     * @param  int         $id       - ид на артикул
-     * @param  double      $quantity - к-во
-     * @return double|NULL - срока на доставка в секунди или NULL, ако няма
+     * @param int   $id       - ид на артикул
+     * @param float $quantity - к-во
+     *
+     * @return float|NULL - срока на доставка в секунди или NULL, ако няма
      */
     public function getDeliveryTime($id, $quantity)
     {
@@ -366,10 +373,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     /**
      * Връща масив с допълнителните плейсхолдъри при печат на етикети
      *
-     * @param  mixed $rec              - ид или запис на артикул
-     * @param  mixed $labelSourceClass - клас източник на етикета
+     * @param mixed $rec              - ид или запис на артикул
+     * @param mixed $labelSourceClass - клас източник на етикета
+     *
      * @return array - Допълнителните полета при печат на етикети
-     *                                [Плейсхолдър] => [Стойност]
+     *               [Плейсхолдър] => [Стойност]
      */
     public function getAdditionalLabelData($rec, $labelSourceClass = null)
     {
@@ -387,16 +395,17 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     /**
      * Връща транспортното тегло за подаденото количество
      *
-     * @param  mixed       $rec      - ид или запис на продукт
-     * @param  int         $quantity - общо количество
-     * @return double|NULL - транспортното тегло на общото количество
+     * @param mixed $rec      - ид или запис на продукт
+     * @param int   $quantity - общо количество
+     *
+     * @return float|NULL - транспортното тегло на общото количество
      */
     public function getTransportWeight($rec, $quantity)
     {
         $weight = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportWeight');
         if ($weight) {
             $weight *= $quantity;
-
+            
             return round($weight, 2);
         }
     }
@@ -405,16 +414,17 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     /**
      * Връща транспортния обем за подаденото количество
      *
-     * @param  mixed  $rec      - ид или запис на артикул
-     * @param  int    $quantity - общо количество
-     * @return double - транспортния обем на общото количество
+     * @param mixed $rec      - ид или запис на артикул
+     * @param int   $quantity - общо количество
+     *
+     * @return float - транспортния обем на общото количество
      */
     public function getTransportVolume($rec, $quantity)
     {
         $volume = $this->getParams(cat_Products::getClassId(), $rec->id, 'transportVolume');
         if ($volume) {
             $volume *= $quantity;
-
+            
             return round($volume, 2);
         }
     }

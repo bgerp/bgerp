@@ -1,20 +1,22 @@
 <?php
 
+
 /**
  * Интерфейс за комуникация с входно-изходен хардуерен контролер
  *
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс на драйвер на I/O контролер
  */
 class sens2_DriverIntf
 {
-
     /**
      * Информация за входните портове на устройството
      *
@@ -28,7 +30,7 @@ class sens2_DriverIntf
     {
         return $this->class->getInputPorts($config);
     }
-
+    
     
     /**
      * Информация за изходните портове на устройството
@@ -43,8 +45,8 @@ class sens2_DriverIntf
     {
         return $this->class->getOutputPorts($config);
     }
-
-
+    
+    
     /**
      * Прочита стойностите от сензорните входове
      *
@@ -60,8 +62,8 @@ class sens2_DriverIntf
     {
         return $this->class->readInputs($inputs, $config, $persistentState);
     }
-
-
+    
+    
     /**
      * Записва стойностите на изходите на контролера
      *
@@ -76,7 +78,7 @@ class sens2_DriverIntf
         return $this->class->writeOutputs($outputs, $config, $persistentState);
     }
     
-
+    
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
@@ -86,7 +88,7 @@ class sens2_DriverIntf
     {
         return $this->class->prepareConfigForm($form);
     }
-   
+    
     
     /**
      * Проверява след  субмитване формата с настройки на контролера
@@ -99,20 +101,21 @@ class sens2_DriverIntf
     {
         return $this->class->checkConfigForm($form);
     }
-
-
+    
+    
     /**
      * Връща снимка на контролера
      *
-     * @param  stdClass    $config конфигурацията на контролера
+     * @param stdClass $config конфигурацията на контролера
+     *
      * @return string|null
      */
     public static function getPicture($config)
     {
         return $this->class->getPicture($config);
     }
-
-
+    
+    
     /**
      * Връща масив със портовете на устройството
      *

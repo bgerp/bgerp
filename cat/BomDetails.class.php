@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на детайл на технологичната рецепта
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_BomDetails extends doc_Detail
 {
-    
-    
     /**
      * Константа за грешка при изчисление
      */
@@ -127,6 +126,7 @@ class cat_BomDetails extends doc_Detail
      * При колко линка в тулбара на реда да не се показва дропдауна
      *
      * @param int
+     *
      * @see plg_RowTools2
      */
     public $rowToolsMinLinksToShow = 2;
@@ -155,8 +155,8 @@ class cat_BomDetails extends doc_Detail
         $this->setDbIndex('parentId');
         $this->setDbIndex('resourceId');
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -247,16 +247,17 @@ class cat_BomDetails extends doc_Detail
     /**
      * Изчислява израза
      *
-     * @param  text   $expr   - формулата
-     * @param  array  $params - параметрите
+     * @param text  $expr   - формулата
+     * @param array $params - параметрите
+     *
      * @return string $res - изчисленото количество
      */
     public static function calcExpr($expr, $params)
     {
         $expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
-
+        
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
-
+        
         if (is_array($params)) {
             
             // Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
@@ -316,7 +317,7 @@ class cat_BomDetails extends doc_Detail
         if ($rQuantity === self::CALC_ERROR) {
             $expr = ht::createHint($expr, 'Формулата не може да бъде изчислена', 'warning');
         }
-
+        
         return $expr;
     }
     
@@ -324,26 +325,27 @@ class cat_BomDetails extends doc_Detail
     /**
      * Търси в дърво, дали даден обект не е баща на някой от бащите на друг обект
      *
-     * @param  int   $objectId   - ид на текущия обект
-     * @param  int   $needle     - ид на обекта който търсим
-     * @param  array $notAllowed - списък със забранените обекти
-     * @param  array $path
+     * @param int   $objectId   - ид на текущия обект
+     * @param int   $needle     - ид на обекта който търсим
+     * @param array $notAllowed - списък със забранените обекти
+     * @param array $path
+     *
      * @return void
      */
     private function findNotAllowedProducts($objectId, $needle, &$notAllowed, $path = array())
     {
         // Добавяме текущия продукт
         $path[$objectId] = $objectId;
-    
+        
         // Ако стигнем до началния, прекратяваме рекурсията
         if ($objectId == $needle) {
             foreach ($path as $p) {
-    
+                
                 // За всеки продукт в пътя до намерения ние го
                 // добавяме в масива notAllowed, ако той, вече не е там
                 $notAllowed[$p] = $p;
             }
-
+            
             return;
         }
         
@@ -381,7 +383,7 @@ class cat_BomDetails extends doc_Detail
                 $newParams = cat_Boms::getProductParams($pId);
                 cat_Boms::pushParams($params, $newParams);
             }
-             
+            
             // Добавя допустимите параметри във формулата
             $scope = cat_Boms::getScope($params);
             $scope['$T'] = 1;
@@ -490,7 +492,7 @@ class cat_BomDetails extends doc_Detail
                                 // който ще наливаме забраняваме да се добавя артикула
                                 foreach ($detailsToAdd as $det) {
                                     $path = $mvc->getProductPath($det);
-                                        
+                                    
                                     $intersected = array_intersect($thisPath, $path);
                                     if (count($intersected)) {
                                         $canAdd = false;
@@ -518,9 +520,10 @@ class cat_BomDetails extends doc_Detail
     /**
      * Връща масив с пътя на един запис
      *
-     * @param  stdClass $rec      - запис
-     * @param  string   $position - дали да върнем позициите или ид-та на артикули
-     * @return array    - масив с последователноста на пътя на записа в позиции или ид-та на артикули
+     * @param stdClass $rec      - запис
+     * @param string   $position - дали да върнем позициите или ид-та на артикули
+     *
+     * @return array - масив с последователноста на пътя на записа в позиции или ид-та на артикули
      */
     private function getProductPath($rec, $position = false)
     {
@@ -563,7 +566,7 @@ class cat_BomDetails extends doc_Detail
                 $link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/toggle1.png,title=Направи етап');
                 $extraBtnTpl->append($link, 'BTN');
             }
-
+            
             // Може ли да се свие етапа
             if ($mvc->haveRightFor('shrink', $rec)) {
                 $link = ht::createLink('', array($mvc, 'shrink', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/toggle2.png,title=Свиване на етап');
@@ -715,7 +718,7 @@ class cat_BomDetails extends doc_Detail
                 if (!$aBom) {
                     $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
                 }
-                    
+                
                 if (!$aBom) {
                     $requiredRoles = 'no_one';
                 }
@@ -730,12 +733,11 @@ class cat_BomDetails extends doc_Detail
         }
         
         if ($action == 'shrink' && isset($rec)) {
-        
+            
             // Само етап може да се свива
             if ($rec->type != 'stage') {
                 $requiredRoles = 'no_one';
             }
-                
             
             
             if ($requiredRoles != 'no_one') {
@@ -793,10 +795,10 @@ class cat_BomDetails extends doc_Detail
             
             return $res;
         }
-    
+        
         // Кои детайли от нея ще показваме като компоненти
         $details = cat_BomDetails::getOrderedBomDetails($rec->id);
-         
+        
         // За всеки
         if (is_array($details)) {
             foreach ($details as $dRec) {
@@ -845,6 +847,7 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -875,7 +878,7 @@ class cat_BomDetails extends doc_Detail
                 }
             }
         }
-
+        
         // Ако формулите и изчислените к-ва са равни, показваме само едната колонка
         if ($hasSameQuantities === true) {
             unset($data->listFields['propQuantity']);
@@ -903,8 +906,9 @@ class cat_BomDetails extends doc_Detail
     /**
      * Намира следващия най-голяма позиция за нивото
      *
-     * @param  int $bomId
-     * @param  int $parentId
+     * @param int $bomId
+     * @param int $parentId
+     *
      * @return int
      */
     private function getDefaultPosition($bomId, $parentId)
@@ -953,7 +957,8 @@ class cat_BomDetails extends doc_Detail
     /**
      * Връща подредените детайли на рецептата
      *
-     * @param  int   $id - ид
+     * @param int $id - ид
+     *
      * @return array - подредените записи
      */
     public static function getOrderedBomDetails($id)
@@ -973,9 +978,10 @@ class cat_BomDetails extends doc_Detail
     /**
      * Добавя компонентите на един етап към рецепта
      *
-     * @param  int  $productId   - ид на артикул
-     * @param  int  $toBomId     - ид на рецепта към която го добавяме
-     * @param  int  $componentId - на кой ред в рецептата е артикула
+     * @param int $productId   - ид на артикул
+     * @param int $toBomId     - ид на рецепта към която го добавяме
+     * @param int $componentId - на кой ред в рецептата е артикула
+     *
      * @return void
      */
     public static function addProductComponents($productId, $toBomId, $componentId, &$activeBom = null, $onlyIfQuantitiesAreEqual = false)
@@ -986,7 +992,7 @@ class cat_BomDetails extends doc_Detail
         if ($toBomRec->type == 'production') {
             $activeBom = cat_Products::getLastActiveBom($productId, 'production');
         }
-         
+        
         if (!$activeBom) {
             $activeBom = cat_Products::getLastActiveBom($productId, 'sales');
         }
@@ -995,6 +1001,7 @@ class cat_BomDetails extends doc_Detail
         if ($activeBom) {
             if ($onlyIfQuantitiesAreEqual === true) {
                 if ($activeBom->quantity != $toBomRec->quantity) {
+                    
                     return;
                 }
             }
@@ -1030,9 +1037,10 @@ class cat_BomDetails extends doc_Detail
     /**
      * Подрежда записите от детайла на рецептата по етапи
      *
-     * @param  array $inArr    - масив от записи
-     * @param  array $outArr   - подредения масив
-     * @param  int   $parentId - кой е текущия баща
+     * @param array $inArr    - масив от записи
+     * @param array $outArr   - подредения масив
+     * @param int   $parentId - кой е текущия баща
+     *
      * @return void
      */
     private static function orderBomDetails(&$inArr, &$outArr, $parentId = null)
@@ -1055,7 +1063,7 @@ class cat_BomDetails extends doc_Detail
                 
                 return ($a->modifiedOn > $b->modifiedOn) ? -1 : 1;
             }
-
+            
             return ($a->position < $b->position) ? -1 : 1;
         });
         
@@ -1085,8 +1093,9 @@ class cat_BomDetails extends doc_Detail
     /**
      * Клонира детайлите на рецептата
      *
-     * @param  int  $fromBomId
-     * @param  int  $toBomId
+     * @param int $fromBomId
+     * @param int $toBomId
+     *
      * @return void
      */
     public function cloneDetails($fromBomId, $toBomId)

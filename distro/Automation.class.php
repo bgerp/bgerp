@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  *
  *
  * @category  bgerp
  * @package   distro
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class distro_Automation extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -85,11 +84,11 @@ class distro_Automation extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
 //    var $listFields = '';
-    
-    
-    
-//    var $rowToolsField = 'id';
 
+
+
+//    var $rowToolsField = 'id';
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)

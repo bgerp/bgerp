@@ -13,15 +13,15 @@ defIfNot('COMMUNICATION_FORMAT', 'tel,fax,mob,email,icq,social,web');
  *
  * @category  bgerp
  * @package   communicationformat
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class commformat_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -51,7 +51,7 @@ class commformat_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-             'COMMUNICATION_FORMAT' => array('set(tel=Телефон,
+        'COMMUNICATION_FORMAT' => array('set(tel=Телефон,
                                                      fax=Факс,
                                                      mob=Мобилен телефон,
                                                      email=Имейл,
@@ -60,7 +60,8 @@ class commformat_Setup extends core_ProtoSetup
                                                      web=Уеб адреси
                                                      )', 'caption=Форматиране на адреси за комуникация->Услуги'),
     
-             );
+    );
+    
     
     /**
      * Инсталиране на пакета

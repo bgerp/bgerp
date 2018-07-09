@@ -6,18 +6,20 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Email extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'html';
@@ -31,6 +33,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -45,12 +48,12 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $source = static::getSource($fRec);
         
         $mime->parseAll($source);
-   
+        
         $mime->saveFiles();
-     
+        
         // Подгорвяме сорса за показване
         $sourceShow = static::prepareSource($source);
-
+        
         // Вземаме текстовата част
         $textPart = static::getTextPart($mime, true);
         
@@ -59,13 +62,13 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Вземаме хедърите
         $headersStr = $mime->getHeadersVerbal();
-       
+        
         // Добавяме стилове
         $headersStr = "<div class='email-source-holder'><div class='email-source'>{$headersStr}</div><div>";
         
         // Вземаме линковете към файловете
         $filesStr = static::getFiles($mime);
-       
+        
         // Подготвяме табовете
         
         // Вземаме съдържанието на таба за HTML
@@ -102,7 +105,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Ако има прикачени файлове
         if ($filesStr) {
-
+            
             // Таб за преглед
             $tabsArr['files'] = (object)
                 array(
@@ -111,7 +114,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                     'order' => 5,
                 );
         }
-            
+        
         // Таб за хедърите
         $tabsArr['headers'] = (object)
             array(
@@ -119,7 +122,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Хедърите на имейла') . "</div>{$headersStr}</div></div>",
                 'order' => 8,
             );
-            
+        
         // Таб за сорса
         $tabsArr['source'] = (object)
             array(
@@ -127,7 +130,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Изходен код на имейла') . "</div>{$sourceShow}</div></div>",
                 'order' => 9,
             );
-            
+        
         return $tabsArr;
     }
     
@@ -150,7 +153,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * Връща текстовата част от файла
      *
      * @param email_Mime $mime
-     * @param boolean    $escape - Дали да се ескейпва текстовата част
+     * @param bool       $escape - Дали да се ескейпва текстовата част
      *
      * return string - Текстовата част
      */
@@ -172,7 +175,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             // Ескейпваме текстовата част
             $textPart = core_Type::escape($textPart);
         }
-
+        
         return $textPart;
     }
     
@@ -219,7 +222,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         foreach ($filesArr as $keyD => $dummy) {
             $filesStr .= fileman_Files::getLinkById($keyD) . "\n";
         }
-
+        
         // Връщаме стринга
         return $filesStr;
     }
@@ -274,23 +277,23 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     public static function prepareSource($source)
     {
 //        $source = i18n_Charset::convertToUtf8($source);
-
+        
         // Добавяме сорса в code елемент
         $source = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $source);
         
         // Преобразуваме към вербална стойност
         $source = "<div class='email-source-holder'><div class='email-source'>{$source}</div></div>";
- 
+        
         return $source;
     }
-
+    
     
     /**
      * Проверяваме дали има HTML част
      *
      * @param $link - Линка към файла
      *
-     * @return boolean - Ако има съдържание връща TRUE
+     * @return bool - Ако има съдържание връща TRUE
      */
     public static function checkHtmlPart($link)
     {
@@ -319,7 +322,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      *
      * @param email_Mime $mime - Обект
      *
-     * @return boolean - Ако има съдържание връща TRUE
+     * @return bool - Ако има съдържание връща TRUE
      */
     public static function checkTextPart($mime)
     {

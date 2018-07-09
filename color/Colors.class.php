@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Помощен клас за създаване на обекти - цветови модели.
  * С него може да се конвертират стойностите от един модел в друг
@@ -9,15 +8,15 @@
  *
  * @category  vendors
  * @package   color
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class color_Colors
 {
-    
-    
     /**
      * Какъв е цветовия модел
      */
@@ -26,6 +25,7 @@ class color_Colors
     
     /**
      * Тук се складират стойностите на класа
+     *
      * @var array
      */
     public $values;
@@ -34,6 +34,7 @@ class color_Colors
     /**
      * Инстанцира обект в съответния цветови модел
      * След това трябва да му се заредят стойностите
+     *
      * @param enum $type - цветовия модел
      *                   Допустими типове (rgb, cmyk, hsv, cielab, xyz)
      */
@@ -49,6 +50,7 @@ class color_Colors
     
     /**
      * Задава стойности на цветовия модел
+     *
      * @param mixed      $v1 - първа стойност
      * @param mixed      $v2 - втора стойност
      * @param mixed      $v3 - трета стойност
@@ -81,9 +83,10 @@ class color_Colors
     
     /**
      * Задава стойностите на XYZ
-     * @param double $v1 - x
-     * @param double $v2 - y
-     * @param double $v3 - z
+     *
+     * @param float $v1 - x
+     * @param float $v2 - y
+     * @param float $v3 - z
      */
     private function getXYZ($v1, $v2, $v3)
     {
@@ -96,7 +99,7 @@ class color_Colors
         if ($v3 <= 0) {
             $v3 = 0;
         }
-         
+        
         if ($v1 > 100) {
             $v1 = 100;
         }
@@ -113,9 +116,10 @@ class color_Colors
     
     /**
      * Задава стойностите на RGB
-     * @param double $v1 - Red
-     * @param double $v2 - Green
-     * @param double $v3 - Blue
+     *
+     * @param float $v1 - Red
+     * @param float $v2 - Green
+     * @param float $v3 - Blue
      */
     private function getRGB($v1, $v2, $v3)
     {
@@ -128,7 +132,7 @@ class color_Colors
         if ($v3 <= 0) {
             $v3 = 0;
         }
-         
+        
         if ($v1 > 255) {
             $v1 = 255;
         }
@@ -138,17 +142,18 @@ class color_Colors
         if ($v3 > 255) {
             $v3 = 255;
         }
-
+        
         return array('r' => $v1, 'g' => $v2, 'b' => $v3);
     }
     
     
     /**
      * Задава стойностите на HSV
-     * @param double $v1 - Cyan
-     * @param double $v2 - Magenta
-     * @param double $v3 - Yellow
-     * @param double $v4 - Black
+     *
+     * @param float $v1 - Cyan
+     * @param float $v2 - Magenta
+     * @param float $v3 - Yellow
+     * @param float $v4 - Black
      */
     private function getCMYK($v1, $v2, $v3, $v4)
     {
@@ -164,7 +169,7 @@ class color_Colors
         if ($v4 <= 0) {
             $v4 = 0;
         }
-         
+        
         if ($v1 > 100) {
             $v1 = 100;
         }
@@ -184,9 +189,10 @@ class color_Colors
     
     /**
      * Задава стойностите на HSV
-     * @param double $v1 - Hue
-     * @param double $v2 - Saturation
-     * @param double $v3 - Value
+     *
+     * @param float $v1 - Hue
+     * @param float $v2 - Saturation
+     * @param float $v3 - Value
      */
     private function getHSV($v1, $v2, $v3)
     {
@@ -199,7 +205,7 @@ class color_Colors
         if ($v3 <= 0) {
             $v3 = 0;
         }
-         
+        
         if ($v1 > 360) {
             $v1 = 360;
         }
@@ -216,9 +222,10 @@ class color_Colors
     
     /**
      * Задава стойностите на HSL
-     * @param double $v1 - Hue
-     * @param double $v2 - Saturation
-     * @param double $v3 - Lightness
+     *
+     * @param float $v1 - Hue
+     * @param float $v2 - Saturation
+     * @param float $v3 - Lightness
      */
     private function getHSL($v1, $v2, $v3)
     {
@@ -231,7 +238,7 @@ class color_Colors
         if ($v3 <= 0) {
             $v3 = 0;
         }
-         
+        
         if ($v1 > 360) {
             $v1 = 360;
         }
@@ -248,9 +255,10 @@ class color_Colors
     
     /**
      * Задава CIE-L*ab стойностите
-     * @param int    $v1 - L*
-     * @param double $v2 - a*
-     * @param double $v3 - b*
+     *
+     * @param int   $v1 - L*
+     * @param float $v2 - a*
+     * @param float $v3 - b*
      */
     private function getLAB($v1, $v2, $v3)
     {
@@ -263,7 +271,7 @@ class color_Colors
         if ($v3 <= -128) {
             $v3 = -128;
         }
-         
+        
         if ($v1 > 100) {
             $v1 = 100;
         }
@@ -287,8 +295,8 @@ class color_Colors
         switch ($this->type) {
             case 'rgb':
                 $this->values = array('r' => $this->values['r'],
-                                      'g' => $this->values['g'],
-                                      'b' => $this->values['b']);
+                    'g' => $this->values['g'],
+                    'b' => $this->values['b']);
                 break;
             case 'cmyk':
                 $this->values = $this->cmykToRgb($this->values);
@@ -349,6 +357,7 @@ class color_Colors
             $this->toRGB();
             $this->toXYZ();
         } elseif ($this->type == 'cielab') {
+            
             return;
         }
         
@@ -380,15 +389,15 @@ class color_Colors
         $x3 = pow($x, 3.0);
         $z = $y - ($values['b'] / 200.0);
         $z3 = pow($z, 3.0);
-
+        
         $y = ($y3 > 0.008856) ? $y3 : ($y - (16.0 / 116.0)) / 7.787;
         $x = ($x3 > 0.008856) ? $x3 : ($x - (16.0 / 116.0)) / 7.787;
         $z = ($z3 > 0.008856) ? $z3 : ($z - (16.0 / 116.0)) / 7.787;
-
+        
         $x = $x * 95.047;
         $y = $y * 100;
         $z = $z * 108.883;
-      
+        
         return array('x' => $x, 'y' => $y, 'z' => $z);
     }
     
@@ -426,7 +435,7 @@ class color_Colors
         $r = ($r < 0) ? 0 : $r;
         $g = ($g < 0) ? 0 : $g;
         $b = ($b < 0) ? 0 : $b;
-          
+        
         $r = round($r * 255, 2);
         $g = round($g * 255, 2);
         $b = round($b * 255, 2);
@@ -434,7 +443,7 @@ class color_Colors
         $r = ($r >= 255) ? 255 : $r;
         $g = ($g >= 255) ? 255 : $g;
         $b = ($b >= 255) ? 255 : $b;
-          
+        
         return array('r' => $r, 'g' => $g, 'b' => $b);
     }
     
@@ -469,7 +478,7 @@ class color_Colors
         $h = $values['h'] / 360.0;
         $s = ($values['s'] > 1) ? $values['s'] / 100.0 : $values['s'];
         $v = ($values['v'] > 1) ? $values['v'] / 100.0 : $values['v'];
-             
+        
         if ($s == 0) {
             $r = $v * 255.0;
             $g = $v * 255.0;
@@ -505,7 +514,7 @@ class color_Colors
                 $vG = $v1;
                 $vB = $v2;
             }
-                 
+            
             $r = $vR * 255.0;
             $g = $vG * 255.0;
             $b = $vB * 255.0;
@@ -514,7 +523,7 @@ class color_Colors
         $r = round($r);
         $g = round($g);
         $b = round($b);
-
+        
         return array('r' => $r, 'g' => $g, 'b' => $b);
     }
     
@@ -537,7 +546,7 @@ class color_Colors
             $r = 255 * $this->hue2Rgb($v1, $v2, $h + (1 / 3));
             $g = 255 * $this->hue2Rgb($v1, $v2, $h);
             $b = 255 * $this->hue2Rgb($v1, $v2, $h - (1 / 3));
-           
+            
             return array('r' => $r, 'g' => $g, 'b' => $b);
         }
     }
@@ -566,7 +575,7 @@ class color_Colors
             
             return ($v1 + ($v2 - $v1) * ((2 / 3) - $vH) * 6);
         }
-
+        
         return $v1;
     }
     
@@ -577,7 +586,7 @@ class color_Colors
     public function getValue($v)
     {
         expect(isset($this->values[$v]));
-
+        
         return $this->values[$v];
     }
     
@@ -591,7 +600,7 @@ class color_Colors
         $r = (int) $this->getValue('r');
         $g = (int) $this->getValue('g');
         $b = (int) $this->getValue('b');
-
+        
         return "rgb({$r}, {$g}, {$b})";
     }
     
@@ -607,7 +616,7 @@ class color_Colors
         $b = (int) $this->getValue('b');
         
         $url = color_Renderer::getResourceUrl($width = 1, $height = 1, $r, $g, $b);
-
+        
         return ht::createElement('img', array('src' => $url));
     }
     
@@ -618,6 +627,7 @@ class color_Colors
     public function toHsl()
     {
         if ($this->type == 'hsl') {
+            
             return;
         }
         $this->toHSV();
@@ -643,6 +653,7 @@ class color_Colors
     public function toCmyk($k = 1)
     {
         if ($this->type == 'cmyk') {
+            
             return;
         }
         $this->toRGB();
@@ -707,34 +718,34 @@ class color_Colors
         
         $this->values = array('h' => $h, 's' => $s, 'v' => $v);
     }
-
-
+    
+    
     /**
      * Сравнява два цвята
      *
-     * @param  string $color1 - първи цвят
-     * @param  string $color2 - втори цвят
-     * @return int    - Ако $color2 е по-светъл: -1. Ако са еднакво светли: 0. Ако $color1 е по-светъл: 1
+     * @param string $color1 - първи цвят
+     * @param string $color2 - втори цвят
+     *
+     * @return int - Ако $color2 е по-светъл: -1. Ако са еднакво светли: 0. Ако $color1 е по-светъл: 1
      */
     public static function compareColorLightness($color1, $color2)
     {
         $colorObj = new color_Object($color1);
         list($r1, $g1, $b1) = array($colorObj->r, $colorObj->g, $colorObj->b);
-
+        
         $colorObj = new color_Object($color2);
         list($r2, $g2, $b2) = array($colorObj->r, $colorObj->g, $colorObj->b);
-
+        
         $colorDivider = sqrt(($r1 * $r1 + $g1 * $g1 + $b1 * $b1) / ($r2 * $r2 + $g2 * $g2 + $b2 * $b2));
-
+        
         if ($colorDivider > 1) {
             
             return 1;
         } elseif ($colorDivider < 1) {
             
             return -1;
-        } else {
-            
-            return 0;
         }
+        
+        return 0;
     }
 }

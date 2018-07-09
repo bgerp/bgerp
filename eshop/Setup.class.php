@@ -34,15 +34,15 @@ defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -71,37 +71,37 @@ class eshop_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'eshop_Groups',
-            'eshop_Products',
-            'eshop_Settings',
-            'eshop_ProductDetails',
-            'eshop_Carts',
-            'eshop_CartDetails',
-        );
-
-        
+        'eshop_Groups',
+        'eshop_Products',
+        'eshop_Settings',
+        'eshop_ProductDetails',
+        'eshop_Carts',
+        'eshop_CartDetails',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'eshop';
- 
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', 'ceo, eshop'),
-        );
+        array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', 'ceo, eshop'),
+    );
     
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-         'ESHOP_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
-         'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array('int', 'caption=Минимален брой групи за навигация->Брой'),
-         'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
-         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
+        'ESHOP_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
+        'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array('int', 'caption=Минимален брой групи за навигация->Брой'),
+        'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
+        'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
     );
     
     
@@ -109,18 +109,18 @@ class eshop_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-            array(
-                    'systemId' => 'Delete Carts',
-                    'description' => 'Изтриване на старите колички',
-                    'controller' => 'eshop_Carts',
-                    'action' => 'DeleteDraftCarts',
-                    'period' => 1440,
-                    'offset' => 60,
-                    'timeLimit' => 100
-            ),
+        array(
+            'systemId' => 'Delete Carts',
+            'description' => 'Изтриване на старите колички',
+            'controller' => 'eshop_Carts',
+            'action' => 'DeleteDraftCarts',
+            'period' => 1440,
+            'offset' => 60,
+            'timeLimit' => 100
+        ),
     );
-
-
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -139,7 +139,7 @@ class eshop_Setup extends core_ProtoSetup
         return $html;
     }
     
-           
+    
     /**
      * Де-инсталиране на пакета
      */

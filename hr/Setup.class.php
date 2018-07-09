@@ -21,20 +21,20 @@ defIfNot('HR_EC_MAX', '10000');
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Колко често да се обновяват индикаторите
      */
     const INDICATORS_UPDATE_PERIOD = 60;
-
+    
     
     /**
      * Версия на пакета
@@ -58,14 +58,14 @@ class hr_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Човешки ресурси';
-
+    
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'HR_EC_MIN' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
-            'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
+        'HR_EC_MIN' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
+        'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
     );
     
     
@@ -73,25 +73,25 @@ class hr_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'hr_Departments',
-            'hr_WorkingCycles',
-            'hr_WorkingCycleDetails',
-            'hr_WorkingCycles',
-            'hr_Positions',
-            'hr_ContractTypes',
-            'hr_EmployeeContracts',
-            'hr_IndicatorNames',
-            'hr_Indicators',
-            'hr_Payroll',
-            'hr_Leaves',
-            'hr_Sickdays',
-            'hr_Menu',
-            'hr_Trips',
-            'hr_Bonuses',
-            'hr_Deductions',
-        );
-
-
+        'hr_Departments',
+        'hr_WorkingCycles',
+        'hr_WorkingCycleDetails',
+        'hr_WorkingCycles',
+        'hr_Positions',
+        'hr_ContractTypes',
+        'hr_EmployeeContracts',
+        'hr_IndicatorNames',
+        'hr_Indicators',
+        'hr_Payroll',
+        'hr_Leaves',
+        'hr_Sickdays',
+        'hr_Menu',
+        'hr_Trips',
+        'hr_Bonuses',
+        'hr_Deductions',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
@@ -117,7 +117,7 @@ class hr_Setup extends core_ProtoSetup
             'offset' => 7,
             'timeLimit' => 200
         ),
-    
+        
         array(
             'systemId' => 'collectDaysType',
             'description' => 'Събиране на информацията за персоналния вид на деня',
@@ -127,15 +127,15 @@ class hr_Setup extends core_ProtoSetup
             'offset' => 0,
             'timeLimit' => 200
         ));
-
-
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', 'ceo, hrLeaves, admin'),
-        );
-
+        array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', 'ceo, hrLeaves, admin'),
+    );
+    
     
     /**
      * Дефинирани класове, които имат интерфейси
@@ -149,7 +149,7 @@ class hr_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
-         
+        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', null, '1GB', 'user', 'powerUser');

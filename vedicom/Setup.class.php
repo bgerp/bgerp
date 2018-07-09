@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class vedicom_Setup
  *
@@ -11,15 +10,15 @@
  *
  * @category  vendors
  * @package   vedicom
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class vedicom_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -42,8 +41,8 @@ class vedicom_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Чете тегло от Vedicom - VEDIA VDI везни';
-
-
+    
+    
     /**
      * Необходими пакети
      */
@@ -60,9 +59,9 @@ class vedicom_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'vedicom_Weight'
-        );
- 
+        'vedicom_Weight'
+    );
+    
     
     /**
      * Де-инсталиране на пакета

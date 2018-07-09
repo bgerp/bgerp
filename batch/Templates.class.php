@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Шаблони на партиди
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_Templates extends embed_Manager
 {
-    
-    
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
@@ -105,15 +104,15 @@ class batch_Templates extends embed_Manager
         $file = 'batch/csv/Templates.csv';
         
         $fields = array(
-                0 => 'name',
-                1 => 'driverClass',
-                2 => 'state',
-                3 => 'csv_params',
+            0 => 'name',
+            1 => 'driverClass',
+            2 => 'state',
+            3 => 'csv_params',
         );
-    
+        
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
-         
+        
         return $res;
     }
     
@@ -125,7 +124,7 @@ class batch_Templates extends embed_Manager
     {
         core_Classes::add($rec->driverClass);
         $rec->driverClass = cls::get($rec->driverClass)->getClassId();
-    
+        
         // Импортиране на параметри при нужда
         if (isset($rec->csv_params)) {
             $params = arr::make($rec->csv_params);
@@ -141,8 +140,9 @@ class batch_Templates extends embed_Manager
     /**
      * Форсираща функция
      *
-     * @param  stdClass $params - параметри
-     * @return int      $templateId - ид на шаблона
+     * @param stdClass $params - параметри
+     *
+     * @return int $templateId - ид на шаблона
      */
     public static function force($params = array())
     {

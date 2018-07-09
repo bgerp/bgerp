@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата
  * на справка на баланса по определен период
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -52,7 +51,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
      * Работен кеш
      */
     protected $cache = array();
-
+    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -64,11 +63,11 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent,removeAndRefreshForm=action|grouping1|grouping2|grouping3');
         $form->FLD('from', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=От,mandatory');
         $form->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,mandatory');
-
+        
         $form->FLD('orderField', 'enum(baseQuantity=Начално количество,baseAmount=Начална сума,debitQuantity=Количество дебит,debitAmount=Сума дебит,creditQuantity=Количество кредит,creditAmount=Сума кредит,blQuantity=Крайно количество,blAmount=Крайно салдо)', 'caption=Подредба->Сума,formOrder=110000');
         
         $form->FLD('compare', 'enum(,yes=Да)', 'caption=Предходна година->Сравни,formOrder=110001,maxRadio=1');
-    
+        
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
@@ -78,7 +77,6 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
      */
     public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
-
         // Искаме всички счетоводни периоди за които
         // има изчислени оборотни ведомости
         $balanceQuery = acc_Balances::getQuery();
@@ -105,7 +103,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     public function prepareEmbeddedForm(core_Form &$form)
     {
     }
-
+    
     
     /**
      * Проверява въведените данни
@@ -131,20 +129,20 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     public function prepareInnerState()
     {
         $data = new stdClass();
-
+        
         $data->rec = $this->innerForm;
         $this->prepareListFields($data);
-
+        
         // от избрания начален период до крайния
         for ($p = $data->rec->from; $p <= $data->rec->to; $p++) {
             $pRec = acc_Periods::fetch($p);
             
             $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
             $Balance = new acc_ActiveShortBalance(array('from' => $pRec->start, 'to' => $pRec->end, 'accs' => $accSysId, 'cacheBalance' => false));
-    
+            
             $data->bData[$p] = $Balance->getBalance($accSysId);
         }
-       
+        
         foreach ($data->bData as $period => $date) {
             $data->summary = new stdClass();
             
@@ -160,37 +158,37 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
                 case 'debitAmount':
                     $data->recs[] = (object) array('period' => $period, 'debitAmount' => $data->summary->debitAmount);
                     break;
-            
+                
                 case 'creditAmount':
                      $data->recs[] = (object) array('period' => $period, 'creditAmount' => $data->summary->creditAmount);
                     break;
-            
+                
                 case 'blAmount':
                     $data->recs[] = (object) array('period' => $period, 'blAmount' => $data->summary->blAmount);
                     break;
-            
+                
                 case 'baseQuantity':
                     $data->recs[] = (object) array('period' => $period, 'baseQuantity' => $data->summary->baseQuantity);
                     break;
-            
+                
                 case 'baseAmount':
                     $data->recs[] = (object) array('period' => $period, 'baseAmount' => $data->summary->baseAmount);
                     break;
-            
+                
                 case 'debitQuantity':
                     $data->recs[] = (object) array('period' => $period, 'debitQuantity' => $data->summary->debitQuantity);
                     break;
-            
+                
                 case 'creditQuantity':
                     $data->recs[] = (object) array('period' => $period, 'creditQuantity' => $data->summary->creditQuantity);
                     break;
-            
+                
                 case 'blQuantity':
                     $data->recs[] = (object) array('period' => $period, 'blQuantity' => $data->summary->blQuantity);
                     break;
             }
         }
-
+        
         return $data;
     }
     
@@ -203,11 +201,12 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         // Подготвяме страницирането
         $data = $res;
         $data->summary = new stdClass();
+        
         // подготвяме страницирането
         $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-       
+        
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
@@ -216,14 +215,14 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
                 if (!$pager->isOnPage()) {
                     continue;
                 }
-            
+                
                 $row = new stdClass();
                 $row = $mvc->getVerbal($rec);
-
+                
                 $data->rows[$id] = $row;
             }
         }
-
+        
         $res = $data;
     }
     
@@ -249,6 +248,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
         
@@ -256,9 +256,9 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         //$id = Request::get('id', 'int');
         
         $tpl = $this->getReportLayout();
-    
+        
         $title = explode(' » ', $this->title);
-         
+        
         $tpl->replace($title[1], 'TITLE');
         
         $form = cls::get('core_Form');
@@ -271,7 +271,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         $this->prependStaticForm($tpl, 'FORM');
         
         $tpl->placeObject($data->rec);
-
+        
         // ако имаме записи има и смисъл да
         // слагаме табове
         // @todo да не се ползва threadId  за константа
@@ -300,7 +300,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         //}
         
         // подготвяме данните за графиката
-   
+        
         /*$labels = array();
 
         if (is_array($data->recs)) {
@@ -371,6 +371,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -383,31 +384,31 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
             case 'debitAmount':
                 $f->FLD('debitAmount', 'double');
                 break;
-        
+            
             case 'creditAmount':
                  $f->FLD('creditAmount', 'double');
                 break;
-        
+            
             case 'blAmount':
                 $f->FLD('blAmount', 'double');
                 break;
-        
+            
             case 'baseQuantity':
                 $f->FLD('baseQuantity', 'double');
                 break;
-        
+            
             case 'baseAmount':
                 $f->FLD('baseAmount', 'double');
                 break;
-        
+            
             case 'debitQuantity':
                 $f->FLD('debitQuantity', 'double');
                 break;
-        
+            
             case 'creditQuantity':
                 $f->FLD('creditQuantity', 'double');
                 break;
-        
+            
             case 'blQuantity':
                 $f->FLD('blQuantity', 'double');
                 break;
@@ -415,6 +416,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         
         return $f;
     }
+    
     
     /**
      * Подготвя хедърите на заглавията на таблицата
@@ -428,59 +430,59 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
                     'debitAmount' => 'Сума дебит',
                 );
                 break;
-                
+            
             case 'creditAmount':
                 $data->listFields = array(
                     'periodId' => 'Период',
                     'creditAmount' => 'Сума кредит',
                 );
                 break;
-                
+            
             case 'blAmount':
                 $data->listFields = array(
                     'periodId' => 'Период',
                     'blAmount' => 'Крайно салдо',
                 );
                 break;
-                
+            
             case 'baseQuantity':
                 $data->listFields = array(
                     'periodId' => 'Период',
                     'baseQuantity' => 'Начално количество',
                 );
                 break;
-                    
+            
             case 'baseAmount':
                 $data->listFields = array(
-                        'periodId' => 'Период',
-                        'baseAmount' => 'Начална сума',
+                    'periodId' => 'Период',
+                    'baseAmount' => 'Начална сума',
                 );
                 break;
-              
+            
             case 'debitQuantity':
                 $data->listFields = array(
-                  'periodId' => 'Период',
-                  'debitQuantity' => 'Количество дебит',
+                    'periodId' => 'Период',
+                    'debitQuantity' => 'Количество дебит',
                 );
                 break;
-              
+            
             case 'creditQuantity':
                 $data->listFields = array(
-                  'periodId' => 'Период',
-                  'creditQuantity' => 'Количество кредит',
+                    'periodId' => 'Период',
+                    'creditQuantity' => 'Количество кредит',
                 );
                 break;
-              
+            
             case 'blQuantity':
                 $data->listFields = array(
-                  'periodId' => 'Период',
-                  'blQuantity' => 'Крайно количество',
+                    'periodId' => 'Период',
+                    'blQuantity' => 'Крайно количество',
                 );
                 break;
         }
     }
-
-
+    
+    
     /**
      * Вербалното представяне на записа
      */
@@ -507,8 +509,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         
         return $row;
     }
-
-      
+    
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -517,22 +519,22 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-              
+        
         unset($innerState->recs);
     }
-      
-      
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->createdOn} 23:59:59";
-              
+        
         return $activateOn;
     }
-
-
+    
+    
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
      *
@@ -542,29 +544,29 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     public function exportCsv()
     {
         $conf = core_Packs::getConfig('core');
-
+        
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
         
         $exportFields = $this->innerState->listFields;
-
+        
         foreach ($this->innerState->recs as $id => $rec) {
             $dataRecs[] = $this->getVerbal($rec);
-
+            
             foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld) {
                 if (!is_null($rec->{$fld})) {
                     $dataRecs[$id]->{$fld} = $rec->{$fld};
                 }
             }
-
+            
             $dataRecs[$id]->periodId = html_entity_decode(strip_tags($dataRecs[$id]->periodId->content));
         }
-       
+        
         $fields = $this->getFields();
-
+        
         $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
-
+        
         return $csv;
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * История на документите
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>, Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_L extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -89,8 +88,8 @@ class bgerp_L extends core_Manager
     /**
      * Помощна функция, която връща
      *
-     * @param integer $cId
-     * @param integer $mId
+     * @param int $cId
+     * @param int $mId
      *
      * @return array
      */
@@ -201,11 +200,11 @@ class bgerp_L extends core_Manager
             
             Mode::push('saveObjectsToCid', $cid);
             
-            $isSystemCanSingle = FALSE;
+            $isSystemCanSingle = false;
             
             if (($options['sendedBy'] == -1) && $options['isSystemCanSingle']) {
-                $isSystemCanSingle = TRUE;
-                Mode::set('isSystemCanSingle', TRUE);
+                $isSystemCanSingle = true;
+                Mode::set('isSystemCanSingle', true);
             }
             
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на
@@ -213,8 +212,8 @@ class bgerp_L extends core_Manager
             $html = $doc->getDocumentBody('xhtml', (object) $options);
             
             if ($isSystemCanSingle) {
-                Mode::set('isSystemCanSingle', FALSE);
-                $isSystemCanSingle = FALSE;
+                Mode::set('isSystemCanSingle', false);
+                $isSystemCanSingle = false;
             }
             
             Mode::pop('saveObjectsToCid');
@@ -234,7 +233,7 @@ class bgerp_L extends core_Manager
                     if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) {
                         continue;
                     }
-
+                    
                     $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')));
                     break;
                 }
@@ -349,6 +348,7 @@ class bgerp_L extends core_Manager
             $optArr = $this->getDocOptions($cId, $mId);
             
             Mode::push('saveObjectsToCid', $cid);
+            
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на
             // документа за показване
             $html = $doc->getDocumentBody('xhtml', (object) $optArr);
@@ -421,7 +421,7 @@ class bgerp_L extends core_Manager
     /**
      * Връща линк към този контролер, който показава документа от посочения контейнер
      *
-     * @param integer $cid - containerId
+     * @param int     $cid - containerId
      * @param inreger $mid - Шаблона, който ще се замества
      *
      * @return string $link - Линк към вювъра на документите

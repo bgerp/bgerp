@@ -1,19 +1,18 @@
 <?php
 
 
-
 /**
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_BaseImporter extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -65,9 +64,11 @@ class bgerp_BaseImporter extends core_Manager
     
     /**
      * Инпортиране на csv-файл в даден мениджър
-     * @param  array  $rows   - масив с обработени csv данни, получен от Експерта в bgerp_Import
-     * @param  array  $fields - масив с съответстията на колоните от csv-то и
-     *                        полетата от модела array[{поле_от_модела}] = {колона_от_csv}
+     *
+     * @param array $rows   - масив с обработени csv данни, получен от Експерта в bgerp_Import
+     * @param array $fields - масив с съответстията на колоните от csv-то и
+     *                      полетата от модела array[{поле_от_модела}] = {колона_от_csv}
+     *
      * @return string $html - съобщение с резултата
      */
     public function import($rows, $fields)

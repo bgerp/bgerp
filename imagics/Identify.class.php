@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   imagics
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class imagics_Identify extends core_Plugin
 {
-    
-    
     /**
      * Използва identify от пакета на ImageMagic за определяне на разширението на файла от подаден път
      *

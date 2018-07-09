@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'crm_Wrapper'
  *
@@ -10,9 +9,11 @@
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
@@ -21,17 +22,19 @@ class crm_AlphabetWrapper extends core_Plugin
     /**
      * Добавяне на табове
      *
-     * @param  core_Et $tpl
+     * @param core_Et $tpl
+     *
      * @return core_et $tpl
      */
     public function on_AfterRenderWrapping($mvc, &$tpl, $content, $data = null)
     {
         if ($data->action != 'list') {
+            
             return;
         }
-
+        
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'maxTabsNarrow' => 1000));
-         
+        
         $alpha = Request::get('alpha');
         
         $selected = 'none';
@@ -46,7 +49,7 @@ class crm_AlphabetWrapper extends core_Plugin
                 $selected = $a;
             }
         }
-
+        
         if (Mode::is('screenMode', 'narrow')) {
             $tabs->headerBreak = 13;
         }
@@ -54,7 +57,7 @@ class crm_AlphabetWrapper extends core_Plugin
         $tpl = $tabs->renderHtml('', $selected);
         
         $tpl->append($content);
-
+        
         //$tpl->prepend('<br>');
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Интерфейс за логически действия, които могат да бъдат добавяни в Логическите блокове
  *
@@ -9,15 +10,18 @@
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_ScriptActionIntf
 {
     public $oldClassName = 'sens2_LogicActionIntf';
-
+    
+    
     /**
      * Подготвя форма с настройки на екшъна, като добавя полета с $form->FLD(....)
      *
@@ -27,7 +31,7 @@ class sens2_ScriptActionIntf
     {
         return $this->class->prepareActionForm($form);
     }
-   
+    
     
     /**
      * Проверява след  субмитване формата с настройки на екшъна
@@ -40,7 +44,7 @@ class sens2_ScriptActionIntf
     {
         return $this->class->checkActionForm($form);
     }
-
+    
     
     /**
      * Показва вербално представяне на действието
@@ -49,8 +53,8 @@ class sens2_ScriptActionIntf
     {
         return $this->class->toVerbal($rec);
     }
-
-
+    
+    
     /**
      * Извършва действието, с параметрите, които са в $rec
      */

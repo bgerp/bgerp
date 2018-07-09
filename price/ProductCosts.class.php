@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Кеширани последни цени за артикулите
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class price_ProductCosts extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -138,7 +137,7 @@ class price_ProductCosts extends core_Manager
     {
         $tmpArr = $res = array();
         $balanceRec = acc_Balances::getLastBalance();
-            
+        
         // Ако няма баланс няма какво да подготвяме
         if (empty($balanceRec)) {
             
@@ -179,10 +178,11 @@ class price_ProductCosts extends core_Manager
      * Връща всички покупки, в които участват подадените артикули.
      * Покупките са подредени в низходящ ред, така най-първите са последните.
      *
-     * @param  array   $productKeys  - масив с ид-та на артикули
-     * @param  boolean $withDelivery - дали да има доставено по покупката или не
-     * @param  boolean $onlyActive   - дали да търси само по активните покупки
-     * @return array   $res           - намерените последни доставни цени
+     * @param array $productKeys  - масив с ид-та на артикули
+     * @param bool  $withDelivery - дали да има доставено по покупката или не
+     * @param bool  $onlyActive   - дали да търси само по активните покупки
+     *
+     * @return array $res           - намерените последни доставни цени
      */
     private function getPurchasesWithProducts($productKeys, $withDelivery = false, $onlyActive = false)
     {
@@ -223,7 +223,8 @@ class price_ProductCosts extends core_Manager
     /**
      * Връща последните доставни цени на подадените артикули
      *
-     * @param  array $productKeys - масив с ид-та на артикули
+     * @param array $productKeys - масив с ид-та на артикули
+     *
      * @return array $res - намерените последни доставни цени
      */
     private function getDeliveryCosts($productKeys)
@@ -296,7 +297,7 @@ class price_ProductCosts extends core_Manager
                     $price = round($price, 5);
                     
                     $res[$purRec->productId] = (object) array('documentId' => $purRec->requestId,
-                                                             'price' => $price);
+                        'price' => $price);
                 }
             }
         }
@@ -305,11 +306,12 @@ class price_ProductCosts extends core_Manager
         return $res;
     }
     
-   
+    
     /**
      * Намира цените от последната активна поръчка
      *
-     * @param  array $productKeys - масив с ид-та на артикули
+     * @param array $productKeys - масив с ид-та на артикули
+     *
      * @return array $res - намерените цените по последна активна поръчка
      */
     private function getActiveDeliveryCosts($productKeys)
@@ -327,7 +329,7 @@ class price_ProductCosts extends core_Manager
             // последна активна поръчка
             if (!isset($res[$purRec->productId])) {
                 $res[$purRec->productId] = (object) array('documentId' => $purRec->requestId,
-                                                         'price' => round($purRec->price, 5));
+                    'price' => round($purRec->price, 5));
             }
         }
         
@@ -339,8 +341,10 @@ class price_ProductCosts extends core_Manager
     /**
      * Намира цените от последната активна оферта
      *
-     * @param  array $productKeys - масив с ид-та на артикули
+     * @param array $productKeys - масив с ид-та на артикули
+     *
      * @return array $res - намерените цените по последна активна оферта
+     *
      * @todo да се реализира когато станат готови входящите оферти
      */
     private function getLastQuoteCosts($productKeys)
@@ -376,7 +380,8 @@ class price_ProductCosts extends core_Manager
     /**
      * Намира цените от последната активна рецепта
      *
-     * @param  array $productKeys - масив с ид-та на артикули
+     * @param array $productKeys - масив с ид-та на артикули
+     *
      * @return array $res - намерените цените по последна рецепта
      */
     private function getLastBomCosts($productKeys)
@@ -401,7 +406,7 @@ class price_ProductCosts extends core_Manager
                 $primeCost = $cache[$bomRec->id];
                 if ($primeCost) {
                     $res[$productId] = (object) array('documentId' => $bomRec->id,
-                                                     'price' => $primeCost);
+                        'price' => $primeCost);
                 }
             }
         }
@@ -528,9 +533,10 @@ class price_ProductCosts extends core_Manager
     /**
      * Намира себестойността на артикула по вида
      *
-     * @param  int                                               $productId - ид на артикула
-     * @param  accCost|lastDelivery|activeDelivery|lastQuote|bom $priceType - вида на цената
-     * @return double                                            $price - намерената себестойност
+     * @param int                                               $productId - ид на артикула
+     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom $priceType - вида на цената
+     *
+     * @return float $price - намерената себестойност
      */
     public static function getPrice($productId, $priceType)
     {

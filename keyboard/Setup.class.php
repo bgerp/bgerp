@@ -1,11 +1,11 @@
 <?php
 
 
-
 /**
  * @todo Чака за документация...
  */
 defIfNot('VKI_version', '1.28');
+
 
 /**
  * Клас 'keyboard_Setup' -
@@ -13,16 +13,16 @@ defIfNot('VKI_version', '1.28');
  *
  * @category  vendors
  * @package   keyboard
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class keyboard_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -46,14 +46,15 @@ class keyboard_Setup extends core_ProtoSetup
      */
     public $info = 'Виртуална клавиатура. Показва се с двоен клик в десния край на полето';
     
+    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
         
-           'VKI_version' => array('enum(1.28)', 'mandatory, caption=Версията на програмата->Версия')
+        'VKI_version' => array('enum(1.28)', 'mandatory, caption=Версията на програмата->Версия')
     
-             );
+    );
     
     
     /**

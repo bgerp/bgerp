@@ -1,28 +1,27 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети за Показателите
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Счетоводство » Общи цели
  */
 class acc_reports_TotalRep extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'manager,ceo';
-
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -39,8 +38,9 @@ class acc_reports_TotalRep extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -51,14 +51,14 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $recs = array();
         
         $deltaId = hr_IndicatorNames::fetchField("#name = 'Delta'", 'id');
-
+        
         foreach ($rec->targets['month'] as $i => $month) {
             $year = $rec->targets['year'][$i];
             $target = (int) $rec->targets['target'][$i];
             if (!($month > 0 && $year > 0 && $target > 0) || !$deltaId) {
                 continue;
             }
-
+            
             $res = new stdClass();
             $from = "{$year}-{$month}-01";
             $to = dt::getLastDayOfMonth($from);
@@ -72,13 +72,13 @@ class acc_reports_TotalRep extends frame2_driver_TableData
                 }
                 $delta += $recIndic->value;
             }
-
+            
             $res->period = "{$month}/{$year}";
             $res->speed = round(100 * $delta / $target, 2);
-
+            
             $recs[$res->period] = $res;
         }
- 
+        
         return $recs;
     }
     
@@ -86,8 +86,9 @@ class acc_reports_TotalRep extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -95,7 +96,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         $fld->FLD('period', 'varchar', 'caption=Период');
         $fld->FLD('speed', 'double', 'caption=Резултат');
-     
+        
         return $fld;
     }
     
@@ -103,8 +104,9 @@ class acc_reports_TotalRep extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -112,17 +114,17 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $row = new stdClass();
-
+        
         $row->speed = $Double->toVerbal($dRec->speed);
         $row->period = $dRec->period;
         
         if ($row->period == $key = date('m/Y')) {
             $row->ROW_ATTR['class'] = 'highlight';
         }
- 
+        
         return $row;
     }
-
+    
     
     /**
      * След рендиране на единичния изглед
@@ -138,17 +140,19 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $key = date('m/Y');
         
         $ratio = self::getWorkingDaysBetween(date('Y-m-01'), dt::now()) / self::getWorkingDaysBetween(date('Y-m-01'), date('Y-m-t'));
- 
+        
         if ($ratio == 0) {
+            
             return;
         }
-
+        
         $value = $data->rec->data->recs[$key]->speed / $ratio;
-
+        
         if (!($value >= 40 && $value <= 160)) {
+            
             return;
         }
-
+        
         $scale = array(
             'majorTicks' => array(40, 60, 80, 100, 120, 140, 160),
             'minValue' => 40,
@@ -158,15 +162,15 @@ class acc_reports_TotalRep extends frame2_driver_TableData
                 (object) array('from' => 40, 'to' => 80, 'color' => '#ff6600'),
                 (object) array('from' => 80, 'to' => 100, 'color' => '#ffcc66'),
                 (object) array('from' => 100, 'to' => 160, 'color' => '#66ff00'),
-
+            
             ),
         );
-
+        
         $gauge = canvasgauge_Gauge::drawRadial($value, null, $scale);
-
+        
         $tpl->append($gauge, 'DRIVER_FIELDS');
     }
-
+    
     
     /**
      * Връша броя на работните дни между посочените дати
@@ -174,14 +178,14 @@ class acc_reports_TotalRep extends frame2_driver_TableData
     private static function getWorkingDaysBetween($from, $to)
     {
         $res = 0;
-
+        
         while ($from <= $to) {
             if (!cal_Calendar::isHoliday($from)) {
                 $res++;
             }
             $from = dt::addDays(1, $from);
         }
-
+        
         return $res;
     }
 }

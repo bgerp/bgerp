@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   distro
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class distro_CopyDriver extends core_Mvc
 {
-    
-    
     /**
      * Дали да се използва sshpass
      */
@@ -25,14 +25,14 @@ class distro_CopyDriver extends core_Mvc
      * Поддържа интерфейса за драйвер
      */
     public $interfaces = 'distro_ActionsDriverIntf';
-
-
+    
+    
     /**
      * Заглавие на драйвера
      */
     public $title = 'Копиране';
-
-
+    
+    
     /**
      * Плъгини и класове за зареждане
      */
@@ -66,14 +66,14 @@ class distro_CopyDriver extends core_Mvc
     /**
      * Дали може да се направи действието в екшъна към съответния файл
      *
-     * @param integer      $groupId
-     * @param integer      $repoId
-     * @param integer      $fileId
-     * @param string|NULL  $name
-     * @param string|NULL  $md5
-     * @param integer|NULL $userId
+     * @param int         $groupId
+     * @param int         $repoId
+     * @param int         $fileId
+     * @param string|NULL $name
+     * @param string|NULL $md5
+     * @param int|NULL    $userId
      *
-     * @return boolean
+     * @return bool
      *
      * @see distro_ActionsDriverIntf
      */
@@ -155,7 +155,7 @@ class distro_CopyDriver extends core_Mvc
         return array('ef_icon' => 'img/16/copy16.png');
     }
     
-
+    
     /**
      * Вика се след приключване на обработката
      *
@@ -171,7 +171,7 @@ class distro_CopyDriver extends core_Mvc
         $nRec->groupId = $fRec->groupId;
         $nRec->sourceFh = $fRec->sourceFh;
         $nRec->md5 = $fRec->md5;
-
+        
         $nRec->repoId = $rec->sourceRepoId;
         $nRec->name = $rec->newFileName;
         $nRec->createdBy = $rec->createdBy;
@@ -195,7 +195,7 @@ class distro_CopyDriver extends core_Mvc
     /**
      * Дали може да се форсира записването
      *
-     * @return boolean
+     * @return bool
      *
      * @see distro_ActionsDriverIntf
      */

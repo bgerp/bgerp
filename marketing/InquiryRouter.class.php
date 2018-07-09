@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Помощен клас за рутиране на запитвания
  *
  * @category  bgerp
  * @package   marketing
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  *
  */
 class marketing_InquiryRouter extends core_Manager
 {
-    
-    
     /**
      * Рутиране на запитване
      *
-     * @param  stdClass $rec - запис на запитване
-     * @return int      - ид на папка
+     * @param stdClass $rec - запис на запитване
+     *
+     * @return int - ид на папка
      */
     public static function route($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid)
     {
@@ -61,16 +61,17 @@ class marketing_InquiryRouter extends core_Manager
      * 4.Която е от тип "Лице" и има същото име на човек и е от същата държава. Това правило сработва, само ако имаме посочени поне две имена на лицето.
      * 5.Ако нито едно от горните не сработва, създаваме нова папка, с корица "Лице" с данните от запитването.
      *
-     * @param  string $company
-     * @param  string $personNames
-     * @param  string $email
-     * @param  string $tel
-     * @param  int    $countryId
-     * @param  string $pCode
-     * @param  string $place
-     * @param  string $address
-     * @param  string $brid
-     * @return int    $folderId
+     * @param string $company
+     * @param string $personNames
+     * @param string $email
+     * @param string $tel
+     * @param int    $countryId
+     * @param string $pCode
+     * @param string $place
+     * @param string $address
+     * @param string $brid
+     *
+     * @return int $folderId
      */
     private static function routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid)
     {
@@ -128,16 +129,17 @@ class marketing_InquiryRouter extends core_Manager
      * 3 Която е от тип "Фирма" и има същото (приблизително) име и държава, като от запитването;
      * 4 Ако нито едно от горните не сработва, създаваме нова папка, с корица "Фирма" с данните от запитването.
      *
-     * @param  string $company
-     * @param  string $personNames
-     * @param  string $email
-     * @param  string $tel
-     * @param  int    $countryId
-     * @param  string $pCode
-     * @param  string $place
-     * @param  string $address
-     * @param  string $brid
-     * @return int    $folderId
+     * @param string $company
+     * @param string $personNames
+     * @param string $email
+     * @param string $tel
+     * @param int    $countryId
+     * @param string $pCode
+     * @param string $place
+     * @param string $address
+     * @param string $brid
+     *
+     * @return int $folderId
      */
     private static function routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid)
     {

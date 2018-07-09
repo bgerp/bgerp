@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_Mvr'
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_Mvr extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -89,7 +88,6 @@ class bglocal_Mvr extends core_Manager
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        
         // Подготвяме пътя до файла с данните
         $file = 'bglocal/data/Mvr.csv';
         

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Модул за хостове за връзка с астерикс
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_Hosts extends core_Master
 {
-    
-    
     /**
      * Името на кофата за файловете
      */
@@ -211,7 +210,7 @@ class callcenter_Hosts extends core_Master
      * @param string           $requiredRoles
      * @param string           $action
      * @param NULL|stdClass    $rec
-     * @param NULL|integer     $userId
+     * @param NULL|int         $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {

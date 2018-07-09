@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_Cron' - Стартиране на процеси по часовник
  *
@@ -12,16 +11,16 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Cron extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -54,6 +53,7 @@ class core_Cron extends core_Manager
     
     /**
      * Кой може да променя състояниет?
+     *
      * @see plg_State2
      */
     public $canChangestate = 'admin';
@@ -82,19 +82,19 @@ class core_Cron extends core_Manager
      */
     public $refreshRowsTime = 5000;
     
-
+    
     /**
      * Спиране на подреждането по състоянието
      */
     public $state2PreventOrderingByState = true;
-
-
+    
+    
     /**
      * Записа на последния стартиран процес
      */
     public $currentRec;
-
-
+    
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -119,13 +119,13 @@ class core_Cron extends core_Manager
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
         $this->FLD('lastMaxUsedMemory', 'fileman_FileSize', 'caption=Последно->Използвана памет,input=none');
         $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни,input=none');
-
+        
         $this->setDbUnique('systemId,offset,delay');
         
         $this->dbEngine = 'InnoDB';
     }
     
-
+    
     /**
      * Връща записа на текъщия крон процес
      * Ако в текущия хит не е по крон процес, връща NULL
@@ -139,8 +139,8 @@ class core_Cron extends core_Manager
         
         return $rec;
     }
-
-
+    
+    
     /**
      * Връща секундите, които оставят до края на прозореца за изпълнение
      */
@@ -150,14 +150,14 @@ class core_Cron extends core_Manager
         
         if ($rec) {
             $deadline = dt::mysql2timestamp($rec->lastStart) + max($rec->timeLimit, 30);
-
+            
             return max($deadline - time(), 0);
         }
-
+        
         return false;
     }
-
-
+    
+    
     /**
      * Връща времето на последно стартиране на процес
      *
@@ -191,7 +191,7 @@ class core_Cron extends core_Manager
      *
      * @param string $systemId
      *
-     * @return integer
+     * @return int
      */
     public static function getPeriod($systemId)
     {
@@ -222,6 +222,7 @@ class core_Cron extends core_Manager
         return $rec;
     }
     
+    
     /**
      * Преди извличането на записите за листовия изглед
      */
@@ -240,14 +241,13 @@ class core_Cron extends core_Manager
     }
     
     
-    
     public static function on_AfterPrepareListRows($mvc, $data)
     {
         // Изчистваме нотификацията
         bgerp_Notifications::clear(array('core_Cron'));
     }
     
-
+    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -273,14 +273,14 @@ class core_Cron extends core_Manager
             '127.0.0.1',
             '::1'
         );
-
+        
         if (!in_array($_SERVER['REMOTE_ADDR'], $whitelist)) {
             // requireRole('debug,admin');
         }
         
         // Ако в момента се извършва инсталация - да не се изпълняват процесите
         core_SystemLock::stopIfBlocked();
-
+        
         header('Cache-Control: no-cache, no-store');
         
         // Отключваме всички процеси, които са в състояние заключено, а от последното
@@ -304,7 +304,7 @@ class core_Cron extends core_Manager
         
         /// Намираме коя е текущата минута
         $currentMinute = floor($timeStamp / 60);
-
+        
         // Определяме всички процеси, които трябва да се стартират през тази минута
         // и ги стартираме наред
         $query = $this->getQuery();
@@ -320,7 +320,7 @@ class core_Cron extends core_Manager
             // В коя минута е трябвало за последен път да се стартира този процес?
             $lastSchedule = dt::timestamp2mysql((floor(($currentMinute - $rec->offset) / $rec->period) * $rec->period + $rec->offset) * 60 - date('Z'));
             $now = dt::timestamp2mysql($currentMinute * 60 - date('Z'));
-
+            
             // Колко минути остават до следващото стартиране
             $remainMinutes = floor(($currentMinute - $rec->offset) / $rec->period) * $rec->period + $rec->period + $rec->offset - $currentMinute;
             
@@ -337,16 +337,16 @@ class core_Cron extends core_Manager
                 
                 $i++;
                 fopen(toUrl(array(
-                            'Act' => 'ProcessRun',
-                            'id' => str::addHash($rec->id)
-                        ), 'absolute-force'), 'r');
+                    'Act' => 'ProcessRun',
+                    'id' => str::addHash($rec->id)
+                ), 'absolute-force'), 'r');
             }
         }
-
+        
         $Os = cls::get('core_Os');
         $apacheProc = $Os->countApacheProc();
         $this->logInfo("Има ({$apacheProc}) стартирани процеси на Apache", null, 7);
-
+        
         $this->logThenStop("Стартирани са {$i} процеса", null, 'info');
     }
     
@@ -375,7 +375,6 @@ class core_Cron extends core_Manager
         } else {
             header('Content-type: text/html; charset=utf-8');
         }
-
         
         
         // Декриптираме входния параметър. Чрез предаването на id-to на процеса, който
@@ -388,13 +387,13 @@ class core_Cron extends core_Manager
         }
         
         log_Browsers::stopGenerating();
-
+        
         // Да не правим лог в Debug за хита, ако се вика по крон
         if (!Request::get('forced')) {
             Debug::$isLogging = false;
         }
-
-
+        
+        
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
         
@@ -420,7 +419,7 @@ class core_Cron extends core_Manager
         $rec->lastMaxUsedMemory = null;
         $this->save($rec, 'state,lastStart,lastDone,lastMaxUsedMemory');
         $this->currentRec = clone($rec);
-
+        
         // Изчакваме преди началото на процеса, ако е зададено
         if ($rec->delay > 0) {
             core_App::setTimeLimit(30 + $rec->delay);
@@ -497,7 +496,7 @@ class core_Cron extends core_Manager
         if (Request::get('forced')) {
             echo(core_Debug::getLog());
         }
-
+        
         shutdown();
     }
     
@@ -550,8 +549,8 @@ class core_Cron extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setOptions('state', array('free' => 'Свободно',
-                'stopped' => 'Спряно'
-            ));
+            'stopped' => 'Спряно'
+        ));
     }
     
     
@@ -604,10 +603,10 @@ class core_Cron extends core_Manager
         }
         
         $url = toUrl(array(
-                'Act' => 'ProcessRun',
-                'id' => str::addHash($rec->id),
-                'forced' => 'yes'
-            ), 'absolute');
+            'Act' => 'ProcessRun',
+            'id' => str::addHash($rec->id),
+            'forced' => 'yes'
+        ), 'absolute');
         
         $row->systemId = ht::createLink("<b>{$row->systemId}</b>", $url, null, array('target' => 'cronjob'));
         
@@ -675,23 +674,23 @@ class core_Cron extends core_Manager
                 $rec->offset = 0;
             }
         }
-
+        
         $rec->offset = max(0, $rec->offset);
         expect($rec->period > $rec->offset);
- 
+        
         // Търсим дали има съществуващ запис със същото id
         $exRec = self::fetch(array("#systemId = '[#1#]'", $rec->systemId));
-
+        
         
         // Записваме, че записът е създаден от системния потребител
         setIfNot($rec->createdBy, -1);
-
+        
         // Ако няма зададено преди това състояние - то е празно
         setIfNot($rec->state, 'free');
-
+        
         // По подразбиране 50 секунди времелимит за извършване на операцията
         setIfNot($rec->timeLimit, 50);
-
+        
         // Описанието с малки букви
         $description = mb_strtolower(mb_substr($rec->description, 0, 1)) . mb_substr($rec->description, 1);
         
@@ -731,14 +730,14 @@ class core_Cron extends core_Manager
             $mustSave = true;
             $msg = "<li class=\"debug-new\">Добавено разписание за {$description}</li>";
         }
- 
-
+        
+        
         if ($mustSave) {
             if (!self::save($rec)) {
                 $msg = "<li class=\"debug-error\">Грешка при нагласяне на разписание за {$description}</li>";
             }
         }
-
+        
         return $msg;
     }
     
@@ -753,14 +752,14 @@ class core_Cron extends core_Manager
         $query->delete(array("#controller LIKE '[#1#]%'", $preffix));
     }
     
-
+    
     /**
      * Премахва методите, за които не съществуват входни точки
      */
     public static function cleanRecords()
     {
         $query = self::getQuery();
-
+        
         while ($rec = $query->fetch()) {
             if (cls::load($rec->controller, true)) {
                 $ctr = cls::get($rec->controller);
@@ -770,12 +769,12 @@ class core_Cron extends core_Manager
             }
             
             $class = cls::getClassName($rec->controller);
-
+            
             self::delete($rec->id);
-
+            
             $res .= ($res ? ', ' : '') . "{$class}::{$rec->action}";
         }
-
+        
         if ($res) {
             
             return "<li style='color:green;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
@@ -817,6 +816,7 @@ class core_Cron extends core_Manager
         
         // Ако е преди текущото време, връщаме NULL
         if ($nextStartTime < $now) {
+            
             return;
         }
         
@@ -827,8 +827,8 @@ class core_Cron extends core_Manager
     /**
      *
      *
-     * @param integer $id
-     * @param boolean $escape
+     * @param int  $id
+     * @param bool $escape
      */
     public static function getTitleForId_($id, $escaped = true)
     {

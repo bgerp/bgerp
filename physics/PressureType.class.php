@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Колко цифри след запетаята да се показват
  */
@@ -20,16 +19,16 @@ defIfNot('EF_DEFAULT_UNIT_PRESSURE', 'bar');
  *
  * @category  vendors
  * @package   physics
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class physics_PressureType extends type_Double
 {
-    
-    
     /**
      * Инициализиране на типа
      */
@@ -62,6 +61,7 @@ class physics_PressureType extends type_Double
     public function toVerbal($value)
     {
         if (!isset($value)) {
+            
             return;
         }
         
@@ -188,6 +188,7 @@ class physics_PressureType extends type_Double
     
     /**
      * Конвертира всички стойности в bar
+     *
      * @param $value     double - Стойността за обработване
      * @param $valueUnit string - Единицата на въведената стойност
      * @param $defUnit   string - Желаната стойност
@@ -215,6 +216,7 @@ class physics_PressureType extends type_Double
     
     /**
      * Конвертира всички стойности от bar в избраната стойност
+     *
      * @param $value     double - Стойността за обработване
      * @param $defUnit   string - Желаната стойност
      */

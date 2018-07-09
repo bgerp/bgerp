@@ -1,28 +1,29 @@
 <?php
 
 
-
 /**
  * Клас 'core_SpellNumber' - Вербално представяне на числа
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_SpellNumber
 {
-    
-    
     /**
      * Вмъква съюза `и` преди последната дума, ако липсва
      *
      * @access private
-     * @param  string $Text Последователност от думи, разделени с интервали
+     *
+     * @param string $Text Последователност от думи, разделени с интервали
+     *
      * @return string
      */
     public function insAnd($text)
@@ -42,16 +43,18 @@ class core_SpellNumber
     
     /**
      * @access private
-     * @param  int    $d1 десетична цифра
-     * @param  int    $d2 десетична цифра
-     * @param  int    $d3 десетична цифра
-     * @param  string $G  род
+     *
+     * @param int    $d1 десетична цифра
+     * @param int    $d2 десетична цифра
+     * @param int    $d3 десетична цифра
+     * @param string $G  род
+     *
      * @return string Словесната форма за числото образувано от цифрите в указания род
      */
     public function dig2Text($d2, $d1, $d0, $g = 'n')
     {
         $text = null;
-
+        
         switch ($d2) {
             case 1: {
                     $text .= 'сто';
@@ -205,8 +208,9 @@ class core_SpellNumber
     /**
      * Превръща цяло не отрицателно число от цифрова в словесна форма.
      *
-     * @param  int    $NUMBER положително число, с максимум 12 цифри
-     * @param  string $G      определя граматическия род: m - мъжки, f - женски, n - среден
+     * @param int    $NUMBER положително число, с максимум 12 цифри
+     * @param string $G      определя граматическия род: m - мъжки, f - женски, n - среден
+     *
      * @return string Словесната форма за числото  в указания род.
      */
     public function num2Text($NUMBER, $g = 'n')
@@ -248,7 +252,7 @@ class core_SpellNumber
         $res = $this->insAnd(trim($N9 . ' ' . $N6 . ' ' . $N3 . ' ' . $N0));
         $res = str_replace('_', ' ', $res);
         $res = trim($res);
-         
+        
         return $res;
     }
     
@@ -350,10 +354,12 @@ class core_SpellNumber
     
     /**
      * Входна фунция
-     * @param  int     $num             Сума за превръщане
-     * @param  string  $lg              Език на който да е изписан текста
-     * @param  boolean $displayCurrency Дали да върне валутата
-     * @return text    $text подадената сума изписана с думи
+     *
+     * @param int    $num             Сума за превръщане
+     * @param string $lg              Език на който да е изписан текста
+     * @param bool   $displayCurrency Дали да върне валутата
+     *
+     * @return text $text подадената сума изписана с думи
      */
     public function asCurrency($num, $lg = null, $displayCurrency = true, $showCurrencyCode = null)
     {
@@ -378,7 +384,7 @@ class core_SpellNumber
         }
         
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-       
+        
         if ($lg == 'bg') {
             $numCur = $numBgn;
             $andStr = 'и';
@@ -405,7 +411,7 @@ class core_SpellNumber
         if ($cent > 0) {
             $text .= " {$andStr} {$cents}" . $centCur;
         }
-       
+        
         if ($num < 0) {
             if ($lg == 'bg') {
                 $text = 'минус' . ' ' . $text;

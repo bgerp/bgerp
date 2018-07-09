@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Рефрешване на рендиранията на нотификации и последни
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see plg_RefreshRows
  */
 class bgerp_RefreshRowsPlg extends core_Plugin
 {
-    
     /**
      * Колко време да стои в лога записа
      */
@@ -166,14 +166,14 @@ class bgerp_RefreshRowsPlg extends core_Plugin
             
             // Добавя всички функции в масива, които ще се виката
             if (!empty($runAfterAjaxArr)) {
-            
+                
                 // Да няма повтарящи се функции
                 $runAfterAjaxArr = array_unique($runAfterAjaxArr);
-            
+                
                 foreach ((array) $runAfterAjaxArr as $runAfterAjax) {
                     $jqResObj = new stdClass();
                     $jqResObj->func = $runAfterAjax;
-            
+                    
                     $res[] = $jqResObj;
                 }
             }
@@ -235,8 +235,8 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
      *
-     * @param array   $refreshUrl
-     * @param integer $hitTime
+     * @param array $refreshUrl
+     * @param int   $hitTime
      */
     public static function getNameHash($refreshUrl, $hitTime)
     {

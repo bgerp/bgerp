@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'uiext_DocumentLabels'
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   uiext
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class uiext_DocumentLabels extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -111,7 +110,7 @@ class uiext_DocumentLabels extends core_Manager
         
         if (!$containerId || !$hash || !$classId) {
             core_Statuses::newStatus('|Невалиден ред|*!', 'error');
-
+            
             return status_Messages::returnStatusesArray();
         }
         
@@ -123,7 +122,7 @@ class uiext_DocumentLabels extends core_Manager
         } else {
             if (!uiext_Labels::fetch($label)) {
                 core_Statuses::newStatus('|Няма такъв таг|*!', 'error');
-
+                
                 return status_Messages::returnStatusesArray();
             }
         }
@@ -142,15 +141,15 @@ class uiext_DocumentLabels extends core_Manager
         }
         
         if (Request::get('ajax_mode')) {
-                
+            
             // Заместваме клетката по AJAX за да визуализираме промяната
             $resObj = new stdClass();
             $resObj->func = 'html';
-                
+            
             $k = "{$containerId}|{$classId}|{$hash}";
             $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($containerId, $classId, $hash), 'replace' => true);
             $res = array_merge(array($resObj));
-                
+            
             return $res;
         }
         
@@ -163,8 +162,9 @@ class uiext_DocumentLabels extends core_Manager
     /**
      * Връща записа
      *
-     * @param  int            $containerId
-     * @param  string         $hash
+     * @param int    $containerId
+     * @param string $hash
+     *
      * @return stdClass|FALSE
      */
     public static function fetchByDoc($containerId, $hash)

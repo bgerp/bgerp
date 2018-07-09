@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_SequenceIntf
 {
-    
-    
     /**
      * Инстанция на класа имплементиращ интерфейса
      */
@@ -24,7 +24,7 @@ class label_SequenceIntf
     /**
      * Връща наименованието на етикета
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -37,7 +37,7 @@ class label_SequenceIntf
     /**
      * Връща масив с данните за плейсхолдерите
      *
-     * @param integer|NULL $objId
+     * @param int|NULL $objId
      *
      * @return array
      *               Ключа е името на плейсхолдера и стойностите са обект:
@@ -57,9 +57,9 @@ class label_SequenceIntf
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
-     * @param integer $id
+     * @param int $id
      *
-     * @return integer
+     * @return int
      */
     public function getLabelEstimatedCnt($id)
     {
@@ -70,9 +70,9 @@ class label_SequenceIntf
     /**
      * Връща масив с всички данни за етикетите
      *
-     * @param integer $id
-     * @param integer $cnt
-     * @param boolean $onlyPreview
+     * @param int  $id
+     * @param int  $cnt
+     * @param bool $onlyPreview
      *
      * @return array - масив от масив с ключ плейсхолдера и стойността
      */

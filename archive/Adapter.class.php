@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Директория, в която ще се държат екстрактнатите файлове
  */
@@ -26,15 +25,15 @@ defIfNot('ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT', 104857600);
  *
  * @category  vendors
  * @package   archive
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class archive_Adapter
 {
-    
-    
     /**
      * Инстанция на класа
      */
@@ -176,7 +175,7 @@ class archive_Adapter
     /**
      * Качва в кофа файла в съответния индекс и връща манипулатора на качения файл
      *
-     * @param integer $index - Индекса на файла в архива
+     * @param int $index - Индекса на файла в архива
      */
     public function getFile($index)
     {
@@ -234,7 +233,6 @@ class archive_Adapter
      * Качваме подадения файл от архива, в кофата 'archive'
      *
      * @param string $path - Вътрешния път в архива
-     *
      * @param string - Манипулатора на файла
      */
     protected function absorbFile($path)

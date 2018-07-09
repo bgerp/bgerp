@@ -1,16 +1,17 @@
 <?php
 
 
-
 /**
  * Мениджър на машини за отдалечен достъп
  *
  *
  * @category  bgerp
  * @package   ssh
+ *
  * @author    Dimitar Minekov <mitko@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class ssh_Actions
@@ -53,7 +54,7 @@ class ssh_Actions
             
             return $this->connection;
         }
-
+        
         // Проверяваме дали е достъпен
         $timeoutInSeconds = 1;
         if (!($fp = @fsockopen($this->host, $this->port, $errCode, $errStr, $timeoutInSeconds))) {
@@ -111,7 +112,8 @@ class ssh_Actions
         fclose($stream);
         fclose($errorStream);
     }
-
+    
+    
     /**
      * Качва файл на отдалечен хост
      *
@@ -126,10 +128,12 @@ class ssh_Actions
         }
     }
     
+    
     /**
      * Връща съдържанието на файл от отдалечен хост
      *
-     * @param  string $remoteFileName - име на отдалечения файл
+     * @param string $remoteFileName - име на отдалечения файл
+     *
      * @return string $contents - съдържанието на отдалечения файл
      */
     public function getContents($remoteFileName)

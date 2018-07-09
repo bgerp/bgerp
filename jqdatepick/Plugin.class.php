@@ -7,16 +7,16 @@
  *
  * @category  vendors
  * @package   jqdatepick
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class jqdatepick_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Изпълнява се преди рендирането на input
      */
@@ -38,7 +38,7 @@ class jqdatepick_Plugin extends core_Plugin
         $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick.js', 'JS', true);
         $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick.ext.js', 'JS', true);
         $tpl->push('jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick-' . core_Lg::getCurrent() . '.js', 'JS', true);
-
+        
         // custom стилове за плъгина
         $tpl->push('jqdatepick/css/jquery.datepick-custom.css', 'CSS', true);
         

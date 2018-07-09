@@ -6,15 +6,15 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_RefreshRows extends core_Plugin
 {
-    
-    
     /**
      * Колко дни да стои в лога
      */
@@ -235,14 +235,14 @@ class plg_RefreshRows extends core_Plugin
             
             // Добавя всички функции в масива, които ще се виката
             if (!empty($runAfterAjaxArr)) {
-            
+                
                 // Да няма повтарящи се функции
                 $runAfterAjaxArr = array_unique($runAfterAjaxArr);
-            
+                
                 foreach ((array) $runAfterAjaxArr as $runAfterAjax) {
                     $jqResObj = new stdClass();
                     $jqResObj->func = $runAfterAjax;
-            
+                    
                     $res[] = $jqResObj;
                 }
             }
@@ -295,8 +295,8 @@ class plg_RefreshRows extends core_Plugin
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
      *
-     * @param array   $refreshUrl
-     * @param integer $hitTime
+     * @param array $refreshUrl
+     * @param int   $hitTime
      *
      * @return string
      */
@@ -314,8 +314,8 @@ class plg_RefreshRows extends core_Plugin
     
     /**
      *
-     * @param core_Mvc     $mvc
-     * @param boolean|NULL $res
+     * @param core_Mvc  $mvc
+     * @param bool|NULL $res
      */
     public static function on_AfterStopManualRefresh($mvc, &$res, $nameHash)
     {
@@ -439,10 +439,10 @@ class plg_RefreshRows extends core_Plugin
     /**
      * Метод по подразбиране за проверка на времето за обновяване
      *
-     * @param core_Mvc     $mvc
-     * @param boolean|NULL $res
-     * @param integer      $hitTime
-     * @param array        $refreshUrl
+     * @param core_Mvc  $mvc
+     * @param bool|NULL $res
+     * @param int       $hitTime
+     * @param array     $refreshUrl
      */
     public static function on_AfterCheckTimeForRefresh($mvc, &$res, $hitTime, $refreshUrl)
     {

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_HiddenContainers extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -37,6 +36,7 @@ class doc_HiddenContainers extends core_Manager
      * Кой има право да добавя?
      */
     protected $canAdd = 'no_one';
+    
     
     /**
      * Кой може да го види?
@@ -62,9 +62,7 @@ class doc_HiddenContainers extends core_Manager
     public $loadList = 'plg_State';
     
     
-    
     protected static $hiddenDocsArr = array();
-    
     
     
     public static $haveRecInModeOrDB = false;
@@ -81,8 +79,6 @@ class doc_HiddenContainers extends core_Manager
         
         $this->setDbIndex('containerId,userId');
     }
-    
-
     
     
     /**
@@ -172,10 +168,10 @@ class doc_HiddenContainers extends core_Manager
                             && ($cRec->state == $nextRec->state)
                             && (cls::load($cRec->docClass, true))) {
                             $clsInst = cls::get($cRec->docClass);
-                                
+                            
                             $cContentHash = $clsInst->getDocContentHash($cRec->docId);
                             $nContentHash = $clsInst->getDocContentHash($nextRec->docId);
-                                
+                            
                             if ($cContentHash == $nContentHash) {
                                 self::$hiddenDocsArr[$cId] = true;
                                 continue;
@@ -221,7 +217,7 @@ class doc_HiddenContainers extends core_Manager
     
     /**
      *
-     * @return boolean|NULL
+     * @return bool|NULL
      */
     public static function isHidden($cId)
     {
@@ -238,9 +234,9 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Помощна функция, която показва дали има скрити/показани документи
      *
-     * @param boolean|NULL $type
+     * @param bool|NULL $type
      *
-     * @return boolean
+     * @return bool
      */
     public static function haveHiddenOrShowedDoc($type = null)
     {
@@ -266,10 +262,10 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Премахва записа за съответното действие
      *
-     * @param integer     $cId
+     * @param int         $cId
      * @param string      $userId
      * @param NULL|string $state
-     * @param boolean     $forced
+     * @param bool        $forced
      */
     public static function removeFromTemp($cId, $userId = null, $state = 'opened', $forced = true)
     {
@@ -302,7 +298,7 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Премахва записа за съответното действие от модела
      *
-     * @param integer     $cId
+     * @param int         $cId
      * @param string      $userId
      * @param NULL|string $state
      */
@@ -316,7 +312,7 @@ class doc_HiddenContainers extends core_Manager
             
             return self::delete(array("#containerId = '[#1#]' AND #userId = '[#2#]' AND #state = '[#3#]'", $cId, $userId, $state));
         }
-            
+        
         return self::delete(array("#containerId = '[#1#]' AND #userId = '[#2#]'", $cId, $userId));
     }
     
@@ -324,10 +320,10 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Скрива/показва подадения документ
      *
-     * @param integer      $id
-     * @param boolean|NULL $hide
-     * @param boolean      $temp
-     * @param NULL|integer $userId
+     * @param int       $id
+     * @param bool|NULL $hide
+     * @param bool      $temp
+     * @param NULL|int  $userId
      */
     public static function showOrHideDocument($cId, $hide = false, $temp = false, $userId = null)
     {
@@ -386,8 +382,8 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Връща името за името на сесията
      *
-     * @param integer      $cId
-     * @param integer|NULL $userId
+     * @param int      $cId
+     * @param int|NULL $userId
      *
      * @return string
      */
@@ -406,9 +402,9 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Проверва дали има нужда да се скриват/показват документи
      *
-     * @param integer $cnt
+     * @param int $cnt
      *
-     * @return integer
+     * @return int
      */
     protected static function checkCntLimitForShow($cnt)
     {

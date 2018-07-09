@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_Cls' ['cls'] - Функции за работа с класове
  *
@@ -14,15 +13,16 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Cls
 {
-    
     /**
      * Масив в който се съхраняват всички инстанси на сингълтон обекти
      */
@@ -36,8 +36,9 @@ class core_Cls
      * - минимум един префикс (този на пакета)
      * - главна буква преди собственото име на класа
      *
-     * @param  mixed   $class
-     * @param  boolean $save
+     * @param mixed $class
+     * @param bool  $save
+     *
      * @return string
      */
     public static function getClassName($className)
@@ -47,10 +48,10 @@ class core_Cls
                 
                 return $className->className;
             }
-
+            
             return get_class($className);
         }
-
+        
         static $classNames = array();
         
         if (!stripos($className, '_')) {
@@ -58,9 +59,9 @@ class core_Cls
         }
         
         $cln = $className;
-
-        if (!isset($classNames[$cln])) {
         
+        if (!isset($classNames[$cln])) {
+            
             // Ако името е число, тогава го вземаме от coreClass
             if (is_numeric($className)) {
                 $className = core_Classes::getName($className);
@@ -84,7 +85,7 @@ class core_Cls
                     error('@Некоректно има на клас', $className);
                 }
             }
-
+            
             $classNames[$cln] = $className;
         }
         
@@ -98,9 +99,10 @@ class core_Cls
      *
      * Пътя и суфикса не се проверяват за допустимост
      *
-     * @param  string $class
-     * @param  string $patch
-     * @param  string $suffix
+     * @param string $class
+     * @param string $patch
+     * @param string $suffix
+     *
      * @return mixed
      */
     public static function load($className, $silent = false, $suffix = '.class.php')
@@ -169,8 +171,9 @@ class core_Cls
      * Ако класът има интерфейс "Singleton", то ако няма преди създаден
      * обект - създава се, а ако има връща се вече създадения
      *
-     * @param  string $class
-     * @param  array  $initArr
+     * @param string $class
+     * @param array  $initArr
+     *
      * @return object
      */
     public static function &get($class, $initArr = null)
@@ -194,7 +197,7 @@ class core_Cls
         } else {
             $obj = &cls::createObject($class, $initArr);
         }
-
+        
         if (isset($obj->newClassName)) {
             
             return self::get($obj->newClassName, $initArr);
@@ -209,8 +212,9 @@ class core_Cls
      * Ако класът има интерфейс "Singleton", то ако няма преди създаден
      * обект - създава се, а ако има връща се вече създадения
      *
-     * @param  string $class
-     * @param  array  $initArr
+     * @param string $class
+     * @param array  $initArr
+     *
      * @return object
      */
     public static function &createObject($class, &$initArr = null)
@@ -246,9 +250,10 @@ class core_Cls
     /**
      * Проверява дали даден клас трябва да е сингълтон
      *
-     * @param  string  $class
-     * @param  string  $interface
-     * @return boolean
+     * @param string $class
+     * @param string $interface
+     *
+     * @return bool
      */
     public static function isSingleton($class)
     {
@@ -261,9 +266,10 @@ class core_Cls
      * посочен във втория стрингов параметър
      * за разлика от вградените функции работи със стрингови параметри
      *
-     * @param  mixed   $class
-     * @param  string  $parrentClass
-     * @return boolean
+     * @param mixed  $class
+     * @param string $parrentClass
+     *
+     * @return bool
      */
     public static function isSubclass($class, $parrentClass)
     {
@@ -334,8 +340,8 @@ class core_Cls
         
         return $interfaceObj;
     }
-
-
+    
+    
     /**
      * Подготвя и връща списъка с интерфейси за дадения клас
      * Включват се и родитекските интерфейси
@@ -350,7 +356,7 @@ class core_Cls
         expect(is_object($classObj), $classObj);
         
         $classObj->interfaces = arr::make($classObj->interfaces, true);
-
+        
         // Добавяме интерфейсите на парентите
         foreach ($classObj->interfaces as $intf => $impl) {
             while ($pIntf = get_parent_class($intf)) {
@@ -358,7 +364,7 @@ class core_Cls
                 $intf = $pIntf;
             }
         }
-
+        
         return $classObj->interfaces;
     }
     
@@ -453,9 +459,10 @@ class core_Cls
      * 3. проверява във всеки плъгин закачен към класа дали
      * има метод 'on_After<$methodName>'
      *
-     * @param  mixed   $class      - име на клас или негова инстанция
-     * @param  string  $methodName - име на метода
-     * @return boolean TRUE/FALSE - дали дадения метод е имплементиран
+     * @param mixed  $class      - име на клас или негова инстанция
+     * @param string $methodName - име на метода
+     *
+     * @return bool TRUE/FALSE - дали дадения метод е имплементиран
      */
     public static function existsMethod($class, $methodName)
     {
@@ -501,8 +508,9 @@ class core_Cls
      * Връща всички методи, които могат да се извикат от даден клас.
      * Връща неговите методи, наследените методи и методите от
      * неговите плъгини
-     * @param mixed   $class      - име или инстанция на клас
-     * @param boolean $onlyStatic
+     *
+     * @param mixed $class      - име или инстанция на клас
+     * @param bool  $onlyStatic
      *
      * @return param $array - всички достъпни методи за класа
      */

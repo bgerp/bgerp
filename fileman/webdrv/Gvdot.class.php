@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
 {
-    
-    
     /**
      * Извлича текстовата част от файла
      *
@@ -24,8 +24,8 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
     {
         // Параметри необходими за конвертирането
         $params = array(
-                'createdBy' => core_Users::getCurrent('id'),
-                'type' => 'text',
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'text',
         );
         
         $dId = self::prepareLockId($fRec);
@@ -60,10 +60,10 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
                 $params['content'] = $text;
                 fileman_Indexes::saveContent($params);
             }
-        
+            
             // Отключваме процеса
             core_Locks::release($params['lockId']);
-        
+            
             return $text;
         }
     }

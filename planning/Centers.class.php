@@ -1,22 +1,20 @@
 <?php 
 
-
-
 /**
  * Мениджър за Центровете на дейност
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_Centers extends core_Master
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -111,13 +109,13 @@ class planning_Centers extends core_Master
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id,name';
-   
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name=Център, departmentId, type, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График, folderId,createdOn,createdBy';
-
+    
     
     /**
      * Дефолт достъп до новите корици
@@ -204,20 +202,21 @@ class planning_Centers extends core_Master
     public function getItemRec($objectId)
     {
         $result = null;
-    
+        
         if ($rec = self::fetch($objectId)) {
             $result = (object) array(
-                    'title' => $rec->name . ' ac',
-                    'num' => 'Ac' . $rec->id,
+                'title' => $rec->name . ' ac',
+                'num' => 'Ac' . $rec->id,
             );
         }
-    
+        
         return $result;
     }
     
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -237,7 +236,7 @@ class planning_Centers extends core_Master
             $rec->name = 'Неопределен';
             $rec->type = 'workshop';
             $rec->state = 'active';
-    
+            
             core_Users::forceSystemUser();
             $this->save($rec, null, 'REPLACE');
             core_Users::cancelSystemUser();
@@ -248,10 +247,11 @@ class planning_Centers extends core_Master
     /**
      * Какви видове ресурси може да се добавят към модела
      *
-     * @param  stdClass $rec
-     * @return array    - празен масив ако няма позволени ресурси
-     *                      ['assets'] - оборудване
-     *                      ['hr']     - служители
+     * @param stdClass $rec
+     *
+     * @return array - празен масив ако няма позволени ресурси
+     *               ['assets'] - оборудване
+     *               ['hr']     - служители
      */
     public function getResourceTypeArray($rec)
     {
@@ -297,8 +297,9 @@ class planning_Centers extends core_Master
     /**
      * Рендиране на центровете към департаментите
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderCenters($data)
     {

@@ -6,15 +6,15 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Settings extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -44,7 +44,7 @@ class core_Settings extends core_Manager
      */
     protected $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -83,7 +83,7 @@ class core_Settings extends core_Manager
      * @param core_Toolbar $toolbar
      * @param string       $key
      * @param string       $className
-     * @param integer|NULL $userOrRole
+     * @param int|NULL     $userOrRole
      * @param string       $title
      * @param array        $params
      */
@@ -99,9 +99,9 @@ class core_Settings extends core_Manager
     /**
      * Връща URL, което сочи към модифициране на записа
      *
-     * @param string       $key
-     * @param string       $className
-     * @param integer|NULL $userOrRole
+     * @param string   $key
+     * @param string   $className
+     * @param int|NULL $userOrRole
      *
      * @return string
      */
@@ -124,10 +124,10 @@ class core_Settings extends core_Manager
      * Връща всички данни отговарящи за ключа, като ги мърджва.
      * С по-голям приоритет са данните въведени за текущия потребител
      *
-     * @param string       $key          - Ключа
-     * @param integer|NULL $userOrRole   - Роля или потребител
-     * @param boolean      $fetchForUser - Дали да се фечва и за потребителия
-     * @param string|NULL  $type         - Име на роля
+     * @param string      $key          - Ключа
+     * @param int|NULL    $userOrRole   - Роля или потребител
+     * @param bool        $fetchForUser - Дали да се фечва и за потребителия
+     * @param string|NULL $type         - Име на роля
      *
      * @return array
      */
@@ -313,8 +313,8 @@ class core_Settings extends core_Manager
     /**
      * Взема записите само за зададения потребител/роля
      *
-     * @param string       $key
-     * @param integer|NULL $userOrRole
+     * @param string   $key
+     * @param int|NULL $userOrRole
      *
      * @return array
      */
@@ -410,7 +410,7 @@ class core_Settings extends core_Manager
         
         // Ако е избран потребител, а не роля
         if ($form->rec->_userOrRole > 0) {
-        
+            
             // Настройките по-подразбиране за потребителя, без неговите промени
             $mergeValsArr = self::fetchKey($key, $form->rec->_userOrRole, false, 'team');
             
@@ -587,10 +587,10 @@ class core_Settings extends core_Manager
     /**
      * Записва стойностите за ключа и потребителя/роля
      *
-     * @param string       $key
-     * @param array        $valArr
-     * @param integer|NULL $userOrRole
-     * @param boolean      $mergeVals
+     * @param string   $key
+     * @param array    $valArr
+     * @param int|NULL $userOrRole
+     * @param bool     $mergeVals
      */
     public static function setValues($key, $valArr, $userOrRole = null, $mergeVals = false)
     {
@@ -639,9 +639,9 @@ class core_Settings extends core_Manager
     /**
      * Подготвяме потребителя или ролята
      *
-     * @param integer|NULL $userOrRole
+     * @param int|NULL $userOrRole
      *
-     * @return integer
+     * @return int
      */
     protected static function prepareUserOrRole($userOrRole)
     {
@@ -658,7 +658,7 @@ class core_Settings extends core_Manager
         return $userOrRole;
     }
     
-
+    
     /**
      * Променяме wrapper' а да сочи към врапера на търсения клас
      *
@@ -673,7 +673,7 @@ class core_Settings extends core_Manager
             
             return ;
         }
-       
+        
         // Ако текущия потребител е контрактор, показваме обвивката на външната част
         if (core_Users::haveRole('partner')) {
             plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');

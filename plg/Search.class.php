@@ -17,16 +17,16 @@ defIfNot('PLG_SEARCH_MAX_KEYWORD_LEN', '10');
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Search extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -39,11 +39,11 @@ class plg_Search extends core_Plugin
         
         $fType = $mvc->getFieldType('searchKeywords');
         $fType->params['collate'] = 'ascii_bin';
-
+        
         if (empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
             $mvc->setDbIndex('searchKeywords', null, 'FULLTEXT');
         }
-
+        
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
         setIfNot($mvc->searchInputField, 'search');
     }
@@ -73,6 +73,7 @@ class plg_Search extends core_Plugin
     public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         if ($searchKeywords) {
+            
             return;
         }
         
@@ -117,7 +118,7 @@ class plg_Search extends core_Plugin
                     if (!($fieldObj->type instanceof type_Varchar)) {
                         $verbalVal = type_Richtext::stripTags($verbalVal);
                     }
-            
+                    
                     $searchKeywords .= ' ' . static::normalizeText($verbalVal);
                     
                     Mode::pop('forSearch');
@@ -129,7 +130,7 @@ class plg_Search extends core_Plugin
         
         return $searchKeywords;
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -156,7 +157,7 @@ class plg_Search extends core_Plugin
         }
     }
     
-
+    
     /**
      * Помощна функция за сортиране по дължина на думите
      */
@@ -205,9 +206,9 @@ class plg_Search extends core_Plugin
                     $wordEnd = ' ';
                     $wordEndQ = '';
                 }
-
+                
                 $mode = '+';
-
+                
                 if ($w{0} == '"') {
                     $mode = '"';
                     $w = substr($w, 1);
@@ -229,8 +230,8 @@ class plg_Search extends core_Plugin
                 if ($w{0} == '-') {
                     $w = substr($w, 1);
                     $mode = '-';
-
-
+                    
+                    
                     if (!$w) {
                         continue;
                     }
@@ -241,7 +242,7 @@ class plg_Search extends core_Plugin
                     $like = 'LIKE';
                     $equalTo = '';
                 }
-            
+                
                 $w = trim(static::normalizeText($w, array('*')));
                 
                 // Ако търсената дума е празен интервал
@@ -253,7 +254,7 @@ class plg_Search extends core_Plugin
                 if (strpos($w, ' ')) {
                     $mode = '"';
                 }
-
+                
                 // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
                 if ($mode != '"') {
                     $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
@@ -292,11 +293,11 @@ class plg_Search extends core_Plugin
     /**
      * Проверява дали думите са изключени от FullText търсене
      *
-     * @param string       $word
-     * @param boolean      $strict
-     * @param NULL|integer $strict
+     * @param string   $word
+     * @param bool     $strict
+     * @param NULL|int $strict
      *
-     * @return boolean
+     * @return bool
      */
     public static function isStopWord($word, $strict = false, $minLenFTS = null)
     {
@@ -389,7 +390,7 @@ class plg_Search extends core_Plugin
         
         if (strlen($str) > 32000) {
             static $maxLen;
-
+            
             if (!$maxLen) {
                 $conf = core_Packs::getConfig('core');
                 
@@ -402,7 +403,7 @@ class plg_Search extends core_Plugin
         }
         
         $str = preg_replace('/[ ]+/', ' ', $str);
-
+        
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);
@@ -435,7 +436,7 @@ class plg_Search extends core_Plugin
         if ($latin) {
             $str = str::utf2ascii($str);
         }
-
+        
         $str = strtolower($str);
         
         $len = strlen($str);
@@ -477,18 +478,18 @@ class plg_Search extends core_Plugin
                 continue;
             }
         }
-
+        
         return $words;
     }
-
-
+    
+    
     /**
      * Маркира текста, отговарящ на заявката
      */
     public static function highlight($text, $query, $class = 'document')
     {
         $qArr = self::parseQuery($query, false);
-      
+        
         if (is_array($qArr)) {
             foreach ($qArr as $q) {
                 if ($q{0} == '-') {
@@ -499,11 +500,11 @@ class plg_Search extends core_Plugin
                 jquery_Jquery::run($text, "\n $('.{$class}').highlight({$q});", true);
             }
         }
-
+        
         return $text;
     }
-
-
+    
+    
     /**
      * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
      */
@@ -535,12 +536,12 @@ class plg_Search extends core_Plugin
                 reportException($e);
             }
         }
-
+        
         if ($i) {
             $res .= "<li style='color:green;'>Добавени са ключови думи за {$i} записа.</li>";
         }
     }
-
+    
     
     /**
      * Полета, по които да се генерират ключове за търсене
@@ -620,9 +621,10 @@ class plg_Search extends core_Plugin
     /**
      * Връща дефолтната стойност на ft_min_word_len
      *
-     * @param  NULL|core_Query $query
-     * @param  integer         $def
-     * @return integer
+     * @param NULL|core_Query $query
+     * @param int             $def
+     *
+     * @return int
      */
     protected static function getFTSMinWordLen($query = null, $def = 4)
     {

@@ -1,40 +1,40 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Current' - Прави текущ за сесията избран запис от модела
  *
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_Current extends core_Plugin
 {
-    
-    
     /**
      * Връща указаната част (по подразбиране - id-то) на текущия за сесията запис
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param string   $part   поле от модела-домакин
-     * @param boolean  $bForce Дали да редирект към мениджъра ако не е избран текущ обект
+     * @param bool     $bForce Дали да редирект към мениджъра ако не е избран текущ обект
      */
     public static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = true)
     {
         if (!$res) {
             $modeKey = self::getModeKey($mvc->className);
-
+            
             // Опитваме се да вземем от сесията текущия обект
             $res = Mode::get($modeKey)->{$part};
             
             // Ако в сесията го има обекта, връщаме го
             if ($res) {
+                
                 return;
             }
             
@@ -57,7 +57,7 @@ class plg_Current extends core_Plugin
                 
                 // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
                 if (empty($res) && ($mvc->className != Request::get('Ctr'))) {
-                
+                    
                     // Подканваме потребителя да избере обект от модела, като текущ
                     redirect(array($mvc, 'list', 'ret_url' => true), false, '|Моля, изберете текущ/а|* |' . $mvc->singleTitle);
                 }
@@ -69,10 +69,11 @@ class plg_Current extends core_Plugin
     /**
      * Слага id-то на даден мениджър в сесия
      *
-     * @param  core_Mvc $mvc
-     * @param  stdClass $res
-     * @param  string   $action
-     * @return boolean
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param string   $action
+     *
+     * @return bool
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
@@ -94,8 +95,8 @@ class plg_Current extends core_Plugin
             return false;
         }
     }
-
-
+    
+    
     /**
      * Моделна функция, която задава текущия запис за посочения клас (mvc)
      *
@@ -105,38 +106,40 @@ class plg_Current extends core_Plugin
     public static function on_AfterSelectCurrent($mvc, &$res, $rec)
     {
         $className = cls::getClassName($mvc);
-
+        
         if (!is_object($rec)) {
             expect(is_numeric($rec), $rec);
             expect($rec = $mvc->fetch($rec));
         }
-
+        
         // Кой е текущия обект
         $curId = $mvc->getCurrent('id', false);
-
+        
         // Ако текущия обект е различен от избрания, избира се новия
         if ($curId != $rec->id) {
             self::setCurrent($mvc, $res, $rec);
         }
-
+        
         if (!isset($res)) {
             $res = $rec->id;
         }
     }
-
-
+    
+    
     /**
      * Помощна функция, която записва в сесията текущия обект
      *
-     * @param  core_Mvc $mvc
-     * @param  stdClass $res
-     * @param  stdClass $rec
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     *
      * @return void
      */
     private static function setCurrent($mvc, &$res, &$rec)
     {
         // Ако текущия потребител няма права - не правим избор
         if (!$mvc->haveRightFor('select', $rec)) {
+            
             return;
         }
         
@@ -203,7 +206,7 @@ class plg_Current extends core_Plugin
             // Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор
             $row->currentPlg = ht::createBtn('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), null, null, 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
             $row->ROW_ATTR['class'] .= ' state-closed';
-
+            
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
         } else {

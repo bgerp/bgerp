@@ -1,26 +1,25 @@
 <?php
 
 
-
 /**
  * Информация за контрагенти
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     0.12
  */
 class crm_ext_ContragentInfo extends core_manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Информация за контрагенти';
-
+    
     
     /**
      * Единично заглавие
@@ -40,8 +39,8 @@ class crm_ext_ContragentInfo extends core_manager
      * Кой може да редактира
      */
     public $canWrite = 'no_one';
-
-
+    
+    
     /**
      * Кой може да редактира
      */
@@ -102,8 +101,9 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Връща датата на активиране на най-старата продажба
      *
-     * @param  int       $contragentClassId - ид на класа на контрагента
-     * @param  int       $contragentId      - ид на контрагента
+     * @param int $contragentClassId - ид на класа на контрагента
+     * @param int $contragentId      - ид на контрагента
+     *
      * @return NULL|date - най-ранната дата от която е клиент
      */
     private static function getFirstSaleDate($contragentClassId, $contragentId)
@@ -124,8 +124,9 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Връща екстендъра на контрагента
      *
-     * @param  int            $contragentClassId - ид на класа на контрагента
-     * @param  int            $contragentId      - ид на контрагента
+     * @param int $contragentClassId - ид на класа на контрагента
+     * @param int $contragentId      - ид на контрагента
+     *
      * @return stdClass|FALSE - намерения запис
      */
     public static function getByContragent($contragentClassId, $contragentId)
@@ -137,9 +138,10 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Разширяване на вербалното показване на контрагента
      *
-     * @param  core_Mvc $mvc
-     * @param  stdClass $row
-     * @param  stdClass $rec
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     *
      * @return void
      */
     public static function extendRow($mvc, &$row, $rec)
@@ -160,8 +162,9 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Връща датата от която е клиент контрагента
      *
-     * @param  int       $contragentClassId - ид на класа на контрагента
-     * @param  int       $contragentId      - ид на контрагента
+     * @param int $contragentClassId - ид на класа на контрагента
+     * @param int $contragentId      - ид на контрагента
+     *
      * @return NULL|date - най-ранната дата от която е клиент
      */
     public static function getCustomerSince($contragentClassId, $contragentId)
@@ -189,6 +192,7 @@ class crm_ext_ContragentInfo extends core_manager
     
     /**
      * Всички записи от модела
+     *
      * @return array $res - записите, групирани по контрагенти
      */
     private static function getAll()
@@ -234,16 +238,17 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Подготвя нов запис
      *
-     * @param  int      $contragentClassId
-     * @param  int      $contragentId
-     * @param  array    $params
+     * @param int   $contragentClassId
+     * @param int   $contragentId
+     * @param array $params
+     *
      * @return StdClass
      */
     private static function prepareNewRec($contragentClassId, $contragentId, $params = array())
     {
         $newArr = array('contragentId' => $contragentId,
-                        'contragentClassId' => $contragentClassId,
-                        'createdBy' => core_Users::SYSTEM_USER);
+            'contragentClassId' => $contragentClassId,
+            'createdBy' => core_Users::SYSTEM_USER);
         
         if (is_array($params)) {
             $newArr += $params;
@@ -265,7 +270,7 @@ class crm_ext_ContragentInfo extends core_manager
     {
         $now = dt::now();
         $existing = self::getAll();
-         
+        
         $uArr = array(core_Users::ANONYMOUS_USER, core_Users::SYSTEM_USER);
         $contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf', 'id');
         
@@ -322,7 +327,8 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Всички просрочени продажби
      *
-     * @param  int   $contragentClassId
+     * @param int $contragentClassId
+     *
      * @return array $res
      */
     private function getOverdueSales($contragentClassId)

@@ -10,15 +10,15 @@
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -71,8 +71,8 @@ class bank_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('bank', 'seePrice'),
-            array('bankMaster', 'bank'),
+        array('bank', 'seePrice'),
+        array('bankMaster', 'bank'),
     );
     
     

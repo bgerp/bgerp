@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   tcost
+ *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tcost_FeeZones extends core_Master
 {
-
-
     /**
      * Поддържани интерфейси
      */
@@ -32,78 +32,78 @@ class tcost_FeeZones extends core_Master
      * Полета, които се виждат
      */
     public $listFields = 'name, deliveryTermId=Доставка->Условие, deliveryTime=Доставка->Време,createdOn, createdBy';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Навла';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, plg_Printing, tcost_Wrapper';
-
-
+    
+    
     /**
      * Време за опресняване информацията при лист на събитията
      */
     public $refreshRowsTime = 5000;
-
-
+    
+    
     /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,tcost';
-
-
+    
+    
     /**
      * Детайли за зареждане
      */
     public $details = 'tcost_Fees, tcost_Zones';
-
-
+    
+    
     /**
      * Единично поле за RowTools
      */
     public $rowToolsSingleField = 'name';
-
-
+    
+    
     /**
      * Константа, специфична за дадения режим на транспорт
      *
-     * @var double
+     * @var float
      */
     const V2C = 1;
     
@@ -143,10 +143,10 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param double $weight - Тегло на товара
-     * @param double $volume - Обем  на товара
+     * @param float $weight - Тегло на товара
+     * @param float $volume - Обем  на товара
      *
-     * @return double - Обемно тегло на товара
+     * @return float - Обемно тегло на товара
      */
     public function getVolumicWeight($weight, $volume)
     {
@@ -162,12 +162,12 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int    $deliveryTermId - условие на доставка
-     * @param double $singleWeight   - тегло
-     * @param double $singleVolume   - обем
-     * @param int    $totalWeight    - Общо тегло на товара
-     * @param int    $totalVolume    - Общ обем на товара
-     * @param array  $params         - Други параметри
+     * @param int   $deliveryTermId - условие на доставка
+     * @param float $singleWeight   - тегло
+     * @param float $singleVolume   - обем
+     * @param int   $totalWeight    - Общо тегло на товара
+     * @param int   $totalVolume    - Общ обем на товара
+     * @param array $params         - Други параметри
      *
      * @return array
      *               ['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
@@ -203,9 +203,9 @@ class tcost_FeeZones extends core_Master
             $inc = tcost_Setup::get('ADD_PER_KG') * $singleWeight;
             $fee = $tax + $inc + $fee;
         }
-
+        
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime);
- 
+        
         // Връщане на изчислената цена
         return $res;
     }
@@ -229,7 +229,7 @@ class tcost_FeeZones extends core_Master
     {
         //Дос на потребителите
         requireRole('admin, ceo, tcost');
-    
+        
         // Вземаме съответстващата форма на този модел
         $form = cls::get('core_Form');
         $form->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
@@ -258,7 +258,7 @@ class tcost_FeeZones extends core_Master
                 $form->setError('zoneId, countryId', 'Не може да се изчисли по зададените данни, вашата пратка не попада в никоя зона');
             }
         }
-    
+        
         $form->title = 'Пресмятане на навла';
         $form->toolbar->addSbBtn('Изчисли', 'save', 'ef_icon=img/16/arrow_refresh.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
@@ -270,8 +270,9 @@ class tcost_FeeZones extends core_Master
     /**
      * Добавя полета за доставка към форма
      *
-     * @param  core_FieldSet $form
-     * @param  string|NULL   $userId
+     * @param core_FieldSet $form
+     * @param string|NULL   $userId
+     *
      * @return void
      */
     public function addFields(core_FieldSet &$form, $userId = null)
@@ -286,7 +287,8 @@ class tcost_FeeZones extends core_Master
     /**
      * Проверява форма
      *
-     * @param  core_FieldSet $form
+     * @param core_FieldSet $form
+     *
      * @return void
      */
     public function checkForm(core_FieldSet &$form)
@@ -309,6 +311,7 @@ class tcost_FeeZones extends core_Master
      * Рендира информацията
      *
      * @param stdClass rec
+     *
      * @return core_ET $tpl
      */
     public function renderDeliveryInfo($rec)

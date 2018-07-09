@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Линкове
  *
  *
  * @category  bgerp
  * @package   blogm
+ *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blogm_Links extends core_Manager
 {
-    
-    
     /**
      * Заглавие на страницата
      */
@@ -26,13 +27,13 @@ class blogm_Links extends core_Manager
      */
     public $loadList = 'plg_RowTools, plg_State2, blogm_Wrapper, plg_Created, plg_Modified';
     
-
+    
     /**
      * Полета за листов изглед
      */
     public $listFields = ' id, name, url, state';
     
-
+    
     /**
      * Кой може да листва линковете
      */
@@ -49,8 +50,8 @@ class blogm_Links extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,cms, blog';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */

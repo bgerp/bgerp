@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Драйвър за експортиране на 'sales_Invoices' изходящи фактури към Bulmar Office
  *
  *
  * @category  bgerp
  * @package   bulmar
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bulmar_InvoiceExport extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -87,7 +86,8 @@ class bulmar_InvoiceExport extends core_Manager
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param  mixed $data - данни
+     * @param mixed $data - данни
+     *
      * @return mixed - експортираните данни
      */
     public function export($filter)
@@ -101,7 +101,7 @@ class bulmar_InvoiceExport extends core_Manager
         
         if (!count($recs)) {
             core_Statuses::newStatus('|Няма налични фактури за експортиране');
-
+            
             return;
         }
         
@@ -117,7 +117,8 @@ class bulmar_InvoiceExport extends core_Manager
     /**
      * Подготвя данните за експорт
      *
-     * @param  array    $recs - фактурите за експортиране
+     * @param array $recs - фактурите за експортиране
+     *
      * @return stdClass $data - подготвените данни
      */
     private function prepareExportData($recs)

@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'doc_Folders' - Папки с нишки от документи
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class doc_Folders extends core_Master
 {
-    
     /**
      * Максимална дължина на показваните заглавия
      */
@@ -35,7 +35,7 @@ class doc_Folders extends core_Master
      */
     public $refreshRowsTime = 10000;
     
-
+    
     /**
      * Кое поле да се гледа за промяна и да се пуска обновяването
      *
@@ -78,19 +78,18 @@ class doc_Folders extends core_Master
      * Кой може да вижда единичния изглед
      */
     public $canSingle = 'powerUser';
-
+    
     
     /**
      * Кой може да добавя?
      */
     public $canAdd = 'no_one';
-
+    
     
     /**
      * Кой може да го отхвърли?
      */
     public $canReject = 'powerUser';
-    
     
     
     public $canNewdoc = 'powerUser';
@@ -113,7 +112,7 @@ class doc_Folders extends core_Master
      */
     public $singleTitle = 'Папка';
     
-
+    
     /**
      * Масив в id-та на папки, които трябва да се обновят на Shutdown
      */
@@ -124,14 +123,14 @@ class doc_Folders extends core_Master
      * Масив с id-та, за които не трябва да се праща нотификация
      */
     public $preventNotification = array();
-
-
+    
+    
     /**
      * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
      */
     public $highPriority = true;
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -152,15 +151,15 @@ class doc_Folders extends core_Master
         
         $this->setDbUnique('coverId,coverClass');
     }
-
-
+    
+    
     /**
      * Редиректва към съдържанието на папката
      */
     public function act_Single()
     {
         expect($id = Request::get('id', 'int'));
-
+        
         return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
     }
     
@@ -188,7 +187,7 @@ class doc_Folders extends core_Master
         if ($rec->state == 'rejected') {
             $attr['class'] .= ' state-rejected';
         }
-
+        
         $link = ht::createLink($title, $url, null, $attr);
         
         return $link;
@@ -198,9 +197,9 @@ class doc_Folders extends core_Master
     /**
      * Добавя info запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      *
      * @see core_Mvc::logRead($action, $objectId, $lifeDays)
      */
@@ -216,9 +215,9 @@ class doc_Folders extends core_Master
     /**
      * Добавя info запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      *
      * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
      */
@@ -234,10 +233,10 @@ class doc_Folders extends core_Master
     /**
      *
      *
-     * @param string       $type
-     * @param string       $action
-     * @param integer|NULL $objectId
-     * @param integer|NULL $lifeDays
+     * @param string   $type
+     * @param string   $action
+     * @param int|NULL $objectId
+     * @param int|NULL $lifeDays
      */
     protected static function logToFolder($type, $action, $objectId, $lifeDays)
     {
@@ -290,6 +289,7 @@ class doc_Folders extends core_Master
         $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,autoFilter');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'search,users,order';
@@ -312,6 +312,7 @@ class doc_Folders extends core_Master
         switch ($data->listFilter->rec->order) {
             case 'last':
                 $data->query->orderBy('#last', 'DESC');
+                
                 // no break
             case 'pending':
         default:
@@ -330,13 +331,13 @@ class doc_Folders extends core_Master
             
             return false;
         }
-
+        
         $rec = doc_Folders::fetch($folderId);
         
         return doc_Folders::haveRightToObject($rec, $userId);
     }
     
-
+    
     /**
      * Дали посоченият (или текущият ако не е посочен) потребител има право на достъп до този обект
      * Обекта трябва да има полета inCharge, access и shared
@@ -373,7 +374,7 @@ class doc_Folders extends core_Master
                 
                 return false;
             }
-
+            
             return true;
         }
         
@@ -423,7 +424,7 @@ class doc_Folders extends core_Master
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-
+        
         if (cls::load($rec->coverClass, true)) {
             $typeMvc = cls::get($rec->coverClass);
             $signleIcon = $typeMvc->getSingleIcon($rec->coverId);
@@ -440,26 +441,26 @@ class doc_Folders extends core_Master
             $row->type = "<span class='red'>" . tr('Проблем при показването') . '</span>';
         }
     }
-
-
+    
+    
     /**
      * Връща линк към папката
      */
     public static function getFolderTitle($rec, $title = null)
     {
         $mvc = cls::get('doc_Folders');
-
+        
         if (is_numeric($rec)) {
             $rec = $mvc->fetch($rec);
         }
-
+        
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
-
+        
         if (mb_strlen($rec->title) > self::maxLenTitle) {
             $attr['title'] = $title;
             $title = str::limitLen($rec->title, self::maxLenTitle);
@@ -479,14 +480,14 @@ class doc_Folders extends core_Master
         
         // Ако състоянието е оттеглено
         if ($rec->state == 'rejected') {
-            
+           
            // Добавяме към класа да е оттеглено
             $attr['class'] .= ' state-rejected';
         }
-
+        
         if ($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-
+            
             // Ако е оттеглен
             if ($rec->state == 'rejected') {
                 
@@ -503,11 +504,11 @@ class doc_Folders extends core_Master
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $title = ht::createElement('span', $attr, $title);
         }
-
+        
         return $title;
     }
     
-
+    
     /**
      * Добавя бутони за нова фирма, лице и проект
      */
@@ -516,11 +517,11 @@ class doc_Folders extends core_Master
         if (crm_Companies::haveRightFor('add')) {
             $data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => true), 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
         }
-       
+        
         if (crm_Persons::haveRightFor('add')) {
             $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => true), 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
         }
-       
+        
         if (doc_UnsortedFolders::haveRightFor('add')) {
             $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => true), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
         }
@@ -532,7 +533,7 @@ class doc_Folders extends core_Master
         $mvc = cls::get('doc_Folders');
         $mvc->updateByContentOnShutdown[$id] = $id;
     }
-
+    
     
     /**
      * Обновява информацията за съдържанието на дадена папка
@@ -548,7 +549,7 @@ class doc_Folders extends core_Master
             foreach ($mvc->updateByContentOnShutdown as $id) {
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
-
+                
                 if (!$rec) {
                     wp($id);
                     
@@ -607,7 +608,7 @@ class doc_Folders extends core_Master
                         $msg = '|Отворени теми в|*' . " \"{$rec->title}\"";
                         
                         $url = array('doc_Threads', 'list', 'folderId' => $id);
-                            
+                        
                         $priority = 'normal';
                         
                         $notifyArr = $mvc->getUsersArrForNotify($rec);
@@ -669,8 +670,8 @@ class doc_Folders extends core_Master
     /**
      * Обновява и връща статистиката за документите в папката
      *
-     * @param int     $folderId
-     * @param boolean $forced
+     * @param int  $folderId
+     * @param bool $forced
      *
      * @return array
      */
@@ -782,6 +783,7 @@ class doc_Folders extends core_Master
         }
         
         $currUserId = core_Users::getCurrent();
+        
         // Премахваме анонимния, системния и текущия потребител
         unset($notifyArr[0]);
         unset($notifyArr[-1]);
@@ -808,6 +810,7 @@ class doc_Folders extends core_Master
         $rec = doc_Folders::fetch($id);
         
         if (!$rec) {
+            
             return;
         }
         
@@ -822,7 +825,7 @@ class doc_Folders extends core_Master
         }
         
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, false);
-
+        
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
         $isClosed = ($rec->state != 'closed' && $coverRec->state == 'closed');
@@ -836,17 +839,17 @@ class doc_Folders extends core_Master
                 $mustSave = true;
             }
         }
-
+        
         if ($isReject) {
             $rec->state = 'rejected';
             $mustSave = true;
         }
-
+        
         if ($isRevert) {
             $rec->state = $coverRec->state;
             $mustSave = true;
         }
-
+        
         if ($isClosed) {
             $rec->state = 'closed';
             $mustSave = true;
@@ -863,9 +866,9 @@ class doc_Folders extends core_Master
                     $rec->state = 'open';
                 }
             }
-
+            
             static::save($rec);
-           
+            
             // Ако сега сме направили операцията възстановяване
             if ($isRevert || !$rec->state) {
                 self::updateFolderByContent($rec->id);
@@ -919,6 +922,7 @@ class doc_Folders extends core_Master
     
     /**
      * Изпълнява се след начално установяване(настройка) на doc_Folders
+     *
      * @todo Да се махне
      */
     public static function on_AfterSetupMVC($mvc, &$res)
@@ -965,7 +969,7 @@ class doc_Folders extends core_Master
      *
      * @param core_Query $query
      * @param int        $userId     key(mvc=core_Users)
-     * @param boolean    $viewAccess - Възможно най - много права за папката
+     * @param bool       $viewAccess - Възможно най - много права за папката
      */
     public static function restrictAccess_(&$query, $userId = null, $viewAccess = true)
     {
@@ -1014,7 +1018,7 @@ class doc_Folders extends core_Master
             
             return ;
         }
-            
+        
         // Вземаме държавата
         $classRec = $coverClass::fetch("#folderId = '{$id}'", 'country');
         
@@ -1023,7 +1027,7 @@ class doc_Folders extends core_Master
             
             return ;
         }
-            
+        
         // Вземаме стринга с официалните езици
         $lgStr = drdata_Countries::fetchField($classRec->country, 'languages');
         
@@ -1048,8 +1052,8 @@ class doc_Folders extends core_Master
             return strtolower($lg);
         }
     }
-
-
+    
+    
     /**
      * Връща папката по подразбиране за текущия потребител
      * Ако има дефинирана 'корпоративна' сметка за имейли, то папката е корпоративната имейл-кутия на потребителя
@@ -1096,7 +1100,7 @@ class doc_Folders extends core_Master
                 $folderId = doc_UnsortedFolders::forceCoverAndFolder($rec);
             }
         }
-
+        
         return $folderId;
     }
     
@@ -1121,7 +1125,7 @@ class doc_Folders extends core_Master
         
         // Записите за папката
         $rec = static::fetch($params['folderId']);
-            
+        
         $haveRight = static::haveRightFor('single', $rec);
         
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
@@ -1135,7 +1139,7 @@ class doc_Folders extends core_Master
             
             return false;
         }
-
+        
         // Заглавието на файла във вербален вид
         $title = static::getVerbal($rec, 'title');
         
@@ -1143,26 +1147,26 @@ class doc_Folders extends core_Master
         $sbfIcon = static::getIconImg($rec, $haveRight);
         
         if (Mode::is('text', 'plain')) {
-
+            
             // Ескейпваме плейсхолдърите и връщаме титлата
             $res = core_ET::escape($title);
         } elseif (Mode::is('text', 'xhtml') || !$haveRight) {
             $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
         } else {
-
+            
             // Дали линка да е абсолютен
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
             $params['Ctr'] = 'doc_Threads';
             $link = toUrl($params, $isAbsolute);
-
+            
             // Атрибути на линка
             $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = "background-image:url({$sbfIcon});";
             $attr['target'] = '_blank';
-
+            
             // Създаваме линк
             $res = ht::createLink($title, $link, null, $attr);
         }
@@ -1180,7 +1184,8 @@ class doc_Folders extends core_Master
     /**
      * Името на класа на корицата на папка
      *
-     * @param  int    $id key(mvc=doc_Folders)
+     * @param int $id key(mvc=doc_Folders)
+     *
      * @return string име на PHP клас-наследник на core_Mvc
      */
     public static function fetchCoverClassName($id)
@@ -1203,13 +1208,14 @@ class doc_Folders extends core_Master
      *
      * Резултата има всички методи, налични в мениджъра на корицата
      *
-     * @param  int|stdClass         $id идентификатор или запис на папка
+     * @param int|stdClass $id идентификатор или запис на папка
+     *
      * @return core_ObjectReference
      */
     public static function getCover($id)
     {
         expect($rec = static::fetchRec($id));
-
+        
         $cover = new core_ObjectReference($rec->coverClass, $rec->coverId);
         
         return $cover;
@@ -1222,7 +1228,7 @@ class doc_Folders extends core_Master
      * @param core_Query    $query
      * @param datetime|NULL $from
      * @param datetime|NULL $to
-     * @param integer       $delay
+     * @param int           $delay
      * @param string        $dateField
      */
     public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField = 'modifiedOn')
@@ -1252,7 +1258,7 @@ class doc_Folders extends core_Master
      *
      * @param datetime $from
      * @param datetime $to
-     * @param integer  $delay
+     * @param int      $delay
      *
      * @return array
      */
@@ -1335,15 +1341,14 @@ class doc_Folders extends core_Master
         
         return $resArr;
     }
-
-
-
+    
+    
     /**
      * Проверка и поправка на всички записи
      *
      * @param datetime $from
      * @param datetime $to
-     * @param integer  $delay
+     * @param int      $delay
      *
      * @return array
      */
@@ -1351,7 +1356,7 @@ class doc_Folders extends core_Master
     {
         $resArr = array();
         $query = self::getQuery();
-    
+        
         self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
         
         while ($rec = $query->fetch()) {
@@ -1379,7 +1384,7 @@ class doc_Folders extends core_Master
                     $resArr += self::moveToUnsorted($rec);
                 } catch (ErrorException $e) {
                     reportException($e);
-                
+                    
                     continue;
                 }
             }
@@ -1394,7 +1399,7 @@ class doc_Folders extends core_Master
      *
      * @param datetime $from
      * @param datetime $to
-     * @param integer  $delay
+     * @param int      $delay
      *
      * @return array
      */
@@ -1459,7 +1464,7 @@ class doc_Folders extends core_Master
                             $fArr[$cRec->folderId]['rec']->folderId = null;
                             $sInst->logNotice('Нулирано повтарящо се "folderId"', $fArr[$cRec->folderId]['rec']->id);
                             $sInst->save($fArr[$cRec->folderId]['rec'], 'folderId');
-                        
+                            
                             // Добавяме новите стойности в масива
                             $fArr[$cRec->folderId]['cls'] = $clsName;
                             $fArr[$cRec->folderId]['rec'] = $cRec;
@@ -1527,7 +1532,7 @@ class doc_Folders extends core_Master
      *
      * @param stdClass $rec
      *
-     * @return float 
+     * @return float
      */
     protected static function getPointsForRec($rec)
     {
@@ -1550,8 +1555,8 @@ class doc_Folders extends core_Master
     /**
      * Прави миграция на папките към несортирани. Използва се при поправка на документите.
      *
-     * @param stdClass     $rec
-     * @param NULL|integer $currUser
+     * @param stdClass $rec
+     * @param NULL|int $currUser
      *
      * @return array
      */
@@ -1603,9 +1608,9 @@ class doc_Folders extends core_Master
     public function act_Repair()
     {
         requireRole('admin');
-
+        
         core_Debug::$isLogging = false;
-
+        
         $Folders = cls::get('doc_Folders');
         set_time_limit($Folders->count());
         $html .= $Folders->repair();
@@ -1613,20 +1618,21 @@ class doc_Folders extends core_Master
         $Containers = cls::get('doc_Containers');
         set_time_limit($Containers->count());
         $html .= $Containers->repair();
-
+        
         $Router = cls::get('email_Router');
         set_time_limit($Router->count());
         $html .= $Router->repair();
-
+        
         return new Redirect(array('core_Packs'), $html);
     }
     
-
+    
     /**
      * Връща иконата на папката според достъпа
      *
      * @params object $rec - Данните за записа
-     * @param boolean $haveRight - Дали има права за single
+     *
+     * @param bool $haveRight - Дали има права за single
      *
      * @return string $sbfImg - Иконата
      */
@@ -1643,7 +1649,7 @@ class doc_Folders extends core_Master
                 } else {
                     $img = 'lock.png';
                 }
-                
+            
             break;
             
             case 'team':
@@ -1655,28 +1661,29 @@ class doc_Folders extends core_Master
         
         // Дали линка да е абсолютен
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-
-
+        
+        
         // Връщаме sbf линка до иконата
         $imgSrc = 'img/16/' . $img;
-
+        
         if (log_Browsers::isRetina()) {
             $tempIcon = 'img/32/' . $img;
             if (getFullPath($tempIcon)) {
                 $imgSrc = $tempIcon;
             }
         }
-
+        
         $sbfImg = sbf($imgSrc, '"', $isAbsolute);
-
+        
         return $sbfImg;
     }
-
+    
+    
     /**
      * Връща масив с всички активни потребители, които имат достъп до дадена папка
      *
      * @param doc_Folders $folderId      - id на папката
-     * @param boolean     $removeCurrent - Дали да се премахне текущия потребител от резултатите
+     * @param bool        $removeCurrent - Дали да се премахне текущия потребител от резултатите
      *
      * @return array $sharedUsersArr - Масив с всички споделени потребители
      *
@@ -1749,7 +1756,7 @@ class doc_Folders extends core_Master
     /**
      * Връща ключа за персонална настройка
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -1764,12 +1771,12 @@ class doc_Folders extends core_Master
     /**
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      *
-     * @param string       $key
-     * @param integer|NULL $userOrRole
+     * @param string   $key
+     * @param int|NULL $userOrRole
      *
      * @see core_SettingsIntf
      *
-     * @return boolean
+     * @return bool
      */
     public static function canModifySettings($key, $userOrRole = null)
     {
@@ -1804,11 +1811,11 @@ class doc_Folders extends core_Master
     }
     
     
-    
     /**
      * Подготвя формата за настройки
      *
      * @param core_Form $form
+     *
      * @see core_SettingsIntf
      */
     public function prepareSettingsForm(&$form)
@@ -1834,9 +1841,9 @@ class doc_Folders extends core_Master
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Отворени теми, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Личен имейл, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
-
+        
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
-
+        
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         
         // Показва се само когато се настройват всички потребители
@@ -1882,6 +1889,7 @@ class doc_Folders extends core_Master
      * Проверява формата за настройки
      *
      * @param core_Form $form
+     *
      * @see core_SettingsIntf
      */
     public function checkSettingsForm(&$form)
@@ -1951,14 +1959,15 @@ class doc_Folders extends core_Master
     /**
      * Връща опции за избор на папки, чиито корици имат определен интерфейс
      *
-     * @param  string $interface     - име на интерфейс
-     * @param  array  $ignoreFolders - масив с ид-та на папки за игнориране
-     * @return array  $options - масив с опции
+     * @param string $interface     - име на интерфейс
+     * @param array  $ignoreFolders - масив с ид-та на папки за игнориране
+     *
+     * @return array $options - масив с опции
      */
     public static function getOptionsByCoverInterface($interface, $ignoreFolders = array())
     {
         $options = array();
-    
+        
         $query = doc_Folders::getQuery();
         $contragents = core_Classes::getOptionsByInterface($interface, 'title');
         $contragents = array_keys($contragents);
@@ -1974,11 +1983,11 @@ class doc_Folders extends core_Master
         while ($rec = $query->fetch()) {
             $options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
         }
-    
+        
         return $options;
     }
-
-
+    
+    
     /**
      * Подготовка на опции за key2
      */
@@ -1991,14 +2000,14 @@ class doc_Folders extends core_Master
         }
         
         $query->orderBy('last=DESC');
-
+        
         // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
         if (isset($params['coverInterface'])) {
             $coverClasses = core_Classes::getOptionsByInterface($params['coverInterface'], 'title');
             $coverClasses = array_keys($coverClasses);
             $query->in('coverClass', $coverClasses);
         }
-
+        
         // Ако изрично са посочени класовете на кориците които да извлечем
         if (isset($params['coverClasses'])) {
             $skipCoverClasses = array();
@@ -2016,33 +2025,33 @@ class doc_Folders extends core_Master
         if ($params['restrictViewAccess'] == 'yes') {
             $viewAccess = false;
         }
-
+        
         $me = cls::get(get_called_class());
-           
+        
         $me->restrictAccess($query, null, $viewAccess);
         
         if (!$includeHiddens) {
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
-
+        
         if ($params['where']) {
             $query->where($params['where']);
         }
-           
+        
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
                 
                 return array();
             }
-
+            
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-
+            
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
         }
-
+        
         if ($threadId = $params['moveThread']) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
@@ -2052,12 +2061,12 @@ class doc_Folders extends core_Master
         $titleFld = $params['titleFld'];
         $query->EXT('class', 'core_Classes', 'externalKey=coverClass,externalName=title');
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
-       
+        
         if ($q) {
             if ($q{0} == '"') {
                 $strict = true;
             }
-
+            
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
             $q = mb_strtolower($q);
@@ -2073,11 +2082,11 @@ class doc_Folders extends core_Master
                 $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
- 
+        
         if ($limit) {
             $query->limit($limit);
         }
-
+        
         $query->show("id,searchFieldXpr,class, {$titleFld}");
         
         $res = array();
@@ -2085,17 +2094,18 @@ class doc_Folders extends core_Master
         while ($rec = $query->fetch()) {
             $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
         }
- 
+        
         return $res;
     }
     
-
+    
     /**
      * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
      *
      * @param string $status
      *
      * @return string
+     *
      * @see plg_RefreshRows
      */
     public static function getContentHash_(&$status)
@@ -2108,8 +2118,9 @@ class doc_Folders extends core_Master
     /**
      * Прави подробни линкове към папките
      *
-     * @param  mixed        $folderArr - списък с папки
-     * @param  string       $inline    - на един ред разделени с `,` или да се върнат като масив
+     * @param mixed  $folderArr - списък с папки
+     * @param string $inline    - на един ред разделени с `,` или да се върнат като масив
+     *
      * @return array|string - линковете към папките
      */
     public static function getVerbalLinks($folderArr, $inline = false)
@@ -2125,8 +2136,8 @@ class doc_Folders extends core_Master
         
         return $res;
     }
-
-
+    
+    
     /**
      * Връща id на папка от класа и id-то на корицата й
      *

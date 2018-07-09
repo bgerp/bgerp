@@ -1,26 +1,26 @@
 <?php
 
 
-
 /**
  * Клас acc_type_Item
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_type_Item extends type_Key
 {
-    
-    
     /**
      * Параметър определящ максималната широчина на полето
      */
     public $maxFieldSize = 30;
+    
     
     /**
      * Инициализиране на обекта

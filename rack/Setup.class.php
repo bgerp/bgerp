@@ -9,15 +9,15 @@
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rack_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на компонента
      */
@@ -46,32 +46,32 @@ class rack_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Палетно складово стопанство';
-        
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'rack_Products',
-            'rack_Movements',
-            'rack_Pallets',
-            'rack_Racks',
-            'rack_RackDetails',
-        );
+        'rack_Products',
+        'rack_Movements',
+        'rack_Pallets',
+        'rack_Racks',
+        'rack_RackDetails',
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'rack,rackMaster';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo,store,storeWorker'),
-        );
+        array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo,store,storeWorker'),
+    );
     
     
     /**
@@ -99,8 +99,8 @@ class rack_Setup extends core_ProtoSetup
         
         return $res;
     }
-
-
+    
+    
     /**
      * Изпълнява се след setup-а
      */

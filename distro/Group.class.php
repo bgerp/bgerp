@@ -1,25 +1,23 @@
 <?php 
 
-
 /**
  * Разпределена файлова група
  *
  * @category  bgerp
  * @package   distro
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class distro_Group extends core_Master
 {
-    
-    
     /**
      * Заглавие на модела
      */
     public $title = 'Разпределени файлови групи';
-    
     
     
     public $singleTitle = 'Файлова група';
@@ -121,7 +119,7 @@ class distro_Group extends core_Master
      */
     public $rowToolsSingleField = 'id';
     
-
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -160,7 +158,7 @@ class distro_Group extends core_Master
      *
      * @param string $path
      *
-     * @return NULL|integer
+     * @return NULL|int
      */
     public function getGroupIdFromFolder($path)
     {
@@ -361,7 +359,7 @@ class distro_Group extends core_Master
     /**
      *
      *
-     * @param integer|stdClass $rec
+     * @param int|stdClass $rec
      *
      * @return string
      */
@@ -407,10 +405,10 @@ class distro_Group extends core_Master
     /**
      * Проверява дали може да се добави в детайла
      *
-     * @param integer $id     - id на записи
-     * @param integer $userId - id на потребител
+     * @param int $id     - id на записи
+     * @param int $userId - id на потребител
      *
-     * @return boolean - Ако имаме права
+     * @return bool - Ако имаме права
      */
     public static function canAddDetail($id, $userId = null)
     {
@@ -419,7 +417,7 @@ class distro_Group extends core_Master
             
             return false;
         }
-            
+        
         // Вземаме записа
         $rec = static::fetch($id);
         
@@ -442,8 +440,8 @@ class distro_Group extends core_Master
     /**
      * Връща масив с хранилищата, които се използват в групата
      *
-     * @param integer      $id
-     * @param NULL|integer $userId
+     * @param int      $id
+     * @param NULL|int $userId
      *
      * @return array
      */
@@ -479,12 +477,13 @@ class distro_Group extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentInterface
      *
-     * @param integer $id
+     * @param int $id
      */
     public function getDocumentRow($id)
     {
         // Ако няма id
         if (!$id) {
+            
             return;
         }
         
@@ -615,7 +614,7 @@ class distro_Group extends core_Master
             if ($rec->originId) {
                 $cid = $rec->originId;
             } elseif ($rec->threadId) {
-            
+                
                 // Ако добавяме коментар в нишката
                 $cid = doc_Threads::fetch($rec->threadId)->firstContainerId;
             }

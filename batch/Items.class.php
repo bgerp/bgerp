@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Партидни наличности
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_Items extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -103,15 +102,16 @@ class batch_Items extends core_Master
     /**
      * Връща наличното количество от дадена партида
      *
-     * @param  int    $productId - артикул
-     * @param  string $batch     - партида
-     * @param  int    $storeId   - склад
-     * @return double $quantity - к-во на партидата в склада
+     * @param int    $productId - артикул
+     * @param string $batch     - партида
+     * @param int    $storeId   - склад
+     *
+     * @return float $quantity - к-во на партидата в склада
      */
     public static function getQuantity($productId, $batch, $storeId)
     {
         $quantity = self::fetchField(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $batch), 'quantity');
-    
+        
         $quantity = empty($quantity) ? 0 : $quantity;
         
         return $quantity;
@@ -121,10 +121,11 @@ class batch_Items extends core_Master
     /**
      * Форсира запис за партида
      *
-     * @param  int    $productId - ид на артикул
-     * @param  string $batch     - партиден номер
-     * @param  int    $storeId   - ид на склад
-     * @return int    $id - ид на форсирания запис
+     * @param int    $productId - ид на артикул
+     * @param string $batch     - партиден номер
+     * @param int    $storeId   - ид на склад
+     *
+     * @return int $id - ид на форсирания запис
      */
     public static function forceItem($productId, $batch, $storeId)
     {
@@ -192,7 +193,8 @@ class batch_Items extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -200,6 +202,7 @@ class batch_Items extends core_Master
         $rec = $this->fetchRec($id);
         
         if (!$rec) {
+            
             return;
         }
         $quantity = 0;
@@ -294,7 +297,7 @@ class batch_Items extends core_Master
         $data->listFilter->showFields = 'search,store,filterState';
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    
+        
         if ($filter = $data->listFilter->rec) {
             
             // Филтрираме по склад
@@ -326,6 +329,7 @@ class batch_Items extends core_Master
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!count($data->rows)) {
+            
             return;
         }
         
@@ -363,9 +367,10 @@ class batch_Items extends core_Master
     /**
      * Чръща всички складируеми артикули с дефинирани видове партидност
      *
-     * @param  int      $productId - артикул
-     * @param  int|NULL $storeId   - склад
-     * @return array    $res       - масив с артикули
+     * @param int      $productId - артикул
+     * @param int|NULL $storeId   - склад
+     *
+     * @return array $res       - масив с артикули
      */
     public static function getBatches($productId, $storeId = null)
     {
@@ -388,11 +393,12 @@ class batch_Items extends core_Master
         return $res;
     }
     
-
+    
     /**
      * Подготовка на наличните партиди за един артикул
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public function prepareBatches(&$data)
@@ -403,10 +409,10 @@ class batch_Items extends core_Master
         
         if ($canStore != 'yes' || !$definition) {
             $data->hide = true;
-
+            
             return;
         }
-         
+        
         // Име на таба
         $data->definition = $definition;
         $defIf = batch_Defs::fetch("#productId = '{$data->masterId}'");
@@ -421,7 +427,7 @@ class batch_Items extends core_Master
         
         $attr = array('title' => 'История на движенията');
         $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
-
+        
         // Подготвяме формата за филтър по склад
         $form = cls::get('core_Form');
         
@@ -478,13 +484,15 @@ class batch_Items extends core_Master
     /**
      * Рендиране на наличните партиди за един артикул
      *
-     * @param  stdClass     $data
+     * @param stdClass $data
+     *
      * @return NULL|core_Et $tpl;
      */
     public function renderBatches($data)
     {
         // Ако не рендираме таба, не правим нищо
         if ($data->hide === true) {
+            
             return;
         }
         
@@ -542,13 +550,14 @@ class batch_Items extends core_Master
     /**
      * Изчислява количествата на партидите на артикул към дадена дата и склад
      *
-     * @param  int       $productId - ид на артикул
-     * @param  int       $storeId   - ид на склад
-     * @param  date|NULL $date      - към дата, ако е празно текущата
-     * @param  int|NULL  $limit     - лимит на резултатите
-     * @param  array     $except    - кой документ да се игнорира
-     * @return array     $res - масив с партидите и к-та
-     *                             ['batch'] => ['quantity']
+     * @param int       $productId - ид на артикул
+     * @param int       $storeId   - ид на склад
+     * @param date|NULL $date      - към дата, ако е празно текущата
+     * @param int|NULL  $limit     - лимит на резултатите
+     * @param array     $except    - кой документ да се игнорира
+     *
+     * @return array $res - масив с партидите и к-та
+     *               ['batch'] => ['quantity']
      */
     public static function getBatchQuantitiesInStore($productId, $storeId, $date = null, $limit = null, $except = array())
     {
@@ -627,12 +636,13 @@ class batch_Items extends core_Master
      * Разпределяне на количество по наличните партиди на даден артикул в склада
      * Партидите с отрицателни и нулеви количества се пропускат
      *
-     * @param  array  $bacthesArr
-     *                            [име_на_партидата] => [к_во_в_склада]
-     * @param  double $quantity
-     * @return array  $allocatedArr - разпределеното к-во, което да се изпише от партидите
-     *                           с достатъчно количество в склада
-     *                           [име_на_партидата] => [к_во_за_изписване]
+     * @param array $bacthesArr
+     *                          [име_на_партидата] => [к_во_в_склада]
+     * @param float $quantity
+     *
+     * @return array $allocatedArr - разпределеното к-во, което да се изпише от партидите
+     *               с достатъчно количество в склада
+     *               [име_на_партидата] => [к_во_за_изписване]
      */
     public static function allocateQuantity($bacthesArr, $quantity)
     {

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса import_DriverIntf
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Импорт на артикули от последната работна рецепта
  */
 class planning_interface_ImportFromLastBom extends planning_interface_ImportDriver
 {
-    
-    
     /**
      * Заглавие
      */
@@ -26,8 +25,9 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     /**
      * Добавя специфични полета към формата за импорт на драйвера
      *
-     * @param  core_Manager  $mvc
-     * @param  core_FieldSet $form
+     * @param core_Manager  $mvc
+     * @param core_FieldSet $form
+     *
      * @return void
      */
     public function addImportFields($mvc, core_FieldSet $form)
@@ -77,7 +77,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             return $recs;
         }
         foreach ($rec->detailsDef as $key => $dRec) {
-    
+            
             // Ако има въведено количество записва се
             if (!empty($rec->{$key})) {
                 unset($dRec->id);
@@ -95,8 +95,9 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     /**
      * Проверява събмитнатата форма
      *
-     * @param  core_Manager  $mvc
-     * @param  core_FieldSet $form
+     * @param core_Manager  $mvc
+     * @param core_FieldSet $form
+     *
      * @return void
      */
     public function checkImportForm($mvc, core_FieldSet $form)
@@ -110,7 +111,8 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     /**
      * Намира последната работна рецепта
      *
-     * @param  stdClass $masterRec
+     * @param stdClass $masterRec
+     *
      * @return id|NULL
      */
     private static function getLastActiveBom($masterRec)
@@ -124,7 +126,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         $productId = $firstDoc->fetchField('productId');
         $bomId = cat_Products::getLastActiveBom($productId, 'production');
         $bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
-         
+        
         // И по артикула има рецепта
         $bomId = cat_Products::getLastActiveBom($productId, 'production');
         $bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
@@ -149,7 +151,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
      * @param int|NULL     $masterId - ако импортираме в детайл, id на записа на мастъра му
      * @param int|NULL     $userId   - ид на потребител
      *
-     * @return boolean - може ли драйвера да бъде избран
+     * @return bool - може ли драйвера да бъде избран
      */
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
@@ -157,7 +159,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             
             return false;
         }
-         
+        
         if (isset($masterId)) {
             $masterRec = $mvc->Master->fetchRec($masterId);
             $bomId = self::getLastActiveBom($masterRec);

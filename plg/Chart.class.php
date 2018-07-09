@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Chart' - Показва графики, вместо таблични данни
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Chart extends core_Plugin
 {
-    
-    
     /**
      * Манипулации със заглавието
      *
@@ -132,7 +131,7 @@ class plg_Chart extends core_Plugin
         $chart->appendOnce("\n google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});", 'SCRIPTS');
         
         $chart->append(
-        
+            
             "\n google.setOnLoadCallback(draw{$chartName});" .
             "\n function draw{$chartName}() {" .
             "\n     var data = new google.visualization.DataTable();",
@@ -148,7 +147,7 @@ class plg_Chart extends core_Plugin
         $usedCols = array();
         
         // Добавяме данните
-
+        
         foreach (arr::make($data->recs) as $id => $rec) {
             foreach ($data->chartColumns as $col => $colRec) {
                 if ($chartField) {

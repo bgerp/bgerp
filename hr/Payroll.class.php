@@ -1,30 +1,28 @@
 <?php
 
 
-
 /**
  * Мениджър на заплати
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Заплати
  */
 class hr_Payroll extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Ведомост за заплати';
     
     
-     
     /**
      * Заглавието в единично число
      */
@@ -35,13 +33,12 @@ class hr_Payroll extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Rejected,  plg_SaveAndNew, hr_Wrapper, plg_GroupByField';
-                    
+    
     
     /**
      * По кое поле да се групира
      */
     public $groupByField = 'periodId';
-    
     
     
     /**
@@ -60,8 +57,8 @@ class hr_Payroll extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,hrMaster';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -92,11 +89,11 @@ class hr_Payroll extends core_Manager
         $this->FLD('formula', 'text', 'caption=Формула');
         $this->FLD('salary', 'double', 'caption=Заплата,width=100%');
         $this->FLD('status', 'varchar', 'caption=Статус,mandatory');
-
+        
         $this->setDbUnique('periodId,personId');
     }
     
-
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *

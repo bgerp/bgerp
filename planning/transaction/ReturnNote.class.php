@@ -6,21 +6,22 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -30,10 +31,10 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-                'reason' => "Протокол за връщане от производство №{$rec->id}",
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => "Протокол за връщане от производство №{$rec->id}",
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
         
         if (isset($rec->id)) {
@@ -64,7 +65,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
             
             if ($rec->useResourceAccounts == 'yes') {
                 $creditArr = array('61101', array('cat_Products', $dRec->productId),
-                                  'quantity' => $dRec->quantity);
+                    'quantity' => $dRec->quantity);
                 
                 $reason = 'Връщане на материал от производството';
             }
@@ -92,11 +93,11 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
             }
             
             $entry = array('debit' => array(321,
-                                array('store_Stores', $rec->storeId),
-                                array('cat_Products', $dRec->productId),
-                                'quantity' => $dRec->quantity),
-                              'credit' => $creditArr,
-                           'reason' => $reason);
+                array('store_Stores', $rec->storeId),
+                array('cat_Products', $dRec->productId),
+                'quantity' => $dRec->quantity),
+            'credit' => $creditArr,
+            'reason' => $reason);
             
             if (!is_null($averageAmount)) {
                 $entry['amount'] = $averageAmount;

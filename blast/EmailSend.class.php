@@ -1,68 +1,78 @@
 <?php 
 
-
 /**
  * Лог на изпратените писма
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class blast_EmailSend extends core_Detail
 {
-    
     /**
      * Заглавие
      */
     public $title = 'Лог на изпращаните писма';
+    
     
     /**
      * Кой има право да чете?
      */
     protected $canRead = 'ceo, blast, admin';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'no_one';
+    
     
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'no_one';
     
+    
     /**
      * Кой може да го види?
      */
     protected $canView = 'ceo, blast, admin';
+    
     
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'ceo, blast, admin';
     
+    
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'no_one';
+    
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'blast_Wrapper, plg_Created';
     
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'emailId';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'email, sentOn, state, stateAct';
+    
     
     /**
      * Брой записи на страница
@@ -70,9 +80,7 @@ class blast_EmailSend extends core_Detail
     public $listItemsPerPage = 20;
     
     
-    
     public $canActivate = 'ceo, blast, admin';
-    
     
     
     public $canStop = 'ceo, blast, admin';
@@ -107,10 +115,10 @@ class blast_EmailSend extends core_Detail
     /**
      * Обновява списъка
      *
-     * @param integer $emailId          - id на мастер (blast_Emails)
-     * @param array   $dataArr          - Масив с данните - ключ id на източника и стойност самите данни
-     * @param array   $emailFieldsArr   - Масив с полета, които се използва за имейл
-     * @param array   $negativeEmailArr - Масив с имейли, които да се изключат
+     * @param int   $emailId          - id на мастер (blast_Emails)
+     * @param array $dataArr          - Масив с данните - ключ id на източника и стойност самите данни
+     * @param array $emailFieldsArr   - Масив с полета, които се използва за имейл
+     * @param array $negativeEmailArr - Масив с имейли, които да се изключат
      *
      * @return array - Броят на добавените и премахнатите записи
      */
@@ -197,8 +205,8 @@ class blast_EmailSend extends core_Detail
     /**
      * Връща данните за подадения emailId
      *
-     * @param integer $emailId - id на мастер (blast_Emails)
-     * @param integer $count   - Дали да има ограничени в броя на записите
+     * @param int $emailId - id на мастер (blast_Emails)
+     * @param int $count   - Дали да има ограничени в броя на записите
      *
      * @return array
      */
@@ -229,7 +237,7 @@ class blast_EmailSend extends core_Detail
     /**
      * Връща данните за подаденот id
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
@@ -320,9 +328,9 @@ class blast_EmailSend extends core_Detail
     /**
      * Връща прогреса на изпращанията
      *
-     * @param integer $emailId
+     * @param int $emailId
      *
-     * @return integer
+     * @return int
      */
     public static function getSendingProgress($emailId)
     {
@@ -387,6 +395,7 @@ class blast_EmailSend extends core_Detail
             if ($mvc->haveRightFor('stop', $rec)) {
                 $stopUrl = array($mvc, 'stop', $rec->id, 'ret_url' => true);
             }
+            
             // Бутон за спиране
             $row->stateAct = ht::createBtn('Спиране', $stopUrl, false, false, 'title=Прекратяване на изпращане към този имейл');
         } else {
@@ -394,6 +403,7 @@ class blast_EmailSend extends core_Detail
             if ($mvc->haveRightFor('activate', $rec)) {
                 $activateUrl = array($mvc, 'activate', $rec->id, 'ret_url' => true);
             }
+            
             // Бутон за активиране
             $row->stateAct = ht::createBtn('Активиране', $activateUrl, false, false, 'title=Започване на изпращане към този имейл');
             

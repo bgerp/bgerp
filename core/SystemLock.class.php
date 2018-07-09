@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * По подразбиране 120 секунди заключване на системата
  */
@@ -12,26 +13,29 @@ defIfNot('BGERP_SYSTEM_LOCK_TIME', 120);
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_SystemLock
 {
     public static $isLocked = false;
-
+    
+    
     /**
      * Връща пътя към временния файл
      */
     public static function getPath()
     {
         $file = str_replace('/', DIRECTORY_SEPARATOR, EF_TEMP_PATH . '/' . 'systemLock_' . md5(__FILE__) . '.txt');
-         
+        
         return $file;
     }
-
-
+    
+    
     /**
      * Запис в стъп-лога
      */
@@ -39,20 +43,20 @@ class core_SystemLock
     {
         $setupLockFile = self::getPath();
         $startTime = time();
-
+        
         if ($str = @file_get_contents($setupLockFile)) {
             list($startTimeEx, $lockTimeEx, $msgEx) = explode("\n", $str, 3);
             if ($startTimeEx > 0 && ($startTime - $startTimeEx) < $time * 1.2) {
                 $startTime = $startTimeEx;
             }
         }
-
+        
         @file_put_contents($setupLockFile, "{$startTime}\n{$time}\n{$msg}");
         
         self::$isLocked = true;
     }
-
-
+    
+    
     /**
      * Изчиства файла за сетъп-лог
      */
@@ -64,8 +68,8 @@ class core_SystemLock
             self::$isLocked = false;
         }
     }
-
-
+    
+    
     /**
      * Дали сетъп-лога е активен и не трябва да се изпълняват ивенти?
      */
@@ -77,11 +81,11 @@ class core_SystemLock
             $at = time() - filemtime($setupLockFile);
             
             list($startTime, $lockTime, $msg) = explode("\n", @file_get_contents($setupLockFile), 3);
-    
+            
             if (!$lockTime > 0) {
                 $lockTime = BGERP_SYSTEM_LOCK_TIME;
             }
-
+            
             if ($at >= 0 && $at < $lockTime) {
                 
                 return true;
@@ -90,8 +94,8 @@ class core_SystemLock
             }
         }
     }
-
-
+    
+    
     /**
      * Дали сетъп-лога е активен и не трябва да се изпълняват ивенти?
      */
@@ -103,13 +107,13 @@ class core_SystemLock
             header('HTTP/1.1 503 Service Temporarily Unavailable');
             header('Status: 503 Service Temporarily Unavailable');
             header('Retry-After: ' . ($lockTime + 100));
-
+            
             if (strtoupper($_SERVER['REQUEST_METHOD']) == 'GET') {
                 $refresh = '<meta http-equiv="refresh" content="1">';
             }
-
+            
             $leftMin = round(($lockTime - (time() - $startTime)) / 60);
-
+            
             if ($leftMin == 1) {
                 $after = 'минута';
                 $afterEn = 'а minute';

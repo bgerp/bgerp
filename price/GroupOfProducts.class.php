@@ -1,24 +1,23 @@
 <?php
 
 
-
 /**
  * Ценови групи
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  * @title     Ценови групи
  */
 class price_GroupOfProducts extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -35,13 +34,13 @@ class price_GroupOfProducts extends core_Detail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext';
-                    
- 
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'groupId, productId, validFrom, createdBy, createdOn';
-        
+    
     
     /**
      * Кой може да го промени?
@@ -54,7 +53,7 @@ class price_GroupOfProducts extends core_Detail
      */
     public $canAdd = 'priceMaster,ceo';
     
-        
+    
     /**
      * Кой може да го изтрие?
      */
@@ -71,14 +70,14 @@ class price_GroupOfProducts extends core_Detail
      * Поле - ключ към мастера
      */
     public $masterKey = 'productId';
-   
-
+    
+    
     /**
      * Променлива за кеширане на актуалната информация, кой продукт в коя група е;
      */
     public static $products = array();
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -88,8 +87,8 @@ class price_GroupOfProducts extends core_Detail
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,silent,remember');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|21:00)', 'caption=В сила от');
     }
-
-
+    
+    
     /**
      * Връща групата на продукта към посочената дата
      */
@@ -107,8 +106,8 @@ class price_GroupOfProducts extends core_Detail
             return $rec->groupId;
         }
     }
-
-
+    
+    
     /**
      * Връща масив групите на всички всички продукти към определената дата
      * $productId => $groupId
@@ -152,8 +151,8 @@ class price_GroupOfProducts extends core_Detail
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
         $data->query->orderBy('validFrom,id', 'DESC');
     }
-
-
+    
+    
     /**
      * Извиква се след обработка на ролите
      */
@@ -176,14 +175,14 @@ class price_GroupOfProducts extends core_Detail
         }
     }
     
-
+    
     /**
      * Подготвя формата за въвеждане на групи на продукти
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $rec = $data->form->rec;
-
+        
         if (!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
@@ -214,7 +213,7 @@ class price_GroupOfProducts extends core_Detail
                 if (is_object($product)) {
                     continue;
                 }
-                 
+                
                 if ($groupId = self::getGroup($id, $now)) {
                     $groupTitle = price_Groups::fetchField($groupId, 'title');
                     $product .= ' -- ' . tr('група') . " {$groupTitle}";
@@ -225,7 +224,7 @@ class price_GroupOfProducts extends core_Detail
         }
     }
     
-
+    
     /**
      * След подготовката на заглавието на формата
      */
@@ -258,13 +257,13 @@ class price_GroupOfProducts extends core_Detail
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-
+            
             $now = dt::verbal2mysql();
             
             if (!$rec->validFrom) {
                 $rec->validFrom = $now;
             }
-
+            
             if ($rec->validFrom < $now) {
                 $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
             }
@@ -275,7 +274,7 @@ class price_GroupOfProducts extends core_Detail
         }
     }
     
-
+    
     /**
      * Връща съответния мастер
      */
@@ -285,21 +284,21 @@ class price_GroupOfProducts extends core_Detail
             
             return $rec->_masterMvc;
         }
-
+        
         if ($rec->groupId && !$rec->productId) {
             
             return cls::get('price_Groups');
         }
-
+        
         if ($rec->productId) {
             
             return cls::get('cat_Products');
         }
-
+        
         return parent::getMasterMvc_($rec);
     }
     
-
+    
     /**
      * Връща masterKey-а
      */
@@ -309,12 +308,12 @@ class price_GroupOfProducts extends core_Detail
             
             return $rec->_masterKey;
         }
-
+        
         if ($rec->groupId && !$rec->productId) {
             
             return 'groupId';
         }
-
+        
         if ($rec->productId) {
             
             return 'productId';
@@ -323,13 +322,14 @@ class price_GroupOfProducts extends core_Detail
         return parent::getMasterKey_($rec);
     }
     
-
+    
     /**
      * След подготовка на записите във вербален вид
      */
     public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
     {
         if (!$data->rows) {
+            
             return;
         }
         
@@ -353,7 +353,7 @@ class price_GroupOfProducts extends core_Detail
                 $row->ROW_ATTR['class'] = 'state-draft';
             } else {
                 $row->ROW_ATTR['class'] = 'state-closed';
-
+                
                 if (!isset($currentGroupId) || $rec->validFrom > $data->recs[$currentGroupId]->validFrom) {
                     $currentGroupId = $id;
                 }
@@ -386,7 +386,7 @@ class price_GroupOfProducts extends core_Detail
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
         $this->invoke('AfterPrepareListRows', array($data));
-           
+        
         if ($this->haveRightFor('add', (object) array('productId' => $data->masterId))) {
             $pInfo = cat_Products::getProductInfo($data->masterId);
             if (isset($pInfo->meta['canSell'])) {
@@ -411,6 +411,7 @@ class price_GroupOfProducts extends core_Detail
     public function renderPriceGroup($data)
     {
         if ($data->dontRender === true) {
+            
             return;
         }
         
@@ -435,7 +436,7 @@ class price_GroupOfProducts extends core_Detail
         
         return $tpl;
     }
-
+    
     
     /**
      * Премахва кеша за интервалите от време
@@ -452,12 +453,12 @@ class price_GroupOfProducts extends core_Detail
     public function prepareProductInGroup($data)
     {
         $data->masterKey = 'groupId';
-         
+        
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
         expect($data->masterMvc instanceof core_Master);
         
-
+        
         // Подготвяме полетата за показване
         $data->listFields = arr::make('productId=Продукт,validFrom=В сила от,createdBy=Създадено||Created->От||By,createdOn=Създадено||Created->На');
         
@@ -466,25 +467,25 @@ class price_GroupOfProducts extends core_Detail
         
         // Подготвяме лентата с инструменти
         $this->prepareListToolbar($data);
-
+        
         $query = self::getQuery();
-         
+        
         $query->orderBy('#validFrom', 'DESC');
         
         $data->recs = array();
         
         $now = dt::verbal2mysql();
-
+        
         $used = $futureUsed = array();
-
+        
         while ($rec = $query->fetch()) {
             if ($rec->validFrom > $now) {
                 $var = 'futureUsed';
             } else {
                 $var = 'used';
             }
-
-
+            
+            
             if (${$var}[$rec->productId]) {
                 continue;
             }
@@ -495,7 +496,7 @@ class price_GroupOfProducts extends core_Detail
             }
             ${$var}[$rec->productId] = true;
         }
- 
+        
         if (count($data->recs)) {
             foreach ($data->recs as $rec) {
                 $data->rows[$rec->id] = self::recToVerbal($rec);
@@ -511,8 +512,8 @@ class price_GroupOfProducts extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Рендира продукт в група
      */

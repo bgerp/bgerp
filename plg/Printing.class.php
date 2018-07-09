@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Printing' - Добавя бутони за печат
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Printing extends core_Plugin
 {
-    
-    
     /**
      * Конструктор
      */
@@ -39,16 +38,16 @@ class plg_Printing extends core_Plugin
         $url = getCurrentUrl();
         
         $url['Printing'] = 'yes';
-
+        
         //self::addCmdParams($url);
         
         $data->toolbar->addBtn(
-        
+            
             'Печат',
-        
+            
             $url,
             'id=btnPrint,target=_blank',
-        
+            
             'ef_icon = img/16/printer.png,title=Печат на страницата'
         
         );
@@ -57,6 +56,7 @@ class plg_Printing extends core_Plugin
     
     /**
      * Добавя бутон за настройки в единичен изглед
+     *
      * @param stdClass $mvc
      * @param stdClass $data
      */
@@ -159,7 +159,7 @@ class plg_Printing extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterRenderListFilter($mvc, &$res, $data)
     {
@@ -217,15 +217,15 @@ class plg_Printing extends core_Plugin
             }
         }
     }
-
-
+    
+    
     /**
      * Добавя ваички командни параметри от GET заявката
      */
     public static function addCmdParams(&$url)
     {
         $cUrl = getCurrentUrl();
-
+        
         if (count($cUrl)) {
             foreach ($cUrl as $param => $value) {
                 if ($param{0} < 'a' || $param{0} > 'z') {

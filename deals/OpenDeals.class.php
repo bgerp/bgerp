@@ -14,15 +14,15 @@
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_OpenDeals extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -101,12 +101,12 @@ class deals_OpenDeals extends core_Manager
         
         $keywords = $object->getHandle();
         $keywords .= ' ' . doc_Folders::fetchField($folderId, 'title');
-         
+        
         $res = plg_Search::normalizeText($keywords);
         $res = ' ' . $res;
     }
-     
-     
+    
+    
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
@@ -132,7 +132,7 @@ class deals_OpenDeals extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
-          
+    
     
     /**
      * Преди подготовка на полетата за показване в списъчния изглед
@@ -157,6 +157,7 @@ class deals_OpenDeals extends core_Manager
     
     /**
      * Записва/Обновява нова отворена сделка
+     *
      * @param stdClass $rec      - запис от sales_Sales или purchase_Requests
      * @param mixed    $docClass - инстанция или име на класа
      */
@@ -236,7 +237,7 @@ class deals_OpenDeals extends core_Manager
                 $icon = $DocClass->getIcon($rec->docId);
                 $attr['ef_icon'] = $icon;
                 $row->docId = ht::createLink($row->docId, array($DocClass, 'single', $rec->docId), null, $attr);
-            
+                
                 // Ако документа е активен и потребителя има достъп до него, може да генерира документи
                 if ($rec->state == 'active') {
                     $row->newDoc = $mvc->getNewDocBtns($docRec->threadId, $docRec->containerId, $DocClass);
@@ -285,9 +286,10 @@ class deals_OpenDeals extends core_Manager
     /**
      * Подготовка бутоните за генериране на нови документи възоснова на сделката
      *
-     * @param  int         $threadId - ид на нишката
-     * @param  core_Master $docClass - инстанция на класа
-     * @return html        $btns
+     * @param int         $threadId - ид на нишката
+     * @param core_Master $docClass - инстанция на класа
+     *
+     * @return html $btns
      */
     private function getNewDocBtns($threadId, $originId, core_Master $docClass)
     {
@@ -312,7 +314,7 @@ class deals_OpenDeals extends core_Manager
                 if ($className != 'purchase_Purchases') {
                     $buttons['ПБД'] = 'bank_IncomeDocuments';
                 }
-                 
+                
                 if ($className != 'sales_Sales') {
                     $buttons['РБД'] = 'bank_SpendingDocuments';
                 }
@@ -355,6 +357,7 @@ class deals_OpenDeals extends core_Manager
     public static function on_BeforeAction(core_Mvc $mvc, &$res, $action)
     {
         if ($action != 'list' && $action != 'default') {
+            
             return;
         }
         $show = Request::get('show', 'enum(store,bank,cash)');

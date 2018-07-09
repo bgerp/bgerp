@@ -1,24 +1,26 @@
 <?php
 
+
 /**
  * Клас 'acc_strategy_Strategy' -
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class acc_strategy_Strategy
 {
-    
-    
     /**
      * Ид на аналитична сметка
      */
     public $accountId;
+    
     
     /**
      * Масив, които ще захрани стратегията с данни
@@ -38,8 +40,8 @@ abstract class acc_strategy_Strategy
     /**
      * Захранване на стратегията с данни
      *
-     * @param double $quantity
-     * @param double $amount
+     * @param float $quantity
+     * @param float $amount
      */
     public function feed($quantity, $amount)
     {
@@ -48,11 +50,13 @@ abstract class acc_strategy_Strategy
         );
     }
     
+    
     /**
      * Извличане на паричната стойност на зададено количество.
      *
-     * @param  double $quantity
-     * @return double
+     * @param float $quantity
+     *
+     * @return float
      */
     abstract public function consume($quantity);
 }

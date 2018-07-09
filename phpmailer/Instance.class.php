@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас от EF, който агрегира PHP Mailer Lite
  *
  *
  * @category  vendors
  * @package   phpmailer
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class phpmailer_Instance extends core_BaseClass
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -38,6 +37,7 @@ class phpmailer_Instance extends core_BaseClass
                 'allow_self_signed' => true
             )
         );
+        
         //TODO: да се сложи в конфигурацията?
         
         // Задаваме стойностите от конфигурацията
@@ -80,7 +80,7 @@ class phpmailer_Instance extends core_BaseClass
                 $PML->{$name} = $value;
             }
         }
- 
+        
         // Връщаме създадения обект
         return $PML;
     }

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'cond_PaymentMethods' - Начини на плащане
  *
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_PaymentMethods extends core_Master
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -45,8 +44,8 @@ class cond_PaymentMethods extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -111,7 +110,7 @@ class cond_PaymentMethods extends core_Master
         
         // Име на метода за плащане
         $this->FLD('name', 'varchar', 'caption=Наименование');
-
+        
         // Текстово описание
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
         $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Вид плащане');
@@ -137,40 +136,41 @@ class cond_PaymentMethods extends core_Master
         
         $this->setDbUnique('sysId');
     }
-
-
+    
+    
     /**
      * Изчисляване на заглавието
      *
-     * @param  core_Mvc $mvc
-     * @param  stdClass $rec
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
      * @return void
      */
     protected static function on_CalcTitle($mvc, $rec)
     {
         if ($rec->name) {
             $rec->title = tr($rec->name);
-
+            
             return;
         }
-
+        
         Mode::push('text', 'plain');
-
+        
         if ($rec->downpayment) {
             $title .= round($rec->downpayment * 100, 2). '% ' . tr('авансово||downpayment');
         }
-
+        
         if ($rec->paymentBeforeShipping) {
             $title .= ($title ? ', ' : '') . round($rec->paymentBeforeShipping * 100, 2). '% ' . tr('преди експедиция||before shipment');
         }
-
+        
         if ($rec->paymentOnDelivery) {
             $title .= ($title ? ', ' : '') . round($rec->paymentOnDelivery * 100, 2) . '% ' . tr('при доставка||after delivery');
         }
         
         if ($rec->timeBalancePayment) {
             $title .= ($title ? ', ' : '') .  round((1 - $rec->downpayment - $rec->paymentBeforeShipping - $rec->paymentOnDelivery) * 100, 2) . '% ' . tr('до||in') . ' ' . $mvc->getVerbal($rec, 'timeBalancePayment') . ' ' . $mvc->getVerbal($rec, 'eventBalancePayment');
-
+            
             if ($rec->type && $rec->type != 'bank') {
                 $title .= ', ' . mb_strtolower($mvc->getVerbal($rec, 'type'));
             }
@@ -179,9 +179,9 @@ class cond_PaymentMethods extends core_Master
         if ($rec->discountPercent) {
             $title .= ($title ? ', ' : '') . tr('отстъпка||discount') . ' ' . round($rec->discountPercent * 100, 2) . '% ' . tr('при цялостно плащане до||if paid in full within') . ' ' . $mvc->getVerbal($rec, 'discountPeriod');
         }
-
+        
         $rec->title = $title;
-
+        
         Mode::pop('text');
     }
     
@@ -194,18 +194,20 @@ class cond_PaymentMethods extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             $total = $rec->downpayment + $rec->paymentBeforeShipping + $rec->paymentOnDelivery;
-             
+            
             if ($total > 1) {
                 $form->setError('downpayment,paymentBeforeShipping,paymentOnDelivery', 'Въведените проценти не бива да надвишават 100%');
             }
         }
     }
     
-
+    
     /**
      * Дали подадения метод е Наложен платеж (Cash on Delivery)
-     * @param  mixed   $payment - ид или име на метод
-     * @return boolean
+     *
+     * @param mixed $payment - ид или име на метод
+     *
+     * @return bool
      */
     public static function isCOD($payment)
     {
@@ -224,9 +226,11 @@ class cond_PaymentMethods extends core_Master
     
     /**
      * Връща масив съдържащ плана за плащане
-     * @param int    $pmId   - ид на метод
-     * @param double $amount - сума
+     *
+     * @param int   $pmId   - ид на метод
+     * @param float $amount - сума
      * @param invoiceDate - дата на фактуриране (ако няма е датата на продажбата)
+     *
      * @return array $res - масив съдържащ информация за плащането
      *
      * 		['downpayment'] 		      - сума за авансово плащане
@@ -243,15 +247,15 @@ class cond_PaymentMethods extends core_Master
         if ($rec->downpayment) {
             $res['downpayment'] = $rec->downpayment * $amount;
         }
-
+        
         if ($rec->paymentBeforeShipping) {
             $res['paymentBeforeShipping'] = $rec->paymentBeforeShipping * $amount;
         }
-
+        
         if ($rec->paymentOnDelivery) {
             $res['paymentOnDelivery'] = $rec->paymentOnDelivery * $amount;
         }
-
+        
         $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipping - $rec->downpayment;
         $paymentAfterInvoice = round($paymentAfterInvoice * $amount, 4);
         $res['timeBalancePayment'] = $rec->timeBalancePayment;
@@ -265,11 +269,11 @@ class cond_PaymentMethods extends core_Master
         if ($rec->sysId == 'COD') {
             $res['deadlineForBalancePayment'] = dt::verbal2mysql($invoiceDate, false);
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Подготвя условията за плащане
      */
@@ -299,9 +303,10 @@ class cond_PaymentMethods extends core_Master
     /**
      * Дали платежния план е просрочен
      *
-     * @param  array   $payment    - платежния план (@see static::getPaymentPlan)
-     * @param  double  $restAmount - оставаща сума за плащане
-     * @return boolean
+     * @param array $payment    - платежния план (@see static::getPaymentPlan)
+     * @param float $restAmount - оставаща сума за плащане
+     *
+     * @return bool
      */
     public static function isOverdue($payment, $restAmount)
     {
@@ -328,8 +333,10 @@ class cond_PaymentMethods extends core_Master
     
     /**
      * Дали платежния метод има авансова част
-     * @param  int     $id - ид на метод
-     * @return boolean
+     *
+     * @param int $id - ид на метод
+     *
+     * @return bool
      */
     public static function hasDownpayment($id)
     {
@@ -372,9 +379,9 @@ class cond_PaymentMethods extends core_Master
             8 => 'discountPeriod',
             9 => 'type',
         );
-            
+        
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-
+        
         $res .= $cntObj->html;
     }
     
@@ -382,19 +389,22 @@ class cond_PaymentMethods extends core_Master
     /**
      * Връща очакваното авансово плащане
      *
-     * @param  int    $id     - ид на платежен метод
-     * @param  double $amount - сума
-     * @return double $amount - сумата на авансовото плащане
+     * @param int   $id     - ид на платежен метод
+     * @param float $amount - сума
+     *
+     * @return float $amount - сумата на авансовото плащане
      */
     public static function getDownpayment($id, $amount)
     {
         // Ако няма ид, няма очакван аванс
         if (!$id) {
+            
             return;
         }
         
         // Ако сумата е 0, няма очакван аванс
         if ($amount == 0) {
+            
             return;
         }
         
@@ -404,6 +414,7 @@ class cond_PaymentMethods extends core_Master
         
         // Ако няма авансово плащане в метода, няма очакван аванс
         if (empty($rec->downpayment)) {
+            
             return;
         }
         
@@ -429,8 +440,9 @@ class cond_PaymentMethods extends core_Master
     /**
      * Има ли възможност за онлайн плаюане
      *
-     * @param  int     $id
-     * @return boolean
+     * @param int $id
+     *
+     * @return bool
      */
     public static function doRequireOnlinePayment($id)
     {
@@ -442,7 +454,8 @@ class cond_PaymentMethods extends core_Master
     /**
      * Какво е урл-то за онлайн плащане
      *
-     * @param  int   $id
+     * @param int $id
+     *
      * @return array
      */
     public static function getOnlinePaymentUrl($id)

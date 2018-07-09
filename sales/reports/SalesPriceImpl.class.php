@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка
  * по отклоняващи се цени в продажбите
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_reports_SalesPriceImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -39,7 +38,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
      * Брой записи на страница
      */
     public $listItemsPerPage = 50;
-
+    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -51,7 +50,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         $form->FLD('from', 'date(allowEmpty)', 'caption=От,input,mandatory');
         $form->FLD('to', 'date(allowEmpty)', 'caption=До,input,mandatory');
         $form->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,input');
-
+        
         $form->FLD('orderState', 'set(active=Активно,draft=Чакащо,closed=Приключено,rejected=Оттеглено)', 'caption=Състояние,formOrder=110000,maxColumns=2');
         $form->FLD('orderBy', 'enum(,ASC=Възходящ,DESC=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
         
@@ -66,21 +65,20 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-        
         // Дефолт периода е текущия ден
         $today = dt::today();
-         
+        
         $form->setDefault('from', date('Y-m-01', strtotime('-1 months', dt::mysql2timestamp(dt::now()))));
         $form->setDefault('to', dt::addDays(-1, $today));
         
         $form->setDefault('orderBy', 'ASC');
-         
+        
         $this->inputForm($form);
         
         $this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
-
-
+    
+    
     /**
      * Проверява въведените данни
      *
@@ -101,8 +99,8 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
             }
         }
     }
-
-
+    
+    
     /**
      * Подготвя вътрешното състояние, на база въведените данни
      *
@@ -123,16 +121,16 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
             $currArr[$currency][] = $i;
             $currCode[$i] = $currency;
         }
-         
+        
         $currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId(dt::now()), 'code');
         
         $data->currencyNow = $currencyNow;
-
+        
         // Правим заявка към "Продажбите", "Предавателните протоколи", "Експедиционните нареждания"
         $querySales = sales_Sales::getQuery();
         $queryServices = sales_Services::getQuery();
         $queryShipmentOrders = store_ShipmentOrders::getQuery();
-
+        
         // Ако потребителя е избрал дадено състояние
         // генерираме заявките
         if (isset($data->rec->orderState)) {
@@ -140,10 +138,10 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
             
             $querySales->where("(#valior >= '{$data->rec->from}' AND #valior <= '{$data->rec->to}')");
             $querySales->whereArr('state', $states, true, false);
-                    
+            
             $queryServices->where("(#valior >= '{$data->rec->from}' AND #valior <= '{$data->rec->to}')");
             $queryServices->whereArr('state', $states, true, false);
-                    
+            
             $queryShipmentOrders->where("(#valior >= '{$data->rec->from}' AND #valior <= '{$data->rec->to}')");
             $queryShipmentOrders->whereArr('state', $states, true, false);
         }
@@ -155,24 +153,24 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
             $querySales->where("(#valior >= '{$data->rec->from}' AND #valior <= '{$data->rec->to}') AND #dealerId = '{$data->rec->dealer}'");
             $querySales->whereArr('state', $states, true, false);
         }
-
+        
         // Ако нищо не е избрано
         // генерираме заявките
         $querySales->where("#valior >= '{$data->rec->from}' AND #valior <= '{$data->rec->to}'");
         $queryServices->where("#valior >= '{$data->rec->from}' AND #valior <= '{$data->rec->to}'");
         $queryShipmentOrders->where("#valior >= '{$data->rec->from}' AND #valior <= '{$data->rec->to}'");
-
+        
         $listToCustomers = cls::get('price_ListToCustomers');
         
         $recSaleDetails = '';
-
+        
         // Обикалям по всички "Продажби"
         while ($recSale = $querySales->fetch()) {
             // намираме на продажбата съответния детайл
             $query = sales_SalesDetails::getQuery();
             $query->where("#saleId = '{$recSale->id}'");
             $priceInfo = '';
-
+            
             // Обикаляме по всеки детайл и намираме
             // изчислената цена от компютъра
             while ($recSaleDetails = $query->fetch()) {
@@ -185,7 +183,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
                                                                  $recSaleDetails->quantity,
                                                                  $recSale->valior
                     );
-            
+                    
                     // Добавяме резултата в масив
                     // типа на документа
                     // датата
@@ -196,13 +194,13 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
                     // изчислената цена
                     // всеки артикул е нов елемент в масива
                     $data->recs[] = (object) array('docType' => 'sale',
-                                                     'id' => $recSale->id,
-                                                     'valior' => $recSale->valior,
-                                                     'state' => $recSale->state,
-                                                     'article' => $recSaleDetails->productId,
-                                                     'quantity' => $recSaleDetails->quantity,
-                                                     'pricePc' => $priceInfo->price,
-                                                     'price' => $recSaleDetails->price);
+                        'id' => $recSale->id,
+                        'valior' => $recSale->valior,
+                        'state' => $recSale->state,
+                        'article' => $recSaleDetails->productId,
+                        'quantity' => $recSaleDetails->quantity,
+                        'pricePc' => $priceInfo->price,
+                        'price' => $recSaleDetails->price);
                 }
             }
         }
@@ -225,15 +223,16 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
                                                                  $recServicesDetails->quantity,
                                                                  $recServices->valior
                     );
+                    
                     // Добавяме резултата в масив
                     $data->recs[] = (object) array('docType' => 'services',
-                                                     'id' => $recServices->id,
-                                                     'valior' => $recServices->valior,
-                                                     'article' => $recServicesDetails->productId,
-                                                     'price' => $recServicesDetails->price,
-                                                     'quantity' => $recServicesDetails->quantity,
-                                                     'pricePc' => $priceInfo->price,
-                                                     'state' => $recServices->state);
+                        'id' => $recServices->id,
+                        'valior' => $recServices->valior,
+                        'article' => $recServicesDetails->productId,
+                        'price' => $recServicesDetails->price,
+                        'quantity' => $recServicesDetails->quantity,
+                        'pricePc' => $priceInfo->price,
+                        'state' => $recServices->state);
                 }
             }
         }
@@ -256,19 +255,20 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
                                                                  $recShipmentDetails->quantity,
                                                                  $recShipment->valior
                     );
+                    
                     // Добавяме резултата в масив
                     $data->recs[] = (object) array('docType' => 'shipment',
-                                                 'id' => $recShipment->id,
-                                                 'valior' => $recShipment->valior,
-                                                 'article' => $recShipmentDetails->productId,
-                                                 'quantity' => $recShipmentDetails->quantity,
-                                                 'price' => $recShipmentDetails->price,
-                                                 'pricePc' => $priceInfo->price,
-                                                 'state' => $recShipment->state);
+                        'id' => $recShipment->id,
+                        'valior' => $recShipment->valior,
+                        'article' => $recShipmentDetails->productId,
+                        'quantity' => $recShipmentDetails->quantity,
+                        'price' => $recShipmentDetails->price,
+                        'pricePc' => $priceInfo->price,
+                        'state' => $recShipment->state);
                 }
             }
         }
-
+        
         // За всички генерирани елементи
         foreach ($data->recs as $id => $recs) {
             // Ако компютъра не е върнал изчислена цена
@@ -282,7 +282,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
             if (round($recs->price - $recs->pricePc) == 0) {
                 unset($data->recs[$id]);
             }
-
+            
             // Изчисляваме делтата на реда по формулата
             // (продажна-изчислена цена) * количеството
             $delta = $recs->quantity * ($recs->price - $recs->pricePc);
@@ -293,7 +293,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         // Сортираме масива по делтата, като
         // искаме най-отгоре да е най-голямата загуба
         arr::sortObjects($data->recs, 'delta', $data->rec->orderBy);
-
+        
         return $data;
     }
     
@@ -305,24 +305,24 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     {
         // Подготвяме страницирането
         $data = $res;
-         
+        
         $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
-         
+        
         $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
         $data->pager = $pager;
-
+        
         if (count($data->recs)) {
             foreach ($data->recs as $rec) {
                 if (!$pager->isOnPage()) {
                     continue;
                 }
-        
+                
                 $row = $mvc->getVerbal($rec);
-        
+                
                 $data->rows[] = $row;
             }
         }
-
+        
         $res = $data;
     }
     
@@ -335,7 +335,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     public function getReportLayout_()
     {
         $tpl = getTplFromFile('sales/tpl/SalesPriceLayout.shtml');
-         
+        
         return $tpl;
     }
     
@@ -348,30 +348,31 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-  
+        
         $tpl = $this->getReportLayout();
         
         $tpl->replace($this->getReportTitle(), 'TITLE');
-    
+        
         $form = cls::get('core_Form');
-    
+        
         $this->addEmbeddedFields($form);
-    
+        
         $form->rec = $data->rec;
         $form->class = 'simpleForm';
-    
+        
         $tpl->prepend($form->renderStaticHtml(), 'FORM');
-
+        
         $tpl->replace($data->currencyNow, 'currency');
         
         $tpl->placeObject($data->rec);
         
         $fl = cls::get('core_FieldSet');
         $fl->FLD('doc', 'varchar');
-         
-         
+        
+        
         $f = cls::get('core_FieldSet');
         
         $f->FLD('date', 'date');
@@ -399,13 +400,13 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         $data->listFields = array(
-                'date' => 'Дата',
-                'docType' => 'Документ',
-                'article' => 'Артикул',
-                'quantity' => 'Количество',
-                'price' => 'Цена->Продажна',
-                'pricePc' => 'Цена->Изчислена',
-                'delta' => 'Делта',
+            'date' => 'Дата',
+            'docType' => 'Документ',
+            'article' => 'Артикул',
+            'quantity' => 'Количество',
+            'price' => 'Цена->Продажна',
+            'pricePc' => 'Цена->Изчислена',
+            'delta' => 'Делта',
         );
     }
     
@@ -418,13 +419,14 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         $RichtextType = cls::get('type_Richtext');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-    
+        
         $row = new stdClass();
+        
         // Ще оцветим всеки ред в състоянието на записа
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
-
+        
         $row->date = dt::mysql2verbal($rec->valior, 'd.m.Y');
-
+        
         // В зависимост от това, какъв тип е документа
         // генерираме неговите заглавия
         if ($rec->docType == 'sale') {
@@ -438,15 +440,15 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         if ($rec->docType == 'shipment') {
             $row->docType = store_ShipmentOrders::getShortHyperlink($rec->id);
         }
-
+        
         $row->article = cat_Products::getShortHyperlink($rec->article);
-         
+        
         foreach (array('price', 'pricePc', 'delta', 'quantity') as $fld) {
             if (isset($rec->{$fld})) {
                 $row->{$fld} = $Double->toVerbal($rec->{$fld});
             }
         }
-    
+        
         return $row;
     }
     
@@ -459,7 +461,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-
+        
         unset($innerState->recs);
     }
     
@@ -470,7 +472,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->to} 23:59:59";
-         
+        
         return $activateOn;
     }
     
@@ -481,13 +483,13 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     public function getReportTitle()
     {
         $explodeTitle = explode(' » ', $this->title);
-         
+        
         $title = tr("|{$explodeTitle[1]}|*");
-    
+        
         return $title;
     }
     
-
+    
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
      *
@@ -497,35 +499,35 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     public function exportCsv()
     {
         $exportFields = $this->innerState->listFields;
-
+        
         $conf = core_Packs::getConfig('core');
-
+        
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
-
+        
         $csv = '';
-
+        
         foreach ($exportFields as $caption) {
             $header .= $caption. ',';
         }
-
-         
+        
+        
         if (count($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
                 $rCsv = $this->generateCsvRows($rec);
-
+                
                 
                 $csv .= $rCsv;
                 $csv .= "\n";
             }
-
+            
             $csv = $header . "\n" . $csv;
         }
-
+        
         return $csv;
     }
-
+    
     
     /**
      * Ще направим row-овете в CSV формат
@@ -536,17 +538,19 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     {
         $exportFields = $this->innerState->listFields;
         $rec = self::getVerbal($rec);
+        
         //$rec = frame_CsvLib::prepareCsvRows($rec);
-    
+        
         $rCsv = '';
-    
+        
         foreach ($rec as $field => $value) {
             $rCsv = '';
-    
+            
             foreach ($exportFields as $field => $caption) {
                 if ($rec->{$field}) {
                     $value = $rec->{$field};
                     $value = html2text_Converter::toRichText($value);
+                    
                     // escape
                     if (preg_match('/\\r|\\n|,|"/', $value)) {
                         $value = '"' . str_replace('"', '""', $value) . '"';

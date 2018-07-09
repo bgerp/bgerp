@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел  Търговски маршрути
  *
  *
  * @category  bgerp
  * @package   survey
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class survey_Options extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -103,7 +102,7 @@ class survey_Options extends core_Manager
         while ($rec = $query->fetch()) {
             $options .= static::getVerbalOptions($rec);
         }
-
+        
         return $options;
     }
     
@@ -111,6 +110,7 @@ class survey_Options extends core_Manager
     /**
      *
      * Enter description here ...
+     *
      * @param unknown_type $rec
      */
     private function getVerbalOptions($rec)
@@ -164,7 +164,7 @@ class survey_Options extends core_Manager
         $query->where("#alternativeId = {$alternativeId}");
         $query->XPR('totalRate', 'double', 'sum(#value)');
         $query->show('totalRate');
-
+        
         return $query->fetch()->totalRate;
     }
 }

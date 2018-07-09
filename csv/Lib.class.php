@@ -1,22 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'csv_Lib' - Пакет за работа с CSV файлове
  *
  *
  * @category  vendors
  * @package   csv
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class csv_Lib
 {
-        
     /**
      * Импортира CSV файл в указания модел
      */
@@ -24,19 +24,19 @@ class csv_Lib
     {
         // Дефолт стойностите за форматирането по подразбиране
         setIfNot($format['length'], 0);
-
+        
         if (!strlen($format['delimiter'])) {
             $format['delimiter'] = ',';
         }
-
+        
         if (!strlen($format['enclosure'])) {
             $format['enclosure'] = '"';
         }
-
+        
         if (!strlen($format['escape'])) {
             $format['escape'] = '\\';
         }
-
+        
         if (!strlen($format['skip'])) {
             $format['skip'] = '#';
         }
@@ -44,11 +44,11 @@ class csv_Lib
         $firstRow = true;
         $res = (object) array('created' => 0, 'updated' => 0, 'skipped' => 0);
         $fields = arr::make($fields);
-
+        
         $fromZero = !$mvc->fetch('1=1');
         
         $path = getFullPath($file);
-
+        
         expect(($handle = fopen($path, 'r')) !== false);
         
         $closeOnce = false;
@@ -62,13 +62,13 @@ class csv_Lib
             if (!$cRowCnt || ($cRowCnt == 1 && trim($data[0]) == '')) {
                 continue;
             }
-
+            
             // Пропускаме редовете със знака указан в $skip
             if ($data[0]{0} == $format['skip']) {
                 if (strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = true;
                 }
-
+                
                 continue;
             }
             
@@ -101,7 +101,7 @@ class csv_Lib
                     
                     $rec->{$f} = $data[$i];
                 }
-
+                
                 if ($closeOnce) {
                     $rec->state = 'closed';
                     $closeOnce = false;
@@ -126,7 +126,7 @@ class csv_Lib
                 }
                 
                 $conflictFields = array();
-
+                
                 if ($rec->id || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
                     if (!$rec->id) {
                         $rec->id = $exRec->id;
@@ -163,15 +163,15 @@ class csv_Lib
         if (count($recs)) {
             $mvc->saveArray($recs, null, true);
         }
-            
+        
         fclose($handle);
-
+        
         $res->html = self::cntToVerbal($res, $mvc->className);
         
         return $res;
     }
-
-
+    
+    
     /**
      * Функция, която импортира еднократно даден csv файл в даден модел
      */
@@ -185,12 +185,12 @@ class csv_Lib
         
         // Хеша на CSV данните
         $hash = md5_file($filePath);
-
+        
         list($pack, ) = explode('_', $mvc->className);
         
         // Конфигурация на пакета 'lab'
         $conf = core_Packs::getConfig($pack);
-
+        
         $cntObj = new stdClass();
         
         try {
@@ -200,7 +200,7 @@ class csv_Lib
         }
         
         if (($confHash != $hash) || ($delete === 'everytime')) {
- 
+            
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
             if ($delete) {
                 $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`");
@@ -213,11 +213,11 @@ class csv_Lib
         } else {
             $cntObj = (object) array('created' => 0, 'updated' => 0, 'skipped' => 0, 'html' => "\n<li>Пропуснато импортиране в {$mvc->className}, защото няма промяна в CSV файла</li>");
         }
-
+        
         return $cntObj;
     }
-
-
+    
+    
     /**
      * Импортира съдържанието на посочения CSV файл, когато той е променян
      * Преди импортирането изпразва таблицата,
@@ -236,8 +236,8 @@ class csv_Lib
     {
         return self::importOnce($mvc, $file, $fields, $defaults, $format, true, true);
     }
-
-
+    
+    
     /**
      * Връща html вербално представяне на резултата от ::import(...)
      */
@@ -248,19 +248,19 @@ class csv_Lib
         if ($place) {
             $place = " в {$place}";
         }
-
+        
         if ($cntObj->created) {
             $res .= "\n<li style='color:green;'>Създадени са {$cntObj->created} записа{$place}</li>";
         }
-            
+        
         if ($cntObj->updated) {
             $res .= "\n<li style='color:#600;'>Обновени са {$cntObj->updated} записа{$place}</li>";
         }
-            
+        
         if ($cntObj->skipped) {
             $res .= "\n<li>Пропуснати са {$cntObj->skipped} записа{$place}</li>";
         }
-
+        
         return $res;
     }
     
@@ -290,11 +290,11 @@ class csv_Lib
                     }
                 }
             }
-                
+            
             if (empty($retUrl)) {
                 $retUrl = array('Index');
             }
-                
+            
             redirect($retUrl, false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $exportCnt, 'error');
         }
         
@@ -309,11 +309,11 @@ class csv_Lib
         }
         
         $delimiter = str_replace(array('&comma;', 'semicolon', 'colon', '&vert;', '&Tab;', 'comma', 'vertical'), array(',', ';', ':', '|', "\t", ',', '|'), csv_Setup::get('DELIMITER'));
-
+        
         if (strlen($delimiter) > 1) {
             $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
-
+        
         setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
         setIfNot($decPoint, $params['decPoint'], html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', true), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
         setIfNot($dateFormat, $params['dateFormat'], csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
@@ -440,6 +440,7 @@ class csv_Lib
         return $val;
     }
     
+    
     /**
      * Връща масив с данните от CSV стринга
      *
@@ -453,7 +454,7 @@ class csv_Lib
     public static function getCsvRows($csvData, $delimiter = null, $enclosure = null, $firstRow = 'columnNames')
     {
         $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => $firstRow));
-     
+        
         return $rowsArr['data'];
     }
     
@@ -464,8 +465,8 @@ class csv_Lib
      * @param unknown $csvData
      * @param string  $delimiter
      * @param string  $enclosure
-     * @param boolean $firstEmpty
-     * @param boolean $checkErr
+     * @param bool    $firstEmpty
+     * @param bool    $checkErr
      *
      * @return array
      */
@@ -477,7 +478,7 @@ class csv_Lib
             
             return array();
         }
-
+        
         if ($rowsArr['firstRow']) {
             $resArr = (array) $rowsArr['firstRow'];
         } else {
@@ -503,16 +504,16 @@ class csv_Lib
     public static function getCsvRowsFromFile($csvData, $params = array())
     {
         list($handle, $params['delimiter'], $params['enclosure'], $params['firstRow']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
-  
+        
         if ($params['delimiter'] === null) {
             $params['delimiter'] = chr(0);
         }
         if ($params['enclosure'] === null) {
             $params['enclosure'] = chr(1);
         }
-
+        
         setIfNot($params['length'], 0);
-
+        
         setIfNot($params['escape'], '\\');
         setIfNot($params['firstRow'], 'columnNames');
         setIfNot($params['check'], true);
@@ -532,7 +533,7 @@ class csv_Lib
             if (!count($data) || (count($data) == 1 && trim($data[0]) == '')) {
                 continue;
             }
-
+            
             // Пропускаме редовете със знака указан в $skip
             if ($data[0]{0} == $params['skip']) {
                 continue;
@@ -547,7 +548,7 @@ class csv_Lib
                 
                 $oldCnt = $cnt;
             }
-       
+            
             array_unshift($data, '');
             unset($data[0]);
             
@@ -558,13 +559,13 @@ class csv_Lib
                 $resArr['data'][] = $data;
             }
         }
-
+        
         $resArr['params'] = $params;
-       
+        
         return $resArr;
     }
-
-
+    
+    
     public static function getColumnTypes($data)
     {
         $maxRows = 1000;
@@ -575,14 +576,14 @@ class csv_Lib
                 if (strlen($col) == 0) {
                     continue;
                 }
-
+                
                 // Положително цяло число
                 if ($res[$i]['unsigned'] !== false && preg_match('/^[0-9 ]*$/', $col)) {
                     $res[$i]['unsigned'] = true;
                 } else {
                     $res[$i]['unsigned'] = false;
                 }
-
+                
                 // Цяло число
                 if ($res[$i]['int'] !== false && preg_match("/^[\+\-]?[0-9 ]*$/", $col)) {
                     $res[$i]['int'] = true;
@@ -596,30 +597,30 @@ class csv_Lib
                 } else {
                     $res[$i]['money'] = false;
                 }
-
+                
                 // Число
                 if ($res[$i]['number'] !== false && preg_match("/^[\+\-]?[0-9 ]*([\,\.][0-9]*|)$/", $col)) {
                     $res[$i]['number'] = true;
                 } else {
                     $res[$i]['number'] = false;
                 }
-
+                
                 // Процент
                 if ($res[$i]['percent'] !== false && preg_match("/^[\+\-]?[0-9 ]*[\,\.][0-9]*\%$/", $col)) {
                     $res[$i]['percent'] = true;
                 } else {
                     $res[$i]['percent'] = false;
                 }
-
+                
                 // Телефон
-
+                
                 // Код
                 if ($res[$i]['code'] !== false && preg_match("/^[0-9A-Z \-\_]{3,16}$/i", $col)) {
                     $res[$i]['code'] = true;
                 } else {
                     $res[$i]['code'] = false;
                 }
-
+                
                 // Ник
                 
                 // Имейли
@@ -628,7 +629,7 @@ class csv_Lib
                 } else {
                     $res[$i]['email'] = false;
                 }
-
+                
                 // Имейли
                 if ($res[$i]['emails'] !== false && !count(type_Emails::getInvalidEmails($col))) {
                     $res[$i]['emails'] = true;
@@ -636,20 +637,20 @@ class csv_Lib
                     $res[$i]['emails'] = false;
                 }
                 
-
+                
                 // URL
-
+                
                 $res[$i]['minLen'] = $res[$i]['minLen'] ? min($res[$i]['minLen'], strlen($col)) : strlen($col);
                 $res[$i]['maxLen'] = $res[$i]['maxLen'] ? max($res[$i]['maxLen'], strlen($col)) : strlen($col);
             }
-
+            
             if ($maxRows-- == 0) {
                 break;
             }
         }
-       
+        
         $res1 = array();
-
+        
         foreach ($res as $i => $arr) {
             if ($maxRows < 999 && $arr['minLen'] == $arr['maxLen']) {
                 $res1['fixed_' . $i] = true;
@@ -663,11 +664,11 @@ class csv_Lib
                 }
             }
         }
-
+        
         return $res1;
     }
-
-
+    
+    
     /**
      * Функция, която се опитва да анализира CSV файл
      */
@@ -675,7 +676,7 @@ class csv_Lib
     {
         // Колко максимално линии да рзглеждаме
         $maxLinesCheck = 100;
-
+        
         // Махаме BOM, ако има
         $bom = pack('H*', 'EFBBBF');
         $csv = preg_replace("/^${bom}/", '', $csv);
@@ -683,7 +684,7 @@ class csv_Lib
         // Правим новия ред - \n
         $nl = "\n";
         $csv = str_replace(array("\r\n", "\n\r", "\r"), $nl, $csv);
-  
+        
         // Конвертираме към UTF-8
         $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
         
@@ -702,11 +703,11 @@ class csv_Lib
         } else {
             $eArr = array('"', '\'');
         }
-
+        
         $nlCnt = substr_count($csv, $nl);
         
         // $csvSample = implode($nl, array_slice(explode($nl, $csv, $maxLinesCheck * 10 + 1), 0, $maxLinesCheck * 10));
-
+        
         // Запис на файла в паметта
         $fp = fopen('php://memory', 'r+');
         fputs($fp, $csv);
@@ -717,21 +718,21 @@ class csv_Lib
                 if (strpos($csv, $d) === false) {
                     continue;
                 }
-               
+                
                 rewind($fp);
-
+                
                 $res = array();
                 $lCnt = 0;
                 $totalFields = 0;
-
+                
                 // Опитваме да парсираме първите 100 реда
                 while ((($data = fgetcsv($fp, null, $d, $e)) !== false) && ($lCnt <= $maxLinesCheck)) {
- 
+                     
                      // Пропускаме празните линии
                     if (!is_array($data) || !count($data) || (count($data) == 1 && trim($data[0]) == '')) {
                         continue;
                     }
-
+                    
                     $res[] = $data;
                     $totalFields += count($data);
                     $lCnt++;
@@ -740,11 +741,11 @@ class csv_Lib
                 if (!$lCnt) {
                     continue;
                 }
-
+                
                 // Оценка: Броя на редовете и елементите във всеки ред, като се броят само редовете,
                 // които имат брой полета, равен на средния
                 $cellsPerRow = round($totalFields / $lCnt);
-             
+                
                 $points = 0;
                 foreach ($res as $row) {
                     $cnt = count($row);
@@ -762,13 +763,13 @@ class csv_Lib
                     $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res) + min($deCntL, $deCntR) / $nlCnt;
                 }
                 $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res) ;
-       
+                
                 // Среща ли се $е самостоятелно
                 preg_match_all("/[^\\{$d}\\{$e}]\\{$e}[^\\{$d}\\{$e}]/u", $d . str_replace($nl, $d, $csv) . $d, $matches);
                 $soloUse = count($matches[0]);
                 $points -= $soloUse;
                 $points += 0.6 * ($soloUse == 1);
- 
+                
                 if (!isset($best) || $best < $points) {
                     $delimiter = $d;
                     $enclosure = $e;
@@ -794,7 +795,7 @@ class csv_Lib
             foreach ($parse[0] as $i => $c0) {
                 $c1 = $parse[1][$i];
                 $c2 = $parse[2][$i];
-
+                
                 if (strlen(trim($c0)) == 0) {
                     $fr += -1;
                 } elseif (preg_match('/[0-9]/', $c0)) {
@@ -804,7 +805,7 @@ class csv_Lib
                 } elseif (preg_match("/[0-9\@]/", $c1)) {
                     ++$fr;
                 }
-                 
+                
                 if (strlen($c0)) {
                     if ("{$c0}" === "{$c1}") {
                         $fr += -1;
@@ -814,11 +815,11 @@ class csv_Lib
                 }
             }
         }
-  
+        
         return array($fp, $delimiter, $enclosure, $fr > 0 ? 'columnNames' : 'data');
     }
-
-
+    
+    
     /**
      * Определя разделителя на групи
      */
@@ -831,20 +832,20 @@ class csv_Lib
         } else {
             $d = ',';
         }
-
+        
         return $d;
     }
-
-
+    
+    
     // Определяме 4-ките Д,Е,C и Еск които могат да бъдат във файла
     // Рейтингуваме четворките
     // Последователно се пробваме да извадим редовете макс(1000 или Зададените + Офсета)
     // Там, където успеем, обявяваме това за резултата
     // Гледаме дали първия му ред е колони
-
+    
     // Анализираме типовете на колонките, като се опитваме да открием съвпадение
-
-
+    
+    
     public static function parse($csvString, $papams = array())
     {
     }

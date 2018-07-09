@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'doc_Wrapper'
  *
@@ -10,15 +9,16 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class doc_Wrapper extends plg_ProtoWrapper
 {
-    
     /**
      * Описание на опаковката от табове
      */
@@ -104,12 +104,12 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         // Показва таба за Бележки, само ако имаме права за листване
         $this->TAB('doc_Notes', 'Дебъг->Бележки', 'debug');
-             
+        
         // Показва таба за коментари, само ако имаме права за листване
         $this->TAB('doc_Comments', 'Дебъг->Коментари', 'debug');
         
         $this->TAB('doc_View', 'Дебъг->Изгледи', 'debug');
-
+        
         // Показва таба генерирани PDF файлове, ако имаме права
         $this->TAB('doc_PdfCreator', 'Дебъг->PDF файлове', 'debug');
         

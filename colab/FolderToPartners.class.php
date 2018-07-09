@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'colab_FolderToPartners' - Релация между партньори и папки
  *
  *
  * @category  bgerp
  * @package   colab
+ *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class colab_FolderToPartners extends core_Manager
 {
-
-     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -91,10 +90,10 @@ class colab_FolderToPartners extends core_Manager
         // Информация за нишката
         $this->FLD('folderId', 'key2(mvc=doc_Folders, selectSourceArr=colab_FolderToPartners::getFolderOptions, exludeContractors=' . Request::get('contractorId') . ')', 'caption=Папка,silent,input=hidden,after=contractorId,mandatory');
         $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner, selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
-         
+        
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
-
+        
         $this->setDbIndex('contractorId');
         $this->setDbIndex('folderId');
     }
@@ -103,8 +102,9 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Форсира папката като споделена към потребител-партньор
      *
-     * @param  int       $folderId
-     * @param  int|NULL  $userId
+     * @param int      $folderId
+     * @param int|NULL $userId
+     *
      * @return int|FALSE
      */
     public static function force($folderId, $userId = null)
@@ -128,13 +128,15 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Коя е първата споделена папка на контрагент на партньор
      *
-     * @param  int|NULL $userId - ид на партньор
+     * @param int|NULL $userId - ид на партньор
+     *
      * @return NULL|int $folderId - първата споделена папка
      */
     public static function getLastSharedContragentFolder($cu = null)
     {
         $cu = isset($cu) ? $cu : core_Users::getCurrent('id', false);
         if (empty($cu) || !core_Users::isContractor($cu)) {
+            
             return;
         }
         
@@ -153,8 +155,9 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Последната активна папка на потребителя
      *
-     * @param  int      $cu    - потребител
-     * @param  mixed    $class - Клас на корицата
+     * @param int   $cu    - потребител
+     * @param mixed $class - Клас на корицата
+     *
      * @return NULL|int $folderId  - Ид на папка
      */
     private static function getLastSharedFolder($cu, $class)
@@ -185,7 +188,7 @@ class colab_FolderToPartners extends core_Manager
                         $folderId = $cRec->folderId;
                     }
                 }
-        
+                
                 if (!$folderId) {
                     // След това е папката, в която има последно движение
                     $fQuery = doc_Folders::getQuery();
@@ -200,7 +203,7 @@ class colab_FolderToPartners extends core_Manager
                 }
             }
         }
-         
+        
         if (!empty($folderId) && !colab_Threads::haveRightFor('list', (object) array('folderId' => $folderId), $cu)) {
             $folderId = null;
         }
@@ -212,11 +215,11 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Връща опциите за папки
      *
-     * @param array              $params
-     * @param NULL|integer       $limit
-     * @param string             $q
-     * @param NULL|integer|array $onlyIds
-     * @param boolean            $includeHiddens
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|int|array $onlyIds
+     * @param bool           $includeHiddens
      *
      * @return array
      */
@@ -287,7 +290,7 @@ class colab_FolderToPartners extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = $data->form;
-
+        
         if (isset($form->rec->contractorId)) {
             $form->setReadOnly('contractorId');
             $form->setField('folderId', 'input');
@@ -297,7 +300,7 @@ class colab_FolderToPartners extends core_Manager
                 expect($coverClassId = request::get('coverClassId', 'key(mvc=core_Classes)'));
                 $coverName = cls::getClassName($coverClassId);
                 expect($coverId = request::get('coverId', "key(mvc={$coverName})"));
-            
+                
                 $form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
             }
         }
@@ -310,8 +313,8 @@ class colab_FolderToPartners extends core_Manager
             $form->fields['folderId']->type->params['exludeContractors'] = $form->rec->contractorId;
         }
     }
-
-
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
@@ -330,9 +333,10 @@ class colab_FolderToPartners extends core_Manager
     public static function preparePartners($data)
     {
         if (!$data->isCurrent) {
+            
             return;
         }
-
+        
         $data->rows = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
@@ -364,8 +368,8 @@ class colab_FolderToPartners extends core_Manager
             }
         }
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -432,8 +436,9 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Рендира данните за партньорите
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public static function renderPartners($data, &$tpl)
     {
@@ -491,7 +496,7 @@ class colab_FolderToPartners extends core_Manager
     public static function callback_Createnewcontractor($data)
     {
         Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail', 'userNames'));
- 
+        
         redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'userNames' => $data['userNames'], 'fromEmail' => true));
     }
     
@@ -533,7 +538,7 @@ class colab_FolderToPartners extends core_Manager
         core_Lg::push(drdata_Countries::getLang($companyRec->country));
         
         $subject = tr('Създайте нов акаунт в') . ' ' . core_Setup::get('EF_APP_TITLE', true);
-
+        
         $form->setDefault('subject', $subject);
         
         $placeHolder = '{{' . tr('линк||link') . '}}';
@@ -559,14 +564,14 @@ class colab_FolderToPartners extends core_Manager
         core_Lg::pop();
         
         $form->input();
-
+        
         // Проверка за грешки
         if ($form->isSubmitted()) {
             if (!strpos($form->rec->body, $placeHolder)) {
                 $form->setError('body', 'Липсва плейсхолдера на линка за регистриране|* - ' . $placeHolder);
             }
         }
-
+        
         if ($form->isSubmitted()) {
             $form->rec->companyId = $companyId;
             $form->rec->placeHolder = $placeHolder;
@@ -578,7 +583,7 @@ class colab_FolderToPartners extends core_Manager
         
         $form->toolbar->addSbBtn('Изпращане', 'save', 'id=save, ef_icon = img/16/lightning.png', 'title=Изпращане на имейл за регистрация на парньори');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
-         
+        
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
         
@@ -608,19 +613,19 @@ class colab_FolderToPartners extends core_Manager
         }
         
         $PML->Encoding = 'quoted-printable';
-       
+        
         $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => ''), 604800);
         
         $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
-
+        
         Mode::push('text', 'plain');
         $bodyAlt = cls::get('type_Richtext')->toVerbal($rec->body);
         Mode::pop('text');
- 
+        
         Mode::push('text', 'xhtml');
         $bodyTpl = cls::get('type_Richtext')->toVerbal($rec->body);
         email_Sent::embedSbfImg($PML);
-   
+        
         Mode::pop('text');
         
         $PML->AltBody = $bodyAlt;
@@ -628,7 +633,7 @@ class colab_FolderToPartners extends core_Manager
         $PML->IsHTML(true);
         $PML->Subject = str::utf2ascii($rec->subject);
         $PML->AddCustomHeader("Customer-Origin-Email: {$rec->to}");
-         
+        
         $files = fileman_RichTextPlg::getFiles($rec->body);
         
         // Ако има прикачени файлове, добавяме ги
@@ -828,7 +833,7 @@ class colab_FolderToPartners extends core_Manager
         core_Form::preventDoubleSubmission($tpl, $form);
         
         core_Lg::pop();
-
+        
         return $tpl;
     }
     

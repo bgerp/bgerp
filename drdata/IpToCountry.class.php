@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_IpToCountry' -
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_IpToCountry extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -60,10 +59,10 @@ class drdata_IpToCountry extends core_Manager
             1 => 'maxIp',
             4 => 'country2'
         );
-
+        
         // Импортираме данните
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
-
+        
         $res .= $cntObj->html;
     }
     

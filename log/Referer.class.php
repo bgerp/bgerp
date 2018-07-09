@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Referer extends core_Master
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -84,7 +83,7 @@ class log_Referer extends core_Master
         $this->FLD('brId', 'key(mvc=log_Browsers, select=brid)', 'caption=Браузър');
         $this->FLD('time', 'int', 'caption=Време');
         $this->FLD('ref', 'text', 'caption=Реферер');
-         
+        
         $this->setDbUnique('ipId, brId, time');
     }
     
@@ -92,11 +91,11 @@ class log_Referer extends core_Master
     /**
      * Добавя запис за реферер
      *
-     * @param integer $ipId
-     * @param integer $bridId
-     * @param integer $time
+     * @param int $ipId
+     * @param int $bridId
+     * @param int $time
      *
-     * @return NULL|integer
+     * @return NULL|int
      */
     public static function addReferer($ipId = null, $bridId = null, $time = null)
     {
@@ -137,9 +136,9 @@ class log_Referer extends core_Master
     /**
      * Връща записа за реферера
      *
-     * @param integer $ipId
-     * @param integer $bridId
-     * @param integer $time
+     * @param int $ipId
+     * @param int $bridId
+     * @param int $time
      *
      * @return object|FALSE
      */
@@ -154,12 +153,12 @@ class log_Referer extends core_Master
     /**
      * Изтрива записа за реферера
      *
-     * @param integer $ipId
-     * @param integer $bridId
-     * @param integer $time
-     * @param boolean $check
+     * @param int  $ipId
+     * @param int  $bridId
+     * @param int  $time
+     * @param bool $check
      *
-     * @return integer
+     * @return int
      */
     public static function delRefRec($ipId, $bridId, $time, $check = true)
     {

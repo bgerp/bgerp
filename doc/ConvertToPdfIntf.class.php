@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_ConvertToPdfIntf
 {
-    
-    
     /**
      * Конвертира html към pdf файл
      *
@@ -34,7 +34,7 @@ class doc_ConvertToPdfIntf
     /**
      * Проверява дали програмата е инсталирана и работи
      *
-     * @return boolean
+     * @return bool
      */
     public function isEnabled()
     {

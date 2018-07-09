@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'plg_RemoveCache' - Премахва записите в кеша, свързани с редактивани или изтривани записи
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_RemoveCache extends core_Plugin
 {
-    
     /**
      * Задава за премахване записите от кеша, които съответстват на $rec
      */
@@ -25,8 +25,8 @@ class plg_RemoveCache extends core_Plugin
         $key = implode('|', $rem);
         $mvc->removeCache[$key] = $rem;
     }
-
-
+    
+    
     /**
      * Извиква се след успешен запис в модела
      */
@@ -35,7 +35,7 @@ class plg_RemoveCache extends core_Plugin
         self::setToRemove($mvc, $rec);
     }
     
-
+    
     /**
      * Преди изтриване на запис
      */
@@ -46,7 +46,7 @@ class plg_RemoveCache extends core_Plugin
             self::setToRemove($mvc, $rec);
         }
     }
-
+    
     
     /**
      * Обновява броя на използваните места на шътдаун

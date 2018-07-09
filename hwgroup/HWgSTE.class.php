@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * Драйвер за IP сензор HWg-STE - мери температура и влажност
  *
  *
  * @category  bgerp
  * @package   hwgroup
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Сензори HWgSTE
  */
 class hwgroup_HWgSTE extends sens2_ProtoDriver
 {
-    
     /**
      * Заглавие на драйвера
      */
     public $title = 'HWgSTE';
-
-
+    
+    
     /**
      * Описание на входовете
      */
@@ -30,8 +30,8 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
         'T' => array('caption' => 'Температура', 'uom' => 'ºC', 'xmlPath' => '/SenSet[1]/Entry[1]/Value[1]'),
         'Hr' => array('caption' => 'Влажност', 'uom' => '%', 'xmlPath' => '/SenSet[1]/Entry[2]/Value[1]'),
     );
-
-
+    
+    
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
@@ -43,11 +43,11 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
     {
         $form->FNC('ip', 'ip', 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory');
-
+        
         // Параметри по подразбиране за настройките
         $form->setDefault('port', 80);
     }
-
+    
     
     /**
      * Прочита стойностите от сензорните входове
@@ -82,7 +82,7 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
         foreach ($this->inputs as $param => $details) {
             $res[$param] = $parsed[$details['xmlPath']];
         }
-                
+        
         return $res;
     }
 }

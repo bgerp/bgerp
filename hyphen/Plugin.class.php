@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   hyphen
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hyphen_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Минималната дължина на стринга, над която ще се хифенира стринга
      */
@@ -81,10 +81,10 @@ class hyphen_Plugin extends core_Plugin
     /**
      * Хифенира стринговете
      *
-     * @param string  $string
-     * @param integer $minLen
-     * @param integer $maxLen
-     * @param string  $hyphenStr
+     * @param string $string
+     * @param int    $minLen
+     * @param int    $maxLen
+     * @param string $hyphenStr
      *
      * @return string
      */
@@ -180,7 +180,7 @@ class hyphen_Plugin extends core_Plugin
             
             // Ако флага все още не е вдигнат
             if (!$addHyphen) {
-                    
+                
                 // Ако брояча е над втория допустим праг, задължително вдигаме флага
                 if ($i > $maxLen) {
                     

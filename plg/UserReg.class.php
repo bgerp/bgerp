@@ -77,16 +77,16 @@ defIfNot(
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_UserReg extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след изпълняването на екшън
      */
@@ -231,7 +231,7 @@ class plg_UserReg extends core_Plugin
                     
                     $conf = core_Packs::getConfig('core');
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
-
+                    
                     redirect(array('Index'), false, '|' . $msg->getContent());
                 }
             }
@@ -265,7 +265,7 @@ class plg_UserReg extends core_Plugin
             $form = cls::get('core_Form');
             
             $form->setAction(array('core_Users', 'changePass'));
-                        
+            
             //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
             if (EF_USSERS_EMAIL_AS_NICK) {
                 //Ако използваме имейлите вместо никове, скриваме полето ник
@@ -279,7 +279,7 @@ class plg_UserReg extends core_Plugin
             
             $form->setDefault($nickField, $rec->{$nickField});
             $form->setReadOnly($nickField);
-
+            
             if ($act == 'activate') {
                 // Нова парола и нейния производен ключ
                 $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
@@ -289,7 +289,7 @@ class plg_UserReg extends core_Plugin
                 // Повторение на новата парола
                 $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
                 $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
-
+                
                 $form->title = 'Активиране на вашия достъп до системата';
                 $form->info = tr('За да си активирате достъпа до системата, моля въведете избраната от вас парола в полетата по-долу. Паролата трябва да е поне|* ' .
                 
@@ -303,18 +303,18 @@ class plg_UserReg extends core_Plugin
                 // Повторение на новата парола
                 $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
                 $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
-
+                
                 $form->title = 'Задаване на нова парола';
                 $form->info = tr('За да смените паролата си за достъп до системата, моля въведете новата ' .
                 'парола в полетата по-долу. ' . 'Паролата трябва да е поне|* ' .
                 EF_USERS_PASS_MIN_LEN . ' |символа и да съдържа букви, цифри и други символи.');
             }
-
+            
             core_Users::setUserFormJS($form);
-             
+            
             $form->FNC('id', 'identifier', 'input=hidden');
             $form->FLD('ret_url', 'varchar', 'input=hidden,silent');
-
+            
             $form->toolbar->addSbBtn('Изпрати');
             
             
@@ -322,7 +322,7 @@ class plg_UserReg extends core_Plugin
             
             if ($form->isSubmitted()) {
                 core_Users::calcUserForm($form);
-               
+                
                 if ($pRec->isLenOK == -1) {
                     $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
                 } elseif (!$pRec->passNewHash) {
@@ -353,7 +353,7 @@ class plg_UserReg extends core_Plugin
                     if (!haveRole('executive', $userId)) {
                         core_Users::addRole($userId, 'partner');
                     }
-
+                    
                     redirect(array('core_Users','login', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')));
                 }
             }
@@ -364,7 +364,7 @@ class plg_UserReg extends core_Plugin
                 '.formInfo' => 'max-width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
                 '' => 'margin-top:20px;margin-left:20px;'
             );
-             
+            
             $content = $form->renderHtml(null, $pRec);
             
             return false;
@@ -388,7 +388,7 @@ class plg_UserReg extends core_Plugin
                 if (!$id) {
                     sleep(2);
                     Debug::log('Sleep 2 sec. in' . __CLASS__);
-
+                    
                     $form->setError('email', 'Няма регистриран потребител с този имейл');
                 } else {
                     $rec = $mvc->fetch($id);
@@ -426,20 +426,20 @@ class plg_UserReg extends core_Plugin
             $form->addAttr('email', array('style' => 'width:300px'));
             
             $form->setField('email', 'caption=Имейл');
-
+            
             $content = $form->renderHtml('email,captcha', $rec);
             
             return false;
         } elseif ($act == 'unblock') {
             $rec->state = isset($rec->exState) ? $rec->exState : 'active';
-                
+            
             $mvc->save($rec);
             
             $mvc->logLogin('Отблокиран потребител', $rec->id);
             core_LoginLog::add('unblock', $rec->id);
             
             core_Cache::remove(USERREG_CACHE_TYPE, $id);
-
+            
             redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), true, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
         } elseif ($act == 'unblocklocal' && type_Ip::isLocal()) {
             Request::setProtected('userId');
@@ -450,7 +450,7 @@ class plg_UserReg extends core_Plugin
                 
                 $mvc->logLogin('Отблокиран локален потребител', $rec->id);
                 core_LoginLog::add('unblock', $rec->id);
-
+                
                 redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), true, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
             }
         }
@@ -509,12 +509,12 @@ class plg_UserReg extends core_Plugin
     /**
      * Изпращане на писмо за активиране на сметката
      *
-     * @param core_Users   $mvc
-     * @param NULL|boolean $res
-     * @param stdClass     $rec
-     * @param string       $tpl
-     * @param string       $subject
-     * @param string       $act
+     * @param core_Users $mvc
+     * @param NULL|bool  $res
+     * @param stdClass   $rec
+     * @param string     $tpl
+     * @param string     $subject
+     * @param string     $act
      */
     public static function on_AfterSendActivationLetter($mvc, &$res, $rec, $tpl = USERS_UNBLOCK_EMAIL, $subject = 'Отблокиране на потребител', $act = 'unblock')
     {
@@ -546,7 +546,7 @@ class plg_UserReg extends core_Plugin
         setIfNot($rec1->regLifetime, $expireDate);
         
         setIfNot($rec1->EF_APP_TITLE, core_Setup::get('EF_APP_TITLE', true));
-
+        
         $tpl = new ET($tpl);
         
         $tpl->translate();

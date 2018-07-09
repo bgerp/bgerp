@@ -5,20 +5,22 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Password extends type_Varchar
 {
-    
     /**
      * Служебна константа, за стойност на инпута на паролата
      */
     const EF_PASS_NO_CHANGE = 'no_change';
-
+    
+    
     /**
      * Рендира HTML инпут поле
      */
@@ -46,7 +48,7 @@ class type_Password extends type_Varchar
         }
         
         $this->params['noTrim'] = 'noTrim';
-
+        
         $this->maxFieldSize = 10;
         
         return parent::renderInput_($name, $value, $attr);
@@ -59,9 +61,10 @@ class type_Password extends type_Varchar
     public function fromVerbal($value)
     {
         if (!isset($value) || $value == self::EF_PASS_NO_CHANGE) {
+            
             return;
         }
-                
+        
         return $value;
     }
     
@@ -72,6 +75,7 @@ class type_Password extends type_Varchar
     public function toMysql($value, $db, $notNull, $defValue)
     {
         if ($value === null) {
+            
             return;
         }
         

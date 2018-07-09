@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'ckeditor_Plugin' -
  *
  *
  * @category  vendors
  * @package   ckeditor
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class autosize_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Изпълнява се преди рендирането на input
      */

@@ -19,15 +19,15 @@ defIfNot('MARKETING_INQUIRE_TO_EMAIL', '');
  *
  * @category  bgerp
  * @package   marketing
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class marketing_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -56,8 +56,8 @@ class marketing_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'MARKETING_INQUIRE_FROM_EMAIL' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
-            'MARKETING_INQUIRE_TO_EMAIL' => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
+        'MARKETING_INQUIRE_FROM_EMAIL' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
+        'MARKETING_INQUIRE_TO_EMAIL' => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
     );
     
     
@@ -65,25 +65,25 @@ class marketing_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'marketing_Inquiries2',
-            'marketing_Bulletins',
-            'marketing_BulletinSubscribers',
-        );
-
-        
+        'marketing_Inquiries2',
+        'marketing_Bulletins',
+        'marketing_BulletinSubscribers',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'marketing';
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries2', 'default', 'ceo, marketing'),
-        );
-
+        array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries2', 'default', 'ceo, marketing'),
+    );
+    
     
     /**
      * Инсталиране на пакета

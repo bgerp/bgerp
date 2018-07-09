@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Версия на JS компонента
  */
@@ -26,15 +25,15 @@ defIfNot('AUTOSIZE_MAX_ROWS_NARROW', '400');
  *
  * @category  vendors
  * @package   autosize
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class autosize_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -102,8 +101,8 @@ class autosize_Setup extends core_ProtoSetup
         
         return $html;
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */

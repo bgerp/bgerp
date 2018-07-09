@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_BalanceRepairs extends core_Master
 {
-   
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -128,7 +128,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Дали при възстановяване/контиране/оттегляне да се заключва баланса
      *
-     * @var boolean TRUE/FALSE
+     * @var bool TRUE/FALSE
      */
     public $lockBalances = true;
     
@@ -149,7 +149,7 @@ class acc_BalanceRepairs extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
+    
     
     /**
      * Описание на модела
@@ -192,7 +192,7 @@ class acc_BalanceRepairs extends core_Master
     public static function canAddToFolder($folderId)
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
+        
         return $folderClass == 'doc_UnsortedFolders';
     }
     
@@ -200,19 +200,20 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-    
+        
         // Може да се добавя само към нишка с начало документ 'Приключване на период'
         if ($firstDoc->isInstanceOf('acc_ClosePeriods')) {
             
             return true;
         }
-    
+        
         return false;
     }
     
@@ -234,16 +235,16 @@ class acc_BalanceRepairs extends core_Master
     public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-    
+        
         $row = new stdClass();
-    
+        
         $row->title = $this->getRecTitle($rec);
-    
+        
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-    
+        
         return $row;
     }
     

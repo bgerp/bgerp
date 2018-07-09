@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_RichTextPlg' - Добавя функционалност за поставяне на файлове в type_Richtext
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_RichTextPlg extends core_Plugin
 {
-    
-    
     /**
      * Регулярен израз за намиране на файлове в richText
      */
@@ -62,7 +61,7 @@ class fileman_RichTextPlg extends core_Plugin
             $fileUpload = new ET("<a class=rtbutton title='" . tr('Прикачване на файл') . "' onclick=\"{$js}\">" . tr($btnTitle) . '</a>');
             
             $fileUpload->appendOnce($callback, 'SCRIPTS');
-            
+
 //            $toolbarArr->add($fileUpload, 'TBL_GROUP2');
             
             // Добавяне в групата за добавяне на файлове
@@ -109,7 +108,7 @@ class fileman_RichTextPlg extends core_Plugin
         
         return  $res;
     }
-
+    
     
     /**
      * Съобщението, което ще се показва ако нямаме достъп до обекта
@@ -134,7 +133,7 @@ class fileman_RichTextPlg extends core_Plugin
                 $files[$fh] = strip_tags($matches['fileName'][$id]);
             }
         }
-
+        
         // Намираме всички линкове, които имат линкове към единичния изглед на файловете
         preg_match_all(type_Richtext::URL_PATTERN, $rt, $matches);
         
@@ -162,14 +161,14 @@ class fileman_RichTextPlg extends core_Plugin
             
             // Вземаме URL'то
             $url = rtrim($match, ',.;');
-    
+            
             if (!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
                 $url = 'http://' . $url;
             }
-
+            
             // Ескейпваме
             $result = core_Url::escape($url);
-    
+            
             // Проверяваме дали е локално
             if (core_Url::isLocal($url, $rest)) {
                 
@@ -184,7 +183,7 @@ class fileman_RichTextPlg extends core_Plugin
                         
                         // Вземаме данните за файла
                         $fRec = fileman_Files::fetch($params['id']);
-    
+                        
                         // Добавяме в масива
                         $files[$fRec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
                     }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Ключ към запис от модел, по който се групира друг модел
  *
@@ -12,15 +11,15 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class type_Group extends type_Key
 {
-    
-    
     /**
      * Инициализиране на обекта
      */

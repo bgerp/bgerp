@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'bgerp_plg_Groups' - Поддръжка на групи и групиране
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cat_plg_Grouping extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -58,18 +57,18 @@ class cat_plg_Grouping extends core_Plugin
             // Премахване на лишите или недостъпните id-та
             foreach ($selArr as $i => $ind) {
                 $obj = (object) array('id' => $ind);
-            
+                
                 if (!is_numeric($ind) || !$mvc->haveRightFor('edit', $obj)) {
                     unset($selArr[$i]);
                 }
-            
+                
                 $metaArr = type_Set::toArray($mvc->fetchField($ind, 'meta'));
                 foreach ($metaArr as $m) {
                     if ($metas[$m]) {
                         $canDelMetas[$m]++;
                     }
                 }
-            
+                
                 foreach ($metas as $m => $caption) {
                     if (!$metaArr[$m]) {
                         $canAddMetas[$m]++;
@@ -93,16 +92,16 @@ class cat_plg_Grouping extends core_Plugin
                 $form->setDefault('meta', $metas);
             } else {
                 $form->title = 'Промяна на свойствата на |*' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
-            
+                
                 if (count($canAddMetas)) {
                     $addType = cls::get('type_Set');
-            
+                    
                     foreach ($canAddMetas as $g => $cnt) {
                         $addType->suggestions[$g] = $metas[$g] . " ({$cnt})";
                     }
                     $form->FNC('addMetas', $addType, 'caption=Добавяне->Свойства,input');
                 }
-            
+                
                 if (count($canDelMetas)) {
                     $delType = cls::get('type_Set');
                     foreach ($canDelMetas as $g => $cnt) {
@@ -125,14 +124,14 @@ class cat_plg_Grouping extends core_Plugin
             
             if ($form->isSubmitted()) {
                 $rec = $form->rec;
-            
+                
                 $changed = 0;
-            
+                
                 if ($selArrCnt == 1) {
                     $obj = new stdClass();
                     $obj->id = $id;
                     $obj->meta = $rec->meta;
-            
+                    
                     if ($groups != $rec->meta) {
                         $mvc->save($obj, 'meta');
                         $changed = 1;
@@ -140,21 +139,21 @@ class cat_plg_Grouping extends core_Plugin
                 } else {
                     foreach ($selArr as $id) {
                         $exGroups = $groups = type_Set::toArray($mvc->fetchField($id, 'meta'));
-                            
+                        
                         $groups = array_merge($groups, arr::make($rec->addMetas, true));
                         $groups = array_diff($groups, arr::make($rec->delMetas, true));
-                            
+                        
                         $obj = new stdClass();
                         $obj->id = $id;
                         $obj->meta = cls::get('type_Set')->fromVerbal($groups);
-                            
+                        
                         if ($groups != $exGroups) {
                             $mvc->save($obj, 'meta');
                             $changed++;
                         }
                     }
                 }
-            
+                
                 if (!$changed) {
                     $msg = '|Не бяха променени свойства';
                 } elseif ($changed == 1) {
@@ -162,13 +161,13 @@ class cat_plg_Grouping extends core_Plugin
                 } else {
                     $msg = "|Бяха променени свойствата на|* {$changed} "  . mb_strtolower($mvc->title);
                 }
-            
+                
                 $res = new Redirect($retUrl, $msg);
             } else {
                 $res = $mvc->renderWrapping($form->renderHtml());
                 core_Form::preventDoubleSubmission($res, $form);
             }
-             
+            
             return false;
         }
     }

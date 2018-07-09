@@ -1,31 +1,28 @@
 <?php
 
 
-
 /**
  * Клас 'core_Packs' - Управление на пакети
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Packs extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
     public $title = 'Управление на пакети';
     
     
-    
     public $canAdd = 'no_one';
-    
     
     
     public $canEdit = 'no_one';
@@ -83,7 +80,7 @@ class core_Packs extends core_Manager
         
         // Съхранение на данните за конфигурацията
         $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
-
+        
         $this->setDbUnique('name');
     }
     
@@ -108,7 +105,7 @@ class core_Packs extends core_Manager
                 return true;
             }
         }
-
+        
         if (!isset($isInstalled[$name])) {
             $rec = static::fetch(array("#name = '[#1#]'", $name));
             
@@ -141,7 +138,7 @@ class core_Packs extends core_Manager
         $res = $this->setupPack($pack, 0, true, true, $haveRoleDebug);
         $res .= core_Classes::rebuild();
         $res .= core_Cron::cleanRecords();
-
+        
         $pack = strtolower($pack);
         $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
         $this->logWrite('Инсталиране на пакета', $rec->id);
@@ -164,7 +161,8 @@ class core_Packs extends core_Manager
     /**
      * Деинсталира пакет от системата
      *
-     * @param  string $pack - името на пакета, който ще се деинсталира
+     * @param string $pack - името на пакета, който ще се деинсталира
+     *
      * @return string $res - резултата
      */
     public function deinstall($pack)
@@ -180,14 +178,14 @@ class core_Packs extends core_Manager
         }
         
         $cls = $pack . '_Setup';
-    
+        
         if (cls::load($cls, true)) {
             if ($rec->deinstall != 'yes') {
                 error('@Този пакет не може да бъде премахнат', $pack);
             }
             
             $setup = cls::get($cls);
-    
+            
             if (!method_exists($setup, 'deinstall')) {
                 $res = "<div>Пакета '{$pack}' няма деинсталатор.</div>";
             } else {
@@ -251,23 +249,22 @@ class core_Packs extends core_Manager
         return new Redirect($retUrl, $res);
     }
     
-
-
+    
     public function act_InvalidateMigrations()
     {
         $data = self::getConfig('core')->_data;
         
         $migrations = $nonValid = array();
-
-
+        
+        
         $form = cls::get('core_Form');
         $form->FLD('migrations', 'set()', 'caption=Миграции->Успешни');
         $form->FLD('nonValid', 'set()', 'caption=Миграции->Невалидни');
-
+        
         $rec = $form->input();
         
         $retUrl = getRetUrl();
-         
+        
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($form->isSubmitted()) {
             $inv = arr::make($rec->migrations);
@@ -280,7 +277,7 @@ class core_Packs extends core_Manager
                 $migName = 'migration_' . $key;
                 $data[$migName] = true;
             }
-      
+            
             self::setConfig('core', $data);
         }
         
@@ -306,24 +303,25 @@ class core_Packs extends core_Manager
         } else {
             $form->setField('nonValid', 'input=none');
         }
-
+        
         if (count($migrations) || count($nonValid)) {
             $form->toolbar->addSbBtn('Инвалидирай');
         } else {
             $form->info = 'Все още няма минали миграции';
         }
-
+        
         $form->title = 'Инвалидиране на избраните миграции';
-
+        
         $form->toolbar->addBtn('Отказ', $retUrl);
         
         
         $res = $form->renderHtml();
         
         $this->currentTab = 'Пакети->Миграции';
-
+        
         return $this->renderWrapping($res, $form);
     }
+    
     
     /**
      * Връща масив с имената на всички инсталирани пакети
@@ -543,7 +541,7 @@ class core_Packs extends core_Manager
         
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-                
+        
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = "{$mvc->searchInputField}, state";
@@ -621,14 +619,15 @@ class core_Packs extends core_Manager
         $imageUrl = sbf('img/100/default.png', '');
         
         $filePath = getFullPath("{$rec->name}/icon.png");
-
+        
         if ($filePath) {
             $imageUrl = sbf("{$rec->name}/icon.png", '');
         }
-           
+        
         $row->img = ht::createElement('img', array('src' => $imageUrl, 'alt' => 'icon-' . $rec->name));
-           
+        
         $row->name = new ET('<b>' . $row->name . '</b>');
+        
         // $row->name->append(' ' . str_replace(',', '.', $row->version));
         
         if ($rec->startCtr) {
@@ -734,12 +733,12 @@ class core_Packs extends core_Manager
         static $res;
         
         $me = cls::get('core_Packs');
-
+        
         if (isset($res)) {
             
             return $res;
         }
-      
+        
         if (!$me->db->tableExists($me->dbTableName)) {
             $res = true;
         } elseif (!$me->fetch("#name = 'core'") || (!$me->fetch("#name = '" . EF_APP_CODE_NAME . "'") && cls::load(EF_APP_CODE_NAME . '_Setup', true))) {
@@ -747,11 +746,11 @@ class core_Packs extends core_Manager
         } else {
             $res = false;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Прави начално установяване на посочения пакет. Ако в
      * Setup-а на пакета е указано, че той зависи от други пакети
@@ -766,18 +765,19 @@ class core_Packs extends core_Manager
         
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
-
+        
         // Имената на пакетите са винаги с малки букви
         $pack = strtolower($pack);
         
         // Предпазване срещу рекурсивно зацикляне
         if ($this->alreadySetup[$pack . $force]) {
+            
             return;
         }
         
         // Отбелязваме, че на текущия хит, този пакет е установен
         $this->alreadySetup[$pack . $force] = true;
-
+        
         global $setupFlag;
         
         // Ако е пуснат от сетъп-а записваме в Лог-а
@@ -798,7 +798,7 @@ class core_Packs extends core_Manager
                 return "<h4>Невъзможност да се инсталира <span class=\"debug-error\">{$pack}</span>. " .
                     'Липсва <span class="debug-error">Setup</span> клас.</h4>';
             }
-
+            
             return "<span class='debug-error'>Грешка при инсталиране на пакета '{$pack}'.</span>";
         }
         
@@ -814,7 +814,7 @@ class core_Packs extends core_Manager
                 $res .= $this->setupPack($p, $v, false, $loadData, $verbose);
             }
         }
-
+        
         // Започваме самото инсталиране
         if ($setup->startCtr && !$setupFlag) {
             $res .= '<h2>Инициализиране на пакета "<a href="' .
@@ -822,7 +822,7 @@ class core_Packs extends core_Manager
         } else {
             $res .= "<h2>Инициализиране на пакета \"<b>{$pack}</b>\"&nbsp;";
         }
-
+        
         try {
             $conf = self::getConfig($pack);
             if ($conf->getConstCnt() && !$setupFlag) {
@@ -831,7 +831,7 @@ class core_Packs extends core_Manager
         } catch (core_exception_Expect $e) {
             // Не показваме буотона
         }
-
+        
         $res .= '</h2>';
         
         $res .= '<ul>';
@@ -860,15 +860,16 @@ class core_Packs extends core_Manager
             if ($rec && ($rec->version != $setup->version)) {
                 Request::push(array('Full' => 1), 'full');
             }
- 
+            
             // Правим началното установяване
             $res .= $setup->install();
-
+            
             if ($loadData) {
                 $res .= $setup->loadSetupData();
             }
-
+            
             Request::pop('full');
+            
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
             
@@ -908,7 +909,7 @@ class core_Packs extends core_Manager
         if ($setupFlag) {
             // Махаме <h2> тага на заглавието
             $res = substr($res, strpos($res, '</h2>'), strlen($res));
-
+            
             do {
                 $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND | LOCK_EX);
                 if ($res !== false) {
@@ -919,8 +920,8 @@ class core_Packs extends core_Manager
             
             unset($res);
         }
-
-
+        
+        
         DEBUG::stopTimer("Инициализация на пакет '{$pack}'");
         
         if ($setupFlag && $pack == 'bgerp') {
@@ -932,11 +933,11 @@ class core_Packs extends core_Manager
             
             return $res;
         }
-
+        
         return "<div>Успешна инициализация на пакета '{$pack}'</div>";
     }
-
-
+    
+    
     /**
      * Стартира обновяване на системата през УРЛ
      */
@@ -948,7 +949,7 @@ class core_Packs extends core_Manager
         
         return self::systemUpdate();
     }
-
+    
     
     /**
      * Стартира обновяване на системата
@@ -956,18 +957,19 @@ class core_Packs extends core_Manager
     public function systemUpdate()
     {
         $SetupKey = setupKey();
+        
         //$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
         
         return new Redirect(array('core_Packs', 'systemUpdate', SetupKey => $SetupKey, 'step' => 2, 'bgerp' => 1));
     }
-
-
+    
+    
     /****************************************************************************************
      *                                                                                      *
      *     Функции за работа с конфигурацията                                               *
      *                                                                                      *
      ****************************************************************************************/
-
+    
     /**
      * Връща конфигурационните данни за даден пакет
      */
@@ -975,7 +977,7 @@ class core_Packs extends core_Manager
     {
         $rec = static::fetch("#name = '{$packName}'");
         $setup = cls::get("{$packName}_Setup");
-
+        
         // В Setup-a се очаква $configDesctiption в следната структура:
         // Полета за конфигурационни променливи на пакета
         // Описание на конфигурацията:
@@ -984,9 +986,9 @@ class core_Packs extends core_Manager
         //                                'options' => $options,
         //                                'suggestions' => $suggestions,
         //        'CONSTANT_NAME2' => .....
-               
+        
         $conf = cls::get('core_ObjectConfiguration', array($setup->getConfigDescription(), $rec->configData));
-    
+        
         return $conf;
     }
     
@@ -1061,7 +1063,7 @@ class core_Packs extends core_Manager
      * @param string $dataKey
      * @param string $dataVal
      *
-     * @return boolean
+     * @return bool
      */
     public static function setIfNotConfigKey($pack, $dataKey, $dataVal, $force = false)
     {
@@ -1088,13 +1090,13 @@ class core_Packs extends core_Manager
     public function act_Config()
     {
         requireRole('admin');
-
+        
         expect($packName = Request::get('pack', 'identifier'));
         
         $rec = static::fetch("#name = '{$packName}'");
         
         $cls = $packName . '_Setup';
-           
+        
         if (cls::load($cls, true)) {
             $setup = cls::get($cls);
         } else {
@@ -1110,11 +1112,11 @@ class core_Packs extends core_Manager
         } else {
             $data = array();
         }
- 
+        
         $form = cls::get('core_Form');
-
+        
         $form->title = "Настройки на пакета|* <b style='color:green;'>{$packName}</b>";
- 
+        
         foreach ($description as $field => $arguments) {
             $type = $arguments[0];
             $params = arr::combine($arguments[1], $arguments[2]);
@@ -1124,19 +1126,19 @@ class core_Packs extends core_Manager
             
             // Ако не е зададено, заглавието на полето е неговото име
             setIfNot($params['caption'], '|*' . $field);
-
+            
             $typeInst = core_Type::getByName($type);
-
+            
             if (defined($field)) {
                 Mode::push('text', 'plain');
                 $defVal = $typeInst->toVerbal(constant($field));
                 Mode::pop('text');
                 $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
             }
-
+            
             $form->FNC($field, $type, $params);
- 
-          
+            
+            
             if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) &&
                 (!defined($field) || ($data[$field] != constant($field)))) {
                 $form->setDefault($field, $data[$field]);
@@ -1149,11 +1151,11 @@ class core_Packs extends core_Manager
                 $form->setReadOnly($field);
             }
         }
-
+        
         $form->setHidden('pack', $rec->name);
-
+        
         $form->input();
-
+        
         $retUrl = getRetUrl();
         
         if (!$retUrl) {
@@ -1163,7 +1165,7 @@ class core_Packs extends core_Manager
         if ($form->isSubmitted()) {
             
             // $data = array();
-
+            
             foreach ($description as $field => $params) {
                 $sysDefault = defined($field) ? constant($field) : '';
                 if ($sysDefault != $form->rec->{$field}) {
@@ -1180,9 +1182,9 @@ class core_Packs extends core_Manager
                     $data[$field] = '';
                 }
             }
-      
+            
             $id = self::setConfig($packName, $data);
-        
+            
             // Правим запис в лога
             $this->logWrite('Промяна на конфигурацията на пакет', $rec->id);
             
@@ -1200,7 +1202,7 @@ class core_Packs extends core_Manager
         }
         
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');
-
+        
         // Добавяне на допълнителни системни действия
         if (count($setup->systemActions)) {
             foreach ($setup->systemActions as $sysActArr) {
@@ -1218,7 +1220,7 @@ class core_Packs extends core_Manager
         return $this->renderWrapping($form->renderHtml());
     }
     
-
+    
     /**
      * Задава конфигурация на пакет
      *
@@ -1244,12 +1246,12 @@ class core_Packs extends core_Manager
                 $exData[$key] = $value;
             }
         }
- 
+        
         $rec->configData = serialize($exData);
         
         return self::save($rec);
     }
-
+    
     
     /**
      * Функция за преобразуване на стринга в константите в масив
@@ -1285,7 +1287,7 @@ class core_Packs extends core_Manager
             
             // Ако стринга не е празен
             if ($conf !== '') {
-
+                
                 // Добавяме в масива
                 $resArr[$conf] = $conf;
             }
@@ -1293,7 +1295,7 @@ class core_Packs extends core_Manager
         
         return $resArr;
     }
-   
+    
     
     /**
      * Променяме Списъчния изглед на пакетите

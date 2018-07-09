@@ -1,19 +1,20 @@
 <?php
 
+
 /**
  * Драйвер за работа с .png файлове.
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Png extends fileman_webdrv_Image
 {
-    
-    
     /**
      * Връща всички табове, които ги има за съответния файл
      *
@@ -22,6 +23,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Image::getTabs
      */
     public static function getTabs($fRec)
@@ -47,6 +49,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Image::startProcessing
      */
     public static function startProcessing($fRec)
@@ -59,7 +62,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
     /**
      * Дали може да се извлича баркод
      *
-     * @return boolean
+     * @return bool
      */
     public static function canGetBarcodes()
     {

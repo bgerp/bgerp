@@ -7,16 +7,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_tests_Richtext extends unit_Class
 {
-    
-    
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
@@ -27,11 +27,11 @@ class type_tests_Richtext extends unit_Class
         $sample1 = 'За: tasdasdasd';
         $sample2 = 'отНосНо: tasdasdasd';
         $sample3 = 'не трябва да има отНосНо: tasdasdasd';
-       
+        
         $res1 = $rt->toVerbal($sample1);
         $res2 = $rt->toVerbal($sample2);
         $res3 = $rt->toVerbal($sample3);
-       
+        
         UT::expectEqual(stripos(' '. $res1, '<b>' . $sample1 . '</b>'), true);
         UT::expectEqual(stripos(' '. $res2, '<b>' . $sample2 . '</b>'), true);
         UT::expectEqual(stripos(' '. $res3, '<b>' . $sample3 . '</b>'), false);
@@ -64,7 +64,7 @@ class type_tests_Richtext extends unit_Class
             }
         }
     }
-
+    
     
     /**
      * Рендира HTML инпут поле
@@ -96,7 +96,8 @@ class type_tests_Richtext extends unit_Class
      * o [code{=syntax}]...[/code] - преформатиран текст с опционално езиково оцветяване
      * o [em={code}] - емотикони
      *
-     * @param  string $richtext
+     * @param string $richtext
+     *
      * @return string
      */
     public function toHtml($html)
@@ -173,31 +174,33 @@ class type_tests_Richtext extends unit_Class
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към вътрешни URL
      *
-     * @param  string $url   URL, където трябва да сочи връзката
-     * @param  string $text  текст под връзката
-     * @param  string $place
+     * @param string $url   URL, където трябва да сочи връзката
+     * @param string $text  текст под връзката
+     * @param string $place
+     *
      * @return string HTML елемент <a href="...">...</a>
      */
     public function internalLink_($url, $title, $place, $rest)
     {
     }
-
-
+    
+    
     /**
      * Конвертира към HTML елементите [link=...]...[/link], сочещи към външни URL
      *
      * Може да бъде прихванат в плъгин на `type_Richtext` с on_AfterExternalLink()
      *
-     * @param  string $url   URL, където трябва да сочи връзката
-     * @param  string $text  текст под връзката
-     * @param  string $place
+     * @param string $url   URL, където трябва да сочи връзката
+     * @param string $text  текст под връзката
+     * @param string $place
+     *
      * @return string HTML елемент <a href="...">...</a>
      */
     public function externalLink_($url, $title, $place)
     {
     }
-
-
+    
+    
     /**
      * Заменя елементите [hide=?????]......[/hide]
      */
@@ -249,15 +252,16 @@ class type_tests_Richtext extends unit_Class
     /**
      * Конвертира вътрешен URL към подходящо HTML представяне.
      *
-     * @param  string $url
-     * @param  string $title
+     * @param string $url
+     * @param string $title
+     *
      * @return string HTML елемент <a href="...">...</a>
      */
     public function internalUrl_($url, $title, $rest)
     {
     }
     
-
+    
     /**
      * Конвертира въшнен URL към подходящо HTML представяне
      *
@@ -268,16 +272,16 @@ class type_tests_Richtext extends unit_Class
     public function externalUrl_($url, $title)
     {
     }
-
-
+    
+    
     /**
      * Прави субституция на имейлите
      */
     public function _catchEmails($match)
     {
     }
-
-
+    
+    
     /**
      * Връща масив с html код, съответстващ на бутоните на Richedit компонента
      */

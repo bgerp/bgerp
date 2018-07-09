@@ -7,15 +7,15 @@
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class drdata_CountryGroups extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -32,7 +32,6 @@ class drdata_CountryGroups extends core_Manager
      * Кой  може да редактира
      */
     public $canEdit = 'admin';
-    
     
     
     public $canAdd = 'admin';
@@ -59,7 +58,7 @@ class drdata_CountryGroups extends core_Manager
     /**
      * Връща масив с групите, в които се съдържа съответната държава
      *
-     * @param integer|NULL $countryId
+     * @param int|NULL $countryId
      *
      * @return array
      */
@@ -79,8 +78,8 @@ class drdata_CountryGroups extends core_Manager
     /**
      * Връща общите групи в които участват двете държави
      *
-     * @param integer $countryId1
-     * @param integer $countryId2
+     * @param int $countryId1
+     * @param int $countryId2
      *
      * @return array
      */

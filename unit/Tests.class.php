@@ -1,16 +1,17 @@
 <?php
 
 
-
 /**
  * Клас 'unit_Tests' - мениджър за провеждане на тестове
  *
  *
  * @category  ef
  * @package   unit
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
@@ -18,13 +19,13 @@ class unit_Tests extends core_Manager
 {
     public $errorLog = '';
     public $testLog = array();
-
+    
     public function on_BeforeAction($mvc, &$res, $act)
     {
         $act = trim(Request::get('Act', 'identifier'), '_');
         
         $classes = array();
-
+        
         if ($act && cls::load($act, true)) {
             $classes[] = $act;
         } else {
@@ -49,7 +50,7 @@ class unit_Tests extends core_Manager
             
             foreach ($tests as $class => $testClass) {
                 $this->testLog[] = "<h3>Тестване на <b style='color:blue;'>{$class}</b></h3><ul>";
-
+                
                 $reflector = new ReflectionClass($testClass);
                 $testClass = cls::get($testClass);
                 $methods = $reflector->getMethods();
@@ -66,21 +67,21 @@ class unit_Tests extends core_Manager
                                 $this->errorLog .= ' exception: ' . $expect->getMessage() . ' ' . $dump[0];
                                 reportException($expect);
                             }
-
+                            
                             if ($this->errorLog) {
                                 $msg = "<span class=\"red\">{$this->errorLog}</span>";
                                 $errCnt++;
                             } else {
                                 $msg = '<span class="green">OK</span>';
                             }
-
+                            
                             $testsCnt++;
                             
                             $methodName = substr($m->name, 5);
                             $methodName{0} = strtolower($methodName{0});
-
+                            
                             $this->testLog[] = "<li>{$class}->" . $methodName . ": {$msg}</li>";
-                     
+                            
                             $this->errorLog = '';
                         }
                     }
@@ -91,13 +92,12 @@ class unit_Tests extends core_Manager
             
             Debug::stopTimer('unit_Tests');
         }
-
+        
         $res = implode("\n", $this->testLog);
-
+        
         return false;
     }
-
-
+    
     
     public static function expectEqual($a, $b)
     {
@@ -107,8 +107,8 @@ class unit_Tests extends core_Manager
             $me->errorLog .= "{$a} != {$b}";
         }
     }
-
-
+    
+    
     /**
      * Връща масив със всички поддиректории и файлове от посочената начална директория
      *
@@ -116,6 +116,7 @@ class unit_Tests extends core_Manager
      * 'files' => [],
      * 'dirs'  => [],
      * )
+     *
      * @param string $root
      * @result array
      */

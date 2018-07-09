@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Абстрактен клас за наследяване на протоколи свързани с производството
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_ManifactureMaster extends core_Master
 {
-    
-
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -69,7 +68,7 @@ abstract class deals_ManifactureMaster extends core_Master
             $tpl->removeBlock('header');
         }
     }
-
+    
     
     /**
      * След преобразуване на записа в четим за хора вид
@@ -98,7 +97,7 @@ abstract class deals_ManifactureMaster extends core_Master
         }
     }
     
-
+    
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -118,15 +117,15 @@ abstract class deals_ManifactureMaster extends core_Master
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
-    
+        
         $row = (object) array(
-                'title' => $title,
-                'authorId' => $rec->createdBy,
-                'author' => $this->getVerbal($rec, 'createdBy'),
-                'state' => $rec->state,
-                'recTitle' => $title
+            'title' => $title,
+            'authorId' => $rec->createdBy,
+            'author' => $this->getVerbal($rec, 'createdBy'),
+            'state' => $rec->state,
+            'recTitle' => $title
         );
-    
+        
         return $row;
     }
     
@@ -134,10 +133,11 @@ abstract class deals_ManifactureMaster extends core_Master
     /**
      * Връща масив от използваните нестандартни артикули в протокола
      *
-     * @param  int   $id - ид на протокола
+     * @param int $id - ид на протокола
+     *
      * @return param $res - масив с използваните документи
-     *                  ['class'] - инстанция на документа
-     *                  ['id'] - ид на документа
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
@@ -163,7 +163,8 @@ abstract class deals_ManifactureMaster extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -180,7 +181,8 @@ abstract class deals_ManifactureMaster extends core_Master
      * Може ли документа да се добави в посочената папка?
      *
      * @param $folderId int ид на папката
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -194,8 +196,9 @@ abstract class deals_ManifactureMaster extends core_Master
     /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {

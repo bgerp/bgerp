@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  *
  *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class support_Systems extends core_Master
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -25,7 +24,6 @@ class support_Systems extends core_Master
      * Заглавие на модела
      */
     public $title = 'Поддържани системи';
-    
     
     
     public $singleTitle = 'Система';
@@ -107,6 +105,7 @@ class support_Systems extends core_Master
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces =
+    
     // Интерфейс за корица на папка
     'doc_FolderIntf, support_IssueIntf';
     
@@ -123,16 +122,15 @@ class support_Systems extends core_Master
     public $defaultDefaultDocuments = 'cal_Tasks';
     
     
-    
     public $rowToolsField = 'id';
-
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
     
-
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -149,7 +147,7 @@ class support_Systems extends core_Master
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', 'caption=Описание');
         $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Сигнали->Използвани, width=100%, maxColumns=3');
         $this->FLD('defaultType', 'key(mvc=support_IssueTypes, select=type, allowEmpty)', 'caption=Сигнали->По подразбиране');
-
+        
         $this->setDbUnique('name');
     }
     
@@ -157,7 +155,7 @@ class support_Systems extends core_Master
     /**
      * Връща масив с всички типове на системата и на родителите
      *
-     * @param integer|array $id
+     * @param int|array $id
      *
      * @return array
      */
@@ -195,7 +193,7 @@ class support_Systems extends core_Master
     /**
      * Връща всички системи и компоненти, които се използват
      *
-     * @param integer $systemId - id на система
+     * @param int $systemId - id на система
      *
      * @return array $arr - Масив с всички системи
      */
@@ -254,17 +252,17 @@ class support_Systems extends core_Master
             );
         }
     }
-
-
+    
+    
     /**
      * Интерфейсен метод за определяне името на папката
      */
     public function getFolderTitle($id)
     {
         $rec = self::fetch($id);
-
+        
         $title = tr('Поддръжка на') . ' ' . self::getVerbal($rec, 'name');
-
+        
         return $title;
     }
     
@@ -338,10 +336,9 @@ class support_Systems extends core_Master
                 $accessedArr[$rec->id] = support_Systems::getVerbal($rec, 'name');
             }
         }
-
+        
         return $accessedArr;
     }
-    
     
     
     public static function on_AfterInputEditForm($mvc, $form)
@@ -399,7 +396,7 @@ class support_Systems extends core_Master
         }
     }
     
-
+    
     /**
      * Модифициране на edit формата
      *
@@ -415,13 +412,13 @@ class support_Systems extends core_Master
             // Да има само 1 колони
             $data->form->setField('allowedTypes', array('maxColumns' => 1));
         }
-
+        
         $query = support_IssueTypes::getQuery();
-
+        
         while ($rec = $query->fetch("#state = 'active'")) {
             $options[$rec->id] = $rec->type;
         }
-
+        
         $data->form->setSuggestions('allowedTypes', $options);
     }
     
@@ -441,10 +438,11 @@ class support_Systems extends core_Master
     /**
      * Какви видове ресурси може да се добавят към модела
      *
-     * @param  stdClass $rec
-     * @return array    - празен масив ако няма позволени ресурси
-     *                      ['assets'] - оборудване
-     *                      ['hr']     - служители
+     * @param stdClass $rec
+     *
+     * @return array - празен масив ако няма позволени ресурси
+     *               ['assets'] - оборудване
+     *               ['hr']     - служители
      */
     public function getResourceTypeArray($rec)
     {

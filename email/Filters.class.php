@@ -24,16 +24,16 @@
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/253
  */
 class email_Filters extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -44,17 +44,15 @@ class email_Filters extends core_Manager
      * Заглавие
      */
     public $title = 'Потребителски правила за рутиране';
-
-     
+    
+    
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Правило за рутиране';
     
     
-    
     public $canList = 'admin, email';
-    
     
     
     public $canEdit = 'admin, email';
@@ -82,7 +80,6 @@ class email_Filters extends core_Manager
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'admin';
-
     
     
     public $listFields = 'id, email, subject, body, action, folderId, note,state';
@@ -103,7 +100,7 @@ class email_Filters extends core_Manager
         
         $this->setDbUnique('systemId');
     }
-
+    
     
     /**
      * Проверява дали входящото писмо се прихваща от един от записаните в този модел филтри.
@@ -140,7 +137,7 @@ class email_Filters extends core_Manager
                 $rec->folderId = $serviceRec->folderId;
                 break;
         }
-
+        
         return $rec->folderId;
     }
     
@@ -170,7 +167,7 @@ class email_Filters extends core_Manager
         
         // Извличаме всичко имейл адреси от супата ...
         $emails = type_Email::extractEmails($soup);
-
+        
         // ... махаме нашите имейли
         $emails = static::filterOurEmails($emails);
         
@@ -203,7 +200,8 @@ class email_Filters extends core_Manager
     /**
      * Определя дали писмото отговаря на някой от зададените шаблони
      *
-     * @param  stdClass $emailRec запис от модела email_Incomings
+     * @param stdClass $emailRec запис от модела email_Incomings
+     *
      * @return stdClass запис от модела email_Filters или FALSE ако не е разпозната услуга
      */
     protected static function detect($emailRec)
@@ -242,7 +240,7 @@ class email_Filters extends core_Manager
                 return $filterRec;
             }
         }
-
+        
         // Не е открито съвпадение с никое правило
         return false;
     }
@@ -251,9 +249,10 @@ class email_Filters extends core_Manager
     /**
      * Провека дали филтриращо правило покрива данните в $subjectData
      *
-     * @param  array    $subjectData
-     * @param  stdClass $filterRec   запис на модела email_Filters
-     * @return boolean
+     * @param array    $subjectData
+     * @param stdClass $filterRec   запис на модела email_Filters
+     *
+     * @return bool
      */
     public static function match($subjectData, $filterRec)
     {
@@ -311,14 +310,15 @@ class email_Filters extends core_Manager
      *
      * "Нашите" имейли са адресите на вътрешните кутии от модела email_Inboxes.
      *
-     * @param  array $emails
+     * @param array $emails
+     *
      * @return array
      */
     protected static function filterOurEmails($emails)
     {
         $emails = array_filter($emails, function ($email) {
             $allInboxes = email_Inboxes::getAllInboxes();
-
+            
             return !$allInboxes[strtolower(trim($email))];
         });
         
@@ -431,7 +431,7 @@ class email_Filters extends core_Manager
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
-         
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         return $cntObj->html;
     }

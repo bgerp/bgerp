@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_State2' - Поддръжка на поле 'state' за състояние на ред
  *
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_State2 extends core_Plugin
 {
-
-    
     /**
      * Наименование на активното състояние
      */
@@ -28,19 +27,19 @@ class plg_State2 extends core_Plugin
      * Наименование на затвореното състояние
      */
     private $closedState;
-
-
+    
+    
     /**
      * Кои състояния се кастват до Активно
      */
     private $castToActive = array('active', 'opened', 'free');
-
-
+    
+    
     /**
      * Кои състояния се кастват до затворено
      */
     private $castToClosed = array('closed', 'stopped', 'rejected');
-
+    
     
     /**
      * Добавя полето за състояние, ако то липсва
@@ -57,32 +56,33 @@ class plg_State2 extends core_Plugin
             $this->closedState = 'closed';
         }
     }
-
-
+    
+    
     /**
      * Определя активното и затвореното състояние
      */
     public function getActiveAndClosedState($mvc)
     {
         if ($this->activeState && $this->closedState) {
+            
             return;
         }
         $opt = $mvc->getFieldType('state')->options;
-            
+        
         foreach ($this->castToActive as $state) {
             if ($opt[$state]) {
                 $this->activeState = $state;
                 break;
             }
         }
-
+        
         foreach ($this->castToClosed as $state) {
             if ($opt[$state]) {
                 $this->closedState = $state;
                 break;
             }
         }
-
+        
         expect($this->activeState && $this->closedState);
     }
     
@@ -113,7 +113,8 @@ class plg_State2 extends core_Plugin
     /**
      * Ще има ли предупреждение при смяна на състоянието
      *
-     * @param  stdClass     $rec
+     * @param stdClass $rec
+     *
      * @return string|FALSE
      */
     public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec)
@@ -122,6 +123,7 @@ class plg_State2 extends core_Plugin
             $res = false;
         }
     }
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -137,30 +139,30 @@ class plg_State2 extends core_Plugin
         $warning = $mvc->getChangeStateWarning($rec);
         $warning = !empty($warning) ? $warning : false;
         $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
-       
+        
         if ($mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
-
+            
             $add = '<img src=' . sbf('img/16/lightbulb_off.png') . " width='16' height='16'>";
             $cancel = '<img src=' . sbf('img/16/lightbulb.png') . " width='16' height='16'>";
             
             if ($rec->state == $this->activeState || $rec->state == $this->closedState) {
                 $row->state = ht::createLink(
-                    $rec->state == $this->activeState ? $cancel : $add ,
+                    $rec->state == $this->activeState ? $cancel : $add,
                     array($mvc, 'changeState', $rec->id, 'ret_url' => true),
                     $warning,
                     array('title' => $rec->state == $this->activeState ? 'Деактивиране' : 'Активиране')
                 );
-            
+                
                 $row->state = ht::createElement(
-            
+                    
                     'div',
                     array('style' => 'text-align:center;'),
-            
+                    
                     $row->state
-            
+                
                 );
-
+                
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $singleTitle = tr($mvc->singleTitle);
                 $singleTitle = mb_strtolower($singleTitle);
@@ -181,6 +183,7 @@ class plg_State2 extends core_Plugin
     public function on_BeforeAction($mvc, &$content, &$act)
     {
         if ($act != 'changestate') {
+            
             return;
         }
         
@@ -195,7 +198,7 @@ class plg_State2 extends core_Plugin
         $mvc->requireRightFor($act, $rec, null, $retUrl);
         
         $this->getActiveAndClosedState($mvc);
-
+        
         if ($rec->state == $this->activeState || $rec->state == $this->closedState) {
             $rec->state = ($rec->state == $this->activeState ? $this->closedState : $this->activeState);
             
@@ -235,7 +238,7 @@ class plg_State2 extends core_Plugin
     {
         $where .= ($where ? ' AND ' : '') . " #state = 'active'";
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.

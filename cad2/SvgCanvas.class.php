@@ -1,17 +1,17 @@
 <?php
 
+
 defIfNot('CAD2_MAX_CANVAS_SIZE', 1000);
 
 
 class cad2_SvgCanvas extends cad2_Canvas
 {
-    
     /**
      * Колко вътрешни svg единици отговарят на 1 мм
      */
     public $pixPerMm;
     
-
+    
     /**
      * Масив с XML обекти - тагове
      */
@@ -21,23 +21,26 @@ class cad2_SvgCanvas extends cad2_Canvas
     public $addX = 10;
     public $addY = 10;
     
+    
     /**
      * Параметри на страницата
      */
     public $width;
     public $height;
-
+    
     // Падинги на страницата
     public $paddingTop;
     public $paddingRight;
     public $paddingBottom;
     public $paddingLeft;
-
+    
+    
     /**
      * Брояч на слоевете
      */
     private $layersCnt;
-
+    
+    
     /**
      * Текущи параметри на молива, запълването и шрифта
      * stroke, stroke-width, stroke-linecap, stroke-dasharray
@@ -51,21 +54,21 @@ class cad2_SvgCanvas extends cad2_Canvas
         
         // Кодиране
         $this->encoding = 'UTF-8';
- 
+        
         $this->minX = 0;
         $this->maxX = $width * $pixPerMm;
         $this->minY = 0;
         $this->maxY = $height * $pixPerMm;
-
-
+        
+        
         $this->setAttr('stroke', 'black');
         $this->setAttr('stroke-width', 0.2);
         $this->setAttr('fill', 'none');
         $this->setAttr('font-size', 40);
         $this->setAttr('font-family', 'Courier');
     }
-
-
+    
+    
     /**
      * Задава размерите и падингите на хартията
      */
@@ -79,12 +82,12 @@ class cad2_SvgCanvas extends cad2_Canvas
              $this->paddingBottom,
              $this->paddingLeft,
             ) = self::toPix($width, $height, $paddingTop, $paddingRight, $paddingBottom, $paddingLeft);
-
+        
         $this->setCP($this->width, $this->height, true);
         $this->setCP(0, 0, true);
     }
-
-
+    
+    
     /**
      * Задава точка от чертежа, която трябва да се побере на хартията.
      * Тази точка евентуално може да разшири автоматично
@@ -98,23 +101,23 @@ class cad2_SvgCanvas extends cad2_Canvas
         $this->maxY = max($y, $this->maxY);
         $this->minX = min($x, $this->minX);
     }
-
-
+    
+    
     /**
      * Конвертира координатите от милиметри към единиците на viewport
      */
     protected function toPix()
     {
         $args = func_get_args();
-
+        
         foreach ($args as $val) {
             $res[] = round($this->pixPerMm * (double) $val, 1);
         }
-
+        
         return $res;
     }
     
-
+    
     /**
      * Задава текушата точка
      */
@@ -132,8 +135,8 @@ class cad2_SvgCanvas extends cad2_Canvas
             $this->fitPoint($this->x, $this->y);
         }
     }
-
-
+    
+    
     /**
      * Връща текущата позиция
      */
@@ -141,38 +144,37 @@ class cad2_SvgCanvas extends cad2_Canvas
     {
         return array($this->x / $this->pixPerMm, $this->y / $this->pixPerMm);
     }
-
-
+    
+    
     /**
      * Задава текуща стойност на посочения атрибит
      */
     public function setAttr($name, $value)
     {
         expect(in_array($name, $this->alowedAttributes), $name);
-
+        
         $this->attr[$name] = $value;
     }
-
-
+    
+    
     /**
      * Връща стойността на посочения атрибут
      */
     public function getAttr($name)
     {
         expect(in_array($name, $this->alowedAttributes), $name);
-
+        
         return $this->attr[$name];
     }
-
     
-
+    
     /**
      * Започва нов път (поредица от линии и премествания)
      */
     public function startPath($attr = array())
     {
         $this->closePath(false);
-
+        
         $path = $this->content[] = new stdClass();
         $path->name = 'path';
         
@@ -185,7 +187,7 @@ class cad2_SvgCanvas extends cad2_Canvas
         setIfNot($attr['fill-rule'], $this->getAttr('fill-rule'));
         setIfNot($attr['fill'], $this->getAttr('fill'));
         setIfNot($attr['fill-opacity'], $this->getAttr('fill-opacity'));
-
+        
         $path->attr = $attr;
         
         if ($path->attr['fill'] == 'none' || $path->attr['fill'] == 'transparent') {
@@ -196,11 +198,11 @@ class cad2_SvgCanvas extends cad2_Canvas
             $path->attr['stroke-width'] = 0;
             $path->attr['stroke'] = 'transparent';
         }
-
+        
         return $path;
     }
-
-
+    
+    
     /**
      * Връща тага на текущия път
      * Очаква той да е последния добавен в съдържанието
@@ -208,15 +210,14 @@ class cad2_SvgCanvas extends cad2_Canvas
     protected function getCurrentPath()
     {
         $path = $this->content[count($this->content) - 1];
-
+        
         if ($path->name == 'path') {
             
             return $path;
         }
     }
-
-
-
+    
+    
     /**
      * Затваря текущия път или под-път
      */
@@ -232,8 +233,8 @@ class cad2_SvgCanvas extends cad2_Canvas
             $path->closed = true;
         }
     }
-
-
+    
+    
     /**
      * Премества текущата позиция на посочените координати
      * без да рисува линия
@@ -241,9 +242,9 @@ class cad2_SvgCanvas extends cad2_Canvas
     public function moveTo($x, $y, $absolute = false)
     {
         $path = $this->getCurrentPath();
-
+        
         list($x, $y) = self::toPix($x, $y);
-
+        
         
         $this->setCP($x, $y, $absolute);
         
@@ -256,17 +257,18 @@ class cad2_SvgCanvas extends cad2_Canvas
         }
         
         if (!$this->isInWindow($x1, $y1)) {
+            
             return;
         }
-
+        
         $m = $absolute ? 'M' : 'm';
-
-
+        
+        
         // $path->attr['d'] .= " {$m}{$x},{$y}";
         $path->data[] = array($m, $x, $y);
     }
-
-
+    
+    
     /**
      * Рисува линия до посочените координати
      */
@@ -287,15 +289,17 @@ class cad2_SvgCanvas extends cad2_Canvas
             //     expect(count() ==2, $x, $y, $x0, $y0, $iW);
             // } else {
             list($x, $y) = self::toPix($x, $y);
-
+            
             $this->setCP($x, $y, $absolute, false);
-
+            
             return;
+        
         //  }
         } elseif (!$this->isInWindow($x0, $y0) && $this->isInWindow($x1, $y1)) {
             $iW = self::getWindowIntersection($x0, $y0, $x1, $y1);
             if ($iW) {
                 $this->moveTo($iW->x, $iW->y, true);
+                
                 //expect($this->isInWindow($iW->x, $iW->y), $this->window, $iW);
                 $x = $x1;
                 $y = $y1;
@@ -309,19 +313,19 @@ class cad2_SvgCanvas extends cad2_Canvas
                 $absolute = true;
             }
         }
-
+        
         $path = $this->getCurrentPath();
         list($x, $y) = self::toPix($x, $y);
         $l = $absolute ? 'L' : 'l';
         $this->setCP($x, $y, $absolute);
-
- 
+        
+        
         // $path->attr['d'] .= " {$l}{$x},{$y}";
-
+        
         $path->data[] = array($l, $x, $y);
     }
-
-
+    
+    
     /**
      * Изчертава крива на Безие с посочените координати
      */
@@ -330,31 +334,31 @@ class cad2_SvgCanvas extends cad2_Canvas
         $path = $this->getCurrentPath();
         
         list($x1, $y1, $x2, $y2, $x, $y) = self::toPix($x1, $y1, $x2, $y2, $x, $y);
-
+        
         $c = $absolute ? 'C' : 'c';
- 
+        
         // $path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
         $path->data[] = array($c, $x1, $y1, $x2, $y2, $x, $y);
-
+        
         $this->setCP($x1, $y1, $absolute);
         $this->setCP($x2, $y2, $absolute);
         $this->setCP($x, $y, $absolute);
     }
     
-
+    
     /**
      * Изписва текст
      */
     public function writeText($x, $y, $text, $rotation = 0, $absolute = true, $link = null)
     {
         $this->closePath(false);
-
+        
         if (!$absolute) {
             list($x0, $y0) = $this->getCP();
             $x = $x + $x0;
             $y = $y + $y0;
         }
-
+        
         list($x, $y) = self::toPix($x, $y);
         
         if ($rotation != 0) {
@@ -363,7 +367,7 @@ class cad2_SvgCanvas extends cad2_Canvas
             $gr->attr = array();
             $gr->haveBody = true;
         }
-
+        
         $tx = $this->content[] = new stdClass();
         $tx->name = 'text';
         $tx->attr = array();
@@ -373,21 +377,21 @@ class cad2_SvgCanvas extends cad2_Canvas
             $grEnd = $this->content[] = new stdClass();
             $grEnd->name = '/g';
         }
- 
+        
         if ($family = $this->getAttr('font-family')) {
             $style .= " font-family:{$family};";
         }
-
+        
         if ($weight = $this->getAttr('font-weight')) {
             $style .= " font-weight:{$weight};";
         }
-
+        
         $tx->attr = array('x' => $x, 'y' => $y, 'style' => $style);
-
+        
         if ($color = $this->getAttr('text-color')) {
             $tx->attr['fill'] = $color;
         }
-
+        
         if ($size = $this->getAttr('font-size')) {
             $size = ($size / 10) * $this->pixPerMm;
             $tx->attr['font-size'] = $size;
@@ -396,20 +400,20 @@ class cad2_SvgCanvas extends cad2_Canvas
         if ($family = $this->getAttr('font-family')) {
             $tx->attr['font-family'] = $family;
         }
-
+        
         $this->setCP($x, $y, true);
         
         if ($rotation != 0) {
             $width = $size * strlen($text) * 0.3;
             $height = $size;
-
-
+            
+            
             // "matrix($a, $b, $c, $d, ".(-$x*$a+$y*$b+$x).", ".(-$x*$b-$y*$a+$y).")"
             $gr->transform = array($width, $height, $rotation, $x, $y);
         }
     }
     
-
+    
     /**
      * Отваря нова група
      */
@@ -421,7 +425,7 @@ class cad2_SvgCanvas extends cad2_Canvas
         $group->haveBody = true;
     }
     
-
+    
     /**
      * Затваряне на група
      */
@@ -430,19 +434,19 @@ class cad2_SvgCanvas extends cad2_Canvas
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/g';
     }
-
-
+    
+    
     /**
      * Отваря нова група
      */
     public function openTransform($transform = array(), $attr = array())
     {
         $attr['_transform'] = $transform;
-
+        
         return $this->openGroup($attr);
     }
-
-
+    
+    
     /**
      * Затваряне на група
      */
@@ -450,26 +454,26 @@ class cad2_SvgCanvas extends cad2_Canvas
     {
         return $this->closeGroup();
     }
-
-
+    
+    
     /**
      * Отваря нов слой
      */
     public function openLayer($name = null)
     {
         $this->layersCnt++;
-
+        
         $attr = array('inkscape:groupmode' => 'layer', 'id' => 'layer' . $this->layersCnt, 'inkscape:label' => $name);
-
+        
         $this->openGroup($attr);
-
+        
         $tag = $this->content[] = new stdClass();
         $tag->name = 'title';
         $tag->attr = array();
         $tag->body = $name;
     }
-
-
+    
+    
     /**
      * Затваряне на слой
      */
@@ -477,8 +481,8 @@ class cad2_SvgCanvas extends cad2_Canvas
     {
         return $this->closeGroup();
     }
-
-
+    
+    
     /**
      * Отваря нова шарка
      */
@@ -511,7 +515,7 @@ class cad2_SvgCanvas extends cad2_Canvas
         $defs->attr = $attr;
         $defs->haveBody = true;
     }
-
+    
     
     /**
      * Затваряне на дефиниции
@@ -521,8 +525,8 @@ class cad2_SvgCanvas extends cad2_Canvas
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/defs';
     }
-
-
+    
+    
     /**
      * Отваряне на дефиниции за линеен градиент
      */
@@ -533,8 +537,8 @@ class cad2_SvgCanvas extends cad2_Canvas
         $defs->attr = $attr;
         $defs->haveBody = true;
     }
-
-
+    
+    
     /**
      * Затваряне на дефиниции за линеен градиент
      */
@@ -543,8 +547,8 @@ class cad2_SvgCanvas extends cad2_Canvas
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/linearGradient';
     }
-
-
+    
+    
     /**
      * Задаване на стъпка от градиента
      */
@@ -554,8 +558,8 @@ class cad2_SvgCanvas extends cad2_Canvas
         $defs->name = 'stop';
         $defs->attr = $attr;
     }
-
-
+    
+    
     /**
      * Връща добавката за X и Y
      */
@@ -563,11 +567,11 @@ class cad2_SvgCanvas extends cad2_Canvas
     {
         $addX = (-$this->minX + $this->paddingLeft) / $this->pixPerMm;
         $addY = (-$this->minY + $this->paddingTop) / $this->pixPerMm;
-
+        
         return array($addX, $addY);
     }
     
-
+    
     /**
      * Връща XML текста на SVG чертежа
      */
@@ -576,16 +580,16 @@ class cad2_SvgCanvas extends cad2_Canvas
         // Параметрите на viewbox
         $this->addX = -$this->minX + $this->paddingLeft;
         $this->addY = -$this->minY + $this->paddingTop;
- 
+        
         $left = 0;
         $top = 0;
         $right = $this->maxX - $this->minX + $this->paddingRight + $this->paddingLeft;
         $bottom = $this->maxY - $this->minY + $this->paddingBottom + $this->paddingTop;
- 
+        
         // Динамично изчислените размери на страницата
         $width = $right - $left ;
         $height = $bottom - $top ;
- 
+        
         if (!Mode::is('svgScale')) {
             // Размерите в mm
             $widthSvg = ($width / $this->pixPerMm) . 'mm';
@@ -594,11 +598,11 @@ class cad2_SvgCanvas extends cad2_Canvas
         } else {
             $add = 'style="width:100%; height:100%; position: absolute;"';
         }
-
+        
         $res .= "<svg {$add} viewBox=\"{$left} {$top} {$width} {$height}\"" .
                 "\n xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"  " .
                 "\n version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
-
+        
         // Генериране на съдържанието
         if (is_array($this->content)) {
             foreach ($this->content as $tag) {
@@ -607,11 +611,11 @@ class cad2_SvgCanvas extends cad2_Canvas
         }
         
         $res .= "</svg>\n";
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Връща XML текста, съответстващ на обекта - таг
      */
@@ -619,14 +623,14 @@ class cad2_SvgCanvas extends cad2_Canvas
     {
         if ($tag->name) {
             list($aX, $aY) = array($this->addX, $this->addY);
-
+            
             if ($tag->name == 'path') {
                 if (!$tag->data) {
                     $tag->data = array();
                 }
                 foreach ($tag->data as $cmd) {
                     $cmdName = $cmd[0];
-
+                    
                     if ($cmdName == 'L' || $cmdName == 'M') {
                         $cmd[1] += $aX;
                         $cmd[2] += $aY;
@@ -638,7 +642,7 @@ class cad2_SvgCanvas extends cad2_Canvas
                         $cmd[5] += $aX;
                         $cmd[6] += $aY;
                     }
- 
+                    
                     if (count($cmd) == 7) {
                         $tag->attr['d'] .= " {$cmdName}{$cmd[1]},{$cmd[2]} {$cmd[3]},{$cmd[4]} {$cmd[5]},{$cmd[6]}";
                     } elseif (count($cmd) == 3) {
@@ -648,14 +652,14 @@ class cad2_SvgCanvas extends cad2_Canvas
                     }
                 }
             }
-
+            
             if ($tag->name == 'text') {
                 list($aX, $aY) = array($this->addX, $this->addY);
-
+                
                 $tag->attr['x'] += $aX;
                 $tag->attr['y'] += $aY;
             }
-
+            
             if ($tag->name == 'g') {
                 if (is_array($tag->attr['_transform'])) {
                     foreach ($tag->attr['_transform'] as $tArr) {
@@ -671,7 +675,7 @@ class cad2_SvgCanvas extends cad2_Canvas
                                 list($tX, $tY) = self::toPix($tArr[1], $tArr[2]);
                                 $tag->attr['transform'] .= "translate(${tX}, ${tY}) ";
                                 break;
-
+                            
                             case 'rotate':
                                 if (!isset($tArr[2])) {
                                     $tArr[3] = $tArr[2] = 0;
@@ -680,22 +684,23 @@ class cad2_SvgCanvas extends cad2_Canvas
                                 $tag->attr['transform'] .= "rotate({$tArr[1]}, ${tX}, ${tY}) ";
                                 break;
                             default:
+                                
                                 // Неподдържана трансформация
                                 expect(false, $tArr[0]);
                         }
                     }
-
+                    
                     unset($tag->attr['_transform']);
                 }
-
+                
                 if (is_array($tag->transform)) {
                     list($width, $height, $rotation, $x, $y) = $tag->transform;
                     
                     list($aX, $aY) = array($this->addX, $this->addY);
-
+                    
                     $x += $aX;
                     $y += $aY;
-
+                    
                     $x1 = $x + cos(deg2rad($rotation + 90)) * $height;
                     $y1 = $y + sin(deg2rad($rotation + 90)) * $height;
                     
@@ -703,13 +708,13 @@ class cad2_SvgCanvas extends cad2_Canvas
                         $alpha = atan($height / $width);
                     }
                     $l = sqrt($width * $width + $height * $height);
-
+                    
                     $x2 = $x + cos(deg2rad($rotation) + $alpha) * $l;
                     $y2 = $y + sin(deg2rad($rotation) + $alpha) * $l;
-
+                    
                     $x3 = $x + cos(deg2rad($rotation)) * $width;
                     $y3 = $y + sin(deg2rad($rotation)) * $width;
-
+                    
                     $a = round(cos(deg2rad($rotation)), 5);
                     $b = round(sin(deg2rad($rotation)), 5);
                     $c = -$b;
@@ -718,14 +723,14 @@ class cad2_SvgCanvas extends cad2_Canvas
                     $tag->attr['transform'] = "matrix(${a}, ${b}, ${c}, ${d}, ".(-$x * $a + $y * $b + $x).', '.(-$x * $b - $y * $a + $y).')';
                 }
             }
-
-
+            
+            
             if ($tag->attr && count($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
                     if (strlen($val) == 0) {
                         continue;
                     }
-
+                    
                     if (is_string($val)) {
                         $val = str_replace(array('&', '"'), array('&amp;', '&quot;'), $val);
                     }
@@ -744,7 +749,7 @@ class cad2_SvgCanvas extends cad2_Canvas
                             }
                             break;
                      }
-
+                    
                     $attrStr .= ' ' . $name . '="' . $val . '"';
                 }
             }
@@ -762,11 +767,11 @@ class cad2_SvgCanvas extends cad2_Canvas
             // Ако нямаме елемент, т.е. елемента е празен, връщаме само тялото
             $element = $body;
         }
-
+        
         return $element;
     }
-
-
+    
+    
     /**
      * Преобразува именован цвят цвят към hex
      */
@@ -775,27 +780,27 @@ class cad2_SvgCanvas extends cad2_Canvas
         if ($color = color_Object::getNamedColor($hexColor)) {
             $name = $color;
         }
-
+        
         return $name;
     }
-
-
+    
+    
     /**
      * Преобразува hex цвят към CMYK
      */
     public function getCmyk($hexColor)
     {
         $rgb = color_Object::hexToRgbArr($hexColor);
-
+        
         if (!is_array($rgb)) {
             
             return false;
         }
-
+        
         $r = $rgb[0];
         $g = $rgb[1];
         $b = $rgb[2];
-  
+        
         $cyan = 255 - $r;
         $magenta = 255 - $g;
         $yellow = 255 - $b;
@@ -803,9 +808,9 @@ class cad2_SvgCanvas extends cad2_Canvas
         $cyan = sDiv(($cyan - $black), (255 - $black)) * 255;
         $magenta = sDiv(($magenta - $black), (255 - $black)) * 255;
         $yellow = sDiv(($yellow - $black), (255 - $black)) * 255;
-      
+        
         $res = array($cyan / 255, $magenta / 255, $yellow / 255, $black / 255);
-
+        
         return implode(',', $res);
     }
 }

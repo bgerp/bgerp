@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър за изпратените SMS-и
  *
  *
  * @category  vendors
  * @package   sms
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     История на изпратените SMS-ите
  */
 class sms_Sender extends core_Manager
 {
-    
-    
     /**
      * Необходими мениджъри
      */

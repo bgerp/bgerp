@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'plg_ProtoWrapper' - Прототип на wrapper за модулите на bgERP
  * Показва няколко таба, свързани с различни пакети
@@ -9,26 +8,26 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_ProtoWrapper extends core_Plugin
 {
-
     /**
      * Наименованието на групата
      */
     public $title;
-
-
+    
+    
     /**
      * Страница от менюто
      */
     public $pageMenu;
-    
     
     
     public $tabs = array();
@@ -61,8 +60,8 @@ class plg_ProtoWrapper extends core_Plugin
         $rec->roles = $roles;
         $this->tabs[$name] = $rec;
     }
-
-
+    
+    
     /**
      * Връща заглавието на HTML страницата
      */
@@ -77,22 +76,22 @@ class plg_ProtoWrapper extends core_Plugin
                 $title .= ' « ' . tr($this->title);
             }
         }
-
+        
         return $title;
     }
-
-
+    
+    
     /**
      * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     public function on_AfterRenderWrapping($invoker, &$tpl, $blankTpl, $data = null)
     {
         $tpl = new ET($tpl);
-       
+        
         $this->invoke('beforeDescription');
         $this->description();
         $this->invoke('afterDescription');
-
+        
         if ($this->pageMenu && !Mode::get('pageMenu')) {
             Mode::set('pageMenu', $this->pageMenu);
         }
@@ -104,14 +103,14 @@ class plg_ProtoWrapper extends core_Plugin
         if ($isCurrentTabSet = $invoker->currentTab) {
             $currentTab = $invoker->currentTab;
         }
-
+        
         $ctr = cls::getClassName(Request::get('Ctr'));
         $act = Request::get('Act');
         $id = Request::get('id');
         
         // Масимално добрата оценка за подходящ таб
         $maxScore = 0;
-
+        
         foreach ($this->tabs as $name => $rec) {
             if (!$isCurrentTabSet) {
                 // Ако текущия таб не е изрично зададен, опитваме да го определим евристично
@@ -125,13 +124,13 @@ class plg_ProtoWrapper extends core_Plugin
                         }
                     }
                 }
-
+                
                 if ($score > $maxScore) {
                     $currentTab = $name;
                     $maxScore = $score;
                 }
             }
-
+            
             // Контрол да достъпа до табовете
             if ($rec->haveRight = haveRole($rec->roles)) {
                 if (isset($rec->url['Act'])) {
@@ -158,7 +157,7 @@ class plg_ProtoWrapper extends core_Plugin
         }
         
         $subTabs = array();
- 
+        
         $tabs->htmlId = 'packWrapper';
         
         $hint = '';
@@ -181,7 +180,7 @@ class plg_ProtoWrapper extends core_Plugin
                 }
                 $usedNames[$mainName] = true;
             }
-
+            
             // Добавяме към подчинения таб, ако има нужда
             if ($subName) {
                 if (!$subTabs[$mainName]) {
@@ -199,7 +198,7 @@ class plg_ProtoWrapper extends core_Plugin
         }
         
         list($currentMainTab, $currentSubTab) = explode('->', $currentTab);
- 
+        
         if ($subTabs[$currentMainTab]) {
             $tpl = $subTabs[$currentMainTab]->renderHtml($tpl, $currentSubTab, $hint, $hintBtn);
             $tpl = $tabs->renderHtml($tpl, $currentMainTab);
@@ -207,8 +206,8 @@ class plg_ProtoWrapper extends core_Plugin
             $tpl = $tabs->renderHtml($tpl, $currentMainTab, $hint, $hintBtn);
         }
     }
-
-
+    
+    
     /**
      * Заменя първия срещант wrapper на mvc клас с нов
      */

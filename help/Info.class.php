@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Подсистема за помощ - Информация
  *
  *
  * @category  bgerp
  * @package   help
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class help_Info extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -26,33 +25,34 @@ class help_Info extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Помощен информационен текст';
-        
+    
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools2';
     
-   
+    
     /**
      * Полета за листовия изглед
      */
     public $listFields = 'class,action,lg,text,createdOn,createdBy';
-
+    
     
     /**
      * Кой има право да чете?
      */
     public $canRead = 'admin,debug,help';
-        
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'help';
-
+    
     public $canAdd = 'help';
-
+    
+    
     /**
      * Описание на модела
      */
@@ -63,11 +63,11 @@ class help_Info extends core_Master
         $this->FLD('action', 'varchar(13)', 'caption=Метод,mandatory,silent');
         $this->FLD('lg', 'varchar(2)', 'caption=Език,mandatory,silent');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Помощна информацията, hint=Текст на информацията за помощ');
-
+        
         $this->setDbUnique('class,lg,action');
     }
-
-
+    
+    
     /**
      * Изчисляване на полето 'titla'
      */
@@ -80,9 +80,9 @@ class help_Info extends core_Master
     /**
      *
      *
-     * @param string  $cond
-     * @param string  $fields
-     * @param boolean $cache
+     * @param string $cond
+     * @param string $fields
+     * @param bool   $cache
      *
      * @return object
      */
@@ -98,7 +98,7 @@ class help_Info extends core_Master
             
             return $rec;
         }
-
+        
         return parent::fetch($cond, $fields, $cache);
     }
     
@@ -118,7 +118,7 @@ class help_Info extends core_Master
             2 => 'lg',
             3 => 'text',
         );
-
+        
         $mvc->importing = true;
         
         // Дефолт стойностите за форматирането по подразбиране
@@ -128,11 +128,11 @@ class help_Info extends core_Master
         $format['enclosure'] = '"';
         $format['escape'] = '\\';
         $format['skip'] = '#';
-
+        
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, $format, true);
-         
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }
@@ -160,9 +160,10 @@ class help_Info extends core_Master
     {
         // За да не променяме излишно хелпа
         if ($mvc->importing || !haveRole('help')) {
+            
             return;
         }
-
+        
         $query = self::getQuery();
         
         while ($r = $query->fetch()) {

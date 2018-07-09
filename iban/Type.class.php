@@ -1,8 +1,6 @@
 <?php
 
 
-
-
 /**
  * Клас 'iban_Type' - Въвеждане на IBAN номера
  *
@@ -11,9 +9,11 @@
  *
  * @category  vendors
  * @package   iban
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class iban_Type extends type_Varchar
@@ -28,10 +28,13 @@ class iban_Type extends type_Varchar
      * Максималната дължина на полето
      */
     public $dbFieldLen = 35;
+    
+    
     /**
      *  Параметър определящ максималната широчина на полето
      */
     public $maxFieldSize = 35;
+    
     
     /**
      * Проверява дали въведения IBAN е коректен
@@ -39,13 +42,14 @@ class iban_Type extends type_Varchar
     public function isValid($value)
     {
         self::loadCode();
-
+        
         $value = trim($value);
         
         $res = new stdClass();
         
         // Допускане на записване на непопълнен ИБАН
         if ($value === '') {
+            
             return;
         }
         
@@ -69,7 +73,7 @@ class iban_Type extends type_Varchar
     public static function getCountryPart($iban)
     {
         self::loadCode();
-
+        
         $self = cls::get(get_called_class());
         
         $validIban = $self->isValid($iban);
@@ -88,7 +92,7 @@ class iban_Type extends type_Varchar
     public static function getBankPart($iban)
     {
         self::loadCode();
-
+        
         $self = cls::get(get_called_class());
         
         $validIban = $self->isValid($iban);
@@ -107,7 +111,7 @@ class iban_Type extends type_Varchar
     public static function getParts($iban)
     {
         self::loadCode();
-
+        
         $self = cls::get(get_called_class());
         
         $validIban = $self->isValid($iban);
@@ -128,7 +132,7 @@ class iban_Type extends type_Varchar
         setIfNot($attr['size'], intval($this->dbFieldLen * 1.3));
         setIfNot($attr['maxlength'], $this->dbFieldLen);
         setIfNot($attr['title'], 'За номер извън IBAN стандарта започнете със знака "#"');
-      
+        
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -139,6 +143,7 @@ class iban_Type extends type_Varchar
     public function toVerbal($value)
     {
         if (empty($value)) {
+            
             return;
         }
         
@@ -171,12 +176,12 @@ class iban_Type extends type_Varchar
     public function canonize($iban)
     {
         self::loadCode();
-
+        
         if ($iban{0} == '#') {
             
             return trim(str_replace(array(' ', '-'), array('', ''), $iban));
         }
-
+        
         return iban_to_machine_format($iban);
     }
 }

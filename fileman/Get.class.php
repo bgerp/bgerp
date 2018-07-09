@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_Get' -
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class fileman_Get extends core_Manager
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -28,7 +27,6 @@ class fileman_Get extends core_Manager
      * Заглавие на модула
      */
     public $title = 'Вземания от URL';
-    
     
     
     public $canAdd = 'every_one';
@@ -68,7 +66,7 @@ class fileman_Get extends core_Manager
     /**
      * Връща линк към подадения обект
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */
@@ -167,16 +165,16 @@ class fileman_Get extends core_Manager
         $tmpFile = str::getRand('********') . '_' . time();
         
         $opts = array('http' =>
-                array(
-                        'method' => 'GET',
-                        'header' => array(
-                                "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1\r\n" .
-                                "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8\r\n" .
-                                "Accept-Language: bg,en-us;q=0.7,en;q=0.3\r\n" .
-                                "DNT: 1\r\n" .
-                                "Connection: close\r\n"
-                        ),
-                )
+            array(
+                'method' => 'GET',
+                'header' => array(
+                    "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1\r\n" .
+                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8\r\n" .
+                    "Accept-Language: bg,en-us;q=0.7,en;q=0.3\r\n" .
+                    "DNT: 1\r\n" .
+                    "Connection: close\r\n"
+                ),
+            )
         );
         
         $context = stream_context_create($opts);
@@ -227,7 +225,7 @@ class fileman_Get extends core_Manager
                     if (!$ext) {
                         $ext = fileman_Files::getExt($rec->url, 4);
                     }
-
+                    
                     // Вземаме дефолтния екстеншън от МИМЕ-типа
                     if (!$ext) {
                         $ext = $exts[0];
@@ -271,7 +269,7 @@ class fileman_Get extends core_Manager
             file_put_contents($tmpFile, $data);
             
             if ($rec->bucketId) {
-        
+                
                 // Вземаме инфото на обекта, който ще получи файла
                 $Buckets = cls::get('fileman_Buckets');
                 
@@ -290,7 +288,7 @@ class fileman_Get extends core_Manager
                     }
                 }
             }
-        
+            
             @unlink($tmpFile);
         }
         
@@ -320,14 +318,14 @@ class fileman_Get extends core_Manager
     public function act_Dialog()
     {
         set_time_limit(300);
-
+        
         $form = cls::get('core_Form', array('name' => 'Download', 'method' => 'GET'));
         $form->FNC('bucketId', 'int', 'input=none,silent');
         $form->FNC('callback', 'varchar', 'input=none,silent');
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
-
+        
         $rec = $form->input('bucketId,callback,url', true);
- 
+        
         if ($form->isSubmitted()) {
             $this->getFile($rec, $add);
         }
@@ -349,17 +347,17 @@ class fileman_Get extends core_Manager
         if ($add) {
             $form->layout->prepend($add);
         }
-
+        
         $form->layout->replace(Request::get('Protected'), 'Protected');
         
         $form->toolbar = cls::get('core_Toolbar');
         $form->toolbar->addSbBtn('Вземи файла от това URL') ;
-
+        
         $html = $form->renderHtml('url', $rec);
-
+        
         
         $html = $this->renderDialog($html);
-
+        
         return $html;
     }
     
@@ -373,7 +371,6 @@ class fileman_Get extends core_Manager
     }
     
     
- 
     /**
      * Инсталация на MVC
      */
@@ -397,7 +394,6 @@ class fileman_Get extends core_Manager
      */
     public function extractFileName($headersArr, $url)
     {
-        
         // Ако сървърът ни дава име на файл - вземаме него
         foreach ($headersArr as $h) {
             if ($h['Response Code'] == '200' && $h['Content-Disposition']) {

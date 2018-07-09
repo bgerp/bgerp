@@ -6,16 +6,16 @@
  *
  * @category  ef
  * @package   lib
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class lib_tests_Diff extends unit_Class
 {
-    
-    
     /**
      * От стара и нова версия на HTML, генерира изглед с оцветветени разлики между тях
      *
@@ -101,6 +101,7 @@ class lib_tests_Diff extends unit_Class
         $oldArr[16] = '';
         $newArr[16] = '';
         $expectArr[16] = '';
+        
         // Край на масивите
         
         // Отварящ таг

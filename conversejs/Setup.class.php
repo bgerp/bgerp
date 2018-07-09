@@ -13,15 +13,15 @@ defIfNot('CONVERSEJS_BOSH_SERVICE_URL', 'https://conversejs.org/http-bind/');
  *
  * @category  bgerp
  * @package   conversejs
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class conversejs_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -45,16 +45,16 @@ class conversejs_Setup extends core_ProtoSetup
      */
     public $info = 'Уеб чат за XMPP протокол';
     
-        
+    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
+        
+        // Минималния брой елементи, за които няма да сработи Chosen
+        'CONVERSEJS_BOSH_SERVICE_URL' => array('url', 'caption=BOSH_SERVICE->Url'),
     
-            // Минималния брой елементи, за които няма да сработи Chosen
-            'CONVERSEJS_BOSH_SERVICE_URL' => array('url', 'caption=BOSH_SERVICE->Url'),
-    
-        );
+    );
     
     
     /**
@@ -69,7 +69,7 @@ class conversejs_Setup extends core_ProtoSetup
         
         // Инсталираме
         $html .= $Plugins->forcePlugin('ConverseJS Chat', 'conversejs_Plugin', 'core_page_InternalModern', 'private');
-
+        
         return $html;
     }
     
@@ -87,7 +87,7 @@ class conversejs_Setup extends core_ProtoSetup
         // Премахваме от type_Keylist полета
         $Plugins->deinstallPlugin('conversejs_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'conversejs_Plugin'";
-       
+        
         return $html;
     }
 }

@@ -1,31 +1,33 @@
 <?php
 
 
-
 /**
  * Клас 'core_ObjectCollection' - Масив - колекция от обекти
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_ObjectCollection implements Iterator
 {
-    
     /**
      * @todo Чака за документация...
      */
     public $container = array();
     
+    
     /**
      * @todo Чака за документация...
      */
     public $fields = array();
+    
     
     /**
      * @todo Чака за документация...
@@ -39,6 +41,7 @@ class core_ObjectCollection implements Iterator
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -46,6 +49,7 @@ class core_ObjectCollection implements Iterator
     {
         reset($this->container);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -57,6 +61,7 @@ class core_ObjectCollection implements Iterator
         return $var;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -67,6 +72,7 @@ class core_ObjectCollection implements Iterator
         return $var;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -76,6 +82,7 @@ class core_ObjectCollection implements Iterator
         
         return $var;
     }
+    
     
     /**
      * @todo Чака за документация...

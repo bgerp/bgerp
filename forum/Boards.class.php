@@ -1,37 +1,38 @@
 <?php
 
+
 /**
  * Дъски
  *
  *
  * @category  bgerp
  * @package   forum
+ *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class forum_Boards extends core_Master
 {
-    
-    
     /**
      * Заглавие на страницата
      */
     public $title = 'Форумни дъски';
-   
-
+    
+    
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'cms_SourceIntf';
     
-
+    
     /**
      * Зареждане на необходимите плъгини
      */
     public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting';
-
+    
     
     /**
      * Полета за листов изглед
@@ -55,8 +56,8 @@ class forum_Boards extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'forum, ceo, admin, cms';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -126,6 +127,7 @@ class forum_Boards extends core_Master
     /**
      * Обновяваме броя на темите и коментарите на дъската. Обновяваме кой, къде и
      * кога е направил последния коментар
+     *
      * @param int $id
      */
     public function updateBoard($id)
@@ -190,7 +192,7 @@ class forum_Boards extends core_Master
     {
         // Създаваме празен $data обект
         $data = new stdClass();
-
+        
         // Създаваме заявка към модела
         $data->query = $this->getQuery();
         
@@ -206,11 +208,11 @@ class forum_Boards extends core_Master
         
         // Рендираме Дъските в форума
         $layout = $this->renderForum($data);
-       
+        
         return $layout;
     }
-
-
+    
+    
     /**
      *  Подготовка на списъка с дъски, разпределени по техните категории
      */
@@ -218,7 +220,7 @@ class forum_Boards extends core_Master
     {
         // Извличаме всички категории на дъските
         forum_Categories::prepareCategories($data);
-
+        
         if (count($data->categories)) {
             
             // За всяка категория ние подготвяме списъка от дъски, които са част от нея
@@ -245,11 +247,13 @@ class forum_Boards extends core_Master
     /**
      * Подготвяме, навигационните линкове за бърз достъп до избраната категория/дъска/тема
      * в навигационното поле на форума
-     * @param  int    $categoryId - ид на категорията
-     * @param  int    $boardId    - ид на дъската
-     * @param  int    $themeId    - ид на темата
-     * @param  string $display    - дали е за външен изглед
-     * @return array  $arr - масив с линковете
+     *
+     * @param int    $categoryId - ид на категорията
+     * @param int    $boardId    - ид на дъската
+     * @param int    $themeId    - ид на темата
+     * @param string $display    - дали е за външен изглед
+     *
+     * @return array $arr - масив с линковете
      */
     public function prepareNavigation($categoryId, $boardId = null, $themeId = null, $display = null)
     {
@@ -324,7 +328,7 @@ class forum_Boards extends core_Master
            
            // Добавяме външният изглед, само ако екшъна е за външен изглед
             Mode::set('wrapper', 'cms_page_External');
-          
+            
             // Засветяване на Форум  в менюто
             $selfId = core_Classes::getId($this);
             Mode::set('cMenuId', cms_Content::fetchField("#source = {$selfId}", 'id'));
@@ -356,7 +360,7 @@ class forum_Boards extends core_Master
         
         // Предпазване от листване на конфиденциални дъски
         $cu = core_Users::getCurrent();
-
+        
         if (!haveRole('forum') && $cu > 0) {
             $query->where("NOT (#boardType = 'confidential'  AND !(#shared LIKE '%|{$cu}|%'))");
         }
@@ -364,7 +368,7 @@ class forum_Boards extends core_Master
         $fields = $this->selectFields('');
         $fields['-public'] = true;
         while ($rec = $query->fetch()) {
-            
+        
         // Ако имаме права да виждаме дъските
             if ($this->haveRightFor('read', $rec)) {
                 $category->boards->recs[$rec->id] = $rec;
@@ -496,7 +500,7 @@ class forum_Boards extends core_Master
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
-         
+        
         return $tpl;
     }
     
@@ -540,9 +544,11 @@ class forum_Boards extends core_Master
     
     /**
      * Функция проверяваща дали потребителя има достъп до дъската
-     * @param  stdClass $rec
-     * @param  int      $userId
-     * @return boolean  TRUE/FALSE
+     *
+     * @param stdClass $rec
+     * @param int      $userId
+     *
+     * @return bool TRUE/FALSE
      */
     public static function haveRightToObject($rec, $userId = null)
     {
@@ -590,7 +596,7 @@ class forum_Boards extends core_Master
             } else {
                 $row->lastCommentBy = crm_Profiles::createLink($rec->lastCommentBy);
             }
-
+            
             if ($rec->lastCommentedTheme) {
                 $themeRec = forum_Postings::fetch($rec->lastCommentedTheme);
                 if (strlen($themeRec->title) >= 10) {
@@ -614,18 +620,18 @@ class forum_Boards extends core_Master
             
             // Ако темата има последен коментар
             if ($rec->lastCommentBy) {
-              
+               
                // преобразуваме ид-то на последно коментираната тема в разбираем вид
                 $themeRec = forum_Postings::fetch($rec->lastCommentedTheme);
                 if (strlen($themeRec->title) >= 25) {
-                   
+                       
                        // Ако заглавието и е много дълго го съкръщаваме
                     $themeRec->title = mb_substr($themeRec->title, 0, 20);
                     $themeRec->title .= '...';
                 }
                 
                 $row->lastCommentedTheme = ht::createLink($themeRec->title, array('forum_Postings', 'Theme', $themeRec->id));
-               
+                
                 // Намираме граватара и ника на потребителя коментирал последно
                 $lastUser = core_Users::fetch($rec->lastCommentBy);
                 $row->lastAvatar = avatar_Plugin::getImg(0, $lastUser->email, 50);
@@ -635,8 +641,8 @@ class forum_Boards extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Ако сме в екшън за единичен изглед, подготвяме навигацията
      */
@@ -674,8 +680,8 @@ class forum_Boards extends core_Master
             $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         }
     }
-     
-     
+    
+    
     /**
      *  Обновяване на категория, след добавяне на нова тема
      */
@@ -683,8 +689,8 @@ class forum_Boards extends core_Master
     {
         forum_Categories::updateCategory($rec->category);
     }
-     
-     
+    
+    
     /**
      * Помощен метод връщащ класа на темата зададена
      * от потребителя, или базовата тема ако няма зададена
@@ -692,18 +698,17 @@ class forum_Boards extends core_Master
     public static function getThemeClass()
     {
         $conf = core_Packs::getConfig('forum');
-
+        
         return cls::get($conf->FORUM_DEFAULT_THEME);
     }
-
-   
-
+    
+    
     /**********************************************************************************************************
      *
      * Интерфейс cms_SourceIntf
      *
      **********************************************************************************************************/
-
+    
     /**
      * Връща URL към себе си (форума)
      */
@@ -711,15 +716,15 @@ class forum_Boards extends core_Master
     {
         return array('forum_Boards', 'forum');
     }
-
-
+    
+    
     /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
      */
     public function getWorkshopUrl($menuId)
     {
         $url = array('forum_Boards', 'list');
-
+        
         return $url;
     }
 }

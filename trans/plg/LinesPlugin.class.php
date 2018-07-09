@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'trans_plg_LinesPlugin'
  * Плъгин даващ възможност на даден документ лесно да му се избира транспортна линия
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class trans_plg_LinesPlugin extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -87,6 +86,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action != 'changeline') {
+            
             return;
         }
         
@@ -139,12 +139,12 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $rec->volumeInput = $formRec->volume;
                 $rec->lineNotes = $formRec->lineNotes;
                 $rec->transUnitsInput = trans_Helper::convertTableToNormalArr($formRec->transUnitsInput);
-            
+                
                 $rec->{$mvc->lineFieldName} = $formRec->lineId;
                 $mvc->save($rec);
                 $mvc->updateMaster($rec);
                 $mvc->logWrite('Редакция на транспорта', $rec->id);
-                    
+                
                 if (!$rec->lineId) {
                     trans_LineDetails::delete("#containerId = {$rec->containerId}");
                 }
@@ -152,7 +152,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if ($exLineId && $exLineId != $rec->lineId) {
                     $mvc->updateLines[$rec->lineId] = $exLineId;
                 }
-                    
+                
                 // Редирект след успешния запис
                 redirect($mvc->getSingleUrlArray($id), false, '|Промените са записани успешно');
             }
@@ -160,7 +160,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', $mvc->getSingleUrlArray($id), 'ef_icon = img/16/close-red.png');
-             
+        
         // Рендиране на формата
         $res = $form->renderHtml();
         $res = $mvc->renderWrapping($res);
@@ -212,7 +212,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
             $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight);
         }
-            
+        
         setIfNot($rec->{$mvc->totalVolumeFieldName}, $transInfo->volume);
         $rec->calcedVolume = $rec->{$mvc->totalVolumeFieldName};
         $rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
@@ -230,7 +230,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         if (isset($rec->lineId)) {
             $row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
-        
+            
             if (!Mode::isReadOnly()) {
                 $lineState = trans_Lines::fetchField($rec->lineId, 'state');
                 $row->lineId = "<span class='state-{$lineState} document-handler' style='line-height:110%'>{$row->lineId}</span>";
@@ -249,7 +249,7 @@ class trans_plg_LinesPlugin extends core_Plugin
      *                        - weight - теглото на реда
      *                        - volume - теглото на реда
      * @param int      $id
-     * @param boolean  $force
+     * @param bool     $force
      */
     public static function on_AfterGetTotalTransportInfo($mvc, &$res, $id, $force = false)
     {
@@ -377,9 +377,10 @@ class trans_plg_LinesPlugin extends core_Plugin
     /**
      * Трябва ли ръчно да се подготвя документа в Транспортната линия
      *
-     * @param  core_Mvc $mvc - документ
-     * @param  boolean  $res - TRUE или FALSE
-     * @param  mixed    $id  - ид или запис на документа
+     * @param core_Mvc $mvc - документ
+     * @param bool     $res - TRUE или FALSE
+     * @param mixed    $id  - ид или запис на документа
+     *
      * @return void
      */
     public static function on_AfterRequireManualCheckInTransportLine($mvc, &$res, $id)

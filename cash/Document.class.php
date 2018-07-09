@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Документ за наследяване от касовите ордери
  *
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class cash_Document extends deals_PaymentDocument
 {
-    
-    
     /**
      * Флаг, който указва, че документа е партньорски
      */
@@ -56,8 +55,8 @@ abstract class cash_Document extends deals_PaymentDocument
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, cash';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -129,7 +128,7 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public static $defaultStrategies = array('depositor' => 'lastDocUser|lastDoc',);
     
-
+    
     /**
      * Основна сч. сметка
      */
@@ -146,6 +145,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
+     *
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, cash';
@@ -166,7 +166,8 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Добавяне на дефолтни полета
      *
-     * @param  core_Mvc $mvc
+     * @param core_Mvc $mvc
+     *
      * @return void
      */
     protected function getFields(core_Mvc &$mvc)
@@ -202,7 +203,7 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $folderId = $data->form->rec->folderId;
         $form = &$data->form;
-         
+        
         $contragentId = doc_Folders::fetchCoverId($folderId);
         $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
         $form->setDefault('contragentId', $contragentId);
@@ -214,7 +215,7 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $options = $mvc->getOperations($pOperations);
         expect(count($options));
-         
+        
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('currencyId', $cId);
@@ -223,7 +224,7 @@ abstract class cash_Document extends deals_PaymentDocument
             if (isset($form->rec->originId, $form->rec->amountDeal)) {
                 $expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
             }
-             
+            
             $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {
@@ -241,7 +242,7 @@ abstract class cash_Document extends deals_PaymentDocument
         
         if (isset($defaultOperation) && array_key_exists($defaultOperation, $options)) {
             $form->setDefault('operationSysId', $defaultOperation);
-        
+            
             $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
@@ -256,7 +257,7 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
         $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
-         
+        
         $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
         
         if ($contragentClassId == crm_Companies::getClassId()) {
@@ -284,7 +285,7 @@ abstract class cash_Document extends deals_PaymentDocument
             if (!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId) {
                 $form->setField('amount', 'input');
                 $form->setError('amount', 'Когато плащането е във валута - различна от тази на сделката, сумата трябва да е попълнена');
-
+                
                 return;
             }
             
@@ -332,7 +333,7 @@ abstract class cash_Document extends deals_PaymentDocument
         cash_Cases::prepareCaseFilter($data, array('peroCase'));
     }
     
-
+    
     /**
      * Вкарваме css файл за единичния изглед
      */
@@ -354,8 +355,8 @@ abstract class cash_Document extends deals_PaymentDocument
             $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
     }
-
-
+    
+    
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
@@ -367,7 +368,7 @@ abstract class cash_Document extends deals_PaymentDocument
         }
     }
     
-
+    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -378,40 +379,43 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         return false;
     }
-
-
+    
+    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $docState = $firstDoc->fetchField('state');
-    
+        
         if (!empty($firstDoc) && $firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active') {
             
             // Ако няма позволени операции за документа не може да се създава
             $operations = $firstDoc->getPaymentOperations();
             $options = static::getOperations($operations);
-    
+            
             return count($options) ? true : false;
         }
-    
+        
         return false;
     }
-
+    
     
     /**
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
@@ -423,12 +427,14 @@ abstract class cash_Document extends deals_PaymentDocument
         return $tpl->getContent();
     }
     
-
+    
     /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
-     * @param  int|object                 $id
+     * @param int|object $id
+     *
      * @return bgerp_iface_DealAggregator
+     *
      * @see bgerp_DealIntf::getDealInfo()
      */
     public function pushDealInfo($id, &$aggregator)
@@ -437,7 +443,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $aggregator->setIfNot('caseId', $rec->peroCase);
     }
     
-
+    
     /**
      *  Обработки по вербалното представяне на данните
      */
@@ -448,7 +454,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if ($fields['-single']) {
             if ($rec->dealCurrencyId != $rec->currencyId) {
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
-                 
+                
                 if ($rec->dealCurrencyId == $baseCurrencyId) {
                     $rate = $rec->amountDeal / $rec->amount;
                     $rateFromCurrencyId = $rec->dealCurrencyId;
@@ -466,25 +472,25 @@ abstract class cash_Document extends deals_PaymentDocument
                 unset($row->amountDeal);
                 unset($row->rate);
             }
-             
+            
             $SpellNumber = cls::get('core_SpellNumber');
             $currecyCode = currency_Currencies::getCodeById($rec->currencyId);
             $amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', false, $currecyCode);
             $row->amountVerbal = str::mbUcfirst($amountVerbal);
-             
+            
             // Вземаме данните за нашата фирма
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
-    
+            
             // Извличаме имената на създателя на документа (касиера)
             if (isset($rec->activatedBy)) {
                 $cashierRec = core_Users::fetch($rec->activatedBy);
                 $cashierRow = core_Users::recToVerbal($cashierRec);
                 $row->activatedBy = $cashierRow->names;
             }
-    
+            
             if (isset($rec->peroCase)) {
                 $row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
             } else {
@@ -506,6 +512,7 @@ abstract class cash_Document extends deals_PaymentDocument
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')) {

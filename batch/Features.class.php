@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Свойства на партидите
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_Features extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -70,7 +69,8 @@ class batch_Features extends core_Manager
     /**
      * Канонизира името на свойството
      *
-     * @param  string $name
+     * @param string $name
+     *
      * @return string
      */
     public static function canonize($name)
@@ -82,7 +82,8 @@ class batch_Features extends core_Manager
     /**
      * Синхронизиране на свойствата на перото
      *
-     * @param  int  $itemid - ид на перо
+     * @param int $itemid - ид на перо
+     *
      * @return void
      */
     public static function sync($itemId)
@@ -91,6 +92,7 @@ class batch_Features extends core_Manager
         $itemRec = batch_Items::fetchRec($itemId);
         $Def = batch_Defs::getBatchDef($itemRec->productId);
         if (!is_object($Def)) {
+            
             return;
         }
         
@@ -105,9 +107,9 @@ class batch_Features extends core_Manager
         $res = array();
         foreach ($features as $class => $featObj) {
             $obj = (object) array('itemId' => $itemRec->id,
-                                 'name' => self::canonize($featObj->name),
-                                 'classId' => $featObj->classId,
-                                 'value' => $featObj->value,);
+                'name' => self::canonize($featObj->name),
+                'classId' => $featObj->classId,
+                'value' => $featObj->value,);
             
             if (!$self->isUnique($obj, $fields, $exRec)) {
                 $obj->id = $exRec->id;
@@ -147,13 +149,13 @@ class batch_Features extends core_Manager
     public function act_Sync()
     {
         requireRole('ceo,admin');
-         
+        
         // Синхронизира всички свойства на перата
         $this->syncAll();
-         
+        
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite('Синхронизиране на свойствата на партидите');
-         
+        
         // Редирект към списъка на свойствата
         return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
     }
@@ -167,7 +169,7 @@ class batch_Features extends core_Manager
     public static function syncAll()
     {
         self::truncate();
-         
+        
         $iQuery = batch_Items::getQuery();
         while ($iRec = $iQuery->fetch()) {
             try {

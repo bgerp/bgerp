@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * class cash_Setup
  *
@@ -9,15 +10,15 @@
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -52,31 +53,31 @@ class cash_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'cash_Cases',
-            'cash_Pko',
-            'cash_Rko',
-            'cash_InternalMoneyTransfer',
-            'cash_ExchangeDocument',
-            'cash_NonCashPaymentDetails',
-            'migrate::repairSerchKeywords',
-        );
-
-        
+        'cash_Cases',
+        'cash_Pko',
+        'cash_Rko',
+        'cash_InternalMoneyTransfer',
+        'cash_ExchangeDocument',
+        'cash_NonCashPaymentDetails',
+        'migrate::repairSerchKeywords',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('cash', 'seePrice'),
-            array('cashMaster', 'cash'),
+        array('cash', 'seePrice'),
+        array('cashMaster', 'cash'),
     );
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo'),
-        );
+        array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo'),
+    );
     
     
     /**

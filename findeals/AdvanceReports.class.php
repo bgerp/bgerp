@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'findeals_AdvanceReports'
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   findeals
+ *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class findeals_AdvanceReports extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -49,8 +48,8 @@ class findeals_AdvanceReports extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,pettyCashReport,acc';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -67,8 +66,8 @@ class findeals_AdvanceReports extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,pettyCashReport';
-
-
+    
+    
     /**
      * Кой може да го види?
      */
@@ -91,7 +90,7 @@ class findeals_AdvanceReports extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior,title=Документ,amount,currencyId,folderId,createdOn,createdBy';
-
+    
     
     /**
      * Основна сч. сметка
@@ -110,7 +109,7 @@ class findeals_AdvanceReports extends core_Master
      */
     public $details = 'findeals_AdvanceReportDetails';
     
-
+    
     /**
      * Кой е основния детайл
      */
@@ -127,8 +126,8 @@ class findeals_AdvanceReports extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'findeals/tpl/SingleAdvanceReportLayout.shtml';
-
-   
+    
+    
     /**
      * Групиране на документите
      */
@@ -224,7 +223,7 @@ class findeals_AdvanceReports extends core_Master
     protected static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = &$form->rec;
-         
+        
         if ($form->isSubmitted()) {
             $operations = $form->dealInfo->get('allowedPaymentOperations');
             $operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
@@ -241,19 +240,20 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-         
+        
         $query = findeals_AdvanceReportDetails::getQuery();
         $query->where("#reportId = '{$id}'");
         $recs = $query->fetchAll();
-    
+        
         deals_Helper::fillRecs($this, $recs, $rec);
-    
+        
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
         $amount -= $this->_total->discount;
@@ -276,20 +276,21 @@ class findeals_AdvanceReports extends core_Master
     {
         return false;
     }
-        
+    
     
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $docState = $firstDoc->fetchField('state');
-    
+        
         if (($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')) {
             if ($firstDoc->className != 'findeals_AdvanceDeals') {
                 
@@ -297,10 +298,10 @@ class findeals_AdvanceReports extends core_Master
             }
             
             $options = self::getOperations($firstDoc->getPaymentOperations());
-                
+            
             return count($options) ? true : false;
         }
-    
+        
         return false;
     }
     
@@ -318,7 +319,7 @@ class findeals_AdvanceReports extends core_Master
                 $options[$sysId] = $op['title'];
             }
         }
-         
+        
         return $options;
     }
     
@@ -335,7 +336,7 @@ class findeals_AdvanceReports extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->recTitle = $row->title;
-    
+        
         return $row;
     }
     
@@ -346,7 +347,7 @@ class findeals_AdvanceReports extends core_Master
     public function prepareSingle_($data)
     {
         parent::prepareSingle_($data);
-         
+        
         $rec = &$data->rec;
         if (empty($data->noTotal)) {
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
@@ -371,16 +372,18 @@ class findeals_AdvanceReports extends core_Master
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
         $tpl = new ET(tr('Моля запознайте се с нашия авансов отчет') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
-    
+        
         return $tpl->getContent();
     }
     
@@ -388,8 +391,10 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
-     * @param  int|object                 $id
+     * @param int|object $id
+     *
      * @return bgerp_iface_DealAggregator
+     *
      * @see bgerp_DealIntf::getDealInfo()
      */
     public function pushDealInfo($id, &$aggregator)
@@ -419,21 +424,22 @@ class findeals_AdvanceReports extends core_Master
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
-     * @param  mixed               $id     - ид или запис на документа
-     * @param  deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
-     * @return array               $details - масив с артикули готови за запис
-     *                                    o productId      - ид на артикул
-     *                                    o packagingId    - ид на опаковка/основна мярка
-     *                                    o quantity       - количество опаковка
-     *                                    o quantityInPack - количество в опаковката
-     *                                    o discount       - отстъпка
-     *                                    o price          - цена за единица от основната мярка
+     * @param mixed               $id     - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     *
+     * @return array $details - масив с артикули готови за запис
+     *               o productId      - ид на артикул
+     *               o packagingId    - ид на опаковка/основна мярка
+     *               o quantity       - количество опаковка
+     *               o quantityInPack - количество в опаковката
+     *               o discount       - отстъпка
+     *               o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {
         $details = array();
         $rec = static::fetchRec($id);
-         
+        
         $query = findeals_AdvanceReportDetails::getQuery();
         $query->where("#reportId = {$rec->id}");
         while ($dRec = $query->fetch()) {
@@ -442,14 +448,14 @@ class findeals_AdvanceReports extends core_Master
                 $dRec->price -= $dRec->price * $dRec->discount;
                 unset($dRec->discount);
             }
-    
+            
             unset($dRec->id);
             unset($dRec->reportId);
             unset($dRec->createdOn);
             unset($dRec->createdBy);
             $details[] = $dRec;
         }
-         
+        
         return $details;
     }
     

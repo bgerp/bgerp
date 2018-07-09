@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Плъгин позволяващ промяна на редовете на детайлите при клониране
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_plg_EditClonedDetails extends core_Plugin
 {
-    
-    
     /**
      * Кои детайли да се клонират с промяна
      *
-     * @param  stdClass $rec
-     * @param  mixed    $Detail
+     * @param stdClass $rec
+     * @param mixed    $Detail
+     *
      * @return array
      */
     public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = null)
@@ -29,6 +29,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         if (!$res) {
             $res = array();
             if (!$rec->clonedFromId) {
+                
                 return;
             }
             
@@ -49,6 +50,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if ($data->action != 'clone') {
+            
             return;
         }
         $form = &$data->form;
@@ -58,6 +60,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
         setIfNot($Detail, cls::get($mvc->mainDetail));
         if (!count($detailsToClone)) {
+            
             return;
         }
         setIfNot($Detail->productFld, 'productId');
@@ -140,6 +143,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         }
         
         if (!isset($rec->clonedFromId)) {
+            
             return;
         }
         

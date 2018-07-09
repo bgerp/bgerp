@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'lang_Encoding' - Откриване на енкодинга и езика на текст
  *
@@ -10,21 +9,21 @@
  *
  * @category  vendors
  * @package   lang
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class i18n_Encoding
 {
-    
-    
     /**
      *  Масив с ключове - алиас-и на  и стойности - официални имена на кодировки за двоични данни
      */
     public static $encodingsMatchs = array();
-
-
+    
+    
     /**
      * Резултат - aSCII, 8bit-non-latin, 8bit-latin, utf8
      */
@@ -72,8 +71,8 @@ class i18n_Encoding
             return $res;
         }
     }
-
-
+    
+    
     /**
      * Опитва се да извлече име на познато кодиране на
      * двоични данни от зададения стринг
@@ -83,6 +82,7 @@ class i18n_Encoding
         $encoding = strtoupper(trim($encoding));
         
         if (!$encoding) {
+            
             return;
         }
         
@@ -101,7 +101,7 @@ class i18n_Encoding
         
         return $findEncoding;
     }
-     
+    
     
     /**
      * Подготвя масив с ключове - алиас-и на кодиране на бинарни данни
@@ -110,6 +110,7 @@ class i18n_Encoding
     private static function prepareEncodingMatchs()
     {
         if (count(self::$encodingsMatchs)) {
+            
             return;
         }
         
@@ -147,8 +148,8 @@ class i18n_Encoding
         
         uksort(self::$encodingsMatchs, 'i18n_Encoding::sort');
     }
-
-
+    
+    
     /**
      * Помощна функция за сортиране според дължината на ключа
      */

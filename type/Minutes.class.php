@@ -1,25 +1,23 @@
 <?php
 
 
-
 /**
  * Клас  'type_Minutes' - Тип за продължителност от време в минути
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
- *
  * @deprecated
  */
 class type_Minutes extends type_Int
 {
-    
-    
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
@@ -35,6 +33,7 @@ class type_Minutes extends type_Int
         
         // Празна стойност се приема за NULL
         if ($val === '') {
+            
             return;
         }
         
@@ -144,6 +143,7 @@ class type_Minutes extends type_Int
     public function toVerbal_($value)
     {
         if (!isset($value) || !is_numeric($value)) {
+            
             return;
         }
         

@@ -7,9 +7,11 @@
  *
  * @category  bgerp
  * @package   findeals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class findeals_ClosedDeals extends deals_ClosedDeals
@@ -18,8 +20,8 @@ class findeals_ClosedDeals extends deals_ClosedDeals
      * Заглавие
      */
     public $title = 'Приключване на сделки';
-
-
+    
+    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -56,13 +58,13 @@ class findeals_ClosedDeals extends deals_ClosedDeals
      */
     public $canAdd = 'ceo,findeals';
     
-  
+    
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, findeals, acc';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -79,13 +81,13 @@ class findeals_ClosedDeals extends deals_ClosedDeals
      * Заглавие в единствено число
      */
     public $singleTitle = 'Приключване на сделка';
-   
+    
     
     /**
      * Групиране на документите
      */
     public $newBtnGroup = '3.9|Търговия';
-   
+    
     
     /**
      * Полета свързани с цени
@@ -111,15 +113,17 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     
     /**
      * Връща разликата с която ще се приключи сделката
-     * @param  mixed  $threadId - ид на нишката или core_ObjectReference
-     *                          към първия документ в нишката
-     * @return double $amount - разликата на платеното и експедираното
+     *
+     * @param mixed $threadId - ид на нишката или core_ObjectReference
+     *                        към първия документ в нишката
+     *
+     * @return float $amount - разликата на платеното и експедираното
      */
     public static function getClosedDealAmount($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
-    
+        
         $cost = acc_Balances::getBlAmounts($jRecs, '6913', 'debit')->amount;
         $inc = acc_Balances::getBlAmounts($jRecs, '7913', 'credit')->amount;
         
@@ -130,6 +134,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     
     /**
      * Имплементиране на интерфейсен метод
+     *
      * @see deals_ClosedDeals::getDocumentRow()
      */
     public function getDocumentRow($id)
@@ -195,7 +200,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
             
             return false;
         }
-    
+        
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         
         if (!$firstDoc->isInstanceOf('findeals_Deals')) {

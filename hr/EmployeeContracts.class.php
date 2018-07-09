@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Смени
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_EmployeeContracts extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -44,6 +43,7 @@ class hr_EmployeeContracts extends core_Master
      * За плъгина acc_plg_DocumentSummary
      */
     public $filterFieldDateFrom = 'startFrom';
+    
     
     /**
      * @todo Чака за документация...
@@ -100,7 +100,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $canEdit = 'ceo,hrMaster';
     
-
+    
     /**
      * Кой има право да клонира?
      */
@@ -132,6 +132,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $newBtnGroup = '5.1|Човешки ресурси';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -154,7 +155,7 @@ class hr_EmployeeContracts extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf,doc_UnsortedFolders';
-
+    
     
     /**
      * Поле за филтриране по дата
@@ -181,10 +182,10 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
         $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от');
         $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months,allowEmpty)', 'caption=Служител->Трудов стаж');
-                
+        
         // Отдел - външно поле от модела hr_Positions
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name)', 'caption=Работа->Център,mandatory,autoFilter');
-
+        
         // Позиция в отдела
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
         
@@ -210,8 +211,6 @@ class hr_EmployeeContracts extends core_Master
         $this->setDbUnique('numId');
     }
     
-    
-
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -246,7 +245,7 @@ class hr_EmployeeContracts extends core_Master
             $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $data->form->setReadonly('personId');
         }
-
+        
         // по дефолт слагаме днешна дата
         $data->form->setDefault('dateId', dt::verbal2mysql());
         
@@ -269,7 +268,7 @@ class hr_EmployeeContracts extends core_Master
     {
         $row->personId = crm_Persons::getHyperLink($rec->personId, true);
         $row->positionId = hr_Positions::getLinkForObject($rec->positionId);
-    
+        
         if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
         }
@@ -287,7 +286,7 @@ class hr_EmployeeContracts extends core_Master
         $queryWorkingCycle = planning_Centers::getQuery();
         
         if ($queryWorkingCycle->fetch('#schedule') == false) {
-        
+            
             // Ако няма, изискваме от потребителя да въведе
             redirect(array('planning_Centers', 'list'), false, '|Не сте въвели работни графици');
         }
@@ -306,13 +305,13 @@ class hr_EmployeeContracts extends core_Master
         foreach ($employeeRec as $fld => $value) {
             $row->{"employeeRec_{$fld}"} = $value;
         }
-
+        
         $row->employeeRec_idCard = crm_ext_IdCards::fetch("#personId = '{$rec->personId}'");
         
         if (!$employeeRec->egn) {
             unset($row->employeeRec_egn);
         }
-       
+        
         $employerRec = crm_Companies::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
         
         foreach ($employerRec as $fld => $value) {
@@ -327,7 +326,7 @@ class hr_EmployeeContracts extends core_Master
         
         $row->managerRec_idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
         $row->employersRec = crm_ext_CourtReg::fetch("#companyId = {$employerRec->id}");
-
+        
         if (!$managerRec->egn) {
             unset($row->managerRec_egn);
         }
@@ -399,7 +398,7 @@ class hr_EmployeeContracts extends core_Master
         
         // Продължителността на договора
         $row->term = (int) $rec->term;
-
+        
         $res = $data;
     }
     
@@ -422,13 +421,14 @@ class hr_EmployeeContracts extends core_Master
             
             // и намираме всички плейсхолдери в него
             preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $tpl, $matches);
-      
+            
             // помощен масив, тези полете от формата на модела не са от значение за шаблона
             $sysArray = array('id', 'ret_url', 'typeId', 'managerId', 'personId', 'departmentId',
                 'descriptions', 'sharedUsers', 'sharedViews', 'searchKeywords', 'professionId',
                 'folderId', 'threadId', 'containerId', 'originId', 'state', 'brState',
                 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'lists');
             $sysArrayCnt = count($sysArray);
+            
             // От всички полета на модела
             foreach ($rec as $name => $value) {
                 $formField[$name] = $name;
@@ -467,12 +467,12 @@ class hr_EmployeeContracts extends core_Master
     public static function on_AfterSave($mvc, &$id, &$rec, $fieldList = null)
     {
         $position = self::fetchField($id, 'positionId');
-
+        
         if ($rec->state == 'active') {
             if (!$rec->personId) {
                 $rec->personId = self::fetch($rec->id)->personId;
             }
-
+            
             // Взимаме запълването до сега
             $employmentOccupied = hr_Positions::fetchField($position, 'employmentOccupied');
             
@@ -559,7 +559,7 @@ class hr_EmployeeContracts extends core_Master
         $queryWorkingCycle = hr_WorkingCycles::getQuery();
         
         if ($query->fetchAll() == false) {
-        
+            
             // Ако няма, изискваме от потребителя да въведе
             redirect(array('hr_WorkingCycles', 'list'), false, '|Не сте въвели работни графици');
         }
@@ -582,9 +582,9 @@ class hr_EmployeeContracts extends core_Master
         // в системата, работното време се определя от различните графици
         // те от своя страна се добавят към отделите (структура)
         $queryWorkingCycle = planning_Centers::getQuery();
-    
+        
         if ($queryWorkingCycle->fetch('#schedule') == false) {
-
+            
             // Ако няма, изискваме от потребителя да въведе
             redirect(array('planning_Centers', 'list'), false, '|Не сте въвели работни графици');
         }
@@ -599,6 +599,7 @@ class hr_EmployeeContracts extends core_Master
     public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
     {
         if (empty($rec->numId)) {
+            
             return;
         }
         
@@ -665,7 +666,7 @@ class hr_EmployeeContracts extends core_Master
         
         return $options;
     }
-
+    
     
     /**
      * @todo Чака за документация...
@@ -682,6 +683,7 @@ class hr_EmployeeContracts extends core_Master
     
     /**
      * Изчислява седмичното натоварване според графика в секунди
+     *
      * @param int $id
      */
     public static function houresForAWeek($id)
@@ -752,6 +754,7 @@ class hr_EmployeeContracts extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -771,9 +774,6 @@ class hr_EmployeeContracts extends core_Master
      ****************************************************************************************/
     
     
- 
-    
-    
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
@@ -791,10 +791,10 @@ class hr_EmployeeContracts extends core_Master
         return $row;
     }
     
- 
     
     /**
      * Дали подадения номер е в позволения диапазон за номера на фактури
+     *
      * @param $number - номера на фактурата
      */
     private function isNumberInRange($numId)
@@ -808,6 +808,7 @@ class hr_EmployeeContracts extends core_Master
     
     /**
      * Ф-я връщаща следващия номер на фактурата, ако той е в границите
+     *
      * @return int - следващия номер на фактура
      */
     protected static function getNexNumber()
@@ -822,6 +823,7 @@ class hr_EmployeeContracts extends core_Master
         $nextNum = $maxNum + 1;
         
         if ($nextNum > $conf->HR_EC_MAX) {
+            
             return;
         }
         

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_BaseClass' - прототип за класове поддържащи събития и инициализиране
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_BaseClass
 {
-    
-    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
@@ -36,7 +35,7 @@ class core_BaseClass
      * @var array
      */
     public $invocableMethods = array();
-
+    
     
     /**
      * Списък от заредените инстанции на плъгини
@@ -59,13 +58,13 @@ class core_BaseClass
      */
     public $params = array();
     
-
+    
     /**
      * Кеш с обработвачите на събития в обекта
      */
     private $_listenerCache = array();
-
-
+    
+    
     /**
      * Конструктор. Дава възможност за инициализация
      */
@@ -118,7 +117,7 @@ class core_BaseClass
         if (!$class) {
             $class = $name;
         }
-
+        
         $class = cls::getClassName($class);
         
         // Ако е подклас на core_Mvc, записваме го като член на този клас
@@ -138,8 +137,8 @@ class core_BaseClass
             $this->_listenerCache = array();
         }
     }
-
-
+    
+    
     /**
      * Премахва посочения плъгин плъгин
      *
@@ -174,13 +173,14 @@ class core_BaseClass
     /**
      * Генерира събитие с посоченото име и параметри
      *
-     * @param  string $event име на събитието
-     * @param  array  $args  аргументи на събитието
-     * @return mixed  (TRUE, FALSE, -1)
-     *                      $status == -1 означава, че никой не е обработил това събитие
-     *                      $status == TRUE означава, че събитието е обработено нормално
-     *                      $status == FALSE означава, че събитието е обработено и
-     *                      се изисква спиране на последващите обработки
+     * @param string $event име на събитието
+     * @param array  $args  аргументи на събитието
+     *
+     * @return mixed (TRUE, FALSE, -1)
+     *               $status == -1 означава, че никой не е обработил това събитие
+     *               $status == TRUE означава, че събитието е обработено нормално
+     *               $status == FALSE означава, че събитието е обработено и
+     *               се изисква спиране на последващите обработки
      */
     public function invoke($event, $args = array())
     {
@@ -189,7 +189,7 @@ class core_BaseClass
         // Ако нямаме - генерираме кеша с обработвачите
         if (!isset($this->_listenerCache[$method])) {
             $this->_listenerCache[$method] = array();
-
+            
             // Проверяваме дали имаме плъгин(и), който да обработва това събитие
             if (count($this->_plugins)) {
                 $plugins = array_reverse($this->_plugins);
@@ -222,22 +222,21 @@ class core_BaseClass
             for ($i = 0; $i < $cntArgs; $i++) {
                 $args1[] = & $args[$i];
             }
-
+            
             foreach ($this->_listenerCache[$method] as $subject) {
                 if (call_user_func_array(array($subject, $method), $args1) === false) {
                     
                     return false;
                 }
             }
-
+            
             return true;
         }
-
+        
         return -1;
     }
-
-
-
+    
+    
     /**
      * Рутинна процедура, която се задейства, ако извиквания метод липсва
      * Методи, които съдържат в името си "_" ще бъдат извикани, ако без тази черта,
@@ -253,6 +252,7 @@ class core_BaseClass
             $argsHnd[] = & $args[$i];
             $argsMtd[] = & $args[$i];
         }
+        
         
         /**
          *     $args:            $args[0] |   $args[1] | ... |   $args[n]
@@ -305,8 +305,9 @@ class core_BaseClass
     /**
      * Помощен метод за определяне дали класа поддържа зададен интерфейс.
      *
-     * @param  string         $interface
-     * @return string|boolean
+     * @param string $interface
+     *
+     * @return string|bool
      */
     public function getInterface($interface)
     {
@@ -336,6 +337,7 @@ class core_BaseClass
         }
         
         if ($this->getInterface($interface) !== false) {
+            
             return;
         }
         
@@ -345,6 +347,7 @@ class core_BaseClass
     
     /**
      * Връща масив от заредените инстанции на плъгини
+     *
      * @return array - масив от инстанции на плъгини
      */
     public function getPlugins()
@@ -356,8 +359,9 @@ class core_BaseClass
     /**
      * Дали класа има закачен плъгин
      *
-     * @param  string  $name - име на плъгин за който проверяваме
-     * @return boolean
+     * @param string $name - име на плъгин за който проверяваме
+     *
+     * @return bool
      */
     public function hasPlugin($name)
     {
@@ -365,21 +369,21 @@ class core_BaseClass
         
         return $res;
     }
-
-
+    
+    
     /**
      * Създава инстанция на себе си в посочената променлива
      */
     public static function createIfNotExists(&$var)
     {
         $me = get_called_class();
-
+        
         if (isset($var)) {
             expect($var instanceof $me, $var);
-
+            
             return;
         }
-
+        
         $var = cls::get($me);
     }
 }

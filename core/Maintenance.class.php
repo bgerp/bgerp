@@ -1,45 +1,44 @@
 <?php
 
 
-
 /**
  * Клас 'core_Maintenance' - Мениджър за поддръжка на системата
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Maintenance extends core_Manager
 {
-    
     /**
      * Заглавие на мениджъра
      */
     public $title = 'Поддръжка на системата';
-
-
+    
+    
     /**
      * Заглавие на мениджъра
      */
     public $singleTitle = 'Сервизно действие';
-
-
+    
+    
     /**
      * Списък с плъгини
      */
     public $loadList = 'plg_SystemWrapper';
-
-
+    
     
     public function act_Default()
     {
         requireRole('admin');
-
+        
         $data = new stdClass();
         $actArr = array();
         $query = core_Packs::getQuery();

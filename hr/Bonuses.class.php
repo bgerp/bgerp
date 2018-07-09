@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на бонуси
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Бонуси
  */
 class hr_Bonuses extends core_Master
 {
-
-
     /**
      * Поддържани интерфейси
      */
@@ -29,13 +28,13 @@ class hr_Bonuses extends core_Master
      */
     public $title = 'Премии';
     
-     
+    
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Премия';
     
-
+    
     /**
      * Абривиатура на документа
      */
@@ -46,8 +45,8 @@ class hr_Bonuses extends core_Master
      * Активен таб на менюто
      */
     public $menuPage = 'Персонал:Документи';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
@@ -71,8 +70,8 @@ class hr_Bonuses extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,hrMaster';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -138,13 +137,13 @@ class hr_Bonuses extends core_Master
      * Единична икона
      */
     public $singleIcon = 'img/16/bonuses.png';
-
-
+    
+    
     /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'hr/tpl/SingleLayoutBonuses.shtml';
-
+    
     
     /**
      * Поле за филтриране по дата
@@ -188,7 +187,7 @@ class hr_Bonuses extends core_Master
             $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
             $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
         }
- 
+        
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
         $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
         
@@ -228,7 +227,8 @@ class hr_Bonuses extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param  date  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
      * @return array $result  - масив с обекти
      *
      * 			o date        - дата на стайноста
@@ -243,7 +243,7 @@ class hr_Bonuses extends core_Master
     {
         $query = self::getQuery();
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
- 
+        
         $iRec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
         
         while ($rec = $query->fetch()) {
@@ -257,7 +257,7 @@ class hr_Bonuses extends core_Master
                 'isRejected' => $rec->state == 'rejected',
             );
         }
-
+        
         return $result;
     }
     
@@ -265,7 +265,8 @@ class hr_Bonuses extends core_Master
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param  date  $date
+     * @param date $date
+     *
      * @return array $result
      */
     public static function getIndicatorNames()
@@ -276,8 +277,8 @@ class hr_Bonuses extends core_Master
         
         return $result;
     }
-
-
+    
+    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка
@@ -319,29 +320,30 @@ class hr_Bonuses extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentIntf
      *
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass $row
      */
     public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-    
+        
         $row = new stdClass();
-    
+        
         //Заглавие
         $row->title = "Премия  №{$rec->id}";
-    
+        
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
-    
+        
         //Състояние
         $row->state = $rec->state;
-    
+        
         //id на създателя
         $row->authorId = $rec->createdBy;
-    
+        
         $row->recTitle = $this->getRecTitle($rec, false);
-    
+        
         return $row;
     }
     
@@ -352,9 +354,9 @@ class hr_Bonuses extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $me = cls::get(get_called_class());
-         
+        
         $title = tr('Премия  №|*'. $rec->id . ' за|* ') . $me->getVerbal($rec, 'personId');
-         
+        
         return $title;
     }
 }

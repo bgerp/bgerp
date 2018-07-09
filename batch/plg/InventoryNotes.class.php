@@ -1,23 +1,23 @@
 <?php
 
 
-
 /**
  * Клас 'batch_plg_InventoryNotes' - Добавяне на партиди към протокол за инвентаризация
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @todo да се разработи
  */
 class batch_plg_InventoryNotes extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -45,6 +45,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         if (isset($rec->productId)) {
             $Def = batch_Defs::getBatchDef($rec->productId);
             if (!$Def) {
+                
                 return;
             }
             
@@ -128,6 +129,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $rec = $form->rec;
             $BatchClass = batch_Defs::getBatchDef($rec->productId);
             if (!$BatchClass) {
+                
                 return;
             }
             
@@ -185,11 +187,13 @@ class batch_plg_InventoryNotes extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if (empty($rec->batch)) {
+            
             return;
         }
         
         $Def = batch_Defs::getBatchDef($rec->productId);
         if (!$Def) {
+            
             return;
         }
         
@@ -216,12 +220,13 @@ class batch_plg_InventoryNotes extends core_Plugin
     /**
      * Взима съмарите на артикула
      *
-     * @param  int         $noteId
-     * @param  int         $productId
-     * @param  double      $expectedQuantity
-     * @param  int         $storeId
-     * @param  date        $valior
-     * @param  boolean     $alwaysShowBatches
+     * @param int   $noteId
+     * @param int   $productId
+     * @param float $expectedQuantity
+     * @param int   $storeId
+     * @param date  $valior
+     * @param bool  $alwaysShowBatches
+     *
      * @return array|FALSE
      */
     public static function getBatchSummary($noteId, $productId, $expectedQuantity, $storeId, $valior, $alwaysShowBatches = false)
@@ -252,7 +257,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $batches = array('' => '');
                 $quantity = $rec->quantity;
             }
-                
+            
             foreach ($batches as $k => $v) {
                 if (!array_key_exists($k, $batchesInDetail)) {
                     $batchesInDetail[$k] = (object) array('quantity' => 0, 'batch' => $v);
@@ -305,6 +310,7 @@ class batch_plg_InventoryNotes extends core_Plugin
     public static function on_ExpandRows($mvc, &$summaryRecs, &$summaryRows, $masterRec)
     {
         if (!count($summaryRows)) {
+            
             return;
         }
         $Double = cls::get('type_Double');
@@ -383,7 +389,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $storeId = isset($rec->storeId) ? $rec->storeId : store_InventoryNotes::fetchField($rec->id, 'storeId');
         $valior = isset($rec->valior) ? $rec->valior : store_InventoryNotes::fetchField($rec->id, 'valior');
         $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
-                
+        
         $valior = dt::addDays(-1, $valior);
         $valior = dt::verbal2mysql($valior, false);
         
@@ -395,7 +401,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 if (!is_array($summary)) {
                     continue;
                 }
-        
+                
                 foreach ($summary as $batch => $o) {
                     if ($batch == '') {
                         continue;
@@ -403,15 +409,15 @@ class batch_plg_InventoryNotes extends core_Plugin
                     if ($o->delta == 0) {
                         continue;
                     }
-                            
+                    
                     $move = clone $obj;
                     $move->operation = ($o->delta < 0) ? 'out' : 'in';
                     $move->quantity = abs($o->delta);
                     $move->itemId = batch_Items::forceItem($dRec->productId, $batch, $storeId);
-                            
+                    
                     // Запис на движението
                     $id = batch_Movements::save($move);
-                            
+                    
                     // Ако има проблем със записа, сетваме грешка
                     if (!$id) {
                         $result = false;
@@ -419,12 +425,12 @@ class batch_plg_InventoryNotes extends core_Plugin
                     }
                 }
             } catch (core_exception_Expect $e) {
-        
+                
                 // Ако е изникнала грешка
                 $result = false;
             }
         }
-                
+        
         // При грешка изтриваме всички записи до сега
         if ($result === false) {
             batch_Movements::removeMovement('store_InventoryNotes', $rec);

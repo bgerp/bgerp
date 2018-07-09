@@ -1,31 +1,29 @@
 <?php 
 
-
 /**
  * Абониране за бюлетина
  *
  * @category  bgerp
  * @package   marketing
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class marketing_Bulletins extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Бюлетини';
     
-
+    
     /**
      * Заглавие на единичния обект
      */
     public $singleTitle = 'Бюлетин';
-    
     
     
     public $recTitleTpl = '[#domain#]';
@@ -78,7 +76,7 @@ class marketing_Bulletins extends core_Master
      */
     public $canSingle = 'ceo, marketing';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -95,8 +93,8 @@ class marketing_Bulletins extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, domain, state, subscribersCnt, subscribersLast';
-
-
+    
+    
     /**
      * Файл с шаблон за единичен изглед на бюлетин
      */
@@ -170,7 +168,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Връща линк към екшъна за показване на съдържанието на JS файла
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -201,11 +199,11 @@ class marketing_Bulletins extends core_Master
         return $domain;
     }
     
-
+    
     /**
      * Връща хешираната стойност за id
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -220,7 +218,7 @@ class marketing_Bulletins extends core_Master
      *
      * @param string $str
      *
-     * @return boolean|integer
+     * @return bool|int
      */
     protected static function checkHashId($str)
     {
@@ -231,9 +229,9 @@ class marketing_Bulletins extends core_Master
     /**
      * Подготвя подадения линк за екшъна
      *
-     * @param integer        $id
-     * @param string         $act
-     * @param boolean|string $rand
+     * @param int         $id
+     * @param string      $act
+     * @param bool|string $rand
      *
      * @return string
      */
@@ -260,7 +258,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Връща линк към екшъна за показване на съдържанието на CSS файла
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -273,7 +271,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Връща линк към екшъна за показване формата за регистрация
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -283,11 +281,10 @@ class marketing_Bulletins extends core_Master
     }
     
     
-    
     /**
      * Връща линк към екшъна за показване на img файла
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -300,7 +297,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Подготвя JS файла, който следи за показване на формата
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -325,13 +322,13 @@ class marketing_Bulletins extends core_Master
         Mode::push('text', 'xhtml');
         $formTitle = self::getVerbal($bRec, 'formTitle');
         Mode::pop('text');
-
+        
         // Вкарваме стиловете, за да може да се стилнат текствете от ричтекста, когато са извън `bgERP`
         $formTitle = self::addInlineCSS($formTitle);
-
+        
         $formTitle = str_replace(array("\r\n", "\n", "\r"), ' ', $formTitle);
         $formTitle = addslashes($formTitle);
-
+        
         if ($bRec->logo) {
             $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => true));
             
@@ -357,7 +354,7 @@ class marketing_Bulletins extends core_Master
         // Съобщение на бутона за показване на формата за абониране
         $showFormBtn = addslashes($bRec->showFormBtn);
         $jsTpl->replace($showFormBtn, 'showFormBtn');
-
+        
         // Текст на бутона за субмитване
         $submitBtnVal = addslashes($bRec->submitBtnVal);
         $jsTpl->replace($submitBtnVal, 'submitBtnVal');
@@ -409,7 +406,7 @@ class marketing_Bulletins extends core_Master
     /**
      *
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -422,8 +419,8 @@ class marketing_Bulletins extends core_Master
     /**
      *
      *
-     * @param string  $name
-     * @param integer $id
+     * @param string $name
+     * @param int    $id
      */
     protected static function prepareCookieKey($name, $id)
     {
@@ -475,7 +472,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Подготвя CSS файла, който рендира стиловете
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -522,7 +519,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Връща масив с всички цветове, които ще се използват в CSS за формата, текста и бутоните
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
@@ -542,9 +539,9 @@ class marketing_Bulletins extends core_Master
             
             if ($dRec) {
                 $resArr['bgColor'] = $dRec->form->bgColor;
-        
+                
                 $resArr['textColor'] = $dRec->form->activeColor;
-            
+                
                 $resArr['buttonColor'] = $dRec->form->baseColor;
             }
         }
@@ -684,7 +681,7 @@ class marketing_Bulletins extends core_Master
         
         // Поддържа ли се gzip компресиране на съдържанието?
         $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
-
+        
         if ($isGzipSupported) {
             // Компресираме в движение и подаваме правилния хедър
             $js = gzencode($js);
@@ -817,10 +814,10 @@ class marketing_Bulletins extends core_Master
     {
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-   
+        
         // Проверка за права
         $this->requireRightFor('export', $rec);
-    
+        
         $detail = cls::get('marketing_BulletinSubscribers');
         
         // Масива с избраните полета за export
@@ -840,7 +837,7 @@ class marketing_Bulletins extends core_Master
         while ($recs = $queryDetail->fetch()) {
             $detailRecs[] = $recs;
         }
-
+        
         $csv = csv_Lib::createCsv($detailRecs, $detail, $listFields);
         
         $listTitle = $this->title. ' за домейн '. self::fetchField("#id = '{$rec->id}'", 'domain');
@@ -852,9 +849,9 @@ class marketing_Bulletins extends core_Master
         header("Content-Disposition: attachment; filename={$fileName}.csv");
         header('Pragma: no-cache');
         header('Expires: 0');
-         
+        
         echo $csv;
-    
+        
         shutdown();
     }
     
@@ -862,13 +859,14 @@ class marketing_Bulletins extends core_Master
     /**
      * Задава стойност на кукито да е `no`
      *
-     * @param integer $id
+     * @param int $id
      */
     protected static function setCookieToNo($id)
     {
         // 10 години от сега
         setcookie(self::getCookieName($id), 'no', time() + (315360000), '/');
     }
+    
     
     /**
      * Записва подадените данни и показва .png файл
@@ -935,7 +933,7 @@ class marketing_Bulletins extends core_Master
         shutdown();
     }
     
-
+    
     /**
      * Извиква се след успешен запис в модела
      *
@@ -961,7 +959,7 @@ class marketing_Bulletins extends core_Master
      * След промяна в детайлите на обект от този клас
      *
      * @param marketing_Bulletins           $mvc
-     * @param integer                       $id
+     * @param int                           $id
      * @param marketing_BulletinSubscribers $detailMvc
      */
     protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
@@ -1020,12 +1018,12 @@ class marketing_Bulletins extends core_Master
             Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
             
             $data->toolbar->addBtn(
-            
+                
                 'Циркулярен имейл',
-            
+                
                 array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id),
             'id=btnEmails',
-            
+                
                 'ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл'
             
             );
@@ -1041,9 +1039,10 @@ class marketing_Bulletins extends core_Master
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
      * за съответния запис,
      * които са достъпни за посочения потребител
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
@@ -1057,9 +1056,10 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $userId
+     * @param int $userId
      *
      * @return array
      */
@@ -1080,12 +1080,13 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Дали потребителя може да използва дадения източник на персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param string  $id
-     * @param integer $userId
+     * @param string $id
+     * @param int    $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canUsePersonalization($id, $userId = null)
     {
@@ -1101,10 +1102,11 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param string|object $id
-     * @param boolean       $verbal
+     * @param bool          $verbal
      *
      * @return string
      */
@@ -1114,10 +1116,11 @@ class marketing_Bulletins extends core_Master
         
         return $rec->domain;
     }
-
+    
     
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param string $id
@@ -1137,6 +1140,7 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща линк, който сочи към източника за персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
      * @param string $id
@@ -1155,9 +1159,10 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща езика за източника на персонализация
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -1171,10 +1176,11 @@ class marketing_Bulletins extends core_Master
     
     /**
      * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
+     *
      * @see bgerp_PersonalizationSourceIntf
      *
-     * @param string  $id
-     * @param integer $limit
+     * @param string $id
+     * @param int    $limit
      *
      * @return array
      */

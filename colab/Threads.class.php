@@ -8,15 +8,15 @@
  *
  * @category  bgerp
  * @package   colab
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.12
  */
 class colab_Threads extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -57,7 +57,7 @@ class colab_Threads extends core_Manager
      * Кой има право да чете?
      */
     public $canRead = 'partner';
-
+    
     
     /**
      * Кой има право да чете?
@@ -100,7 +100,6 @@ class colab_Threads extends core_Manager
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-        
         // Изискваме да е логнат потребител
         requireRole('user');
     }
@@ -204,7 +203,7 @@ class colab_Threads extends core_Manager
             if (is_array($documents)) {
                 foreach ($documents as $docId) {
                     $Doc = cls::get($docId);
-            
+                    
                     if ($Doc->haveRightFor('add', (object) array('folderId' => $data->folderId))) {
                         $data->toolbar->addBtn($Doc->singleTitle, array($Doc, 'add', 'folderId' => $data->folderId, 'ret_url' => true), "ef_icon={$Doc->singleIcon}");
                     }
@@ -243,7 +242,7 @@ class colab_Threads extends core_Manager
         if (isset($folderId) && colab_Folders::haveRightFor('list', (object) array('folderId' => $folderId))) {
             colab_Folders::setLastActiveContragentFolder($folderId);
         }
-       
+        
         return parent::act_List();
     }
     
@@ -298,7 +297,7 @@ class colab_Threads extends core_Manager
                 }
                 
                 $row->allDocCnt = $row->partnerDocCnt;
-
+                
                 $data->rows[$id] = $row;
             }
         }
@@ -368,7 +367,7 @@ class colab_Threads extends core_Manager
         // Ако пакета 'colab' не е инсталиран, никой не може нищо
         if (!core_Packs::isInstalled('colab')) {
             $requiredRoles = 'no_one';
-
+            
             return;
         }
         
@@ -384,7 +383,7 @@ class colab_Threads extends core_Manager
             } else {
                 $folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
                 $sharedFolders = colab_Folders::getSharedFolders($userId);
-                    
+                
                 if (!in_array($folderId, $sharedFolders)) {
                     $requiredRoles = 'no_one';
                 }
@@ -474,6 +473,7 @@ class colab_Threads extends core_Manager
      * @param string $status
      *
      * @return string
+     *
      * @see plg_RefreshRows
      */
     public static function getContentHash_(&$status)

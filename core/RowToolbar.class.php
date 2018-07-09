@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_RowToolbar' - Dropdown toolbar за листовия изглед
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_RowToolbar extends core_BaseClass
 {
-    
-    
     /**
      * Масив с връзките
      */
@@ -97,8 +96,9 @@ class core_RowToolbar extends core_BaseClass
     /**
      * Преименува заглавието на бутона
      *
-     * @param  string $id   - ид на бутона
-     * @param  string $name - новото му име
+     * @param string $id   - ид на бутона
+     * @param string $name - новото му име
+     *
      * @return void
      */
     public function renameLink($id, $name)
@@ -177,16 +177,19 @@ class core_RowToolbar extends core_BaseClass
     /**
      * Връща html - съдържанието на лентата с инструменти
      *
-     * @param  int     $showWithoutToolbar - при колко линка минимум да не се показва дропдауна
+     * @param int $showWithoutToolbar - при колко линка минимум да не се показва дропдауна
+     *
      * @return core_ET $layout - рендирания тулбар
      */
     public function renderHtml_($showWithoutToolbar = null)
     {
         if (!count($this->links) > 0) {
+            
             return;
         }
         
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) {
+            
             return;
         }
         
@@ -237,12 +240,12 @@ class core_RowToolbar extends core_BaseClass
     }
     
     
-    
     /**
      * Проверява дали даден бутон го има в тулбара
      *
-     * @param  int     $id - ид на бутон
-     * @return boolean TRUE/FALSE - имали го бутона или не
+     * @param int $id - ид на бутон
+     *
+     * @return bool TRUE/FALSE - имали го бутона или не
      */
     public function hasBtn($id)
     {

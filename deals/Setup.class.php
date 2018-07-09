@@ -13,15 +13,15 @@ defIfNot('DEALS_BALANCE_TOLERANCE', '0.01');
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -50,16 +50,17 @@ class deals_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'deals_OpenDeals',
-        );
-
+        'deals_OpenDeals',
+    );
+    
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
     );
+    
     
     /**
      * Дефинирани класове, които имат интерфейси

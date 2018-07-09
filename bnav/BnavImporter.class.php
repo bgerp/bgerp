@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Драйвър за импортиране на артикули от Бизнес навигатор
  * в cat_Products, изпозва се плъгина bgerp_plg_Import той подава
@@ -27,15 +26,15 @@
  *
  * @category  bgerp
  * @package   bnav
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bnav_BnavImporter extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -101,10 +100,12 @@ class bnav_BnavImporter extends core_Manager
     
     /**
      * Инпортиране на csv-файл в cat_Products
-     * @param  array  $rows   - масив с обработени csv данни,
-     *                        получен от Експерта в bgerp_Import
-     * @param  array  $fields - масив с съответстията на колоните от csv-то и
-     *                        полетата от модела array[{поле_от_модела}] = {колона_от_csv}
+     *
+     * @param array $rows   - масив с обработени csv данни,
+     *                      получен от Експерта в bgerp_Import
+     * @param array $fields - масив с съответстията на колоните от csv-то и
+     *                      полетата от модела array[{поле_от_модела}] = {колона_от_csv}
+     *
      * @return string $html - съобщение с резултата
      */
     public function import($rows, $fields)
@@ -139,7 +140,9 @@ class bnav_BnavImporter extends core_Manager
     
     /**
      * Филтрира продуктовите групи и създава масив с неповтарящи се групи
-     * @param  array $rows - масив получен от csv файл или текст
+     *
+     * @param array $rows - масив получен от csv файл или текст
+     *
      * @return array $fields - масив със съотвествия на полетата
      */
     private function filterImportParams($rows, $fields)
@@ -156,14 +159,14 @@ class bnav_BnavImporter extends core_Manager
                 // Недобавените групи в се добавят в нов масив
                 $newGroups[] = $row[$groupIndex];
             }
-                        
+            
             if (!array_key_exists($row[$measureIndex], $newMeasures)) {
-                    
+                
                 // Недобавените мерки в се добавят в нов масив
                 $newMeasures[$row[$measureIndex]] = $row[$measureIndex];
             }
         }
-
+        
         // Връщат се масив съдържащ уникалните групи и мерни единици
         return array('groups' => $newGroups, 'measures' => $newMeasures);
     }
@@ -171,10 +174,14 @@ class bnav_BnavImporter extends core_Manager
     
     /**
      * Импортиране на групите от csv-то(ако ги няма)
-     * @param  array  $rows - масив получен от csv файл или текст
-     * @return array  $fields - масив със съответствия
-     * @param  string $html - Съобщение
-     * @return array  масив със съответствия група от системата
+     *
+     * @param array $rows - масив получен от csv файл или текст
+     *
+     * @return array $fields - масив със съответствия
+     *
+     * @param string $html - Съобщение
+     *
+     * @return array масив със съответствия група от системата
      */
     private function importParams(&$rows, $fields, &$html)
     {
@@ -193,7 +200,7 @@ class bnav_BnavImporter extends core_Manager
             } else {
                 $addedGroups++;
             }
-                
+            
             $groups[$gr] = cat_Groups::save($nRec);
         }
         
@@ -216,6 +223,7 @@ class bnav_BnavImporter extends core_Manager
     
     /**
      * Импортиране на артикулите
+     *
      * @param array  $rows   - хендлър на csv файл-а
      * @param array  $params - Масив с външни ключове на полета
      * @param array  $fields - масив със съответствия

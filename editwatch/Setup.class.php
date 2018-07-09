@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Колко секунди да се пазят записите в таблицата минимално
  */
@@ -12,16 +13,16 @@ defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
  *
  * @category  vendors
  * @package   editwatch
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class editwatch_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -50,13 +51,14 @@ class editwatch_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-    
-            // Колко секунди да пази записите в таблицата минимално
-            'EDITWATCH_REC_LIFETIME' =>
-                array('time(suggestions=15 сек.|30 сек.|60 сек.|2 мин.|3 мин.|4 мин.|5 мин.|10 мин.)',
-                    'mandatory, caption=Колко време да пази записите в таблицата минимално->Секунди'),
         
-        );
+        // Колко секунди да пази записите в таблицата минимално
+        'EDITWATCH_REC_LIFETIME' =>
+        array('time(suggestions=15 сек.|30 сек.|60 сек.|2 мин.|3 мин.|4 мин.|5 мин.|10 мин.)',
+            'mandatory, caption=Колко време да пази записите в таблицата минимално->Секунди'),
+    
+    );
+    
     
     /**
      * Инсталиране на пакета

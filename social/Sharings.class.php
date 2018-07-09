@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Споделяне в социалните мрежи
  *
  *
  * @category  bgerp
  * @package   social
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class social_Sharings extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -26,7 +25,7 @@ class social_Sharings extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Споделяне';
-
+    
     
     /**
      * Разглеждане на листов изглед
@@ -38,8 +37,8 @@ class social_Sharings extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools2';
-
-   
+    
+    
     /**
      * Полета за листовия изглед
      */
@@ -50,13 +49,12 @@ class social_Sharings extends core_Master
      * Кой има право да чете?
      */
     public $canRead = 'cms, social, admin, ceo';
-        
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'cms, social, admin, ceo';
-    
     
     
     public $canChangestate = 'cms, social, admin, ceo';
@@ -87,61 +85,62 @@ class social_Sharings extends core_Master
         $query = static::getQuery();
         $query->orderBy('#order');
         $socialNetworks = $query->fetchAll("#state = 'active'");
-
+        
         if (!count($socialNetworks)) {
+            
             return;
         }
         
         $cUrl = cms_Content::getShortUrl();
         $cntUrl = toUrl($cUrl, 'absolute');
         $selfUrl = substr(rawurlencode($cntUrl), 4);
-
+        
         $selfTitle = rawurlencode(html_entity_decode(Mode::get('SOC_TITLE')));
         $selfSummary = rawurlencode(str::truncate(html_entity_decode(Mode::get('SOC_SUMMARY')), 200));
         
         // Взимаме всяко tpl, в което сме
         // сложили прейсхолдер [#social_Sharings::getButtons#]
         $tpl = new ET('');
-
+        
         // За всеки един запис от базата
         foreach ($socialNetworks as $socialNetwork) {
-                
+            
             // Вземаме качената икона
             if ($socialNetwork->icon) {
                 $imgInst = new thumb_Img(array($socialNetwork->icon, 16, 16, 'fileman', 'isAbsolute' => true, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
                 $icon = $imgInst->getUrl('forced');
-                
+            
             // Ако тя липсва
             } else {
-                    
+                
                 // Вземаме URL от базата
                 $socUrl = $socialNetwork->url;
-                    
+                
                 // Намираме името на функцията
                 $name = self::getServiceNameByUrl($socUrl);
-                    
+                
                 // Намираме иконата в sbf папката
                 $icon = sbf("cms/img/16/{$name}.png", '');
             }
-                
+            
             // Създаваме иконата за бутона
             $img = ht::createElement('img', array('src' => $icon, 'alt' => "{$name}"));
- 
+            
             // Генерираме URL-то на бутона
             $url = substr(toUrl(
                 array('social_Sharings',
-                                        'Redirect',
-                                        $socialNetwork->id,
-                                        'socUrl' => $selfUrl,
-                                        'socTitle' => $selfTitle,
-                                        'socSummary' => $selfSummary
-                                     ),
+                    'Redirect',
+                    $socialNetwork->id,
+                    'socUrl' => $selfUrl,
+                    'socTitle' => $selfTitle,
+                    'socSummary' => $selfSummary
+                ),
                 'absolute'
                 ), 4) ;
             
             // Търсим, дали има запис в модела, който отброява споделянията
             $socCnt = social_SharingCnts::fetch(array("#networkId = '{$socialNetwork->id}' AND LOWER(#url) LIKE '%[#1#]'", self::getCanonicUrlPart($cntUrl)));
-
+            
             if ($socCnt) {
                 // Ако е намерен такъв запис,
                 // взимаме броя на споделянията
@@ -162,15 +161,15 @@ class social_Sharings extends core_Master
                                         'rel' => 'nofollow',
                                         'onclick' => "window.open('http' + '{$url}')")
             );
-                
+            
             $link = (string) $link;
-
+            
             // Добавяме го към шаблона
             $tpl->append($link);
         }
         
         $str = $tpl->getContent();
-       
+        
         // Връщаме тулбар за споделяне в социалните мреци
         return "<div class='soc-sharing-holder noSelect'>" . $str . '</div>';
     }
@@ -185,12 +184,12 @@ class social_Sharings extends core_Master
         
         // Намираме нейния запис
         expect($rec = self::fetch($id));
-                
+        
         // URL към обекта който ще споделяме
         expect($url = Request::get('socUrl'));
         $url = 'http' . $url;
         $urlDecoded = urldecode($url);
-
+        
         // Очакваме в началото на url-то за споделяне да има валиден протокол
         expect(strpos($urlDecoded, 'http://') === 0 || strpos($urlDecoded, 'https://') === 0, $urlDecoded, $rec);
         
@@ -204,24 +203,24 @@ class social_Sharings extends core_Master
         $redUrl = str_replace('[#URL#]', $url, $rec->url);
         $redUrl = str_replace('[#TITLE#]', $title, $redUrl);
         $redUrl = str_replace('[#SUMMARY#]', $summary, $redUrl);
+        
         // Записваме в историята, че сме направели споделяне
         if (core_Packs::fetch("#name = 'vislog'") &&
             vislog_History::add('Споделяне в ' . $rec->name . ' на ' . $urlDecoded)) {
             if (Mode::is('javascript', 'yes') && !log_Browsers::detectBot()) {
- 
+                
                 // Увеличаване на брояча на споделянията
                 $rec->sharedCnt++;
                 self::save($rec, 'sharedCnt');
-                  
+                
                 // Увеличаваме брояча на споделянията за конкретната страница
                 social_SharingCnts::addHit($rec->id, $urlDecoded);
             }
         }
-
+        
         // Връщаме URL-то
         return new Redirect($redUrl);
     }
-    
     
     
     /**
@@ -235,26 +234,26 @@ class social_Sharings extends core_Master
         // Масив от домейни => имена на услуги
         // заредени при началното инициализиране
         $services = array('plus.google.com' => 'google-plus',
-                            'svejo.net' => 'svejo',
-                            'twitter.com' => 'twitter',
-                            'digg.com' => 'digg',
-                            'facebook.com' => 'facebook',
-                            'stumbleupon.com' => 'stumbleupon',
-                            'delicious.com' => 'delicious',
-                            'google.com' => 'google-buzz',
-                            'linkedin.com' => 'linkedin',
-                            'slashdot.org' => 'slashdot',
-                            'technorati.com' => 'technorati',
-                            'posterous.com' => 'posterous',
-                            'tumblr.com' => 'tumblr',
-                            'reddit.com' => 'reddit',
-                            'google.com/bookmarks' => 'google-bookmarks',
-                            'newsvine.com' => 'newsvine',
-                            'ping.fm' => 'pingfm',
-                            'evernote.com' => 'evernote',
-                            'youtube.com' => 'youtube',
-                            'friendfeed.com' => 'friendfeed');
-                 
+            'svejo.net' => 'svejo',
+            'twitter.com' => 'twitter',
+            'digg.com' => 'digg',
+            'facebook.com' => 'facebook',
+            'stumbleupon.com' => 'stumbleupon',
+            'delicious.com' => 'delicious',
+            'google.com' => 'google-buzz',
+            'linkedin.com' => 'linkedin',
+            'slashdot.org' => 'slashdot',
+            'technorati.com' => 'technorati',
+            'posterous.com' => 'posterous',
+            'tumblr.com' => 'tumblr',
+            'reddit.com' => 'reddit',
+            'google.com/bookmarks' => 'google-bookmarks',
+            'newsvine.com' => 'newsvine',
+            'ping.fm' => 'pingfm',
+            'evernote.com' => 'evernote',
+            'youtube.com' => 'youtube',
+            'friendfeed.com' => 'friendfeed');
+        
         foreach ($services as $servic => $nameServic) {
             // Проверява URL-to за първия срещнат домейн
             if (strpos($url, $servic)) {
@@ -301,15 +300,15 @@ class social_Sharings extends core_Master
             4 => 'state',
             5 => 'csv_order',
         );
-                
+        
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null);
-         
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }
-
+    
     
     /**
      * Пренасочва URL за връщане след запис към лист изгледа
@@ -318,7 +317,7 @@ class social_Sharings extends core_Master
     {
         // Ако е субмитната формата
         if ($data->form && $data->form->isSubmitted()) {
-
+            
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'list'));
         }
@@ -357,8 +356,8 @@ class social_Sharings extends core_Master
     {
         $data->query->orderBy('#order');
     }
-
-
+    
+    
     /**
      * Връща канонична част от URL-to
      */

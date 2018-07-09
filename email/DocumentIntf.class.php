@@ -7,21 +7,21 @@
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс на документ който може да бъде изпращан по електронна поща
  */
 class email_DocumentIntf extends doc_DocumentIntf
 {
-    
-    
     /**
      * Връща тялото на имейла генериран от документа
      *
-     * @param int     $id      - ид на документа
-     * @param boolean $forward
+     * @param int  $id      - ид на документа
+     * @param bool $forward
      *
      * @return string
      */
@@ -34,8 +34,8 @@ class email_DocumentIntf extends doc_DocumentIntf
     /**
      * Връща заглавието на имейла
      *
-     * @param int     $id      - ид на документа
-     * @param boolean $forward
+     * @param int  $id      - ид на документа
+     * @param bool $forward
      *
      * @return string
      */

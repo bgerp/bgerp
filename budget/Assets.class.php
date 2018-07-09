@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на парични средства
  *
  *
  * @category  bgerp
  * @package   budget
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Парични средства
  */
 class budget_Assets extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -65,8 +64,8 @@ class budget_Assets extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'budget,ceo';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -83,7 +82,7 @@ class budget_Assets extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'number, period, project, sume, currency, rate, company, person, state, location, department, activity';
-
+    
     
     /**
      * Описание на модела (таблицата)

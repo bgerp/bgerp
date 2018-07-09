@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин за импорт на данни. Импортирват се csv-данни с помоща на драйвър
  * имплементиращ интерфейса bgerp_ImportIntf.
@@ -22,14 +21,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_Import extends core_Plugin
 {
-    
     /**
      * Работен кеш
      */
@@ -45,15 +45,18 @@ class bgerp_plg_Import extends core_Plugin
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         if (!static::checkApplicability($mvc)) {
+            
             return;
         }
     }
     
+    
     /**
      * Проверява дали този плъгин е приложим към зададен мениджър
      *
-     * @param  core_Mvc $mvc
-     * @return boolean
+     * @param core_Mvc $mvc
+     *
+     * @return bool
      */
     protected static function checkApplicability($mvc)
     {
@@ -112,9 +115,10 @@ class bgerp_plg_Import extends core_Plugin
                 
                 // Преобразуване на csv-то в масив, по зададените параметри
                 $rows = csv_Lib::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
-      
+                
                 if ($mvc->haveRightFor('import')) {
                     Mode::push('onExist', $onExist);
+                    
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
                     Mode::pop('onExist');
@@ -159,8 +163,10 @@ class bgerp_plg_Import extends core_Plugin
     
     /**
      * Подготовка на експерта за импортирането (@see expert_Expert)
-     * @param  expert_Expert $exp
-     * @return string        $res
+     *
+     * @param expert_Expert $exp
+     *
+     * @return string $res
      */
     public static function solveExpert(expert_Expert &$exp)
     {
@@ -237,6 +243,7 @@ class bgerp_plg_Import extends core_Plugin
     /**
      * Функция връщаща опции с всички драйвери които могат да се прикачват
      * към мениджъра
+     *
      * @return array $options - масив с възможни драйвъри
      */
     public static function getImportDrivers()

@@ -6,18 +6,20 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Webpage extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'html';
@@ -31,6 +33,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -53,9 +56,9 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
             // Таб за информация
             $tabsArr['html'] = (object)
             array(
-                    'title' => 'HTML',
-                    'html' => $htmlPart,
-                    'order' => 3,
+                'title' => 'HTML',
+                'html' => $htmlPart,
+                'order' => 3,
             );
         }
         
@@ -64,12 +67,12 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
             // Таб за текстовата част
             $tabsArr['text'] = (object)
             array(
-                    'title' => 'Текст',
-                    'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div>{$textPart}</div></div>",
-                    'order' => 4,
+                'title' => 'Текст',
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div>{$textPart}</div></div>",
+                'order' => 4,
             );
         }
-            
+        
         return $tabsArr;
     }
     
@@ -143,7 +146,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         return $textPart;
     }
-
+    
     
     /**
      * Връща информация за съответния файл и съответния тип

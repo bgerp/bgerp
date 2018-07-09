@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_ExpandInput extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      *
@@ -65,7 +65,7 @@ class plg_ExpandInput extends core_Plugin
      * Изпълнява се преди запис на ред в таблицата
      *
      * @param core_Manager $mvc
-     * @param NULL|integer $id
+     * @param NULL|int     $id
      * @param stdClass     $rec
      * @param string|NULL  $fields
      */
@@ -74,7 +74,7 @@ class plg_ExpandInput extends core_Plugin
         // Ако е подадено да се записва само едното поле, записваме и двете
         if (isset($fields)) {
             $fieldsArr = arr::make($fields, true);
-        
+            
             if ($fieldsArr[$mvc->expandFieldName] || $fieldsArr[$mvc->expandInputFieldName]) {
                 $fieldsArr[$mvc->expandFieldName] = $mvc->expandFieldName;
                 $fieldsArr[$mvc->expandInputFieldName] = $mvc->expandInputFieldName;
@@ -126,7 +126,7 @@ class plg_ExpandInput extends core_Plugin
                 $select = $inputInst->type->params['select'];
                 $rec = $inputInst->fetch(array("#role = '[#1#]'", $select));
             }
-    
+            
             // Прескачаме несъсществуващите записи
             if (!$rec) {
                 continue;

@@ -1,25 +1,27 @@
 <?php
 
+
 /**
  * Интерфейс за създаване драйвери за вграждане в други обекти
  *
  *
  * @category  bgerp
  * @package   embed
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class embed_DriverIntf
 {
-    
     /**
      * Инстанция на класа имплементиращ интерфейса
      */
     public $class;
     
-
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -29,8 +31,6 @@ class embed_DriverIntf
     {
         return $this->class->addFields($fieldset);
     }
-    
-    
     
     
     /**

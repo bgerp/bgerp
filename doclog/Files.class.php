@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doclog_Files extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -96,7 +96,7 @@ class doclog_Files extends core_Manager
         
         $this->FLD('seenFromIp', 'ip', 'input=none', 'caption=IP,value=0');
     }
-
+    
     
     /**
      * Записваме информация за свалянето на съответния файл
@@ -114,7 +114,7 @@ class doclog_Files extends core_Manager
         
         // Контейнера, от където е файла
         $rec->cid = $cid;
-
+        
         // Записваме
         static::save($rec);
     }

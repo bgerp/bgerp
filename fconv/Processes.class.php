@@ -7,20 +7,19 @@
  *
  * @category  vendors
  * @package   fconv
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fconv_Processes extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модула
      */
     public $title = 'Стартирани процеси';
-    
     
     
     public $loadList = 'fconv_Wrapper, plg_Created';
@@ -79,7 +78,7 @@ class fconv_Processes extends core_Manager
      * @param string $pid
      * @param string $func
      *
-     * @return boolean
+     * @return bool
      */
     public static function runCallbackFunc($pid, $func)
     {
@@ -98,7 +97,7 @@ class fconv_Processes extends core_Manager
         if ($result) {
             if (core_Os::deleteDir($script->tempDir)) {
                 fconv_Processes::delete(array("#processId = '[#1#]'", $pid));
-        
+                
                 return true;
             }
         }

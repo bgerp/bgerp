@@ -1,27 +1,25 @@
 <?php 
 
-
-
 /**
  * Приходен банков документ
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_IncomeDocuments extends bank_Document
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, bgerp_DealIntf, email_DocumentIntf';
-
+    
     
     /**
      * Заглавие на мениджъра
@@ -82,10 +80,12 @@ class bank_IncomeDocuments extends bank_Document
      */
     public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
     
+    
     /**
      * Права за плъгин-а bgerp_plg_Export
      */
     public $canExport = 'ceo, invoicer';
+    
     
     /**
      * Описание на модела

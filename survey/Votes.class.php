@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел "Гласуване"
  *
  *
  * @category  bgerp
  * @package   survey
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class survey_Votes extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -28,7 +27,7 @@ class survey_Votes extends core_Manager
      */
     public $loadList = 'survey_Wrapper, plg_Sorting, plg_Created';
     
-  
+    
     /**
      * Кои полета да се показват в листовия изглед
      */
@@ -39,7 +38,7 @@ class survey_Votes extends core_Manager
      * Наименование на единичния обект
      */
     public $singleTitle = 'Гласуване';
-
+    
     
     /**
      * Брой записи на страница
@@ -51,7 +50,6 @@ class survey_Votes extends core_Manager
      * Кой има право да чете?
      */
     public $canRead = 'survey, ceo, admin';
-    
     
     
     /**
@@ -96,7 +94,7 @@ class survey_Votes extends core_Manager
         
         $altRec = new stdClass();
         $altRec->id = $alternativeId;
-    
+        
         // Докато потребителя може да гласува презаписваме отговора който
         // е посочил на дадения въпрос,
         if (survey_Alternatives::haveRightFor('vote', $altRec)) {
@@ -112,7 +110,8 @@ class survey_Votes extends core_Manager
     
     /**
      *
-     * @param  int   $alternativeId - ид на въпроса
+     * @param int $alternativeId - ид на въпроса
+     *
      * @return mixed $rec/FALSE - Кой е последния отговор, ако има
      */
     public static function lastUserVote($alternativeId)
@@ -136,16 +135,17 @@ class survey_Votes extends core_Manager
      * Ако анкетата е изпратена по поща това е мид-а на анкетата
      * Ако потребителя не е потребител в системата и нямаме мид, записваме
      * Ип-то му
+     *
      * @return string $userUid - Потребителя, който е гласувал
      */
     public static function getUserUid($alternativeId)
     {
         expect($alternativeId > 0);
-
+        
         $aRec = survey_Alternatives::fetch((int) $alternativeId);
         $sRec = survey_Surveys::fetch($aRec->surveyId);
-
-
+        
+        
         $uid = '';
         if ($mid = Request::get('m') && $sRec->userBy != 'browser') {
             $uid = 'mid|' . $mid;
@@ -156,7 +156,7 @@ class survey_Votes extends core_Manager
         } else {
             $uid = 'ip|' . $_SERVER['REMOTE_ADDR'];
         }
- 
+        
         return $uid;
     }
     
@@ -165,8 +165,10 @@ class survey_Votes extends core_Manager
      * Преброява гласовете които е получил даден въпрос, ако не е зададен
      * номер на ред, връща броя на всички гласувания на въпроса, ако е зададен
      * преброява само гласовете които са дадени на въпросния ред
+     *
      * @param int alternativeId - ид на въпроса
      * @param int row - реда който е избран
+     *
      * @return int - Броя гласове
      */
     public static function countVotes($alternativeId, $id = null)
@@ -196,6 +198,7 @@ class survey_Votes extends core_Manager
     
     /**
      * Връща вербалната стойност на подадения userUid
+     *
      * @param string(32) $userUid - ид на потребител/мид/ип на
      *                            гласувалия потребител
      */

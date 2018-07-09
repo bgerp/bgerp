@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'uiext_Labels'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   uiext
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class uiext_Labels extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Тагове';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -112,7 +111,8 @@ class uiext_Labels extends core_Manager
     /**
      * Връща наличните опции за избор
      *
-     * @param  int   $classId
+     * @param int $classId
+     *
      * @return array
      */
     private static function getLabelOptions($classId)
@@ -123,7 +123,7 @@ class uiext_Labels extends core_Manager
             $opt->title = '';
             $opt->attr = array('style' => 'background-color:#fff; color:#000');
             $options[''] = $opt;
-
+            
             $lQuery = self::getQuery();
             $lQuery->where("#docClassId = {$classId}");
             $lQuery->where('#state != "closed"');
@@ -162,9 +162,11 @@ class uiext_Labels extends core_Manager
     public static function showLabels($class, $containerId, $recs, &$rows, &$listFields, $hashFields, $colName, &$tpl, core_FieldSet &$fieldset)
     {
         if (!is_array($rows)) {
+            
             return;
         }
         if (Mode::isReadOnly() || Mode::is('blank')) {
+            
             return;
         }
         $fieldset->FLD('_tagField', 'varchar', 'tdClass=tagColumn small-field');
@@ -185,7 +187,8 @@ class uiext_Labels extends core_Manager
     /**
      * Активира нужните файлове за таговете
      *
-     * @param  core_ET $tpl
+     * @param core_ET $tpl
+     *
      * @return void
      */
     public static function enable(&$tpl)
@@ -201,9 +204,10 @@ class uiext_Labels extends core_Manager
     /**
      * Хеша на документа, който трябва да е уникален за записа
      *
-     * @param  stdClass $rec        - запис
-     * @param  mixed    $hashFields - полета за хеш
-     * @return string   $hash     - хеш
+     * @param stdClass $rec        - запис
+     * @param mixed    $hashFields - полета за хеш
+     *
+     * @return string $hash     - хеш
      */
     public static function getHash($rec, $hashFields)
     {
@@ -222,15 +226,17 @@ class uiext_Labels extends core_Manager
     /**
      * Рендиране на таговете на документа
      *
-     * @param  int    $containerId - ид на контейнера
-     * @param  int    $classId     - ид на класа, от който ще се избират таговете
-     * @param  string $hash        - хеш на реда
-     * @return text   - инпута за избор на тагове
+     * @param int    $containerId - ид на контейнера
+     * @param int    $classId     - ид на класа, от който ще се избират таговете
+     * @param string $hash        - хеш на реда
+     *
+     * @return text - инпута за избор на тагове
      */
     public static function renderLabel($containerId, $classId, $hash)
     {
         $labels = self::getLabelOptions($classId);
         if (count($labels) <= 1) {
+            
             return;
         }
         
@@ -246,12 +252,13 @@ class uiext_Labels extends core_Manager
         if (uiext_DocumentLabels::haveRightFor('selectlabel', (object) array('containerId' => $containerId))) {
             $attr = array();
             $attr['class'] = 'transparentSelect selectLabel';
-                
+            
             //core_Request::setProtected('containerId,hash');
             $attr['data-url'] = toUrl(array('uiext_DocumentLabels', 'saveLabels', 'containerId' => $containerId, 'hash' => $hash, 'classId' => $classId), 'local');
+            
             //core_Request::removeProtected('containerId,hash');
             $attr['title'] = 'Избор на таг';
-        
+            
             $input = ht::createSelect('selTag', $labels, $value, $attr);
             $input->removePlaces();
             $input = $input->getContent();
@@ -260,7 +267,7 @@ class uiext_Labels extends core_Manager
                 $input = cls::get('uiext_DocumentLabels')->getFieldType('labels')->toVerbal($value);
             }
         }
-            
+        
         $k = "{$containerId}|{$classId}|{$hash}";
         
         return "<span id='charge{$k}'>{$input}</span>";

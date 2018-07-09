@@ -1,31 +1,31 @@
 <?php 
 
-
 /**
  * Мениджира детайлите на стелажите (rack_RackDetails)
  *
  *
  * @category  bgerp
  * @package   rack
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rack_RackDetails extends core_Detail
 {
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на стелаж';
     
-
+    
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Състояние на клетка';
-
+    
     
     /**
      * Страница от менюто
@@ -68,8 +68,9 @@ class rack_RackDetails extends core_Detail
      */
     public $canDelete = 'ceo, rackMaster';
     
-
+    
     public $listFields = 'row,col,status';
+    
     
     /**
      * Описание на модела
@@ -86,8 +87,8 @@ class rack_RackDetails extends core_Detail
         $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,input=none');
         $this->setDbUnique('rackId,row,col');
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -101,12 +102,12 @@ class rack_RackDetails extends core_Detail
         
         $form->FLD('nextRow', 'varchar(1,select2MinItems=1000)', 'caption=Повторение на състоянието до:->Ред,smartCenter,autohide,class=w25');
         $form->FLD('nextCol', 'int(select2MinItems=1000)', 'caption=Повторение на състоянието до:->Колона,smartCenter,autohide,class=w25');
-
+        
         expect($rec->rackId);
         $rRec = rack_Racks::fetch($rec->rackId);
         expect($rRec);
         store_Stores::selectCurrent(store_Stores::fetch($rRec->storeId));
-
+        
         $r = 'A';
         $o = array('' => '');
         do {
@@ -115,7 +116,7 @@ class rack_RackDetails extends core_Detail
         } while ($r <= $rRec->rows);
         $form->setOptions('row', $o);
         $form->setOptions('nextRow', $o);
-
+        
         $c = 1;
         $o2 = array('' => '');
         do {
@@ -124,11 +125,11 @@ class rack_RackDetails extends core_Detail
         } while ($c <= $rRec->columns);
         $form->setOptions('col', $o2);
         $form->setOptions('nextCol', $o2);
-
+        
         expect($rec->rackId && $rec->row && $rec->col, $rec);
         $form->setReadOnly('row');
         $form->setReadOnly('col');
-
+        
         if (!$rec->id) {
             if ($exRec = self::fetch(array("#rackId = [#1#] AND #row = '[#2#]' AND #col = [#3#]", $rec->rackId, $rec->row, $rec->col))) {
                 $rec = $exRec;
@@ -138,7 +139,7 @@ class rack_RackDetails extends core_Detail
         if ($rec->status == 'reserved') {
             $form->setField('productId', 'input=input');
         }
-
+        
         // Ако има палет на това място, или към него е насочено движение
         // То статусът може да е само 'Използваемо'
         if (!rack_Pallets::isEmpty("{$data->masterRec->num}-{$rec->row}-{$rec->col}")) {
@@ -146,8 +147,8 @@ class rack_RackDetails extends core_Detail
             $form->setReadOnly('status');
         }
     }
-
-
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -158,7 +159,7 @@ class rack_RackDetails extends core_Detail
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-
+            
             if ($rec->nextRow || $rec->nextCol) {
                 if (empty($rec->nextRow)) {
                     $rec->nextRow = $rec->row;
@@ -166,13 +167,13 @@ class rack_RackDetails extends core_Detail
                 if (empty($rec->nextCol)) {
                     $rec->nextCol = $rec->col;
                 }
-
+                
                 // Вземаме параметрите на стелажа
                 $rRec = rack_Racks::fetch($rec->rackId);
-     
+                
                 $maxX = $rRec->columns;
                 $maxY = ord($rRec->rows);
-
+                
                 $x1 = $rec->col;
                 $y1 = ord($rec->row);
                 
@@ -184,18 +185,18 @@ class rack_RackDetails extends core_Detail
                 list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
                 $used = rack_Pallets::getUsed();
                 list($movedFrom, $movedTo) = rack_Movements::getExpected();
-
+                
                 for ($x = 1; $x <= $maxX; $x++) {
                     for ($y = ord('A'); $y <= $maxY; $y++) {
                         $pos = $rRec->num . '-' . chr($y) . '-' . $x;
                         
-
+                        
                         // Ако текущата позиция е в очертанията, добавяме я в масива
                         if (($x1 - $x) * ($x2 - $x) <= 0 && ($y1 - $y) * ($y2 - $y) <= 0) {
                             if ($movedFrom[$pos] || $movedTo[$pos]) {
                                 $form->setError('nextCol,nextRow', 'Има текущи движения, които засягат посочената област' . "|* [{$pos}]");
                             }
-
+                            
                             if ($rec->status == 'unsusable') {
                                 if ($used[$pos]) {
                                     $form->setError('nextCol,nextRow', 'В посочената област има заети позиции' . "|* [{$pos}]");
@@ -204,7 +205,7 @@ class rack_RackDetails extends core_Detail
                                     $form->setError('nextCol,nextRow', 'В посочената област има резервирани позиции' . "|* [{$pos}]");
                                 }
                             }
-                        
+                            
                             if ($used[$pos]) {
                                 if ($rec->status == 'reserved' && $used[$pos] != $rec->productId) {
                                     $form->setError('nextCol,nextRow', 'В посочената област има други продукти' . "|* [{$pos}]");
@@ -213,11 +214,11 @@ class rack_RackDetails extends core_Detail
                                     $form->setError('nextCol,nextRow', 'В посочената област има заети позиции' . "|* [{$pos}]");
                                 }
                             }
-                         
+                            
                             if ($unusable[$pos] && $rec->status != 'usable') {
                                 continue;
                             }
-
+                            
                             $add = clone $rec;
                             unset($add->id, $add->_toSave);
                             $add->col = $x;
@@ -229,8 +230,8 @@ class rack_RackDetails extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Извиква се след успешен запис в модела
      *
@@ -243,13 +244,13 @@ class rack_RackDetails extends core_Detail
         if (is_array($rec->_toSave) && count($rec->_toSave)) {
             foreach ($rec->_toSave as $r) {
                 $r->id = self::fetch("#col = {$r->col} AND #row = '{$r->row}' AND #rackId = {$r->rackId}")->id;
-
+                
                 self::save($r);
             }
         }
     }
-
-
+    
+    
     /**
      * Връща масив с масиви, отговарящи на запазените и неизползваемите места в склада
      */
@@ -258,7 +259,7 @@ class rack_RackDetails extends core_Detail
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
-
+        
         if (true || !($res = core_Cache::get('getUnusableAndReserved', $storeId))) {
             $res = array();
             $res[0] = array();
@@ -275,7 +276,7 @@ class rack_RackDetails extends core_Detail
                     }
                 }
             }
-
+            
             core_Cache::set('getUnusableAndReserved', $storeId, $res, 1440);
         }
         

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети за продукти по групи
  *
@@ -9,21 +8,21 @@
  *
  * @category  extrapack
  * @package   acc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Счетоводство » Движения на материали
  */
 class acc_reports_MovementArtRep extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal';
-
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -36,8 +35,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fieldset->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,after=from');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=to,single=none');
     }
-      
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -79,7 +78,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             if (isset($rec->from, $rec->to)) {
                 $from = acc_Periods::fetch($rec->from);
                 $to = acc_Periods::fetch($rec->to);
-            
+                
                 if ($from->start > $to->start) {
                     $rec->from = $to->id;
                     $rec->to = $from->id;
@@ -97,8 +96,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -115,7 +115,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         if (isset($rec->group)) {
             $query->likeKeylist('groups', $rec->group);
         }
-
+        
         $productArr = $query->fetchAll();
         
         $maxTimeLimit = 1.2 * count($productArr);
@@ -135,7 +135,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         while ($iRec = $iQuery->fetch()) {
             $itemAll[$iRec->objectId] = $iRec->id;
         }
-
+        
         $productItemsFlip = array_flip($itemAll);
         $productItems = $itemAll;
         
@@ -160,7 +160,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $baseQuantities[$productId] += $bRec->baseQuantity;
             }
         }
-
+        
         // Извличане на записите от журнала по желанието сметки
         $jQuery = acc_JournalDetails::getQuery();
         $from = acc_Periods::fetchField($rec->from, 'start');
@@ -225,7 +225,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 if ($blRes = acc_Balances::getBlQuantities($jRecs, '321', null, null, array(null, $itemId, null))) {
                     $obj->blQuantity += $blRes[$itemId]->quantity;
                 }
- 
+                
                 $recs[$productRec->id] = $obj;
             }
         }
@@ -240,9 +240,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Групиране по продуктови групи
      *
-     * @param  array    $recs
-     * @param  string   $group
-     * @param  stdClass $data
+     * @param array    $recs
+     * @param string   $group
+     * @param stdClass $data
+     *
      * @return array
      */
     private function groupRecs($recs, $group, $data)
@@ -255,7 +256,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         } else {
             cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
         }
-         
+        
         $data->totals = array();
         
         // За всеки маркер
@@ -270,10 +271,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $data->totals[$e->groupId]['delivered'] += $e->delivered;
                     $data->totals[$e->groupId]['converted'] += $e->converted;
                     $data->totals[$e->groupId]['sold'] += $e->sold;
-
+                    
                     return true;
                 }
-
+                
                 return false;
             });
             
@@ -290,11 +291,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Подготовка на реда за групиране
      *
-     * @param  int      $columnsCount - брой колони
-     * @param  string   $groupValue   - невербалното име на групата
-     * @param  string   $groupVerbal  - вербалното име на групата
-     * @param  stdClass $data         - датата
-     * @return string   - съдържанието на групиращия ред
+     * @param int      $columnsCount - брой колони
+     * @param string   $groupValue   - невербалното име на групата
+     * @param string   $groupVerbal  - вербалното име на групата
+     * @param stdClass $data         - датата
+     *
+     * @return string - съдържанието на групиращия ред
      */
     protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
     {
@@ -307,7 +309,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         }
         
         $groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='3'><b>" . $groupVerbal . "</b></td><td style='text-align:right'><b>{$baseQuantity}</b></td><td style='text-align:right'><b>{$delivered}</b></td><td style='text-align:right'><b>{$converted}</b></td><td style='text-align:right'><b>{$sold}</b></td><td style='text-align:right'><b>{$blQuantity}</b></td>";
-    
+        
         return $groupVerbal;
     }
     
@@ -315,14 +317,15 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-    
+        
         $fld->FLD('code', 'varchar', 'caption=Код');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
@@ -331,7 +334,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fld->FLD('converted', 'double(smartRound,decimals=2)', 'caption=Количество->Вложено');
         $fld->FLD('sold', 'double(smartRound,decimals=2)', 'caption=Количество->Продадено');
         $fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
-    
+        
         return $fld;
     }
     
@@ -339,8 +342,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -392,7 +396,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             $row->group = implode(' ', $groupLinks);
         }
     }
-
+    
     
     /**
      * След рендиране на единичния изглед
@@ -410,7 +414,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN group-->|Групи|*: [#group#]<!--ET_END group--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-
+        
         if (isset($data->rec->from)) {
             $fieldTpl->append($data->row->from, 'from');
         }
@@ -418,11 +422,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         if (isset($data->rec->to)) {
             $fieldTpl->append($data->row->to, 'to');
         }
-
+        
         if (isset($data->rec->group)) {
             $fieldTpl->append($data->row->group, 'group');
         }
-
+        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
@@ -430,8 +434,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
-     * @param  stdClass $rec
-     * @return boolean  $res
+     * @param stdClass $rec
+     *
+     * @return bool $res
      */
     public function canSendNotificationOnRefresh($rec)
     {

@@ -7,15 +7,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_SetExtensionPlg extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -29,7 +29,7 @@ class fileman_SetExtensionPlg extends core_Plugin
             
             return ;
         }
- 
+        
         if (!empty($rec->dataId)) {
             $dataId = $rec->dataId;
         } else {
@@ -42,15 +42,15 @@ class fileman_SetExtensionPlg extends core_Plugin
         expect($dataId);
         
         $dataRec = fileman_Data::fetch(array("#id = '[#1#]'", $dataId));
-     
+        
         $fileMimeType = fileman::getMimeTypeFromFilePath($dataRec->path);
-
+        
         $newName = fileman_Mimes::addCorrectFileExt($name, $fileMimeType);
         
         if ($newName != $name) {
             $newName = $mvc->getPossibleName($newName, $bucket);
         }
-
+        
         $rec->name = $newName;
     }
 }

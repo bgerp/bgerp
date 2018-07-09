@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Ips extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -62,12 +61,11 @@ class log_Ips extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_SystemWrapper, log_Wrapper';
-    
     
     
     public static $ipsArr = array();
@@ -80,7 +78,7 @@ class log_Ips extends core_Manager
     {
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('country2', 'varchar(2)', 'caption=Код на държавата');
-         
+        
         $this->setDbUnique('ip');
     }
     
@@ -90,7 +88,7 @@ class log_Ips extends core_Manager
      *
      * @param IP $ip
      *
-     * @return integer
+     * @return int
      */
     public static function getIpId($ip = null)
     {

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_PersonalizationSourceIntf
 {
-    
-    
     /**
      * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */
@@ -30,8 +29,8 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
      *
-     * @param integer $id
-     * @param integer $limit
+     * @param int $id
+     * @param int $limit
      *
      * @return array
      */
@@ -44,8 +43,8 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
      *
-     * @param integer $id
-     * @param boolean $verbal
+     * @param int  $id
+     * @param bool $verbal
      *
      * @return string
      */
@@ -58,10 +57,10 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща TRUE или FALSE дали потребителя може да използва дадения източник на персонализация
      *
-     * @param integer $id
-     * @param integer $userId
+     * @param int $id
+     * @param int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canUsePersonalization($id, $userId = null)
     {
@@ -73,7 +72,7 @@ class bgerp_PersonalizationSourceIntf
      * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
      * които са достъпни за посочения потребител
      *
-     * @param integer $userId
+     * @param int $userId
      *
      * @return array
      */
@@ -88,7 +87,7 @@ class bgerp_PersonalizationSourceIntf
      * за съответния запис,
      * които са достъпни за посочения потребител
      *
-     * @param integer $srcId
+     * @param int $srcId
      *
      * @return array
      */
@@ -101,7 +100,7 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща линк, който сочи към източника за персонализация
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return core_ET
      */
@@ -114,7 +113,7 @@ class bgerp_PersonalizationSourceIntf
     /**
      * Връща езика за източника на персонализация
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */

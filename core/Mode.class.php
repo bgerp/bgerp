@@ -17,20 +17,21 @@ defIfNot('EF_MODE_SESSION_VAR', 'pMode');
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Mode
 {
-    
-    
     /**
      * Масив в който се записват runtime стойностите на параметрите
      */
     public static $mode = null;
+    
     
     /**
      * Стек за запазване на старите стойности на параметрите от runtime обкръжението

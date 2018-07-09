@@ -6,19 +6,20 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Csv extends fileman_webdrv_Code
 {
-    
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'view';
@@ -32,6 +33,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -45,10 +47,10 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         // Таб за съдържанието
         $tabsArr['view'] = (object)
         array(
-                'title' => 'Изглед',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Съдържание') . "</div>{$view}</div></div>",
-                'order' => 6,
-                'tpl' => $view,
+            'title' => 'Изглед',
+            'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Съдържание') . "</div>{$view}</div></div>",
+            'order' => 6,
+            'tpl' => $view,
         );
         
         return $tabsArr;
@@ -75,7 +77,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         }
         
         $rows = array();
-
+        
         if (isset($res['firstRow'])) {
             foreach ($res['firstRow'] as $col) {
                 if (strpos($col, '<') !== false) {
@@ -86,10 +88,10 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         }
         
         $formats = csv_Lib::getColumnTypes($res['data']);
-
+        
         $eml = cls::get('type_Email');
         $emls = cls::get('type_Emails');
-
+        
         foreach ($res['data'] as $i => $r) {
             if (!$cnt) {
                 $cnt = count($r);
@@ -111,7 +113,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
                 }
             }
         }
-
+        
         $html = new ET("<table class='csv'><tr>" . implode("</tr>\n<tr>", $rows) . '</tr></table>');
         
         if (Mode::is('screenMode', 'narrow')) {
@@ -119,11 +121,11 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         } else {
             $maxWidth = 1600;
         }
-
+        
         if ($cnt > 0) {
             $maxWidt = round(max(120, $maxWidth / $cnt));
         }
-
+        
         $html->appendOnce(".csv td {
                         max-width: {$maxWidt}px;
                         overflow: hidden;
@@ -146,8 +148,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
                         }
 
         ", 'STYLES');
-
-   
+        
         return $html;
     }
 }

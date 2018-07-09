@@ -1,159 +1,185 @@
 <?php
 
+
 /**
  * Мениджър за тестовете
  *
  *
  * @category  bgerp
  * @package   lab
+ *
  * @author    Milen Georgiev <milen@download.bg>
  *            Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class lab_Tests extends core_Master
 {
-
     /**
      * Заглавие
      */
     public $title = 'Лабораторни тестове';
-
+    
+    
     /**
      * Дефолтен текст за нотификация
      */
     protected static $defaultNotificationText = 'Имате заявен лабораторен тест';
-
+    
     public $canChangestate = 'ceo,lab,masterLab';
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2,doc_ActivatePlg,plg_Clone,doc_DocumentPlg,plg_Printing,
                      lab_Wrapper, plg_Sorting,plg_Search, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
-
+    
+    
     /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = true;
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'title, vendorNote,providerNote,batch,type,provider,sharedUsers';
     
-
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, title,type,batch,activatedOn=Активиран';
-
+    
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-
+    
+    
     /**
      * Детайла, на модела
      */
     public $details = 'lab_TestDetails';
-
+    
+    
     /**
      * Кой може да активира задачата
      */
     public $canActivate = 'ceo,lab,masterLab';
-
+    
+    
     /**
      * Кой има право да променя?
      *
      * @var string|array
      */
     public $canEdit = 'ceo,lab,masterLab';
-
+    
+    
     /**
      * Кой има право да добавя?
      *
      * @var string|array
      */
     public $canAdd = 'ceo,lab,masterLab';
-
+    
+    
     /**
      * Роли, които могат да записват
      */
     public $canWrite = 'lab,ceo,masterLab';
-
+    
+    
     /**
      * Кой има право да чете?
      */
     public $canRead = 'lab,ceo,masterLab';
-
+    
+    
     /**
      * Кой може да го отхвърли?
      */
     public $canReject = 'lab,ceo,masterLab';
-
+    
+    
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'lab,ceo,masterLab';
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'lab,ceo,masterLab';
-
+    
+    
     /**
      * Заглавие на единичен документ
      */
     public $singleTitle = 'Лабораторен тест';
-
+    
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/ruler.png';
-
+    
+    
     /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'lab/tpl/SingleLayoutTests.shtml';
-
+    
+    
     /**
      * Абревиатура
      */
     public $abbr = 'Lab';
-
+    
+    
     /**
      * Групиране на документите
      */
     public $newBtnGroup = '18.1|Други';
-
+    
+    
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,lab,masterLab';
-
+    
+    
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
+    
+    
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
      * @see plg_Clone
      */
     public $cloneDetails = 'lab_TestDetails';
-
+    
     public $canCompare = 'ceo, lab, masterLab';
-
+    
+    
     /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'title';
-
+    
+    
     /**
      * Описание на модела
      */
@@ -184,11 +210,12 @@ class lab_Tests extends core_Master
             'enum(draft=Чернова,active=Активен,rejected=Изтрит,pending=Заявка,stopped=Спрян,closed=Приключен,wakeup=Събуден)',
             'caption=Статус,input=none,notSorting'
         );
-      
+        
         
         $this->FNC('title', 'varchar(128)', 'caption=Наименование,input=none,oldFieldName=handler');
     }
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -206,7 +233,7 @@ class lab_Tests extends core_Master
             $form->setField('referention', 'input=none');
         }
     }
-
+    
     public function on_CalcTitle($mvc, $rec)
     {
         $rec->title = 'xxx' . $rec->id;
@@ -218,7 +245,7 @@ class lab_Tests extends core_Master
         }
         $rec->title = $testTitle;
     }
-
+    
     public static function on_AfterInputeditForm($mvc, &$form)
     {
         $rec = $form->rec;
@@ -232,7 +259,8 @@ class lab_Tests extends core_Master
         }
         $form->setDefault('bringing', 'vendor');
     }
-
+    
+    
     /**
      * Преди запис в модела
      */
@@ -242,12 +270,12 @@ class lab_Tests extends core_Master
             $rec->originId = $rec->foreignId;
         }
     }
-
+    
     public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
         self::sendNotification($rec);
     }
-
+    
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         if ($data->rec->id && $data->rec->state == 'active') {
@@ -267,7 +295,7 @@ class lab_Tests extends core_Master
         }
         
         $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
-       
+        
         
         if ($compTest) {
             $cRec = $mvc->fetch($compTest);
@@ -281,7 +309,7 @@ class lab_Tests extends core_Master
         
         $parameters = keylist::toArray($data->rec->parameters);
         
-       
+        
         foreach ($parameters as $param) {
             $parameter = lab_Parameters::getTitleById($param);
             if (lab_TestDetails::haveRightFor('add')) {
@@ -301,15 +329,14 @@ class lab_Tests extends core_Master
         
         $data->row->ParametersStr = $parametersStr;
     }
-
+    
+    
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-       
-        
-       // $data->toolbar->removeBtn('btnClose');
+        // $data->toolbar->removeBtn('btnClose');
         
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
@@ -325,7 +352,8 @@ class lab_Tests extends core_Master
             );
         }
     }
-
+    
+    
     /**
      *Сравнение на два теста
      *
@@ -363,6 +391,7 @@ class lab_Tests extends core_Master
         
         // Prepare form
         $form->title = "Сравнение на тест|* 'No " . $leftTestId . '. ' . $leftTestName . "' |с друг тест|*";
+        
         // $form->FNC('leftTestId', 'int', 'input=none');
         $form->FNC('rightTestId', 'int', 'caption=Избери тест, mandatory, input');
         
@@ -373,7 +402,7 @@ class lab_Tests extends core_Master
         // END Prepare form
         
         $cRec = $form->input();
-       
+        
         
         // Ако формата е submit-ната
         if ($form->isSubmitted(``)) {
@@ -390,10 +419,11 @@ class lab_Tests extends core_Master
             
             return new Redirect(getRetUrl());
         }
-            
+        
         return $this->renderWrapping($form->renderHtml());
     }
-
+    
+    
     /**
      * Филтър
      *
@@ -415,9 +445,9 @@ class lab_Tests extends core_Master
         $data->listFilter->showFields .= ',dateEnd';
         
         $data->listFilter->FNC(
-        
+            
             'paramIdFilter',
-        
+            
             'varchar',
             'caption=Параметри,placeholder=Параметър'
         
@@ -451,17 +481,17 @@ class lab_Tests extends core_Master
             
             if ($data->listFilter->rec->paramIdFilter) {
                 list($paramsCheckId, $paramName, $methodCheckId) = explode('.', $data->listFilter->rec->paramIdFilter);
-               
+                
                 $data->query->EXT('paramValue', 'lab_TestDetails', 'externalName=value,remoteKey=testId');
-
+                
                 $data->query->EXT('paramName', 'lab_TestDetails', 'externalName=paramName,remoteKey=testId');
                 
                 $data->query->EXT('methodId', 'lab_TestDetails', 'externalName=methodId,remoteKey=testId');
                 
                 $data->query->where(array("#paramName = '[#1#]'", $data->listFilter->rec->paramIdFilter));
-                    
+                
                 $data->query->where(array("#methodId = '[#1#]'", $methodCheckId));
-
+                
                 $data->query->orderBy('paramValue', 'DESC');
                 
                 $data->listFields = arr::make($data->listFields, true);
@@ -472,7 +502,7 @@ class lab_Tests extends core_Master
             }
         }
     }
-
+    
     
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $listFields)
     {
@@ -513,7 +543,7 @@ class lab_Tests extends core_Master
             }
         }
     }
-
+    
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
@@ -521,11 +551,11 @@ class lab_Tests extends core_Master
     public function getDocumentRow($id)
     {
         if (! $id) {
+            
             return;
         }
         
-            
-            
+        
         $rec = $this->fetch($id);
         
         
@@ -545,15 +575,16 @@ class lab_Tests extends core_Master
     /**
      * Изпращане на нотификации на споделените потребители
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return void
      */
     public static function sendNotification($rec)
     {
-        
         // Ако няма избрани потребители за нотифициране, не се прави нищо
         $userArr = keylist::toArray($rec->sharedUsers);
         if (! count($userArr)) {
+            
             return;
         }
         
@@ -584,16 +615,16 @@ class lab_Tests extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-    
+        
         return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
-    
     
     
     /**
@@ -602,11 +633,11 @@ class lab_Tests extends core_Master
     public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         $rec = $mvc->fetchRec($rec);
-         
+        
         if (!isset($searchKeywords)) {
             $searchKeywords = plg_Search::getKeywords($mvc, $rec);
         }
-    
+        
         if ($rec->id) {
             $dQuery = lab_TestDetails::getQuery();
             $dQuery->where("#testId = {$rec->id}");

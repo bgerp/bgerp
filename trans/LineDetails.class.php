@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Детайли на Транспортните линии
  *
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class trans_LineDetails extends doc_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -51,7 +50,7 @@ class trans_LineDetails extends doc_Detail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,documentHtml=@';
-
+    
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
@@ -119,9 +118,9 @@ class trans_LineDetails extends doc_Detail
      * Вербалните имена на класовете
      */
     private static $classGroups = array('store_ShipmentOrders' => 'Експедиции',
-                                        'store_Receipts' => 'Доставки',
-                                        'store_ConsignmentProtocols' => 'Отговорно пазене',
-                                        'store_Transfers' => 'Трансфери');
+        'store_Receipts' => 'Доставки',
+        'store_ConsignmentProtocols' => 'Отговорно пазене',
+        'store_Transfers' => 'Трансфери');
     
     
     /**
@@ -146,8 +145,9 @@ class trans_LineDetails extends doc_Detail
     /**
      * Синхронизиране детайла на линията с документа
      *
-     * @param  int $lineId      - линия
-     * @param  int $containerId - контейнер на документ
+     * @param int $lineId      - линия
+     * @param int $containerId - контейнер на документ
+     *
      * @return int - синхронизирания запис
      */
     public static function sync($lineId, $containerId)
@@ -340,8 +340,9 @@ class trans_LineDetails extends doc_Detail
     /**
      * Валидиране на таблица с транспортни линии
      *
-     * @param  array     $tableData
-     * @param  core_Type $Type
+     * @param array     $tableData
+     * @param core_Type $Type
+     *
      * @return array
      */
     public static function validateTransTable($tableData, $Type)
@@ -350,7 +351,7 @@ class trans_LineDetails extends doc_Detail
         $units = $tableData['unitId'];
         $quantities = $tableData['quantity'];
         $error = $errorFields = array();
-    
+        
         if (count($units) != count(array_unique($units))) {
             $error[] = 'Логистичните единици трябва да са уникални|*';
         }
@@ -526,11 +527,11 @@ class trans_LineDetails extends doc_Detail
             // Към коя група спада документа
             $className = cls::getClassName($groupId);
             $className = tr(self::$classGroups[$className]);
-             
+            
             // Общо записи от същия вид документ
             $total = self::count("#lineId = {$data->masterId} AND #classId = {$groupId} AND #containerState != 'rejected' AND #status != 'removed'");
             $totalVerbal = core_Type::getByName('int')->toVerbal($total);
-             
+            
             // Общо готови записи от същия вид документ
             $ready = self::count("#lineId = {$data->masterId} AND #status = 'ready' AND #classId = {$groupId} AND #containerState != 'rejected' AND #status != 'removed'");
             $readyVerbal = core_Type::getByName('int')->toVerbal($ready);
@@ -594,11 +595,12 @@ class trans_LineDetails extends doc_Detail
      * Удобно показване на използваните логистични единици.
      * Тези които се срещат и в двата масива с еднакво количество се показват маркирани
      *
-     * @param  array $documentLu - ЛЕ в документа
-     * @param  array $readyLu    - Подготвените ЛЕ
+     * @param array $documentLu - ЛЕ в документа
+     * @param array $readyLu    - Подготвените ЛЕ
+     *
      * @return array $res
-     *                          ['documentLu'] - ЛЕ в документа
-     *                          ['readyLu']    - Готовите ЛЕ
+     *               ['documentLu'] - ЛЕ в документа
+     *               ['readyLu']    - Готовите ЛЕ
      */
     public static function colorTransUnits($documentLu, $readyLu)
     {
@@ -645,7 +647,7 @@ class trans_LineDetails extends doc_Detail
                     $className = 'lu-light';
                 }
             }
-
+            
             $strPart1 = "<div class='lu {$className}'>{$strPart1}</div>";
             $res->readyLu .= $strPart1;
         }

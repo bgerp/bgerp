@@ -1,21 +1,21 @@
 <?php
 
+
 /**
  * Мениджър на типове архиви
  *
  *
  * @category  bgerp
  * @package   incoming
+ *
  * @author   Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-
 class incoming_TypeOfArchive extends core_Master
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -81,6 +81,7 @@ class incoming_TypeOfArchive extends core_Master
      */
     public $canSingle = 'powerUser';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -111,10 +112,9 @@ class incoming_TypeOfArchive extends core_Master
         
         $this->setDbUnique('name');
     }
-
+    
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-    
         $archiveUnits = 'папка|кашон|палет|стелаж';
         
         $storagePeriod = '1|2|3|4|5|6|7|8|9|10|15|20|25|50';
@@ -125,28 +125,8 @@ class incoming_TypeOfArchive extends core_Master
         
         //$data->form->setOptions('archivUnit', array(' ' => 'избери единица ') + $archiveUnitsArr);
         
-        $data->form->setSuggestions('archivUnit',$archiveUnitsArr);
+        $data->form->setSuggestions('archivUnit', $archiveUnitsArr);
         
-        $data->form->setOptions('storagePeriod',$storagePeriodArr);
+        $data->form->setOptions('storagePeriod', $storagePeriodArr);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

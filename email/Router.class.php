@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Рутира всички несортирани писма.
  *
@@ -10,16 +9,16 @@
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/108
  */
 class email_Router extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -96,7 +95,7 @@ class email_Router extends core_Manager
         $this->FLD('objectType', 'enum(person, company, document)');
         $this->FLD('objectId', 'int', 'caption=Обект');
         $this->FLD('priority', 'varchar(21)', 'caption=Приоритет');
-
+        
         $this->setDbIndex('objectType,objectId');
         $this->setdbIndex('type,key');
     }
@@ -158,11 +157,11 @@ class email_Router extends core_Manager
     /**
      * Определя папката, в която да се рутира писмо от $fromEmail до $toEmail, според правило тип $rule
      *
-     * @param string  $fromEmail
-     * @param string  $toEmail   има значение само при $type == email_Router::RuleFromTo, в противен
-     *                           случай се игнорира (може да е NULL)
-     * @param string  $type      email_Router::RuleFromTo | email_Router::RuleFrom | email_Router::RuleDomain
-     * @param boolean $bForce
+     * @param string $fromEmail
+     * @param string $toEmail   има значение само при $type == email_Router::RuleFromTo, в противен
+     *                          случай се игнорира (може да е NULL)
+     * @param string $type      email_Router::RuleFromTo | email_Router::RuleFrom | email_Router::RuleDomain
+     * @param bool   $bForce
      *
      * @return int key(mvc=doc_Folders)
      */
@@ -198,7 +197,7 @@ class email_Router extends core_Manager
             // Изтриваме правилото и отново извикваме тази функция
             if (!$folderId) {
                 self::delete($rec->id);
-
+                
                 return self::route($fromEmail, $toEmail, $type);
             }
         }
@@ -210,8 +209,9 @@ class email_Router extends core_Manager
     /**
      * Определя папката, към която се сортират писмата, изпратени от даден имейл
      *
-     * @param  string $email
-     * @return int    key(mvc=doc_Folders)
+     * @param string $email
+     *
+     * @return int key(mvc=doc_Folders)
      */
     public static function getEmailFolder($email)
     {
@@ -270,7 +270,7 @@ class email_Router extends core_Manager
      * Добавя правило ако е с по-висок приоритет от всички налични правила със същия ключ и тип.
      *
      * @param stdClass $rule      запис на модела email_Router
-     * @param boolean  $updateRec
+     * @param bool     $updateRec
      */
     public static function saveRule($rule, $updateRec = true)
     {
@@ -312,8 +312,9 @@ class email_Router extends core_Manager
     /**
      * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
      *
-     * @param  string  $domain TLD
-     * @return boolean
+     * @param string $domain TLD
+     *
+     * @return bool
      */
     public static function isPublicDomain($domain)
     {
@@ -353,8 +354,8 @@ class email_Router extends core_Manager
         
         return $priority;
     }
-
-
+    
+    
     /**
      * Рутиране по номер на нишка
      *
@@ -382,7 +383,7 @@ class email_Router extends core_Manager
                 unset($rec->threadId);
             }
         }
-
+        
         return $rec->folderId;
     }
     
@@ -393,7 +394,7 @@ class email_Router extends core_Manager
      * @param stdClass $rec
      * @param array    $oldValArr
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkRouteRules(&$rec, $oldValArr = array('folderId' => null, 'threadId' => null))
     {
@@ -420,7 +421,7 @@ class email_Router extends core_Manager
                     reportException($e);
                     $coverRec = null;
                 }
-            
+                
                 // Спираме рутирането до затворени папки
                 if ($coverRec && ($coverRec->state == 'closed')) {
                     $stopRoutingArr[$key] = true;
@@ -463,20 +464,24 @@ class email_Router extends core_Manager
     /**
      * Извлича нишката от 'In-Reply-To' MIME хедър
      *
-     * @param  stdClass $rec
-     * @return int      първичен ключ на нишка или NULL
+     * @param stdClass $rec
+     *
+     * @return int първичен ключ на нишка или NULL
      */
     protected static function extractThreadFromReplyTo($rec)
     {
         if (!$rec->inReplyTo) {
+            
             return;
         }
         
         if (!($mid = self::extractMidFromMessageId($rec->inReplyTo))) {
+            
             return;
         }
         
         if (!($sentRec = doclog_Documents::fetchByMid($mid))) {
+            
             return;
         }
         
@@ -485,6 +490,7 @@ class email_Router extends core_Manager
         
         // Ако е бласт имейл, връщаме NULL
         if (strtolower($document->className) == 'blast_emails') {
+            
             return;
         }
         
@@ -493,11 +499,11 @@ class email_Router extends core_Manager
         return $sentRec->threadId;
     }
     
-
+    
     /**
      * Генерира MesasgeID за имейл от mid
      *
-     * @param integer $boxFrom
+     * @param int $boxFrom
      *
      * @return string
      */
@@ -515,7 +521,7 @@ class email_Router extends core_Manager
     /**
      * Определя името на домейна от който изпращаме
      *
-     * @param integer $boxFrom
+     * @param int $boxFrom
      *
      * @return string
      */
@@ -592,18 +598,18 @@ class email_Router extends core_Manager
         
         return $mid;
     }
-     
-
+    
+    
     /**
      * Рутира по правилото `From`
      */
     public static function doRuleFrom($rec)
     {
         $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleFrom);
-
+        
         return $rec->folderId;
     }
-
+    
     
     /**
      * Рутира по правилото `FromTo`
@@ -611,7 +617,7 @@ class email_Router extends core_Manager
     public static function doRuleFromTo($rec)
     {
         $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleFromTo);
-
+        
         return $rec->folderId;
     }
     
@@ -622,7 +628,7 @@ class email_Router extends core_Manager
     public static function doRuleDomain($rec)
     {
         $rec->folderId = self::route($rec->fromEml, $rec->toBox, self::RuleDomain);
-
+        
         return $rec->folderId;
     }
     
@@ -633,7 +639,7 @@ class email_Router extends core_Manager
     public static function doRuleCountry($rec)
     {
         if ($rec->country) {
-
+            
             // Ако се наложи създаване на папка за несортирани писма от държава,
             // ако е зададено кой да е отговорника взимаме него, иначе отговорника
             // трябва да е отговорника на кутията, до която е изпратено писмото, ако не е зададено в конфига
@@ -652,16 +658,16 @@ class email_Router extends core_Manager
                 $inChargeUserId
             );
         }
-
+        
         return $rec->folderId;
     }
-
-
-
+    
+    
     /**
      * Създава при нужда и връща ИД на папката на държава
      *
-     * @param  int $countryId key(mvc=drdata_Countries)
+     * @param int $countryId key(mvc=drdata_Countries)
+     *
      * @return int key(mvc=doc_Folders)
      */
     public static function forceCountryFolder($countryId, $inCharge)
@@ -669,7 +675,7 @@ class email_Router extends core_Manager
         $folderId = null;
         
         $countryName = drdata_Countries::getCountryName($countryId);
-
+        
         if (!empty($countryName)) {
             $folderId = doc_UnsortedFolders::forceCoverAndFolder(
                 (object) array(
@@ -682,8 +688,7 @@ class email_Router extends core_Manager
         return $folderId;
     }
     
-
-
+    
     /**
      * Рутиране според `toBox`
      *
@@ -694,7 +699,7 @@ class email_Router extends core_Manager
     public static function doRuleToBox($rec)
     {
         $rec->folderId = email_Inboxes::forceFolder($rec->toBox);
-
+        
         if (!$rec->folderId) {
             $accRec = email_Accounts::fetch($rec->accId);
             $rec->folderId = email_Inboxes::forceFolder($accRec->email);
@@ -702,7 +707,6 @@ class email_Router extends core_Manager
         
         return $rec->folderId;
     }
-    
     
     
     public function act_TestRoute()
@@ -759,7 +763,6 @@ class email_Router extends core_Manager
     }
     
     
-    
     public static function act_TestDateToPriority()
     {
         requireRole('admin, debug');
@@ -780,8 +783,8 @@ class email_Router extends core_Manager
         
         return ob_get_clean();
     }
-
-
+    
+    
     /**
      * Поправя загубените връзки на данните от този модел
      */
@@ -814,11 +817,11 @@ class email_Router extends core_Manager
         if ($missedPersons) {
             $html .= "<li> Липсващи лица: {$missedPersons} </li>";
         }
-
+        
         if ($missedDocuments) {
             $html .= "<li> Липсващи документи: {$missedDocuments} </li>";
         }
-
+        
         return $html;
     }
 }

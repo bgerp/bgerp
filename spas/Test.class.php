@@ -1,13 +1,14 @@
 <?php
 
+
 class spas_Test extends core_Mvc
 {
-
     /**
      * Списък с плъгини
      */
     public $loadList = 'plg_SystemWrapper';
-
+    
+    
     /**
      * Описание на системните действия
      */
@@ -16,8 +17,8 @@ class spas_Test extends core_Mvc
         array('title' => 'Тест', 'url' => array('spas_Test', 'test', 'ret_url' => true), 'params' => array('title' => 'Тестване на имейл')),
         array('title' => 'Обучение', 'url' => array('spas_Test', 'learn', 'ret_url' => true), 'params' => array('title' => 'Обучение на Спас')),
     );
-
-
+    
+    
     /**
      * Показва менюто с действия на пакета
      */
@@ -34,11 +35,11 @@ class spas_Test extends core_Mvc
         $data = new stdClass();
         
         $this->currentTab = 'Код->Пакети';
-
+        
         return $this->renderWrapping("<div style='display:table-cell'>" . $html . '</div>', $data);
     }
-
-
+    
+    
     public function act_Test()
     {
         requireRole('admin, debug');
@@ -47,17 +48,17 @@ class spas_Test extends core_Mvc
         $form->FLD('message', 'text(26777216)', 'caption=MIME съобщение,mandatory');
         $form->toolbar->addSbBtn('Тест');
         $form->title = 'Тестване на имейл за спам';
-
+        
         $rec = $form->input();
-
-         
+        
+        
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($form->isSubmitted()) {
             $sa = $this->getSa();
             
             try {
                 $res = $sa->getSpamReport($rec->message);
-
+                
                 if (is_object($res)) {
                     foreach ((array) $res as $key => $value) {
                         $html .= "<li><strong>{$key}</strong> =  {$value}</li>";
@@ -68,37 +69,36 @@ class spas_Test extends core_Mvc
             }
             
             $html = str_replace("\n", '<br>', $html);
-
+            
             $form->info = '<ul>' . $html . '</ul>';
         }
         
         self::addCancelBtn($form);
-
+        
         $res = $form->renderHtml();
-
+        
         return $res;
     }
-    
     
     
     public function act_Learn()
     {
         requireRole('admin, debug');
-
+        
         $form = cls::get('core_Form');
         $form->FLD('message', 'text(1000000)', 'caption=MIME съобщение,mandatory');
         $form->FLD('type', 'enum(spam=Спам,ham=Салам,forget=Забравяне)', 'caption=Тип,mandatory');
-
+        
         $form->toolbar->addSbBtn('Научи');
         $form->title = 'Обучение на Спас';
-
+        
         $rec = $form->input();
-
-         
+        
+        
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($form->isSubmitted()) {
             $sa = $this->getSa();
-
+            
             switch ($rec->type) {
                 case 'spam': $type = spas_Client::LEARN_SPAM;
                     break;
@@ -106,12 +106,12 @@ class spas_Test extends core_Mvc
                     break;
                 case 'forget': $type = spas_Client::LEARN_FORGET;
                     break;
-
+            
             }
             
             try {
                 $res = $sa->learn($rec->message, $type);
-
+                
                 if (is_object($res)) {
                     foreach ((array) $res as $key => $value) {
                         $html .= "<li><strong>{$key}</strong> =  {$value}</li>";
@@ -122,18 +122,18 @@ class spas_Test extends core_Mvc
             }
             
             $html = str_replace("\n", '<br>', $html);
-
+            
             $form->info = '<ul>' . $html . '</ul>';
         }
         
         self::addCancelBtn($form);
-
+        
         $res = $form->renderHtml();
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Пингва връзката със SA
      */
@@ -144,7 +144,7 @@ class spas_Test extends core_Mvc
         $sa = $this->getSa();
         
         $redirectUrl = getRetUrl();
-
+        
         try {
             $res = $sa->ping();
         } catch (spas_client_Exception $e) {
@@ -161,7 +161,7 @@ class spas_Test extends core_Mvc
         
         redirect($redirectUrl, false, $msg, $type);
     }
-
+    
     
     /**
      * Връща инстанция на драйвера за SA
@@ -176,8 +176,8 @@ class spas_Test extends core_Mvc
         
         return $sa;
     }
-
-
+    
+    
     public static function addCancelBtn($form)
     {
         $form->toolbar->addBtn('Отказ', array('core_Packs', 'config', 'pack' => 'spas'));

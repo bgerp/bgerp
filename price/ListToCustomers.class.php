@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Ценови политики към клиенти
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Ценови политики към клиенти
  */
 class price_ListToCustomers extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -34,14 +33,14 @@ class price_ListToCustomers extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, price_Wrapper, plg_RowTools2';
-                    
+    
     
     /**
      * Интерфейс за ценова политика
      */
     public $interfaces = 'price_PolicyIntf';
-
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -59,7 +58,7 @@ class price_ListToCustomers extends core_Manager
      */
     public $canAdd = 'price,sales,ceo';
     
-
+    
     /**
      * Кой има право да листва?
      */
@@ -71,7 +70,7 @@ class price_ListToCustomers extends core_Manager
      */
     public $canDelete = 'price,sales,ceo';
     
-
+    
     /**
      * Предлог в формата за добавяне/редактиране
      */
@@ -106,7 +105,7 @@ class price_ListToCustomers extends core_Manager
         $this->setDbIndex('state');
         $this->setDbIndex('listId');
     }
-
+    
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -118,31 +117,31 @@ class price_ListToCustomers extends core_Manager
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-
+            
             $now = dt::verbal2mysql();
-
+            
             if (!$rec->validFrom) {
                 $rec->validFrom = $now;
             }
-
+            
             if ($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
                 Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
             }
         }
     }
-
-
+    
+    
     /**
      * Подготвя формата за въвеждане на ценови правила за клиент
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $rec = $data->form->rec;
-
+        
         if (!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
-
+        
         $rec->listId = self::getListForCustomer($rec->cClass, $rec->cId);
         
         $data->form->setOptions('listId', price_Lists::getAccessibleOptions($rec->cClass, $rec->cId));
@@ -152,7 +151,7 @@ class price_ListToCustomers extends core_Manager
         }
     }
     
-
+    
     /**
      * След подготовката на заглавието на формата
      */
@@ -163,15 +162,15 @@ class price_ListToCustomers extends core_Manager
             $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
         }
     }
-
-
+    
+    
     /**
      * Връща актуалния към посочената дата набор от ценови правила за посочения клиент
      */
     private static function getValidRec($customerClassId, $customerId, $datetime = null)
     {
         $datetime = (isset($datetime)) ? $datetime : dt::verbal2mysql();
-
+        
         $query = self::getQuery();
         $query->where("#cClass = {$customerClassId} AND #cId = {$customerId}");
         $query->where("#validFrom <= '{$datetime}'");
@@ -183,8 +182,8 @@ class price_ListToCustomers extends core_Manager
         
         return $lRec;
     }
-
-
+    
+    
     /**
      * Задава ценова политика за определен клиент
      */
@@ -193,16 +192,16 @@ class price_ListToCustomers extends core_Manager
         if (!$datetime) {
             $datetime = dt::verbal2mysql();
         }
-
+        
         $rec = new stdClass();
         $rec->cClass = $cClass;
         $rec->cId = $cId;
         $rec->validFrom = $datetime;
         $rec->listId = $policyId;
- 
+        
         self::save($rec);
     }
-
+    
     
     /**
      * Подготвя ценоразписите на даден клиент
@@ -233,7 +232,7 @@ class price_ListToCustomers extends core_Manager
             }
         }
     }
-
+    
     
     /**
      * Рендиране на ценоразписите на клиента
@@ -264,7 +263,7 @@ class price_ListToCustomers extends core_Manager
         
         return $tpl;
     }
-
+    
     
     /**
      * След запис в модела
@@ -280,7 +279,7 @@ class price_ListToCustomers extends core_Manager
         price_History::removeTimeline();
     }
     
-
+    
     /**
      * Връща валидните ценови правила за посочения клиент
      */
@@ -298,18 +297,19 @@ class price_ListToCustomers extends core_Manager
     /**
      * Връща цената за посочения продукт към посочения клиент на посочената дата
      *
-     * @param  mixed                                                                              $customerClass       - клас на контрагента
-     * @param  int                                                                                $customerId          - ид на контрагента
-     * @param  int                                                                                $productId           - ид на артикула
-     * @param  int                                                                                $packagingId         - ид на опаковка
-     * @param  double                                                                             $quantity            - количество
-     * @param  datetime                                                                           $datetime            - дата
-     * @param  double                                                                             $rate                - валутен курс
-     * @param  enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat           - начин на начисляване на ддс
-     * @param  int|NULL                                                                           $listId              - ценова политика
-     * @param  boolean                                                                            $quotationPriceFirst - Дали първо да търси цена от последна оферта
-     * @return stdClass                                                                           $rec->price  - цена
-     *                                                                                                                $rec->discount - отстъпка
+     * @param mixed                                                                              $customerClass       - клас на контрагента
+     * @param int                                                                                $customerId          - ид на контрагента
+     * @param int                                                                                $productId           - ид на артикула
+     * @param int                                                                                $packagingId         - ид на опаковка
+     * @param float                                                                              $quantity            - количество
+     * @param datetime                                                                           $datetime            - дата
+     * @param float                                                                              $rate                - валутен курс
+     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat           - начин на начисляване на ддс
+     * @param int|NULL                                                                           $listId              - ценова политика
+     * @param bool                                                                               $quotationPriceFirst - Дали първо да търси цена от последна оферта
+     *
+     * @return stdClass $rec->price  - цена
+     *                  $rec->discount - отстъпка
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true)
     {
@@ -340,35 +340,35 @@ class price_ListToCustomers extends core_Manager
                             $vat = cat_Products::getVat($productId, $datetime);
                             $newPrice = $newPrice * (1 + $vat);
                         }
-        
+                        
                         $newPrice = round($newPrice, 4);
-
+                        
                         if ($chargeVat == 'yes') {
                             $newPrice = $newPrice / (1 + $vat);
                         }
-        
+                        
                         $newPrice *= $rate;
-
+                        
                         $rec->price = $newPrice;
                         $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
-                 
+                        
                         return $rec;
                     }
                 }
-                 
+                
                 // Търсим първо активната търговска рецепта, ако няма търсим активната работна
                 $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
                 if (empty($bomRec)) {
                     $bomRec = cat_Products::getLastActiveBom($productId, 'production');
                 }
-                 
+                
                 // Ако има рецепта връщаме по нея
                 if ($bomRec) {
                     $defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
                     if ($defPriceListId == price_ListRules::PRICE_LIST_CATALOG) {
                         $defPriceListId = price_ListRules::PRICE_LIST_COST;
                     }
-            
+                    
                     $rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
                 }
             } else {
@@ -384,7 +384,7 @@ class price_ListToCustomers extends core_Manager
             $vat = cat_Products::getVat($productId);
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
-       
+        
         // Връщаме цената
         return $rec;
     }
@@ -393,20 +393,21 @@ class price_ListToCustomers extends core_Manager
     /**
      * Връща минималната отстъпка и максималната надценка за даден контрагент
      *
-     * @param  mixed  $customerClass  - ид на клас на контрагента
-     * @param  int    $customerId     - ид на контрагента
-     * @param  int    $defPriceListId - ценоразпис
+     * @param mixed $customerClass  - ид на клас на контрагента
+     * @param int   $customerId     - ид на контрагента
+     * @param int   $defPriceListId - ценоразпис
+     *
      * @return object $res		   - масив с надценката и отстъпката
-     *                               o minDelta  - минималната отстъпка
-     *                               o maxDelta  - максималната надценка
+     *                o minDelta  - минималната отстъпка
+     *                o maxDelta  - максималната надценка
      */
     public static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
     {
         $res = (object) array('minDelta' => 0, 'maxDelta' => 0);
-    
+        
         // Ако контрагента има зададен ценоразпис, който не е дефолтния
         if ($defPriceListId != price_ListRules::PRICE_LIST_CATALOG) {
-             
+            
             // Взимаме максималната и минималната надценка от него, ако ги има
             $defPriceList = price_Lists::fetch($defPriceListId);
             $res->minDelta = $defPriceList->minSurcharge;
@@ -417,7 +418,7 @@ class price_ListToCustomers extends core_Manager
         if (!$res->minDelta) {
             $res->minDelta = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
         }
-         
+        
         // Ако няма макс надценка, взимаме я от търговските условия
         if (!$res->maxDelta) {
             $res->maxDelta = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
@@ -436,10 +437,10 @@ class price_ListToCustomers extends core_Manager
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
         
         $listRec = price_Lists::fetch($listId);
-         
+        
         // Ако е избрано да се връща отстъпката спрямо друга политика
         if (!empty($listRec->discountCompared)) {
-             
+            
             // Намираме цената по тази политика и намираме колко % е отстъпката/надценката
             $comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
             
@@ -484,6 +485,7 @@ class price_ListToCustomers extends core_Manager
     
     /**
      * Ф-я викаща се по разписание
+     *
      * @see core_CallOnTime
      *
      * @param stdClass $data
@@ -586,9 +588,10 @@ class price_ListToCustomers extends core_Manager
     /**
      * Връща масив с контрагентите свързани към даден ценоразпис
      *
-     * @param  int     $listId - ид на политика
-     * @param  boolean $links  - дали имената на контрагентите да са линк
-     * @return array   $options - масив със свързаните контрагенти
+     * @param int  $listId - ид на политика
+     * @param bool $links  - дали имената на контрагентите да са линк
+     *
+     * @return array $options - масив със свързаните контрагенти
      */
     public static function getCustomers($listId, $links = false)
     {

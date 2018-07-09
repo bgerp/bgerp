@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'doc_plg_HidePrices' сквиращ ценови полета, които са посочени в
  * променливата 'priceFields'. Само потребителите с определени права могат
@@ -14,15 +13,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_HidePrices extends core_Plugin
 {
-    
-    
     /**
      * След инициализирането на модела
      *
@@ -39,8 +38,9 @@ class doc_plg_HidePrices extends core_Plugin
     /**
      * Проверява дали този плъгин е приложим към зададен мениджър
      *
-     * @param  core_Mvc $mvc
-     * @return boolean
+     * @param core_Mvc $mvc
+     *
+     * @return bool
      */
     protected static function checkApplicability($mvc)
     {
@@ -52,7 +52,7 @@ class doc_plg_HidePrices extends core_Plugin
         
         // ... към който е прикачен doc_DocumentPlg
         $plugins = arr::make($mvc->loadList);
-
+        
         if (isset($plugins['doc_DocumentPlg'])) {
             
             return false;
@@ -96,6 +96,7 @@ class doc_plg_HidePrices extends core_Plugin
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         if (self::canSeePriceFields($data->rec)) {
+            
             return;
         }
         
@@ -109,6 +110,7 @@ class doc_plg_HidePrices extends core_Plugin
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
         if (self::canSeePriceFields($data->rec)) {
+            
             return;
         }
         
@@ -124,6 +126,7 @@ class doc_plg_HidePrices extends core_Plugin
     public static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
         if (self::canSeePriceFields($data->masterData->rec)) {
+            
             return;
         }
         

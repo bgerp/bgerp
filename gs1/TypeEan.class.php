@@ -12,28 +12,27 @@ cls::load('type_Varchar');
  *
  * @category  bgerp
  * @package   gs1
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class gs1_TypeEan extends type_Varchar
 {
-    
-    
     /**
      * Колко символа е дълго полето в базата
      */
     public $dbFieldLen = 18;
     
     
-
     /**
      * Празната стойност има смисъл на NULL
      */
     public $nullIfEmpty = true;
-
-
+    
+    
     /**
      * Колко символа е дълго полето в базата
      */
@@ -121,15 +120,17 @@ class gs1_TypeEan extends type_Varchar
             $newEan = str::increment($maxEan);
             $newEan = $this->eanCheckDigit($newEan);
         }
-         
+        
         return $newEan;
     }
     
     
     /**
      * Към 12-цифрен номер, добавя 13-та цифра за д''а го направи EAN13 код
-     * @param  string $digits - 12-те или 7-те цифри на кода
-     * @param  int    $n      - дали проверяваме за ЕАН8 или ЕАН13, ЕАН13 е по дефолт
+     *
+     * @param string $digits - 12-те или 7-те цифри на кода
+     * @param int    $n      - дали проверяваме за ЕАН8 или ЕАН13, ЕАН13 е по дефолт
+     *
      * @return string - правилния ЕАН8 или ЕАН13 код
      */
     public function eanCheckDigit($digits, $n = 13)
@@ -155,9 +156,11 @@ class gs1_TypeEan extends type_Varchar
     
     /**
      * Проверка за валидност на EAN13 или EAN8 код
-     * @param  string  $value - подадената сума
-     * @param  int     $n     - дали е ЕАН13 или ЕАН8
-     * @return boolean TRUE/FALSE
+     *
+     * @param string $value - подадената сума
+     * @param int    $n     - дали е ЕАН13 или ЕАН8
+     *
+     * @return bool TRUE/FALSE
      */
     public function isValidEan($value, $n = 13)
     {
@@ -171,8 +174,10 @@ class gs1_TypeEan extends type_Varchar
     
     /**
      * Връща верен EAN 13 + 2/5, ако е подаден такъв
-     * @param  string $value - 15 или 18 цифрен баркод
-     * @param  int    $n     - колко цифри са допълнителните към EAN13
+     *
+     * @param string $value - 15 или 18 цифрен баркод
+     * @param int    $n     - колко цифри са допълнителните към EAN13
+     *
      * @return string $res - Подадения ЕАН13+2/5 код с правилна 13 цифра
      */
     public function eanSCheckDigit($value, $n)
@@ -189,8 +194,10 @@ class gs1_TypeEan extends type_Varchar
     /**
      * Проверка за валидност на първите 13 цифри от 15 или 18
      * цифрен баркод код, дали са валиден EAN13 код
-     * @param  string  $value - EAN код с повече от 13 цифри
-     * @return boolean TRUE/FALSE
+     *
+     * @param string $value - EAN код с повече от 13 цифри
+     *
+     * @return bool TRUE/FALSE
      */
     public function isValidEanS($value)
     {
@@ -199,13 +206,14 @@ class gs1_TypeEan extends type_Varchar
             
             return true;
         }
-
+        
         return false;
     }
     
     
     /**
      * Дефиниция на виртуалния метод на типа, който служи за проверка на данните
+     *
      * @return stdClass $res - обект съдържащ информация за валидноста на полето
      */
     public function isValid($value)
@@ -269,7 +277,7 @@ class gs1_TypeEan extends type_Varchar
                     break;
             }
         }
-       
+        
         return (array) $res;
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Име на под-директория  в sbg/EF_APP_NAME, където се намират умалените изображения
  */
@@ -24,28 +25,29 @@ defIfNot('THUMB_OPTIMIZATORS', '');
  *
  * @category  bgerp
  * @package   minify
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class thumb_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
     public $version = '0.1';
+    
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
         
-       'THUMB_OPTIMIZATORS' => array('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор')
-
-     );
+        'THUMB_OPTIMIZATORS' => array('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор')
+    
+    );
     
     
     /**
@@ -54,8 +56,8 @@ class thumb_Setup extends core_ProtoSetup
     public $systemActions = array(
         array('title' => 'Изтриване', 'url' => array('thumb_M', 'clear', 'ret_url' => true), 'params' => array('title' => 'Изтриване на кешираните изобажения'))
     );
-
-     
+    
+    
     /**
      * Мениджър - входна точка в пакета
      */
@@ -79,9 +81,9 @@ class thumb_Setup extends core_ProtoSetup
      */
     public $isSystem = true;
     
-        
+    
     protected $folders = THUMB_IMG_PATH;
-
+    
     
     /**
      * Пакет без инсталация

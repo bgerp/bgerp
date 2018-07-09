@@ -1,6 +1,5 @@
 <?php 
 
-
 /**
  * Дефинира име на папка в която ще се съхраняват временните данни данните
  */
@@ -13,15 +12,15 @@ defIfNot('WEBKIT_TO_PDF_TEMP_DIR', EF_TEMP_PATH . '/webkittopdf');
  *
  * @category  vendors
  * @package   webkittopdf
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class webkittopdf_Converter extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -163,7 +162,7 @@ class webkittopdf_Converter extends core_Manager
             // Добавяме в настройките
             $wk .= ' --print-media-type';
         }
-    
+        
         // Ако е зададено да се използва grayscale
         if ($conf->WEBKIT_TO_PDF_USE_GRAYSCALE == 'yes') {
             
@@ -171,7 +170,7 @@ class webkittopdf_Converter extends core_Manager
             $wk .= ' --grayscale';
         }
         
-    
+        
         // Ако е зададен енкодинг за текущия файл
         if ($conf->WEBKIT_TO_PDF_INPUT_ENCODING) {
             
@@ -220,7 +219,7 @@ class webkittopdf_Converter extends core_Manager
     /**
      * Проверява дали има функция за конвертиране
      *
-     * @return boolean
+     * @return bool
      */
     public static function isEnabled()
     {

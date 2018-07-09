@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър за сензори
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Мениджър за сензори
  */
 class sens_Sensors extends core_Master
 {
-    
-    
     /**
      * Необходими мениджъри
      */
@@ -53,8 +52,8 @@ class sens_Sensors extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,sens';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -88,6 +87,7 @@ class sens_Sensors extends core_Master
     
     /**
      * Подменя URL-то да сочи направо към настройките на обекта
+     *
      * @param object $mvc
      * @param object $data
      */
@@ -104,8 +104,8 @@ class sens_Sensors extends core_Master
             Request::setProtected('objCls, objId, wrapper');
         }
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -116,7 +116,7 @@ class sens_Sensors extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-       
+        
         if ($rec->id) {
             $form->setReadonly('driver');
         }
@@ -125,6 +125,7 @@ class sens_Sensors extends core_Master
     
     /**
      * Добавя бутон за настройки в единичен изглед на драйвер-а
+     *
      * @param stdClass $mvc
      * @param stdClass $data
      */
@@ -185,7 +186,7 @@ class sens_Sensors extends core_Master
                     break;
             }
         }
-
+        
         $row->settings = '<table colspan=0 rowspan=0>';
         foreach ($settingsArr as $name => $value) {
             // Празните параметри не ги показваме
@@ -198,7 +199,7 @@ class sens_Sensors extends core_Master
         $row->settings .= '</table>';
         
         $row->indications = $driver->renderHtml();
-
+        
         if ($driver->title) {
             $row->driver = $driver->title;
         }
@@ -234,7 +235,7 @@ class sens_Sensors extends core_Master
         }
     }
     
- 
+    
     /**
      * Приема id и key - базиран на драйвера и сол
      * Затваря връзката с извикващия преждевременно.
@@ -260,7 +261,7 @@ class sens_Sensors extends core_Master
         ob_end_clean();
         
         $id = str::checkHash(Request::get('id', 'varchar'));
-        
+
 //      $id = 5;
         if (false === $id) {
             

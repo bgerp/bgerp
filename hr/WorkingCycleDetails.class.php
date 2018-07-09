@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Работни цикли
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_WorkingCycleDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -113,7 +112,7 @@ class hr_WorkingCycleDetails extends core_Detail
         $data->query->orderBy('#day');
     }
     
-
+    
     /**
      * Подготвя масив с дните в даден интервал, като за всеки ден
      *
@@ -126,22 +125,22 @@ class hr_WorkingCycleDetails extends core_Detail
     {
         $query = self::getQuery();
         static $cycleDays = array();
-
+        
         if (!isset($cycleDays[$cycleId])) {
             while ($rec = $query->fetch("#cycleId = '{$cycleId}'")) {
                 $cycleDays[$cycleId][$rec->day] = (object) array(
-                                                    'start' => $rec->start,
-                                                    'duration' => $rec->duration,
-                                                    'break' => $rec->break,
-                                                    'type' => self::getWorkingShiftType($rec->start, $rec->duration),
-                                                 );
+                    'start' => $rec->start,
+                    'duration' => $rec->duration,
+                    'break' => $rec->break,
+                    'type' => self::getWorkingShiftType($rec->start, $rec->duration),
+                );
             }
         }
         
         $dayNo = dt::daysBetween($from, $startOn) + 1;
         $cycleDuration = hr_WorkingCycles::fetch($cycleId)->cycleDuration;
         $res = array();
-
+        
         while ($from <= $to) {
             $dayInd = $dayNo % $cycleDuration;
             $res[$from] = cal_Calendar::getDayStatus($from);
@@ -153,10 +152,10 @@ class hr_WorkingCycleDetails extends core_Detail
             $from = dt::addDays(1, $from);
             $dayNo++;
         }
- 
+        
         return $res;
     }
-
+    
     
     /**
      * @todo Чака за документация...
@@ -188,6 +187,7 @@ class hr_WorkingCycleDetails extends core_Detail
      * 2 - втори
      * 3 - нощен
      * 4 - дневен
+     *
      * @param datetime $start    - започването на режима в секунди
      * @param datetime $duration - продължителността на режима в секънди
      */
@@ -271,7 +271,7 @@ class hr_WorkingCycleDetails extends core_Detail
             }
         }
     }
-
+    
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
@@ -280,7 +280,7 @@ class hr_WorkingCycleDetails extends core_Detail
     {
         // Подготвяме пътя до файла с данните
         $file = 'hr/csv/WorkingCycles.csv';
-         
+        
         // Кои колонки ще вкарваме
         $fields = array(
             0 => 'csv_cycleId',
@@ -289,14 +289,14 @@ class hr_WorkingCycleDetails extends core_Detail
             3 => 'duration',
             4 => 'break',
         );
-
+        
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
-         
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
-    
+        
         return $res;
     }
     
@@ -312,9 +312,9 @@ class hr_WorkingCycleDetails extends core_Detail
         } else {
             $query = hr_WorkingCycles::getQuery();
             $query->where("#sysId = 'dayShift'");
-
+            
             $recSys = $query->fetch();
-         
+            
             $rec->cycleId = $recSys->id;
             $rec->createdBy = -1;
         }

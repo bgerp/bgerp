@@ -8,15 +8,15 @@
  *
  * @category  bgerp
  * @package   teracom
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class teracom_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -28,20 +28,20 @@ class teracom_Setup extends core_ProtoSetup
      */
     public $depends = '';
     
-      
+    
     /**
      * Описание на модула
      */
     public $info = 'Драйвери за контролери на Тераком ООД';
     
-            
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-                                 
+        
         // Добавяме наличните драйвери
         $drivers = array(
             'teracom_TCW181BCM',
@@ -53,7 +53,7 @@ class teracom_Setup extends core_ProtoSetup
         foreach ($drivers as $drvClass) {
             $html .= core_Classes::add($drvClass);
         }
-         
+        
         return $html;
     }
 }

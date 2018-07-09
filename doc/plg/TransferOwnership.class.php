@@ -1,26 +1,25 @@
 <?php
 
 
-
 /**
  * Клас 'doc_plg_TransferOwnership'
  *
  * Плъгин за за прехвурляне на собственоста на кориците, на които е отговорник
- * @system или @anonym на първия регистриран потребител
  *
+ * @system или @anonym на първия регистриран потребител
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class doc_plg_TransferOwnership extends core_Plugin
 {
-    
-    
     /**
      * След създаването на първия потребител
      */

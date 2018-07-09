@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'page_Print' - Шаблон за страница за печат
  *
  *
  * @category  ef
  * @package   page
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class page_Print extends page_Html
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -48,7 +47,7 @@ class page_Print extends page_Html
         
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
-    
+        
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=\"" . getBoot(true) . '/favicon.ico"' . ' type="image/x-icon">', 'HEAD');
         
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');

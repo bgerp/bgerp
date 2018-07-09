@@ -6,20 +6,19 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_LoginLog extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
     public $title = 'Логвания на потребителите';
-    
     
     
     public $canSingle = 'admin';
@@ -85,7 +84,6 @@ class core_LoginLog extends core_Manager
     public $canViewlog = 'powerUser';
     
     
-    
     public $listFields = 'userId, status, ip, brid, createdOn, createdBy';
     
     
@@ -128,7 +126,7 @@ class core_LoginLog extends core_Manager
      * Записва в лога опитите за логване
      *
      * @param string    $status
-     * @param integer   $userId
+     * @param int       $userId
      * @param timestamp $time
      */
     public static function add($status, $userId = null, $time = null)
@@ -154,9 +152,9 @@ class core_LoginLog extends core_Manager
     /**
      * Проверява дали отклонението на подадения таймстамп е в границите на допустимото
      *
-     * @param integer $timestamp
+     * @param int $timestamp
      *
-     * @return boolean
+     * @return bool
      */
     public static function isTimestampDeviationInNorm($timestamp)
     {
@@ -182,10 +180,10 @@ class core_LoginLog extends core_Manager
     /**
      * Проверява дали timestamp-а е използван от съответния потребител за успешен вход
      *
-     * @param integer $timestamp
-     * @param integer $userId
+     * @param int $timestamp
+     * @param int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public static function isTimestampUsed($timestamp, $userId = null)
     {
@@ -220,7 +218,7 @@ class core_LoginLog extends core_Manager
      *
      * @param IP $ip
      *
-     * @return boolean
+     * @return bool
      */
     public static function isLoggedBefore($ip = null)
     {
@@ -303,14 +301,14 @@ class core_LoginLog extends core_Manager
         return $userId;
     }
     
-        
+    
     /**
      * Проверява дали дадения потребители се логва за първи път от съответното IP и браузър
      *
-     * @param IP      $ip
-     * @param integer $userId
+     * @param IP  $ip
+     * @param int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public static function isFirstLogin($ip, $userId = null)
     {
@@ -353,10 +351,10 @@ class core_LoginLog extends core_Manager
      * Проверява дали потребителя се логва от достоверно IP/browser
      * Ако няма първо логване в определен период и има успешно логване, тогава е достоверно
      *
-     * @param IP      $ip
-     * @param integer $userId
+     * @param IP  $ip
+     * @param int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public static function isTrustedUserLogin($ip, $userId = null)
     {
@@ -406,8 +404,8 @@ class core_LoginLog extends core_Manager
      * Връща масив с логваниято от съответния потребител, след последното му логване
      * от съответното IP/brid
      *
-     * @param IP      $ip
-     * @param integer $userId
+     * @param IP  $ip
+     * @param int $userId
      *
      * @return array
      *               ['success']
@@ -488,9 +486,9 @@ class core_LoginLog extends core_Manager
     /**
      * Връща последните записи в лога за съответния потребител
      *
-     * @param integer $userId
-     * @param integer $limit
-     * @param array   $statusArr
+     * @param int   $userId
+     * @param int   $limit
+     * @param array $statusArr
      *
      * @return array
      */

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Sorting' - Сортиране на колоните в табличния изглед
  *
@@ -14,16 +13,16 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Sorting extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -42,7 +41,7 @@ class plg_Sorting extends core_Plugin
                 if (empty($caption)) {
                     continue;
                 }
-
+                
                 if ($mvc->fields[$f]) {
                     if ($mvc->fields[$f]->sortingLike) {
                         $dbField = $mvc->fields[$f]->sortingLike;
@@ -100,6 +99,7 @@ class plg_Sorting extends core_Plugin
             
             // Ако сме в режим принтиране не правим нищо
             if (Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'xhtml')) {
+                
                 return;
             }
             
@@ -109,7 +109,7 @@ class plg_Sorting extends core_Plugin
                 if (!$data->listFields[$field]) {
                     continue;
                 }
-
+                
                 switch ($direction) {
                     case 'none':
                         $img = 'img/icon_sort.gif';
@@ -146,7 +146,7 @@ class plg_Sorting extends core_Plugin
                         $currUrl['#'] = $mvc->Master->getHandle($data->masterId);
                     }
                 }
-                 
+                
                 if (isset($mvc->fields[$field]) && $mvc->fields[$field]->type->getTdClass() == 'rightCol') {
                     $lastF = ltrim($lastF, '|*');
                     $fArr[count($fArr) - 1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
@@ -160,7 +160,7 @@ class plg_Sorting extends core_Plugin
                     "' ><img  src=" . sbf($img) .
                     " width='16' height='16' alt='sort' class='sortBtn'></a></div>";
                 }
-               
+                
                 $data->listFields[$field] = implode('->', $fArr);
             }
         }

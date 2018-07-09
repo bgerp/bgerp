@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Модел за думи/шаблони, които ще се използват за правопис
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class spcheck_Dictionary extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -122,7 +121,7 @@ class spcheck_Dictionary extends core_Manager
      * @param string      $word
      * @param string|NULL $lg
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkWord($word, $lg = null)
     {
@@ -236,9 +235,9 @@ class spcheck_Dictionary extends core_Manager
     /**
      * Колбек функция, която ако е необходимо проверява и маркира стринга
      *
-     * @param string  $out
-     * @param integer $len
-     * @param string  $lastTag
+     * @param string $out
+     * @param int    $len
+     * @param string $lastTag
      */
     public static function getWord(&$out, $len, $lastTag)
     {
@@ -383,7 +382,7 @@ class spcheck_Dictionary extends core_Manager
         $data->listFilter->showFields = 'lg, search';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-
+        
         $data->listFilter->view = 'horizontal';
         
         $data->query->orderBy('cnt', 'DESC');
@@ -414,7 +413,7 @@ class spcheck_Dictionary extends core_Manager
             $data->query->where(array("#lg = '[#1#]'", $filterRec->lg));
         }
     }
-        
+    
     
     /**
      *

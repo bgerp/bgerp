@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'cat_products_Params' - продуктови параметри
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cat_products_Params extends doc_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -89,12 +88,12 @@ class cat_products_Params extends doc_Detail
      */
     public $fetchFieldsBeforeDelete = 'id, productId, paramId';
     
-
+    
     /**
      * Предлог в формата за добавяне/редактиране
      */
     public $formTitlePreposition = 'на';
-
+    
     
     /**
      * Описание на модела (таблицата)
@@ -117,7 +116,7 @@ class cat_products_Params extends doc_Detail
     public function getMasterMvc($rec)
     {
         $masterMvc = cls::get('cat_Products');
-            
+        
         return $masterMvc;
     }
     
@@ -191,7 +190,7 @@ class cat_products_Params extends doc_Detail
             }
         }
     }
-
+    
     
     /**
      * Изпълнява се след въвеждане на данните от Request
@@ -236,7 +235,7 @@ class cat_products_Params extends doc_Detail
         if (isset($rec->classId, $rec->productId)) {
             $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
         }
-    
+        
         if (isset($data->form->paramOptions) && count($data->form->paramOptions) <= 1) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
@@ -287,11 +286,12 @@ class cat_products_Params extends doc_Detail
     /**
      * Връща стойноста на даден параметър за даден продукт по негово sysId
      *
-     * @param  string  $classId   - ид на ембедъра
-     * @param  int     $productId - ид на продукт
-     * @param  int     $sysId     - sysId на параметъра
-     * @param  boolean $verbal    - вербално представяне
-     * @return string  $value - стойността на параметъра
+     * @param string $classId   - ид на ембедъра
+     * @param int    $productId - ид на продукт
+     * @param int    $sysId     - sysId на параметъра
+     * @param bool   $verbal    - вербално представяне
+     *
+     * @return string $value - стойността на параметъра
      */
     public static function fetchParamValue($classId, $productId, $sysId, $verbal = false)
     {
@@ -299,14 +299,14 @@ class cat_products_Params extends doc_Detail
         
         if (!empty($paramId)) {
             $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
-             
+            
             // Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
             $paramValue = ($paramValue) ? $paramValue : cat_Params::getDefault($paramId);
             if ($verbal === true) {
                 $ParamType = cat_Params::getTypeInstance($paramId, $classId, $productId, $paramValue);
                 $paramValue = $ParamType->toVerbal(trim($paramValue));
             }
-             
+            
             return $paramValue;
         }
     }
@@ -343,7 +343,7 @@ class cat_products_Params extends doc_Detail
         return $tpl;
     }
     
-
+    
     /**
      * Подготвя данните за екстеншъна с параметрите на продукта
      */
@@ -365,7 +365,7 @@ class cat_products_Params extends doc_Detail
         while ($rec = $query->fetch()) {
             $data->params[$rec->id] = static::recToVerbal($rec);
         }
-          
+        
         if (self::haveRightFor('add', (object) array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
             $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => true);
         }
@@ -393,14 +393,14 @@ class cat_products_Params extends doc_Detail
                 }
             }
         }
-       
+        
         if (isset($rec->productId, $rec->classId)) {
             if (isset($rec->classId)) {
                 $pRec = cls::get($rec->classId)->fetch($rec->productId);
                 
                 if ($action == 'add' && $rec->classId == cat_Products::getClassId()) {
                     if ($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
-                    
+                        
                         // Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
                         $requiredRoles = 'no_one';
                     }
@@ -409,7 +409,7 @@ class cat_products_Params extends doc_Detail
                 if ($pRec->state != 'active' && $pRec->state != 'draft' && $pRec->state != 'template') {
                     $requiredRoles = 'no_one';
                 }
-                 
+                
                 if (!cat_Products::haveRightFor('single', $rec->productId)) {
                     $requiredRoles = 'no_one';
                 }
@@ -434,7 +434,7 @@ class cat_products_Params extends doc_Detail
         if ($data->addUrl && !Mode::isReadOnly()) {
             $data->changeBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нов параметър');
         }
-
+        
         return self::renderDetail($data);
     }
     
@@ -485,8 +485,9 @@ class cat_products_Params extends doc_Detail
     /**
      * Синхронизира свойствата
      *
-     * @param  int  $paramId
-     * @param  int  $productId
+     * @param int $paramId
+     * @param int $productId
+     *
      * @return void
      */
     private function syncWithFeature($paramId, $productId)

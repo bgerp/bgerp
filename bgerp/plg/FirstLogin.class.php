@@ -1,20 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин за прихващане на първото логване на потребител в системата
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_FirstLogin extends core_Plugin
 {
-    
     /**
      * Прихващаме всяко логване в системата
      */
@@ -48,6 +48,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
     
     /**
      * Извиква се от core_CallOnTime
+     *
      * @see core_CallOnTime
      */
     public static function callback_retrieveCurrencyRates()
@@ -59,9 +60,10 @@ class bgerp_plg_FirstLogin extends core_Plugin
     
     /**
      * Извиква се от core_CallOnTime
+     *
      * @see core_CallOnTime
      *
-     * @param integer $userId
+     * @param int $userId
      */
     public static function callback_welcomeNote($userId)
     {

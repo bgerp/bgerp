@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Мениджира детайлите на стелажите (pallet_RackDetails)
  *
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pallet_RackDetails extends core_Detail
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -267,7 +266,8 @@ class pallet_RackDetails extends core_Detail
     /**
      * Зарежда всички детайли за даден стелаж
      *
-     * @param  int   $rackId
+     * @param int $rackId
+     *
      * @return array $detailsForRackArr
      */
     public static function getDetailsForRack($rackId)
@@ -394,9 +394,11 @@ class pallet_RackDetails extends core_Detail
     
     /**
      * Проверка дали тази позиция присъства в детайлите и дали е неизползваема
-     * @param  int     $rackId
-     * @param  string  $palletPlace
-     * @return boolean
+     *
+     * @param int    $rackId
+     * @param string $palletPlace
+     *
+     * @return bool
      */
     public static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace)
     {
@@ -410,16 +412,18 @@ class pallet_RackDetails extends core_Detail
             
             return false;
         }
-
+        
         return true;
     }
     
     
     /**
      * Проверка дали тази позиция присъства в детайлите и дали е резервирана
-     * @param  int     $rackId
-     * @param  string  $palletPlace
-     * @return boolean
+     *
+     * @param int    $rackId
+     * @param string $palletPlace
+     *
+     * @return bool
      */
     public static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace)
     {
@@ -433,7 +437,7 @@ class pallet_RackDetails extends core_Detail
             
             return false;
         }
-
+        
         return true;
     }
 }

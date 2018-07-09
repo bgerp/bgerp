@@ -1,29 +1,29 @@
 <?php
 
 
-
 /**
  * Клас 'core_Html' ['ht'] - Функции за генериране на html елементи
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Html
 {
-
     /**
      * Композира xHTML елемент
      */
     public static function createElement($name, $attributes = array(), $body = null, $closeTag = false)
     {
         $attrStr = '';
-
+        
         if ($attributes['title']) {
             $attributes['title'] = tr($attributes['title']);
         }
@@ -36,7 +36,7 @@ class core_Html
                 $attributes['alt'] = '';
             }
         }
-
+        
         if ($name) {
             if (is_array($attributes)) {
                 foreach ($attributes as $atr => $content) {
@@ -46,7 +46,7 @@ class core_Html
                         continue;
                     }
                     
-
+                    
                     if (is_string($content)) {
                         // $content = htmlspecialchars($content, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                         /**
@@ -60,7 +60,7 @@ class core_Html
                     $attrStr .= ' ' . $atr . '="' . $content . '"';
                 }
             }
-
+            
             if (($body === null || $body === false) && !$closeTag) {
                 $element = "<{$name}{$attrStr}>";
             } else {
@@ -73,11 +73,11 @@ class core_Html
             // Ако нямаме елемент, т.е. елемента е празен, връщаме само тялото
             $element = $body;
         }
-
+        
         return new core_ET('[#1#]', $element);
     }
-
-
+    
+    
     /**
      * Ескейпва съдържание на атрибут
      */
@@ -86,17 +86,18 @@ class core_Html
         //$content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
         $content = htmlspecialchars($attrContent, ENT_QUOTES, null);
         $content = str_replace(array("\n"), array('&#10;'), $content);
-
+        
         return $content;
     }
     
-
+    
     /**
      * Създаване на даталист с опции
      *
-     * @param  int     $id      - ид на даталиста
-     * @param  array   $options - опции на листа
-     * @param  array   $attr    - атрибути
+     * @param int   $id      - ид на даталиста
+     * @param array $options - опции на листа
+     * @param array $attr    - атрибути
+     *
      * @return core_ET $tpl  - шаблон на даталиста
      */
     public static function createDataList($id, $options = array(), $attr = array())
@@ -123,22 +124,21 @@ class core_Html
         $attr['name'] = $name;
         
         self::setUniqId($attr);
-
+        
         if (Mode::is('javascript', 'no')) {
             $listId = $attr['id'] . '_list';
-
+            
             $attr['list'] = $listId;
             $tpl = self::createElement('input', $attr);
             $tpl->append(self::createDataList($listId, $options));
         } else {
             $tpl = new ET();
-
+            
             // За съвместимост с IE
             $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
             $tpl->appendOnce("\n<!--[if IE 6]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
-
-
-     
+            
+            
             $attr['class'] .= ' combo';
             $attr['value'] = $value;
             $id = $attr['id'];
@@ -147,7 +147,7 @@ class core_Html
             list($l, $r) = explode('[', $id);
             $r = rtrim($r, ']');
             $selectId = $l . $suffix . $r;
-
+            
             if ($attr['ajaxAutoRefreshOptions']) {
                 $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
                 $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
@@ -157,18 +157,18 @@ class core_Html
                 $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
                 unset($attr['ajaxAutoRefreshOptions']);
             }
-
+            
             unset($attr['onblur']);
             $attr['type'] = 'text';
             $attr['autocomplete'] = 'off';
             $tpl->append(self::createElement('input', $attr));
             
             unset($attr['autocomplete'], $attr['type']);
-
+            
             $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
-
+            
             jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", true);
-
+            
             $attr['id'] = $selectId;
             
             $name = $attr['name'];
@@ -182,20 +182,20 @@ class core_Html
             if (!Mode::is('screenMode', 'narrow')) {
                 $attr['tabindex'] = '-1';
             }
-
+            
             unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
             
             if (!Mode::is('javascript', 'no')) {
                 $attr['style'] .= ';visibility: hidden;';
             }
-
+            
             $tpl->prepend(self::createSelect($name, $options, $value, $attr));
         }
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Прави групиране на опциите, като за групи използва предната част, преди разделителя
      */
@@ -216,17 +216,17 @@ class core_Html
                 } else {
                     $title = $opt;
                 }
-                     
+                
                 // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
                 list($group, $caption) = explode($div, $title);
-                    
+                
                 if (!$caption) {
                     $caption = $group;
                     $group = $defaultGroup;
                 } elseif (!$group) {
                     $group = $lastGroup;
                 }
-    
+                
                 $groups[$lastGroup = trim($group)][$index] = trim($caption);
             }
             
@@ -241,29 +241,29 @@ class core_Html
                     // Добавяме името като OPTGROUP
                     if ($group) {
                         $newOptions[$group] = (object) array(
-                                    'title' => $group,
-                                    'group' => true,
-                            );
+                            'title' => $group,
+                            'group' => true,
+                        );
                     }
                     asort($optArr);
                     $newOptions += $optArr;
                 }
-
+                
                 $options = $newOptions;
             }
         }
-
+        
         return $options;
     }
-
-
+    
+    
     /**
      * Създава SELECT елемент
      */
     public static function createSelect($name, $options, $selected = null, $selAttr = array())
     {
         $selAttr['name'] = $name;
-
+        
         foreach ($selAttr as $atr => $content) {
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
@@ -271,23 +271,23 @@ class core_Html
             if ($atr{0} == '#' || $atr == 'placeholder' || $atr == 'value') {
                 continue;
             }
-
+            
             if (is_string($content)) {
                 $content = self::escapeAttr($content);
             }
-
+            
             $attrStr .= ' ' . $atr . '="' . $content . '"';
         }
-
+        
         $select = new ET("<select{$attrStr}>[#OPTIONS#]</select>");
-
+        
         $select->append('', 'OPTIONS');
- 
+        
         if (is_array($options)) {
             foreach ($options as $id => $title) {
                 $attr = array();
                 $element = 'option';
-
+                
                 if (is_object($title)) {
                     if ($title->group) {
                         if ($openGroup) {
@@ -308,40 +308,40 @@ class core_Html
                         $title = $title->title;
                     }
                 }
- 
+                
                 if (!isset($attr['value'])) {
                     $attr['value'] = $id;
                 }
-
+                
                 if (($attr['value'] . '') == $selected) {
                     if ($selected != null || $attr['value'] === '' || $attr['value'] === null) {
                         $attr['selected'] = 'selected';
                     }
                 }
-
+                
                 // Хак за добавяне на плейс-холдер
                 if ($selAttr['placeholder'] &&
                     strlen($attr['value']) == 0 && !trim($title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
                 }
-
+                
                 $option = self::createElement($element, $attr, $title);
-
+                
                 $select->append("\n", 'OPTIONS');
                 $select->append($option, 'OPTIONS');
             }
-
+            
             if ($openGroup) {
                 // затваряме групата
                 $select->append('</optgroup>', 'OPTIONS');
             }
         }
-       
+        
         return $select;
     }
-
-
+    
+    
     /**
      * Преброява колко са действителните опции,
      * без да брои групите
@@ -349,7 +349,7 @@ class core_Html
     public static function countOptions($options)
     {
         $cnt = 0;
-
+        
         if (count($options)) {
             foreach ($options as $opt) {
                 if (!is_object($opt) || !$opt->group) {
@@ -357,11 +357,11 @@ class core_Html
                 }
             }
         }
-
+        
         return $cnt;
     }
-
-
+    
+    
     /**
      * Прави SELECT, radio или disabled INPUT в зависимост от броя на опциите
      *
@@ -389,7 +389,7 @@ class core_Html
                 if (is_object($opt) && $opt->group) {
                     continue;
                 }
-
+                
                 if (is_object($opt)) {
                     if ($opt instanceof core_ET) {
                         $value = $opt->getContent();
@@ -409,13 +409,13 @@ class core_Html
                         $attr['style'] .= ($attr['style']? ';' : '') . $opt->attr['style'];
                     }
                 }
-
+                
                 break;
             }
             
             $attr['readonly'] = 'readonly';
             $attr['class'] = 'readonly';
-
+            
             if (empty($value)) {
                 if ($attr['placeholder']) {
                     $value = $attr['placeholder'];
@@ -426,18 +426,19 @@ class core_Html
             }
             
             $input = self::createElement('select', $attr, "<option>${value}</option>", true);
-
+            
             $input->append(self::createElement('input', array(
-                        'type' => 'hidden',
-                        'name' => $name,
-                        'value' => $id
-                    )));
+                'type' => 'hidden',
+                'name' => $name,
+                'value' => $id
+            )));
         } elseif ($optionsCnt <= $maxRadio) {
             if ($optionsCnt < 4) {
                 $keyListClass .= 'shrinked';
             }
+            
             // Когато броя на опциите са по-малко
-
+            
             // Определяме броя на колоните, ако не са зададени.
             if (count($options) != $optionsCnt) {
                 $col = 1;
@@ -448,84 +449,84 @@ class core_Html
                     round(sqrt(max(0, $optionsCnt + 1)))
                 );
             }
-
+            
             if ($col > 1) {
                 $tpl = "<table class='keylist {$keyListClass}'><tr>";
-
+                
                 for ($i = 1; $i <= $col; $i++) {
                     $tpl .= "<td style='vertical-align: top;'>[#OPT" . ($i - 1) . '#]</td>';
                 }
-
+                
                 $tpl = new ET($tpl . '</tr></table>');
             } else {
                 $tpl = new ET('[#OPT0#]');
                 $tpl->append('', 'OPT0');
             }
-
+            
             $i = 0;
             
             foreach ($options as $id => $opt) {
                 $input = new ET();
-
+                
                 if (is_object($opt) && $opt->group) {
                     $input->append(self::createElement('div', $opt->attr, $opt->title));
-
+                    
                     $indent = '&nbsp;&nbsp;&nbsp;';
                 } else {
                     $title = is_object($opt) ? (($opt instanceof core_ET) ? type_Varchar::escape($opt->getContent()) : $opt->title) : $opt;
                     $attrLabel = is_object($opt) ? $opt->attr : array();
                     $radioAttr = array('type' => 'radio', 'name' => $name, 'value' => $id);
-
+                    
                     self::setUniqId($radioAttr);
-
+                    
                     if ($value == $id) {
                         $radioAttr['checked'] = 'checked';
                     } else {
                         unset($radioAttr['checked']);
                     }
-
+                    
                     $radioAttr['class'] .= ' radiobutton';
-
+                    
                     $input->append($indent);
-
+                    
                     $input->append(self::createElement('input', $radioAttr));
-
+                    
                     $attrLabel['for'] = $radioAttr['id'];
-
+                    
                     $input->append(self::createElement('label', $attrLabel, $title));
-
+                    
                     $input->append('<br>');
                 }
-
+                
                 $tpl->append($input, 'OPT' . ($i % $col));
-
+                
                 $i++;
             }
             
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
             $attr['style'] .= 'width:100%';
-
+            
             $input = self::createElement('div', $attr, $tpl);
         } else {
             $input = self::createSelect($name, $options, $value, $attr);
         }
-
+        
         return $input;
     }
-
-
+    
+    
     /**
      * Създава скрити полета
      */
     public static function createHidden($variables)
     {
         $hiddens = arr::make($variables);
-
+        
         $tpl = new ET();
-
+        
         if (is_array($hiddens) && count($hiddens)) {
             Request::doProtect($hiddens);
-
+            
             foreach ($hiddens as $name => $value) {
                 if (is_array($value)) {
                     foreach ($value as $key => $v) {
@@ -537,11 +538,11 @@ class core_Html
                 self::addHiden($tpl, $name, $value);
             }
         }
-
+        
         return $tpl;
     }
     
-
+    
     /**
      * Добавя hidden input към шаблона
      */
@@ -553,37 +554,38 @@ class core_Html
         $attr['type'] = 'hidden';
         $tpl->append(self::createElement('input', $attr));
     }
-
-
+    
+    
     /**
      * Създава текстов INPUT
      */
     public static function createTextInput($name, $value = null, $attr = array())
     {
         $attr = arr::make($attr);
-
+        
         if ($name) {
             $attr['name'] = $name;
         }
-
+        
         if (isset($value)) {
             $attr['value'] = $value;
         }
-
+        
         $input = self::createElement('input', $attr);
-
+        
         return $input;
     }
-
+    
     
     private static function addAccessKey(&$attr, $title)
     {
         if (Mode::is('screenMode', 'narrow')) {
+            
             return;
         }
         
         static $accessKeys;
-
+        
         if ($accessKeys === null) {
             $accessKeys = array();
             $defLines = explode("\n", bgerp_Setup::get('ACCESS_KEYS'));
@@ -602,11 +604,11 @@ class core_Html
                 }
             }
         }
-
-
+        
+        
         if ($c = $accessKeys[mb_strtolower($title)]) {
             $attr['accesskey'] = $c;
-
+            
             if (substr(log_Browsers::getUserAgentOsName(), 0, 3) == 'Mac') {
                 $hint = '[Control][Alt]+' . $c;
             } elseif (log_Browsers::getUserAgentBrowserName() == 'Firefox') {
@@ -614,12 +616,12 @@ class core_Html
             } else {
                 $hint = '[Alt]+' . $c;
             }
-
+            
             $attr['title'] .= ($attr['title'] ? '|* ' : '') . $hint;
         }
     }
-
-   
+    
+    
     /**
      * Създава бутон, който при натискане предизвиква съобщение за грешка
      */
@@ -631,7 +633,7 @@ class core_Html
         
         // Url-то се заменя с такова водещо към грешка
         $url = core_Message::getErrorUrl($error, 'page_Error');
-
+        
         return self::createBtn($title, $url, null, null, $attr);
     }
     
@@ -646,7 +648,7 @@ class core_Html
         $title = tr($title);
         
         self::addAccessKey($attr, $title);
-
+        
         // Ако URL-то е празно - забраняваме бутона
         if ((is_array($url) && count($url) == 0) || !$url) {
             $attr['disabled'] = 'disabled';
@@ -659,7 +661,7 @@ class core_Html
                 $url['Cf'] = core_Request::getSessHash($content);
             }
         }
-
+        
         // Правим URL-to
         try {
             $url = toUrl($url);
@@ -667,10 +669,10 @@ class core_Html
             $url = null;
             $attr['style'] .= ' border:dotted 1px red;';
         }
-
+        
         // Подготвяме атрибутите
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
-
+        
         // Оцветяваме бутона в зависимост от особеностите му
         if (!$attr['disabled']) {
             if ($attr['error']) {
@@ -683,24 +685,24 @@ class core_Html
         } else {
             $attr['style'] .= 'color:#888;';
         }
-
+        
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow')) {
             $attr = self::addBackgroundIcon($attr);
         } else {
             unset($attr['ef_icon']);
         }
- 
+        
         // Ако нямаме JavaScript правим хипервръзка
         if (Mode::is('javascript', 'no')) {
             $attr['href'] = $url;
-
+            
             if ($newWindow) {
                 $attr['target'] = $newWindow;
             }
-
+            
             $attr['rel'] = 'nofollow';
-
+            
             return self::createElement('a', $attr, "${title}");
         }
         
@@ -721,15 +723,14 @@ class core_Html
             $attr['onclick'] = " alert('{$attr['error']}'); return false; ";
             unset($attr['error']);
         }
-
+        
         $attr['type'] = 'button';
         $attr['value'] = $title;
         
-
         return self::createElement('input', $attr);
     }
-
-
+    
+    
     /**
      * Създава submit бутон
      */
@@ -738,28 +739,28 @@ class core_Html
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
         
         $title = tr($title);
-
+        
         self::addAccessKey($attr, $title);
-
+        
         $attr['name'] .= "Cmd[{$cmd}]";
-
+        
         if (is_string($newWindow) && ($newWindow != '_blank')) {
             $attr['onclick'] .= "  this.form.target = '{$newWindow}';";
         } elseif ($newWindow) {
             $attr['onclick'] .= "  this.form.target = '_blank';";
         }
-
+        
         $attr['type'] = 'submit';
-
+        
         $attr['value'] = $title;
-
+        
         // Оцветяваме бутона в зависимост от особеностите му
         if (isset($warning)) {
             $attr['style'] .= 'color:#772200;';
         } elseif ($newWindow) {
             $attr['style'] .= 'color:#008800;';
         }
-
+        
         if ($attr['class']) {
             $attr['class'] .= ' button';
         } else {
@@ -772,36 +773,36 @@ class core_Html
         } else {
             unset($attr['ef_icon']);
         }
-
+        
         $btn = self::createElement('input', $attr);
-
+        
         $btn->appendOnce(
             '<input type="hidden" name="Cmd[default]" value=1>',
             'FORM_HIDDEN'
         );
-
+        
         return $btn;
     }
-
-
+    
+    
     /**
      * Създава бутон, който стартира javascript функция
      */
     public static function createFnBtn($title, $function, $warning = null, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
-
+        
         $attr['onclick'] .= $function;
-
+        
         $attr['type'] = 'button';
-
+        
         $attr['value'] = tr($title);
-
+        
         // Оцветяваме бутона в зависимост от особеностите му
         if ($warning) {
             $attr['style'] .= 'color:#772200;';
         }
-
+        
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
         
         // Добавяме икона на бутона, ако има
@@ -810,13 +811,13 @@ class core_Html
         } else {
             unset($attr['ef_icon']);
         }
-
+        
         $btn = self::createElement('input', $attr);
-
+        
         return $btn;
     }
-
-
+    
+    
     /**
      * Създава хипервръзка
      *
@@ -838,7 +839,7 @@ class core_Html
                 $url['Cf'] = core_Request::getSessHash($content);
             }
         }
-
+        
         if (is_array($url)) {
             if (count($url)) {
                 try {
@@ -860,15 +861,15 @@ class core_Html
                 $attr['href'] = $url;
             }
         }
-
+        
         if ($icon = $attr['ef_icon']) {
             if ((Mode::is('text', 'xhtml') || Mode::is('printing'))) {
                 $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
                 $srcset = '';
-
+                
                 if (log_Browsers::isRetina()) {
                     $icon2 = str_replace('/16/', '/32/', $icon);
-
+                    
                     if (getFullPath($icon2)) {
                         $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
                     }
@@ -876,12 +877,12 @@ class core_Html
                 $icon = "<img src='${iconSrc}' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
                 $title = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
-
-
+                
+                
                 // Добавяме икона на бутона, ако има
                 $attr = self::addBackgroundIcon($attr);
             }
-
+            
             unset($attr['ef_icon']);
         }
         
@@ -903,10 +904,10 @@ class core_Html
         }
         
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, true);
-
+        
         return $tpl;
     }
-
+    
     
     /**
      * Създава хипервръзка със стрелка в скоби след подаден $title
@@ -919,12 +920,12 @@ class core_Html
             $title = "{$icon} {$title}";
             unset($attr['ef_icon']);
         }
-
+        
         if ($url !== false && (is_string($url) || (is_array($url) && count($url)))) {
             $arrowImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
             $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
         }
-
+        
         return "{$title}&nbsp;{$link}";
     }
     
@@ -954,7 +955,7 @@ class core_Html
             $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . 'button';
             $attr['id'] = $name;
             $selectMenu = self::createSelect($name, $options, $selected, $attr);
-
+            
             if ($button) {
                 $selectMenu->append('<input type="button" ' .
                     "onclick=\"sm = document.getElementById('{$name}');" .
@@ -962,11 +963,11 @@ class core_Html
                     "class=\"button\">\n");
             }
         }
-
+        
         return $selectMenu;
     }
-
-
+    
+    
     /**
      * Връща <img ..> таг с подадените атрибути
      */
@@ -986,48 +987,49 @@ class core_Html
             }
             $attr['src'] = $src;
         }
-
+        
         if (!isset($attr['alt'])) {
             $attr['alt'] = '';
         }
-
+        
         $res = self::createElement('img', $attr);
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Създава лейаут, по зададени блокове, като плейсхолдери
      */
     public static function createLayout($blocks)
     {
         preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $blocks, $matches);
-
+        
         $blocksArr = $matches[1];
-
+        
         foreach ($blocksArr as $b) {
             $from = "[#{$b}#]";
             $to = "<!--ET_BEGIN {$b}--><div class='{$b}'>[#{$b}#]</div><!--ET_END {$b}-->";
             $blocks = str_replace($from, $to, $blocks);
         }
-
+        
         $layout = new ET($blocks);
-
+        
         return $layout;
     }
-
+    
     
     /**
      * Създава хинт с иконка към елемент
      *
-     * @param  mixed                       $body        - тяло
-     * @param  title                       $hint        - текст на хинта
-     * @param  notice|warning|error|string $icon        - име на иконката
-     * @param  boolean                     $appendToEnd - дали хинта да се добави в края на стринга
-     * @param  array                       $iconAttr    - атрибути на иконката
-     * @param  array                       $elementArr  - атрибути на елемента
-     * @return core_ET                     $elementTpl  - шаблон с хинта
+     * @param mixed                       $body        - тяло
+     * @param title                       $hint        - текст на хинта
+     * @param notice|warning|error|string $icon        - име на иконката
+     * @param bool                        $appendToEnd - дали хинта да се добави в края на стринга
+     * @param array                       $iconAttr    - атрибути на иконката
+     * @param array                       $elementArr  - атрибути на елемента
+     *
+     * @return core_ET $elementTpl  - шаблон с хинта
      */
     public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
     {
@@ -1041,7 +1043,7 @@ class core_Html
         }
         
         $hint = strip_tags(tr($hint));
- 
+        
         $iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/16/dialog_warning.png' : (($icon == 'error') ? 'img/16/dialog_error.png' : $icon));
         expect(is_string($iconPath), $iconPath);
         
@@ -1057,11 +1059,11 @@ class core_Html
         $elementTpl = new core_ET($element);
         
         // Ако има атрибути за целия елемент, задават се в span
-        $elementArr = arr::make($elementArr, TRUE);
-		if (count($elementArr)){
-        	$span = ht::createElement("span", $elementArr);
-        	$elementTpl->prepend($span);
-        	$elementTpl->append("</span>");
+        $elementArr = arr::make($elementArr, true);
+        if (count($elementArr)) {
+            $span = ht::createElement('span', $elementArr);
+            $elementTpl->prepend($span);
+            $elementTpl->append('</span>');
         }
         
         $hint = str_replace("'", '"', $hint);
@@ -1089,7 +1091,7 @@ class core_Html
                     '    .dump .private {color:#330066}' .
                     '    .dump .undefined {color:#cc0000}' .
                     '    .dump .unknown {color:#c96}' ;
-
+        
         $scripts = "\$('document').ready(function() {\$('.trigger').click(function(event){\n" .
                     "var obj = \$(this).parent().children('ul')[0];\n" .
                     "var sp  = \$(this);\n" .
@@ -1102,7 +1104,7 @@ class core_Html
                     "}\n" .
                     "event.stopPropagation();});\n" .
                     "});\n";
-
+        
         if (!$wholeDocument) {
             $tpl = new ET($html);
             $tpl->appendOnce($styles, 'STYLES');
@@ -1126,22 +1128,22 @@ class core_Html
                     "</body>\n" .
                     "</html>\n";
         }
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
     public static function mixedToHtml($o, $hideLevel = 3, $maxLevel = 5, $prefix = '')
     {
         static $i = 0;
-
+        
         $i++;
-    
+        
         $r = gettype($o);
-
+        
         if ($i > $maxLevel) {
             $i--;
             
@@ -1154,22 +1156,22 @@ class core_Html
             } else {
                 $res = '...';
             }
-
+            
             return $res;
         }
-
+        
         $scopeArr = array();
-
+        
         if (is_object($o)) {
             $res = array();
-
+            
             $class = $r = get_class($o);
             
             // По-подразбиране променливите имат публична видимост
             $scope = '';
-
+            
             $res = get_object_vars($o);
-
+            
             if (strtolower($class) != 'stdclass') {
                 $scope = 'undefined';
                 do {
@@ -1182,7 +1184,7 @@ class core_Html
                     ) as $prop) {
                         $prop->setAccessible(true);
                         $name = $prop->getName();
-
+                        
                         if (!$scopeArr[$name]) {
                             $res[$name] = $prop->getValue($o);
                             if ($prop->isStatic()) {
@@ -1200,7 +1202,7 @@ class core_Html
                     }
                 } while ($class = get_parent_class($class));
             }
-
+            
             if (count($res)) {
                 foreach ($res as $name => $vR) {
                     if (!isset($scopeArr[$name])) {
@@ -1208,23 +1210,23 @@ class core_Html
                     }
                 }
             }
-
+            
             $o = $res;
         }
-
+        
         if (is_array($o)) {
             if ($i >= $hideLevel + 1) {
                 $html = "\n(${r})\n<ul class='hidden' style='display:none;'>";
             } else {
                 $html = "\n(${r})\n<ul>";
             }
-
+            
             if ($i >= $hideLevel && $i < $maxLevel) {
                 $style = 'border-bottom:dotted 1px #bbb;';
             } else {
                 $style = '';
             }
-
+            
             if (count($o)) {
                 foreach ($o as $name => $value) {
                     $attr = array('class' => '', 'title' => '', 'style' => '');
@@ -1233,7 +1235,7 @@ class core_Html
                         $attr['class'] = $scopeArr[$name];
                         $attr['title'] = $scopeArr[$name];
                     }
-
+                    
                     if ($name === 'dbPass') {
                         $html .= "\n    <li>" . self::createElement('span', $attr, "${name} : ******")  . '</li>';
                     } else {
@@ -1245,7 +1247,7 @@ class core_Html
                             if ($i < $maxLevel) {
                                 $attr['class'] .= ' trigger';
                             }
-
+                            
                             $html .= "\n    <li>" . self::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . ' : ' .
                                 self::mixedToHtml($value, $hideLevel, $maxLevel) . '</li>';
                         }
@@ -1262,29 +1264,29 @@ class core_Html
         }
         $i--;
         
-
+        
         if ($i == 0) {
             $html = "<div class='dump'>{$prefix}{$html}</div>";
         }
-
+        
         return $html;
     }
-
-
+    
+    
     /**
      * Прави dump на масив в html представяне
      */
     public static function arrayToHtml($arr, $openLevels = 3, $viewLevels = 5)
     {
         $result = '';
-
+        
         foreach ($arr as $id => $item) {
             if ($result) {
                 $result .= "<div style='margin-top:5px;padding-top:5px;border-top:dotted 1px #999;'>";
             } else {
                 $result .= "<div style='margin-top:5px;'>";
             }
-
+            
             if ($id && !is_int($id)) {
                 $prefix = "{$id}: ";
             } else {
@@ -1293,11 +1295,11 @@ class core_Html
             $result .= self::mixedToHtml($item, $openLevels, $viewLevels, $prefix);
             $result .= '</div>';
         }
-
+        
         return $result;
     }
-
-
+    
+    
     /**
      * Задава уникално значение на атрибута $attr['id'] (в текущия хит)
      */
@@ -1311,25 +1313,25 @@ class core_Html
             $attr['id'] = $name . rand(1000, 9999) . '_' .$id;
         }
     }
-
-
+    
+    
     /**
      * Извлича текста от посочения HTML
      */
     public static function extractText($html)
     {
         $search = array('@<script[^>]*?>.*?</script>@si',  // Strip out javascript
-                        '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
-                        '@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly
-                        '@<![\s\S]*?--[ \t\n\r]*>@',         // Strip multi-line comments including CDATA
-                        '@[\s]+@'
-                   );
+            '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
+            '@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly
+            '@<![\s\S]*?--[ \t\n\r]*>@',         // Strip multi-line comments including CDATA
+            '@[\s]+@'
+        );
         $text = trim(preg_replace($search, ' ', $html));
         
         return $text;
     }
-
-
+    
+    
     /**
      * Добавя икона като бекграунд в атрибутите
      */
@@ -1339,17 +1341,17 @@ class core_Html
             $icon = $attr['ef_icon'];
             unset($attr['ef_icon']);
         }
-
+        
         if (!empty($icon) && getFullPath($icon)) {
             $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
             
             $attr['style'] = self::getIconStyle($icon, $attr['style']);
         }
-
+        
         return $attr;
     }
-
-
+    
+    
     /**
      * Връща стил с включен бекграунд за икона
      */
@@ -1358,19 +1360,19 @@ class core_Html
         if (!empty($icon)) {
             if (log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $icon);
-               
+                
                 if (getFullPath($icon2)) {
                     $icon = $icon2;
                 }
             }
-
+            
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
-
+            
             $style = rtrim($style, ' ;');
-
+            
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";
         }
-
+        
         return $style;
     }
     
@@ -1385,21 +1387,22 @@ class core_Html
         if ($attr['title'] && $trTitle) {
             $attr['title'] = tr($attr['title']);
         }
-
+        
         // Вкарваме предупреждението
         if ($warning) {
             $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) {event.stopPropagation(); return false; }";
         }
-
+        
         return $attr;
     }
-
+    
     
     /**
      * Обграждане на стринга, ако подадения стринг е отрицателно число
      *
-     * @param  mixed          $verbal
-     * @param  string|double  $notVerbal
+     * @param mixed        $verbal
+     * @param string|float $notVerbal
+     *
      * @return string|core_ET $verbal
      */
     public static function styleIfNegative($verbal, $notVerbal)
@@ -1423,9 +1426,10 @@ class core_Html
      * 		ако е положително не го променя
      * 		ако е 0, го засивява
      *
-     * @param  mixed  $verbal
-     * @param  double $notVerbal
-     * @return mixed  $verbal
+     * @param mixed $verbal
+     * @param float $notVerbal
+     *
+     * @return mixed $verbal
      */
     public static function styleNumber($verbal, $notVerbal)
     {

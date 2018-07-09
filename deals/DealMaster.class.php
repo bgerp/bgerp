@@ -1,33 +1,32 @@
 <?php
 
 
-
 /**
  * Абстрактен клас за наследяване от класове сделки
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_DealMaster extends deals_DealBase
 {
-    
-    
     /**
      * Масив с вербалните имена при избора на контиращи операции за покупки/продажби
      */
     private static $contoMap = array(
-            'sales' => array('pay' => 'Прието плащане в брой в каса ',
-                                'ship' => 'Експедиране на продукти от склад ',
-                                'service' => 'Изпълнение на услуги'),
-    
-            'purchase' => array('pay' => 'Направено плащане в брой от каса ',
-                                'ship' => 'Вкарване на продукти в склад ',
-                                'service' => 'Приемане на услуги')
+        'sales' => array('pay' => 'Прието плащане в брой в каса ',
+            'ship' => 'Експедиране на продукти от склад ',
+            'service' => 'Изпълнение на услуги'),
+        
+        'purchase' => array('pay' => 'Направено плащане в брой от каса ',
+            'ship' => 'Вкарване на продукти в склад ',
+            'service' => 'Приемане на услуги')
     );
     
     
@@ -108,10 +107,10 @@ abstract class deals_DealMaster extends deals_DealBase
             $res = array_filter($invoices, function (&$e) use ($today, &$sum) {
                 if ($e['dueDate'] >= $today && $e['total'] > 0) {
                     $sum += $e['total'];
-
+                    
                     return true;
                 }
-
+                
                 return false;
             });
             
@@ -228,7 +227,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         
         $mvc->FLD(
-        
+            
             'state',
                 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка,stopped=Спряно)',
                 'caption=Статус, input=none'
@@ -239,8 +238,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $mvc->setDbIndex('valior');
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -290,7 +289,8 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -301,9 +301,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = '{$id}'");
         $recs = $query->fetchAll();
-    
+        
         deals_Helper::fillRecs($this, $recs, $rec);
-    
+        
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amountDeal = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
         $amountDeal -= $this->_total->discount;
@@ -316,20 +316,20 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return $this->save($rec);
     }
-
-
+    
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = true)
     {
         $mvc = cls::get(get_called_class());
-
+        
         $rec = static::fetchRec($rec);
-    
+        
         $abbr = $mvc->abbr;
         $abbr{0} = strtoupper($abbr{0});
-
+        
         if (isset($rec->contragentClassId, $rec->contragentId)) {
             $crm = cls::get($rec->contragentClassId);
             $cRec = $crm->getContragentData($rec->contragentId);
@@ -342,7 +342,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($escaped) {
             $contragent = type_Varchar::escape($contragent);
         }
-
+        
         $title = "{$abbr}{$rec->id}/{$contragent}";
         
         // Показване и на артикула с най-голяма стойност в продажбата
@@ -367,6 +367,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if (!$form->isSubmitted()) {
+            
             return;
         }
         $rec = &$form->rec;
@@ -421,7 +422,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
     }
-
+    
     
     /**
      * Филтър на продажбите
@@ -526,7 +527,7 @@ abstract class deals_DealMaster extends deals_DealBase
         while ($rec = $closedQuery->fetch()) {
             $res += keylist::toArray($rec->closedDocuments);
         }
-
+        
         return $res;
     }
     
@@ -557,12 +558,13 @@ abstract class deals_DealMaster extends deals_DealBase
      * Може ли документа да се добави в посочената папка?
      *
      * @param $folderId int ид на папката
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
+        
         return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
@@ -570,8 +572,9 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Връща подзаглавието на документа във вида "Дост: ХХХ(ууу), Плат ХХХ(ууу), Факт: ХХХ(ууу)", Реф: ХХХ"
      *
-     * @param  stdClass $rec - запис от модела
-     * @return string   $subTitle - подзаглавието
+     * @param stdClass $rec - запис от модела
+     *
+     * @return string $subTitle - подзаглавието
      */
     private function getSubTitle($rec)
     {
@@ -582,7 +585,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!empty($rec->amountPaid)) {
             $subTitle .= ', ' . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
         }
-    
+        
         if ($rec->makeInvoice != 'no' && !empty($rec->amountInvoiced)) {
             $subTitle .= ', ' . tr('Факт:') . " {$row->amountInvoiced} ({$row->amountToInvoice})";
         }
@@ -593,6 +596,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     /**
      * @param int $id key(mvc=sales_Sales)
+     *
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
@@ -616,10 +620,11 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Връща масив от използваните нестандартни артикули в сделката
      *
-     * @param  int   $id - ид на сделката
+     * @param int $id - ид на сделката
+     *
      * @return param $res - масив с използваните документи
-     *                  ['class'] - Инстанция на документа
-     *                  ['id'] - Ид на документа
+     *               ['class'] - Инстанция на документа
+     *               ['id'] - Ид на документа
      */
     public function getUsedDocs_($id)
     {
@@ -644,7 +649,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (count($data->rows)) {
             foreach ($data->rows as $i => $row) {
                 $rec = $data->recs[$i];
- 
+                
                 // Търговец (чрез инициатор)
                 if (!empty($rec->initiatorId)) {
                     $row->dealerId .= ' <small><span class="quiet">чрез</span> ' . $row->initiatorId . '</small>';
@@ -670,7 +675,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $rec->sharedUsers = keylist::merge($rec->sharedUsers, $storeRec->chiefs);
             }
         }
-            
+        
         // Ако има каса се нотифицира касиера
         if (isset($rec->caseId)) {
             $caseRec = cash_Cases::fetch($rec->caseId);
@@ -712,9 +717,11 @@ abstract class deals_DealMaster extends deals_DealBase
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
@@ -731,9 +738,10 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Помощна ф-я показваща дали в сделката има поне един складируем/нескладируем артикул
      *
-     * @param  int     $id       - ид на сделка
-     * @param  boolean $storable - дали се търсят складируеми или нескладируеми артикули
-     * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
+     * @param int  $id       - ид на сделка
+     * @param bool $storable - дали се търсят складируеми или нескладируеми артикули
+     *
+     * @return bool TRUE/FALSE - дали има поне един складируем/нескладируем артикул
      */
     public function hasStorableProducts($id, $storable = true)
     {
@@ -764,7 +772,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return false;
     }
-     
+    
     
     /**
      * Перо в номенклатурите, съответстващо на този продукт
@@ -775,32 +783,33 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $result = null;
         $self = cls::get(get_called_class());
-     
+        
         if ($rec = $self->fetch($objectId)) {
             $contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, false);
             $result = (object) array(
-                     'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                     'title' => $self::getRecTitle($objectId),
-                     'features' => array('Контрагент' => $contragentName)
-             );
-             
+                'num' => $objectId . ' ' . mb_strtolower($self->abbr),
+                'title' => $self::getRecTitle($objectId),
+                'features' => array('Контрагент' => $contragentName)
+            );
+            
             if ($rec->dealerId) {
                 $caption = $self->getField('dealerId')->caption;
                 list(, $featName) = explode('->', $caption);
                 $result->features[$featName] = $self->getVerbal($rec, 'dealerId');
             }
-             
+            
             if ($rec->deliveryLocationId) {
                 $result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId, false);
             }
         }
-     
+        
         return $result;
     }
-     
-     
+    
+    
     /**
      * @see acc_RegisterIntf::itemInUse()
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -815,8 +824,8 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         return true;
     }
-
-
+    
+    
     /**
      * Функция, която прихваща след активирането на документа
      */
@@ -847,19 +856,19 @@ abstract class deals_DealMaster extends deals_DealBase
                     $save = true;
                 }
             }
-        
+            
             if (!isset($dRec->tolerance)) {
                 if ($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)) {
                     $dRec->tolerance = $tolerance;
                     $save = true;
                 }
             }
-        
+            
             if ($save === true) {
                 $saveRecs[] = $dRec;
             }
         }
-         
+        
         // Ако има детайли за обновяване
         if (count($saveRecs)) {
             $Detail->saveArray($saveRecs, 'id,tolerance,term');
@@ -922,7 +931,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
-       
+        
         if ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
@@ -1011,7 +1020,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->caseId = cash_Cases::getHyperlink($rec->caseId);
                 }
             }
-
+            
             core_Lg::push($rec->tplLang);
             $deliveryAdress = '';
             if (!empty($rec->deliveryAdress)) {
@@ -1075,7 +1084,8 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Най-големия срок на доставка
      *
-     * @param  int      $id
+     * @param int $id
+     *
      * @return int|NULL
      */
     public function getMaxDeliveryTime($id)
@@ -1091,7 +1101,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $term = $rec->term;
             if (!isset($term)) {
                 $term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
-            
+                
                 $cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
                 if (isset($cRec->deliveryTime)) {
                     $term = $cRec->deliveryTime + $term;
@@ -1117,6 +1127,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $oldPaid = $rec->amountPaid;
         $oldDelivered = $rec->amountDelivered;
+        
         // Преизчисляваме общо платената и общо експедираната сума
         $rec->amountPaid = $aggregateDealInfo->get('amountPaid');
         $rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
@@ -1149,7 +1160,7 @@ abstract class deals_DealMaster extends deals_DealBase
         deals_OpenDeals::saveRec($rec, $mvc);
     }
     
-   
+    
     /**
      * Ако с тази сделка е приключена друга сделка
      */
@@ -1167,7 +1178,7 @@ abstract class deals_DealMaster extends deals_DealBase
             
             // За всяка от тях, включително и този документ
             foreach ($closedDeals as $doc) {
-    
+                
                 // Взимаме договорените продукти от сделката начало на нейната нишка
                 $firstDoc = doc_Threads::getFirstDocument($doc->threadId);
                 $dealInfo = $firstDoc->getAggregateDealInfo();
@@ -1180,7 +1191,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-
+        
         // Изтриваме досегашните детайли на сделката
         $Detail = $mvc->mainDetail;
         $Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
@@ -1203,7 +1214,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->save($rec, 'closedDocuments');
     }
     
-
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -1231,60 +1242,62 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
     {
         $rec = &$data->rec;
-         
+        
         // Ако има опции за избор на контирането, подмяна на бутона за контиране
         if (isset($data->toolbar->buttons['btnConto'])) {
             $options = $mvc->getContoOptions($rec->id);
             if (count($options)) {
                 $data->toolbar->removeBtn('btnConto');
-    
+                
                 // Проверка на счетоводния период, ако има грешка я показваме
                 if (!acc_plg_Contable::checkPeriod($rec->valior, $error)) {
                     $error = ",error={$error}";
                 }
-                 
+                
                 $data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
             }
         }
     }
-
-
+    
+    
     /**
      * Какви операции ще се изпълнят с контирането на документа
-     * @param  int   $id - ид на документа
+     *
+     * @param int $id - ид на документа
+     *
      * @return array $options - опции
      */
     public static function on_AfterGetContoOptions($mvc, &$res, $id)
     {
         $options = array();
         $rec = $mvc->fetchRec($id);
-         
+        
         // Заглавие за опциите, взависимост дали е покупка или сделка
         $opt = ($mvc instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
-         
+        
         // Имали складируеми продукти
         $hasStorable = $mvc->hasStorableProducts($rec->id);
-         
+        
         // Ако има продукти за експедиране
         if ($hasStorable) {
-    
+            
             // ... и има избран склад, и потребителя може да се логне в него
             if (isset($rec->shipmentStoreId) && store_Stores::haveRightFor('select', $rec->shipmentStoreId)) {
-           
+                
                 // Ако има очаквано авансово плащане, не може да се експедира на момента
                 if (cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
                     $hasDp = true;
                 }
-           
+                
                 if (empty($hasDp)) {
-    
+                    
                     // .. продуктите може да бъдат експедирани
                     $storeName = store_Stores::getTitleById($rec->shipmentStoreId);
                     $options['ship'] = "{$opt['ship']}\"{$storeName}\"";
                 }
             }
         } else {
-    
+            
             // ако има услуги те могат да бъдат изпълнени
             if ($mvc->hasStorableProducts($rec->id, false)) {
                 $options['ship'] = $opt['service'];
@@ -1293,12 +1306,12 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // ако има каса, метода за плащане е COD и текущия потрбител може да се логне в касата
         if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)) {
-    
+            
             // Може да се плати с продуктите
             $caseName = cash_Cases::getTitleById($rec->caseId);
             $options['pay'] = "{$opt['pay']} \"${caseName}\"";
         }
-         
+        
         $res = $options;
     }
     
@@ -1361,33 +1374,33 @@ abstract class deals_DealMaster extends deals_DealBase
                 $form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
             }
         }
-
+        
         $form->setDefault('action', implode(',', $selected));
         $form->input();
         $this->invoke('AfterInputSelectActionForm', array(&$form, $rec));
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
-        	
-        	// обновяване на записа с избраните операции
+            
+            // обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;
             $rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
             $this->save($rec);
-             
+            
             // Ако се експедира и има склад, форсира се логване
             if ($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId) {
                 store_Stores::selectCurrent($rec->shipmentStoreId);
             }
-             
+            
             // Ако има сметка и се експедира, форсира се логване
             if ($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId) {
                 cash_Cases::selectCurrent($rec->caseId);
             }
-             
+            
             // Контиране на документа
             $this->conto($id);
-             
+            
             $this->logWrite('Активиране/Контиране на сделка', $id);
             
             // Редирект
@@ -1396,7 +1409,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $form->toolbar->addSbBtn('Активиране/Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
         $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png');
-         
+        
         // Рендиране на формата
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
@@ -1417,11 +1430,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $ClosedDeals = cls::get($closeDocName);
         $conf = core_Packs::getConfig('acc');
         $tolerance = $conf->ACC_MONEY_TOLERANCE;
-         
+        
         // Текущата дата
         $now = dt::mysql2timestamp(dt::now());
         $oldBefore = dt::timestamp2mysql($now - $olderThan);
-         
+        
         // Намират се контиращите класове
         $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
         $contoClasses = array_keys($contoClasses);
@@ -1452,19 +1465,19 @@ abstract class deals_DealMaster extends deals_DealBase
         // Само активни продажби
         $query->where("#state = 'active'");
         $query->where('#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL');
-         
+        
         // Пропускат се и тези по които има още да се експедира
         $query->where('#minDelivered <= #deliveredRound');
         
         // На които треда им не е променян от определено време
         $query->where("#threadModifiedOn <= '{$oldBefore}'");
-         
+        
         // Крайното салдо по сметката на сделката трябва да е в допустимия толеранс
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
-         
+        
         // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
         $query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
-         
+        
         // Или не трябва да се фактурират
         $query->orWhere("#makeInvoice = 'no'");
         
@@ -1474,7 +1487,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Всяка намерената сделка, се приключва като платена
         while ($rec = $query->fetch()) {
             try {
-                 
+                
                 // Създаване на приключващ документ-чернова
                 $clId = $ClosedDeals->create($className, $rec);
                 $ClosedDeals->conto($clId);
@@ -1484,7 +1497,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
     }
     
-
+    
     /**
      * Проверява дали сделките са с просрочено плащане
      */
@@ -1493,7 +1506,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $Class = cls::get(get_called_class());
         $now = dt::now();
         expect(cls::haveInterface('bgerp_DealAggregatorIntf', $Class));
-         
+        
         // Проверяват се всички активирани и продажби с чакащо плащане или просрочените
         $query = $Class->getQuery();
         $query->where("#state = 'active'");
@@ -1523,7 +1536,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
     }
     
-
+    
     /*
      * API за генериране на сделка
      */
@@ -1561,7 +1574,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $contragentClass = cls::get($contragentClass);
         expect($cRec = $contragentClass->fetch($contragentId));
         expect($cRec->state != 'rejected');
-         
+        
         // Намираме всички полета, които не са скрити или не се инпутват, те са ни позволените полета
         $me = cls::get(get_called_class());
         $fields = arr::make($fields);
@@ -1576,7 +1589,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 expect(array_key_exists($fld, $allowedFields), $fld);
             }
         }
-         
+        
         // Ако има склад, съществува ли?
         if (isset($fields['shipmentStoreId'])) {
             expect(store_Stores::fetch($fields['shipmentStoreId']));
@@ -1609,14 +1622,14 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ако не е подадена дата, това е сегашната
         $fields['valior'] = (empty($fields['valior'])) ? dt::today() : $fields['valior'];
-         
+        
         // Записваме данните на контрагента
         $fields['contragentClassId'] = $contragentClass->getClassId();
         $fields['contragentId'] = $contragentId;
-         
+        
         // Ако няма валута, това е основната за периода
         $fields['currencyId'] = (empty($fields['currencyId'])) ? acc_Periods::getBaseCurrencyCode($fields['valior']) : $fields['currencyId'];
-         
+        
         // Ако няма курс, това е този за основната валута
         
         if (empty($fields['currencyRate'])) {
@@ -1627,7 +1640,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ако няма платежен план, това е плащане в брой
         $paymentSysId = (get_called_class() == 'sales_Sales') ? 'paymentMethodSale' : 'paymentMethodPurchase';
         $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
-         
+        
         $termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
         $fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
         
@@ -1635,7 +1648,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (empty($fields['chargeVat'])) {
             $fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
         }
-         
+        
         // Ако не е подадено да се начислявали ддс, определяме от контрагента
         if (empty($fields['makeInvoice'])) {
             $fields['makeInvoice'] = 'yes';
@@ -1648,29 +1661,30 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = (object) $fields;
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
-    
+            
             return $id;
         }
-         
+        
         return false;
     }
-
+    
     
     /**
      * Добавя нов ред в главния детайл на чернова сделка.
      * Ако има вече такъв артикул добавен към сделката, наслагва к-то, цената и отстъпката
      * на новия запис към съществуващия (цените и отстъпките стават по средно притеглени)
      *
-     * @param  int    $id           - ид на сделка
-     * @param  int    $productId    - ид на артикул
-     * @param  double $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
-     * @param  double $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
-     * @param  int    $packagingId  - ид на опаковка (не е задължителна)
-     * @param  double $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
-     * @param  double $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
-     * @param  string $term         - срок (не е задължителен)
-     * @param  text   $notes        - забележки
-     * @return mixed  $id/FALSE     - ид на запис или FALSE
+     * @param int    $id           - ид на сделка
+     * @param int    $productId    - ид на артикул
+     * @param float  $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
+     * @param float  $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
+     * @param int    $packagingId  - ид на опаковка (не е задължителна)
+     * @param float  $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
+     * @param string $term         - срок (не е задължителен)
+     * @param text   $notes        - забележки
+     *
+     * @return mixed $id/FALSE     - ид на запис или FALSE
      */
     public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null)
     {
@@ -1726,15 +1740,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Подготвяме детайла
         $dRec = (object) array($Detail->masterKey => $id,
-                              'productId' => $productId,
-                              'packagingId' => $packagingId,
-                              'quantity' => $quantityInPack * $packQuantity,
-                              'discount' => $discount,
-                              'tolerance' => $tolerance,
-                              'term' => $term,
-                              'price' => $price,
-                              'quantityInPack' => $quantityInPack,
-                              'notes' => $notes,
+            'productId' => $productId,
+            'packagingId' => $packagingId,
+            'quantity' => $quantityInPack * $packQuantity,
+            'discount' => $discount,
+            'tolerance' => $tolerance,
+            'term' => $term,
+            'price' => $price,
+            'quantityInPack' => $quantityInPack,
+            'notes' => $notes,
         );
         
         // Проверяваме дали въвдения детайл е уникален
@@ -1883,15 +1897,16 @@ abstract class deals_DealMaster extends deals_DealBase
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
-     * @param  mixed               $id     - ид или запис на документа
-     * @param  deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
-     * @return array               $details - масив с артикули готови за запис
-     *                                    o productId      - ид на артикул
-     *                                    o packagingId    - ид на опаковка/основна мярка
-     *                                    o quantity       - количество опаковка
-     *                                    o quantityInPack - количество в опаковката
-     *                                    o discount       - отстъпка
-     *                                    o price          - цена за единица от основната мярка
+     * @param mixed               $id     - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     *
+     * @return array $details - масив с артикули готови за запис
+     *               o productId      - ид на артикул
+     *               o packagingId    - ид на опаковка/основна мярка
+     *               o quantity       - количество опаковка
+     *               o quantityInPack - количество в опаковката
+     *               o discount       - отстъпка
+     *               o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {
@@ -1993,7 +2008,8 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Информация за логистичните данни
      *
-     * @param  mixed $rec - ид или запис на документ
+     * @param mixed $rec - ид или запис на документ
+     *
      * @return array $data - логистичните данни
      *
      *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
@@ -2081,7 +2097,8 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Връща ид-то на артикула с най-голяма стойност в сделката
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return int|NULL $productName
      */
     public function findProductIdWithBiggestAmount($rec)
@@ -2097,7 +2114,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if ($productId = $arr[0]->productId) {
             $productName = cat_Products::getTitleById($productId);
-
+            
             return $productName;
         }
     }
@@ -2124,7 +2141,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getIcon($id)
     {
         $closedDocuments = $this->fetchField($id, 'closedDocuments');
-    
+        
         return (empty($closedDocuments)) ? $this->singleIcon : $this->singleIconFocCombinedDeals;
     }
 }

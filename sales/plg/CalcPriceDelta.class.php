@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Плъгин за кеширане на делтата при продажба при контиране на документ
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      https://github.com/bgerp/ef/issues/6
  */
 class sales_plg_CalcPriceDelta extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -54,6 +53,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             $threadId = (isset($rec->threadId)) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
             $firstDoc = doc_Threads::getFirstDocument($threadId);
             if (!$firstDoc->isInstanceOf('sales_Sales')) {
+                
                 return;
             }
         }
@@ -98,13 +98,13 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             
             // Изчисляване на цената по политика
             $r = (object) array('valior' => $valior,
-                               'detailClassId' => $detailClassId,
-                               'detailRecId' => $dRec->id,
-                               'containerId' => $rec->containerId,
-                               'quantity' => $dRec->{$mvc->detailQuantityFld},
-                               'productId' => $dRec->{$mvc->detailProductFld},
-                               'sellCost' => $sellCost,
-                               'primeCost' => $primeCost);
+                'detailClassId' => $detailClassId,
+                'detailRecId' => $dRec->id,
+                'containerId' => $rec->containerId,
+                'quantity' => $dRec->{$mvc->detailQuantityFld},
+                'productId' => $dRec->{$mvc->detailProductFld},
+                'sellCost' => $sellCost,
+                'primeCost' => $primeCost);
             
             $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
             

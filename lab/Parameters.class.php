@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър за параметрите в лабораторията
  *
  *
  * @category  bgerp
  * @package   lab
+ *
  * @author    Milen Georgiev <milen@download.bg>
  *            Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class lab_Parameters extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -60,8 +59,8 @@ class lab_Parameters extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'lab,ceo';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -86,7 +85,7 @@ class lab_Parameters extends core_Master
      */
     public $singleTitle = 'Параметър';
     
-         
+    
     /**
      * Икона по подразбиране за единичния обект
      */
@@ -146,7 +145,7 @@ class lab_Parameters extends core_Master
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, $file, array('name', 'type', 'dimension', 'precision', 'description'));
-            
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }

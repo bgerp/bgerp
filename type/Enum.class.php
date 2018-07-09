@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'type_Enum' - Тип за изброими стойности
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Enum extends core_Type
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -30,6 +29,7 @@ class type_Enum extends core_Type
     public function toVerbal($value)
     {
         if (!isset($value)) {
+            
             return;
         }
         
@@ -42,13 +42,13 @@ class type_Enum extends core_Type
         if (($div = $this->params['groupByDiv'])) {
             $options = ht::groupOptions($this->options, $div);
         }
-
+        
         if (is_object($options[$value])) {
             $res = tr($options[$value]->title);
         } else {
             $res = tr($options[$value]);
         }
-
+        
         return $res;
     }
     
@@ -65,6 +65,7 @@ class type_Enum extends core_Type
         }
         
         if ($value === '') {
+            
             return;
         }
         
@@ -82,7 +83,7 @@ class type_Enum extends core_Type
             if (count($this->options) == 2) {
                 if ($this->options['off'] == 'off' && $this->options['off'] == 'off') {
                     $tpl = "<input type='checkbox' name='{$name}'  class='checkbox'" . ($value == 'on'? ' checked ' : '') . '>';
-
+                    
                     return $tpl;
                 }
             }
@@ -90,9 +91,9 @@ class type_Enum extends core_Type
             if ($div = $this->params['groupByDiv']) {
                 $options = ht::groupOptions($this->options, $div);
             }
-
+            
             $arr = array();
-
+            
             foreach ($options as $id => $title) {
                 if (is_object($title)) {
                     $arr[$id] = $title;
@@ -111,22 +112,22 @@ class type_Enum extends core_Type
         }
         
         parent::setFieldWidth($attr, null, $arr);
- 
+        
         $tpl = ht::createSmartSelect(
- 
+            
             $arr,
- 
+            
             $name,
- 
+            
             $value,
- 
+            
             $attr,
             $this->params['maxRadio'],
             $this->params['maxColumns'],
             $this->params['columns']
- 
+        
         );
-
+        
         return $tpl;
     }
     

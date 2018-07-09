@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_SharablePlg extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела - добавя поле за споделените потребители.
      *
@@ -29,7 +29,7 @@ class doc_SharablePlg extends core_Plugin
         if (!$mvc->getField('sharedUsers', false)) {
             $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
         }
-
+        
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('priority', false)) {
             $columns = (Mode::is('screenMode', 'narrow')) ? 2 : 4;
@@ -42,7 +42,7 @@ class doc_SharablePlg extends core_Plugin
             "caption=Споделяне->Приоритет,maxRadio=4,columns={$columns},notNull,value=normal,autohide,changable"
             );
         }
-
+        
         // Поле за първите виждания на документа от потребителите с които той е споделен
         if (!$mvc->getField('sharedViews', false)) {
             // Стойността на полето е сериализиран масив с ключ - потребител и стойност - дата
@@ -126,7 +126,7 @@ class doc_SharablePlg extends core_Plugin
         if (!Mode::is('text', 'xhtml')) {
             $data->rec->sharedUsers = $mvc->getShared($data->rec->id);
             $history = static::prepareHistory($data->rec);
-                    
+            
             // показваме (ако има) с кого е споделен файла
             if (!empty($history)) {
                 $tpl->replace(static::renderSharedHistory($history), 'shareLog');
@@ -192,10 +192,11 @@ class doc_SharablePlg extends core_Plugin
     /**
      * Помощен метод: подготовка на информацията за споделяне на документ
      *
-     * @param  stdClass $rec обект-контейнер
-     * @return array    масив с ключове - потребителите, с които е споделен документа и стойност
-     *                      датата, на която съотв. потребител е видял документа за пръв път (или
-     *                      NULL, ако не го е виждал никога)
+     * @param stdClass $rec обект-контейнер
+     *
+     * @return array масив с ключове - потребителите, с които е споделен документа и стойност
+     *               датата, на която съотв. потребител е видял документа за пръв път (или
+     *               NULL, ако не го е виждал никога)
      */
     protected static function prepareHistory($rec)
     {
@@ -213,7 +214,8 @@ class doc_SharablePlg extends core_Plugin
     /**
      * Помощен метод: рендира историята на споделянията и вижданията
      *
-     * @param  array  $sharedWith масив с ключ ИД на потребител и стойност - дата
+     * @param array $sharedWith масив с ключ ИД на потребител и стойност - дата
+     *
      * @return string
      */
     public static function renderSharedHistory($sharedWith)
@@ -229,7 +231,7 @@ class doc_SharablePlg extends core_Plugin
                 $seenDate = mb_strtolower(core_DateTime::mysql2verbal($seenDate, 'smartTime'));
                 $seenDate = " ({$seenDate})";
             }
-
+            
             $html[] = "<span style='color:black;'>" . $nick . "</span>{$seenDate}";
         }
         
@@ -254,7 +256,6 @@ class doc_SharablePlg extends core_Plugin
     }
     
     
-    
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
@@ -268,24 +269,24 @@ class doc_SharablePlg extends core_Plugin
         
         // изчисляваме колко са потребителите със съответните роли
         $roles = $data->form->getField('sharedUsers')->type->params['roles'];
-
+        
         $roles = core_Roles::getRolesAsKeylist($roles);
-
+        
         $roles = keylist::toArray($roles);
         
         $allUsers = core_Users::getRolesWithUsers();
         $users = array();
-
+        
         foreach ($roles as $rId) {
             if (is_array($allUsers[$rId])) {
                 $users += $allUsers[$rId];
             }
         }
-   
+        
         if (count($users) > core_Setup::get('AUTOHIDE_SHARED_USERS')) {
             $data->form->setField('sharedUsers', 'autohide');
         }
-
+        
         if (isset($mvc->shareUserRoles)) {
             $sharedRoles = arr::make($mvc->shareUserRoles, true);
             $sharedRoles = implode(',', $sharedRoles);
@@ -327,7 +328,7 @@ class doc_SharablePlg extends core_Plugin
             
             // Вземаме, ако има приоритета от документа
             $priority = ($mRec && $mRec->priority) ? $mRec->priority : 'normal';
-
+            
             doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени', true, $priority);
             
             break;

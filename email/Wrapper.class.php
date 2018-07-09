@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имейли - опаковка
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на опаковката
      */
@@ -46,7 +45,7 @@ class email_Wrapper extends plg_ProtoWrapper
         $this->TAB('email_SpamRules', 'Рутиране->СПАМ правила', 'admin, email');
         $this->TAB('email_Salutations', 'Обръщения', 'debug');
         $this->TAB('email_ThreadHandles', 'Манипулатори', 'debug');
-
+        
         $this->title = 'Имейли';
     }
 }

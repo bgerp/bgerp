@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Помощен детайл подготвящ и обединяващ заедно търговските
  * детайли на фирмите и лицата
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class crm_CommerceDetails extends core_Manager
 {
-    
-    
     /**
      * Подготвя ценовата информация за артикула
      */
@@ -25,8 +24,9 @@ class crm_CommerceDetails extends core_Manager
         if (haveRole('sales,purchase,ceo')) {
             $data->TabCaption = 'Търговия';
         }
-
+        
         if ($data->isCurrent === false) {
+            
             return;
         }
         
@@ -55,6 +55,7 @@ class crm_CommerceDetails extends core_Manager
     public function renderCommerceDetails($data)
     {
         if ($data->prepareTab === false || $data->renderTab === false) {
+            
             return;
         }
         

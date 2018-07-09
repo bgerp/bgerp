@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас  'type_Emails' - Тип за много имейли
  *
@@ -10,16 +9,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Emails extends type_Varchar
 {
-    
-        
     /**
      * Шаблон за разделяне на имейлите
      */
@@ -53,7 +52,7 @@ class type_Emails extends type_Varchar
      */
     const ALL = 0;
     
-
+    
     /**
      * Инициализиране на типа
      * Задава, че в базата имейлите ще са case-insensitive
@@ -123,15 +122,16 @@ class type_Emails extends type_Varchar
         $value = trim($value);
         
         $value = type_Email::replaceEscaped($value);
-
+        
         if (empty($value)) {
+            
             return;
         }
-  
+        
         return $value;
     }
-
-
+    
+    
     /**
      * Проверява зададената стойност дали е допустима за този тип.
      */
@@ -139,6 +139,7 @@ class type_Emails extends type_Varchar
     {
         //Ако няма въведено нищо връщаме резултата
         if (!trim($value)) {
+            
             return;
         }
         
@@ -150,7 +151,7 @@ class type_Emails extends type_Varchar
             
             return $res;
         }
-
+        
         //
         if (count($invalidEmails = self::getInvalidEmails($value))) {
             $res['error'] = parent::escape('Стойността не е валиден имейл|*: ' . implode(', ', $invalidEmails));
@@ -173,14 +174,15 @@ class type_Emails extends type_Varchar
         
         //ако е празен, връщаме NULL
         if (empty($str)) {
+            
             return;
         }
         
         //Вземаме всички имейли
         $emails = self::toArray($str, self::ALL);
-                
+        
         $links = array();
-
+        
         //Инстанция към type_Email
         $typeEmail = cls::get('type_Email', array('params' => $this->params));
         
@@ -197,12 +199,13 @@ class type_Emails extends type_Varchar
     /**
      * Преобразува стринг, съдържащ имейли към масив от имейли.
      *
-     * @param  string $str
-     * @param  int    $only - кои "имейли" да върне:
-     *                      o ALL     - всички;
-     *                      o VALID   - само валидните;
-     *                      o INVALID - само невалидните
-     * @return array  масив от валидни имейли
+     * @param string $str
+     * @param int    $only - кои "имейли" да върне:
+     *                     o ALL     - всички;
+     *                     o VALID   - само валидните;
+     *                     o INVALID - само невалидните
+     *
+     * @return array масив от валидни имейли
      */
     public static function toArray($str, $only = self::VALID)
     {
@@ -218,7 +221,7 @@ class type_Emails extends type_Varchar
             
             $emailsArr = array_values($emailsArr);
         }
-                
+        
         return $emailsArr;
     }
     
@@ -248,8 +251,9 @@ class type_Emails extends type_Varchar
     /**
      * Добавя нов имейл в края на списък с имейли. Ако новия е в списъка - не го дублира.
      *
-     * @param  string $str
-     * @param  string $email
+     * @param string $str
+     * @param string $email
+     *
      * @return string
      */
     public static function append($str, $email)
@@ -266,8 +270,9 @@ class type_Emails extends type_Varchar
     /**
      * Добавя нов имейл към началото списък с имейли. Ако новия е в списъка - не го дублира.
      *
-     * @param  string $str
-     * @param  string $email
+     * @param string $str
+     * @param string $email
+     *
      * @return string
      */
     public static function prepend($str, $email)

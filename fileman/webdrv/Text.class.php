@@ -6,29 +6,32 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Text extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'text';
-
-
+    
+    
     /**
      * Стартира извличането на информациите за файла
      *
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::startProcessing
      */
     public static function startProcessing($fRec)
@@ -46,6 +49,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -60,9 +64,9 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
             // Таб за текстовата част
             $tabsArr['text'] = (object)
             array(
-                    'title' => 'Текст',
-                    'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-                    'order' => 4,
+                'title' => 'Текст',
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'order' => 4,
             );
         }
         

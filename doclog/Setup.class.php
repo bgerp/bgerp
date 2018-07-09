@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   log
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doclog_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -40,14 +40,13 @@ class doclog_Setup extends core_ProtoSetup
     public $info = 'Хронология на действията с документите';
     
     
-    
     public $managers = array(
-            'doclog_Documents',
-            'doclog_Files',
-            'doclog_Used',
-            'migrate::moveUsed'
-        );
-
+        'doclog_Documents',
+        'doclog_Files',
+        'doclog_Used',
+        'migrate::moveUsed'
+    );
+    
     
     /**
      * Миграция за преместване на използваният на документите в отделен модел

@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Generic extends core_Manager
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
      */
@@ -59,6 +59,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // URL за показване на информация за файла
         $infoUrl = toUrl(array('fileman_webdrv_Generic', 'Info', $fRec->fileHnd), true);
+        
         // Таб за информация
         $tabsArr['info'] = (object)
             array(
@@ -69,7 +70,7 @@ class fileman_webdrv_Generic extends core_Manager
             );
         
         $tabsArr['__defaultTab'] = static::$defaultTab;
-            
+        
         return $tabsArr;
     }
     
@@ -93,7 +94,7 @@ class fileman_webdrv_Generic extends core_Manager
      * @param string $type
      * @param string $strip
      *
-     * @return boolean
+     * @return bool
      */
     public static function canShowTab($fileHnd, $type, $strip = true, $checkExist = false)
     {
@@ -121,7 +122,7 @@ class fileman_webdrv_Generic extends core_Manager
         return true;
     }
     
-        
+    
     /**
      * Връща името на файла за грешките
      *
@@ -193,7 +194,7 @@ class fileman_webdrv_Generic extends core_Manager
             // Връщаме съобщението за грешка
             return tr($content->errorProc);
         }
-
+        
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
         
@@ -235,7 +236,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вземаме масива с изображенията
         $jpgArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'jpg');
-
+        
         // Ако няма такъв запис
         if ($jpgArr === false) {
             
@@ -254,7 +255,7 @@ class fileman_webdrv_Generic extends core_Manager
             // Връщаме съобщението за грешка
             return tr($jpgArr->errorProc);
         }
-
+        
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Empty');
         
@@ -262,18 +263,18 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Вземаме височината и широчината
             $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
-
+            
             // Атрибути на thumbnail изображението
             $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
-
+            
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
             
             // Създаваме шаблон за preview на изображението
             $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 8px 0 4px; height: 598px; display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
-
+            
             $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
-
+            
             foreach ($jpgArr as $key => $jpgFh) {
                 if ($key === 'otherPagesCnt') {
                     $str = '<div style="margin: 5px 0 0 5px; background: #fff; display: inline-block; padding: 2px; color: #444;">' . tr('Още страници') . ': ' . $jpgFh . '</div>';
@@ -281,36 +282,37 @@ class fileman_webdrv_Generic extends core_Manager
                     $preview->append($str, 'THUMB_IMAGE');
                 } else {
                     $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
-
+                    
                     // Вземаме файла
                     $thumbnailImg = $imgInst->createImg($attr);
                     
                     if ($thumbnailImg) {
-
+                        
                         // Ако е зададено да се увеличава превюто, добавяме линк който показва по-голямото изображение
                         $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
                         if ($multiplier > 1) {
                             $bigImg = new thumb_Img(array($jpgFh, $multiplier * $thumbWidthAndHeightArr['width'], $multiplier * $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview X ' . $multiplier));
-
+                            
                             $aAttr = array();
+                            
                             // Вземаме URL към sbf директорията
                             $aAttr['href'] = $bigImg->getUrl();
-
+                            
                             $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
                         }
-
+                        
                         // Добавяме към preview' то генерираното изображение
                         $preview->append($thumbnailImg, 'THUMB_IMAGE');
                     }
                 }
             }
-
+            
             if ($multiplier > 1) {
                 $jqRun = "$('img.webdrv-preview').on('click', function(e){changeZoomImage(e.target)})";
             }
-
+            
             jquery_Jquery::run($preview, $jqRun);
-
+            
             return $preview;
         }
     }
@@ -335,7 +337,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вземаме баркодовете
         $barcodes = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
-
+        
         // Ако нама такъв запис
         if ($barcodes === false) {
             
@@ -550,7 +552,7 @@ class fileman_webdrv_Generic extends core_Manager
             // Връщаме съобщението за грешка
             return tr($content->errorProc);
         }
-
+        
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_Html');
         
@@ -564,7 +566,7 @@ class fileman_webdrv_Generic extends core_Manager
      *
      * @param string|stdClass $res
      *
-     * @return string|boolean
+     * @return string|bool
      */
     public static function prepareLockId($res)
     {
@@ -635,7 +637,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Обновяваме данните за запис във fileman_Indexes
         $savedId = fileman_Indexes::saveContent($params);
-
+        
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
@@ -646,8 +648,8 @@ class fileman_webdrv_Generic extends core_Manager
     /**
      * Намира баркодовете във подадените файлове
      *
-     * @param mixed   $fh         - Манипулатор на файла или масив от манипулатори на файла
-     * @param integer $fileInfoId - id' то на записа от fileman_Indexes, в който ще запишем получената информация
+     * @param mixed $fh         - Манипулатор на файла или масив от манипулатори на файла
+     * @param int   $fileInfoId - id' то на записа от fileman_Indexes, в който ще запишем получената информация
      *
      * @access protected
      */
@@ -679,7 +681,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Определяме баркодовете във файла
             $barcodes = zbar_Reader::getBarcodesFromFile($fh);
-
+            
             // Ако няма открит баркод прескачаме
             if (!count($barcodes)) {
                 continue;
@@ -737,13 +739,13 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
             
             return ;
         }
-
+        
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, false)) {
             
@@ -758,7 +760,7 @@ class fileman_webdrv_Generic extends core_Manager
      *
      * @param fconv_Script $script - Обект с нужните данни
      *
-     * @return boolean - Дали е изпълнен успешно
+     * @return bool - Дали е изпълнен успешно
      */
     public static function aftergetMetaData($script)
     {
@@ -776,15 +778,15 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вземаме съдъжанието на файла, който е генериран след обработката към .txt формат
         $params['content'] = file_get_contents($script->outFilePath);
-
+        
         // Обновяваме данните за запис във fileman_Indexes
         $saveId = fileman_Indexes::saveContent($params);
-
+        
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
         if ($saveId) {
-
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
             return true;
@@ -817,7 +819,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             return ;
         }
-
+        
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, false)) {
             
@@ -848,7 +850,7 @@ class fileman_webdrv_Generic extends core_Manager
      *
      * @param fconv_Script $script - Обект с нужните данни
      *
-     * @return boolean - Дали е изпълнен успешно
+     * @return bool - Дали е изпълнен успешно
      */
     public static function afterGetBarcodes($script)
     {
@@ -896,7 +898,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Иконата на файла
             $sbfIcon = sbf('/img/16/back16.png', '');
-
+            
             // Добавяме към стринга линк с икона
             $dirsAndFilesStr = "<span class='linkWithIcon' style='background-image:url(${sbfIcon});'>{$link}</span>";
         }
@@ -941,7 +943,7 @@ class fileman_webdrv_Generic extends core_Manager
         if ($filesStr) {
             ($dirsAndFilesStr) ? ($dirsAndFilesStr .= "\n" . $filesStr) : ($dirsAndFilesStr .= $filesStr);
         }
-
+        
         // Затваряме връзката
         $zip->close();
         
@@ -983,7 +985,7 @@ class fileman_webdrv_Generic extends core_Manager
         // Редиреткваме към single'а на качения файл
         return new Redirect(array('fileman_Files', 'single', $fileHnd, '#' => 'fileDetail'));
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -1009,7 +1011,7 @@ class fileman_webdrv_Generic extends core_Manager
      * Качва подадение файл от архива
      *
      * @param fileman_Files $fRec  - Записа за файла
-     * @param integer       $index - Индекса на файла, който ще се качва
+     * @param int           $index - Индекса на файла, който ще се качва
      */
     public static function uploadFileFromArchive($fRec, $index)
     {
@@ -1043,7 +1045,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Очакваме да няма грешка при добавянето
         expect($fh, 'Възникна грешка при обработката на файла');
-
+        
         return $fh;
     }
     
@@ -1078,7 +1080,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Ако е зададен пътя, определяме дълбочината
         if ($path) {
-
+            
             // Намираме дълбочината на директорията
             $pathArr = explode('/', $path);
             $depth = count($pathArr);
@@ -1092,7 +1094,7 @@ class fileman_webdrv_Generic extends core_Manager
                 
                 // Дали да прескочи
                 $continue = false;
-
+                
                 // Ако пътя до файла е различен от директорията
                 if ($file[$i] != $pathArr[$i]) {
                     
@@ -1134,7 +1136,6 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function getFileSizesInArchive($zipContentArr)
     {
-        
         // Масив с размерите на файловете
         $sizesArr = array();
         
@@ -1234,7 +1235,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         return $text;
     }
-
+    
     
     /**
      * Връща линка към предишната директория
@@ -1248,6 +1249,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Ако няма път, връщаме
         if (!$url['path']) {
+            
             return;
         }
         
@@ -1306,7 +1308,7 @@ class fileman_webdrv_Generic extends core_Manager
             // Вземаме инстанцията от предишното генера
             $zip = self::$archiveInst[$fRec->fileHnd];
         }
-    
+        
         return $zip;
     }
     
@@ -1517,7 +1519,7 @@ class fileman_webdrv_Generic extends core_Manager
             if (($len == FILEMAN_HANDLER_LEN) && (strpos($str, '/') === false)) {
                 $fileType = 'handler';
                 $fRec = fileman_Files::fetchByFh($str);
-        
+                
                 expect($fRec);
             } elseif ($len > 512) {
                 $fileType = 'string';

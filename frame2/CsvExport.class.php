@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Експортиране на справките като csv
  *
  * @category  bgerp
  * @package   frame2
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class frame2_CsvExport extends core_Mvc
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -31,10 +30,10 @@ class frame2_CsvExport extends core_Mvc
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
-     * @return boolean
+     * @return bool
      */
     public function canUseExport($clsId, $objId)
     {
@@ -51,8 +50,8 @@ class frame2_CsvExport extends core_Mvc
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
      * @return string
      */
@@ -65,9 +64,9 @@ class frame2_CsvExport extends core_Mvc
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param core_Form        $form
-     * @param integer          $clsId
-     * @param integer|stdClass $objId
+     * @param core_Form    $form
+     * @param int          $clsId
+     * @param int|stdClass $objId
      *
      * @return string|NULL
      */
@@ -85,14 +84,14 @@ class frame2_CsvExport extends core_Mvc
                 $frameRec = $versionRec;
             }
         }
-         
+        
         // Подготовка на данните
         $csvRecs = $fields = array();
         if ($Driver = $Frame->getDriver($frameRec)) {
             $csvRecs = $Driver->getExportRecs($frameRec, $this);
             $fields = $Driver->getCsvExportFieldset($frameRec);
         }
-         
+        
         // Ако има данни за експорт
         if (count($csvRecs)) {
             
@@ -108,7 +107,7 @@ class frame2_CsvExport extends core_Mvc
             $fileName = $Frame->getHandle($objId) . '-' . str::removeWhitespaces(str::utf2ascii($frameRec->title), '_');
             $fileHnd = fileman::absorbStr($csv, 'exportCsv', "{$fileName}.csv");
         }
-    
+        
         if (isset($fileHnd)) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/csv.png, title=Сваляне на документа');
             $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
@@ -125,9 +124,9 @@ class frame2_CsvExport extends core_Mvc
     /**
      * Връща линк за експортиране във външната част
      *
-     * @param integer $clsId
-     * @param integer $objId
-     * @param string  $mid
+     * @param int    $clsId
+     * @param int    $objId
+     * @param string $mid
      *
      * @return core_ET|NULL
      */

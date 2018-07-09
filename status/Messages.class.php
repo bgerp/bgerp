@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Клас 'status_Messages'
  *
  * @category  vendors
  * @package   status
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class status_Messages extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -82,13 +81,13 @@ class status_Messages extends core_Manager
     /**
      * Добавя статус съобщение към избрания потребител
      *
-     * @param string  $text     - Съобщение, което ще добавим
-     * @param enum    $type     - Типа на съобщението - success, notice, warning, error
-     * @param integer $userId   - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
-     * @param integer $lifeTime - След колко време да е неактивно
-     * @param string  $hitId    - Уникално ID на хита
+     * @param string $text     - Съобщение, което ще добавим
+     * @param enum   $type     - Типа на съобщението - success, notice, warning, error
+     * @param int    $userId   - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
+     * @param int    $lifeTime - След колко време да е неактивно
+     * @param string $hitId    - Уникално ID на хита
      *
-     * @return integer - При успешен запис връща id' то на записа
+     * @return int - При успешен запис връща id' то на записа
      */
     public static function newStatus($text, $type = 'notice', $userId = null, $lifeTime = 60, $hitId = null)
     {
@@ -148,11 +147,11 @@ class status_Messages extends core_Manager
     /**
      * Връща всички статуси на текущия потребител, на които не им е изтекъл lifeTime' а
      *
-     * @param integer $hitTime  - timestamp на изискване на страницата
-     * @param integer $idleTime - Време на бездействие на съответния таб
-     * @param integer $maxLimit - Максимален брой на статусите, които да се връщат при едно извикване
-     * @param boolean $once     - Еднакви (стринг и тип) статус съобщения да се показват само веднъж
-     * @param string  $hitId    - Уникално ID на хита
+     * @param int    $hitTime  - timestamp на изискване на страницата
+     * @param int    $idleTime - Време на бездействие на съответния таб
+     * @param int    $maxLimit - Максимален брой на статусите, които да се връщат при едно извикване
+     * @param bool   $once     - Еднакви (стринг и тип) статус съобщения да се показват само веднъж
+     * @param string $hitId    - Уникално ID на хита
      *
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
@@ -331,9 +330,9 @@ class status_Messages extends core_Manager
     /**
      * Връща 'div' със статус съобщенията
      *
-     * @param integer $hitTime  - Timestamp на показване на страницата
-     * @param integer $idleTime - Време на бездействие на съответния таб
-     * @param string  $hitId    - Уникално ID на хита
+     * @param int    $hitTime  - Timestamp на показване на страницата
+     * @param int    $idleTime - Време на бездействие на съответния таб
+     * @param string $hitId    - Уникално ID на хита
      *
      * @return array
      */
@@ -441,6 +440,7 @@ class status_Messages extends core_Manager
     
     /**
      * Връща масив със чакащите статуси в момента
+     *
      * @return array
      */
     public static function returnStatusesArray()
@@ -448,7 +448,7 @@ class status_Messages extends core_Manager
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-    
+        
         // Връщаме статусите ако има
         return (array) $statusData;
     }

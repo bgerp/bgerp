@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'core_ET' ['ET'] - Система от текстови шаблони
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_ET extends core_BaseClass
 {
-    
-    
     /**
      * Съдържание на шаблона
      */
@@ -96,7 +95,7 @@ class core_ET extends core_BaseClass
             $this->content = $this->loadFilesRecursivelyFromString($this->content);
             $rmPlaces = $this->getPlaceHolders();
             $this->setRemovableBlocks($rmPlaces);
-                
+            
             // Взема началните плейсхолдери, за да могат непопълнените да бъдат изтрити
             if (count($rmPlaces)) {
                 foreach ($rmPlaces as $place) {
@@ -193,9 +192,9 @@ class core_ET extends core_BaseClass
         expect(is_object($mp), 'Не може да бъде открит блока ' . $blockName, $this->content);
         
         $newTemplate = new ET(substr(
-        
+            
             $this->content,
-        
+            
             $mp->beginStop,
                 $mp->endStart - $mp->beginStop
         
@@ -217,12 +216,14 @@ class core_ET extends core_BaseClass
     
     /**
      * Премахва блок от шаболона
+     *
      * @param string $blockName - име на шаблона
      */
     public function removeBlock($blockName)
     {
         $mp = $this->getMarkerPos($blockName);
         if (!$mp) {
+            
             return;
         }
         
@@ -315,8 +316,8 @@ class core_ET extends core_BaseClass
         
         return $this;
     }
-
-
+    
+    
     /**
      * Премахва чакащите субституции за мястото $place
      */
@@ -398,7 +399,7 @@ class core_ET extends core_BaseClass
             return $this->toPlace($this->defaultPlace);
         }
         $this->places[$place] = 1;
-            
+        
         return $this->toPlace($place);
     }
     
@@ -410,16 +411,17 @@ class core_ET extends core_BaseClass
     public static function escape($str)
     {
         expect(!($str instanceof stdClass), $str);
-
+        
         return str_replace('[#', '&#91;#', $str);
     }
     
     public static function unEscape($str)
     {
         expect(!($str instanceof stdClass), $str);
-
+        
         return str_replace('&#91;#', '[#', $str);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -460,7 +462,7 @@ class core_ET extends core_BaseClass
     public function getArray($place, $mode = 'push')
     {
         $res = array();
-
+        
         if (count($this->pending)) {
             foreach ($this->pending as $sub) {
                 if ($sub->place == $place && (!$mode || $sub->mode == $mode)) {
@@ -521,7 +523,7 @@ class core_ET extends core_BaseClass
             
             return $content->getContent(null, 'CONTENT', false, false);
         }
-
+        
         return $this->escape($content);
     }
     
@@ -622,7 +624,7 @@ class core_ET extends core_BaseClass
                 }
             }
         }
-
+        
         return $this;
     }
     
@@ -763,7 +765,7 @@ class core_ET extends core_BaseClass
                 $empty->replace2master();
             }
         }
-
+        
         return $this;
     }
     
@@ -803,7 +805,7 @@ class core_ET extends core_BaseClass
         if ($holderBlock) {
             $tpl->replace2master();
         }
-
+        
         return $this;
     }
     
@@ -825,7 +827,7 @@ class core_ET extends core_BaseClass
         }
         
         $this->placeArray($dataArr, $holderBlock, $prefix);
-
+        
         return $this;
     }
     

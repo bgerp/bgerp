@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   export
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class export_Export extends core_Mvc
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -24,9 +24,9 @@ class export_Export extends core_Mvc
     /**
      * Връща масив с възможните формати за експорт
      *
-     * @param integer      $clsId
-     * @param integer      $objectId
-     * @param NULL|integer $limit
+     * @param int      $clsId
+     * @param int      $objectId
+     * @param NULL|int $limit
      *
      * @return array
      */
@@ -60,14 +60,13 @@ class export_Export extends core_Mvc
     }
     
     
-    
     /**
      * Помощна функция за проверка на права към документа
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
-     * @return boolean
+     * @return bool
      */
     public static function canUseExport($clsId, $objId)
     {
@@ -111,7 +110,6 @@ class export_Export extends core_Mvc
         
         return $resArr[$key];
     }
-    
     
     
     /**

@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   tcost
+ *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tcost_Fees extends core_Detail
 {
-
-
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -26,68 +26,68 @@ class tcost_Fees extends core_Detail
      * Заглавие
      */
     public $title = 'Навла';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2, plg_SaveAndNew';
-
-
+    
+    
     /**
      * Ключ към core_Master
      */
     public $masterKey = 'feeId';
-
-
+    
+    
     /**
      * Единично заглавие
      */
     public $singleTitle = 'държава и п.Код';
-
-
+    
+    
     /**
      * Време за опресняване информацията при лист на събитията
      */
     public $refreshRowsTime = 5000;
-
-
+    
+    
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,tcost';
-
-
+    
+    
     /**
      * Полета, които се виждат
      */
     public $listFields = 'weight=|Тегло|* (|кг|*), price, secondPrice, thirdPrice, total, createdOn, createdBy';
-
-
+    
+    
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'secondPrice,thirdPrice,total';
-     
-     
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -106,8 +106,8 @@ class tcost_Fees extends core_Detail
         // Добавяне на уникални индекси
         $this->setDbUnique('feeId,weight');
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -120,8 +120,7 @@ class tcost_Fees extends core_Detail
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     }
     
-
-
+    
     /**
      * Преди извличане на записите от БД
      *
@@ -133,9 +132,8 @@ class tcost_Fees extends core_Detail
     {
         $data->query->orderBy('#weight');
     }
-
-
-
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -164,7 +162,7 @@ class tcost_Fees extends core_Detail
      * @param int    $deliveryTermId - ид на условието на доставка
      * @param int    $countryId      - id на съотверната държава
      * @param string $pCode          - пощенски код
-     * @param double $totalWeight    - Посоченото тегло
+     * @param float  $totalWeight    - Посоченото тегло
      * @param int    $singleWeight
      *
      * @return int|array - Ако не може да бъде намерена зона, в която принадлежи пакета
@@ -181,22 +179,22 @@ class tcost_Fees extends core_Detail
         
         // Определяне на зоната на транспорт, за зададеното условие на доставка
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
- 
-
+        
+        
         // Ако не се намери зона се връща 0
         if (is_null($zone)) {
             
             return cond_TransportCalc::ZONE_FIND_ERROR;
         }
-
+        
         // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
- 
+        
         $weightsLeft = null;
         $weightsRight = INF;
         $smallestWeight = null;
         $biggestWeight = null;
-
+        
         // Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = self::getQuery();
         $query->where(array('#feeId = [#1#]', $zone['zoneId']));
@@ -207,23 +205,22 @@ class tcost_Fees extends core_Detail
             $price = self::getTotalPrice($rec);
             $arrayOfWeightPrice[round($rec->weight)] = $price;
         }
+        
         // дотук имаме масив Тегло -> Сума
-
-
- 
-
-       
+        
+        
+        
         //Създаваме вече индексиран масив от ключовете на по горния асоциативен маскив
         $indexedArray = array_keys($arrayOfWeightPrice);
-
+        
         // Разглеждаме 4 случая
         // Търсеното тегло е по-малко от най-малкото в масива. Тогава Общата цена е най-малката
-
-
+        
+        
         $minWeight = min($indexedArray);
         $maxWeight = max($indexedArray);
         $totalWeight = round($totalWeight);
-
+        
         if ($totalWeight < $minWeight) {
             $finalPrice = $arrayOfWeightPrice[$minWeight];
         } elseif ($totalWeight > $maxWeight) {
@@ -244,7 +241,7 @@ class tcost_Fees extends core_Detail
                 $y1 = $y2;
             }
         }
-
+        
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
         if ($totalWeight) {
@@ -252,7 +249,7 @@ class tcost_Fees extends core_Detail
         } else {
             $result = 0;
         }
-
+        
         // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
         return array($finalPrice, $result, $zone['zoneId'], $zone['deliveryTime']);
     }
@@ -268,12 +265,12 @@ class tcost_Fees extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         static $lastPrice, $lastKgPrice;
-
+        
         $rec->total = self::getTotalPrice($rec);
         $row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
         
         $kgPrice = $rec->total / $rec->weight;
- 
+        
         if ($lastPrice >= $rec->price) {
             $row->ROW_ATTR = array('style' => 'color:red;');
         } elseif (isset($lastKgPrice) && $lastKgPrice <= $kgPrice) {
@@ -281,9 +278,9 @@ class tcost_Fees extends core_Detail
             $max = round($lastKgPrice * $rec->weight);
             $row->priceHint = $max;
         }
-
+        
         $lastKgPrice = $kgPrice;
-
+        
         $lastPrice = $rec->price;
     }
     
@@ -301,6 +298,7 @@ class tcost_Fees extends core_Detail
         $data->listFields['total'] = "Стойност|* |без ДДС|*->Общо|* (<small>{$baseCurrencyCode}</small>)";
         
         if (!count($data->rows)) {
+            
             return;
         }
         $unsetTotal = true;
@@ -338,8 +336,9 @@ class tcost_Fees extends core_Detail
     /**
      * Намира сумата на реда в основна валута без ДДС
      *
-     * @param  stdClass $rec - запис
-     * @return double   $total - сумата на реда в основна валута без ДДС
+     * @param stdClass $rec - запис
+     *
+     * @return float $total - сумата на реда в основна валута без ДДС
      */
     private static function getTotalPrice($rec)
     {

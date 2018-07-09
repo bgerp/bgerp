@@ -12,23 +12,25 @@ defIfNot('PWA_IMAGE', '');
  *
  *
  * @package   pwa
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pwa_Setup extends core_ProtoSetup
 {
     public $info = 'bgERP progressive web application';
-
-
+    
+    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
         'PWA_IMAGE' => array('fileman_FileType(bucket=gallery_Pictures)', 'caption=Икона за приложението (512x512px)->Изображение'),
     );
-
+    
     
     /**
      * Инсталиране на пакета

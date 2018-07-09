@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Движения в палетния склад
  *
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pallet_Movements extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -63,8 +62,8 @@ class pallet_Movements extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,pallet';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -389,10 +388,12 @@ class pallet_Movements extends core_Manager
             
             switch ($rec->do) {
                 case 'palletUp':
+                    
                     // Проверка в зависимост от начина на определяне на палет мястото
                     
                     switch ($rec->palletPlaceHowto) {
                         case 'Автоматично':
+                            
                             // Генерира автоматично палет място от стратегията
                             $storeRec = pallet_pallets::fetch($selectedStoreId);
                             $strategy = cls::getInterface('pallet_ArrangeStrategyIntf', $storeRec->strategy);
@@ -444,9 +445,11 @@ class pallet_Movements extends core_Manager
                     break;
                 
                 case 'palletMove':
+                    
                     // Проверка в зависимост от начина на определяне на палет мястото
                     switch ($rec->palletPlaceHowto) {
                         case 'Автоматично':
+                            
                             // Генерира автоматично палет място от стратегията
                             $storeRec = store_Stores::fetch($selectedStoreId);
                             $strategy = cls::getInterface('pallet_ArrangeStrategyIntf', $storeRec->strategy);
@@ -682,8 +685,9 @@ class pallet_Movements extends core_Manager
     /**
      * Проверка дали за дадено палет място няма наредено движение
      *
-     * @param  string  $palletPlace
-     * @return boolean
+     * @param string $palletPlace
+     *
+     * @return bool
      */
     public static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace)
     {

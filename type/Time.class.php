@@ -1,22 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'type_Time' - Тип за продължителност от време
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Time extends type_Varchar
 {
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -34,13 +34,13 @@ class type_Time extends type_Varchar
      */
     public $defaultValue = 0;
     
-
+    
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
     public $tdClass = 'centerCol';
     
-
+    
     /**
      * Стойности, означаващи 0, на момента, on time
      */
@@ -50,10 +50,10 @@ class type_Time extends type_Varchar
     /**
      * Функция за закръгляне към определени интервали от време, зависещи от прагове
      *
-     * @param integer $time
-     * @param array   $limitsToItervals
+     * @param int   $time
+     * @param array $limitsToItervals
      *
-     * @return integer
+     * @return int
      */
     public static function round($time, $limitsToItervals = array(864000 => 86400, 36000 => 3600, 600 => 60))
     {
@@ -78,6 +78,7 @@ class type_Time extends type_Varchar
         
         // Празна стойност се приема за NULL
         if ($val === '') {
+            
             return;
         }
         
@@ -104,7 +105,7 @@ class type_Time extends type_Varchar
                 default:
                     break;
             }
-
+            
             return round($val);
         }
         
@@ -152,7 +153,7 @@ class type_Time extends type_Varchar
         if (preg_match(str::utf2ascii('/(\d+)[ ]*(y|year|years|г|год|година|години)\b/'), $val, $matches)) {
             $years = $matches[1];
         }
-
+        
         if (preg_match('/([\d]{1,2}):([\d]{1,2}):([\d]{1,2})\b/', $val, $matches)) {
             $hours = $matches[1];
             $minutes = $matches[2];
@@ -162,7 +163,7 @@ class type_Time extends type_Varchar
             $hours = $matches[1];
             $minutes = $matches[2];
         }
-
+        
         // На колко е равна една година и един месец?
         if ($secundes || $minutes || $hours) {
             $monthDuration = 30 * 24 * 60 * 60;
@@ -171,7 +172,7 @@ class type_Time extends type_Varchar
             $monthDuration = core_DateTime::SECONDS_IN_MONTH;
             $yearDuration = $monthDuration * 12;
         }
-
+        
         if (strlen($secundes) || strlen($minutes) || strlen($hours) || strlen($days) || strlen($weeks) || strlen($months) || strlen($years)) {
             $duration = $secundes + 60 * $minutes + 60 * 60 * $hours + 24 * 60 * 60 * $days + 7 * 24 * 60 * 60 * $weeks + $months * $monthDuration + $years * $yearDuration;
             
@@ -189,7 +190,7 @@ class type_Time extends type_Varchar
         if (is_numeric($value)) {
             $value = $this->toVerbal_($value);
         }
-
+        
         if (!$this->suggestions) {
             $this->suggestions = array();
             
@@ -223,14 +224,14 @@ class type_Time extends type_Varchar
                     '7 дена' => '7 дена');
             }
         }
-
+        
         $this->params['size'] = 13;
-
+        
         $uom = $this->params['uom'];
         unset($this->params['uom']);
         $this->fromVerbalSuggestions($value);
         $this->params['uom'] = $uom;
-
+        
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -241,12 +242,13 @@ class type_Time extends type_Varchar
     public function toVerbal_($value)
     {
         if (!isset($value) || !is_numeric($value)) {
+            
             return;
         }
         
         $v = abs($value);
         $restDays = ($v % core_DateTime::SECONDS_IN_MONTH);
-
+        
         if (($restDays % (24 * 60 * 60)) == 0) {
             $days = $restDays / (24 * 60 * 60);
             $months = floor($v / core_DateTime::SECONDS_IN_MONTH);
@@ -305,12 +307,12 @@ class type_Time extends type_Varchar
             $repl['M'] = sprintf('%02d', $minutes);
             $repl['s'] = "${secundes}";
             $repl['S'] = sprintf('%02d', $secundes);
-
+            
             $res = str_replace(array_keys($repl), $repl, $format);
-
+            
             return $res;
         }
-
+        
         
         if ($v == 0) {
             // Ако времето е нула връщаме тази стойност от опциите
@@ -323,7 +325,7 @@ class type_Time extends type_Varchar
                 }
             }
         }
-
+        
         if ($years > 0) {
             $res .= "{$years} " . tr('год.');
         }
@@ -334,7 +336,7 @@ class type_Time extends type_Varchar
             }
             $res .= "{$months} " . tr('мес.');
         }
-
+        
         if ($weeks > 0) {
             if ($days == 0) {
                 $res .= "{$weeks} " . tr('седм.');
@@ -373,7 +375,7 @@ class type_Time extends type_Varchar
             
             $res .= "{$secundes} " . tr('сек.');
         }
-       
+        
         return $res;
     }
 }

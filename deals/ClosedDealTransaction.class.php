@@ -6,18 +6,17 @@
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see deals_ClosedDealTransaction
  *
  */
 abstract class deals_ClosedDealTransaction extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      * Финализиране на транзакцията
      */
@@ -25,7 +24,7 @@ abstract class deals_ClosedDealTransaction extends acc_DocumentTransactionSource
     {
         // Извличаме записа
         $rec = $this->class->fetchRec($id);
-    
+        
         // Промяна на състоянието на документа
         $rec->state = $this->finalizedState;
         if (!$rec->valior) {
@@ -38,7 +37,7 @@ abstract class deals_ClosedDealTransaction extends acc_DocumentTransactionSource
             // Ако записа е успешен, нотифицираме документа, че е бил активиран
             $this->class->invoke('AfterActivation', array($rec));
         }
-    
+        
         return $id;
     }
 }

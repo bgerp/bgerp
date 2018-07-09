@@ -20,14 +20,15 @@ defIfNot('PRICE_MIN_DECIMALS', '2');
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class price_Setup extends core_ProtoSetup
 {
-    
     /**
      * Версия на пакета
      */
@@ -56,14 +57,14 @@ class price_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-            array(
-                'systemId' => 'Update primecosts',
-                'description' => 'Обновяване на себестойностите',
-                'controller' => 'price_Updates',
-                'action' => 'Updateprimecosts',
-                'period' => 60,
-                'timeLimit' => 360,
-            ),
+        array(
+            'systemId' => 'Update primecosts',
+            'description' => 'Обновяване на себестойностите',
+            'controller' => 'price_Updates',
+            'action' => 'Updateprimecosts',
+            'period' => 60,
+            'timeLimit' => 360,
+        ),
     );
     
     
@@ -71,41 +72,42 @@ class price_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'price_Lists',
-            'price_ListToCustomers',
-            'price_ListRules',
-            'price_History',
-            'price_ListDocs',
-            'price_ProductCosts',
-            'price_Updates',
-        );
+        'price_Lists',
+        'price_ListToCustomers',
+        'price_ListRules',
+        'price_History',
+        'price_ListDocs',
+        'price_ProductCosts',
+        'price_Updates',
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = array(array('priceDealer'),
-                       array('price', 'priceDealer'),
-                       array('priceMaster', 'price'),
+        array('price', 'priceDealer'),
+        array('priceMaster', 'price'),
     );
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', 'price,sales, ceo'),
-        );
+        array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', 'price,sales, ceo'),
+    );
     
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
-            'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
-        );
-        
+        'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
+        'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
+    );
+    
+    
     /**
      * Де-инсталиране на пакета
      */

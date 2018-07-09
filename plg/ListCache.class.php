@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * Клас 'plg_ListCache' - Кешира листовия изглед на модела
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_ListCache extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди подготовката на $data->recs и $data->rows за табличния изглед
      */
     public function on_BeforePrepareListRows($mvc, &$res, $data)
     {
         if ($mvc->className == 'core_Cache') {
+            
             return;
         }
         
@@ -58,6 +58,7 @@ class plg_ListCache extends core_Plugin
     public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if ($mvc->className == 'core_Cache' || !$data->listCacheHnd) {
+            
             return;
         }
         

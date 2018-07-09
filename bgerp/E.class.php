@@ -6,16 +6,16 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class bgerp_E extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -62,7 +62,6 @@ class bgerp_E extends core_Manager
      * Да не се кодират id-тата
      */
     public $protectId = false;
-    
     
     
     public function description()

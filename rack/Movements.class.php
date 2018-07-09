@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Движения в палетния склад
  *
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rack_Movements extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -57,8 +56,8 @@ class rack_Movements extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,rack,storeWorker';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -75,8 +74,8 @@ class rack_Movements extends core_Manager
      * Кой може да го изтрие?
      */
     public $canDelete = 'no_one';
-
-
+    
+    
     /**
      * Кой може да започне движение
      */
@@ -94,16 +93,15 @@ class rack_Movements extends core_Manager
      */
     public $canCancel = 'ceo,admin,rack,storeWorker';
     
-
+    
     /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
     
     
-    
     public $listFields = 'palletId,position,positionTo,workerId,note,created=Създаване';
-     
+    
     
     /**
      * Описание на модела (таблицата)
@@ -119,11 +117,11 @@ class rack_Movements extends core_Manager
         $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter,input=hidden');
         $this->FLD('workerId', 'user(roles=storeWorker,ceo)', 'caption=Товарач,smartCenter');
         $this->FNC('created', 'varchar(64)', 'caption=Създаване,tdClass=small-field nowrap');
-
+        
         $this->FLD('note', 'varchar(64)', 'caption=Забележка,column=none');
     }
     
-
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -142,18 +140,19 @@ class rack_Movements extends core_Manager
         if ($mvc->haveRightFor('cancel', $rec)) {
             $state .= ht::createBtn('Отказ', array($mvc, 'cancel', $rec->id));
         }
-
+        
         if ($state) {
             $row->workerId .= ' ' . $state;
         }
-
+        
         if ($rec->note) {
             $row->note = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'note') . '</div>';
         }
-
+        
         $row->created = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'createdOn') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
     }
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -170,20 +169,21 @@ class rack_Movements extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
-
+        
         if ($action == 'cancel' && $rec && $rec->state) {
             if ($rec->state != 'active' || $rec->workerId != $userId) {
                 $requiredRoles = 'no_one';
             }
         }
-
+        
         if ($action == 'done' && $rec && $rec->state) {
             if ($rec->state != 'active' || $rec->workerId != $userId) {
                 $requiredRoles = 'no_one';
             }
         }
     }
-
+    
+    
     /**
      * Добавя филтър към перата
      *
@@ -197,19 +197,19 @@ class rack_Movements extends core_Manager
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
     }
-
-
+    
+    
     public function act_Start()
     {
         $this->requireRightFor('start');
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
         $this->requireRightFor('start', $rec);
-
+        
         $rec->state = 'active';
         $rec->workerId = core_Users::getCurrent();
         $this->save($rec, 'state,workerId');
-
+        
         redirect(array($this));
     }
     
@@ -219,11 +219,11 @@ class rack_Movements extends core_Manager
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
         $this->requireRightFor('Cancel', $rec);
-
+        
         $rec->state = 'pending';
         $rec->workerId = null;
         $this->save($rec, 'state,workerId');
-
+        
         redirect(array($this));
     }
     
@@ -234,33 +234,33 @@ class rack_Movements extends core_Manager
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
         $this->requireRightFor('Done', $rec);
-
+        
         $pRec = rack_Pallets::fetch($rec->palletId);
         $pRec->position = $rec->positionTo;
-
+        
         $pMvc = cls::get('rack_Pallets');
         $pMvc->save_($pRec, 'position');
- 
+        
         $rec->state = 'closed';
         $this->save($rec, 'state');
         $rMvc = cls::get('rack_Racks');
-
+        
         if ($rec->positionTo) {
             $rMvc->updateRacks[$rec->storeId . '-' . $rec->positionTo] = true;
         }
-
+        
         if ($rec->position) {
             $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = true;
         }
-
+        
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
-
+        
         $rMvc->on_Shutdown($rMvc);
-
+        
         redirect(array($this));
     }
-
-
+    
+    
     /**
      * Връща масив с всички използвани палети
      */
@@ -269,11 +269,11 @@ class rack_Movements extends core_Manager
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
-
+        
         $res = array();
         $res[0] = array();
         $res[1] = array();
-
+        
         $query = self::getQuery();
         while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
             if ($rec->position) {
@@ -285,7 +285,7 @@ class rack_Movements extends core_Manager
                 $res[1][$rec->positionTo] = $pRec->productId;
             }
         }
-  
+        
         return $res;
     }
 }

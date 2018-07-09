@@ -1,5 +1,6 @@
 <?php
 
+
 if ($_REQUEST['SetupKey'] == 'demo') {
     $setup = new setup_Controller();
     echo $setup->action();
@@ -22,20 +23,21 @@ if ($_REQUEST['SetupKey'] == 'demo') {
  *
  * @category  bgerp
  * @package   setup
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class setup_Controller
 {
-    
     /**
      * Масив със всички стойности на въведените променливи
      */
     private $state = array();
-
-
+    
+    
     /**
      * Лицензно споразумение
      */
@@ -47,7 +49,7 @@ class setup_Controller
         $res->body = file_get_contents(__DIR__ . '/../license/gpl3.html');
     }
     
-
+    
     /**
      * Нова инсталация или възстановяване от backUP
      */
@@ -56,12 +58,13 @@ class setup_Controller
         if (defined('EF_SALT') && !$this->state['installationType']) {
             $this->state['installationType'] = 'update';
         }
-
+        
         $res->title = 'Вид на инсталацията';
         $res->question = 'Какъв тип инсталация желаете?';
         $res->body = $this->createRadio('installationType', array('new' => 'Нова инсталация', 'update' => 'Обновяване на текущата', 'recovery' => 'Възстановяване от бекъп'));
     }
-
+    
+    
     /**
      * Нова инсталация или възстановяване от backUP
      */
@@ -71,12 +74,12 @@ class setup_Controller
             
             return false;
         }
-
+        
         $res->title = 'Източник на резервирани данни';
         $res->question = 'Къде се намира бекъп-а на системата?';
         $res->body = $this->createRadio('recoverySource', array('path' => 'Локална директория', 'amazon' => 'Сметка в Amazon S3'));
     }
-
+    
     
     /**
      * Да се провери ли за нови версии на bgERP?
@@ -87,13 +90,13 @@ class setup_Controller
             
             return false;
         }
-
+        
         $res->title = 'Проверка за обновяване';
         $res->question = 'Да проверя ли за нови версии на bgERP?';
         $res->body = $this->createRadio('checkForUpdates', array('yes' => 'Да, провери сега', 'recovery' => 'Не, пропусни'));
     }
     
-
+    
     /**
      * Кои приложения да се обновят?
      */
@@ -114,21 +117,22 @@ class setup_Controller
         $repo1Branch = BGERP_GIT_BRANCH;
         
         $log = array();
+        
         //$newVer = core_Git::gitHasNewVersion($repo1Path, $log, $repo1Branch);
-
-
- 
+        
+        
+        
         $res->title = 'Обновяване на избраното';
         $res->question = 'Желаете ли обновяване на:';
         $res->body = $this->createCheckbox(
             'updates',
                 array('bgerp' => 'bgerp (от 12.12.2009)',
-                        'experta' => 'experta (12.12.2011)',
+                    'experta' => 'experta (12.12.2011)',
                 ),
             array('bgerp', 'experta')
         );
     }
-
+    
     
     /**
      * Какво ще бъде предназначението на системата
@@ -139,22 +143,22 @@ class setup_Controller
             
             return false;
         }
-
+        
         $res->title = 'Предназначение на системата';
         $res->question = 'Какво ще бъде основното предназначение на системата?';
         $res->body = $this->createRadio(
             'bgerpType',
             array('base' => 'Организация на екип, имейли и документооборот',
-                    'trade' => 'Управление на продажби ( + предходното)',
-                    'manufacturing' => 'Производствен мениджмънт ( + предходното)',
-                    'demo' => 'За демонстрация и обучение',
-                    'dev' => 'За разработка и тестване',
-
+                'trade' => 'Управление на продажби ( + предходното)',
+                'manufacturing' => 'Производствен мениджмънт ( + предходното)',
+                'demo' => 'За демонстрация и обучение',
+                'dev' => 'За разработка и тестване',
+            
             )
         );
     }
     
-
+    
     /**
      * Какви допълнителни модули да бъдат инсталирани, при първоначалния сетъп?
      */
@@ -164,77 +168,77 @@ class setup_Controller
             
             return false;
         }
-
+        
         $res->title = 'Допълнителни модули';
         $res->question = 'Кои допълнителни модули да бъдат инсталирани?';
         if ($this->state['bgerpType'] == 'base') {
             $res->body = $this->createCheckbox(
                 'bgerpAddmodules',
                 array('web' => 'cms (Управление на уеб-сайт)',
-                        'mon2' => 'mon2 (Мониторинг на IoT контролери)',
-                        'cams' => 'cams (Записване на IP видеокамери)',
-                        'catering' => 'catering (Кетъринг за персонала)',
-
+                    'mon2' => 'mon2 (Мониторинг на IoT контролери)',
+                    'cams' => 'cams (Записване на IP видеокамери)',
+                    'catering' => 'catering (Кетъринг за персонала)',
+                
                 )
             );
         } else {
             $res->body = $this->createCheckbox(
                 'bgerpAddmodules',
                 array('pos' => 'pos (Продажби в магазин или заведение)',
-                        'web' => 'cms (Управление на уеб-сайт)',
-                        'mon2' => 'mon2 (Мониторинг на сензори)',
-                        'cams' => 'cams (Записване на IP видеокамери)',
-                        'catering' => 'catering (Кетъринг за персонала)',
-
+                    'web' => 'cms (Управление на уеб-сайт)',
+                    'mon2' => 'mon2 (Мониторинг на сензори)',
+                    'cams' => 'cams (Записване на IP видеокамери)',
+                    'catering' => 'catering (Кетъринг за персонала)',
+                
                 )
             );
         }
     }
-
-
+    
+    
     public function form8(&$res)
     {
         if ($this->state['installationType'] != 'new' || !in_array('web', $this->state['bgerpAddmodules'])) {
             
             return false;
         }
-
+        
         $res->title = 'Модули за уеб-сайт';
         $res->question = 'Какви разширения за уеб сайт да бъдат инсталирани?';
         if ($this->state['bgerpType'] == 'base') {
             $res->body = $this->createCheckbox(
                 'webAddmodules',
                 array(
-                        'forum' => 'forum (Форум към уеб-сайт)',
-                        'blogm' => 'blogm (Блог към уеб-сайт)',
+                    'forum' => 'forum (Форум към уеб-сайт)',
+                    'blogm' => 'blogm (Блог към уеб-сайт)',
                 )
             );
         } else {
             $res->body = $this->createCheckbox(
                 'webAddmodules',
                 array(
-                        'forum' => 'forum (Форум към уеб-сайт)',
-                        'blogm' => 'blogm (Блог към уеб-сайт)',
-                        'eshop' => 'eshop (Продуктов каталог към уеб-сайт)',
+                    'forum' => 'forum (Форум към уеб-сайт)',
+                    'blogm' => 'blogm (Блог към уеб-сайт)',
+                    'eshop' => 'eshop (Продуктов каталог към уеб-сайт)',
                 )
             );
         }
     }
-
-
+    
+    
     public function form9(&$res)
     {
         if ($this->state['installationType'] != 'recovery') {
             
             return false;
         }
-    
+        
         $res->title = 'Възстановяване от архив';
         $res->question = 'Въведете път до архива:';
         $res->body = $this->createInput('path', '', 'style=width:400px;font-size:1.1em');
     }
     
-
+    
     public function form10(&$res)
     {
         if ($this->state['installationType'] != 'recovery') {
@@ -265,7 +269,7 @@ class setup_Controller
         }
     }
     
-
+    
     /**
      * От кой бранч да се теглят обновленията
      */
@@ -275,18 +279,18 @@ class setup_Controller
             
             return false;
         }
-
+        
         $res->title = 'Междинни версии на софтуера';
         $res->question = 'Искате ли да получавате междинни версии?';
         $res->body = $this->createRadio(
             'branch',
                             array('master' => 'Не искам да рискувам',
-                                  'DC2' => 'Желая да съм бета-тестер',
-                                  'DC1' => 'Желая да съм алфа-тестер')
+                                'DC2' => 'Желая да съм бета-тестер',
+                                'DC1' => 'Желая да съм алфа-тестер')
         );
     }
-
-
+    
+    
     /**
      * Дали да се рапортуват отдалечено грешките?
      */
@@ -296,38 +300,39 @@ class setup_Controller
             
             return false;
         }
-
+        
         $res->title = 'Рапортуване на грешките';
         $res->question = 'Когато възникне грешка:';
         $res->body = $this->createRadio(
             'reportErrors',
             array('yes' => 'Докладвай на разработчиците',
-                  'recovery' => 'Не изпращай нищо')
+                'recovery' => 'Не изпращай нищо')
         );
     }
-
-
+    
+    
     /**
      * Двигател на диалога
      */
     public function action()
     {
         session_start();
+        
         // Извличаме състоянието
         if ($_SESSION['state']) {
             $this->state = $_SESSION['state'];
         }
-
+        
         if (!isset($_REQUEST['Step'])) {
             $_REQUEST['Step'] = 1;
         }
-
+        
         // Текущата форма
         $current = (int) $_REQUEST['Step'];
-
+        
         // Посоката, според действието
         $step = $_REQUEST['Cmd_Back'] ? -1 : 1;
-
+        
         // Изпълняваме текущата
         $method = "form{$current}";
         $res = new stdClass;
@@ -335,12 +340,12 @@ class setup_Controller
             call_user_func_array(array($this, $method), array(&$res));
             $_SESSION['state'] = $this->state;
         }
- 
+        
         do {
             $current += $step;
             $method = "form{$current}";
             $res = new stdClass;
-
+            
             if (method_exists($this, $method)) {
                 call_user_func_array(array($this, $method), array(&$res));
                 $_SESSION['state'] = $this->state;
@@ -348,8 +353,8 @@ class setup_Controller
                 break;
             }
         } while (!count((array) $res));
- 
- 
+        
+        
         // Рендиране
         if (count((array) $res)) {
             $tpl = $this->getFormTpl($current);
@@ -366,9 +371,9 @@ class setup_Controller
             if ($res['next']) {
                 $res['next'] = "<input type='submit' name='Cmd_Next' style='font-size:14px;margin:3px;color:black' value='" . $res['next'] . "'>";
             }
-
+            
             $res['title'] = $res['title'];
-
+            
             foreach ($res as $name => $value) {
                 if ($value !== false) {
                     $res['[#' . $name . '#]'] = $value;
@@ -382,11 +387,11 @@ class setup_Controller
         }
         
         Mode::set('wrapper', 'page_Empty');
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Връща шаблона за страницата
      */
@@ -399,7 +404,7 @@ class setup_Controller
                 'EAPAAMAAOoKr1PJ+7GMBn4wOzpgYKADAoEFAPAHl3wkRpLmpFkAAAAASUVORK5CYII=';
         
         $background = sbf('setup/img/sunrise.jpg', '');
-
+        
         $tpl = '<!DOCTYPE html>
         <html>
             <head>
@@ -443,10 +448,8 @@ class setup_Controller
         
         return $tpl;
     }
-
-
-
-
+    
+    
     /**
      * Създава радио група
      */
@@ -455,9 +458,9 @@ class setup_Controller
         if (isset($opt[$_REQUEST[$name]])) {
             $this->state[$name] = $_REQUEST[$name];
         }
-
+        
         $checked = ' checked';
-
+        
         foreach ($opt as $val => $caption) {
             $id = 'id' . crc32($val);
             
@@ -470,7 +473,7 @@ class setup_Controller
                     "<label for='{$id}'>{$caption}</label></div>";
             $checked = '';
         }
-
+        
         return $res;
     }
     
@@ -483,7 +486,7 @@ class setup_Controller
         if (is_array($_REQUEST[$name])) {
             $this->state[$name] = $_REQUEST[$name];
         }
- 
+        
         foreach ($opt as $val => $caption) {
             $id = 'id' . crc32($val);
             
@@ -492,19 +495,19 @@ class setup_Controller
             } else {
                 $checked = (in_array($val, $defaults)) ? ' checked' : '';
             }
-
+            
             
             $res .= "\n<div class='answer'>" .
                     "\n<input type='checkbox' name='{$name}[]' value='{$val}' id='{$id}'{$checked}>" .
                     "<label for='{$id}'>{$caption}</label></div>";
             $checked = '';
         }
-
+        
         $res .= "\n<input type='hidden' name='{$name}[]' value='is_used'>";
-
+        
         return $res;
     }
-
+    
     
     /**
      * Създава input елемент
@@ -514,18 +517,18 @@ class setup_Controller
         if (isset($_REQUEST[$name])) {
             $this->state[$name] = $_REQUEST[$name];
         }
-
+        
         if (isset($this->state[$name])) {
             $value = $this->state[$name];
         }
-
+        
         $res = "\n<div class='answer'>" .
                 "\n<input type='text' name='{$name}' value='{$value}' {$attr}>";
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Ескейпва съдържание на атрибут
      */
@@ -533,7 +536,7 @@ class setup_Controller
     {
         $aValue = htmlspecialchars($aValue, ENT_QUOTES, null);
         $aValue = str_replace(array("\n"), array('&#10;'), $aValue);
-
+        
         return $aValue;
     }
 }

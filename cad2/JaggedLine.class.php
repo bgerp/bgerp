@@ -1,11 +1,11 @@
 <?php
 
+
 /**
  * Чертае назъбена линия
  */
 class cad2_JaggedLine extends cad2_Shape
 {
-    
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
@@ -32,12 +32,12 @@ class cad2_JaggedLine extends cad2_Shape
         $form->FLD('md', 'float', 'caption=Назъбване->Широчина,mandatory');
         $form->FLD('td', 'float', 'caption=Назъбване->Височина');
         $form->FLD('spacer', 'float', 'caption=Назъбване->Разредка');
-
+        
         $form->FLD('stroke', 'color_Type', 'caption=Молив->Цвят');
         $form->FLD('strokeWidth', 'float', 'caption=Молив->Размер,suggestions=0.1|0.2|0.3|0.4|0.5|0.6|0.7|0.8|0.9|1');
     }
-
-
+    
+    
     /**
      * Метод за изрисуване на фигурата
      */
@@ -47,14 +47,14 @@ class cad2_JaggedLine extends cad2_Shape
         
         $svg->setAttr('stroke', $stroke);
         $svg->setAttr('stroke-width', $strokeWidth);
-
+        
         $svg->startPath();
         $svg->moveTo($x0, $y0, true);
-
+        
         self::draw($svg, $x1, $y1, $md, $td, $spacer, true);
     }
-
-
+    
+    
     /**
      * Изчертава назъбена линия до съответната точка
      */
@@ -69,13 +69,13 @@ class cad2_JaggedLine extends cad2_Shape
         }
         
         $nb = round($ab->r / ($md * 2)) * 2;
-
+        
         $md = ($nb != 0) ? ($ab->r / $nb) : 0 ;
-
+        
         if (!$td) {
             $td = $md / 2;
         }
-       
+        
         $spacer = min(0.4 * $md, $spacer);
         
         list($x, $y) = $svg->getCP();
@@ -86,7 +86,7 @@ class cad2_JaggedLine extends cad2_Shape
                 $y += $m->y;
                 $svg->lineTo($x, $y, true);
             }
-
+            
             // Малко
             $m = $svg->p($ab->a, $md / 2 - $spacer);
             $n = $svg->p($ab->a - pi() / 2, $td);

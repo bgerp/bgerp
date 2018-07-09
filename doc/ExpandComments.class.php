@@ -6,9 +6,11 @@
  *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_ExpandComments extends core_Mvc
@@ -16,9 +18,7 @@ class doc_ExpandComments extends core_Mvc
     public $interfaces = 'doc_ExpandCommentsIntf';
     
     
-    
     public $title = 'Коментар';
-    
     
     
     /**
@@ -34,9 +34,9 @@ class doc_ExpandComments extends core_Mvc
     /**
      * Може ли вградения обект да се избере
      *
-     * @param NULL|integer $userId
+     * @param NULL|int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canSelectDriver($userId = null)
     {
@@ -50,7 +50,7 @@ class doc_ExpandComments extends core_Mvc
      * @param doc_ExpandComments $Driver
      * @param doc_Comments       $mvc
      * @param string|NULL        $res
-     * @param integer            $id
+     * @param int                $id
      *
      * @return string
      */
@@ -83,6 +83,7 @@ class doc_ExpandComments extends core_Mvc
         $res = arr::make($res);
         
         $haveOrigin = false;
+        
         //Ако имаме originId
         if ($rec->originId) {
             $cid = $rec->originId;

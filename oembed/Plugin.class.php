@@ -10,14 +10,15 @@
  *
  * @category  vendors
  * @package   oembed
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class oembed_Plugin extends core_Plugin
 {
-    
     /**
      * Съответствие между регулярен израз за URL на ресурс (снимка, видео и пр) и съответна
      * входна точка за oembed заявки.
@@ -41,6 +42,7 @@ class oembed_Plugin extends core_Plugin
             'regex' => '#hulu\.com/watch/.*#i',
             'api' => 'http://www.hulu.com/api/oembed.json',
             'example' => 'http://www.hulu.com/watch/20807/late-night-with-conan'),
+        
         //National Film Board of Canada
         //'NFBC' => array(
         //    'regex' => '#nfb\.ca/film/[-\w]+/?#i',
@@ -82,10 +84,11 @@ class oembed_Plugin extends core_Plugin
             'regex' => '#clikthrough\.com/theater/video/\d+$#i',
             'api' => 'http://clikthrough.com/services/oembed',
             'example' => 'http://www.clikthrough.com/theater/video/55'),
-      //  'Kinomap' => array(
-      //      'regex' => '#kinomap\.com/.+#i',
-      //      'api' => 'http://www.kinomap.com/oembed',
-      //      'example' => 'http://www.kinomap.com/kms-vzkpc7'),
+        
+        //  'Kinomap' => array(
+        //      'regex' => '#kinomap\.com/.+#i',
+        //      'api' => 'http://www.kinomap.com/oembed',
+        //      'example' => 'http://www.kinomap.com/kms-vzkpc7'),
         'Photobucket' => array(
             'regex' => '#photobucket\.com/(albums|groups)/.+$#i',
             'api' => 'http://photobucket.com/oembed',
@@ -138,8 +141,9 @@ class oembed_Plugin extends core_Plugin
     /**
      * Връща HTML за вграждане на ресурса, посочен от $url
      *
-     * @param  string         $url
-     * @return string|boolean HTML или FALSE при неуспех
+     * @param string $url
+     *
+     * @return string|bool HTML или FALSE при неуспех
      */
     public static function getEmbedHtml($url)
     {
@@ -217,15 +221,16 @@ class oembed_Plugin extends core_Plugin
     /**
      * Прави опит да разпознае къде се намира oembed API входната точка за зададен $url
      *
-     * @param  string         $url
-     * @return string|boolean URL или FALSE ако не е разпознат $url
+     * @param string $url
+     *
+     * @return string|bool URL или FALSE ако не е разпознат $url
      */
     public static function getOembedServer($url)
     {
         $conf = core_Packs::getConfig('oembed');
         
         $services = arr::make($conf->OEMBED_SERVICES, true);
-
+        
         foreach (static::$oembedMap as $key => $entry) {
             if ($services[$key]) {
                 if (preg_match($entry['regex'], $url)) {
@@ -246,10 +251,11 @@ class oembed_Plugin extends core_Plugin
      * `json` и `xml`, в този ред). Ако има предварителна информация за поддържания от oembed
      * сървъра формат, това може да се отрази в масива self::$oembedMap[service_name]['format'].
      *
-     * @param  array  $api    описател на входна точка на oembed сървър - елемент на масива self::$oembedMap
-     * @param  string $url    URL на ресурса, който ще се вгражда
-     * @param  array  $params допълнителни oembed параметри
-     * @return array  десериализиран отговор от oembed сървъра или FALSE при грешка
+     * @param array  $api    описател на входна точка на oembed сървър - елемент на масива self::$oembedMap
+     * @param string $url    URL на ресурса, който ще се вгражда
+     * @param array  $params допълнителни oembed параметри
+     *
+     * @return array десериализиран отговор от oembed сървъра или FALSE при грешка
      */
     protected static function oembedRequest($api, $url, $params = array())
     {
@@ -264,7 +270,7 @@ class oembed_Plugin extends core_Plugin
         $api['format'] = array_unique($api['format']);
         
         $conf = core_Packs::getConfig('oembed');
-    
+        
         $params['url'] = $url;
         $params['maxwidth'] = $conf->OEMBED_MAX_WIDTH;
         
@@ -304,11 +310,13 @@ class oembed_Plugin extends core_Plugin
         return $response;
     }
     
+    
     /**
      * Зарежда HTTP ресурс чрез HTTP GET-заявка.
      *
-     * @param  string         $url
-     * @return string|boolean FALSE при проблем
+     * @param string $url
+     *
+     * @return string|bool FALSE при проблем
      */
     protected static function httpGet($url)
     {

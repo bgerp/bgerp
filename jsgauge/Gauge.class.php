@@ -11,16 +11,16 @@
  *
  * @category  vendors
  * @package   jsgauge
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      http://code.google.com/p/jsgauge/
  */
 class jsgauge_Gauge
 {
-    
-    
     /**
      * Рендира уред за измерване на температурата
      *

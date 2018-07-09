@@ -17,15 +17,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class doc_TplScript
 {
-    
-    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
@@ -37,8 +37,9 @@ abstract class doc_TplScript
     /**
      * Метод който подава данните на мастъра за обработка на скрипта
      *
-     * @param  core_Mvc $mvc  - мастър на документа
-     * @param  stdClass $data - данни
+     * @param core_Mvc $mvc  - мастър на документа
+     * @param stdClass $data - данни
+     *
      * @return void
      */
     public function modifyMasterData(core_Mvc $mvc, &$data)
@@ -49,8 +50,9 @@ abstract class doc_TplScript
     /**
      * Метод който подава данните на детайла на мастъра, за обработка на скрипта
      *
-     * @param  core_Mvc $detail - Детайл на документа
-     * @param  stdClass $data   - данни
+     * @param core_Mvc $detail - Детайл на документа
+     * @param stdClass $data   - данни
+     *
      * @return void
      */
     public function modifyDetailData(core_Mvc $detail, &$data)

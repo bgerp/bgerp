@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Интерфейс за ценови политики
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за ценови политики
  */
 class price_PolicyIntf
 {
-    
-    
     /**
      * Връща цената на продукта на посочения клиент
      *
@@ -25,12 +24,12 @@ class price_PolicyIntf
      * @param int                          $customerId          - ид на клиента
      * @param int                          $productId           - ид на продукта
      * @param int                          $packagingId         - ид на опаковка
-     * @param double                       $quantity            - количество
+     * @param float                        $quantity            - количество
      * @param datetime                     $date                - към коя дата искаме цената
-     * @param double                       $rate                - валутен курс
+     * @param float                        $rate                - валутен курс
      * @param enum(yes,no,export,separate) $chargeVat           - да се начислявали ДДС или не върху цената
      * @param int|NULL                     $listId              - ценова политика
-     * @param boolean                      $quotationPriceFirst - Дали първо да търси цена от последна оферта
+     * @param bool                         $quotationPriceFirst - Дали първо да търси цена от последна оферта
      *
      * @return object
      *                $rec->price  - цена

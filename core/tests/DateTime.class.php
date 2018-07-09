@@ -1,43 +1,43 @@
 <?php
 
 
-
 /**
  * Клас 'core_DateTime' ['dt'] - Функции за работа с дата и време
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_tests_DateTime extends unit_Class
 {
-    
     // Дните от седмицата, съкратени
     public static $weekDays = array('Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед');
-
-
+    
+    
     // Имената на месеците на български
     public static $months = array('Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни',
-            'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември');
-
+        'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември');
+    
     // Кратки имена на месеците на български
     public static $monthsShort = array('Яну', 'Фев', 'Мар', 'Апр', 'Май', 'Юни',
         'Юли', 'Авг', 'Сеп', 'Окт', 'Ное', 'Дек');
     
     // Имената на месеците на английски
     public static $monthsEn = array('January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December');
+        'July', 'August', 'September', 'October', 'November', 'December');
     
     // Кратки имена на месеците на английски
     public static $monthsShortEn = array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
-
-     
+    
+    
     /**
      * Връща посочения месец в посочения формат и език
      * static function getMonth($m, $format = 'm', $lg =  NULL)
@@ -49,8 +49,8 @@ class core_tests_DateTime extends unit_Class
         ut::expectEqual(dt::getMonth(12, 'M', 'en'), 'Dec');
         ut::expectEqual(dt::getMonth(6, 'M', '??'), 'Jun');
     }
-
-
+    
+    
     /**
      * Превръща MySQL-ска data/време UNIX timestamp
      */
@@ -71,7 +71,7 @@ class core_tests_DateTime extends unit_Class
         ut::expectEqual(dt::getLastDayOfMonth('2013-08-31', -1), '2013-07-31');
         ut::expectEqual(dt::getLastDayOfMonth('2013-03-31', -1), '2013-02-28');
     }
-
+    
     
     /**
      * Намира първия или последния именован седмичен ден от посочения месец/година
@@ -87,8 +87,8 @@ class core_tests_DateTime extends unit_Class
         ut::expectEqual(date('Y-m-d', dt::firstDayOfMonthTms(2, 2012, 'last-friday')), '2012-02-24');
         ut::expectEqual(date('Y-m-d', dt::firstDayOfMonthTms(12, 2012, 'first-friday')), '2012-12-07');
     }
-
-
+    
+    
     public static function firstDayOfMonthTms($month, $year, $wDay)
     {
         list($base, $dayName) = explode('-', $wDay);
@@ -103,7 +103,7 @@ class core_tests_DateTime extends unit_Class
             'friday' => 5,
             'saturday' => 6,
             'sunday' => 7);
-
+        
         expect($dayNumb = $weekDayNames[$dayName]);
         
         for ($i = 1; $i <= 7; $i++) {
@@ -112,20 +112,20 @@ class core_tests_DateTime extends unit_Class
             } else {
                 $curDay = mktime(12, 59, 59, $month + 1, 1 - $i, $year);
             }
-
+            
             $curWeekDay = date('w', $curDay);
-
+            
             if ($curWeekDay == $dayNumb) {
                 $res = $curDay;
                 break;
             }
         }
-
+        
         expect($res);
-
+        
         return $res;
     }
-
+    
     
     /**
      * Превръща mySql дата във дни от началото на UNIX ерата
@@ -154,7 +154,7 @@ class core_tests_DateTime extends unit_Class
         if ($mysqlDate === null) {
             $mysqlDate = self::verbal2mysql();
         }
-
+        
         if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00') {
             
             return false;
@@ -236,7 +236,7 @@ class core_tests_DateTime extends unit_Class
             $dist = time() - $time;
             
             $color = static::getColorByTime($dist);
-          
+            
             $title = dt::mysql2verbal($mysqlDate, 'd-M-Y H:i (l)');
             $title = "  title='{$title}'";
             
@@ -245,8 +245,8 @@ class core_tests_DateTime extends unit_Class
         
         return $verbDate;
     }
-
-
+    
+    
     /**
      * Връща релативното име на деня, спрямо текущото време
      *
@@ -268,20 +268,20 @@ class core_tests_DateTime extends unit_Class
             $relNames = array(
                 -2 => 'Завчера',
                 -1 => 'Вчера',
-                 0 => 'Днес',
-                 1 => 'Утре',
-                 2 => 'Вдругиден',
-                );
+                0 => 'Днес',
+                1 => 'Утре',
+                2 => 'Вдругиден',
+            );
         } else {
             $relNames = array(
                 -2 => 'Ereyesterday',
                 -1 => 'Yesterday',
-                 0 => 'Today',
-                 1 => 'Tommorow',
-                 2 => 'Overmorrow',
-                );
+                0 => 'Today',
+                1 => 'Tommorow',
+                2 => 'Overmorrow',
+            );
         }
-
+        
         if ($format == 'mysql') {
             $date = explode(' ', $date);
             $date = $date[0];
@@ -289,7 +289,7 @@ class core_tests_DateTime extends unit_Class
             expect($format == 'timestamp');
             $date = date('Y-m-d', $date);
         }
-
+        
         for ($i = -2; $i <= 2; $i++) {
             if (date('Y-m-d', time() + $i * 24 * 60 * 60) == $date) {
                 
@@ -298,7 +298,7 @@ class core_tests_DateTime extends unit_Class
         }
     }
     
-
+    
     /**
      * Връща цвят, според разтояние в секунди
      */
@@ -347,11 +347,11 @@ class core_tests_DateTime extends unit_Class
                 $color .= (strlen($b) < 2 ? '0' : '') . $b;
             }
         }
-
+        
         return $color;
     }
-
-
+    
+    
     /**
      * Превръща вербална дата/време вкъм MySQL-ска data.
      * Ако няма параметър, връща текущото време, в страната, където е часовата зона.
@@ -464,7 +464,7 @@ class core_tests_DateTime extends unit_Class
             
             return date('Y-m-d H:i:s', time());
         }
-
+        
         return date('Y-m-d', time());
     }
     
@@ -472,7 +472,8 @@ class core_tests_DateTime extends unit_Class
     /**
      * Текуща дата (или текуща дата и час) в MySQL формат.
      *
-     * @param  boolean $full TRUE - дата и час; FALSE - само дата, без час.
+     * @param bool $full TRUE - дата и час; FALSE - само дата, без час.
+     *
      * @return string
      */
     public static function now($full = true)
@@ -490,8 +491,6 @@ class core_tests_DateTime extends unit_Class
     {
         return self::now(false);
     }
-
-
     
     
     /**
@@ -599,8 +598,8 @@ class core_tests_DateTime extends unit_Class
         
         return ((float) $usec + (float) $sec);
     }
-
-
+    
+    
     /**
      * Връща датата на православния Великден за указаната година
      */
@@ -619,7 +618,7 @@ class core_tests_DateTime extends unit_Class
         return strtotime("3 April ${year} + ${rc} days");
     }
     
-
+    
     /**
      * Връща датата на западния Великден за указаната година
      */

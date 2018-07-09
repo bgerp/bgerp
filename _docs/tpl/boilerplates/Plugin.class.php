@@ -7,10 +7,13 @@
  *
  * @category  bgerp
  * @package   [име на пакет]
+ *
  * @author    [Име на автора] <[имейл на автора]>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @todo      Текстовете в [правоъгълни скоби] да се заменят със съотв. стойности
  */
 class boilerplate_Plugin extends core_Plugin

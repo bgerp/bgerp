@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cal_LinkedPostponed extends core_Mvc
 {
-    
-    
     /**
      *
      * @var string
@@ -31,7 +31,7 @@ class cal_LinkedPostponed extends core_Mvc
     /**
      * Връща дейности, които са за дадения документ
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return array
      */
@@ -44,7 +44,7 @@ class cal_LinkedPostponed extends core_Mvc
     /**
      * Връща дейности, които са за дадения файл
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return array
      */
@@ -58,7 +58,7 @@ class cal_LinkedPostponed extends core_Mvc
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      */
     public function prepareFormForDocument(&$form, $cId, $activity)
@@ -71,7 +71,7 @@ class cal_LinkedPostponed extends core_Mvc
      * Подготвяне на формата за файл
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      */
     public function prepareFormForFile(&$form, $cId, $activity)
@@ -84,7 +84,7 @@ class cal_LinkedPostponed extends core_Mvc
      * След субмитване на формата за документ
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      *
      * @return mixed
@@ -99,7 +99,7 @@ class cal_LinkedPostponed extends core_Mvc
      * След субмитване на формата за файл
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      *
      * @return mixed
@@ -113,8 +113,8 @@ class cal_LinkedPostponed extends core_Mvc
     /**
      * Помощна функция за вземане на шаблоните
      *
-     * @param core_Query   $query
-     * @param NULL|integer $userId
+     * @param core_Query $query
+     * @param NULL|int   $userId
      *
      * @return array
      */
@@ -128,7 +128,7 @@ class cal_LinkedPostponed extends core_Mvc
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      */
     protected function prepareFormFor(&$form, $cId, $activity, $type = 'doc')
@@ -161,7 +161,7 @@ class cal_LinkedPostponed extends core_Mvc
      * Помощна функця за след субмитване на формата
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      * @param string    $type
      *

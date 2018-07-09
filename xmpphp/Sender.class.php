@@ -1,13 +1,10 @@
 <?php
 
 
-
 /**
  * @todo Чака за документация...
  */
 defIfNot('XMPPHP_VERSION', '0.1rc2-r77');
-
-
 
 
 /**
@@ -16,16 +13,16 @@ defIfNot('XMPPHP_VERSION', '0.1rc2-r77');
  *
  * @category  vendors
  * @package   xmpphp
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     XMPP
  */
 class xmpphp_Sender extends core_Manager
 {
-    
-    
     /**
      * Интерфейси
      */
@@ -50,6 +47,7 @@ class xmpphp_Sender extends core_Manager
             $conn->message($user, $message);
             $conn->disconnect();
         } catch (XMPPHP_Exception $e) {
+            
             return($e->getMessage());
         }
     }

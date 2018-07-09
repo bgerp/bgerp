@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Версията на toast message
  */
@@ -11,15 +12,15 @@ defIfNot('TOAST_MESSAGE_VERSION', '0.3.0f');
  *
  * @category  vendors
  * @package   toast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class toast_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -31,7 +32,7 @@ class toast_Setup extends core_ProtoSetup
      */
     public $info = 'Показване статус съобщенията в тост стил';
     
-
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -55,8 +56,8 @@ class toast_Setup extends core_ProtoSetup
         
         return $html;
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */

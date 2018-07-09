@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Драйвер за складови документи
  *
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Логистика » Складови документи
  */
 class store_reports_Documents extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -28,6 +27,7 @@ class store_reports_Documents extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField = 'containerId';
@@ -39,14 +39,14 @@ class store_reports_Documents extends frame2_driver_TableData
      * @var int
      */
     protected $filterEmptyListFields = 'pallets,lineId';
-
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'storeId,documentType,horizon';
-
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -58,7 +58,7 @@ class store_reports_Documents extends frame2_driver_TableData
         $fieldset->FLD('documentType', 'class(select=title)', 'caption=Документи,placeholder=Всички,after=storeId');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
     }
-
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -74,7 +74,7 @@ class store_reports_Documents extends frame2_driver_TableData
         $stores = self::getContableStores($form->rec);
         $form->setOptions('storeId', array('' => '') + $stores);
         $documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote', 'store_ConsignmentProtocols');
-    
+        
         $docOptions = array();
         foreach ($documents as $className) {
             $classId = $className::getClassId();
@@ -86,6 +86,7 @@ class store_reports_Documents extends frame2_driver_TableData
     
     /**
      * Връща складовете, в които може да контира потребителя
+     *
      * @return array $res
      */
     public static function getContableStores($rec)
@@ -103,13 +104,14 @@ class store_reports_Documents extends frame2_driver_TableData
         
         return $res;
     }
-
+    
     
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -128,15 +130,15 @@ class store_reports_Documents extends frame2_driver_TableData
                 self::applyFilters($cQuery, $storeIds, $pDoc, $rec, 'deadline');
                 while ($cRec = $cQuery->fetch()) {
                     $recs[$cRec->containerId] = (object) array('containerId' => $cRec->containerId,
-                                                              'stores' => array($cRec->storeId),
-                                                              'dueDate' => $cRec->deadline,
-                                                              'weight' => null,
-                                                              'pallets' => null,
-                                                              'linked' => $this->getLinkedDocuments($cRec->containerId),
-                                                              'folderId' => $cRec->folderId,
-                                                              'createdOn' => $cRec->createdOn,
-                                                              'createdBy' => $cRec->createdBy,
-                                                              'modifiedOn' => $cRec->modifiedOn,
+                        'stores' => array($cRec->storeId),
+                        'dueDate' => $cRec->deadline,
+                        'weight' => null,
+                        'pallets' => null,
+                        'linked' => $this->getLinkedDocuments($cRec->containerId),
+                        'folderId' => $cRec->folderId,
+                        'createdOn' => $cRec->createdOn,
+                        'createdBy' => $cRec->createdBy,
+                        'modifiedOn' => $cRec->modifiedOn,
                     );
                 }
             }
@@ -162,15 +164,15 @@ class store_reports_Documents extends frame2_driver_TableData
                     $sRec->{$Document->totalWeightFieldName} = ($sRec->weightInput) ? $sRec->weightInput : $sRec->{$Document->totalWeightFieldName};
                     
                     $recs[$sRec->containerId] = (object) array('containerId' => $sRec->containerId,
-                                                              'stores' => $stores,
-                                                              'dueDate' => $sRec->deliveryTime,
-                                                              'weight' => $sRec->{$Document->totalWeightFieldName},
-                                                              'pallets' => null, // @TODO
-                                                              'linked' => $linked,
-                                                              'folderId' => $sRec->folderId,
-                                                              'createdOn' => $sRec->createdOn,
-                                                              'createdBy' => $sRec->createdBy,
-                                                              'modifiedOn' => $sRec->modifiedOn,
+                        'stores' => $stores,
+                        'dueDate' => $sRec->deliveryTime,
+                        'weight' => $sRec->{$Document->totalWeightFieldName},
+                        'pallets' => null, // @TODO
+                        'linked' => $linked,
+                        'folderId' => $sRec->folderId,
+                        'createdOn' => $sRec->createdOn,
+                        'createdBy' => $sRec->createdBy,
+                        'modifiedOn' => $sRec->modifiedOn,
                     );
                 }
             }
@@ -182,15 +184,15 @@ class store_reports_Documents extends frame2_driver_TableData
             self::applyFilters($pQuery, $storeIds, 'planning_DirectProductionNote', $rec, 'deadline');
             while ($pRec = $pQuery->fetch()) {
                 $recs[$pRec->containerId] = (object) array('containerId' => $pRec->containerId,
-                                                          'stores' => array($pRec->storeId),
-                                                          'dueDate' => $pRec->deadline,
-                                                          'weight' => null,
-                                                            'pallets' => null,
-                                                          'linked' => $this->getLinkedDocuments($pRec->containerId),
-                                                            'folderId' => $pRec->folderId,
-                                                          'createdOn' => $pRec->createdOn,
-                                                          'createdBy' => $pRec->createdBy,
-                                                          'modifiedOn' => $pRec->modifiedOn,
+                    'stores' => array($pRec->storeId),
+                    'dueDate' => $pRec->deadline,
+                    'weight' => null,
+                    'pallets' => null,
+                    'linked' => $this->getLinkedDocuments($pRec->containerId),
+                    'folderId' => $pRec->folderId,
+                    'createdOn' => $pRec->createdOn,
+                    'createdBy' => $pRec->createdBy,
+                    'modifiedOn' => $pRec->modifiedOn,
                 );
             }
         }
@@ -210,7 +212,7 @@ class store_reports_Documents extends frame2_driver_TableData
                     
                     return ($a->modifiedOn < $b->modifiedOn) ? -1 : 1;
                 }
-            
+                
                 return ($a->dueDate < $b->dueDate) ? -1 : 1;
             });
         }
@@ -277,8 +279,9 @@ class store_reports_Documents extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -311,7 +314,7 @@ class store_reports_Documents extends frame2_driver_TableData
             $mask = ($delYear == $curYear) ? 'd.M H:i' : 'd.M.y H:i';
             $row->dueDate = dt::mysql2verbal($dRec->dueDate, $mask);
         }
-            
+        
         $row->createdOn = core_Type::getByName('datetime(format=smartTime)')->toVerbal($dRec->createdOn);
         
         if (!empty($dRec->weight)) {
@@ -344,8 +347,9 @@ class store_reports_Documents extends frame2_driver_TableData
     /**
      * Свързаните документи
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $html
+     * @param stdClass $dRec
+     * @param bool     $html
+     *
      * @return string
      */
     private static function getLinked($dRec, $html = true)
@@ -356,7 +360,7 @@ class store_reports_Documents extends frame2_driver_TableData
             $link = ($html !== true) ? '#' .$Document->getHandle() : $Document->getLink(0)->getContent();
             $linkedArr[] = ($html !== true) ? $link : "<tr><td>{$link}<td></tr>";
         }
-            
+        
         return ($html !== true) ? implode(', ', $linkedArr) : "<table class='small no-border'>" . implode('', $linkedArr) . '</table>';
     }
     
@@ -364,8 +368,9 @@ class store_reports_Documents extends frame2_driver_TableData
     /**
      * Връща складовете
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $html
+     * @param stdClass $dRec
+     * @param bool     $html
+     *
      * @return string
      */
     private static function getStores($dRec, $links = true)
@@ -404,8 +409,9 @@ class store_reports_Documents extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -416,7 +422,7 @@ class store_reports_Documents extends frame2_driver_TableData
         if (empty($rec->storeId)) {
             $fld->FLD('stores', 'varchar', 'caption=Склад,tdClass=small');
         }
-
+        
         if ($export === false) {
             $fld->FLD('dueDate', 'datetime', 'tdClass=small nowrap,caption=Срок');
             $fld->FLD('weight', 'varchar', 'caption=Тегло,tdClass=small nowrap');
@@ -458,8 +464,9 @@ class store_reports_Documents extends frame2_driver_TableData
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
-     * @param  stdClass $rec
-     * @return boolean  $res
+     * @param stdClass $rec
+     *
+     * @return bool $res
      */
     public function canSendNotificationOnRefresh($rec)
     {
@@ -490,13 +497,13 @@ class store_reports_Documents extends frame2_driver_TableData
         if (is_array($dataRecsNew)) {
             foreach ($dataRecsNew as $index => $new) {
                 $old = $dataRecsNew[$index];
-                    
+                
                 // Ако има нов документ - известяване
                 if (!array_key_exists($index, $dataRecsOld)) {
                     
                     return true;
                 }
-                    
+                
                 // Ако има промяна в крайния срок - известяване
                 if ($new->dueDate != $old->dueDate) {
                     
@@ -512,7 +519,8 @@ class store_reports_Documents extends frame2_driver_TableData
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param  stdClass    $rec - запис
+     * @param stdClass $rec - запис
+     *
      * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
      */
     public function getNextRefreshDates($rec)

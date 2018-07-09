@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Меню
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens_Overviews extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -48,7 +47,7 @@ class sens_Overviews extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, title=Заглавие';
-
+    
     
     /**
      * Детайла, на модела
@@ -181,8 +180,9 @@ class sens_Overviews extends core_Master
     /**
      * Шаблон за менюто
      *
-     * @param  stdClass $data
-     * @return core_Et  $tpl
+     * @param stdClass $data
+     *
+     * @return core_Et $tpl
      */
     public function renderSingleLayout_(&$data)
     {
@@ -194,19 +194,19 @@ class sens_Overviews extends core_Master
         
         if ($view == 'table') {
             $data->toolbar->addBtn('Изглед', array('Ctr' => $this,
-                    'Act' => 'single',
-                    'id' => $data->rec->id,
-                    'view' => 'overview',
-                    'ret_url' => true));
+                'Act' => 'single',
+                'id' => $data->rec->id,
+                'view' => 'overview',
+                'ret_url' => true));
         }
         
         if ($view == 'overview') {
             $data->toolbar->removeBtn('btnEdit');
             $data->toolbar->addBtn('Таблица', array('Ctr' => $this,
-                    'Act' => 'single',
-                    'id' => $data->rec->id,
-                    'view' => 'table',
-                    'ret_url' => true));
+                'Act' => 'single',
+                'id' => $data->rec->id,
+                'view' => 'table',
+                'ret_url' => true));
         }
         
         // Show 'table'

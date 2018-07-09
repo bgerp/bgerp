@@ -1,22 +1,24 @@
 <?php
 
 
-
 /**
  * Клас 'core_Array' ['arr'] - Функции за работа с масиви
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Array
 {
     public static $rand;
+    
     
     /**
      * Конкатенира към стойностите от първия масив, стойностите от втория със
@@ -72,6 +74,7 @@ class core_Array
     public static function make($mixed, $noIntKeys = false, $sep = null)
     {
         if (!$mixed) {
+            
             return array();
         } elseif (is_array($mixed)) {
             $p = $mixed;
@@ -87,8 +90,10 @@ class core_Array
                 }
             }
             
+            
             /**
              * Ескейпваме двойния сепаратор
+             *
              * @todo: Необходимо ли е?
              */
             if (!static::$rand) {
@@ -140,17 +145,20 @@ class core_Array
         $arr2 = arr::make($arr2, true);
         
         if ((count($arr1) == 0) || (count($arr2) == 0)) {
+            
             return true;
         }
         
         foreach ($arr1 as $key => $value) {
             if (isset($arr2[$key])) {
+                
                 return true;
             }
         }
         
         foreach ($arr2 as $key => $value) {
             if (isset($arr1[$key])) {
+                
                 return true;
             }
         }
@@ -165,6 +173,7 @@ class core_Array
     public static function getMaxValueKey($arr)
     {
         if (count($arr)) {
+            
             return array_search(max($arr), $arr);
         }
     }
@@ -484,9 +493,10 @@ class core_Array
     /**
      * Връща уникален индекс от полета в обект
      *
-     * @param  stdClass $rec       - запис
-     * @param  mixed    $keyFields - списък с полета за уникалния индекс
-     * @return string   $nKey - уникалния индекс
+     * @param stdClass $rec       - запис
+     * @param mixed    $keyFields - списък с полета за уникалния индекс
+     *
+     * @return string $nKey - уникалния индекс
      */
     public static function makeUniqueIndex($rec, $keyFields)
     {
@@ -508,8 +518,10 @@ class core_Array
     public static function count($arr)
     {
         if (is_array($arr)) {
+            
             return count($arr);
         }
+        
         // Очаква се или масив или == FALSE
         expect(!$arr, $arr);
     }
@@ -518,9 +530,10 @@ class core_Array
     /**
      * Допълва в един масив ключовете, които липсват в него
      *
-     * @param  stdClass|array $objectToFill   - масив или запис, който ще се допълва
-     * @param  stdClass|array $fillFromObject - масив или запис, от който ще се допълват
-     * @return array          $arrayToFill - оригиналния масив или запис, но с допълнени стойности
+     * @param stdClass|array $objectToFill   - масив или запис, който ще се допълва
+     * @param stdClass|array $fillFromObject - масив или запис, от който ще се допълват
+     *
+     * @return array $arrayToFill - оригиналния масив или запис, но с допълнени стойности
      */
     public static function fillMissingKeys($objectToFill, $fillFromObject)
     {
@@ -543,14 +556,16 @@ class core_Array
     /**
      * Извлича масив със стойностите на определено поле от масив от обекти/масиви
      *
-     * @param  array  $arr   - масив от който ще се извличат стойностите
-     * @param  string $field - стойност на записа за екстрактване
-     * @return array  $result - екстракнатите стойности, в масив
+     * @param array  $arr   - масив от който ще се извличат стойностите
+     * @param string $field - стойност на записа за екстрактване
+     *
+     * @return array $result - екстракнатите стойности, в масив
      */
     public static function extractValuesFromArray($arr, $field)
     {
         expect(is_array($arr));
         $result = array_values(array_map(function ($obj) use ($field) {
+            
             return (is_object($obj)) ? $obj->{$field} : $obj[$field];
         }, $arr));
         $result = array_values($result);
@@ -565,9 +580,10 @@ class core_Array
     /**
      * Извлича масив със стойности от масив със други стойности
      *
-     * @param  array  $arr    - масив от който ще се извличат стойностите
-     * @param  string $fields - полета
-     * @return array  $res     - екстракнатите стойности, в масив
+     * @param array  $arr    - масив от който ще се извличат стойностите
+     * @param string $fields - полета
+     *
+     * @return array $res     - екстракнатите стойности, в масив
      */
     public static function extractSubArray($arr, $fields)
     {
@@ -590,9 +606,10 @@ class core_Array
      * Ф-я проверяваща дали два масива/обекта имат еднакви ключове/стойности, без да е нужно да са в
      * същата последователност
      *
-     * @param  array|stdClass $array1
-     * @param  array|stdClass $array2
-     * @return boolean        $res
+     * @param array|stdClass $array1
+     * @param array|stdClass $array2
+     *
+     * @return bool $res
      */
     public static function areEqual($array1, $array2)
     {
@@ -607,6 +624,7 @@ class core_Array
     
     /**
      * Вмъкване на подмасив в масив
+     *
      * @param array      $array    Оригинален масив
      * @param int|string $position Стрингов индекс или числова позиция
      * @param mixed      $insert   Какво ще вмъкваме
@@ -630,9 +648,10 @@ class core_Array
     /**
      * Връща нов масив само с посочените стойности от подадения масив
      *
-     * @param  stdClass|array $arr    - обект
-     * @param  string|array   $fields - кои стойностти да се върнат
-     * @return array          $resObj    - резултатен обект
+     * @param stdClass|array $arr    - обект
+     * @param string|array   $fields - кои стойностти да се върнат
+     *
+     * @return array $resObj    - резултатен обект
      */
     public static function getSubArray($arr, $fields)
     {

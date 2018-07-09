@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class draw_Setup
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   draw
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class draw_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -53,11 +52,11 @@ class draw_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'draw_Designs',
-            'draw_Pens',
-        );
+        'draw_Designs',
+        'draw_Pens',
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
@@ -65,7 +64,7 @@ class draw_Setup extends core_ProtoSetup
         array('draw'),
         array('drawMaster', 'draw'),
     );
-     
+    
     
     /**
      * Де-инсталиране на пакета

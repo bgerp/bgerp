@@ -6,15 +6,15 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Ajax extends core_Mvc
 {
-    
-    
     /**
      * Колко дни да остане в лога
      */
@@ -68,13 +68,13 @@ class core_Ajax extends core_Mvc
         
         // Стойности, които да се игнорират
         Request::ignoreParams(array('subscribed' => true,
-                                    'parentUrl' => true,
-                                    'idleTime' => true,
-                                    'hitTime' => true,
-                                    'ajax_mode' => true,
-                                    'refreshUrl' => true,
-                                    'divId' => true,
-                                    'hitId' => true));
+            'parentUrl' => true,
+            'idleTime' => true,
+            'hitTime' => true,
+            'ajax_mode' => true,
+            'refreshUrl' => true,
+            'divId' => true,
+            'hitId' => true));
         
         // Обхождаме всички подадедени локални URL-та
         foreach ((array) $subscribedArr as $name => $url) {
@@ -152,7 +152,7 @@ class core_Ajax extends core_Mvc
                     // Показваме статус съобщение
                     core_Statuses::newStatus($errMsg, 'warning');
                 }
-                 
+                
                 continue;
             }
             
@@ -197,7 +197,7 @@ class core_Ajax extends core_Mvc
                 // Показваме статус съобщение
                 core_Statuses::newStatus($msg, 'warning');
             }
-            
+
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {
 //
@@ -217,7 +217,7 @@ class core_Ajax extends core_Mvc
         
         // Ескейпваме
         $localUrl = urlencode($localUrl);
-                
+        
         // Добавяме стринга, който субскрайбва съответното URL
         jquery_Jquery::run($tpl, "getEfae().subscribe('{$name}', '{$localUrl}', {$interval});", true);
     }

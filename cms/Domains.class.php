@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на домейни на които отговаря CSM подсистемата
  *
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_Domains extends core_Embedder
 {
-    
-    
     /**
      * Име под което записваме в сесията текущия език на CMS изгледа
      */
@@ -27,13 +26,13 @@ class cms_Domains extends core_Embedder
      * Име под което записваме в сесията текущия домейн на CMS изгледа
      */
     const CMS_CURRENT_DOMAIN_REC = 'CMS_CURRENT_DOMAIN_REC';
-
+    
     
     /**
      * Необходими плъгини
      */
     public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created,plg_Current';
-                      
+    
     
     /**
      * Заглавие
@@ -45,7 +44,7 @@ class cms_Domains extends core_Embedder
      * Заглавие на мениджъра
      */
     public $title = 'Домейни';
-
+    
     
     /**
      * Права за писане
@@ -68,10 +67,11 @@ class cms_Domains extends core_Embedder
     
     // Админа може да редактира и изтрива създадените от системата записи
     public $canEditsysdata = 'admin';
-
-
+    
+    
     public $canDeletesysdata = 'admin';
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -88,14 +88,14 @@ class cms_Domains extends core_Embedder
      * Икона по подразбиране за единичния обект
      */
     public $singleIcon = 'img/16/domain_names_advanced.png';
-
+    
     
     /**
      * Поле за единичен изглед
      */
     public $rowToolsSingleField = 'domain';
-
-
+    
+    
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
@@ -119,13 +119,13 @@ class cms_Domains extends core_Embedder
      */
     public $innerStateField = 'state';
     
-
+    
     /**
      * Текущият публичен домейн
      */
     public static $publicDomainRec;
     
-
+    
     /**
      * Описание на модела
      */
@@ -137,21 +137,21 @@ class cms_Domains extends core_Embedder
         // Език
         $this->FLD('lang', 'varchar(2)', 'caption=Език');
         
-
+        
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');
-
+        
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('form', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
-
+        
         // Извлечените данни за отчета. "Снимка" на състоянието на източника.
         $this->FLD('state', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
         
         // Споделяне
         $this->FLD('shared', 'userList(roles=cms|admin|ceo)', 'caption=Споделяне');
-
+        
         $this->setDbUnique('domain,lang');
-
+        
         // SEO Заглавие
         $this->FLD('seoTitle', 'varchar(15)', 'caption=SEO->Title,autohide');
         
@@ -161,8 +161,8 @@ class cms_Domains extends core_Embedder
         // SEO Ключови думи
         $this->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,autohide');
     }
-
-
+    
+    
     /**
      * Вземаме всички публични домейни
      */
@@ -170,20 +170,20 @@ class cms_Domains extends core_Embedder
     {
         // Вземаме домейна от текущото URL
         $domain = strtolower(trim($_SERVER['SERVER_NAME']));
-
+        
         // Най-добре е да имаме запис за точно този домейн
         $query = self::getQuery();
         $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $domain));
         
         if (!$domainRecs || count($domainRecs) == 0) {
-             
+            
             // Намираме и алтернативния домейн
             if (strpos($domain, 'www.') === 0) {
                 $altDomain = substr($domain, 4);
             } else {
                 $altDomain = 'www.' . $domain;
             }
-
+            
             $query = self::getQuery();
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $altDomain));
         }
@@ -192,20 +192,20 @@ class cms_Domains extends core_Embedder
             $query = self::getQuery();
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
-
+        
         return $domainRecs;
     }
-
-
+    
+    
     /**
      * Връща id към текущия домейн
      */
     public static function getPublicDomain($part = null, $lang = null)
     {
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
-
+        
         $domainId = cms_Domains::getCurrent('id', false);
-
+        
         if ($domainId && (!isset($domainRec) || ($domainRec->id != $domainId))) {
             self::setPublicDomain($domainId);
             $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
@@ -213,10 +213,10 @@ class cms_Domains extends core_Embedder
         
         // Вземаме домейна от текущото URL
         $domain = strtolower(trim($_SERVER['SERVER_NAME']));
-
+        
         if (!$domainRec || (isset($lang) && $domainRec->lang != $lang) || ($domainRec->actualDomain != $domain)) {
             $domainRecs = self::findPublicDomainRecs();
-                
+            
             $cmsLangs = self::getCmsLangs($domainRecs);
             
             // Определяме езика, ако не е зададен или е зададен неправилно
@@ -236,9 +236,9 @@ class cms_Domains extends core_Embedder
                 
                 // Задаваме действителния домейн, на който е намерен този
                 $domainRec->actualDomain = $domain;
-        
+                
                 Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
-
+                
                 if ($domainRec->id) {
                     self::selectCurrent($domainRec->id);
                 }
@@ -248,16 +248,16 @@ class cms_Domains extends core_Embedder
         if (!$domainRec || ($part == 'id' && !$domainRec->{$part})) {
             wp($domainRec);
         }
-              
+        
         if ($part) {
             
             return $domainRec->{$part};
         }
-
+        
         return $domainRec;
     }
-
-
+    
+    
     /**
      * Задава текущия публичен домейн
      */
@@ -267,11 +267,11 @@ class cms_Domains extends core_Embedder
         
         // Задаваме действителния домейн, на който е намерен този
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
-
+        
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
     }
-
-
+    
+    
     /**
      * Връща възможните езици за подадените домейни
      */
@@ -280,11 +280,11 @@ class cms_Domains extends core_Embedder
         if (!$domainRecs) {
             $domainRecs = self::findPublicDomainRecs();
         }
-
+        
         foreach ($domainRecs as $rec) {
             $cmsLangs[$rec->lang] = $rec->lang;
         }
-  
+        
         return $cmsLangs;
     }
     
@@ -306,8 +306,8 @@ class cms_Domains extends core_Embedder
             $form->rec->{$field} = self::getCurrent();
         }
     }
-
- 
+    
+    
     /**
      * Определя най-добрия език за този потребител за тази сесия
      */
@@ -332,15 +332,15 @@ class cms_Domains extends core_Embedder
         
         $langs = $langParse[1]; // M1 - First part of language
         $quals = $langParse[4]; // M4 - Quality Factor
- 
+        
         $numLanguages = count($langs);
         $langArr = array();
-
+        
         for ($num = 0; $num < $numLanguages; $num++) {
             $newLang = strtolower($langs[$num]);
             $newQual = isset($quals[$num]) ?
               (empty($quals[$num]) ? 1.0 : floatval($quals[$num])) : 0.0;
-
+            
             // Choose whether to upgrade or set the quality factor for the
             // primary language.
             $langArr[$newLang] = (isset($langArr[$newLang])) ?
@@ -356,16 +356,16 @@ class cms_Domains extends core_Embedder
                 }
             }
         }
-
+        
         setIfNot($langArr['en'], 0.01);
-
+        
         if ($langArr['en']) {
             $langArr['en'] *= 0.99;
         }
         if ($langArr['bg']) {
             $langArr['bg'] *= 1.80;
         }
-
+        
         // sort list based on value
         // langArr will now be an array like: array('EN' => 1, 'ES' => 0.5)
         arsort($langArr, SORT_NUMERIC);
@@ -380,8 +380,8 @@ class cms_Domains extends core_Embedder
         // Ако не сме определили езика - връщаме първия срещнат
         return key($langArr);
     }
-
-
+    
+    
     /**
      * Връща темата за външния изглед
      */
@@ -391,11 +391,11 @@ class cms_Domains extends core_Embedder
         if ($dRec) {
             $driver = self::getDriver($dRec->id);
         }
-
+        
         return $driver;
     }
-
-
+    
+    
     /**
      * Проверка за коректност на входната форма
      */
@@ -408,7 +408,7 @@ class cms_Domains extends core_Embedder
             }
         }
     }
-
+    
     
     /**
      *  Обработки по вербалното представяне на данните
@@ -417,7 +417,6 @@ class cms_Domains extends core_Embedder
     {
     }
     
-
     
     /**
      * Функция, която се извиква след активирането на документа
@@ -447,11 +446,11 @@ class cms_Domains extends core_Embedder
     public static function on_AfterRestore($mvc, &$res, &$rec)
     {
         $Driver = $mvc->getDriver($rec->id);
-    
+        
         $Driver->invoke('AfterRestore', array(&$rec->data, &$rec));
     }
-
-
+    
+    
     /**
      * Подготвя формата
      * - Прави списъка с езиците
@@ -495,8 +494,8 @@ class cms_Domains extends core_Embedder
             }
         }
     }
-
-
+    
+    
     /**
      * Връща заглавието на дадения запис (името на параметъра)
      */
@@ -507,26 +506,26 @@ class cms_Domains extends core_Embedder
         }
         
         $title = "{$rec->domain}, {$rec->lang}";
-
+        
         if ($escape) {
             $title = type_Varchar::escape($title);
         }
-
+        
         return $title;
     }
-
-
+    
+    
     /**
      * Връща добавка за домейна в листовия изглед на други модели
      */
     public static function getCurrentDomainInTitle()
     {
         $res = '|* [<span style="color:green">' . self::getCurrent('domain') . '</span>, <span style="color:green">' . self::getCurrent('lang') . '</span>]';
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Унищожава кеша след запис
      */
@@ -534,8 +533,8 @@ class cms_Domains extends core_Embedder
     {
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, null);
     }
-
-
+    
+    
     /**
      * Поне един домейн
      */
@@ -547,25 +546,25 @@ class cms_Domains extends core_Embedder
             self::save($rec);
         }
     }
-
-
+    
+    
     /**
      * Връща SEO залгавието за текущия домейн
      */
     public static function getSeoTitle()
     {
         $rec = self::getPublicDomain();
-
+        
         if ($rec->seoTitle) {
             $res = self::getVerbal($rec, 'seoTitle');
         } else {
             $res = core_Setup::get('EF_APP_TITLE', true);
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Опции от наличните домейни
      *
@@ -586,8 +585,9 @@ class cms_Domains extends core_Embedder
     /**
      * Какви са настройките на домейна
      *
-     * @param  int           $domainId
-     * @param  datetime|NULL $date     - към коя дата
+     * @param int           $domainId
+     * @param datetime|NULL $date     - към коя дата
+     *
      * @return array
      */
     public static function getSettings($domainId = null, $date = null)

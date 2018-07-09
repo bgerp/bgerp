@@ -6,22 +6,23 @@
  */
 defIfNot('JQDATEPICKER_VERSION', 'v5.0.0');
 
+
 /**
  * Клас 'jqdatepick_Setup' -
  *
  *
  * @category  vendors
  * @package   jqdatepick
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class jqdatepick_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -39,9 +40,10 @@ class jqdatepick_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-           'JQDATEPICKER_VERSION' => array('enum(v4.0.6, v5.0.0)', 'mandatory, caption=Версията на програмата->Версия')
+        'JQDATEPICKER_VERSION' => array('enum(v4.0.6, v5.0.0)', 'mandatory, caption=Версията на програмата->Версия')
     
-             );
+    );
+    
     
     /**
      * Инсталиране на пакета
@@ -76,8 +78,8 @@ class jqdatepick_Setup extends core_ProtoSetup
         
         return $html;
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */

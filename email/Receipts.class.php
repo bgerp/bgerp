@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Клас 'email_Returned' - регистър на обратните разписки
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Milen Georgiev <milen2experta.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Receipts extends email_ServiceEmails
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -93,19 +92,20 @@ class email_Receipts extends email_ServiceEmails
         
         if ($isReceipt) {
             $rec = new stdClass();
+            
             // Само първите 100К от писмото
             $rec->data = substr($mime->getData(), 0, 100000);
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
-
+            
             self::save($rec);
             
             self::logNotice('Получена обратна разписка', $rec->id);
             
             blast_BlockedEmails::addSentEmailFromText($mid, $mime);
         }
-
+        
         return $isReceipt;
     }
     
@@ -114,7 +114,7 @@ class email_Receipts extends email_ServiceEmails
      * В зависимост от съдържанието на заглавието и текста, се опитваме да определим mid за обратна разписка
      *
      * @param email_Mime $mime
-     * @param integer    $accId
+     * @param int        $accId
      *
      * @return string|NULL
      */
@@ -186,7 +186,7 @@ class email_Receipts extends email_ServiceEmails
      *
      * @param string $text
      *
-     * @return boolean|NULL
+     * @return bool|NULL
      */
     protected static function checkTextPart($text)
     {
@@ -215,7 +215,7 @@ class email_Receipts extends email_ServiceEmails
      *
      * @param email_Mime $mime
      *
-     * @return boolean
+     * @return bool
      */
     protected static function checkHeader($mime)
     {

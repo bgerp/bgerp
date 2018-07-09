@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Столуващи хора
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_EmployeesList extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -79,7 +78,7 @@ class catering_EmployeesList extends core_Manager
         
         $this->setDbUnique('personId');
     }
-
+    
     
     /**
      * Сменяме заглавието
@@ -93,7 +92,7 @@ class catering_EmployeesList extends core_Manager
             $data->title = 'Столуващ';
         }
     }
-
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -114,6 +113,7 @@ class catering_EmployeesList extends core_Manager
         $row->tel = $mvc->CrmPersons->fetchField($rec->personId, 'tel');
         $row->email = "<a href='mailto:" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "'>" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "</a>";*/
     }
+    
     
     /**
      * Връща $personId от модела EmployeesList по потребител в системата

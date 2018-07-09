@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за динамични справки
  *
  *
  * @category  bgerp
  * @package   frame2
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class frame2_Reports extends embed_Manager
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -33,7 +32,7 @@ class frame2_Reports extends embed_Manager
      * Необходими плъгини
      */
     public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close';
-                      
+    
     
     /**
      * Кой има право да клонира?
@@ -51,13 +50,13 @@ class frame2_Reports extends embed_Manager
      * Заглавие
      */
     public $singleTitle = 'Справка';
-   
+    
     
     /**
      * Заглавие на мениджъра
      */
     public $title = 'Справки';
-
+    
     
     /**
      * Да се забрани ли кеширането на документа
@@ -87,8 +86,8 @@ class frame2_Reports extends embed_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, report, admin';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -117,8 +116,8 @@ class frame2_Reports extends embed_Manager
      * Икона по подразбиране за единичния обект
      */
     public $singleIcon = 'img/16/report.png';
-
-
+    
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -129,8 +128,8 @@ class frame2_Reports extends embed_Manager
      * Групиране на документите
      */
     public $newBtnGroup = false;
-
-
+    
+    
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -242,7 +241,7 @@ class frame2_Reports extends embed_Manager
         $rec = $form->rec;
         $form->setField('notificationText', array('placeholder' => self::$defaultNotificationText));
         $form->setField('maxKeepHistory', array('placeholder' => self::MAX_VERSION_HISTORT_COUNT));
-    
+        
         if ($Driver = self::getDriver($rec)) {
             $dates = $Driver->getNextRefreshDates($rec);
             if ((is_array($dates) && count($dates)) || $dates === false) {
@@ -314,7 +313,7 @@ class frame2_Reports extends embed_Manager
                 if (isset($rec->id)) {
                     $refresh = false;
                     $oldRec = self::fetch($rec->id);
-                
+                    
                     // Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
                     $fields = $mvc->getDriverFields($Driver);
                     foreach ($fields as $name => $caption) {
@@ -323,7 +322,7 @@ class frame2_Reports extends embed_Manager
                             break;
                         }
                     }
-                
+                    
                     // Ако е променен броя на версиите ъпдейт
                     if ($rec->maxKeepHistory != $oldRec->maxKeepHistory) {
                         $rec->updateVersionHistory = true;
@@ -379,7 +378,8 @@ class frame2_Reports extends embed_Manager
     /**
      * Изпращане на нотификации на споделените потребители
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return void
      */
     public static function sendNotification($rec)
@@ -387,6 +387,7 @@ class frame2_Reports extends embed_Manager
         // Ако няма избрани потребители за нотифициране, не се прави нищо
         $userArr = keylist::toArray($rec->sharedUsers);
         if (!count($userArr)) {
+            
             return;
         }
         
@@ -428,14 +429,14 @@ class frame2_Reports extends embed_Manager
     public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-         
+        
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->recTitle = $row->title;
-    
+        
         return $row;
     }
     
@@ -517,6 +518,7 @@ class frame2_Reports extends embed_Manager
         try {
             expect($rec = self::fetch($data->id));
             if ($rec->state == 'rejected') {
+                
                 return;
             }
             self::refresh($rec);
@@ -558,6 +560,7 @@ class frame2_Reports extends embed_Manager
             
             // Ако справката сега е създадена да не се обновява
             if ($rec->__isCreated === true) {
+                
                 return;
             }
             
@@ -704,7 +707,7 @@ class frame2_Reports extends embed_Manager
                 foreach (array('createdBy', 'sharedUsers', 'changeFields') as $exFld) {
                     ${$exFld} = $fRec->{$exFld};
                 }
-            
+                
                 // Кои са избраните полета за промяна (ако има)
                 $changeAbleFields = type_Set::toArray($changeFields);
                 
@@ -758,7 +761,8 @@ class frame2_Reports extends embed_Manager
     /**
      * Коя е последната избрана версия от потребителя
      *
-     * @param  int $id - ид
+     * @param int $id - ид
+     *
      * @return int - ид на последната версия
      */
     public static function getSelectedVersionId($id)
@@ -824,7 +828,8 @@ class frame2_Reports extends embed_Manager
     /**
      * Премахване на зададените времена за обновяване
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return void
      */
     private static function removeAllSetUpdateTimes($id)
@@ -841,7 +846,8 @@ class frame2_Reports extends embed_Manager
     /**
      * Задаване на автоматично време за изпълнение
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return void
      */
     private static function setAutoRefresh($id)
@@ -879,7 +885,8 @@ class frame2_Reports extends embed_Manager
     /**
      * Следващото обновяване на отчета
      *
-     * @param  stdClass      $rec
+     * @param stdClass $rec
+     *
      * @return datetime|NULL
      */
     private function getNextRefreshTime($rec)
@@ -897,8 +904,9 @@ class frame2_Reports extends embed_Manager
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param  stdClass $rec - запис
-     * @return array    - масив с три дати
+     * @param stdClass $rec - запис
+     *
+     * @return array - масив с три дати
      */
     private static function getNextRefreshDates($rec)
     {
@@ -930,10 +938,10 @@ class frame2_Reports extends embed_Manager
                     $before[$k] = $d;
                 }
             }
-             
+            
             ksort($after);
             ksort($before);
-             
+            
             // Връща се масив с подредените относително дни
             $orderArr = array_merge($after, $before);
             $count = count($orderArr);
@@ -944,7 +952,7 @@ class frame2_Reports extends embed_Manager
             } elseif ($count == 2) {
                 $orderArr = array_merge($orderArr, array($orderArr[key($orderArr)]));
             }
-             
+            
             // Генериране на следващите три дена за изпълняване
             foreach ($orderArr as $d1) {
                 $date->modify("next {$d1}");
@@ -1010,8 +1018,9 @@ class frame2_Reports extends embed_Manager
     /**
      * Помощна ф-я кога дадения обект е последно видян от потребител
      *
-     * @param  mixed         $classId  - клас
-     * @param  mixed         $objectId - ид на запис или обект
+     * @param mixed $classId  - клас
+     * @param mixed $objectId - ид на запис или обект
+     *
      * @return datetime|NULL - на коя дата
      */
     private static function getLastSeenByUser($classId, $objectId)

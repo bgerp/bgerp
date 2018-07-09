@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_HideMeasureAndQuantityColumns extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -35,9 +35,10 @@ class doc_plg_HideMeasureAndQuantityColumns extends core_Plugin
         $rows = &$data->rows;
         
         if (!count($rows)) {
+            
             return;
         }
-    
+        
         $unset = true;
         $pcsId = cat_UoM::fetchBySinonim('pcs')->id;
         

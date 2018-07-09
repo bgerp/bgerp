@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на Каси
  *
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_Cases extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -93,8 +92,8 @@ class cash_Cases extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, cash';
-
-
+    
+    
     /**
      * Кой може да активира?
      */
@@ -132,10 +131,11 @@ class cash_Cases extends core_Master
      * $autoList.
      *
      * @see acc_plg_Registry
+     *
      * @var string
      */
     public $autoList = 'case';
- 
+    
     
     /**
      * Файл с шаблон за единичен изглед
@@ -165,7 +165,7 @@ class cash_Cases extends core_Master
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
         $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-    
+        
         $this->setDbUnique('name');
     }
     
@@ -199,13 +199,13 @@ class cash_Cases extends core_Master
                 if ($balRec = acc_Balances::getLastBalance()) {
                     $bQuery = acc_BalanceDetails::getQuery();
                     acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, null, $caseItem->id);
-                     
+                    
                     // Събираме ги да намерим крайното салдо на перото
                     while ($bRec = $bQuery->fetch()) {
                         $rec->blAmount += $bRec->blAmount;
                     }
                 }
-                 
+                
                 // Обръщаме го във четим за хората вид
                 $Double = cls::get('type_Double');
                 $Double->params['decimals'] = 2;
@@ -229,6 +229,7 @@ class cash_Cases extends core_Master
     
     /**
      * Подготвя и осъществява търсене по каса, изпозлва се в касовите документи
+     *
      * @param stdClass $data
      * @param array    $fields - масив от полета в полета в които ще се
      *                         търси по caseId
@@ -257,6 +258,7 @@ class cash_Cases extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         if (!count($data->rows)) {
+            
             return;
         }
         
@@ -291,6 +293,7 @@ class cash_Cases extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
+     *
      * @param int $objectId
      */
     public static function getItemRec($objectId)
@@ -312,12 +315,14 @@ class cash_Cases extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
     {
         // @todo!
     }
+    
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

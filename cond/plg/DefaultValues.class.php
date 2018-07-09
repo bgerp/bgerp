@@ -26,14 +26,15 @@
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_plg_DefaultValues extends core_Plugin
 {
-    
     /**
      * След инициализирането на модела
      *
@@ -50,8 +51,9 @@ class cond_plg_DefaultValues extends core_Plugin
     /**
      * Проверява дали този плъгин е приложим към зададен мениджър
      *
-     * @param  core_Mvc $mvc
-     * @return boolean
+     * @param core_Mvc $mvc
+     *
+     * @return bool
      */
     protected static function checkApplicability($mvc)
     {
@@ -63,7 +65,7 @@ class cond_plg_DefaultValues extends core_Plugin
         
         // ... към който е прикачен doc_DocumentPlg
         $plugins = arr::make($mvc->loadList);
-
+        
         if (isset($plugins['doc_DocumentPlg'])) {
             
             return false;
@@ -149,11 +151,13 @@ class cond_plg_DefaultValues extends core_Plugin
     
     /**
      * Намира последния документ в дадена папка от същия потребител
-     * @param  core_Mvc $mvc      - мениджъра
-     * @param  int      $folderId - ид на папката
-     * @param  boolean  $fromUser - дали документа да е от текущия
-     *                            потребител или не
-     * @return mixed    $rec - последния запис
+     *
+     * @param core_Mvc $mvc      - мениджъра
+     * @param int      $folderId - ид на папката
+     * @param bool     $fromUser - дали документа да е от текущия
+     *                           потребител или не
+     *
+     * @return mixed $rec - последния запис
      */
     private static function getFromLastDocUser(core_Mvc $mvc, $rec, $name)
     {
@@ -163,11 +167,13 @@ class cond_plg_DefaultValues extends core_Plugin
     
     /**
      * Намира последния документ в дадена папка
-     * @param  core_Mvc $mvc      - мениджъра
-     * @param  int      $folderId - ид на папката
-     * @param  boolean  $fromUser - дали документа да е от текущия
-     *                            потребител или не
-     * @return mixed    $rec - последния запис
+     *
+     * @param core_Mvc $mvc      - мениджъра
+     * @param int      $folderId - ид на папката
+     * @param bool     $fromUser - дали документа да е от текущия
+     *                           потребител или не
+     *
+     * @return mixed $rec - последния запис
      */
     private static function getFromLastDoc(core_Mvc $mvc, $rec, $name)
     {
@@ -181,6 +187,7 @@ class cond_plg_DefaultValues extends core_Plugin
     public static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = true)
     {
         if (empty($folderId)) {
+            
             return;
         }
         
@@ -216,7 +223,7 @@ class cond_plg_DefaultValues extends core_Plugin
         $query->where("#folderId != {$rec->folderId}");
         $query->groupBy('folderId');
         $query->show("{$name},folderId");
-       
+        
         while ($oRec = $query->fetch()) {
             try {
                 $cData2 = doc_Folders::getContragentData($oRec->folderId);
@@ -237,7 +244,7 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getFromDefMethod(core_Mvc $mvc, $rec, $name)
     {
         $name = "getDefault{$name}";
-
+        
         if (cls::existsMethod($mvc, $name)) {
             
             return $mvc->$name($rec);
@@ -247,6 +254,7 @@ class cond_plg_DefaultValues extends core_Plugin
     
     /**
      * Връща стойност от на търговско условие
+     *
      * @param string $salecondSysId - Sys Id на условие
      */
     private static function getFromClientCondition(core_Mvc $mvc, $rec, $name)
@@ -255,7 +263,7 @@ class cond_plg_DefaultValues extends core_Plugin
         if (isset($fld->salecondSysId)) {
             $cId = doc_Folders::fetchCoverId($rec->folderId);
             $Class = doc_Folders::fetchCoverClassId($rec->folderId);
-
+            
             // Ако е контрагент само
             if (!cls::haveInterface('doc_ContragentDataIntf', $Class)) {
                 
@@ -277,6 +285,7 @@ class cond_plg_DefaultValues extends core_Plugin
             // Ако документа няма такъв метод, се взимат контрагент данните от корицата
             $data = self::getCoverMethod($rec->folderId, 'getContragentData');
             if (empty($data)) {
+                
                 return;
             }
             
@@ -315,7 +324,7 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getFromCoverMethod(core_Mvc $mvc, $rec, $name)
     {
         $name = "getDefault{$name}";
-      
+        
         return self::getCoverMethod($rec->folderId, $name);
     }
     
@@ -326,6 +335,7 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getCoverMethod($folderId, $name)
     {
         if (empty($folderId)) {
+            
             return;
         }
         
@@ -341,12 +351,15 @@ class cond_plg_DefaultValues extends core_Plugin
     
     /**
      * Връща ид-то на папката на река
-     * @param  stdClass $rec - запис от модела
-     * @return int      $folderId - ид на папката
+     *
+     * @param stdClass $rec - запис от модела
+     *
+     * @return int $folderId - ид на папката
      */
     private static function getFolderId(&$rec)
     {
         if (isset($rec->folderId)) {
+            
             return;
         }
         if ($rec->originId) {

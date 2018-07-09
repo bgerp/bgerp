@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Бюджетиране - инсталиране / деинсталиране
  *
  *
  * @category  bgerp
  * @package   budget
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class budget_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -45,25 +44,26 @@ class budget_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'budget_Assets',
-            'budget_IncomeExpenses',
-            'budget_Balances',
-            'budget_Reports',
-        );
-
+        'budget_Assets',
+        'budget_IncomeExpenses',
+        'budget_Balances',
+        'budget_Reports',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'budget';
-  
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.2, 'Финанси', 'Бюджет', 'budget_Assets', 'default', 'budget, ceo'),
-        );
-
+        array(2.2, 'Финанси', 'Бюджет', 'budget_Assets', 'default', 'budget, ceo'),
+    );
+    
     
     /**
      * Де-инсталиране на пакета

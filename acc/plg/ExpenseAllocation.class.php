@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Плъгин за документи към, които може да се разпределят разходи
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_plg_ExpenseAllocation extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      *
@@ -45,12 +44,14 @@ class acc_plg_ExpenseAllocation extends core_Plugin
         $form = &$data->form;
         $rec = $form->rec;
         if (isset($rec->id)) {
+            
             return;
         }
         
         // Ако началото на нишката не е Покупка или ФС, не се прави нищо
         $firstDocument = doc_Threads::getFirstDocument($data->masterRec->threadId);
         if (!$firstDocument->isInstanceOf('purchase_Purchases') && !$firstDocument->isInstanceOf('findeals_Deals')) {
+            
             return;
         }
         
@@ -129,7 +130,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 if (isset($rec->chosenProducts)) {
                     $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
                     $copyArr = $rec->productsData;
-                
+                    
                     if ($error = acc_ValueCorrections::allocateAmount($copyArr, $rec->quantity, $rec->allocationBy)) {
                         $form->setError('allocateBy,chosenProducts', $error);
                     }
@@ -147,16 +148,16 @@ class acc_plg_ExpenseAllocation extends core_Plugin
         // След създаване, ако има избрано разходно перо
         if (isset($rec->expenseItemId)) {
             $containerId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'containerId');
-        
+            
             // Записва се в регистъра на разходи
             $costRec = (object) array('detailClassId' => $mvc->getClassId(),
-                                     'expenseItemId' => $rec->expenseItemId,
-                                     'allocationBy' => $rec->allocationBy,
-                                     'detailRecId' => $rec->id,
-                                     'productId' => $rec->{$mvc->productIdFld},
-                                     'quantity' => $rec->{$mvc->quantityFld},
-                                     'productsData' => $rec->productsData,
-                                     'containerId' => $containerId);
+                'expenseItemId' => $rec->expenseItemId,
+                'allocationBy' => $rec->allocationBy,
+                'detailRecId' => $rec->id,
+                'productId' => $rec->{$mvc->productIdFld},
+                'quantity' => $rec->{$mvc->quantityFld},
+                'productsData' => $rec->productsData,
+                'containerId' => $containerId);
             
             // Запис на разхода
             acc_CostAllocations::save($costRec);
@@ -194,6 +195,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
     {
         $rows = &$data->rows;
         if (!count($rows)) {
+            
             return;
         }
         

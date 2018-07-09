@@ -28,15 +28,15 @@ defIfNot('BATCH_COUNT_IN_EDIT_WINDOW', 10);
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -59,28 +59,28 @@ class batch_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Партиди и серийни номера към складовите документи';
-            
-        
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'batch_Defs',
-            'batch_Items',
-            'batch_Movements',
-            'batch_CategoryDefinitions',
-            'batch_Features',
-            'batch_Templates',
-            'batch_BatchesInDocuments'
-        );
+        'batch_Defs',
+        'batch_Items',
+        'batch_Movements',
+        'batch_CategoryDefinitions',
+        'batch_Features',
+        'batch_Templates',
+        'batch_BatchesInDocuments'
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('batch'),
-            array('batchMaster', 'batch'),
+        array('batch'),
+        array('batchMaster', 'batch'),
     );
     
     
@@ -94,17 +94,17 @@ class batch_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Логистика', 'Партиди', 'batch_Items', 'default', 'batch,ceo'),
-        );
+        array(3.4, 'Логистика', 'Партиди', 'batch_Items', 'default', 'batch,ceo'),
+    );
     
-        
+    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'BATCH_EXPIRYDATE_PERCENT' => array('percent', 'caption=Оцветяване на изтичащите партиди->Преди края'),
-            'BATCH_CLOSE_OLD_BATCHES' => array('time', 'caption=Затваряне на изчерпани партиди->След'),
-            'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
+        'BATCH_EXPIRYDATE_PERCENT' => array('percent', 'caption=Оцветяване на изтичащите партиди->Преди края'),
+        'BATCH_CLOSE_OLD_BATCHES' => array('time', 'caption=Затваряне на изчерпани партиди->След'),
+        'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
     );
     
     
@@ -112,15 +112,15 @@ class batch_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-            array(
-                    'systemId' => 'Close Old Batches',
-                    'description' => 'Затваряне на старите партиди по които не е имало движение',
-                    'controller' => 'batch_Items',
-                    'action' => 'closeOldBatches',
-                    'period' => 1440,
-                    'offset' => 20,
-                    'timeLimit' => 100
-            ),
+        array(
+            'systemId' => 'Close Old Batches',
+            'description' => 'Затваряне на старите партиди по които не е имало движение',
+            'controller' => 'batch_Items',
+            'action' => 'closeOldBatches',
+            'period' => 1440,
+            'offset' => 20,
+            'timeLimit' => 100
+        ),
     );
     
     

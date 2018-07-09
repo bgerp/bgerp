@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Plugins' - Мениджър на плъгини
  *
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Plugins extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -35,7 +34,7 @@ class core_Plugins extends core_Manager
      */
     public $loadList = 'plg_SystemWrapper,plg_RowTools2,plg_State';
     
-
+    
     /**
      * Масив с плъгините, които се прикачат динамично
      *
@@ -43,7 +42,7 @@ class core_Plugins extends core_Manager
      */
     private $attachedPlugins;
     
-
+    
     /**
      * Описание на модела
      */
@@ -72,18 +71,18 @@ class core_Plugins extends core_Manager
         }
     }
     
-
+    
     /**
      * Форсирано инсталиране на плъгин. Ако има други със същотот име, те ще бъдат спрени
      */
     public static function forcePlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
     {
         $res = static::installPlugin($name, $plugin, $class, $cover, $state, true);
-
+        
         return $res;
     }
     
-
+    
     /**
      * Не-форсирано инсталиране на плъгин. Ако има други със същотот име, те ще бъдат останат, а зададения няма да се закачи
      */
@@ -95,7 +94,7 @@ class core_Plugins extends core_Manager
         }
         
         $status = static::setupPlugin($name, $plugin, $class, $cover, $state, $force);
-
+        
         if ($status === 0) {
             $res = "<li><b>{$name}</b>: Плъгинът <b>{$plugin}</b> и до сега е бил закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
         } elseif ($status === -1) {
@@ -127,7 +126,7 @@ class core_Plugins extends core_Manager
             
             return 0;
         }
-
+        
         // Изтриваме съществуващите прикачания на този плъгин към посочения клас
         static::delete("#plugin = '{$plugin}' AND #class = '{$class}'");
         
@@ -136,7 +135,7 @@ class core_Plugins extends core_Manager
             
             return -1;
         }
-
+        
         // Спираме всички плъгини със същтото име
         $query = static::getQuery();
         while ($rec = $query->fetch(array("#name = '[#1#]'", $name))) {
@@ -153,7 +152,7 @@ class core_Plugins extends core_Manager
         
         $self = cls::get('core_Plugins');
         $self->setPlugin($rec->class, $rec->plugin, $rec->cover, $rec->name);
-
+        
         return static::save($rec);
     }
     
@@ -172,7 +171,7 @@ class core_Plugins extends core_Manager
                 }
             }
         }
-
+        
         return $this->delete("#plugin = '{$plugin}'");
     }
     
@@ -238,7 +237,7 @@ class core_Plugins extends core_Manager
             // Ако класа вече е зареден в паметта, закачаме плъгина с `load`
             $Cls = cls::get($class);
             $Cls->load($plugin);
-
+            
             // Извикваме on_AfterDescription, защото това викане вече е минало
             if (method_exists($plugin, 'on_AfterDescription')) {
                 $Cls->_plugins[$plugin]->on_AfterDescription($Cls);
@@ -324,29 +323,29 @@ class core_Plugins extends core_Manager
         
         return false;
     }
-
-
+    
+    
     /**
      * функция, която автоматично изчиства лишите линкове от менюто
      */
     public function repair()
     {
         $query = $this->getQuery();
-
+        
         while ($rec = $query->fetch()) {
             if (!cls::load($rec->plugin, true)) {
                 $this->delete($rec->id);
-
+                
                 $res .= "<li class='debug-error'>Премахнато е {$rec->name} защото липсва плъгина {$rec->plugin}</li>";
-
+                
                 continue;
             }
-
+            
             if (!cls::load($rec->class, true)) {
                 $this->delete($rec->id);
-
+                
                 $res .= "<li class='debug-error'>Премахнато е {$rec->name} защото липсва класа {$rec->class}</li>";
-
+                
                 continue;
             }
         }

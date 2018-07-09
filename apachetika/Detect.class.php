@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   apachetika
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class apachetika_Detect
 {
-    
-    
     /**
      * Извлича дадена информация от файла
      *
@@ -102,6 +102,7 @@ class apachetika_Detect
         }
         
         $Script->setCheckProgramsArr('java');
+        
         // Стартираме скрипта асинхронно
         if ($Script->run($params['asynch']) === false) {
             if (strtolower($params['type']) == 'metadata') {
@@ -129,7 +130,7 @@ class apachetika_Detect
      *
      * @param fconv_Script $script - Парамтри
      *
-     * @return boolean
+     * @return bool
      */
     public static function afterExtract($script)
     {

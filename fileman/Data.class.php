@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Пътя до директорията за файловете е общ за всички инсталирани приложения
  */
@@ -14,15 +13,15 @@ defIfNot('FILEMAN_UPLOADS_PATH', substr(EF_UPLOADS_PATH, 0, strrpos(EF_UPLOADS_P
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Data extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модула
      */
@@ -35,13 +34,10 @@ class fileman_Data extends core_Manager
     public $canList = 'admin, debug';
     
     
-    
     public $canWrite = 'no_one';
     
     
-    
     public $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools2,plg_Search';
-    
     
     
     public $searchFields = 'searchKeywords';
@@ -59,7 +55,6 @@ class fileman_Data extends core_Manager
      * @see plg_Search
      */
     public $fillSearchKeywordsOnSetup = false;
-    
     
     
     /**
@@ -92,10 +87,10 @@ class fileman_Data extends core_Manager
     /**
      * Обновява времето на последно използване
      *
-     * @param integer       $id
+     * @param int           $id
      * @param NULL|datetime $lastUse
      *
-     * @return boolean|NULL
+     * @return bool|NULL
      */
     public static function updateLastUse($id, $lastUse = null)
     {
@@ -161,8 +156,8 @@ class fileman_Data extends core_Manager
             self::resetProcess($rec);
         }
     }
-
-
+    
+    
     /**
      * Връща размера на файла във вербален вид
      *
@@ -255,7 +250,7 @@ class fileman_Data extends core_Manager
     {
         // Ако не е обектс
         if (is_numeric($rec)) {
-        
+            
             // Вземаме записа
             $rec = static::fetch($rec);
         }
@@ -274,7 +269,7 @@ class fileman_Data extends core_Manager
         return $name;
     }
     
-
+    
     /**
      * Абсорбира данните и връща обект с id' то или дали е създаден нов файл
      *
@@ -297,18 +292,21 @@ class fileman_Data extends core_Manager
         // В зависимост от типа
         switch ($type) {
             case 'file':
+                
                 // Ако типа на данните е файл
                 $rec->fileLen = filesize($data);
                 $rec->md5 = md5_file($data);
             break;
             
             case 'string':
+                
                 // Ако типа е стринг
                 $rec->fileLen = strlen($data);
                 $rec->md5 = md5($data);
             break;
             
             default:
+                
                 // Типа трябва да е от посочените
                 expect(false, 'Очаква се валиден тип.');
             break;
@@ -385,7 +383,7 @@ class fileman_Data extends core_Manager
                 $res[] = $rec;
             }
         }
-
+        
         return ($res);
     }
     
@@ -400,6 +398,7 @@ class fileman_Data extends core_Manager
     {
         $fm = cls::get('fileman_Data');
         $query = $fm->getQuery();
+        
         //$query->where("#md5 = '[#1#]'", $md5);
         $rec = $query->fetch("${id}");
         $rec->archived = dt::verbal2mysql();
@@ -410,7 +409,7 @@ class fileman_Data extends core_Manager
     /**
      * Когато искаме да ресетнем, че файлът е преминал през обработка
      *
-     * @param integer|stdClass $rec
+     * @param int|stdClass $rec
      */
     public static function resetProcess($rec)
     {
@@ -445,9 +444,9 @@ class fileman_Data extends core_Manager
     public function cron_ProcessFiles()
     {
         $cronRec = core_Cron::getCurrentRec();
-
+        
         $endOn = dt::addSecs($cronRec->timeLimit);
-
+        
         core_App::setTimeLimit($cronRec->timeLimit + 50);
         ini_set('memory_limit', fileman_Setup::get('DRIVER_MAX_ALLOWED_MEMORY_CONTENT'));
         
@@ -548,7 +547,7 @@ class fileman_Data extends core_Manager
         $rec->id = static::fetchField("#fileLen = {$rec->fileLen}  AND #md5 = '{$rec->md5}'", 'id');
         
         $path = self::getGoodFilePath($rec);
-
+        
         if ($create && ((!$rec->id) || !file_exists($path))) {
             if (@copy($file, $path)) {
                 $rec->links = 0;

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Абстрактен клас за наследяване от класове сделки
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_DealBase extends core_Master
 {
-
-    
     /**
      * Работен кеш
      */
@@ -92,7 +91,7 @@ abstract class deals_DealBase extends core_Master
     public static function on_AfterActivation($mvc, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
-         
+        
         if ($rec->state == 'active') {
             $Cover = doc_Folders::getCover($rec->folderId);
             
@@ -104,8 +103,8 @@ abstract class deals_DealBase extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
      * Генерира агрегираната бизнес информация за тази сделка
@@ -126,14 +125,14 @@ abstract class deals_DealBase extends core_Master
     public function getAggregateDealInfo($id)
     {
         $dealRec = $this->fetchRec($id);
-    
+        
         $dealDocuments = $this->getDescendants($dealRec->id);
-    
+        
         $aggregateInfo = new bgerp_iface_DealAggregator;
-    
+        
         // Извличаме dealInfo от самата сделка
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
-    
+        
         foreach ($dealDocuments as $d) {
             $dState = $d->rec('state');
             if ($dState == 'draft' || $dState == 'rejected') {
@@ -149,7 +148,7 @@ abstract class deals_DealBase extends core_Master
                 }
             }
         }
-    
+        
         return $aggregateInfo;
     }
     
@@ -160,6 +159,7 @@ abstract class deals_DealBase extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($res == 'no_one') {
+            
             return;
         }
         
@@ -222,8 +222,9 @@ abstract class deals_DealBase extends core_Master
     /**
      * Кои сделки ще могатд а се приключат с документа
      *
-     * @param  object $rec
-     * @return array  $options - опции
+     * @param object $rec
+     *
+     * @return array $options - опции
      */
     public function getDealsToCloseWith($rec)
     {
@@ -241,11 +242,11 @@ abstract class deals_DealBase extends core_Master
             $title = $this->getRecTitle($dealRec) . ' / ' . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');
             $docs[$dealRec->id] = $title;
         }
-         
+        
         return $docs;
     }
-
-
+    
+    
     /**
      * Преди да се проверят имали приключени пера в транзакцията
      *
@@ -257,7 +258,7 @@ abstract class deals_DealBase extends core_Master
         $closedItems = array();
         $rec = $mvc->fetchRec($id);
         $dealItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-         
+        
         // Записите от журнала засягащи това перо
         $entries = acc_Journal::getEntries(array($mvc, $rec->id));
         
@@ -299,7 +300,7 @@ abstract class deals_DealBase extends core_Master
         if ($rec->state != 'closed') {
             unset($closedItems[$dealItem->id]);
         }
-         
+        
         // Връщаме намерените пера
         $res = $closedItems;
     }
@@ -314,13 +315,13 @@ abstract class deals_DealBase extends core_Master
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
         expect($rec->state == 'draft' || $rec->state == 'pending');
-    
+        
         // Трябва потребителя да може да контира
         $this->requireRightFor('conto', $rec);
-    
+        
         $options = $this->getDealsToCloseWith($rec);
         expect(count($options));
-    
+        
         // Подготовка на формата за избор на опция
         $form = cls::get('core_Form');
         $form->title = '|Активиране на|* <b>' . $this->getTitleById($id). '</b>' . ' ?';
@@ -328,7 +329,7 @@ abstract class deals_DealBase extends core_Master
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
         $form->setSuggestions('closeWith', $options);
         $form->input();
-    
+        
         // След като формата се изпрати
         if ($form->isSubmitted()) {
             $rec->contoActions = 'activate';
@@ -357,11 +358,11 @@ abstract class deals_DealBase extends core_Master
                 
                 if (!empty($form->rec->closeWith)) {
                     core_App::setTimeLimit(1000);
-                     
+                    
                     $CloseDoc = cls::get($this->closeDealDoc);
                     $deals = keylist::toArray($form->rec->closeWith);
                     foreach ($deals as $dealId) {
-                
+                        
                         // Създаване на приключващ документ-чернова
                         $dRec = $this->fetch($dealId);
                         $clId = $CloseDoc->create($this->className, $dRec, $id);
@@ -375,7 +376,7 @@ abstract class deals_DealBase extends core_Master
                 return new Redirect(array($this, 'single', $id));
             }
         }
-    
+        
         $form->toolbar->addSbBtn('Обединяване', 'save', 'ef_icon = img/16/tick-circle-frame.png');
         $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png');
         
@@ -402,7 +403,7 @@ abstract class deals_DealBase extends core_Master
             }
             $row->closedDocuments = trim($row->closedDocuments, ', ');
         }
-         
+        
         if ($fields['-list']) {
             $row->title = static::getLink($rec->id);
         }
@@ -422,7 +423,7 @@ abstract class deals_DealBase extends core_Master
         $tableMvc = new core_Mvc;
         $tableMvc->FLD('debitAcc', 'varchar', 'tdClass=articleCell');
         $tableMvc->FLD('creditAcc', 'varchar', 'tdClass=articleCell');
-            
+        
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
         $fields = 'valior=Вальор,debitAcc=Дебит->Сметка,debitQuantity=Дебит->К-во,debitPrice=Дебит->Цена,creditAcc=Кредит->Сметка,creditQuantity=Кредит->К-во,creditPrice=Кредит->Цена,amount=Сума';
         
@@ -447,7 +448,7 @@ abstract class deals_DealBase extends core_Master
         if ($this->haveRightFor('export', $data->rec) && count($data->DealReport)) {
             $expUrl = getCurrentUrl();
             $expUrl['export'] = true;
-        
+            
             $btn = cls::get('core_Toolbar');
             $btn->addBtn('Експорт в CSV', $expUrl, null, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат');
             $btnCSV = 'export';
@@ -520,6 +521,7 @@ abstract class deals_DealBase extends core_Master
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
+            
             return;
         }
         
@@ -555,7 +557,7 @@ abstract class deals_DealBase extends core_Master
     {
         expect(Request::get('export', 'int'));
         expect($rec = $data->rec);
-
+        
         // Проверка за права
         $this->requireRightFor('export', $rec);
         $csv = csv_Lib::createCsv($data->DealReportCsv, $data->reportTableMvc, $data->reportFields);
@@ -563,7 +565,7 @@ abstract class deals_DealBase extends core_Master
         
         $csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
         $csv = iconv('UTF-8', 'UTF-8//IGNORE', $csv);
-         
+        
         // Записване във файловата система
         $fh = fileman::absorbStr($csv, 'exportCsv', "{$this->abbr}{$rec->id}_OrderedAndShipped.csv");
         
@@ -577,6 +579,7 @@ abstract class deals_DealBase extends core_Master
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -589,7 +592,7 @@ abstract class deals_DealBase extends core_Master
         $f->FLD('quantity', 'double');
         $f->FLD('shipQuantity', 'double');
         $f->FLD('bQuantity', 'double');
-    
+        
         return $f;
     }
     
@@ -601,6 +604,7 @@ abstract class deals_DealBase extends core_Master
     {
         $rec = $data->rec;
         if ($rec->state == 'draft') {
+            
             return;
         }
         
@@ -614,16 +618,16 @@ abstract class deals_DealBase extends core_Master
             foreach ($productIds as $productId) {
                 $pRec = cat_Products::fetch($productId, 'measureId,isPublic,code,name,canStore');
                 $expRec = (object) array('code' => ($pRec->code) ? $pRec->code : "Art{$productId}",
-                                        'productId' => $productId,
-                                        'measureId' => $pRec->measureId,
-                                        'blQuantity' => $dealInfo->products[$productId]->quantity - $dealInfo->shippedProducts[$productId]->quantity,
-                                        'quantity' => ($dealInfo->products[$productId]->quantity) ? $dealInfo->products[$productId]->quantity : 0,
-                                        'shipQuantity' => ($dealInfo->shippedProducts[$productId]->quantity) ? $dealInfo->shippedProducts[$productId]->quantity : 0,
+                    'productId' => $productId,
+                    'measureId' => $pRec->measureId,
+                    'blQuantity' => $dealInfo->products[$productId]->quantity - $dealInfo->shippedProducts[$productId]->quantity,
+                    'quantity' => ($dealInfo->products[$productId]->quantity) ? $dealInfo->products[$productId]->quantity : 0,
+                    'shipQuantity' => ($dealInfo->shippedProducts[$productId]->quantity) ? $dealInfo->shippedProducts[$productId]->quantity : 0,
                 );
                 
                 $row = (object) array('code' => core_Type::getByName('varchar')->toVerbal($expRec->code),
-                                     'measureId' => tr(cat_UoM::getShortName($expRec->measureId)),
-                                     'productId' => cat_Products::getShortHyperLink($productId),
+                    'measureId' => tr(cat_UoM::getShortName($expRec->measureId)),
+                    'productId' => cat_Products::getShortHyperLink($productId),
                 );
                 
                 if ($pRec->canStore == 'yes') {
@@ -642,14 +646,14 @@ abstract class deals_DealBase extends core_Master
                 $dealReportCSV[$productId] = $expRec;
             }
         }
-
+        
         // правим странициране
         $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage));
-
+        
         $cnt = count($report);
         $pager->itemsCount = $cnt;
         $data->reportPager = $pager;
-         
+        
         $pager->calc();
         
         $start = $data->reportPager->rangeStart;
@@ -678,9 +682,11 @@ abstract class deals_DealBase extends core_Master
     {
         $rec = $data->rec;
         if (!haveRole('ceo,acc')) {
+            
             return;
         }
         if ($rec->state == 'draft') {
+            
             return;
         }
         
@@ -715,27 +721,27 @@ abstract class deals_DealBase extends core_Master
                     if (empty($this->historyCache[$ent->debitAccId])) {
                         $this->historyCache[$ent->debitAccId] = acc_Balances::getAccountLink($ent->debitAccId);
                     }
-                     
+                    
                     if (empty($this->historyCache[$ent->creditAccId])) {
                         $this->historyCache[$ent->creditAccId] = acc_Balances::getAccountLink($ent->creditAccId);
                     }
                     $obj->debitAcc = $this->historyCache[$ent->debitAccId];
                     $obj->creditAcc = $this->historyCache[$ent->creditAccId];
-                     
+                    
                     foreach (range(1, 3) as $i) {
                         if (!empty($ent->{"debitItem{$i}"})) {
                             $obj->debitAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"debitItem{$i}"}, 'titleLink') . '</div>';
                         }
-                    
+                        
                         if (!empty($ent->{"creditItem{$i}"})) {
                             $obj->creditAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . '</div>';
                         }
                     }
-                     
+                    
                     foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld) {
                         $obj->{$fld} = "<span style='float:right'>" . $Double->toVerbal($ent->{$fld}) . '</span>';
                     }
-                     
+                    
                     $history[] = $obj;
                 }
                 
@@ -756,16 +762,16 @@ abstract class deals_DealBase extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetchRec($id));
         $this->requireRightFor('changerate', $rec);
-         
+        
         $form = cls::get('core_Form');
         $form->title = '|Преизчисляване на курса на документите в|* ' . $this->getHyperlink($rec, true);
         $form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
         $form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
         $form->input();
-         
+        
         if ($form->isSubmitted()) {
             $fRec = $form->rec;
-    
+            
             // Рекалкулиране на сделката
             if ($this instanceof findeals_Deals) {
                 $rec->currencyRate = $fRec->newRate;
@@ -777,7 +783,7 @@ abstract class deals_DealBase extends core_Master
             } else {
                 deals_Helper::recalcRate($this, $rec->id, $fRec->newRate);
             }
-    
+            
             // Рекалкулиране на определени документи в нишката и
             $dealDocuments = $this->getDescendants($rec->id);
             $arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId());
@@ -790,10 +796,10 @@ abstract class deals_DealBase extends core_Master
             
             followRetUrl(null, 'Документите са преизчислени успешно');
         }
-         
+        
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс');
         $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png');
-    
+        
         // Рендиране на формата
         return $this->renderWrapping($form->renderHtml());
     }

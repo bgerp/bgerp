@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Плъгин позволяващ на документ да се посочва към коя фактура е
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_plg_SelectInvoice extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -75,6 +74,7 @@ class deals_plg_SelectInvoice extends core_Plugin
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action != 'selectinvoice') {
+            
             return;
         }
         
@@ -114,7 +114,7 @@ class deals_plg_SelectInvoice extends core_Plugin
         core_Form::preventDoubleSubmission($tpl, $form);
         
         $res = $tpl;
-
+        
         return false;
     }
     
@@ -132,7 +132,7 @@ class deals_plg_SelectInvoice extends core_Plugin
     {
         if ($action == 'selectinvoice' && isset($rec)) {
             $hasInvoices = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($rec->threadId, null, false, false, true) : deals_Helper::getInvoicesInThread($rec->threadId, null, true, true, false);
-                
+            
             if ($rec->state == 'rejected' || !$hasInvoices) {
                 $requiredRoles = 'no_one';
             }

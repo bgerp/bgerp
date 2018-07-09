@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   tesseract
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tesseract_Converter extends core_Manager
 {
-    
-    
     /**
      * Интерфейсни методи
      */
@@ -49,7 +49,6 @@ class tesseract_Converter extends core_Manager
      * Кода, който ще се изпълнява
      */
     public $fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] --psm [#PSM#] --oem [#OEM#]';
-    
     
     
     public $canOcr = 'powerUser';
@@ -239,6 +238,7 @@ class tesseract_Converter extends core_Manager
             $tiffPathEsc = escapeshellarg($tiffPath);
             
             $density = 300;
+            
             // Може и да е вектор или текст, тогава density трябва да е по-ниска стойност
             // За да не се получават огромни файлове
             if (!@exec("grep -c -i '/image' {$pdfPathEsc}")) {
@@ -276,7 +276,7 @@ class tesseract_Converter extends core_Manager
             $pattern = '/^' . preg_quote($bName, '/') . "\-(?'num'[0-9]+)\.tiff$" . '/i';
             
             $matchedFilesArr = array();
-                   
+            
             // От всички открити файлове вземаме само тези, които съвпадат с търсенето
             foreach ((array) $allFilesArr as $file) {
                 if (!preg_match($pattern, $file, $matches)) {
@@ -391,6 +391,7 @@ class tesseract_Converter extends core_Manager
             $Script->params = $params;
             
             $Script->setCheckProgramsArr('tesseract');
+            
             // Стартираме скрипта
             if ($Script->run($params['asynch']) === false) {
                 fileman_Indexes::createError($params);
@@ -447,8 +448,7 @@ class tesseract_Converter extends core_Manager
      * Изпълнява се след приключване на обработката
      *
      * @param fconv_Script $script - Обект с данние
-     *
-     * @param boolean
+     * @param bool
      */
     public function afterGetTextByTesseract($script)
     {
@@ -478,7 +478,7 @@ class tesseract_Converter extends core_Manager
      *
      * @param stdClass|string $fRec
      *
-     * @return boolean - Дали може да се екстрактва от файла
+     * @return bool - Дали може да се екстрактва от файла
      *
      * @see fileman_OCRIntf
      */
@@ -499,7 +499,7 @@ class tesseract_Converter extends core_Manager
         return false;
     }
     
-
+    
     /**
      * Бърза проврка дали има смисъл от OCR-ване на текста
      *
@@ -530,7 +530,7 @@ class tesseract_Converter extends core_Manager
             
             // Да използваме текущия клас
             $data['FILEMAN_OCR'] = core_Classes::getId(get_called_class());
-
+            
             // Добавяме в записите
             core_Packs::setConfig('fileman', $data);
         }

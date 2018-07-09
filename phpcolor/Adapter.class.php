@@ -7,7 +7,6 @@
 defIfNot('PHPCOLOR_VERSION', '0.3');
 
 
-
 /**
  * Вкарваме файловете необходими за работа с програмата.
  */
@@ -18,16 +17,18 @@ require_once PHPCOLOR_VERSION . '/Color.class.php';
  *
  * @category  bgerp
  * @package   phpcolor
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class phpcolor_Adapter extends core_Mvc
 {
-
     /**
      * промяна на цвета
+     *
      * @param $hexColor - цвят в hex представяне, който ще променяме
      * @param $type - име на функцията, която ще викаме
      * @param $ammount - интензивност на промяната
@@ -36,9 +37,9 @@ class phpcolor_Adapter extends core_Mvc
     public static function changeColor($hexColor, $type = 'lighten', $ammount = 10, $mix = '#fff')
     {
         $cObj = new color_Object($hexColor);
-
+        
         $hexColor = $cObj->getHex('');
-
+        
         try {
             $myColor = new Color($hexColor);
         } catch (ErrorException $e) {
@@ -52,16 +53,16 @@ class phpcolor_Adapter extends core_Mvc
             case 'lighten':
                 
                 return $myColor->lighten($ammount);
-                
+            
             case 'darken':
                 
                 return $myColor->darken($ammount);
-                
+            
             case 'gradient':
                 $myColor->makeGradient($ammount);
-
-                return $myColor->getCssGradient($myColor);
                 
+                return $myColor->getCssGradient($myColor);
+            
             case 'mix':
                 
                 return  $myColor->mix($mix, $ammount);
@@ -72,17 +73,19 @@ class phpcolor_Adapter extends core_Mvc
         }
     }
     
+    
     /**
      * проверка да дадения цвят е светъл или тъмен
+     *
      * @param $hexColor - цвят в hex представяне, който ще променяме
      * @param $type - име на функцията, която ще викаме
      */
     public static function checkColor($hexColor, $type = 'light')
     {
         $cObj = new color_Object($hexColor);
-
+        
         $hexColor = $cObj->getHex('');
- 
+        
         try {
             $myColor = new Color($hexColor);
         } catch (ErrorException $e) {
@@ -96,11 +99,11 @@ class phpcolor_Adapter extends core_Mvc
             case 'light':
                 
                 return $myColor->isLight();
-                 
+            
             case 'dark':
                 
                 return $myColor->isDark();
-                
+            
             default:
                 
                 return false;

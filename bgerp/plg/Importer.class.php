@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Плъгин помагащ при импортирането на данни от външни формати
  *
@@ -21,14 +22,15 @@
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_Importer extends core_Plugin
 {
-    
     /**
      * Име на екшъна / командата за импортиране
      *
@@ -42,14 +44,16 @@ class bgerp_plg_Importer extends core_Plugin
      *
      * Ефекта е все едно, че мениджъра-домакин е имплементирал екшъна act_Import
      *
-     * @param  core_Mvc     $mvc
-     * @param  core_ET      $tpl
-     * @param  string       $action
-     * @return void|boolean
+     * @param core_Mvc $mvc
+     * @param core_ET  $tpl
+     * @param string   $action
+     *
+     * @return void|bool
      */
     public function on_BeforeAction($mvc, &$tpl, $action)
     {
         if (strtolower($action) != static::$importVerb) {
+            
             return;
         }
         
@@ -98,6 +102,7 @@ class bgerp_plg_Importer extends core_Plugin
             
             return false;
         }
+        
         // Подготвяме адреса, към който трябва да редиректнем,
         // при успешно записване на данните от формата
         $mvc->prepareRetUrl($data);

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Ценови политики
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Ценови политики
  */
 class price_Lists extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -34,7 +33,7 @@ class price_Lists extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder';
-                    
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -94,13 +93,13 @@ class price_Lists extends core_Master
      * Може ли да се редактират активирани документи
      */
     public $canEditActivated = true;
-   
+    
     
     /**
      * Поле за връзка към единичния изглед
      */
     public $rowToolsSingleField = 'title';
-
+    
     
     /**
      * Шаблон за единичния изглед
@@ -131,7 +130,7 @@ class price_Lists extends core_Master
      */
     public $preventCache = true;
     
-
+    
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -163,7 +162,7 @@ class price_Lists extends core_Master
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
-
+    
     
     /**
      * Интерфейсен метод на doc_DocumentInterface
@@ -179,7 +178,7 @@ class price_Lists extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-    
+        
         return $row;
     }
     
@@ -219,17 +218,18 @@ class price_Lists extends core_Master
      * Метод за форсиране на ценова политика.
      * Ако няма политика с това име я създава. Ако има я модифицира.
      *
-     * @param  string  $title                  - заглавие
-     * @param  mixed   $cClass                 - клас на контрагента
-     * @param  int     $cId                    - ид на контрагента
-     * @param  string  $parentTitle            - заглавие на политиката-баща
-     * @param  string  $currencyCode           - код на валута по подразбиране на политиката
-     * @param  boolean $vat                    - дали политиката е с включен ДДС или не
-     * @param  double  $defaultSurcharge       - дефолтна надценка между 0 и 1
-     * @param  string  $discountComparedToList - име на политиката спрямо който ще се показва отстъпка
-     * @param  double  $roundingPrecision      - закръгляне до десетичен знак
-     * @param  double  $roundingOffset         - отместване на закръглянето
-     * @return int     $id                        - ид на създадения каталог
+     * @param string $title                  - заглавие
+     * @param mixed  $cClass                 - клас на контрагента
+     * @param int    $cId                    - ид на контрагента
+     * @param string $parentTitle            - заглавие на политиката-баща
+     * @param string $currencyCode           - код на валута по подразбиране на политиката
+     * @param bool   $vat                    - дали политиката е с включен ДДС или не
+     * @param float  $defaultSurcharge       - дефолтна надценка между 0 и 1
+     * @param string $discountComparedToList - име на политиката спрямо който ще се показва отстъпка
+     * @param float  $roundingPrecision      - закръгляне до десетичен знак
+     * @param float  $roundingOffset         - отместване на закръглянето
+     *
+     * @return int $id                        - ид на създадения каталог
      */
     public static function forceList($title, $cClass = null, $cId = null, $public = true, $parentTitle = null, $currencyCode = null, $vat = true, $defaultSurcharge = null, $discountComparedToList = null, $roundingPrecision = null, $roundingOffset = null)
     {
@@ -290,19 +290,19 @@ class price_Lists extends core_Master
         
         // Записа, който ще записваме
         $rec = (object) array('title' => $title,
-                             'parent' => $parentId,
-                             'cClass' => $cClass,
-                             'cId' => $cId,
-                             'currency' => $currencyCode,
-                             'vat' => ($vat === true) ? 'yes' : 'no',
-                             'defaultSurcharge' => $defaultSurcharge,
-                             'discountCompared' => $discountCompareToId,
-                             'roundingPrecision' => $roundingPrecision,
-                             'roundingOffset' => $roundingOffset,
-                             'state' => 'active',
-                             'folderId' => $folderId,
+            'parent' => $parentId,
+            'cClass' => $cClass,
+            'cId' => $cId,
+            'currency' => $currencyCode,
+            'vat' => ($vat === true) ? 'yes' : 'no',
+            'defaultSurcharge' => $defaultSurcharge,
+            'discountCompared' => $discountCompareToId,
+            'roundingPrecision' => $roundingPrecision,
+            'roundingOffset' => $roundingOffset,
+            'state' => 'active',
+            'folderId' => $folderId,
         );
-    
+        
         // Ако има политика с такова име, обновяваме я
         if ($exRec = self::fetch(array("#title = '[#1#]'", $title))) {
             $rec->id = $exRec->id;
@@ -352,7 +352,7 @@ class price_Lists extends core_Master
             // По дефолт слагаме за частните политики да наследяват дефолт политиката за контрагента, иначе 'Каталог'
             $rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : cat_Setup::get('DEFAULT_PRICELIST');
         }
-
+        
         $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
         
         // За политиката себестойност, скриваме определени полета
@@ -367,8 +367,8 @@ class price_Lists extends core_Master
             $form->setField('minDecimals', "placeholder={$minDecimals}");
         }
     }
-
-
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
@@ -397,8 +397,9 @@ class price_Lists extends core_Master
      * Ако няма има права price,ceo - може да избира всички
      * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
      *
-     * @param  mixed $cClass - клас на контрагента
-     * @param  int   $cId    - ид на контрагента
+     * @param mixed $cClass - клас на контрагента
+     * @param int   $cId    - ид на контрагента
+     *
      * @return array $options - опции за избор
      */
     public static function getAccessibleOptions($cClass = null, $cId = null)
@@ -459,7 +460,7 @@ class price_Lists extends core_Master
         }
     }
     
-
+    
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -511,8 +512,8 @@ class price_Lists extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * След подготовка на урл-то за връщане
      */
@@ -531,6 +532,7 @@ class price_Lists extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -546,6 +548,7 @@ class price_Lists extends core_Master
         }
         
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -555,7 +558,7 @@ class price_Lists extends core_Master
             }
         }
     }
-
+    
     
     /**
      * След инсталирането на модела, създава двете базови групи с правила за ценообразуване
@@ -615,9 +618,10 @@ class price_Lists extends core_Master
      * Закръгля сумата според указаното в ценовата политика.
      * Ако в нея не е указано нищо според указаното в настройките на пакета 'price'
      *
-     * @param  mixed  $listId - ид или запис на ценова политика
-     * @param  double $price  - цената за закръгляне
-     * @return double $price - закръглената цена
+     * @param mixed $listId - ид или запис на ценова политика
+     * @param float $price  - цената за закръгляне
+     *
+     * @return float $price - закръглената цена
      */
     public static function roundPrice($listId, $price, $verbal = false)
     {
@@ -630,7 +634,7 @@ class price_Lists extends core_Master
             $rInfo->minDecimals = (isset($listRec->minDecimals)) ? $listRec->minDecimals : price_Setup::get('MIN_DECIMALS');
             static::$cache[$listRec->id] = $rInfo;
         }
-         
+        
         $rInfo = static::$cache[$listRec->id];
         
         $p = 0;

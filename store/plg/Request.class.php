@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'store_plg_Requests' за записване на заявените количества
  *
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_plg_Request extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -34,6 +33,7 @@ class store_plg_Request extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (!$mvc->hasPlugin('deals_plg_EditClonedDetails')) {
+            
             return;
         }
         
@@ -55,21 +55,25 @@ class store_plg_Request extends core_Plugin
     /**
      * Кои детайли да се клонират с промяна
      *
-     * @param  stdClass $rec
-     * @param  mixed    $Detail
+     * @param stdClass $rec
+     * @param mixed    $Detail
+     *
      * @return array
      */
     public static function on_BeforeGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = null)
     {
         if (!$rec->clonedFromId) {
+            
             return;
         }
         if ($rec->state != 'active') {
+            
             return;
         }
         core_Request::setProtected('showDiff');
         $showDiff = Request::get('showDiff', 'int');
         if (empty($showDiff)) {
+            
             return;
         }
         

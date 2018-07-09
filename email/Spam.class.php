@@ -1,28 +1,26 @@
 <?php 
 
-
 /**
  * Клас 'email_Spam' - регистър на квалифицираните като твърд спам писма
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Milen Georgiev <milen2experta.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Spam extends email_ServiceEmails
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
     public $title = 'Твърд спам';
     
-
-
+    
     /**
      * Описание на модела
      */
@@ -30,9 +28,8 @@ class email_Spam extends email_ServiceEmails
     {
         $this->addFields();
     }
-
-     
-
+    
+    
     /**
      * Проверява дали в $mime се съдържа спам писмо и ако е
      * така - съхранява го за определено време в този модел
@@ -41,12 +38,13 @@ class email_Spam extends email_ServiceEmails
     {
         if (self::detectSpam($mime, $accId, $uid)) {
             $rec = new stdClass();
+            
             // Само първите 100К от писмото
             $rec->data = substr($mime->getData(), 0, 100000);
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
-
+            
             self::save($rec);
             
             self::logNotice('Маркиран имейл като спам', $rec->id);
@@ -54,7 +52,7 @@ class email_Spam extends email_ServiceEmails
             return $rec->id;
         }
     }
-
+    
     
     /**
      * Дали писмото е SPAM?
@@ -107,7 +105,7 @@ class email_Spam extends email_ServiceEmails
      * Връща спам рейтинга от хедърите
      *
      * @param array           $headerArr
-     * @param boolean         $notNull
+     * @param bool            $notNull
      * @param NULL|email_Mime $mime
      * @param NULL|stdClass   $rec
      */

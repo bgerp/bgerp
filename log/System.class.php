@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'log_System' - Мениджър за запис на действията на потребителите
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class log_System extends core_Manager
 {
-    
-    
     /**
      * Максимален брой редове, които ще се извличат от error_log
      */
@@ -55,7 +54,6 @@ class log_System extends core_Manager
     public $listFields = 'id, createdOn=Дата, createdBy=Потребител, what=Действие';
     
     
-    
     public $oldClassName = 'log_Debug';
     
     
@@ -83,9 +81,7 @@ class log_System extends core_Manager
     public $loadList = 'plg_SystemWrapper, plg_Created';
     
     
-    
     protected static $notifySysId = 'notifyForSysErr';
-    
     
     
     protected static $notifyErrArr = array('alert', 'err', 'logErr');
@@ -127,11 +123,11 @@ class log_System extends core_Manager
     /**
      * Добавяне на събитие в лога
      *
-     * @param string                $className
-     * @param integer|NULL|stdClass $objectId
-     * @param string                $action
-     * @param string                $type
-     * @param integer               $lifeDays
+     * @param string            $className
+     * @param int|NULL|stdClass $objectId
+     * @param string            $action
+     * @param string            $type
+     * @param int               $lifeDays
      */
     public static function add($className, $action, $objectId = null, $type = 'info', $lifeDays = 7)
     {
@@ -172,7 +168,6 @@ class log_System extends core_Manager
     }
     
     
-
     /**
      * Форма за търсене по дадена ключова дума
      */
@@ -220,7 +215,7 @@ class log_System extends core_Manager
                 $query->where("#objectId = {$objectId}");
             }
         }
-    
+        
         // Добавяме класовете, за които има запис в търсения резултат
         $classSuggArr = array();
         $cQuery = clone $query;
@@ -542,7 +537,7 @@ class log_System extends core_Manager
      * @param stdClass $a
      * @param stdClass $b
      *
-     * @return integer
+     * @return int
      */
     public function orderReportArr($a, $b)
     {

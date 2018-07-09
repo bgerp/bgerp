@@ -6,9 +6,11 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Yusein Yuseino <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_AssetResourceFolders extends core_Manager
@@ -125,7 +127,7 @@ class planning_AssetResourceFolders extends core_Manager
                     'classId' => $data->classId,
                     'objectId' => $data->objectId,
                     'ret_url' => true
-            ),
+                ),
             'id=btnAdd',
                 'ef_icon = img/16/star_2.png,title=Създаване на нов запис'
             );
@@ -181,7 +183,7 @@ class planning_AssetResourceFolders extends core_Manager
     public function act_Add()
     {
         Request::setProtected(array('classId', 'objectId'));
-
+        
         return parent::act_Add();
     }
     
@@ -236,14 +238,16 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * Добавяне на дефолтна папка за обект
      *
-     * @param  int      $classId  - ид на класа
-     * @param  int      $objectId - ид на обекта
-     * @param  int|NULL $folderId - дефолтна папка
+     * @param int      $classId  - ид на класа
+     * @param int      $objectId - ид на обекта
+     * @param int|NULL $folderId - дефолтна папка
+     *
      * @return int|void
      */
     public static function addDefaultFolder($classId, $objectId, $folderId = null, $users = null)
     {
         if (self::fetch("#classId = {$classId} AND #objectId = {$objectId}")) {
+            
             return;
         }
         

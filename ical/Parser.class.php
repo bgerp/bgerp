@@ -7,15 +7,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class ical_Parser extends core_Mvc
 {
-    
     /**
      * Парсира и извлича събитията от текста в iCalendar (.ics) формат
      */
@@ -23,14 +24,14 @@ class ical_Parser extends core_Mvc
     {
         require_once(__DIR__ . '/parser/ICal.php');
         require_once(__DIR__ . '/parser/EventObject.php');
-
+        
         $ical = new ICal\ICal();
-
+        
         $ical->initString($ics);
         
         $events = $ical->events();
-
- 
+        
+        
         foreach ($events as $id => $e) {
             if ($e->dtstart) {
                 $e->dtstart = dt::timestamp2mysql(strtotime($e->dtstart));
@@ -56,7 +57,7 @@ class ical_Parser extends core_Mvc
                 $e->lastmodified = dt::timestamp2mysql(strtotime($e->lastmodified));
                 $e->lastmodifiedVrb = dt::mysql2verbal($e->lastmodified, $dtFormat);
             }
-
+            
             if ($e->duration) {
                 $d = new \DateInterval($e->duration);
                 if ($d->y) {
@@ -71,7 +72,7 @@ class ical_Parser extends core_Mvc
                 if ($d->h) {
                     $t .= $d->h . ' hours ';
                 }
-
+                
                 if ($d->i) {
                     $t .= $d->i . ' minutes ';
                 }
@@ -81,9 +82,9 @@ class ical_Parser extends core_Mvc
                 }
                 
                 $tt = cls::get('type_Time');
-
+                
                 $e->duration = $tt->fromVerbal_($t);
-
+                
                 $e->durationVrb = $tt->toVerbal_($e->duration);
             }
             
@@ -92,19 +93,19 @@ class ical_Parser extends core_Mvc
             }
             $e->summary = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->summary);
             $e->summaryVrb = str_replace("\n", "\n<br>", type_Varchar::escape($e->summary));
-
+            
             $e->location = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->location);
             $e->locationVrb = str_replace("\n", "\n<br>", type_Varchar::escape($e->location));
- 
+            
             $e->description = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->description);
             $e->descriptionVrb = str_replace("\n", "\n<br>", type_Varchar::escape($e->description));
-
+            
             $e->organizer = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->organizer);
             $e->organizerVrb = self::getPersons($e->organizer_array);
-
+            
             $e->attendee = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->attendee);
             $e->attendeeVrb = self::getPersons($e->attendee_array);
-
+            
             switch ($e->status) {
                 case 'TENTATIVE':
                     $e->statusVrb = tr('ПРЕДВАРИТЕЛНО||' . $e->status);
@@ -131,7 +132,7 @@ class ical_Parser extends core_Mvc
                     $e->statusVrb = tr('ОТКАЗАНО||' . $e->status);
                     break;
             }
-
+            
             if (isset($e->statusVrb)) {
                 $e->statusVrb = str::mbUcfirst(mb_strtolower($e->statusVrb));
             }
@@ -140,18 +141,18 @@ class ical_Parser extends core_Mvc
                 $e->statusVrb .= ($e->statusVrb ? ', ' : '') . tr('Не ангажира време');
             }
         }
-
+        
         return $events;
     }
     
-
+    
     /**
      * Извлича информация за лице
      */
     private static function getPersons($p)
     {
         $res = '';
- 
+        
         if (is_array($p)) {
             $tE = cls::get('type_Email');
             foreach ($p as $el) {
@@ -171,20 +172,20 @@ class ical_Parser extends core_Mvc
                 }
             }
         }
-
+        
         return $res;
     }
     
-
+    
     /**
      * Рендира в HTML събитията в подадения iCalendar стринг
      */
     public static function renderEvents($ics)
     {
         $events = self::getEvents($ics);
- 
+        
         $res = new ET();
-
+        
         if (is_array($events)) {
             foreach ($events as $e) {
                 $tpl = new ET(tr('|*' . getFileContent('ical/tpl/Event.shtml')));
@@ -193,20 +194,18 @@ class ical_Parser extends core_Mvc
                 $res->append($tpl);
             }
         }
-
+        
         return $res;
     }
-
- 
-
-
+    
+    
     public function act_Test()
     {
         $str = file_get_contents('c:/temp/Denmark-Holidays.ics');
- 
- 
+        
+        
         $events = self::renderEvents($str);
-
+        
         return $events;
     }
 }

@@ -6,15 +6,15 @@
  *
  * @category bgerp
  * @package acc
+ *
  * @author Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license GPL 3
+ *
  * @since v 0.1
  */
 class acc_journal_Entry
 {
-    
-    
     /**
      * Дебитна част на ред от счетоводна транзакция
      *
@@ -69,7 +69,8 @@ class acc_journal_Entry
     /**
      * Инициализира ред на транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
-     * @param  stdClass          $data
+     * @param stdClass $data
+     *
      * @return acc_journal_Entry
      */
     public function initFromTransactionSource($data)
@@ -80,13 +81,13 @@ class acc_journal_Entry
             $this->reasonCode = acc_Operations::getIdByTitle($data['reason']);
         }
         
-        
         return $this;
     }
     
     
     /**
-     * @param  array             $data
+     * @param array $data
+     *
      * @return acc_journal_Entry
      */
     public function setDebit($data)
@@ -98,7 +99,8 @@ class acc_journal_Entry
     
     
     /**
-     * @param  array             $data
+     * @param array $data
+     *
      * @return acc_journal_Entry
      */
     public function setCredit($data)
@@ -112,7 +114,7 @@ class acc_journal_Entry
     /**
      * Удостоверяване на допустимостта на един ред от счетоводна транзакция.
      *
-     * @return boolean
+     * @return bool
      */
     public function check()
     {
@@ -163,6 +165,7 @@ class acc_journal_Entry
         return true;
     }
     
+    
     /**
      * Проверява кредитната и дебитната стойност на транзакцията
      */
@@ -211,15 +214,15 @@ class acc_journal_Entry
     {
         $this->debit->forceItems();
         $this->credit->forceItems();
-    
+        
         $entryRec = $this->debit->getData()
         + $this->credit->getData()
         + array(
-                'journalId' => $transactionId,
-                'amount' => $this->amount(),
-                'reasonCode' => $this->reasonCode,
+            'journalId' => $transactionId,
+            'amount' => $this->amount(),
+            'reasonCode' => $this->reasonCode,
         );
-    
+        
         return (object) $entryRec;
     }
     

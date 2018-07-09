@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   exif
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class exif_Reader
 {
-    
-    
     /**
      * Връща exif информация за файла
      *
@@ -33,6 +33,7 @@ class exif_Reader
         
         // Разширението трябва да е един от посочните
         if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif')) {
+            
             return;
         }
         
@@ -41,12 +42,13 @@ class exif_Reader
         
         // Трябва да има валиден път
         if (!$path) {
+            
             return;
         }
         
         // EXIF информация
         $exif = @exif_read_data($path);
-
+        
         // Изтриваме временния файл
         fileman::deleteTempPath($path);
         
@@ -68,11 +70,13 @@ class exif_Reader
     {
         // Ако няма exif информация
         if (!($exif = static::get($fileHnd))) {
+            
             return;
         }
-
+        
         // Ако няма такава информация
         if (!$exif['GPSLongitude'] || !$exif['GPSLatitude']) {
+            
             return;
         }
         
@@ -91,7 +95,7 @@ class exif_Reader
      * @param string $exifCoord
      * @param string $hemi
      *
-     * @return double
+     * @return float
      */
     protected static function getGpsCoord($exifCoord, $hemi)
     {
@@ -106,7 +110,7 @@ class exif_Reader
         
         // Секуди
         $seconds = $countExif > 2 ? static::gps2Num($exifCoord[2]) : 0;
-    
+        
         // В кое полукълбо се намира
         $flip = ($hemi == 'W' or $hemi == 'S') ? -1 : 1;
         
@@ -120,11 +124,10 @@ class exif_Reader
      *
      * @param string $coordPart
      *
-     * @return double
+     * @return float
      */
     protected static function gps2Num($coordPart)
     {
-    
         // Разделяме числата
         $parts = explode('/', $coordPart);
         
@@ -136,7 +139,7 @@ class exif_Reader
             
             return 0;
         }
-    
+        
         // Ако имаме само една част, връщаме нея
         if (count($parts) == 1) {
             

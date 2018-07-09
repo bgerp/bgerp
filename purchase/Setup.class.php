@@ -55,15 +55,15 @@ defIfNot('PURCHASE_ADD_BY_LIST_BTN', '');
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class purchase_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -92,26 +92,26 @@ class purchase_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'purchase_Offers',
-            'purchase_Purchases',
-            'purchase_PurchasesDetails',
-            'purchase_Services',
-            'purchase_ServicesDetails',
-            'purchase_ClosedDeals',
-            'purchase_Invoices',
-            'purchase_InvoiceDetails',
-            'purchase_Vops'
-        );
+        'purchase_Offers',
+        'purchase_Purchases',
+        'purchase_PurchasesDetails',
+        'purchase_Services',
+        'purchase_ServicesDetails',
+        'purchase_ClosedDeals',
+        'purchase_Invoices',
+        'purchase_InvoiceDetails',
+        'purchase_Vops'
+    );
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', 'purchase, ceo, acc'),
-        );
-
-
+        array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', 'purchase, ceo, acc'),
+    );
+    
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -130,8 +130,8 @@ class purchase_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('purchase', 'invoicer,seePrice'),
-            array('purchaseMaster', 'purchase'),
+        array('purchase', 'invoicer,seePrice'),
+        array('purchaseMaster', 'purchase'),
     );
     
     

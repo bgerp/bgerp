@@ -6,26 +6,24 @@
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
- * @since     v 0.12
  *
+ * @since     v 0.12
  * @deprecated
  */
 class crm_Personalization extends core_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'profileId';
-
     
     
     public $title = 'Персонализация';
-
+    
     
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
@@ -33,9 +31,7 @@ class crm_Personalization extends core_Detail
     public $loadList = 'crm_Wrapper,plg_RowTools';
     
     
-    
     public $currentTab = 'Профили';
-    
     
     
     public $canAdd = 'powerUser';
@@ -45,7 +41,6 @@ class crm_Personalization extends core_Detail
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'crm_ext_Personalization';
-    
     
     
     public $canEdit = 'powerUser';
@@ -62,17 +57,16 @@ class crm_Personalization extends core_Detail
         $this->FLD('signature', 'text', 'caption=Изходящ имейл->Подпис', array('hint' => 'Текст, който ще се използва за подпис на писмата'));
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Български', array('hint' => 'Лого, което ще се използва в бланките на документите'));
         $this->FLD('logoEn', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Английски', array('hint' => 'Лого, което ще се използва в бланките на документите на английски'));
-
+        
         $this->setDbUnique('profileId');
     }
-    
     
     
     public static function preparePersonalization($data)
     {
         // Очакваме да има masterId
         expect($data->masterId);
-
+        
         // Ако няма
         if (!$data->Personalization) {
             
@@ -89,17 +83,17 @@ class crm_Personalization extends core_Detail
             // Вземаме вербалните им стойности
             $data->Personalization->row = static::recToVerbal($data->Personalization->rec);
         }
-
+        
         // Кой може да променя
         $data->canChange = crm_Profiles::haveRightFor('edit', $data->masterId) && static::haveRightFor('edit', $data->Personalization->rec);
     }
-    
     
     
     public static function renderPersonalization($data)
     {
         // Ако нямаме права да не се показва
         if (!$data->canChange) {
+            
             return;
         }
         
@@ -108,7 +102,7 @@ class crm_Personalization extends core_Detail
         
         // Титлата
         $tpl->append(tr('Персонализация'), 'title');
-
+        
         // Записите от модела
         $rec = $data->Personalization->rec;
         
@@ -170,7 +164,7 @@ class crm_Personalization extends core_Detail
         
         // За да гарантираме релацията 1:1
         $form->rec->id = $mvc->fetchField("#profileId = {$form->rec->profileId}", 'id');
-
+        
         // Титлата
         $form->title = 'Персонализация на|* ' .  crm_Persons::getVerbal($data->masterRec->personId, 'name');
         
@@ -192,8 +186,8 @@ class crm_Personalization extends core_Detail
     /**
      * Връща логото на профила
      *
-     * @param integer|FALSE $userId - id' то на съответния потребител
-     * @param boolean       $en     - Дали логото да е на английски
+     * @param int|FALSE $userId - id' то на съответния потребител
+     * @param bool      $en     - Дали логото да е на английски
      */
     public static function getLogo($userId = false, $en = false)
     {
@@ -221,7 +215,7 @@ class crm_Personalization extends core_Detail
     /**
      * Връща подписа на съответния потребител
      *
-     * @param integer $userId - id' то на съответния потребител
+     * @param int $userId - id' то на съответния потребител
      */
     public static function getSignature($userId = null)
     {
@@ -238,11 +232,11 @@ class crm_Personalization extends core_Detail
         return $rec->signature;
     }
     
-
+    
     /**
      * Връща подписа на съответния потребител
      *
-     * @param integer $userId - id' то на съответния потребител
+     * @param int $userId - id' то на съответния потребител
      */
     public static function getHeader($userId = null)
     {
@@ -259,13 +253,13 @@ class crm_Personalization extends core_Detail
         return $rec->header;
     }
     
-
+    
     /**
      * Връща кутията по подразбиране
      *
-     * @param integer $userId - id' то на съответния потребител
+     * @param int $userId - id' то на съответния потребител
      *
-     * @return integer
+     * @return int
      */
     public static function getInboxId($userId = null)
     {
@@ -286,7 +280,7 @@ class crm_Personalization extends core_Detail
     /**
      * Връща записа за съответния потребител
      *
-     * @param integer|NULL|FALSE $userId - id' то на съответния потребител
+     * @param int|NULL|FALSE $userId - id' то на съответния потребител
      */
     public static function getRec($userId = null)
     {
@@ -305,7 +299,7 @@ class crm_Personalization extends core_Detail
         
         // id на потребителя
         $profileId = crm_Profiles::fetchField("#userId = {$userId}");
-
+        
         // Ако няма потребител
         if (!$profileId) {
             
@@ -317,7 +311,6 @@ class crm_Personalization extends core_Detail
         
         return $rec;
     }
-    
     
     
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)

@@ -1,22 +1,20 @@
 <?php
 
 
-
-
 /**
  * Драйвер за работа с файлове поддържани от inkscape
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
 {
-    
-    
     /**
      * Височина на експортиране
      */
@@ -32,11 +30,11 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
     /**
      * Преобразува подадения файл в PDF
      *
-     * @param string  $file
-     * @param boolean $cmyk
-     * @param string  $type
-     * @param string  $name
-     * @param array   $otherParam
+     * @param string $file
+     * @param bool   $cmyk
+     * @param string $type
+     * @param string $name
+     * @param array  $otherParam
      *
      * @return string|NULL - Манипулатора на PDF файла
      */
@@ -65,12 +63,12 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
     /**
      * Преобразува подадения файл в различни формати
      *
-     * @param string  $file
-     * @param string  $file       - pdf|png
-     * @param string  $type
-     * @param string  $name
-     * @param boolean $cmyk
-     * @param array   $otherParam
+     * @param string $file
+     * @param string $file       - pdf|png
+     * @param string $type
+     * @param string $name
+     * @param bool   $cmyk
+     * @param array  $otherParam
      *
      * @return string|NULL - Манипулатора на PNG файла
      */
@@ -156,7 +154,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
                 // Изтриваме временната директория с всички файлове вътре
                 core_Os::deleteDir($Script->tempDir);
             }
-        
+            
             if ($fileType == 'string') {
                 fileman::deleteTempPath($file);
             }
@@ -179,6 +177,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Office::getTabs
      */
     public static function getTabs($fRec)
@@ -216,6 +215,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Image::convertToJpg
      */
     public static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
@@ -233,7 +233,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
             
@@ -262,7 +262,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
-
+        
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '.png';
         
@@ -289,8 +289,9 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $Script->fName = $name;
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
-
+        
         $Script->setCheckProgramsArr('inkscape');
+        
         // Стартираме скрипта синхронно
         if ($Script->run() === false) {
             fileman_Indexes::createError($params);
@@ -303,8 +304,8 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      *
      * @param object $script - Обект със стойности
      *
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
-     *                 и записа от таблицата fconv_Process
+     * @return bool TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
+     *              и записа от таблицата fconv_Process
      *
      * @access protected
      */
@@ -331,7 +332,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             
             // Създаваме запис в модела за грешка
             fileman_Indexes::createError($params);
-    
+            
             // Записваме грешката в лога
             fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
         }
@@ -344,7 +345,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             
             // Текстовата част
             $params['content'] = $fileHndArr;
-    
+            
             // Обновяваме данните за запис във fileman_Indexes
             $savedId = fileman_Indexes::saveContent($params);
         }
@@ -353,7 +354,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         core_Locks::release($params['lockId']);
         
         if ($savedId) {
-
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
             return true;

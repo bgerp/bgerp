@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'page_Internal' - Шаблон за страница на приложението, видима за вътрешни потребители
  *
@@ -10,9 +9,11 @@
  *
  * @category  bgerp
  * @package   page
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Модерна вътрешна страница
  */
@@ -33,7 +34,7 @@ class core_page_InternalModern extends core_page_Active
         // Стилове за темата
         $this->push('css/default-theme.css', 'CSS');
         $this->push('css/new-design.css', 'CSS');
-
+        
         // Добавяне на стил само за дефоултния андроидски браузър
         $browserInfo = Mode::get('getUserAgent');
         if (strPos($browserInfo, 'Mozilla/5.0') !== false && strPos($browserInfo, 'Android') !== false &&
@@ -56,35 +57,35 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-
+        
         // Добавяне на титлата на страницата
         $conf = core_Packs::getConfig('core');
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         $this->prepend(' modern-theme', 'BODY_CLASS_NAME');
-
+        
         // Забраняваме мащабирането
         if (Mode::is('screenMode', 'narrow')) {
             $this->append('disableScale();', 'SCRIPTS');
         }
-
+        
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
-
+        
         jquery_Jquery::run($this, 'slidebars();');
         jquery_Jquery::run($this, 'scrollToHash();');
-
+        
         if (Mode::is('screenMode', 'narrow')) {
             jquery_Jquery::run($this, 'checkForElementWidthChange();');
             jquery_Jquery::run($this, 'sumOfChildrenWidth();');
             jquery_Jquery::run($this, 'removeNarrowScroll();');
         }
-
+        
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         $url = toUrl(array('bgerp_Portal', 'Show', '#' => 'notificationsPortal'));
-
+        
         $attr = array('id' => 'nCntLink', 'title' => 'Неразгледани известия', 'onClick' => 'openCurrentTab();');
-
+        
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if ($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
@@ -95,8 +96,8 @@ class core_page_InternalModern extends core_page_Active
         $nLink = ht::createLink("{$openNotifications}", $url, null, $attr);
         $this->replace($nLink, 'NOTIFICATIONS_CNT');
     }
-
-
+    
+    
     /**
      * Връща шаблона за страницата
      */
@@ -105,7 +106,7 @@ class core_page_InternalModern extends core_page_Active
         debug::log('StartTemplate');
         
         $data = new stdClass();
-
+        
         if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
             $openMenuInfo = $_COOKIE['menuInfo'];
             $winWidth = intval($openMenuInfo);
@@ -116,7 +117,7 @@ class core_page_InternalModern extends core_page_Active
             $data->openRightBtn = '';
             $data->openRightMenu = '';
             $data->pinned = '';
-
+            
             //в зависимост от стойсността на разбираме кои менюта са било отворени
             if (($winWidth > 700) && strrpos($openMenuInfo, 'l') !== false) {
                 $data->openLeftBtn = ' menu-active ';
@@ -137,7 +138,7 @@ class core_page_InternalModern extends core_page_Active
         $data->avatar = avatar_Plugin::getImg(core_Users::getCurrent(), null, 28);
         
         $key = 'intrnalModernTpl-debug';
-
+        
         if (($tpl = core_Cache::get($key, 'page')) === false) {
             $menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon', 'alt' => 'menu'));
             $pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => 'menuIcon pin [#pin#]', 'alt' => 'pin'));
@@ -146,7 +147,7 @@ class core_page_InternalModern extends core_page_Active
             
             $pinImg = str_replace('&#91;', '[', "${pinImg}");
             $pinnedImg = str_replace('&#91;', '[', "${pinnedImg}");
-
+            
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>
                                 <a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body [#openLeftBtn#]'>". $menuImg ."</a>
@@ -179,9 +180,9 @@ class core_page_InternalModern extends core_page_Active
                                 </div>
                             <div class='clearfix21'></div>
                             </div>  " ;
-             
+            
             $tpl = new ET(
-             
+                
                 "<div id='main-container' class='clearfix21 [#HAS_SCROLL_SUPPORT#] [#mainContainerClass#]' style='top: 50px; position: relative'>" .
                     "<div id=\"framecontentTop\"  class=\"headerBlock\"><div class='inner-framecontentTop'>" . $header . '</div></div>' .
                     "<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
@@ -190,13 +191,13 @@ class core_page_InternalModern extends core_page_Active
                     '[#DEBUG#]</div>'.
                     "<div id='nav-panel' class='sidemenu sidemenu-left [#openLeftMenu#]'>[#core_page_InternalModern::renderMenu#]</div>".
                     "<div id='fav-panel' class='sidemenu sidemenu-right [#openRightMenu#]'><div class='inner-fav-panel'>[#bgerp_Bookmark::renderBookmarks#]</div></div>"
-
+            
             );
-
+            
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('log_Browsers');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
-
+            
             core_Cache::set($key, 'page', $tpl, 10000);
         }
         
@@ -205,14 +206,14 @@ class core_page_InternalModern extends core_page_Active
                                          Време за изпълнение: [#DEBUG::getExecutionTime#]
                                          [#Debug::getLog#]</div>"), 'DEBUG');
         }
-
+        
         $tpl->placeObject($data);
-
+        
         debug::log('EndTemplate');
-
+        
         return $tpl;
     }
-        
+    
     
     /**
      * Рендира основното меню на страницата
@@ -223,17 +224,16 @@ class core_page_InternalModern extends core_page_Active
                     <ul>
                     [#MENU_ROW#]
                     </ul>');
-
-
-
+        
+        
         self::placeMenu($tpl);
         
         self::addLinksToMenu($tpl);
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Поставя елементите на менюто в шаблона
      */
@@ -243,24 +243,26 @@ class core_page_InternalModern extends core_page_Active
         
         if (is_array($menuObj)) {
             uasort($menuObj, function ($a, $b) {
+                
                 return($a->order > $b->order);
             });
         }
- 
+        
         $active = bgerp_Menu::getActiveItem($menuObj);
         
         list($aMainMenu, $aSubMenu) = explode(':', $active);
-
+        
         $html = '';
         $lastMenu = '';
- 
+        
         if (($menuObj) && (count($menuObj))) {
             foreach ($menuObj as $key => $rec) {
-   
+                
                 // Пропускаме не-достъпните менюта
                 if (!haveRole($rec->accessByRoles)) {
                     continue;
                 }
+                
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
                 $mainClass = $subClass = '';
                 if (($aMainMenu == $rec->menu)) {
@@ -269,7 +271,7 @@ class core_page_InternalModern extends core_page_Active
                         $subClass = ' class="selected"';
                     }
                 }
-                  
+                
                 if ($lastMenu != $rec->menu) {
                     $html .= ($html ? "\n</ul></li>" : '') . "\n<li{$mainClass} data-menuid = '{$rec->id}'>";
                     $html .= "\n    <div><span class='arrow'></span>{$rec->menuTr}</div>";
@@ -294,12 +296,11 @@ class core_page_InternalModern extends core_page_Active
                 }
             }
         }
-    
+        
         $tpl->append($html, 'MENU_ROW');
     }
-
-
-
+    
+    
     /**
      * Допълнителни линкове в менюто
      */
@@ -343,24 +344,25 @@ class core_page_InternalModern extends core_page_Active
         if (isDebug()) {
             $debug = ht::createLink('Debug', '#wer', false, array('title' => 'Показване на debug информация', 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
         }
+        
         // Смяна на езика
         $lgChange = self::getLgChange();
         $tpl->replace($lgChange, 'LANG_CHANGE');
-
-           
+        
+        
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         
         $url = toUrl(array('bgerp_Portal', 'Show'));
         $attr = array('id' => 'nCntLink');
-
+        
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if ($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
         } else {
             $attr['class'] = 'noNtf';
         }
-
+        
         $coreConf = core_Packs::getConfig('core');
         
         
@@ -426,10 +428,10 @@ class core_page_InternalModern extends core_page_Active
             $attr['id'] = 'modern-person-seach';
             $searchLink .= ht::createLink(tr('Търсене на лица'), array('crm_Persons', 'list'), null, $attr);
         }
-                
+        
         $tpl->replace($searchLink, 'SEARCH_LINK');
     }
-
+    
     
     /**
      * Добавя хипервръзки за превключване между езиците на интерфейса
@@ -449,7 +451,7 @@ class core_page_InternalModern extends core_page_Active
         $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => true));
         $attr = array('href' => $url, 'title' => $title, 'ef_icon' => 'img/16/Maps-Globe-Earth-icon.png');
         $res = ht::createLink($lang, $url, null, $attr);
-
+        
         return $res;
     }
     

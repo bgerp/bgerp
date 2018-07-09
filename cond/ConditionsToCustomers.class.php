@@ -1,21 +1,22 @@
 <?php
 
+
 /**
  * Клас 'cond_ConditionsToCustomers'
  *
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cond_ConditionsToCustomers extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -79,7 +80,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=typeExt,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'text', 'caption=Стойност, mandatory');
-    
+        
         // Добавяне на уникални индекси
         $this->setDbUnique('cClass,cId,conditionId');
         $this->setDbIndex('cId');
@@ -184,7 +185,7 @@ class cond_ConditionsToCustomers extends core_Manager
             
             $data->rows[$rec->conditionId] = $row;
         }
-       
+        
         $defQuery = cond_Countries::getQuery();
         $defQuery->where("#country = '{$cData->countryId}' OR #country IS NULL");
         $defQuery->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
@@ -217,10 +218,10 @@ class cond_ConditionsToCustomers extends core_Manager
                     
                     return ($a->id < $b->id) ? -1 : 1;
                 }
-
+                
                 return (strcasecmp($a->order, $b->order) < 0) ? -1 : 1;
             }
-
+            
             return (strcasecmp($a->group, $b->group) < 0) ? -1 : 1;
         });
         
@@ -230,7 +231,7 @@ class cond_ConditionsToCustomers extends core_Manager
         }
     }
     
-
+    
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -271,14 +272,14 @@ class cond_ConditionsToCustomers extends core_Manager
         if (isset($data->addBtn)) {
             $tpl->append($data->addBtn, 'condTitle');
         }
-      
+        
         if (count($data->rows)) {
             foreach ($data->rows as $id => &$row) {
                 if (is_object($row->_rowTools)) {
                     $row->tools = $row->_rowTools->renderHtml();
                 }
             }
-
+            
             $tpl->append(static::renderParamBlock($data->rows));
         } else {
             $tpl->append(tr('Все още няма условия'));
@@ -291,7 +292,8 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Рендира блок с параметри за артикули
      *
-     * @param  array   $paramArr
+     * @param array $paramArr
+     *
      * @return core_ET $tpl
      */
     public static function renderParamBlock($paramArr)
@@ -313,17 +315,19 @@ class cond_ConditionsToCustomers extends core_Manager
                 $tpl->append($block, 'ROWS');
             }
         }
-    
+        
         return $tpl;
     }
     
     
     /**
      * Връща условие на даден контрагент или всички негови условия
+     *
      * @param int $cClass - ид на клас на контрагент
      * @param int $cId    - ид на контрагент
      * @param $conditionId = NULL - ако е зададено връща стойността
      * на параметъра, ако не масив от всички условия за клиента
+     *
      * @return string/array
      */
     public static function fetchByCustomer($cClass, $cId, $conditionId = null)
@@ -336,7 +340,7 @@ class cond_ConditionsToCustomers extends core_Manager
         if ($conditionId) {
             $query->where("#conditionId = {$conditionId}");
             $query->show('value');
-
+            
             return $query->fetch()->value;
         }
         $query->show('conditionId,value');
@@ -344,7 +348,7 @@ class cond_ConditionsToCustomers extends core_Manager
         while ($rec = $query->fetch()) {
             $recs[$rec->conditionId] = $rec->value;
         }
-
+        
         return $recs;
     }
     
@@ -365,7 +369,7 @@ class cond_ConditionsToCustomers extends core_Manager
                 }
             }
         }
-       
+        
         if ($action == 'add' && isset($rec->cClass, $rec->cId)) {
             if ($res != 'no_one') {
                 if (!count($mvc::getRemainingOptions($rec->cClass, $rec->cId))) {
@@ -373,7 +377,7 @@ class cond_ConditionsToCustomers extends core_Manager
                 }
             }
         }
-       
+        
         // Ако има указани роли за параметъра, потребителя трябва да ги има за редакция/изтриване
         if (($action == 'edit' || $action == 'delete') && $res != 'no_one' && isset($rec)) {
             $roles = cond_Parameters::fetchField($rec->conditionId, 'roles');
@@ -447,11 +451,12 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Форсира(ако няма създава, ако има го обновява) търговско условие към клиент
      *
-     * @param  mixed $class       - клас на контрагента
-     * @param  int   $objectId    - ид на контрагента
-     * @param  int   $conditionId - ид на параметъра
-     * @param  mixed $value       - стойност на параметъра
-     * @return int   - създадения/обновения запис
+     * @param mixed $class       - клас на контрагента
+     * @param int   $objectId    - ид на контрагента
+     * @param int   $conditionId - ид на параметъра
+     * @param mixed $value       - стойност на параметъра
+     *
+     * @return int - създадения/обновения запис
      */
     public static function force($class, $objectId, $conditionId, $value)
     {

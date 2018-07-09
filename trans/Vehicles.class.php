@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'trans_vehicles'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class trans_Vehicles extends core_Master
 {
-
-    
     /**
      * Заглавие
      */
     public $title = 'Транспортни средства';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */

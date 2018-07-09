@@ -6,18 +6,20 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'preview';
@@ -31,6 +33,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -57,7 +60,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                 'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Преглед') . "</div>{$previewStr}</div></div>",
                 'order' => 2,
             );
-            
+        
         // Таб за съдържанието
         $tabsArr['content'] = (object)
             array(
@@ -73,8 +76,8 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
     /**
      * Връща текстовата част
      *
-     * @param object  $fRec   - Запис на визитката
-     * @param boolean $escape - Дали да се ескейпва текстовата част
+     * @param object $fRec   - Запис на визитката
+     * @param bool   $escape - Дали да се ескейпва текстовата част
      *
      * @return string $content - Текстовата част
      */
@@ -89,7 +92,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
             // Ескейпваме текстовата част
             $content = type_Varchar::escape($content);
         }
-
+        
         return $content;
     }
     
@@ -168,7 +171,6 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
      */
     public static function prepareContent($dataArr)
     {
-        
         // Шаблона на визитките
         $content = new ET('[#content#]');
         
@@ -209,13 +211,16 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
             
             // Заместваме името на предпирятите
             $tpl->replace($vcardArr['organization'], 'organization');
+            
             // Заместваме длъжността
             $tpl->replace($vcardArr['jobTitle'], 'jobTitle');
+            
             // Заместваме ролята
             $tpl->replace($vcardArr['role'], 'role');
             
             // Флаг указващ, че обхождаме първия елемент на масива
             $firstPhoto = true;
+            
             // Обхождаме всички снимки
             foreach ((array) $vcardArr['photoUrl'] as $photoUrl) {
                 
@@ -236,6 +241,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                 $firstPref = true;
                 $firstInt = true;
                 $firstOther = true;
+                
                 // Обхождаме всички имейли
                 foreach ((array) $emailsArr as $email) {
                     
@@ -249,7 +255,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstInt) ? ($email = ', ' . $email) :  ($firstInt = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($email, 'internetEmails');
                         break;
@@ -258,7 +264,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstPref) ? ($email = ', ' . $email) :  ($firstPref = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($email, 'prefEmail');
                         break;
@@ -268,7 +274,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstOther) ? ($email = ', ' . $email) :  ($firstOther = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($email, 'otherEmails');
                         break;
@@ -290,6 +296,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                 $firstVoice = true;
                 $firstFax = true;
                 $firstOther = true;
+                
                 // Обхождаме всички телефони
                 foreach ((array) $phonesArr as $phone) {
                     
@@ -303,7 +310,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstPref) ? ($phone = ', ' . $phone) :  ($firstPref = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($phone, 'prefPhones');
                         break;
@@ -312,7 +319,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstCell) ? ($phone = ', ' . $phone) :  ($firstCell = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($phone, 'cellPhones');
                         break;
@@ -321,7 +328,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstWork) ? ($phone = ', ' . $phone) :  ($firstWork = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($phone, 'workPhones');
                         break;
@@ -330,7 +337,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstHome) ? ($phone = ', ' . $phone) :  ($firstHome = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($phone, 'homePhones');
                         break;
@@ -339,7 +346,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstVoice) ? ($phone = ', ' . $phone) :  ($firstVoice = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($phone, 'voicePhones');
                         break;
@@ -348,7 +355,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstFax) ? ($phone = ', ' . $phone) :  ($firstFax = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($phone, 'faxPhones');
                         break;
@@ -357,7 +364,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Проверка дали за първи път влизаме
                             (!$firstOther) ? ($phone = ', ' . $phone) :  ($firstOther = false);
-                        
+                            
                             // Добавяме към шаблона
                             $tpl->append($phone, 'otherPhones');
                         break;
@@ -372,6 +379,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                 $firstHome = true;
                 $firstWork = true;
                 $firstOther = true;
+                
                 // Обхождаме всички телефони
                 foreach ((array) $addressArr as $address) {
                     
@@ -396,7 +404,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
                             
                             // Заместваме всеки нов ред с нов ред и табулация
                             $address = str_ireplace("\n", "\n\t", $address);
-
+                            
                             (!$firstWork) ? ($address = "\n" . $address) :  ($firstWork = false);
                             
                             // Добавяме към шаблона

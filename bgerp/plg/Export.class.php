@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин за експортиране на данни
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_Export extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -23,7 +22,6 @@ class bgerp_plg_Export extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        
         /**
          * @todo Чака за документация...
          */
@@ -59,9 +57,9 @@ class bgerp_plg_Export extends core_Plugin
             $userId = core_Users::getCurrent();
             core_Cache::remove($mvc->className, "exportRecs{$userId}");
             core_Cache::set($mvc->className, "exportRecs{$userId}", $recs, 20);
-        
+            
             $retUrl = toUrl(array($mvc, 'list'), 'local');
-        
+            
             redirect(array($mvc, 'export', 'ret_url' => $retUrl));
         }
     }
@@ -111,7 +109,7 @@ class bgerp_plg_Export extends core_Plugin
                 }
                 
                 core_App::setTimeLimit(count($recs) / 100);
-
+                
                 $cu = core_Users::getCurrent();
                 core_Cache::set($mvc->className, "exportRecs{$cu}", $recs, 20);
             }
@@ -127,7 +125,7 @@ class bgerp_plg_Export extends core_Plugin
             $form->method = 'GET';
             $form->title = "Експортиране на {$mvc->title}";
             $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', 'input,caption=Формат,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
-   
+            
             // Ако има опции за избор на драйвър слагаме ги, иначе правим полето readOnly
             if (count($options)) {
                 $form->setOptions('driver', array('' => '') + $options);
@@ -137,7 +135,7 @@ class bgerp_plg_Export extends core_Plugin
             } else {
                 $form->setReadOnly('driver');
             }
-             
+            
             // Инпутваме тихите полета
             $form->input(null, 'silent');
             
@@ -173,7 +171,7 @@ class bgerp_plg_Export extends core_Plugin
                 
                 // Записваме файла в системата
                 $fh = fileman::absorbStr($content, 'exportCsv', $name);
-                    
+                
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
                 $tpl = new Redirect(array('fileman_Files', 'single', $fh), '|Файлът е експортиран успешно');
                 
@@ -182,9 +180,9 @@ class bgerp_plg_Export extends core_Plugin
             
             $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
             $form->toolbar->addBtn('Отказ', array($mvc, 'list'), 'ef_icon = img/16/close-red.png');
-         
+            
             $form = $form->renderHtml();
-          
+            
             $tpl = $mvc->renderWrapping($form);
             
             return false;
@@ -198,7 +196,7 @@ class bgerp_plg_Export extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'export') {
-        
+            
             // Ако няма налични драйвери за експорт за този мениджър не можем да експортираме
             if (!self::getExportDrivers($mvc) && !$mvc->hasPlugin('plg_ExportCsv')) {
                 $requiredRoles = 'no_one';

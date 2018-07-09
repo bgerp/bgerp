@@ -1,41 +1,47 @@
 <?php
 
+
 /**
  * Мениджър на отчети за неплатени фактури по клиент
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Счетоводство » Неплатени фактури по контрагент
  */
 class acc_reports_UnpaidInvoices extends frame2_driver_TableData
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,acc';
-
+    
+    
     /**
      * Брой записи на страница
      *
      * @var int
      */
     protected $listItemsPerPage = 30;
-
+    
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'className';
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'contragent,checkDate';
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -56,7 +62,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $fieldset->FLD('purchaseTotalNotPaid', 'double', 'input=none,single=none');
         $fieldset->FLD('purchaseTotalOverDue', 'double', 'input=none,single=none');
     }
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -73,12 +80,14 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $checkDate = dt::today();
         $form->setDefault('checkDate', "{$checkDate}");
     }
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -142,7 +151,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             foreach ($threadsId as $thread) {
                 
                 // масив от фактури в тази нишка //
-              
+                
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
                 
                 if (is_array($invoicePayments)) {
@@ -177,6 +186,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                              $iRec->dueDate < $rec->checkDate) {
                             $salesTotalOverDue += ($paydocs->amount - $paydocs->payout);
                         }
+                        
                         // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $sRecs)) {
                             $sRecs[$iRec->id] = (object) array(
@@ -286,6 +296,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                              $iRec->dueDate < $rec->checkDate) {
                             $purchaseTotalOverDue += ($paydocs->amount - $paydocs->payout);
                         }
+                        
                         // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $pRecs)) {
                             $pRecs[$iRec->id] = (object) array(
@@ -332,14 +343,16 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         return $recs;
     }
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec
-     *                               - записа
-     * @param  boolean       $export
-     *                               - таблицата за експорт ли е
+     * @param stdClass $rec
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -368,16 +381,18 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено');
             $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено');
         }
-
+        
         return $fld;
     }
-
+    
+    
     /**
      * Връща платена сума
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $paidAmount
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $paidAmount
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
@@ -385,13 +400,15 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         return $paidAmount;
     }
-
+    
+    
     /**
      * Връща дати на плащания
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $paidDates
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $paidDates
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
@@ -424,16 +441,18 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
                 $paidDates .= "${paidDate}" . "\n\r";
             }
         }
-
+        
         return $paidDates;
     }
-
+    
+    
     /**
      * Връща просрочие на плащане
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $dueDate
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $dueDate
      */
     private static function getDueDate($dRec, $verbal = true, $rec)
     {
@@ -457,14 +476,16 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         return $dueDate;
     }
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec
-     *                        - записа
-     * @param  stdClass $dRec
-     *                        - чистия запис
+     * @param stdClass $rec
+     *                       - записа
+     * @param stdClass $dRec
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -478,7 +499,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
         
         $row->invoiceNo = ht::createLinkRef(
-        
+            
             $invoiceNo,
             array(
                 $dRec->className,
@@ -522,7 +543,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         return $row;
     }
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -590,7 +612,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-
+    
+    
     /**
      * След подготовка на реда за експорт
      *

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'doc_SequencerPlg' - Числови последователности използвани в номерации на документи
  *
@@ -11,9 +12,11 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_SequencerPlg extends core_Plugin
@@ -74,7 +77,7 @@ class doc_SequencerPlg extends core_Plugin
         } else {
             $number = $min;
         }
-
+        
         expect($number < $max, 'Последователността ' . $mvc->className . '::' . $seqField . ' е изчерпана');
     }
     
@@ -103,7 +106,8 @@ class doc_SequencerPlg extends core_Plugin
      * Името се взема от полето 'sequencerField' на модела-домакин. Ако не е зададено - използва
      * се константата 'number'
      *
-     * @param  core_Mvc $mvc
+     * @param core_Mvc $mvc
+     *
      * @return string
      */
     protected static function getSeqField($mvc)

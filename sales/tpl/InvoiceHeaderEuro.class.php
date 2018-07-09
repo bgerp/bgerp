@@ -1,32 +1,33 @@
 <?php
 
 
-
 /**
  * Помощен модел за лесна работа с баланс, в който участват само определени пера и сметки
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_tpl_InvoiceHeaderEuro extends doc_TplScript
 {
-    
-    
     /**
      * Метод който подава данните на мастъра за обработка на скрипта
      *
-     * @param  core_Mvc $mvc  - мастър на документа
-     * @param  stdClass $data - данни
+     * @param core_Mvc $mvc  - мастър на документа
+     * @param stdClass $data - данни
+     *
      * @return void
      */
     public function modifyMasterData(core_Mvc $mvc, &$data)
     {
         if ($data->rec == 'EUR') {
+            
             return;
         }
         
@@ -45,13 +46,15 @@ class sales_tpl_InvoiceHeaderEuro extends doc_TplScript
     /**
      * Метод който подава данните на детайла на мастъра, за обработка на скрипта
      *
-     * @param  core_Mvc $detail - Детайл на документа
-     * @param  stdClass $data   - данни
+     * @param core_Mvc $detail - Детайл на документа
+     * @param stdClass $data   - данни
+     *
      * @return void
      */
     public function modifyDetailData(core_Mvc $detail, &$data)
     {
         if ($data->masterData->rec->currencyId == 'EUR') {
+            
             return;
         }
         
@@ -59,6 +62,7 @@ class sales_tpl_InvoiceHeaderEuro extends doc_TplScript
         $data->listFields['packPrice'] = 'Ед. цена ' . $data->masterData->rec->currencyId;
         
         if (!count($data->rows)) {
+            
             return;
         }
         

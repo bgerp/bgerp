@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Публично съдържание, подредено в меню
  *
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_Content extends core_Manager
 {
-
     /**
      * Име под което записваме в сесията текущия език на CMS изгледа
      */
@@ -38,14 +38,14 @@ class cms_Content extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,cms_DomainPlg';
-
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     // var $listFields = ' ';
     
-     
+    
     /**
      * Кой може да променя състоянието на валутата
      */
@@ -68,20 +68,20 @@ class cms_Content extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,cms';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin,cms';
     
-
+    
     /**
      * Полета за листовия изглед
      */
     public $listFields = 'order,menu,source,state';
-
-
+    
+    
     /**
      * Поле за инструментите на реда
      */
@@ -92,8 +92,8 @@ class cms_Content extends core_Manager
      * По кои полета ще се търси
      */
     public $searchFields = 'menu';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -106,10 +106,10 @@ class cms_Content extends core_Manager
         $this->FLD('source', 'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник,mandatory');
         $this->FLD('url', 'varchar(128)', 'caption=URL,input=none');
         $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
-
+        
         $this->setDbUnique('menu,domainId');
     }
-
+    
     
     /**
      * Връша текущия език за CMS часта
@@ -117,11 +117,11 @@ class cms_Content extends core_Manager
     public static function getLang()
     {
         $lang = cms_Domains::getPublicDomain('lang');
- 
+        
         return $lang;
     }
-
-
+    
+    
     /**
      * Записва в сесията текущия език на CMS изгледа
      */
@@ -129,35 +129,35 @@ class cms_Content extends core_Manager
     {
         core_Lg::set($lang, !haveRole('user'));
         cms_Domains::getPublicDomain(null, $lang);
-
+        
         $langsArr = arr::make(core_Lg::getLangs());
         if ($langsArr[$lang]) {
             core_Lg::push($lang);
         }
     }
-
-
+    
+    
     /**
      * Екшън за избор на език на интерфейса за CMS часта
      */
     public function act_SelectLang()
     {
         $langsArr = cms_Domains::getCmsLangs();
- 
+        
         $lang = $langsArr[Request::get('lang')];
-
+        
         if ($lang) {
             self::setLang($lang);
-
+            
             return new Redirect(array('cms_Content', 'Show', 'lg' => $lang));
         }
-
+        
         $lang = self::getLang();
-
+        
         $res = new ET(getFileContent('cms/themes/default/LangSelect.shtml'));
         
         $s = $res->getBlock('SELECTOR');
-
+        
         foreach ($langsArr as $lg) {
             if ($lg == $lang) {
                 $attr = array('class' => 'selected');
@@ -179,10 +179,10 @@ class cms_Content extends core_Manager
         }
         
         Mode::set('wrapper', 'cms_page_External');
-
+        
         return $res;
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -191,9 +191,8 @@ class cms_Content extends core_Manager
     {
         $data->query->orderBy('#order', 'ASC');
     }
-
-
-   
+    
+    
     /**
      * Подготвя данните за публичното меню
      */
@@ -201,14 +200,14 @@ class cms_Content extends core_Manager
     {
         $query = self::getQuery();
         $query->orderBy('#order');
-
+        
         $data->domainId = cms_Domains::getPublicDomain('id');
         
         if ($data->domainId) {
             $data->items = $query->fetchAll("#state = 'active' AND #domainId = {$data->domainId}");
         }
     }
-
+    
     
     /**
      * Рендира публичното меню
@@ -222,24 +221,24 @@ class cms_Content extends core_Manager
             $cMenuId = Request::get('cMenuId', 'int');
             Mode::set('cMenuId', $cMenuId);
         }
-
+        
         $loginLink = false;
-
+        
         if (is_array($data->items)) {
             foreach ($data->items as $rec) {
                 list($f, $s) = explode(' ', $rec->menu, 2);
-
+                
                 if (is_Numeric($f)) {
                     $rec->menu = $s;
                 }
-
+                
                 $attr = array();
                 if (($cMenuId == $rec->id)) {
                     $attr['class'] = 'selected';
                 }
                 
                 $url = $this->getContentUrl($rec);
-
+                
                 if (!$url) {
                     $url = '#';
                 }
@@ -247,38 +246,38 @@ class cms_Content extends core_Manager
                 if (strpos($urlS, '/core_Users/') !== false || strpos($urlS, 'Portal/Show/') !== false) {
                     $loginLink = true;
                 }
-
+                
                 $tpl->append(ht::createLink($rec->menu, $url, null, $attr));
             }
         }
-
-
+        
+        
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
         
         if (count($usedLangsArr) == 2) {
-
+            
             // Премахваме текущия език
             $lang = self::getLang();
-
+            
             foreach ($usedLangsArr as $lg) {
                 $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg);
-
+                
                 if ($lg == $lang) {
                     continue;
                 }
                 
                 $filePath = getFullPath('img/flags/' . $lg . '.png');
                 $img = ' ';
-
+                
                 if ($filePath) {
                     $imageUrl = sbf('img/flags/' . $lg . '.png', '');
                     $img = ht::createElement('img', array('src' => $imageUrl, 'alt' => $lg));
                 }
                 
                 $url = array($this, 'SelectLang', 'lang' => $lg);
-
-
+                
+                
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }
         } elseif (count($usedLangsArr) > 1) {
@@ -289,8 +288,8 @@ class cms_Content extends core_Manager
             }
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), null, $attr));
         }
-
-
+        
+        
         // Поставяне на иконка за Вход
         if ($loginLink == false) {
             $dRec = cms_Domains::getPublicDomain('form');
@@ -302,20 +301,20 @@ class cms_Content extends core_Manager
                 $filePath = 'img/32/login';
                 $title = 'Вход||Log in';
             }
-
+            
             if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
                 (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
                 $filePath .= 'Dark';
             } else {
                 $filePath .= 'Light';
             }
-
+            
             if (Mode::is('screenMode', 'narrow')) {
                 $filePath .= 'M';
             }
-
+            
             $filePath .= '.png';
-
+            
             $tpl->append(ht::createLink(
                 ht::createImg(array('path' => $filePath)),
                 array('Portal', 'Show'),
@@ -323,12 +322,11 @@ class cms_Content extends core_Manager
                 array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')
             ));
         }
-
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Връща URL към съдържанието, което отговаря на този запис
      */
@@ -349,18 +347,18 @@ class cms_Content extends core_Manager
         }
         
         core_Request::addUrlHash($url);
-       
+        
         if ($absolute && is_array($url)) {
             $domain = cms_Domains::fetch($rec->domainId)->domain;
             if ($domain != 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
                 $url = Url::change(toUrl($url, 'absolute'), null, $domain);
             }
         }
-
+        
         return $url;
     }
     
-
+    
     /**
      * Връща кратко URL отговарящо на текущото
      */
@@ -369,7 +367,7 @@ class cms_Content extends core_Manager
         if (!$cUrl) {
             $cUrl = getCurrentUrl();
         }
-   
+        
         // За да не влезе в безкраен цикъл, да не вика себе си
         if (strtolower($cUrl['Ctr']) == 'cms_content') {
             
@@ -385,6 +383,7 @@ class cms_Content extends core_Manager
             $rec = $query->fetch();
             if ($rec) {
                 $cUrl = self::getContentUrl($rec);
+                
                 // Преобразуваме от поредни към именовани параметри
                 if (isset($cUrl[0]) && !isset($cUrl['Ctr'])) {
                     $cUrl['Ctr'] = $cUrl[0];
@@ -397,12 +396,12 @@ class cms_Content extends core_Manager
                 }
             }
         }
- 
+        
         if ($cUrl['Ctr'] && cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
             $man = cls::get($cUrl['Ctr']);
             $cUrl = $man->getShortUrl($cUrl);
         }
-
+        
         return $cUrl;
     }
     
@@ -425,7 +424,7 @@ class cms_Content extends core_Manager
         $publicUrl = $mvc->getContentUrl($rec, true);
         $row->menu = ht::createLink($row->menu, $publicUrl, false, 'ef_icon=img/16/monitor.png');
     }
-
+    
     
     /**
      * Връща основното меню
@@ -438,22 +437,21 @@ class cms_Content extends core_Manager
         
         return  $self->renderMenu($data);
     }
-
-        
-     
+    
+    
     /**
      * Връща футера на страницата
      */
     public static function getLayout()
     {
         $layoutPath = Mode::get('cmsLayout');
-
+        
         $layout = new ET($layoutPath ? tr('|*' . getFileContent($layoutPath)) : '[#PAGE_CONTENT#]');
-    
+        
         return $layout;
     }
-
-
+    
+    
     /**
      * Задава текущото меню
      */
@@ -467,16 +465,17 @@ class cms_Content extends core_Manager
         $lg = cms_Domains::getPublicDomain('lang');
         
         self::setLang($lg);
-
+        
         Mode::set('wrapper', 'cms_page_External');
     }
-
-
+    
+    
     /**
      * Връща менюто по подразбиране за съответния тип източник на съдържание
      *
-     * @param  mixed $class Името на класа
-     * @return int   $menuId id-то на менюто
+     * @param mixed $class Името на класа
+     *
+     * @return int $menuId id-то на менюто
      */
     public static function getDefaultMenuId($class)
     {
@@ -490,8 +489,8 @@ class cms_Content extends core_Manager
             return $rec->id;
         }
     }
-
-
+    
+    
     /**
      * Връща футера на страницата
      */
@@ -503,11 +502,10 @@ class cms_Content extends core_Manager
             $footer = new ET(getFileContent('cms/tpl/Footer.shtml'));
         }
         $footer->replace(getBoot() . '/' . EF_SBF . '/' . EF_APP_NAME, 'boot');
-
+        
         return $footer;
     }
-
-
+    
     
     /**
      * Показва посоченото меню, а ако няма такова - показва менюто с най-малък номер
@@ -532,16 +530,16 @@ class cms_Content extends core_Manager
             
             return Request::forward($url);
         }
-            
+        
         if (!Mode::get('lg')) {
             $lang = cms_Domains::detectLang(cms_Domains::getCmsLangs());
             core_Lg::set($lang);
         }
-            
+        
         return new Redirect(array('bgerp_Portal', 'Show'));
     }
     
-
+    
     /**
      * Титлата за листовия изглед
      * Съдържа и текущия домейн
@@ -550,8 +548,8 @@ class cms_Content extends core_Manager
     {
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
-
-
+    
+    
     /**
      * Връща опциите от менюто, които отговарят на текущия домейн и клас
      */
@@ -566,11 +564,11 @@ class cms_Content extends core_Manager
         while ($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {
             $res[$rec->id] = $rec->menu;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Модификация на ролите, които могат да видят избраната тема
      */
@@ -586,8 +584,8 @@ class cms_Content extends core_Manager
             }
         }
     }
-
-
+    
+    
     /**
      * Изпълнява се преди запис в модела
      * - Ако полето за подредба не е попълнено, попълва стойност, която поставя менюто последно
@@ -607,35 +605,34 @@ class cms_Content extends core_Manager
             $rec->order = $typeOrder->fromVerbal($lastOrder + 10);
         }
     }
-
-
+    
+    
     /**
      * Добавя към шаблона каноничното URL
      */
     public static function addCanonicalUrl($url, $tpl)
     {
         $selfUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . rtrim($_SERVER['HTTP_HOST'], '/') . '/' . ltrim($_SERVER['REQUEST_URI'], '/');
- 
+        
         if ($url != $selfUrl) {
             $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\">", 'HEAD');
         }
     }
-
-
-
+    
+    
     /**
      * Добавя параметрите за SEO оптимизация
      */
     public static function setSeo($content, $sRec)
     {
         expect(is_object($sRec), $sRec);
- 
+        
         $rec = clone($sRec);
-
+        
         if ($rec->seoTitle) {
             $content->prependOnce(type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle)))) . ' » ', 'PAGE_TITLE');
         }
-
+        
         if (!$rec->seoDescription) {
             $rec->seoDescription = cms_Domains::getPublicDomain('seoDescription');
         }
@@ -647,22 +644,22 @@ class cms_Content extends core_Manager
         if (!$rec->seoKeywords) {
             $rec->seoKeywords = cms_Domains::getPublicDomain('seoKeywords');
         }
-
+        
         if ($rec->seoKeywords) {
             $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords)))), 'META_KEYWORDS');
         }
     }
-
-
+    
+    
     public static function renderSearchResults($menuId, $q)
     {
         //$q = Request::get('q');
         //$menuId = Request::get('menuId', 'int');
         
-
+        
         $query = self::getQuery();
         $query->orderBy('order');
-
+        
         if ($menuId) {
             $rec = self::fetch($menuId);
             $domainId = $rec->domainId;
@@ -671,15 +668,15 @@ class cms_Content extends core_Manager
         }
         
         $query->where("#domainId = {$domainId} AND #id != {$menuId}");
-
+        
         $res = array();
-                
+        
         do {
             if (!$rec->source) {
                 continue;
             }
             $cls = cls::get($rec->source);
-      
+            
             if (cls::existsMethod($cls, 'getSearchResults')) {
                 $res = $cls->getSearchResults($rec->id, $q);
                 if (count($res)) {
@@ -692,7 +689,7 @@ class cms_Content extends core_Manager
                 }
             }
         } while ($rec = $query->fetch());
-
+        
         $res = new ET("<h1>Търсене на \"<strong style='color:green'>" . type_Varchar::escape($q) . "</strong>\"</h1><div style='padding:0px;' class='results'>[#1#]</div>", $html);
         
         plg_Search::highlight($res, $q, 'results');

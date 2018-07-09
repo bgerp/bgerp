@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * class acc_Setup
  *
@@ -9,15 +10,15 @@
  *
  * @category  bgerp
  * @package   opit
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class myself_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -41,22 +42,22 @@ class myself_Setup extends core_ProtoSetup
      */
     public $info = 'Code analysis';
     
-
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'myself_Codebase'
-
-        );
+        'myself_Codebase'
     
-
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'powerUser';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -64,15 +65,13 @@ class myself_Setup extends core_ProtoSetup
 //            array(3.995, 'Анализ', 'Анализ', 'myself_Codebase', 'default', "powerUser"),
 //        );
     
-        
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-              
-
         
         return $html;
     }

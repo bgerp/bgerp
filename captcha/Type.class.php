@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Колко минути да е активна информацията в кеша?
  */
@@ -38,16 +37,16 @@ defIfNot('CAPTCHA_CACHE_TYPE', 'Captcha');
  *
  * @category  vendors
  * @package   captcha
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class captcha_Type extends core_Type
 {
-    
-    
     /**
      * Рендира полето за въвеждане на Captcha
      */
@@ -61,7 +60,7 @@ class captcha_Type extends core_Type
         $code = str::getRand('####');
         
         $handler = core_Cache::set(
-        
+            
             CAPTCHA_CACHE_TYPE, // Тип
             '1' . str::getRand('#########'), // Манипулатор
             $code, // Код, който се изписва с картинка
@@ -107,7 +106,7 @@ class captcha_Type extends core_Type
             return $value;
         }
         $this->error = 'Некоректно разпознаване на кода';
-            
+        
         return false;
     }
     
@@ -159,6 +158,7 @@ class captcha_Type extends core_Type
         imagedestroy($image);
     }
     
+    
     /**
      * Добавя контролна сума към ID параметър
      */
@@ -169,7 +169,7 @@ class captcha_Type extends core_Type
         return $id . $hash;
     }
     
-
+    
     /**
      * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
      */
@@ -178,14 +178,14 @@ class captcha_Type extends core_Type
         $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
         
         $idProt = $this->protectId($idStrip);
-
+        
         if ($id == $idProt) {
             
             return $idStrip;
         }
         sleep(2);
         Debug::log('Sleep 2 sec. in' . __CLASS__);
-
+        
         return false;
     }
 }

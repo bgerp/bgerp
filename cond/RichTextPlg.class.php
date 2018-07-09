@@ -7,21 +7,21 @@
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_RichTextPlg extends core_Plugin
 {
-
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'passage_RichTextPlg';
-
-
-
+    
+    
     /**
      * Добавя бутон за качване на документ
      *
@@ -36,10 +36,10 @@ class cond_RichTextPlg extends core_Plugin
             // id
             ht::setUniqId($attr);
             $id = $attr['id'];
-
+            
             // Име на функцията и на прозореца
             $callbackName = 'placePassage_' . $id;
-
+            
             // Ако е мобилен/тесем режим
             if (Mode::is('screenMode', 'narrow')) {
                 // Парамтери към отварянето на прозореца
@@ -47,18 +47,18 @@ class cond_RichTextPlg extends core_Plugin
             } else {
                 $args = 'width=600,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             }
-
+            
             Request::setProtected('groupName');
-
+            
             // URL за добавяне на документи
             $url = toUrl(array('cond_Texts', 'Dialog', 'callback' => $callbackName, 'groupName' => $mvc->params['passage']));
-
+            
             // JS фунцкията, която отваря прозореца
             $js = "openWindow('{$url}', '{$callbackName}', '{$args}'); return false;";
-
+            
             // Бутон за отвяряне на прозореца
             $addPassage = new ET("<a class=rtbutton title='" . tr('Добавяне на пасаж ') . "' onclick=\"{$js}\">" . tr('Пасаж') . '</a>');
-
+            
             // JS функцията
             $callback = "function {$callbackName}(passage) {
                 var ta = get$('{$id}');
@@ -66,10 +66,10 @@ class cond_RichTextPlg extends core_Plugin
                 
                 return false;
             }";
-
+            
             // Добавяме скрипта
             $addPassage->appendOnce($callback, 'SCRIPTS');
-
+            
             // Добавяне в групата за добавяне на документ
             $toolbarArr->add($addPassage, 'filesAndDoc', 1000.056);
         }

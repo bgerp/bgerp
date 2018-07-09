@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'bgerp_Index' -
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_Index extends core_Manager
 {
-    
-    
     /**
      * Дефолт екшън след логване
      */
@@ -29,10 +28,10 @@ class bgerp_Index extends core_Manager
                 
                 return new Redirect(array('bgerp_Portal', 'Show'));
             }
-                
+            
             return new Redirect(array('cms_Profiles', 'Single'));
         }
-            
+        
         return Request::forward(array('Ctr' => 'cms_Content', 'Act' => 'Show'));
     }
     
@@ -40,7 +39,7 @@ class bgerp_Index extends core_Manager
     /**
      * Връща линк към подадения обект
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел  за търговски маршрути
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_Routes extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -45,7 +44,7 @@ class sales_Routes extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Created, plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, plg_Rejected, plg_State2';
-
+    
     
     /**
      * Кой може да пише
@@ -57,8 +56,8 @@ class sales_Routes extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,sales';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -101,7 +100,7 @@ class sales_Routes extends core_Manager
         
         // Изчислимо поле за кога е следващото посещение
         $this->FLD('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо,input=none');
-
+        
         $this->setDbIndex('locationId,dateFld');
         $this->setDbIndex('locationId');
         $this->setDbIndex('salesmanId');
@@ -134,8 +133,9 @@ class sales_Routes extends core_Manager
     /**
      * Всяка локация я представяме като "<локация> « <име на контрагент>"
      *
-     * @param  stdClass $rec - запис от модела
-     * @return array    $options - Масив с локациите и новото им представяне
+     * @param stdClass $rec - запис от модела
+     *
+     * @return array $options - Масив с локациите и новото им представяне
      */
     private function getLocationOptions($rec)
     {
@@ -171,8 +171,9 @@ class sales_Routes extends core_Manager
      * 4. Текущия потребител ако има права 'sales'
      * 5. NULL - ако никое от горните не е изпълнено
      *
-     * @param  stdClass $rec - запис от модела
-     * @return int      - Ид на търговеца, или NULL ако няма
+     * @param stdClass $rec - запис от модела
+     *
+     * @return int - Ид на търговеца, или NULL ако няма
      */
     private function getDefaultSalesman($rec)
     {
@@ -234,7 +235,7 @@ class sales_Routes extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('user', 'user(roles=sales|ceo,allowEmpty)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
-
+        
         $data->listFilter->showFields = 'search,user,date';
         $data->listFilter->input();
         $data->query->orderBy('#nextVisit', 'ASC');
@@ -294,7 +295,7 @@ class sales_Routes extends core_Manager
     {
         $editUrl['locationId'] = $rec->locationId;
     }
-
+    
     
     /**
      * Подготовка на маршрутите, показвани в Single-a на локациите
@@ -310,7 +311,7 @@ class sales_Routes extends core_Manager
         while ($rec = $query->fetch()) {
             $data->rows[$rec->id] = static::recToVerbal($rec);
         }
-            
+        
         if ($this->haveRightFor('add', (object) (array('locationId' => $data->masterData->rec->id)))) {
             $data->addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => true);
         }
@@ -319,8 +320,10 @@ class sales_Routes extends core_Manager
     
     /**
      * Изчислява кога е следващото посещение на обекта
-     * @param  stdClass $rec - запис от модела
-     * @return string   $date - вербално име на следващата дата
+     *
+     * @param stdClass $rec - запис от модела
+     *
+     * @return string $date - вербално име на следващата дата
      */
     public function getNextVisit($rec)
     {
@@ -331,7 +334,7 @@ class sales_Routes extends core_Manager
             
             return false;
         }
-
+        
         $startTs = dt::mysql2timestamp($rec->dateFld);
         $diff = $nowTs - $startTs;
         if ($diff < 0) {
@@ -342,7 +345,7 @@ class sales_Routes extends core_Manager
                     
                     return $rec->dateFld;
                 }
-
+                
                 return false;
             }
             
@@ -371,7 +374,7 @@ class sales_Routes extends core_Manager
         if ($data->addUrl) {
             $title .= ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addRoute', 'title' => 'Създаване на нов търговски маршрут'));
         }
-
+        
         $tpl->replace($title, 'title');
         
         $table = cls::get('core_TableView');
@@ -381,7 +384,7 @@ class sales_Routes extends core_Manager
         
         $tableTpl = $table->get($data->rows, $data->listFields);
         $tpl->append($tableTpl, 'content');
-
+        
         return $tpl;
     }
     
@@ -414,6 +417,7 @@ class sales_Routes extends core_Manager
     /**
      * Променя състоянието на всички маршрути след промяна на
      * това на локацията им
+     *
      * @param int $locationId - id на локация
      */
     public function changeState($locationId)
@@ -432,8 +436,9 @@ class sales_Routes extends core_Manager
     /**
      * Връща търговеца с най-близък маршрут
      *
-     * @param  int         $locationId - ид на локация
-     * @param  string      $date       - дата, NULL за текущата дата
+     * @param int    $locationId - ид на локация
+     * @param string $date       - дата, NULL за текущата дата
+     *
      * @return $salesmanId - ид на търговец
      */
     public static function getSalesmanId($locationId, $date = null)

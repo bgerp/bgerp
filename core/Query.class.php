@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Query' - Заявки към таблица от db
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Query extends core_FieldSet
 {
-    
-    
     /**
      * Място за MVC класа, към който се отнася заявката
      */
@@ -124,9 +123,11 @@ class core_Query extends core_FieldSet
      * Данните на записите, които ще бъдат изтрити. Инициализира се преди всяко изтриване.
      *
      * @var array
+     *
      * @see getDeletedRecs()
      */
     private $deletedRecs = array();
+    
     
     /**
      * Масив от опции на SQL SELECT заявки
@@ -206,10 +207,10 @@ class core_Query extends core_FieldSet
     /**
      * Добавя с 'AND' и/или с 'OR' ново условие за масива
      *
-     * @param string  $field        - Името на полето
-     * @param array   $arr          - Масив с всички данни
-     * @param boolean $or           - Дали да е 'OR'
-     * @param boolean $orToPrevious - Дали да се залепи с 'OR' към предишния where
+     * @param string $field        - Името на полето
+     * @param array  $arr          - Масив с всички данни
+     * @param bool   $or           - Дали да е 'OR'
+     * @param bool   $orToPrevious - Дали да се залепи с 'OR' към предишния where
      */
     public function whereArr($field, $condArr, $or = false, $orToPrevious = false)
     {
@@ -243,9 +244,9 @@ class core_Query extends core_FieldSet
     /**
      * Добавя с 'OR' ново условие за WHERE
      *
-     * @param string  $field        - Името на полето
-     * @param array   $arr          - Масив с всички данни
-     * @param boolean $orToPrevious - Дали да се залепи с 'OR' към предишния where
+     * @param string $field        - Името на полето
+     * @param array  $arr          - Масив с всички данни
+     * @param bool   $orToPrevious - Дали да се залепи с 'OR' към предишния where
      */
     public function orWhereArr($field, $condArr, $orToPrevious = false)
     {
@@ -316,10 +317,10 @@ class core_Query extends core_FieldSet
     /**
      * Добавя ново условие с LIKE във WHERE клаузата
      *
-     * @param string  $field - Името на полето
-     * @param string  $val   - Стойността
-     * @param boolean $like  - Дали да е LIKE или NOT LIKE
-     * @param boolean $or    - Дали да се добавя с OR
+     * @param string $field - Името на полето
+     * @param string $val   - Стойността
+     * @param bool   $like  - Дали да е LIKE или NOT LIKE
+     * @param bool   $or    - Дали да се добавя с OR
      */
     public function like($field, $val, $like = true, $or = false)
     {
@@ -344,9 +345,9 @@ class core_Query extends core_FieldSet
     /**
      * Добавя новоусловие с OR и LIKE във WHERE клаузата
      *
-     * @param string  $field - Името на полето
-     * @param string  $val   - Стойността
-     * @param boolean $like  - Дали да е LIKE или NOT LIKE
+     * @param string $field - Името на полето
+     * @param string $val   - Стойността
+     * @param bool   $like  - Дали да е LIKE или NOT LIKE
      */
     public function orLike($field, $val, $like = true)
     {
@@ -389,14 +390,15 @@ class core_Query extends core_FieldSet
     /**
      * Поставя условие поле да се съдържа в даден масив
      *
-     * @param string  $field  - поле
-     * @param mixed   $values - масив или стринг от стойности
-     * @param boolean $not    - Дали да се съдържа или не в масива
+     * @param string $field  - поле
+     * @param mixed  $values - масив или стринг от стойности
+     * @param bool   $not    - Дали да се съдържа или не в масива
      */
     public function in($field, $values, $not = false, $or = false)
     {
         $values = arr::make($values);
         if (!$values) {
+            
             return ;
         }
         
@@ -492,7 +494,7 @@ class core_Query extends core_FieldSet
     /**
      * Връща 'ORDER BY' клаузата
      *
-     * @param boolean $useAlias - дали полето за подредба да е с пълното си име или с alias-а си
+     * @param bool $useAlias - дали полето за подредба да е с пълното си име или с alias-а си
      */
     public function getOrderBy($useAlias = false)
     {
@@ -539,10 +541,12 @@ class core_Query extends core_FieldSet
     public function getLimit()
     {
         if ($this->limit === null && $this->start === null) {
+            
             return '';
         }
         
         if ($this->limit >= 0 && $this->start === null) {
+            
             return "\nLIMIT {$this->limit}";
         }
         
@@ -560,6 +564,7 @@ class core_Query extends core_FieldSet
     public function select()
     {
         if ($this->mvc->invoke('BeforeSelect', array(&$numRows, &$this)) === false) {
+            
             return $numRows;
         }
         
@@ -638,6 +643,7 @@ class core_Query extends core_FieldSet
     public function count($cond = null, $limit = 0)
     {
         if ($this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === false) {
+            
             return $res;
         }
         
@@ -700,8 +706,10 @@ class core_Query extends core_FieldSet
     public function delete($cond = null)
     {
         if ($this->mvc->invoke('BeforeDelete', array(&$numRows, &$this, $cond)) === false) {
+            
             return $numRows;
         }
+        
         // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те
         // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
         if ($this->mvc->fetchFieldsBeforeDelete) {
@@ -748,6 +756,7 @@ class core_Query extends core_FieldSet
      * Записите, които са били изтрити при последното @link core_Query::delete() извикване.
      *
      * Във всеки запис са налични само "важните" полета, т.е. полетата, определени от
+     *
      * @link core_Query::getKeyFields().
      *
      * @return array масив от stdClass
@@ -834,6 +843,7 @@ class core_Query extends core_FieldSet
      * @param $cond string|array условия на заявката
      * @param $fields array масив или стрингов списък ('поле1, поле2, ...') с имена на полета.
      * @param $params array масив с допълнителни параметри на заявката
+     *
      * @return array масив от записи (stdClass)
      */
     public function fetchAll($cond = null, $fields = null, $params = array())
@@ -884,6 +894,7 @@ class core_Query extends core_FieldSet
     public function numRec()
     {
         if (is_object($this->dbRes) && $this->executed) {
+            
             return $this->dbRes->num_rows;
         }
     }
@@ -892,7 +903,7 @@ class core_Query extends core_FieldSet
     /**
      * Връща WHERE и HAVING клаузите
      *
-     * @param boolean $pureClause - Дали да добави ключовите думи пред клаузите
+     * @param bool $pureClause - Дали да добави ключовите думи пред клаузите
      */
     public function getWhereAndHaving($pureClause = false, $isDelete = false)
     {
@@ -1060,11 +1071,9 @@ class core_Query extends core_FieldSet
     }
     
     
-    
-    
-    
     /**
      * Връща таблиците които трябва да се обединят
+     *
      * @todo Joint Left
      */
     public function getTables()
@@ -1089,9 +1098,9 @@ class core_Query extends core_FieldSet
         $this->useExpr = false;
         $this->usedFields = array();
         $res = str::prepareExpression($expr, array(
-                &$this,
-                'getMysqlField'
-            ));
+            &$this,
+            'getMysqlField'
+        ));
         
         return $res;
     }
@@ -1162,7 +1171,8 @@ class core_Query extends core_FieldSet
      * със стойностите, които са указани в следващите елементи на масива
      * N-тия елемент на масива се слага на място означено като [#N#]
      *
-     * @param  array  $arr
+     * @param array $arr
+     *
      * @return string
      */
     public function substituteArray($arr)

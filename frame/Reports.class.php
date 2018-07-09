@@ -1,48 +1,44 @@
 <?php
 
 
-
-
-
-
 /**
  * Мениджър на отчети от различни източници
  *
  *
  * @category  bgerp
  * @package   frame
+ *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class frame_Reports extends core_Embedder
 {
-    
-    
     /**
      * Необходими плъгини
      */
     public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype,doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
-                      
+    
     
     /**
      * Заглавие
      */
     public $singleTitle = 'Отчет';
     
-
+    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'doc_DocumentIntf,email_DocumentIntf';
-   
+    
     
     /**
      * Заглавие на мениджъра
      */
     public $title = 'Отчети';
-
+    
     
     /**
      * Права за писане
@@ -66,8 +62,8 @@ class frame_Reports extends core_Embedder
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, report, admin';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -102,8 +98,8 @@ class frame_Reports extends core_Embedder
      * Икона по подразбиране за единичния обект
      */
     public $singleIcon = 'img/16/report.png';
-
-
+    
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -114,14 +110,14 @@ class frame_Reports extends core_Embedder
      * Групиране на документите
      */
     public $newBtnGroup = false;
-
-
+    
+    
     /**
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'frame/tpl/SingleLayoutReport.shtml';
-
-
+    
+    
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
@@ -177,17 +173,17 @@ class frame_Reports extends core_Embedder
     {
         // Singleton клас - източник на данните
         $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Отчет,silent,mandatory,notFilter,refreshForm');
-
+        
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('filter', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
-
+        
         // Извлечените данни за отчета. "Снимка" на състоянието на източника.
         $this->FLD('data', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
- 
+        
         // Най-ранната дата когато отчета може да се активира
         $this->FLD('earlyActivationOn', 'datetime(format=smartTime)', 'input=none,caption=Активиране');
     }
-
+    
     
     /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
@@ -215,7 +211,7 @@ class frame_Reports extends core_Embedder
         $row->title = $mvc->getLink($rec->id, 0);
         
         if ($fields['-single']) {
-           
+            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if ($rec->state == 'draft') {
                 
@@ -227,12 +223,12 @@ class frame_Reports extends core_Embedder
                     $mvc->save($rec);
                 }
             }
-
+            
             $now = dt::now();
             if ($rec->earlyActivationOn < $now) {
                 unset($row->earlyActivationOn);
             }
-           
+            
             if ($rec->state == 'active' || $rec->state == 'rejected') {
                 unset($row->earlyActivationOn);
             }
@@ -249,9 +245,9 @@ class frame_Reports extends core_Embedder
             
             // Обновяваме датата на кога най-рано може да се активира
             $Source = $mvc->getDriver($rec);
-
+            
             $rec->earlyActivationOn = $Source->getEarlyActivation();
-
+            
             $rec->state = 'draft';
             
             $mvc->save($rec, 'earlyActivationOn,state');
@@ -287,7 +283,7 @@ class frame_Reports extends core_Embedder
     public static function on_AfterRestore($mvc, &$res, &$rec)
     {
         $Driver = $mvc->getDriver($rec->id);
-    
+        
         $Driver->invoke('AfterRestore', array(&$rec->data, &$rec));
     }
     
@@ -296,8 +292,9 @@ class frame_Reports extends core_Embedder
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
@@ -329,16 +326,18 @@ class frame_Reports extends core_Embedder
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
         $tpl = new ET(tr('Моля запознайте се с нашата справка ') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
-    
+        
         return $tpl->getContent();
     }
     
@@ -368,7 +367,7 @@ class frame_Reports extends core_Embedder
         } catch (core_exception_Expect $e) {
             $title = "<span class='red'>" . tr('Проблем при показването') . '</span>';
         }
-    
+        
         return $title;
     }
     
@@ -432,14 +431,14 @@ class frame_Reports extends core_Embedder
     {
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-         
+        
         // Проверка за права
         $this->requireRightFor('export', $rec);
-         
+        
         $Driver = $this->getDriver($rec);
-
+        
         $csv = $Driver->exportCsv();
-
+        
         $fileName = str_replace(' ', '_', Str::utf2ascii($Driver->title));
         
         header('Content-type: application/csv');
@@ -448,7 +447,7 @@ class frame_Reports extends core_Embedder
         header('Expires: 0');
         
         echo $csv;
-
+        
         shutdown();
     }
     
@@ -456,7 +455,8 @@ class frame_Reports extends core_Embedder
     /**
      * Метод активиращ документа или го прави чакащ
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return void
      */
     private function activate($rec, $when = null)
@@ -474,7 +474,7 @@ class frame_Reports extends core_Embedder
         // Ако сега сме преди датата за активиране, правим го 'чакащ' иначе директно се 'активира'
         $rec->state = ($when < $rec->earlyActivationOn) ? 'waiting' : 'active';
         $this->save($rec, 'state');
-         
+        
         // Ако сме го активирали, генерираме събитие, че е бил активиран
         if ($rec->state == 'active') {
             $this->invoke('AfterActivation', array($rec));
@@ -498,7 +498,7 @@ class frame_Reports extends core_Embedder
             $data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), null, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
         }
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -529,7 +529,7 @@ class frame_Reports extends core_Embedder
                 $requiredRoles = $mvc->getRequiredRoles('edit');
             }
         }
-
+        
         // Ако отчета е активен, може да се експортва
         if ($action == 'export' && isset($rec)) {
             $canExport = false;

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'jqdatepick_Plugin' - избор на дата
  *
  *
  * @category  vendors
  * @package   jqcolorpicker
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class jqcolorpicker_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Изпълнява се преди рендирането на input
      */
@@ -44,16 +43,16 @@ class jqcolorpicker_Plugin extends core_Plugin
             $options[substr($hCol, 1)] = $value;
             $selected = substr($hCol, 1);
         }
- 
+        
         $tpl = ht::createSelect($name, $options, $selected, $attr);
         
         $tpl->push('jqcolorpicker/2.0/jquery.colourPicker.css', 'CSS');
         $tpl->push('jqcolorpicker/2.0/jquery.colourPicker.js', 'JS');
-
+        
         // custom стилове за плъгина
         $tpl->push('jqcolorpicker/css/jqcolorpicker-custom.css', 'CSS');
-
-
+        
+        
         jquery_Jquery::run(
             $tpl,
             

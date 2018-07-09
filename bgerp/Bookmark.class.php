@@ -1,31 +1,30 @@
 <?php 
 
-
 /**
  * Букмаркване на линкове
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_Bookmark extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Отметки';
-
-
+    
+    
     /**
      * Заглавие в ед. ч.
      */
     public $singleTitle = 'Отметка';
-
+    
     
     /**
      * Кой има право да го чете?
@@ -80,12 +79,13 @@ class bgerp_Bookmark extends core_Manager
      */
     public $listFields = 'url=Линк, color, modifiedOn=Последно';
     
-
+    
     public $saoTitleField = 'url';
-
+    
     public static $curRec;
-
+    
     const CACHE_KEY = 'BookmarksPerUser';
+    
     
     /**
      * Полета на модела
@@ -97,27 +97,27 @@ class bgerp_Bookmark extends core_Manager
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
         $this->FLD('url', 'text', 'caption=URL, silent, mandatory');
         $this->FLD('color', 'color_Type', 'caption=Цвят');
-
+        
         $this->setDbUnique('user, title');
     }
-
-
+    
+    
     /**
      * Рендира основното меню на страницата
      */
     public static function renderBookmarks()
     {
         $screen = Mode::is('screenMode', 'narrow') ? 'm' : 'd';
- 
+        
         $userId = core_Users::getCurrent();
-
+        
         $tpl = core_Cache::get(self::CACHE_KEY, $userId);
-
+        
         $cookie = '';
         if (isset($_COOKIE['bookmarkInfo'])) {
             $cookie = $_COOKIE['bookmarkInfo'];
         }
-
+        
         if (!$tpl || ($tpl->cookie != $cookie . $screen) || true) {
             $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
             
@@ -134,11 +134,11 @@ class bgerp_Bookmark extends core_Manager
             
             core_Cache::set(self::CACHE_KEY, $userId, $tpl, 2000);
         }
-   
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Функция за плъгина plg_RemoveCache
      */
@@ -146,7 +146,6 @@ class bgerp_Bookmark extends core_Manager
     {
         return array(self::CACHE_KEY, $rec->user);
     }
-
     
     
     /**
@@ -161,7 +160,7 @@ class bgerp_Bookmark extends core_Manager
         if (self::haveRightFor('list')) {
             $url = array(get_called_class(), 'list');
         }
-
+        
         $img = ht::createElement('img', array('src' => sbf('img/32/table-bg.png', ''), 'title' => 'Редактиране на връзките', 'width' => 20, 'height' => 20, 'alt' => 'edit bookmark'));
         $list = ht::createLink($img, $url, null, array('class' => 'bookmarkLink listBookmarkLink'));
         $title = "<span class='bookmarkText'>" . tr('Отметки') . '</span>'.  $list ;
@@ -181,17 +180,17 @@ class bgerp_Bookmark extends core_Manager
             
             $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
             $icon = 'star-bg.png';
-
+            
             if (self::$curRec) {
                 $url = toUrl(array(get_called_class(), 'edit', self::$curRec->id, 'ret_url' => true));
                 $sUrl = addslashes($url);
                 $icon = 'edit-fav2.png';
             }
-
-
+            
+            
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
-
+            
             $attr['class'] = 'bookmarkLink addBookmarkLink';
             $img = ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => 'Добавяне на връзка', 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
             $tpl = ht::createLink($img, $url, false, $attr);
@@ -219,7 +218,7 @@ class bgerp_Bookmark extends core_Manager
         
         $query = self::getQuery();
         $query->where("#user = '{$userId}'");
-                
+        
         if (is_null($limit)) {
             $limit = 60;
         }
@@ -238,23 +237,23 @@ class bgerp_Bookmark extends core_Manager
                 $opened[$b] = $b;
             }
         }
- 
+        
         $res = '<ul>';
         while ($rec = $query->fetch()) {
             $title = self::getVerbal($rec, 'title');
             
             $attr = array();
-
+            
             if ($rec->color) {
                 $attr['style'] = 'color:' . $rec->color;
             }
-         
+            
             // Затваряме група
             if ($openGroup > 0 && $openGroup != $rec->saoParentId) {
                 $res .= '</ul></ul>';
                 $openGroup = null;
             }
-
+            
             if ($rec->type == 'group') {
                 $class = 'ul-group';
                 $display = "style='display:none;'";
@@ -269,7 +268,7 @@ class bgerp_Bookmark extends core_Manager
                 $openGroup = $rec->id;
             } else {
                 $link = self::getLinkFromUrl($rec->url, $title, $attr);
-
+                
                 if (stripos($rec->url, $localUrl) !== false) {
                     $attr['class'] = 'active';
                     $attr['style'] .= ';background-color:#503A66';
@@ -278,13 +277,12 @@ class bgerp_Bookmark extends core_Manager
                 $res .= ht::createElement('li', $attr, $link);
             }
         }
-
+        
         $res .= '</ul>';
-
+        
         return $res;
     }
     
-
     
     /**
      *
@@ -308,7 +306,7 @@ class bgerp_Bookmark extends core_Manager
         } else {
             if (core_Packs::isInstalled('remote')) {
                 static $auths;
-
+                
                 expect($cu = core_Users::getCurrent());
                 if (!$auths) {
                     $aQuery = remote_Authorizations::getQuery();
@@ -330,7 +328,7 @@ class bgerp_Bookmark extends core_Manager
                     }
                 }
             }
-
+            
             $lUrl = $url;
             if ($target) {
                 $attr['target'] = $target;
@@ -353,7 +351,7 @@ class bgerp_Bookmark extends core_Manager
     {
         $data->toolbar->addBtn('Група', array($mvc, 'add', 'type' => 'group', 'ret_url' => true), false, 'ef_icon=img/16/plus.png,title=Добавяне на група от букмарки');
     }
-
+    
     
     /**
      * Подготовка на филтър формата
@@ -405,13 +403,13 @@ class bgerp_Bookmark extends core_Manager
             
             $data->form->rec->title = implode($delimiter, $titleArr);
         }
-
+        
         $form = $data->form;
         $rec = $form->rec;
         if (!$rec->type) {
             $rec->type = 'bookmark';
         }
-
+        
         if ($rec->type != 'bookmark') {
             $form->setField('url', 'input=none');
         }
@@ -459,8 +457,8 @@ class bgerp_Bookmark extends core_Manager
             $row->url = self::getLinkFromUrl($rec->url, $title);
         }
     }
-
-
+    
+    
     /**
      * Необходим метод за подреждането
      */
@@ -472,7 +470,7 @@ class bgerp_Bookmark extends core_Manager
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }
-
+        
         return $res;
     }
 }

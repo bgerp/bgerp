@@ -6,22 +6,22 @@
  *
  * @category  vendors
  * @package   sass
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sass_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Прихваща извикването на AfterConvertSass и конвертира SASS към CSS
      */
     public function on_BeforeGetSbfFilePath($mvc, &$res, &$path)
     {
         $pathArr = pathinfo($path);
-
+        
         if ($pathArr['extension'] == 'css') {
             $scssRelPath = $pathArr['dirname'] . '/' . $pathArr['filename'] . '.scss';
             $scssFile = getFullPath($scssRelPath);
@@ -33,7 +33,7 @@ class sass_Plugin extends core_Plugin
                 $sbfPath = core_Sbf::getSbfPathByTime($path, $time);
                 if (file_exists($sbfPath)) {
                     $res = $sbfPath;
- 
+                    
                     return false;
                 }
                 
@@ -45,7 +45,7 @@ class sass_Plugin extends core_Plugin
                         // Ако не успеем да запишем в проекта файла, записваме го директно в sbf
                         if (core_Sbf::saveFile($cssCode, $sbfPath, true)) {
                             $res = $sbfPath;
-                             
+                            
                             return false;
                         }
                         

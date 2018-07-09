@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Коментари всистема
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Comments extends embed_Manager
 {
-    
-    
     /**
      * Интерфейс на драйверите
      */
@@ -102,6 +101,7 @@ class doc_Comments extends embed_Manager
     
     /**
      * Кой може да променя активирани записи
+     *
      * @see change_Plugin
      */
     public $canChangerec = 'powerUser';

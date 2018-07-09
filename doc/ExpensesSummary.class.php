@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * История на използванията на разходните пера
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_ExpensesSummary extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -60,7 +59,8 @@ class doc_ExpensesSummary extends core_Manager
     /**
      * Връща броя разходи към документа
      *
-     * @param  int    $containerId - ид на контейнера
+     * @param int $containerId - ид на контейнера
+     *
      * @return string $html - броя документи
      */
     public static function getSummary($containerId)
@@ -78,7 +78,7 @@ class doc_ExpensesSummary extends core_Manager
                 $linkArr = array($document->getInstance(), 'single', $document->that, 'Sid' => $containerId);
             }
             $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, false, array('title' => $actionTitle));
-        
+            
             $html .= "<li class=\"action expenseSummary\">{$link}</li>";
         }
         
@@ -89,7 +89,8 @@ class doc_ExpensesSummary extends core_Manager
     /**
      * Подготвяме показването на разходите към документа
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public function prepareExpenses(&$data)
@@ -111,7 +112,7 @@ class doc_ExpensesSummary extends core_Manager
         // Ако не листваме данните за съответния контейнер
         if ($render === false) {
             $data->renderExpenses = false;
-
+            
             return;
         }
         
@@ -119,7 +120,7 @@ class doc_ExpensesSummary extends core_Manager
         $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
         $data->rows = array();
         $data->recs = self::updateSummary($rec->containerId, $itemRec);
-       
+        
         if (is_array($data->recs)) {
             foreach ($data->recs as $index => $r) {
                 $data->rows[$index] = $this->getVerbalRow($r);
@@ -135,7 +136,8 @@ class doc_ExpensesSummary extends core_Manager
     /**
      * Вербализира записа за разхода
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return stdClass $row
      */
     private function getVerbalRow($rec)
@@ -193,12 +195,14 @@ class doc_ExpensesSummary extends core_Manager
     /**
      * Рендиране на разходите
      *
-     * @param  stdClass     $data
+     * @param stdClass $data
+     *
      * @return void|core_ET
      */
     public function renderExpenses($data)
     {
         if ($data->renderExpenses === false) {
+            
             return;
         }
         
@@ -257,9 +261,10 @@ class doc_ExpensesSummary extends core_Manager
     /**
      * Обновява кеша на направените разходи към документа
      *
-     * @param  int     $containerId - ид на контейнера
-     * @param  mixed   $itemRec     - запис или ид на перото
-     * @param  boolean $saveCount   - да се записвали бройката в модела
+     * @param int   $containerId - ид на контейнера
+     * @param mixed $itemRec     - запис или ид на перото
+     * @param bool  $saveCount   - да се записвали бройката в модела
+     *
      * @return void
      */
     public static function updateSummary($containerId, $itemRec, $saveCount = false)
@@ -307,16 +312,16 @@ class doc_ExpensesSummary extends core_Manager
                 if ($add === true) {
                     $index = $ent->docType . '|' . $ent->docId . '|' . $ent->{"{$side}AccId"} . '|' . $ent->{"{$side}Item1"} . '|' . $ent->{"{$side}Item2"} . '|' . $ent->{"{$side}Item3"};
                     $r = (object) array('docType' => $ent->docType,
-                                       'docId' => $ent->docId,
-                                       'accId' => $ent->{'debitAccId'},
-                                       'item1Id' => $ent->{'debitItem1'},
-                                       'item2Id' => $ent->{'debitItem2'},
-                                       'item3Id' => $ent->{'debitItem3'},
-                                       'index' => $index,
-                                       'valior' => $ent->valior,
-                                       'quantity' => ($type == 'corrected') ? $ent->{'creditQuantity'} : $ent->{'debitQuantity'},
-                                       'type' => $type,
-                                       'amount' => $ent->amount,);
+                        'docId' => $ent->docId,
+                        'accId' => $ent->{'debitAccId'},
+                        'item1Id' => $ent->{'debitItem1'},
+                        'item2Id' => $ent->{'debitItem2'},
+                        'item3Id' => $ent->{'debitItem3'},
+                        'index' => $index,
+                        'valior' => $ent->valior,
+                        'quantity' => ($type == 'corrected') ? $ent->{'creditQuantity'} : $ent->{'debitQuantity'},
+                        'type' => $type,
+                        'amount' => $ent->amount,);
                     
                     if (is_null($r->amount)) {
                         $r->amount = 0;
@@ -357,7 +362,7 @@ class doc_ExpensesSummary extends core_Manager
                 $res = array_merge($res, $foundArr);
             }
         }
-    
+        
         // Ако има останали неразпределени добавят се най-отдолу
         if (count($notDistributed)) {
             $res[] = (object) array('type' => 'allocated');

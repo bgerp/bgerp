@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Документ "Оферта"
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_Quotations extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -97,13 +96,13 @@ class sales_Quotations extends core_Master
      */
     public $listFields = 'date, title=Документ, folderId, state, createdOn, createdBy';
     
-
+    
     /**
      * Детайла, на модела
      */
     public $details = 'sales_QuotationsDetails';
     
-
+    
     /**
      * Кой е главния детайл
      *
@@ -116,8 +115,8 @@ class sales_Quotations extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Изходяща оферта';
-   
-   
+    
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -186,12 +185,12 @@ class sales_Quotations extends core_Master
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
     public static $updateContragentdataField = array(
-                                'email' => 'email',
-                                'tel' => 'tel',
-                                'fax' => 'fax',
-                                'pCode' => 'pCode',
-                                'place' => 'place',
-                                'address' => 'address',
+        'email' => 'email',
+        'tel' => 'tel',
+        'fax' => 'fax',
+        'pCode' => 'pCode',
+        'place' => 'place',
+        'address' => 'address',
     );
     
     
@@ -264,7 +263,7 @@ class sales_Quotations extends core_Master
         $form = $data->form;
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = &$data->form->rec;
-       
+        
         $contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
         $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
         $form->setDefault('contragentClassId', $contragentClassId);
@@ -275,7 +274,7 @@ class sales_Quotations extends core_Master
         } else {
             $form->setReadOnly('deliveryPlaceId');
         }
-       
+        
         if (isset($form->rec->id)) {
             if ($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")) {
                 foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress') as $fld) {
@@ -283,16 +282,16 @@ class sales_Quotations extends core_Master
                 }
             }
         }
-      
+        
         if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
-           
+               
                // Ако офертата има ориджин
             $origin = doc_Containers::getDocument($rec->originId);
-               
+            
             if ($origin->haveInterface('cat_ProductAccRegIntf')) {
                 $form->setField('row1,row2,row3', 'input');
                 $rec->productId = $origin->that;
-                   
+                
                 // Ако продукта има ориджин който е запитване вземаме количествата от него по дефолт
                 if ($productOrigin = $origin->fetchField('originId')) {
                     $productOrigin = doc_Containers::getDocument($productOrigin);
@@ -305,11 +304,11 @@ class sales_Quotations extends core_Master
                 }
             }
         }
-       
+        
         if (!$rec->person) {
             $form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, false));
         }
-       
+        
         // Срок на валидност по подразбиране
         $form->setDefault('validFor', sales_Setup::get('DEFAULT_VALIDITY_OF_QUOTATION'));
     }
@@ -524,11 +523,11 @@ class sales_Quotations extends core_Master
         
         if ($fields['-single']) {
             if (isset($rec->validFor)) {
-        
+                
                 // До коя дата е валидна
                 $validDate = dt::addSecs($rec->validFor, $rec->date);
                 $row->validDate = $mvc->getFieldType('date')->toVerbal($validDate);
-            
+                
                 $date = dt::verbal2mysql($validDate, false);
                 if ($date < dt::today()) {
                     if (!Mode::isReadOnly()) {
@@ -553,16 +552,16 @@ class sales_Quotations extends core_Master
                     $row->position = cls::get('type_Varchar')->toVerbal($position);
                 }
             }
-                
+            
             $ownCompanyData = crm_Companies::fetchOwnCompany();
-                
+            
             $Varchar = cls::get('type_Varchar');
             $row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
             $row->MyCompany = transliterate(tr($row->MyCompany));
             
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
             $cData = $contragent->getContragentData();
-                
+            
             $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
             $row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
             
@@ -570,17 +569,17 @@ class sales_Quotations extends core_Master
                 if ($cData->{$fld}) {
                     $row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->{$fld});
                 }
-        
+                
                 if ($ownCompanyData->{$fld}) {
                     $row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->{$fld});
                     $row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
                 }
             }
-                
+            
             if ($rec->currencyRate == 1) {
                 unset($row->currencyRate);
             }
-                
+            
             if ($rec->others) {
                 $others = explode('<br>', $row->others);
                 $row->others = '';
@@ -588,7 +587,7 @@ class sales_Quotations extends core_Master
                     $row->others .= "<li>{$other}</li>";
                 }
             }
-                
+            
             // Показване на допълнителните условия от артикулите
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
@@ -596,7 +595,7 @@ class sales_Quotations extends core_Master
                     $row->others .= "<li>{$cond}</li>";
                 }
             }
-             
+            
             if (isset($rec->bankAccountId)) {
                 $ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
                 if (!Mode::isReadOnly()) {
@@ -631,7 +630,7 @@ class sales_Quotations extends core_Master
                 $row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
                 $row->buzPlace = core_Lg::transliterate($row->buzPlace);
             }
-        
+            
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
@@ -653,11 +652,11 @@ class sales_Quotations extends core_Master
                     
                     // Ако може да се добавят артикули в офертата
                     if (sales_QuotationsDetails::haveRightFor('add', (object) array('quotationId' => $rec->id))) {
-                    
+                        
                         // Добавяне на линк, за добавяне на артикул 'транспорт' със цена зададената сума
                         $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                         $packPrice = $leftTransportCost * $rec->currencyRate;
-                    
+                        
                         $url = array('sales_QuotationsDetails', 'add', 'quotationId' => $rec->id, 'productId' => $transportId, 'packPrice' => $packPrice, 'optional' => 'no','ret_url' => true);
                         $link = ht::createLink('Добавяне', $url, false, array('ef_icon' => 'img/16/lorry_go.png', 'style' => 'font-weight:normal;font-size: 0.8em', 'title' => 'Добавяне на допълнителен транспорт'));
                         $row->btnTransport = $link->getContent();
@@ -679,14 +678,15 @@ class sales_Quotations extends core_Master
         
         return $row;
     }
-
+    
     
     /**
      * Колко е сумата на очаквания транспорт.
      * Изчислява се само ако няма вариации в задължителните артикули
      *
-     * @param  stdClass $rec - запис на ред
-     * @return double   $expectedTransport - очаквания транспорт без ддс в основна валута
+     * @param stdClass $rec - запис на ред
+     *
+     * @return float $expectedTransport - очаквания транспорт без ддс в основна валута
      */
     private function getExpectedTransportCost($rec)
     {
@@ -698,7 +698,7 @@ class sales_Quotations extends core_Master
             
             return $expectedTransport;
         }
-    
+        
         // Подготовка на заявката, взимат се само задължителните складируеми артикули
         $query = sales_QuotationsDetails::getQuery();
         $query->where("#quotationId = {$rec->id}");
@@ -723,13 +723,13 @@ class sales_Quotations extends core_Master
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
             $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $params);
-    
+            
             // Сумира се, ако е изчислен
             if (is_array($fee) && $fee['totalFee'] > 0) {
                 $expectedTransport += $fee['totalFee'];
             }
         }
-         
+        
         // Връщане на очаквания транспорт
         return $expectedTransport;
     }
@@ -738,8 +738,9 @@ class sales_Quotations extends core_Master
     /**
      * Колко е видимия транспорт начислен в сделката
      *
-     * @param  stdClass $rec - запис на ред
-     * @return double   - сумата на видимия транспорт в основна валута без ДДС
+     * @param stdClass $rec - запис на ред
+     *
+     * @return float - сумата на видимия транспорт в основна валута без ДДС
      */
     private function getVisibleTransportCost($rec)
     {
@@ -765,7 +766,7 @@ class sales_Quotations extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->recTitle = $row->title;
-
+        
         return $row;
     }
     
@@ -795,6 +796,7 @@ class sales_Quotations extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($res == 'no_one') {
+            
             return;
         }
         
@@ -843,9 +845,11 @@ class sales_Quotations extends core_Master
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
@@ -861,8 +865,9 @@ class sales_Quotations extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
@@ -880,7 +885,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterActivation($mvc, &$rec)
     {
         $updateFields = array();
-
+        
         if (!isset($rec->contragentId)) {
             $rec = self::fetch($rec->id);
         }
@@ -904,10 +909,11 @@ class sales_Quotations extends core_Master
     /**
      * Връща масив от използваните документи в офертата
      *
-     * @param  int   $id - ид на оферта
+     * @param int $id - ид на оферта
+     *
      * @return param $res - масив с използваните документи
-     *                  ['class'] - Инстанция на документа
-     *                  ['id'] - ид на документа
+     *               ['class'] - Инстанция на документа
+     *               ['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
@@ -920,8 +926,9 @@ class sales_Quotations extends core_Master
      * Ако има вариации на даден продукт и не може да се
      * изчисли общата сума ф-ята връща NULL
      *
-     * @param  int        $id           - ид на оферта
-     * @param  boolean    $onlyStorable - дали да са само складируемите
+     * @param int  $id           - ид на оферта
+     * @param bool $onlyStorable - дали да са само складируемите
+     *
      * @return array|NULL - продуктите
      */
     private function getItems($id, $onlyStorable = false, $groupByProduct = false)
@@ -939,6 +946,7 @@ class sales_Quotations extends core_Master
             $index = ($groupByProduct === true) ? $detail->productId : "{$detail->productId}|{$detail->packagingId}";
             
             if (array_key_exists($index, $products) || !$detail->quantity) {
+                
                 return;
             }
             $products[$index] = $detail;
@@ -963,25 +971,24 @@ class sales_Quotations extends core_Master
         
         return $res;
     }
-     
-     
-
+    
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = true)
     {
         $mvc = cls::get(get_called_class());
-
+        
         $rec = static::fetchRec($rec);
-    
+        
         $abbr = $mvc->abbr;
         $abbr{0} = strtoupper($abbr{0});
-
+        
         $date = dt::mysql2verbal($rec->date, 'd.m.year');
-
+        
         $crm = cls::get($rec->contragentClassId);
-
+        
         $cRec = $crm->getContragentData($rec->contragentId);
         
         $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
@@ -989,14 +996,16 @@ class sales_Quotations extends core_Master
         if ($escaped) {
             $contragent = type_Varchar::escape($contragent);
         }
-
+        
         return "{$abbr}{$rec->id}/{$date} {$contragent}";
     }
     
     
     /**
      * Създаване на продажба от оферта
-     * @param  stdClass $rec
+     *
+     * @param stdClass $rec
+     *
      * @return mixed
      */
     private function createSale($rec)
@@ -1014,15 +1023,15 @@ class sales_Quotations extends core_Master
         
         // Подготвяме данните на мастъра на генерираната продажба
         $fields = array('currencyId' => $rec->currencyId,
-                        'currencyRate' => $rec->currencyRate,
-                        'paymentMethodId' => $rec->paymentMethodId,
-                        'deliveryTermId' => $rec->deliveryTermId,
-                        'chargeVat' => $rec->chargeVat,
-                        'note' => $rec->others,
-                        'originId' => $rec->containerId,
-                        'template' => $templateId,
-                        'deliveryAdress' => $rec->deliveryAdress,
-                        'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
+            'currencyRate' => $rec->currencyRate,
+            'paymentMethodId' => $rec->paymentMethodId,
+            'deliveryTermId' => $rec->deliveryTermId,
+            'chargeVat' => $rec->chargeVat,
+            'note' => $rec->others,
+            'originId' => $rec->containerId,
+            'template' => $templateId,
+            'deliveryAdress' => $rec->deliveryAdress,
+            'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
         );
         
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
@@ -1129,46 +1138,46 @@ class sales_Quotations extends core_Master
                 foreach ($products as $index => $quantity) {
                     list($productId, $optional, $packagingId, $quantityInPack) = explode('|', $index);
                     $quantityInPack = str_replace('_', '.', $quantityInPack);
-                     
+                    
                     // При опционален продукт без к-во се продължава
                     if (empty($quantity)) {
                         continue;
                     }
                     $quantity = $quantity * $quantityInPack;
-                     
+                    
                     // Опитваме се да намерим записа съотвестващ на това количество
                     $where = "#quotationId = {$id} AND #productId = {$productId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
                     $where .= ($packagingId) ? " AND #packagingId = {$packagingId}" : ' AND #packagingId IS NULL';
                     $dRec = sales_QuotationsDetails::fetch($where);
-                     
+                    
                     if (!$dRec) {
-                
+                        
                         // Ако няма (к-то е друго) се намира първия срещнат
                         $dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
-                
+                        
                         // Тогава приемаме, че подаденото количество е количество за опаковка
                         $dRec->packQuantity = $quantity;
                     } else {
-                
+                        
                         // Ако има такъв запис, изчисляваме колко е количеството на опаковката
                         $dRec->packQuantity = $quantity / $dRec->quantityInPack;
                     }
-                     
+                    
                     // Добавяме детайла към офертата
                     $addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
-                     
+                    
                     // Копира се и транспорта, ако има
                     $tRec = sales_TransportValues::get($this, $id, $dRec->id);
                     if (isset($tRec->fee)) {
                         sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime);
                     }
                 }
-                 
+                
                 // Редирект към сингъла на новосъздадената продажба
                 return new Redirect(array('sales_Sales', 'single', $sId));
             }
         }
-    
+        
         if (core_Users::haveRole('partner')) {
             plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
         }
@@ -1183,7 +1192,8 @@ class sales_Quotations extends core_Master
      * продукт се показва поле с опции посочените к-ва от офертата
      * Трябва на всеки един продукт да съответства точно едно к-во
      *
-     * @param  int       $id - ид на записа
+     * @param int $id - ид на записа
+     *
      * @return core_Form - готовата форма
      */
     private function getFilterForm($id)
@@ -1208,7 +1218,7 @@ class sales_Quotations extends core_Master
                     $mandatory = '';
                 }
             }
-    
+            
             $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},{$mandatory}");
             if ($product->suggestions) {
                 $form->setSuggestions($index, $product->options);
@@ -1225,7 +1235,7 @@ class sales_Quotations extends core_Master
         
         $form->toolbar->addSbBtn('Създай', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title = Прекратяване на действията');
-         
+        
         return $form;
     }
     
@@ -1233,7 +1243,8 @@ class sales_Quotations extends core_Master
     /**
      * Групира продуктите от офертата с техните к-ва
      *
-     * @param  int   $id - ид на оферта
+     * @param int $id - ид на оферта
+     *
      * @return array $products - филтрираните продукти
      */
     private function filterProducts($id)
@@ -1329,6 +1340,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if (Request::get('Rejected', 'int')) {
+            
             return;
         }
         
@@ -1465,7 +1477,7 @@ class sales_Quotations extends core_Master
         // Опиваме се да запишем мастъра на офертата
         if ($id = self::save($newRec)) {
             doc_ThreadUsers::addShared($newRec->threadId, $newRec->containerId, core_Users::getCurrent());
-        
+            
             return $id;
         }
         
@@ -1478,18 +1490,18 @@ class sales_Quotations extends core_Master
      * Ако има вече такъв артикул добавен към сделката, наслагва к-то, цената и отстъпката
      * на новия запис към съществуващия (цените и отстъпките стават по средно притеглени)
      *
-     * @param int     $id           - ид на сделка
-     * @param int     $productId    - ид на артикул
-     * @param double  $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
-     * @param int     $packagingId  - ид на опаковка (не е задължителна)
-     * @param double  $price        - цена на единична бройка, без ДДС в основна валута
-     * @param boolean $optional     - дали артикула е опционален или не
-     * @param array   $fields       - масив с допълнителни параметри
-     *                              double ['discount']       - отстъпка (опционална)
-     *                              double ['tolerance']      - толеранс (опционален)
-     *                              mixed  ['term']           - срок на доставка (опционален)
-     *                              html   ['notes']          - забележки (опционален)
-     *                              double ['quantityInPack'] - к-во в опаковка (опционален)
+     * @param int   $id           - ид на сделка
+     * @param int   $productId    - ид на артикул
+     * @param float $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
+     * @param int   $packagingId  - ид на опаковка (не е задължителна)
+     * @param float $price        - цена на единична бройка, без ДДС в основна валута
+     * @param bool  $optional     - дали артикула е опционален или не
+     * @param array $fields       - масив с допълнителни параметри
+     *                            double ['discount']       - отстъпка (опционална)
+     *                            double ['tolerance']      - толеранс (опционален)
+     *                            mixed  ['term']           - срок на доставка (опционален)
+     *                            html   ['notes']          - забележки (опционален)
+     *                            double ['quantityInPack'] - к-во в опаковка (опционален)
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
@@ -1627,7 +1639,7 @@ class sales_Quotations extends core_Master
             $msg = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*";
             
             core_Statuses::newStatus($msg, 'error');
-
+            
             return false;
         }
         
@@ -1638,8 +1650,8 @@ class sales_Quotations extends core_Master
     /**
      * Връща заглавието на имейла
      *
-     * @param integer $id
-     * @param boolean $isForwarding
+     * @param int  $id
+     * @param bool $isForwarding
      *
      * @return string
      *
@@ -1705,13 +1717,14 @@ class sales_Quotations extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-         
+        
         return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
     

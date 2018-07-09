@@ -1,16 +1,17 @@
 <?php
 
 
-
 /**
  * Клас 'core_Xml' - Библиотечни функции за работа с XML
  *
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Xml

@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Декларации за съответствия
  *
  *
  * @category  bgerp
  * @package   dec
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class dec_Statements extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -62,7 +61,7 @@ class dec_Statements extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-
+    
     
     /**
      * Описание на модела
@@ -79,7 +78,6 @@ class dec_Statements extends core_Master
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
-        
         // Подготвяме пътя до файла с данните
         $file = 'dec/data/Statements.csv';
         

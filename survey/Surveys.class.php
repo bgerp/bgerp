@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел "Анкети"
  *
  *
  * @category  bgerp
  * @package   survey
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class survey_Surveys extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -52,7 +51,7 @@ class survey_Surveys extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'title';
-
+    
     
     /**
      *  Брой елементи на страница
@@ -64,8 +63,8 @@ class survey_Surveys extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'survey,ceo';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -118,7 +117,7 @@ class survey_Surveys extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -173,7 +172,7 @@ class survey_Surveys extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->number = static::getHandle($rec->id);
-
+        
         if ($fields['-single']) {
             if (static::isClosed($rec->id)) {
                 $row->closed = tr('Анкетата е затворена');
@@ -195,8 +194,10 @@ class survey_Surveys extends core_Master
     
     /**
      * Метод проверяващ дали дадена анкета е отворена
+     *
      * @param int id - id на анкетата
-     * @return boolean $res - затворена ли е анкетата или не
+     *
+     * @return bool $res - затворена ли е анкетата или не
      */
     public static function isClosed($id)
     {
@@ -234,7 +235,7 @@ class survey_Surveys extends core_Master
                 $res = 'no_one';
             }
         }
-
+        
         if ($action == 'activate' && isset($rec)) {
             if (static::alternativeCount($rec->id) == 0 ||
                 $rec->enddate <= dt::now()) {
@@ -271,7 +272,9 @@ class survey_Surveys extends core_Master
     
     /**
      * Колко въпроса има дадена анкета
-     * @param  int $id
+     *
+     * @param int $id
+     *
      * @return int - Броя въпроси които има анкетата
      */
     public static function alternativeCount($id)
@@ -323,8 +326,8 @@ class survey_Surveys extends core_Master
         
         return $self->abbr . $rec->id;
     }
-
-
+    
+    
     /**
      * Извиква се преди рендирането на 'опаковката'
      */

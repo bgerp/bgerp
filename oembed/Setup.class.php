@@ -20,15 +20,15 @@ defIfNot('OEMBED_SERVICES', 'Flickr Photos,Hulu,Scribd,Vimeo,YouTube,Picasa,Slid
  *
  * @category  vendors
  * @package   oembed
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class oembed_Setup extends core_ProtoSetup
 {
-
-
     /**
      * Версията на пакета
      */
@@ -40,7 +40,7 @@ class oembed_Setup extends core_ProtoSetup
      */
     public $info = 'Вграждане на външни обекти в текст чрез линкове';
     
-
+    
     /**
      * Мениджър - входна точка в пакета
      */
@@ -51,20 +51,20 @@ class oembed_Setup extends core_ProtoSetup
      * Екшън - входна точка в пакета
      */
     public $startAct = 'default';
-
+    
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
         
-           'OEMBED_MAX_WIDTH' => array('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
-           'OEMBED_SERVICES' => array('set(blip.tv,Dailymotion,Flickr Photos,Hulu,Qik Video,Revision3,
+        'OEMBED_MAX_WIDTH' => array('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
+        'OEMBED_SERVICES' => array('set(blip.tv,Dailymotion,Flickr Photos,Hulu,Qik Video,Revision3,
            Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly,GoogleDrive)',
             'caption=Услуги на които по подразбиране се вграждат връзките към тяхно съдържание->Списък')
-
-     );
-
+    
+    );
+    
     
     // Инсталиране на мениджърите
     public $managers = array(

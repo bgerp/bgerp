@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Плъгин за от маркиране на прочетено известяване
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Маркиране на прочетено известяване
  */
 class bgerp_plg_NotificationsSeen extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди изпълняването на екшън
      */

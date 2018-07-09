@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * Драйвер за единична гравиметрична система на TSM (Modbus TCP/IP)
  *
  *
  * @category  bgerp
  * @package   tsm
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Гравиметрична с-ма TSM
  */
 class tsm_TSM extends sens2_ProtoDriver
 {
-    
     /**
      * Заглавие на драйвера
      */
     public $title = 'TSM';
-   
-
+    
+    
     /**
      * Параметри които чете или записва драйвера
      */
@@ -47,7 +47,7 @@ class tsm_TSM extends sens2_ProtoDriver
         $form->FNC('ip', new type_Ip(), 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=502');
         $form->FNC('unit', 'int(5)', 'caption=Unit,hint=Unit, input, mandatory,value=1');
-
+        
         // Параметри по подразбиране за настройките
         $form->setDefault('port', 502);
         $form->setDefault('unit', 1);
@@ -68,7 +68,7 @@ class tsm_TSM extends sens2_ProtoDriver
     public function readInputs($inputs, $config, &$persistentState)
     {
         $res = array();
-
+        
         $driver = new modbus_Driver;
         $driver->ip = $config->ip;
         $driver->port = $config->port;
@@ -91,7 +91,7 @@ class tsm_TSM extends sens2_ProtoDriver
             
             return "Грешка при четене от {$config->ip}";
         }
-
+        
         $res['EO'] = $output;
         
         // Минутите от 0-60 са индекси на масива за изчисление на средната стойност
@@ -161,7 +161,7 @@ class tsm_TSM extends sens2_ProtoDriver
         }
         
         $persistentState['recpt'] = $recpt;
-         
+        
         return $res;
     }
 }

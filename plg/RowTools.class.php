@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_RowTools' - Инструменти за изтриване и редактиране на ред
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_RowTools extends core_Plugin
 {
-    
-    
     /**
      * Шаблон за съзване на rowTools
      */
@@ -31,10 +30,12 @@ class plg_RowTools extends core_Plugin
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
+            
             return;
         }
         
         if (!arr::haveSection($fields, '-list')) {
+            
             return;
         }
         
@@ -43,7 +44,7 @@ class plg_RowTools extends core_Plugin
         
         if (method_exists($mvc, 'act_Single')) {
             $singleUrl = $mvc->getSingleUrlArray($rec->id);
-
+            
             $icon = $mvc->getIcon($rec->id);
             
             if ($singleField = $mvc->rowToolsSingleField) {
@@ -75,7 +76,7 @@ class plg_RowTools extends core_Plugin
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
             $editImg = '<img src=' . sbf("img/{$iconSize}/edit-icon.png") . ' width=16  height=16 alt="' . tr('Редакция') . '">';
-
+            
             $editLink = ht::createLink($editImg, $editUrl, null, "id=edt{$rec->id},title=" . tr('Редактиране на') . ' ' . $singleTitle);
         }
         
@@ -89,12 +90,12 @@ class plg_RowTools extends core_Plugin
             );
             
             $deleteLink = ht::createLink(
-            
+                
                 $deleteImg,
-            
+                
                 $deleteUrl,
                 tr('Наистина ли желаете записът да бъде изтрит?'),
-            
+                
                 "id=del{$rec->id},title=" . tr('Изтриване на') . ' ' . $singleTitle
             
             );
@@ -116,13 +117,13 @@ class plg_RowTools extends core_Plugin
                      );
                 } elseif ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)) {
                     $restoreImg = '<img src=' . sbf("img/{$iconSize}/restore.png") . ' width=16  height=16 alt="' . tr('Възстановяване') . '">';
-                        
+                    
                     $restoreUrl = array(
                         $mvc,
                         'restore',
                         'id' => $rec->id,
                         'ret_url' => $retUrl);
-                        
+                    
                     $restoreLink = ht::createLink(
                         
                         $restoreImg,
@@ -131,7 +132,7 @@ class plg_RowTools extends core_Plugin
                         tr('Наистина ли желаете записът да бъде възстановен?'),
                         
                         "id=res{$rec->id},title=" . tr('Възстановяване на') . ' ' . $singleTitle
-                        
+                    
                     );
                 }
             }
@@ -173,14 +174,14 @@ class plg_RowTools extends core_Plugin
             $res = $mvc->singleIcon;
             if (log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $res);
-
+                
                 if (getFullPath($icon2)) {
                     $res = $icon2;
                 }
             }
         }
     }
-
+    
     
     /**
      * Реализация по подразбиране на метода getEditUrl()
@@ -238,8 +239,8 @@ class plg_RowTools extends core_Plugin
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         $data->listFields = arr::make($data->listFields, true);
-
-         
+        
+        
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
@@ -251,6 +252,7 @@ class plg_RowTools extends core_Plugin
                 // Ако в някой от полетата има промяна по шаблона
                 if (isset($row->{$field})) {
                     if ($rowToolsTpl->content != $row->{$field}->content) {
+                        
                         return;
                     }
                 }

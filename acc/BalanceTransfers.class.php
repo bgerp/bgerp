@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на документ за прехвърляне на салда
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_BalanceTransfers extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -39,7 +38,7 @@ class acc_BalanceTransfers extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior=Вальор,fromAccount=От,toAccount=Към,createdOn,createdBy';
-
+    
     
     /**
      * Може ли да се контира въпреки, че има приключени пера в транзакцията
@@ -50,7 +49,7 @@ class acc_BalanceTransfers extends core_Master
     /**
      * Дали при възстановяване/контиране/оттегляне да се заключва баланса
      *
-     * @var boolean TRUE/FALSE
+     * @var bool TRUE/FALSE
      */
     public $lockBalances = true;
     
@@ -125,7 +124,7 @@ class acc_BalanceTransfers extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
+    
     
     /**
      * Описание на модела
@@ -212,7 +211,7 @@ class acc_BalanceTransfers extends core_Master
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-
+            
             // Подсигуряваме се, че аналитичностите на началната и крайната сметка, наистина съвпадат
             if ($form->fromAccountInterfaces != $form->getFieldTypeParam('toAccount', 'regInterfaces')) {
                 $form->setError('fromAccount,toAccount', 'Трябва двете сметки да са със съответсващи аналитичности');
@@ -276,13 +275,13 @@ class acc_BalanceTransfers extends core_Master
     public static function canAddToFolder($folderId)
     {
         $me = cls::get(get_called_class());
-         
+        
         // Може да създаваме документ-а само в дефолт папката му
         if ($folderId == doc_UnsortedFolders::forceCoverAndFolder((object) array('name' => $me->title))) {
             
             return true;
         }
-    
+        
         return false;
     }
     
@@ -293,15 +292,15 @@ class acc_BalanceTransfers extends core_Master
     public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-    
+        
         $row = new stdClass();
-    
+        
         $row->title = $this->getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-    
+        
         return $row;
     }
     

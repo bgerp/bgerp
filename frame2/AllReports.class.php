@@ -6,20 +6,20 @@
  *
  * @category  bgerp
  * @package   frame2
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class frame2_AllReports extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
     public $singleTitle = 'Справка';
-   
+    
     
     /**
      * Заглавие на мениджъра
@@ -110,7 +110,7 @@ class frame2_AllReports extends core_Master
      *
      * @param $folderId int - key(mvc=doc_Folders)
      *
-     * @return boolean
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -123,7 +123,7 @@ class frame2_AllReports extends core_Master
      *
      * @param int $threadId - key(mvc=doc_Threads)
      *
-     * @return boolean
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
@@ -286,8 +286,8 @@ class frame2_AllReports extends core_Master
                 // Ако стринга е разделен на точно две части (име на група и име на клас)
                 if (count($optArr) == 2) {
                     $newOptions[$optArr[0]] = (object) array(
-                            'title' => trim($optArr[0]),
-                            'group' => true,
+                        'title' => trim($optArr[0]),
+                        'group' => true,
                     );
                     $newOptions[$index] = trim($optArr[1]);
                 } else {

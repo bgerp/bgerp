@@ -13,7 +13,6 @@ defIfNot('FRAME_TYPE_DECIMALS_SEP', 'comma');
 defIfNot('FRAME_FORMAT_DATE', 'dot');
 
 
-
 /**
  * class frame_Setup
  *
@@ -22,15 +21,15 @@ defIfNot('FRAME_FORMAT_DATE', 'dot');
  *
  * @category  bgerp
  * @package   frame
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class frame_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -59,27 +58,27 @@ class frame_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Отчети и табла';
-
-
+    
+    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-
+        
         'FRAME_TYPE_DECIMALS_SEP' => array('enum(dot=точка,comma=запетая)', 'caption=Десетичен разделител на числата при експорт в csv->Символ'),
         'FRAME_FORMAT_DATE' => array('enum(dot=точка (дд.мм.гггг),slash=наклонена черта (мм/дд/гг))', 'caption=Формат на датата->Формат с'),
     );
-
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'frame_Reports',
+        'frame_Reports',
     
-        );
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
@@ -90,15 +89,15 @@ class frame_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-            array(
-                    'systemId' => 'Activate Pending Reports',
-                    'description' => 'Активиране на чакащи отчети',
-                    'controller' => 'frame_Reports',
-                    'action' => 'ActivateEarlyOn',
-                    'period' => 1440,
-                    'offset' => 60,
-                    'timeLimit' => 50
-            ),
+        array(
+            'systemId' => 'Activate Pending Reports',
+            'description' => 'Активиране на чакащи отчети',
+            'controller' => 'frame_Reports',
+            'action' => 'ActivateEarlyOn',
+            'period' => 1440,
+            'offset' => 60,
+            'timeLimit' => 50
+        ),
     );
     
     

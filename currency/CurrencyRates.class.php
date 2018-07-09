@@ -7,15 +7,16 @@
  *
  * @category  bgerp
  * @package   currency
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class currency_CurrencyRates extends core_Detail
 {
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -44,14 +45,14 @@ class currency_CurrencyRates extends core_Detail
      * Заглавие в единствено число
      */
     public $singleTitle = 'Валутен курс';
-
+    
     
     /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
     
-
+    
     /**
      * Кой може да зарежда валутните курсове ръчно от ЕЦБ?
      */
@@ -87,10 +88,11 @@ class currency_CurrencyRates extends core_Detail
      * междинната валута
      *
      * @todo Дали не е добре това да премине в конфигурацията?
+     *
      * @var string Трибуквен ISO код на валута
      */
     public static $crossCurrencyCode = 'EUR';
-        
+    
     
     /**
      * Описание на модела (таблицата)
@@ -116,7 +118,7 @@ class currency_CurrencyRates extends core_Detail
         $euroId = $this->Currencies->fetchField("#code='EUR'", 'id');
         
         $this->data = new stdClass();
-
+        
         $this->data->rates = array();
         $XML = simplexml_load_file('http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml');
         $now = $XML->Cube->Cube['time']->__toString();
@@ -191,7 +193,7 @@ class currency_CurrencyRates extends core_Detail
     public function act_RetrieveCurrencies()
     {
         $this->requireRightFor('retrieve');
-
+        
         return new Redirect(array('currency_CurrencyRates', 'default'), '|' . $this->retrieveCurrenciesFromEcb());
     }
     
@@ -293,38 +295,39 @@ class currency_CurrencyRates extends core_Detail
             $data->query->orderBy('date', 'DESC');
         }
     }
-   
+    
     
     /**
      *  Обръща сума от една валута в друга към дата
      *
-     *  @param double $amount Сума която ще обърнем
+     *  @param float $amount Сума която ще обърнем
      *  @param date $date NULL = текущата дата
      *  @param string $from Код на валутата от която ще обръщаме
      *                      NULL = базова валута към $date
      *  @param string $to Код на валутата към която ще обръщаме
      *                    NULL = базова валута към $date
-     *  @return double $amount Конвертираната стойност на сумата
+     *
+     *  @return float $amount Конвертираната стойност на сумата
      */
     public static function convertAmount($amount, $date = null, $from = null, $to = null)
     {
         return $amount * static::getRate($date, $from, $to);
     }
-
+    
     
     /**
      *  Обменният курс на една валута спрямо друга към дата
      *
      *  Закръгля резултата до 4-тата цифра след дес. точка
      *
-     *  @param double      $amount Сума която ще обърнем
+     *  @param float      $amount Сума която ще обърнем
      *  @param date        $date   NULL = текущата дата
      *  @param string|null $from   Код на валутата от която ще обръщаме
      *                             NULL = базова валута към $date
      *  @param string|null $to     Код на валутата към която ще обръщаме
      *                             NULL = базова валута към $date
      *
-     *  @return double $amount     Конвертираната стойност на сумата
+     *  @return float $amount     Конвертираната стойност на сумата
      */
     public static function getRate($date, $from, $to)
     {
@@ -343,7 +346,7 @@ class currency_CurrencyRates extends core_Detail
         
         expect($fromId, "{$from}: Няма такава валута");
         expect($toId, "{$to}: Няма такава валута");
-                                            
+        
         if ($fromId == $toId) {
             // Ако подадените валути са еднакви, то обменния им курс е 1
             return 1;
@@ -355,7 +358,7 @@ class currency_CurrencyRates extends core_Detail
         }
         
         $crossCurrencyId = currency_Currencies::getIdByCode(static::$crossCurrencyCode);
-
+        
         if ($crossCurrencyId != $fromId && $crossCurrencyId != $toId) {
             if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $crossCurrencyId))) {
                 
@@ -368,7 +371,7 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Проверява дали има валутен курс и редиректва при нужда
      *
-     * @param NULL|double $rate
+     * @param NULL|float $rate
      */
     public static function checkRateAndRedirect($rate)
     {
@@ -390,7 +393,7 @@ class currency_CurrencyRates extends core_Detail
         }
     }
     
-
+    
     /**
      * Връща директния курс на една валута към друга, без преизчисляване през трета валута
      *
@@ -401,13 +404,13 @@ class currency_CurrencyRates extends core_Detail
     protected static function getDirectRate($date, $fromId, $toId)
     {
         $rate = static::getStoredRate($date, $fromId, $toId);
-    
+        
         if (is_null($rate)) {
             if (!is_null($rate = static::getStoredRate($date, $toId, $fromId))) {
                 $rate = 1 / $rate;
             }
         }
-    
+        
         return $rate;
     }
     
@@ -417,9 +420,10 @@ class currency_CurrencyRates extends core_Detail
      *
      * getStoredRate(X, Y) = колко Y струва 1 X
      *
-     * @param  string $date
-     * @param  int    $fromId key(mvc=currency_Currencies)
-     * @param  int    $toId   key(mvc=currency_Currencies)
+     * @param string $date
+     * @param int    $fromId key(mvc=currency_Currencies)
+     * @param int    $toId   key(mvc=currency_Currencies)
+     *
      * @return float
      */
     protected static function getStoredRate($date, $fromId, $toId)
@@ -453,7 +457,7 @@ class currency_CurrencyRates extends core_Detail
                 }
             }
         }
-    
+        
         // Ако имаме кеширан курс връщаме го
         if (isset(static::$cache[$date][$fromId][$toId])) {
             
@@ -465,19 +469,22 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Изчисляване на курс чрез преминаване през междинна валута
      *
-     * @param  string $date
-     * @param  int    $fromId
-     * @param  int    $toId
-     * @param  int    $baseCurrencyId
+     * @param string $date
+     * @param int    $fromId
+     * @param int    $toId
+     * @param int    $baseCurrencyId
+     *
      * @return float
      */
     protected static function getCrossRate($date, $fromId, $toId, $baseCurrencyId)
     {
         if (is_null($fromBaseRate = static::getDirectRate($date, $fromId, $baseCurrencyId))) {
+            
             return;
         }
         
         if (is_null($toBaseRate = static::getDirectRate($date, $toId, $baseCurrencyId))) {
+            
             return;
         }
         
@@ -503,11 +510,12 @@ class currency_CurrencyRates extends core_Detail
      * и курса от системата между две валути.
      * Приемливото отклонение е дефинирано в , дефолт 5%
      *
-     * @param  double $givenRate - подаден курс.
-     * @param  string $from      - код от коя валута
-     * @param  string $to        - код към коя валута
-     * @return mixed  FALSE - ако няма отколонение
-     *                          $msg  - 'предупреждението за съответствие'
+     * @param float  $givenRate - подаден курс.
+     * @param string $from      - код от коя валута
+     * @param string $to        - код към коя валута
+     *
+     * @return mixed FALSE - ако няма отколонение
+     *               $msg  - 'предупреждението за съответствие'
      */
     public static function hasDeviation($givenRate, $date, $from, $to)
     {
@@ -522,7 +530,7 @@ class currency_CurrencyRates extends core_Detail
             
             return "Въведения курс е много различен от очаквания '{$knownRate}'";
         }
-         
+        
         return false;
     }
     
@@ -530,8 +538,8 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Сравнява две суми във валута и проверява дали са в допустими граници
      *
-     * @param double $amountFrom
-     * @param double $amountTo
+     * @param float  $amountFrom
+     * @param float  $amountTo
      * @param date   $date
      * @param string $currencyFromCode
      * @param string $currencyToCode

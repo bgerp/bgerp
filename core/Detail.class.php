@@ -1,29 +1,28 @@
 <?php
 
 
-
 /**
  * Клас 'core_Detail' - Мениджър за детайлите на бизнес обектите
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Detail extends core_Manager
 {
-    
-    
     /**
      * Полето-ключ към мастъра
      */
     public $masterKey;
-
-
+    
+    
     /**
      * Инстанция към мастера
      */
@@ -45,7 +44,7 @@ class core_Detail extends core_Manager
         expect($mvc->masterKey);
         
         $mvc->fields[$mvc->masterKey]->silent = 'silent';
-                
+        
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
         
         if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
@@ -102,7 +101,7 @@ class core_Detail extends core_Manager
         
         // Подготвяме вербалните стойности за редовете
         $this->prepareListRows($data);
-     
+        
         // Подготвяме лентата с инструменти
         $this->prepareListToolbar($data);
         
@@ -144,7 +143,7 @@ class core_Detail extends core_Manager
         if (!isset($data->listClass)) {
             $data->listClass = 'listRowsDetail';
         }
-
+        
         if (!isset($this->currentTab)) {
             $this->currentTab = $data->masterMvc->title;
         }
@@ -196,9 +195,9 @@ class core_Detail extends core_Manager
     public function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
- 
+        
         $masterKey = $data->masterKey;
-
+        
         if ($data->masterId) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
@@ -206,9 +205,9 @@ class core_Detail extends core_Manager
         
         if ($this->haveRightFor('add', $rec) && $data->masterId) {
             $data->toolbar->addBtn(
-            
+                
                 'Нов запис',
-            
+                
                 array(
                     $this,
                     'add',
@@ -216,7 +215,7 @@ class core_Detail extends core_Manager
                     'ret_url' => true,
                 ),
                 'id=btnAdd',
-            
+                
                 'ef_icon = img/16/star_2.png,title=Създаване на нов запис'
             
             );
@@ -232,36 +231,36 @@ class core_Detail extends core_Manager
     public function prepareEditForm_($data)
     {
         setIfNot($data->singleTitle, $this->singleTitle);
-
+        
         parent::prepareEditForm_($data);
         
         $form = $data->form;
-
+        
         if (!$data->masterMvc) {
             $data->masterMvc = $this->getMasterMvc($data->form->rec);
         }
-
+        
         if (!$data->masterKey) {
             $data->masterKey = $this->getMasterKey($data->form->rec);
         }
-
+        
         // Очакваме да masterKey да е зададен
         expect($data->masterKey, $data);
         expect($data->masterMvc instanceof core_Master, $data);
         
         $masterKey = $data->masterKey;
-
+        
         if (!isset($form->fields[$masterKey]->input) || $form->fields[$masterKey]->input == 'none') {
             $form->fields[$masterKey]->input = 'hidden';
         }
- 
+        
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
         
         return $data;
     }
     
-
+    
     /**
      * Подготвя заглавието на формата
      *
@@ -278,12 +277,12 @@ class core_Detail extends core_Manager
      * Изнесена е статично за да може да се използва и от класове, които не наследяват core_Detail,
      * Но реално се добавят като детайли към друг клас
      *
-     * @param mixed        $master      - ид на класа на мастъра
-     * @param int          $masterId    - ид на мастъра
-     * @param string       $singleTitle - еденично заглавие
-     * @param int|NULL     $recId       - ид на записа, ако има
-     * @param string       $preposition - предлог
-     * @param integer|NULL $len         - максимална дължина на стринга
+     * @param mixed    $master      - ид на класа на мастъра
+     * @param int      $masterId    - ид на мастъра
+     * @param string   $singleTitle - еденично заглавие
+     * @param int|NULL $recId       - ид на записа, ако има
+     * @param string   $preposition - предлог
+     * @param int|NULL $len         - максимална дължина на стринга
      *
      * @return string $title      - заглавието на формата на 'Детайла'
      */
@@ -312,7 +311,7 @@ class core_Detail extends core_Manager
         return $this->Master;
     }
     
-
+    
     /**
      * Дефолт функция за определяне полето-ключ към мастера, спрямо дадения запис
      */
@@ -320,7 +319,7 @@ class core_Detail extends core_Manager
     {
         return $this->masterKey;
     }
-     
+    
     
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
@@ -357,7 +356,7 @@ class core_Detail extends core_Manager
             
             return false;
         }
-
+        
         $masterKey = $this->masterKey;
         
         $masters = $this->getMasters($rec);
@@ -376,13 +375,12 @@ class core_Detail extends core_Manager
     }
     
     
-    
     /**
      * Логва действието
      *
-     * @param string                $msg
-     * @param NULL|stdClass|integer $rec
-     * @param string                $type
+     * @param string            $msg
+     * @param NULL|stdClass|int $rec
+     * @param string            $type
      */
     public function logInAct($msg, $rec = null, $type = 'write')
     {
@@ -466,9 +464,10 @@ class core_Detail extends core_Manager
      * Обикновено детайлите имат точно един мастър. Използваме този метод в случаите на детайли
      * с повече от един мастър, който евентуално зависи и от данните в детайл-записа $rec.
      *
-     * @param  stdClass $rec
-     * @return array    масив от core_Master-и. Ключа е името на полето на $rec, където се
-     *                      съхранява външния ключ към съотв. мастър
+     * @param stdClass $rec
+     *
+     * @return array масив от core_Master-и. Ключа е името на полето на $rec, където се
+     *               съхранява външния ключ към съотв. мастър
      */
     public function getMasters_($rec)
     {
@@ -479,7 +478,7 @@ class core_Detail extends core_Manager
     /**
      * Връща линк към подадения обект
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */

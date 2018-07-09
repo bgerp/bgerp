@@ -9,9 +9,11 @@
  *
  * @category  bgerp
  * @package   conversejs
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class conversejs_Plugin extends core_Plugin

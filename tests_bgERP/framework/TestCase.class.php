@@ -4,7 +4,7 @@ class framework_TestCase extends PHPUnit_Framework_TestCase
     protected function setUp()
     {
         parent::setUp();
-         
+        
         /* @var $BgerpSetup bgerp_Setup */
         $BgerpSetup = cls::get('bgerp_Setup');
     }
@@ -70,6 +70,7 @@ class framework_TestCase extends PHPUnit_Framework_TestCase
         
         return $result;
     }
+    
     
     /**
      * Изчиства всички данни на модели

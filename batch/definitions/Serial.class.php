@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title Сериен номер
  */
 class batch_definitions_Serial extends batch_definitions_Proto
 {
-    
-    
     /**
      * Име на полето за партида в документа
      *
@@ -56,10 +56,11 @@ class batch_definitions_Serial extends batch_definitions_Proto
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param  string   $value    - стойноста, която ще проверяваме
-     * @param  quantity $quantity - количеството
-     * @param  string   &$msg     - текста на грешката ако има
-     * @return boolean  - валиден ли е кода на партидата според дефиницията или не
+     * @param string   $value    - стойноста, която ще проверяваме
+     * @param quantity $quantity - количеството
+     * @param string   &$msg     - текста на грешката ако има
+     *
+     * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
     public function isValid($value, $quantity, &$msg)
     {
@@ -70,7 +71,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
         if ($count != $quantity) {
             $mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
             $msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : 'Трябва да е въведен само един сериен номер';
-        
+            
             return false;
         }
         
@@ -100,13 +101,13 @@ class batch_definitions_Serial extends batch_definitions_Proto
         foreach ($serials as $serial) {
             if ($serial === false) {
                 $msg = 'Не могат да се генерират серийни номера от зададеният диапазон';
-
+                
                 return false;
             }
             
             if (!preg_match("/^{$pattern}\z/", $serial)) {
                 $msg = $errMsg;
-
+                
                 return false;
             }
         }
@@ -118,8 +119,9 @@ class batch_definitions_Serial extends batch_definitions_Proto
     /**
      * Генерира серийни номера в интервал
      *
-     * @param  string      $from - начало на диапазона
-     * @param  string      $to   - край на диапазона
+     * @param string $from - начало на диапазона
+     * @param string $to   - край на диапазона
+     *
      * @return FALSE|array $res - генерираните номера или FALSE ако не може да се генерират
      */
     private function getByRange($from, $to)
@@ -164,8 +166,9 @@ class batch_definitions_Serial extends batch_definitions_Proto
     /**
      * Разбива партидата в масив
      *
-     * @param  string $value - партида
-     * @return array  $array - масив с партидата
+     * @param string $value - партида
+     *
+     * @return array $array - масив с партидата
      */
     public function makeArray($value)
     {
@@ -226,7 +229,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
     /**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      *
-     * @param  string $value
+     * @param string $value
+     *
      * @return string $value
      */
     public function normalize($value)
@@ -243,7 +247,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
     /**
      * Денормализира партидата
      *
-     * @param  string $value
+     * @param string $value
+     *
      * @return string $value
      */
     public function denormalize($value)
@@ -258,7 +263,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
     /**
      * Може ли потребителя да сменя уникалноста на партида/артикул
      *
-     * @return boolean
+     * @return bool
      */
     public function canChangeBatchUniquePerProduct()
     {
@@ -269,17 +274,18 @@ class batch_definitions_Serial extends batch_definitions_Proto
     /**
      * Какви са свойствата на партидата
      *
-     * @param  string $value - номер на партидара
-     * @return array  - свойства на партидата
-     *                      o name    - заглавие
-     *                      o classId - клас
-     *                      o value   - стойност
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               o name    - заглавие
+     *               o classId - клас
+     *               o value   - стойност
      */
     public function getFeatures($value)
     {
         $res = array();
         $res[] = (object) array('name' => 'Сериен номер', 'classId' => $this->getClassId(), 'value' => $value);
-    
+        
         return $res;
     }
 }

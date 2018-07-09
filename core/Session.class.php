@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Session' - Клас-манипулатор на потребителска сесия
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>, Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Session
 {
-    
-    
     /**
      * @var array
      * @access private
@@ -69,12 +68,14 @@ class core_Session
         ini_set('session.gc_maxlifetime', 7200);
         
         session_name($name);
+        
         //$this->_started = FALSE;
         
         $this->_start();
+        
         // Проверка за съществуваща сесия
 //        $sid = $this->getSid();
-        
+
 //        $resumeSession = isset($sid) && preg_match("/^[0-9a-z]{5,}$/i", $sid);
 //
 //        $this->_resumed = FALSE;
@@ -94,6 +95,7 @@ class core_Session
         unset($_POST[session_name()]);
         unset($_COOKIE[session_name()]);
         unset($GLOBALS[session_name()]);
+
 //        }
     }
     
@@ -108,7 +110,7 @@ class core_Session
         if (isset($_COOKIE[session_name()])) {
             $sid = $_COOKIE[session_name()];
         }
-
+        
         if (isset($sid)) {
             
             return $sid;
@@ -149,7 +151,8 @@ class core_Session
     /**
      * Връща стойността на променлива от сесията
      *
-     * @param  string $varName
+     * @param string $varName
+     *
      * @return mixed
      */
     public static function get($varName, $part = null)
@@ -178,7 +181,6 @@ class core_Session
             }
         }
     }
-    
     
     
     public static function forcedStart()
@@ -215,8 +217,6 @@ class core_Session
     }
     
     
-     
-    
     /**
      * Унищожава сесията (не обекта от клас Session, а файла, съдържащ данните
      */
@@ -249,6 +249,7 @@ class core_Session
         if (!$this->_started || $forced) {
             @session_cache_limiter('nocache');
             @session_set_cookie_params(0);
+            
             // ini_set('session.cookie_secure', 1);
             ini_set('session.cookie_httponly', 1);
             ini_set('session.use_only_cookies', 1);
@@ -261,18 +262,19 @@ class core_Session
     
     /**
      * @access private
+     *
      * @param string $varName
      */
     public function _decorate($varName)
     {
         static $prefix;
-
+        
         if (!$prefix) {
             $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
             $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
             $prefix = substr($prefix, 0, 10);
         }
-
+        
         $decoratedVar = 'sess_' . $prefix . '_' . $varName;
         
         return $decoratedVar;

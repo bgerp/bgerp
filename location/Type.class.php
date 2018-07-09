@@ -1,6 +1,8 @@
 <?php
 
+
 cls::load('type_Varchar');
+
 
 /**
  * Пътя до външния код за изчертаване на карти
@@ -14,22 +16,22 @@ defIfNot('GMAP3_VERSION', '6.0');
  *
  * @category  vendors
  * @package   location
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 206 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class location_Type extends type_Varchar
 {
-    
-
     /**
      * Празната стойност има смисъл на NULL
      */
     public $nullIfEmpty = true;
-
-
+    
+    
     /**
      * Параметър определящ максималната широчина на полето
      */
@@ -42,7 +44,7 @@ class location_Type extends type_Varchar
     public function init($params = array())
     {
         parent::init($params);
-    
+        
         setIfNot($this->params['regexp'], '/^(-?\d{1,2}\.?\d{0,6}),(-?\d{1,3}\.?\d{0,6})$/');
     }
     
@@ -62,7 +64,7 @@ class location_Type extends type_Varchar
         }
         
         $stopGeolocation = false;
-            
+        
         if (!$value) {
             if (!($value = $this->params['default'])) {
                 $conf = core_Packs::getConfig('location');
@@ -71,7 +73,7 @@ class location_Type extends type_Varchar
         } else {
             $stopGeolocation = true;
         }
-
+        
         if ($this->params['geolocation'] == 'mobile' && !Mode::is('screenMode', 'narrow')) {
             $stopGeolocation = true;
         }
@@ -80,7 +82,7 @@ class location_Type extends type_Varchar
         
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
-
+        
         if (isset($apiKey) && $apiKey != '') {
             $keyString = "key={$apiKey}&";
         }
@@ -106,25 +108,25 @@ class location_Type extends type_Varchar
         
         return $tpl;
     }
-
-
+    
+    
     public function toVerbal_($value)
     {
         $coords = explode(',', $value);
-
+        
         static $n;
-
+        
         if (!$n) {
             $n = 0;
         }
-
+        
         $n++;
-
+        
         $id = 'map' . $n;
-
+        
         setIfNot($width, $this->params['width'], 400);
         setIfNot($height, $this->params['height'], 300);
-
+        
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
         
@@ -137,7 +139,7 @@ class location_Type extends type_Varchar
         $res->appendOnce("\n<script type=\"text/javascript\" src=\"https://maps.google.com/maps/api/js?". $keyString. 'language=' . core_Lg::getCurrent() . '"></script>', 'HEAD', true);
         
         $res->push('location/' . GMAP3_VERSION . '/gmap3.js', 'JS');
-
+        
         jquery_Jquery::run($res, "\$('#{$id}').gmap3(
                           {
 						    marker:{

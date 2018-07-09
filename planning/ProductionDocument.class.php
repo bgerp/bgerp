@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   mp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class planning_ProductionDocument extends deals_ManifactureMaster
 {
-
-
     /**
      * Работен кеш
      */
@@ -66,9 +66,10 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
     /**
      * Имали по нов производсвтен документ по заданието
      *
-     * @param  core_Mvc     $mvc
-     * @param  int          $id
-     * @param  int          $jobId
+     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param int      $jobId
+     *
      * @return string|FALSE - хендлъра на по-новия документ
      */
     private function hasNewerProductionDocument(core_Mvc $mvc, $id, $jobId)
@@ -131,6 +132,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
     {
         $rec = $data->rec;
         if (planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'no') {
+            
             return;
         }
         
@@ -182,8 +184,9 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
@@ -193,10 +196,10 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
             
             return true;
         }
-         
+        
         $folderId = doc_Threads::fetchField($threadId, 'folderId');
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
+        
         // или към нишка в папка на склад
         return cls::haveInterface('store_AccRegIntf', $folderClass);
     }

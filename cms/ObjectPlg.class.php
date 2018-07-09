@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'cms_ObjectPlg' - Плъгин за публикуване на cms обекти
  *
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_ObjectPlg extends core_Plugin
 {
-
-    
     /**
      * След дефиниране на полетата на модела
      */
@@ -35,7 +34,7 @@ class cms_ObjectPlg extends core_Plugin
             Request::setProtected('sourceClass,type,sourceId');
             
             $data->toolbar->addBtn(
-            
+                
                 'Вграждане',
                     toUrl(array('cms_Objects', 'add', 'sourceClass' => $mvc->className, 'type' => 'object', 'sourceId' => $data->rec->id)),
                     'ef_icon=img/16/world_go.png,order=19,row=3,title=Вземи таг за вграждане'
@@ -45,8 +44,8 @@ class cms_ObjectPlg extends core_Plugin
             Request::removeProtected('sourceClass,type,sourceId');
         }
     }
-
-
+    
+    
     /**
      * След подготовка на обекта
      */
@@ -59,7 +58,6 @@ class cms_ObjectPlg extends core_Plugin
     }
     
     
-    
     public static function on_AfterRenderCmsObject($mvc, &$res, $data, $tpl)
     {
         if (!$res) {
@@ -67,7 +65,6 @@ class cms_ObjectPlg extends core_Plugin
             $res = $mvc->renderSingle($data);
         }
     }
-    
     
     
     public static function on_AfterGetDefaultCmsTpl($mvc, &$res, $data)

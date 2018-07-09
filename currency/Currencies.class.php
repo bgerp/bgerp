@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Валутите
  *
  *
  * @category  bgerp
  * @package   currency
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class currency_Currencies extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -35,19 +34,19 @@ class currency_Currencies extends core_Master
      */
     public $singleLayoutFile = 'currency/tpl/SingleLayoutCurrency.shtml';
     
-
+    
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Валута';
-
-
+    
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/zone_money.png';
     
-
+    
     /**
      * Кой може да изтрива
      */
@@ -82,8 +81,8 @@ class currency_Currencies extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'powerUser';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -112,8 +111,8 @@ class currency_Currencies extends core_Master
      * Полето "name" да е хипервръзка към единичния изглед
      */
     public $rowToolsSingleField = 'name';
-
-
+    
+    
     /**
      * Полетата, които ще се показват в единичния изглед
      */
@@ -144,13 +143,14 @@ class currency_Currencies extends core_Master
         
         $this->setDbUnique('code');
     }
-
-
+    
+    
     /**
      * Връща id-то на валутата с посочения трибуквен ISO код
      *
-     * @param  string $code трибуквен ISO код
-     * @return int    key(mvc=currency_Currencies)
+     * @param string $code трибуквен ISO код
+     *
+     * @return int key(mvc=currency_Currencies)
      */
     public static function getIdByCode($code)
     {
@@ -163,13 +163,14 @@ class currency_Currencies extends core_Master
     /**
      * Връща кода на валутата по зададено id
      *
-     * @param  int    $id key(mvc=currency_Currencies)
+     * @param int $id key(mvc=currency_Currencies)
+     *
      * @return string $code - трибуквен ISO код на валутата
      */
     public static function getCodeById($id)
     {
         expect($code = self::fetchField($id, 'code'));
-
+        
         return $code;
     }
     
@@ -282,7 +283,6 @@ class currency_Currencies extends core_Master
     }
     
     
-    
     /**
      * Изпълнява се преди импортирването на данните
      */
@@ -307,7 +307,8 @@ class currency_Currencies extends core_Master
     /**
      * Функция за закръгляне на валута, която
      * трябва да се използва във всички бизнес документи за показване на суми
-     * @param double    $amount - сума
+     *
+     * @param float     $amount - сума
      * @param string(3) $code   -трибуквен код на валута
      */
     public static function round($amount, $code = null)
@@ -327,6 +328,7 @@ class currency_Currencies extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
+     *
      * @param int $objectId
      */
     public static function getItemRec($objectId)
@@ -348,6 +350,7 @@ class currency_Currencies extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -359,7 +362,7 @@ class currency_Currencies extends core_Master
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-
+    
     
     /**
      * Връща дефолтната цена отговаряща на количеството

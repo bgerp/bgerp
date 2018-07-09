@@ -1,14 +1,17 @@
  <?php
 
+
 /**
  * Действие на скрипт за изпращане на SMS
  *
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_ScriptActionSMS
@@ -17,14 +20,14 @@ class sens2_ScriptActionSMS
      * Поддържани интерфейси
      */
     public $interfaces = 'sens2_ScriptActionIntf';
-
-
+    
+    
     /**
      * Наименование на действието
      */
     public $title = 'Изпращане на SMS';
-
-
+    
+    
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
@@ -48,11 +51,11 @@ class sens2_ScriptActionSMS
         foreach ($inds as $i => $v) {
             $suggestions[$i] = $i;
         }
-
+        
         asort($suggestions);
         $form->setSuggestions('cond', $suggestions);
     }
-   
+    
     
     /**
      * Проверява след  субмитване формата с настройки на контролера
@@ -64,7 +67,7 @@ class sens2_ScriptActionSMS
     public function checkActionForm($form)
     {
     }
-
+    
     public function toVerbal($rec)
     {
         $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
@@ -72,10 +75,11 @@ class sens2_ScriptActionSMS
         $number = $dP->toVerbal($rec->number);
         $message = type_Varchar::escape($rec->message);
         $res = "SMS <span style=\"color:green\">`{$message}`</span> към <span style=\"color:green\">{$rec->number}</span>, ако {$cond}";
- 
+        
         return $res;
     }
-
+    
+    
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
@@ -93,9 +97,9 @@ class sens2_ScriptActionSMS
                 return 'closed';
             }
         }
-
+        
         // Проверяваме дали е удобно да се пращат SMS-и по това време
-
+        
         // Задаваме го на изхода
         try {
             $res = callcenter_SMS::sendSmart($rec->number, $rec->message, array('sendLockPeriod' => $rec->periodLock));
@@ -110,7 +114,7 @@ class sens2_ScriptActionSMS
             
             return 'active';
         }
-
+        
         return 'stopped';
     }
 }

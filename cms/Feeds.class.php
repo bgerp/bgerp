@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Хранилка
  *
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_Feeds extends core_Manager
 {
-
-    
     /**
      * Заглавие на страницата
      */
@@ -32,7 +33,7 @@ class cms_Feeds extends core_Manager
      */
     public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, cms_Wrapper';
     
-
+    
     /**
      * Да не се кодират id-тата
      */
@@ -55,8 +56,8 @@ class cms_Feeds extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,cms';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -121,12 +122,14 @@ class cms_Feeds extends core_Manager
         // Взависимост от посоченият вид, инстанцираме определения клас хранилка
         switch ($rec->type) {
             case 'rss':
+                 
                  // Инстанцираме нова хранилка от тип RSS 1
                  $feed = new RSS1FeedWriter();
                  $feed->setChannelAbout(toUrl(array($this, 'get', $rec->id), 'absolute'));
                  break;
-
+            
             case 'rss2':
+                 
                  // Инстанцираме нова хранилка от тип RSS 2.0
                  $feed = new RSS2FeedWriter();
                  $lang = cms_Domains::fetch($rec->domainId)->lang;
@@ -134,12 +137,13 @@ class cms_Feeds extends core_Manager
                  $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
                  if ($rec->logo) {
                      $img = new thumb_Img(array($rec->logo, 120, 120, 'fileman', 'isAbsolute' => true));
-                    
+                     
                      $feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), $img->getUrl());
                  }
                  break;
-
+            
             case 'atom':
+                
                 // Инстанцираме нова хранилка от тип ATOM
                 $feed = new ATOMFeedWriter();
                 $feed->setChannelElement('updated', date(DATE_ATOM, time()));
@@ -173,7 +177,6 @@ class cms_Feeds extends core_Manager
         shutdown();
     }
     
-
     
     /**
      * Връща датата на последния елемент във фийда
@@ -186,7 +189,7 @@ class cms_Feeds extends core_Manager
             }
             
             rsort($dates);
-        
+            
             return reset($dates);
         }
     }
@@ -198,7 +201,7 @@ class cms_Feeds extends core_Manager
     public function act_Feeds()
     {
         cms_Content::setCurrent();
-
+        
         $data = new stdClass();
         $data->action = 'feeds';
         $data->query = $this->getQuery();
@@ -243,6 +246,7 @@ class cms_Feeds extends core_Manager
     
     /**
      * Рендираме списъка от хранилки за външен изглед
+     *
      * @return core_ET
      */
     public function renderFeeds($data)
@@ -251,7 +255,7 @@ class cms_Feeds extends core_Manager
         
         // Поставяме иконка и заглавие
         $layout->append(tr('Нашите емисии'), 'HEADER');
- 
+        
         if (count($data->rows) > 0) {
             foreach ($data->rows as $row) {
                 $feedTpl = $layout->getBlock('ROW');
@@ -283,6 +287,7 @@ class cms_Feeds extends core_Manager
     
     /**
      * Генерира хедърите за обвивката
+     *
      * @return core_ET
      */
     public static function generateHeaders()
@@ -297,14 +302,14 @@ class cms_Feeds extends core_Manager
                    
                    // Адрес на хранилката
                 $url = toUrl(array('cms_Feeds', 'get', $feed->id), 'absolute');
-                   
+                
                 // Взависимост от типа на хранилката определяме типа на хедъра
                 if ($feed->type != 'atom') {
                     $type = 'application/rss+xml';
                 } else {
                     $type = 'application/atom+xml';
                 }
-                   
+                
                 // Натрупваме генерираният хедър в шаблона, ако хранилката е от същия език, като на външната част
                 $tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}'>");
             }
@@ -316,6 +321,7 @@ class cms_Feeds extends core_Manager
     
     /**
      * Генерира икона с линк за екшъна с хранилките
+     *
      * @return core_ET
      */
     public static function generateFeedLink()
@@ -327,22 +333,23 @@ class cms_Feeds extends core_Manager
         $domainId = cms_Domains::getPublicDomain('id');
         $feeds = $query->fetchAll("#domainId = ${domainId}");
         if (!count($feeds)) {
+            
             return;
         }
         
         // Подготвяме иконка с линк към публичния лист на хранилката
         $url = array('cms_Feeds', 'feeds');
-
+        
         if (log_Browsers::isRetina()) {
             $size = 48;
         } else {
             $size = 24;
         }
-
+        
         $src = sbf("cms/img/{$size}/rss.png", '');
-
+        
         $img = ht::createElement('img', array('src' => $src, 'alt' => 'RSS Feeds', 'width' => 24, 'height' => 24));
-
+        
         $link = ht::createLink($img, $url, null, array('class' => 'soc-following noSelect'));
         
         // Добавяме линка към шаблона
@@ -367,7 +374,7 @@ class cms_Feeds extends core_Manager
             if ($Source->feedFilterField) {
                 $sourceField = $Source->fields[$Source->feedFilterField];
                 $form->FNC($Source->feedFilterField, $sourceField->type, "input,fromSource,caption={$sourceField->caption},after=type");
-                    
+                
                 if ($form->rec->data) {
                     $form->setDefault($Source->feedFilterField, $form->rec->data);
                 }
@@ -384,6 +391,7 @@ class cms_Feeds extends core_Manager
         if ($form->isSubmitted()) {
             $fld = $form->selectFields('#fromSource');
             if (!count($fld)) {
+                
                 return;
             }
             $fld = reset($fld);

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Modified' - Поддръжка на modifiedOn и modifiedBy
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Modified extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -58,8 +57,8 @@ class plg_Modified extends core_Plugin
         }
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
     }
-
-
+    
+    
     /**
      * Изпълнява се след инициализиране на модела
      */
@@ -77,7 +76,7 @@ class plg_Modified extends core_Plugin
                 }
             }
         }
-
+        
         if ($modRecs) {
             $res .= "<li style='color:green'>Обновено времето за модифициране на ${modRecs} запис(а)</li>";
         }

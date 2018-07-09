@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class escpos_Print extends core_Manager
 {
-    
-    
     /**
      * Разделител на стринга за id-то
      */
@@ -25,25 +25,21 @@ class escpos_Print extends core_Manager
      * Заглавие
      */
     public $title = 'Отпечатване на документи в мобилен принтер';
-
-
+    
+    
     /**
      * Дали id-тата на този модел да са защитени?
      */
     public $protectId = false;
     
     
-    
     public $canAdd = 'no_one';
-    
     
     
     public $canDelete = 'no_one';
     
     
-    
     public $canEdit = 'no_one';
-    
     
     
     public $canList = 'no_one';
@@ -125,9 +121,9 @@ class escpos_Print extends core_Manager
     /**
      * Връща хеша за стринг
      *
-     * @param string  $clsId
-     * @param string  $pId
-     * @param integer $cu
+     * @param string $clsId
+     * @param string $pId
+     * @param int    $cu
      *
      * @return string
      */
@@ -173,7 +169,6 @@ class escpos_Print extends core_Manager
         
         return $res;
     }
-    
     
     
     /**

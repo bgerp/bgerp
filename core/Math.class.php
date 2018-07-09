@@ -1,31 +1,31 @@
 <?php
 
 
-
 /**
  * Клас 'core_Math' ['math'] - Математически функции
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Math
 {
-
     /**
      * "Интелигентно" закръгляне, което гарантира минимален брой
      * (зададен чрез конфигурация) знаци след закръглянето
      *
-     * @param double $number            число, което подлежи на закръгляне
-     * @param int    $fractionalLen     текуща максимална дробна част
-     * @param int    $significantDigits минимален брой значещи цифри след закръглянето
+     * @param float $number            число, което подлежи на закръгляне
+     * @param int   $fractionalLen     текуща максимална дробна част
+     * @param int   $significantDigits минимален брой значещи цифри след закръглянето
      *
-     * @return double|string закръглено число
+     * @return float|string закръглено число
      */
     public static function roundNumber($number, &$fractionalLen = 0, $significantDigits = null)
     {
@@ -37,7 +37,7 @@ class core_Math
             
             // Вземаме конфигурацията на пакета ef
             $conf = core_Packs::getConfig('core');
-
+            
             $significantDigits = $conf->EF_ROUND_SIGNIFICANT_DIGITS;
         }
         
@@ -54,13 +54,13 @@ class core_Math
         
         // Дължината на дробната част
         $thisFractionalLen = strlen(substr(strrchr($number, '.'), 1));
-       
+        
         if ($thisFractionalLen > $fractionalLen) {
             
             // Записваме новата по-голяма част
             $fractionalLen = $thisFractionalLen;
         } elseif ($thisFractionalLen < $fractionalLen) {
-
+            
             // Падваме с 0-ли отдясно
             if (floor($number) != $number) {
                 $number = str_pad($number, $fractionalLen, '0', STR_PAD_RIGHT);
@@ -74,9 +74,10 @@ class core_Math
     /**
      * Функция намираща остатъка на делението на две реални числа
      *
-     * @param  double $x
-     * @param  double $y
-     * @return double $r
+     * @param float $x
+     * @param float $y
+     *
+     * @return float $r
      */
     public static function fmod($x, $y)
     {

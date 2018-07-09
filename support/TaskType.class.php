@@ -6,15 +6,16 @@
  *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class support_TaskType extends core_Mvc
 {
     public $interfaces = 'cal_TaskTypeIntf';
-    
     
     
     public $title = 'Сигнал';
@@ -42,9 +43,9 @@ class support_TaskType extends core_Mvc
     /**
      * Може ли вградения обект да се избере
      *
-     * @param NULL|integer $userId
+     * @param NULL|int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canSelectDriver($userId = null)
     {
@@ -167,7 +168,7 @@ class support_TaskType extends core_Mvc
      * @param support_TaskType $Driver
      * @param cal_Tasks        $mvc
      * @param string|NULL      $res
-     * @param integer          $id
+     * @param int              $id
      *
      * @return string
      */
@@ -310,7 +311,7 @@ class support_TaskType extends core_Mvc
             if (!$rec->ip) {
                 $rec->ip = core_Users::getRealIpAddr();
             }
-                
+            
             if (!$rec->brid) {
                 $rec->brid = log_Browsers::getBrid();
             }
@@ -470,10 +471,10 @@ class support_TaskType extends core_Mvc
     {
         if ($data->rec->state != 'rejected' && $data->rec->brid && email_Outgoings::haveRightFor('add')) {
             $data->toolbar->addBtn('Отговор', array(
-                    'email_Outgoings',
-                    'add',
-                    'originId' => $data->rec->containerId,
-                    'ret_url' => true
+                'email_Outgoings',
+                'add',
+                'originId' => $data->rec->containerId,
+                'ret_url' => true
             ), 'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
     }

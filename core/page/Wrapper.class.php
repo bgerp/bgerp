@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'page_Wrapper' - Опаковка на страниците
  *
  *
  * @category  ef
  * @package   page
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_page_Wrapper extends core_BaseClass
 {
-    
-    
     /**
      * Прави стандартна 'обвивка' на изгледа
      */
@@ -44,12 +43,12 @@ class core_page_Wrapper extends core_BaseClass
         $wrapperTpl = cls::get($tplName);
         
         $wrapperTpl->prepare();
-
+        
         self::replaceSpecialPlaceholders($wrapperTpl);
         
         // Изпращаме на изхода опаковано съдържанието
         $wrapperTpl->replace($content, 'PAGE_CONTENT');
-
+        
         $wrapperTpl->output();
     }
     
@@ -62,7 +61,7 @@ class core_page_Wrapper extends core_BaseClass
     protected static function replaceSpecialPlaceholders(&$tpl)
     {
         if (!($tpl instanceof core_ET)) {
-            
+
 //            return $tpl;
             
             $tpl = new ET($tpl);
@@ -74,11 +73,11 @@ class core_page_Wrapper extends core_BaseClass
         // Заместваме специалните плейсхолдери, със съдържанието към което те сочат
         foreach ($placeHolders as $place) {
             $method = explode('::', $place);
-
+            
             if (count($method) != 2) {
                 continue;
             }
-
+            
             $html = call_user_func($method);
             
             if ($html instanceof core_ET) {

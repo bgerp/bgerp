@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_Buckets' - Определя еднородни по права за достъп хранилища за файлове
  *
  *
  * @category  bgerp
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Buckets extends core_Manager
 {
-
-
     /**
      * Заглавие на модула
      */
@@ -33,31 +32,30 @@ class fileman_Buckets extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'admin';
-
-
+    
+    
     /**
      * Кой може да добавя?
      */
     public $canAdd = 'no_one';
-
-
+    
+    
     /**
      * Кой може да редактира?
      */
     public $canEdit = 'admin';
-
-
+    
+    
     /**
      * Кой може да редактира данните добавени от системата?
      */
     public $canEditsysdata = 'admin';
-
-
+    
+    
     /**
      * Кой може да изтрива?
      */
     public $canDelete = 'no_one';
-    
     
     
     public $loadList = 'plg_Translate, plg_Created, plg_Modified, Files=fileman_Files, plg_RowTools2, fileman_Wrapper';
@@ -83,9 +81,9 @@ class fileman_Buckets extends core_Manager
     /**
      * Проверява дали потребителя има права за добавяне в кофата
      *
-     * @param integer $bucketId
+     * @param int $bucketId
      *
-     * @return boolean
+     * @return bool
      */
     public static function canAddFileToBucket($bucketId, $userId = null)
     {
@@ -114,12 +112,12 @@ class fileman_Buckets extends core_Manager
         // Името да е в долен регистър
         $bucketName = mb_strtolower($bucketName);
         $rec = static::fetch(array("LOWER(#name) = '[#1#]'", $bucketName));
-
+        
         if ($part == '*') {
             
             return $rec;
         }
-
+        
         return $rec->{$part};
     }
     
@@ -136,29 +134,29 @@ class fileman_Buckets extends core_Manager
             $data->form->setReadOnly('name');
         }
     }
-
-
+    
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public static function on_BeforeSave($mvc, &$res, $rec)
     {
         $Roles = cls::get('core_Roles');
-
+        
         if (!$rec->rolesForDownload) {
             $rec->rolesForDownload = '|' . $Roles->fetchByName('user') . '|';
         }
-
+        
         if (!$rec->rolesForAdding) {
             $rec->rolesForAdding = '|' . $Roles->fetchByName('user') . '|';
         }
-
+        
         if (!($rec->lifetime > 0)) {
             $rec->lifetime = 1000000000;
         }
     }
-
-
+    
+    
     /**
      * @todo Чака за документация...
      */
@@ -166,10 +164,10 @@ class fileman_Buckets extends core_Manager
     {
         // Проверка дали текущия потребител има права над тази папка
         $rec = $this->fetch($bucketId);
-
+        
         $row = $this->recToVerbal($rec);
         $info = new stdClass();
-
+        
         if ($row->extensions) {
             $extArr = explode(',', $row->extensions);
             
@@ -205,45 +203,45 @@ class fileman_Buckets extends core_Manager
         
         // Попълване на информацията
         $info->title = tr('Добавяне на файл(ове)');
-
+        
         $info->maxFileSize = $row->maxSize;
         
         return $info;
     }
-
-
+    
+    
     /**
      * Дали дадения файл отговаря на условията в посочената папка?
      */
     public function isValid(&$err, $bucketId, $fileName, $filePath)
     {
         $rec = $this->fetch($bucketId);
-
+        
         $row = $this->recToVerbal($rec);
-
+        
         if (trim($rec->extensions)) {
             $extensions = arr::make($rec->extensions, true);
-
+            
             if (($dotPos = mb_strrpos($fileName, '.')) !== false) {
                 $ext = mb_strtolower(mb_substr($fileName, $dotPos + 1));
-
+                
                 if ($ext && !$extensions[$ext]) {
                     $err[] = "Разширението на файла |* <b>{$ext}</b> | не е в допустимите|*: {$row->extensions}";
                 }
             }
         }
-
+        
         if (filesize($filePath) > $rec->maxSize) {
             $err[] = "Допустимия размер за файл в кофата е|*: <b>{$row->maxSize}</b>.";
         }
-
+        
         if (!$err) {
             
             return true;
         }
     }
-
-
+    
+    
     /**
      * Показва съобщението след като файлът е добавен
      */
@@ -254,8 +252,8 @@ class fileman_Buckets extends core_Manager
         
         return new ET("<div class='uploaded-title'> <b>{$link}</b> </div>");
     }
-
-
+    
+    
     /**
      * Създаване на 'Кофа'. Ако има съществуваща, със същото име, то тя се обновява
      */
@@ -304,13 +302,13 @@ class fileman_Buckets extends core_Manager
         $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rolesForAdding);
         $rec->lifetime = $lifetime;
         $rec->extensions = $extensions;
-
+        
         self::save($rec);
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */

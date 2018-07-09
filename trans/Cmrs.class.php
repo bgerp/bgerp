@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'trans_Cmrs'
  *
@@ -10,21 +9,21 @@
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class trans_Cmrs extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Товарителници';
-
-
+    
+    
     /**
      * Абревиатура
      */
@@ -35,7 +34,7 @@ class trans_Cmrs extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, doc_plg_MultiPrint, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
-
+    
     
     /**
      * Кой може да го клонира?
@@ -83,14 +82,14 @@ class trans_Cmrs extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'trans/tpl/SingleLayoutCMR.shtml';
-            
-            
+    
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/lorry_go.png';
     
-   
+    
     /**
      * Групиране на документите
      */
@@ -319,8 +318,9 @@ class trans_Cmrs extends core_Master
     /**
      * Зарежда дефолтни данни от формата
      *
-     * @param  int       $originId - ориджин
-     * @param  core_Form $form     - форма
+     * @param int       $originId - ориджин
+     * @param core_Form $form     - форма
+     *
      * @return void
      */
     private function setDefaultsFromShipmentOrder($originId, &$form)
@@ -332,41 +332,41 @@ class trans_Cmrs extends core_Master
         
         // Всичките дефолтни данни трябва да са на английски
         core_Lg::push('en');
-         
+        
         // Информация за изпращача
         $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', true);
         $senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId);
-         
+        
         // Информация за получателя
         $consigneeData = $this->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId, false);
-         
+        
         // Място на товарене / Разтоварване
         $loadingPlace = $lData['fromPCode'] . ' ' .  transliterate($lData['fromPlace']) . ', ' . $lData['fromCountry'];
         $deliveryPlace = $lData['toPCode'] . ' ' .  transliterate($lData['toPlace']) . ', ' . $lData['toCountry'];
-         
+        
         // Има ли общо тегло в ЕН-то
         $weight = ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight;
         if (!empty($weight)) {
             $weight = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
             $form->setDefault('grossWeight1', $weight);
         }
-         
+        
         // Има ли общ обем в ЕН-то
         $volume = ($sRec->volumeInput) ? $sRec->volumeInput : $sRec->volume;
         if (!empty($weight)) {
             $volume = core_Type::getByName('cat_type_Volume')->toVerbal($volume);
             $form->setDefault('volume1', $volume);
         }
-         
+        
         core_Lg::pop();
-         
+        
         // Задаване на дефолтните полета
         $form->setDefault('senderData', $senderData);
         $form->setDefault('consigneeData', $consigneeData);
         $form->setDefault('deliveryPlace', $deliveryPlace);
         $form->setDefault('loadingPlace', $loadingPlace);
         $form->setDefault('loadingDate', $lData['loadingTime']);
-         
+        
         // Информация за превозвача
         if (isset($sRec->lineId)) {
             $lineRec = trans_Lines::fetch($sRec->lineId);
@@ -374,14 +374,14 @@ class trans_Cmrs extends core_Master
                 $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId);
                 $form->setDefault('cariersData', $carrierData);
             }
-        
+            
             if (isset($lineRec->vehicle)) {
                 if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
                     $form->setDefault('vehicleReg', $vehicleRec->number);
                 }
             }
         }
-         
+        
         // Има ли общ брой палети
         if (!empty($sRec->palletCountInput)) {
             $collets = core_Type::getByName('int')->toVerbal($sRec->palletCountInput);
@@ -394,10 +394,11 @@ class trans_Cmrs extends core_Master
     /**
      * Информацията за контрагента
      *
-     * @param  mixed   $contragentClassId - клас на контрагента
-     * @param  int     $contragentId      - контрагент ид
-     * @param  boolean $translate         - превод на името на контрагента
-     * @return string  - информация за контрагента
+     * @param mixed $contragentClassId - клас на контрагента
+     * @param int   $contragentId      - контрагент ид
+     * @param bool  $translate         - превод на името на контрагента
+     *
+     * @return string - информация за контрагента
      */
     private function getDefaultContragentData($contragentClassId, $contragentId, $translate = true)
     {
@@ -507,14 +508,14 @@ class trans_Cmrs extends core_Master
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
-    
+        
         $row = (object) array('title' => $title,
-                             'authorId' => $rec->createdBy,
-                             'author' => $this->getVerbal($rec, 'createdBy'),
-                             'state' => $rec->state,
-                             'recTitle' => $title
+            'authorId' => $rec->createdBy,
+            'author' => $this->getVerbal($rec, 'createdBy'),
+            'state' => $rec->state,
+            'recTitle' => $title
         );
-    
+        
         return $row;
     }
     
@@ -523,16 +524,18 @@ class trans_Cmrs extends core_Master
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
         $tpl = new ET(tr('Моля запознайте се с нашето|* |ЧМР|*') . ': #[#handle#]');
         $handle = $this->getHandle($id);
         $tpl->append($handle, 'handle');
-    
+        
         return $tpl->getContent();
     }
     
@@ -577,10 +580,11 @@ class trans_Cmrs extends core_Master
     /**
      * Метод по подразбиране, за връщане на състоянието на документа в зависимот от класа/записа
      *
-     * @param core_Master  $mvc
-     * @param NULL|string  $res
-     * @param NULL|integer $id
-     * @param NULL|boolean $hStatus
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param NULL|int    $id
+     * @param NULL|bool   $hStatus
+     *
      * @see doc_HiddenContainers
      */
     public function getDocHiddenStatus($id, $hStatus)
@@ -601,7 +605,7 @@ class trans_Cmrs extends core_Master
         $self = cls::get(get_called_class());
         $cmrNumber = $self->fetchField($id, 'cmrNumber');
         $hnd = $self->abbr . $cmrNumber;
-    
+        
         return $hnd;
     }
     
@@ -614,13 +618,14 @@ class trans_Cmrs extends core_Master
         if ($cmrNumber = ltrim($parsedHandle['id'], '0')) {
             $rec = static::fetch("#cmrNumber = '{$cmrNumber}'");
         }
-    
+        
         return $rec;
     }
     
     
     /**
      * След рендиране на копия за принтиране
+     *
      * @see doc_plg_MultiPrint
      *
      * @param core_Mvc $mvc     - мениджър

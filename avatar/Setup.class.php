@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'avatar_Setup' -
  *
  *
  * @category  vendors
  * @package   avatar
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class avatar_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */

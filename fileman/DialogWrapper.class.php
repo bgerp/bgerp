@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_DialogWrapper' - опаковка на пакета 'fileman'
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_DialogWrapper extends core_Plugin
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -41,7 +40,7 @@ class fileman_DialogWrapper extends core_Plugin
             $this->info = $Buckets->getAddFileInfo($bucketId);
             
             $tpl->prepend("<button onclick='javascript:window.close();' class='upload-close'>X</button><div class='dialogTitle'>{$this->info->title}</div>");
-
+            
             $tpl->append('<ul><small><li>' . tr('Макс. размер') . ": {$this->info->maxFileSize}</li></small>");
             
             if (!$this->info->extensions) {
@@ -52,7 +51,7 @@ class fileman_DialogWrapper extends core_Plugin
             if ($this->info->accept) {
                 $tpl->replace("accept=\"{$this->info->accept}\"", 'ACCEPT');
             }
-
+            
             $tabArr = $this->getTabsArr();
             
             $url = array(
@@ -75,13 +74,13 @@ class fileman_DialogWrapper extends core_Plugin
             }
             
             $tabs->htmlClass = 'filemanUpload';
-
+            
             $tpl = $tabs->renderHtml($tpl, $invoker->className);
             
             // $tpl->prepend('<br>');
             
             $tpl->prepend($this->info->title . ' « ' . $conf->EF_APP_TITLE, 'PAGE_TITLE');
-
+            
             // Сетвама, таба който сме използвали
             static::setLastUploadTab($invoker->className);
             

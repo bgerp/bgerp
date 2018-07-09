@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Максимална дължина на полето "Вербален идентификатор"
  */
@@ -20,9 +19,11 @@ defIfNot('EF_VID_LEN', 128);
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
@@ -46,9 +47,9 @@ class cms_VerbalIdPlg extends core_Plugin
         
         // SEO Ключови думи
         $mvc->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,column=none, width=100%,autohide');
-
+        
         $mvc->setDbUnique($this->fieldName);
-
+        
         $mvc->searchFields = arr::make($mvc->searchFields);
         $mvc->searchFields[] = $this->fieldName;
         $mvc->searchFields[] = 'seoTitle';
@@ -66,37 +67,38 @@ class cms_VerbalIdPlg extends core_Plugin
     public function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = null)
     {
         $fieldName = $this->fieldName;
-
+        
         if ($fields) {
             $fArr = arr::make($fields, true);
-
+            
             // Ако полето не участва - не правим нищо
             if (!$fArr[$fieldName]) {
+                
                 return;
             }
         }
-
+        
         $recVid = &$rec->{$fieldName};
-
+        
         setIfNot($this->mvc, $mvc);
-
+        
         $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
-
+        
         if (!$recVid) {
             $recVid = $mvc->getRecTitle($rec);
             $recVid = str::canonize($recVid);
         }
         
         expect(strlen($recVid), $recVid);
-
+        
         $cond = "#{$this->fieldName} LIKE '[#1#]'";
-
+        
         if ($rec->id) {
             $cond .= " AND #id != {$rec->id}";
         }
-
+        
         $baseVid = $recVid;
-
+        
         $i = 0;
         
         while ($mvc->fetchField(array($cond, $recVid), 'id') || is_numeric($recVid) || empty($recVid)) {
@@ -109,13 +111,13 @@ class cms_VerbalIdPlg extends core_Plugin
                 expect(false, $recVid, $rec, $i);
             }
         }
-
+        
         expect($rec->{$fieldName});
-
+        
         cms_VerbalId::saveVid($recVid, $mvc, $rec->id);
     }
-
-
+    
+    
     /**
      * Преди екшън, ако id-то не е цифрово го приема, че е vid и извлича id
      * Поставя, коректното id в Request
@@ -123,12 +125,12 @@ class cms_VerbalIdPlg extends core_Plugin
     public function on_BeforeAction($mvc, $action)
     {
         $vid = Request::get('id');
-
+        
         if ($vid && !is_numeric($vid)) {
             $vid = urldecode($vid);
-
+            
             $id = $mvc->fetchField(array("#vid COLLATE {$mvc->db->dbCharset}_general_ci LIKE '[#1#]'", $vid), 'id');
-
+            
             if (!$id) {
                 $id = cms_VerbalId::fetchId($vid, $mvc);
             }

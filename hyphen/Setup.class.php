@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   hyphen
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hyphen_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -60,7 +60,7 @@ class hyphen_Setup extends core_ProtoSetup
         } else {
             $html .= '<li>Не са премахнати закачания на плъгина';
         }
-
+        
         return $res;
     }
 }

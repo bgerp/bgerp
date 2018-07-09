@@ -6,16 +6,16 @@
  *
  * @category  vendors
  * @package   clickatell
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see http://smssync.ushahidi.com/
  */
 class smssync_SMS extends core_Manager
 {
-    
-    
     /**
      * Кой има право да чете?
      */
@@ -72,7 +72,6 @@ class smssync_SMS extends core_Manager
     public $loadList = 'plg_Created';
     
     
-    
     public function description()
     {
         $this->FLD('sender', 'varchar', 'caption=Изпращач');
@@ -85,6 +84,7 @@ class smssync_SMS extends core_Manager
     
     /**
      * Интерфейсен метод за изпращане на SMS' и
+     *
      * @see callcenter_SentSMSIntf
      *
      * @param string $number  - Номера на получателя
@@ -133,6 +133,7 @@ class smssync_SMS extends core_Manager
     /**
      * Инрерфейсен метод
      * Връща статуса на съобщението от съоветната услуга
+     *
      * @see callcenter_SentSMSIntf
      *
      * @param string $uid
@@ -257,13 +258,13 @@ class smssync_SMS extends core_Manager
     {
         $messages = self::prepareMessages($recs);
         $res = array(
-                    'payload' => array(
-                        'task' => $task,
-                        'secret' => $secret,
-                        'messages' => $messages
-                    )
-                );
-                
+            'payload' => array(
+                'task' => $task,
+                'secret' => $secret,
+                'messages' => $messages
+            )
+        );
+        
         return $res;
     }
     
@@ -308,10 +309,10 @@ class smssync_SMS extends core_Manager
     protected static function prepareIncomingMessage_($dataArr)
     {
         $res = array(
-                'success' => true,
-                'error' => null
-            );
-            
+            'success' => true,
+            'error' => null
+        );
+        
         return $res;
     }
     
@@ -392,6 +393,7 @@ class smssync_SMS extends core_Manager
     
     /**
      * Интерфейсен метод, който връща масив с настройките за услугата
+     *
      * @see callcenter_SentSMSIntf
      *
      * @return array $paramsArr

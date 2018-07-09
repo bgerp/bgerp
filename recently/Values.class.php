@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'recently_Values'
  *
@@ -10,20 +11,21 @@
  *
  * @category  vendors
  * @package   recently
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class recently_Values extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Последно въвеждани стойности';
+    
     
     /**
      * @todo Чака за документация...
@@ -58,7 +60,7 @@ class recently_Values extends core_Manager
     public function getSuggestions($name)
     {
         $conf = core_Packs::getConfig('recently');
-
+        
         $query = $this->getQuery();
         
         $query->orderBy('#createdOn=DESC');
@@ -71,10 +73,10 @@ class recently_Values extends core_Manager
         
         if ($cu = core_Users::getCurrent()) {
             while ($rec = $query->fetch(array(
-                                "#name = '[#1#]' AND #createdBy = [#2#]",
-                                $name,
-                                $cu
-                            ))) {
+                "#name = '[#1#]' AND #createdBy = [#2#]",
+                $name,
+                $cu
+            ))) {
                 $value = $rec->value;
                 
                 $opt[$value] = $value;
@@ -93,12 +95,12 @@ class recently_Values extends core_Manager
         $cu = core_Users::getCurrent();
         $value = mb_substr($value, 0, 255);
         $name = str::convertToFixedKey($name, 64);
-
+        
         $rec = $this->fetch(array(
-                "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = '{$cu}'",
-                $name,
-                $value
-            ));
+            "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = '{$cu}'",
+            $name,
+            $value
+        ));
         
         if ($rec) {
             $rec->createdOn = dt::verbal2mysql();

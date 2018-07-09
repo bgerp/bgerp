@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'bgerp_ProtoParam' - Клас за наследяване от класове за параметри на обекти
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class bgerp_ProtoParam extends embed_Manager
 {
-    
-    
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
@@ -62,7 +61,8 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Добавя задължителни полета към модела
      *
-     * @param  bgerp_ProtoParam $mvc
+     * @param bgerp_ProtoParam $mvc
+     *
      * @return void
      */
     public static function setFields(&$mvc)
@@ -95,7 +95,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
             $group = tr($rec->group);
             $typeExt = "{$group} » {$typeExt}";
         }
-            
+        
         if (!empty($rec->suffix)) {
             $typeExt .= ' (' . str_replace(array('&lt;', '&amp;'), array('<', '&'), tr($rec->suffix)) . ')';
         }
@@ -122,7 +122,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setField('driverClass', 'caption=Тип');
-         
+        
         if (isset($data->form->rec->sysId)) {
             $data->form->setReadOnly('name');
             $data->form->setReadOnly('suffix');
@@ -145,8 +145,9 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Връща ид-то на параметъра по зададен sysId
      *
-     * @param  string $sysId
-     * @return int    $id - ид на параметъра
+     * @param string $sysId
+     *
+     * @return int $id - ид на параметъра
      */
     public static function fetchIdBySysId($sysId)
     {
@@ -160,7 +161,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = null, &$where = '', $index = 'id')
     {
         $newOptions = $options;
-    
+        
         // Ако има опции
         if (is_array($options)) {
             $newOptions = array();
@@ -187,7 +188,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
                 // Махане на гръпата от името
                 $exploded = explode(' » ', $value);
                 $value = (count($exploded) == 2) ? $exploded[1] : $value;
-                    
+                
                 $newOptions[$id] = $value;
             }
         }
@@ -222,10 +223,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Връща типа на параметъра
      *
-     * @param  mixed           $id          - ид или запис на параметър
-     * @param  mixed           $domainClass - клас на домейна на параметъра
-     * @param  int             $domainId    - ид на домейна на параметъра
-     * @param  mixed           $value       - стойност
+     * @param mixed $id          - ид или запис на параметър
+     * @param mixed $domainClass - клас на домейна на параметъра
+     * @param int   $domainId    - ид на домейна на параметъра
+     * @param mixed $value       - стойност
+     *
      * @return FALSE|core_Type - инстанцираният тип или FALSE ако не може да се определи
      */
     public static function getTypeInstance($id, $domainClass, $domainId, $value = null)
@@ -235,7 +237,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
             
             return $Type = $Driver->getType($rec, $domainClass, $domainId, $value);
         }
-         
+        
         return false;
     }
     
@@ -303,18 +305,19 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Подготвя запис за форсиране
      *
-     * @param  string      $sysId   - систем ид на параметър
-     * @param  string      $name    - име на параметъра
-     * @param  string      $type    - тип на параметъра
-     * @param  NULL|text   $options - опции на параметъра само за типовете enum и set
-     * @param  NULL|string $suffix  - наставка
-     * @return stdClass    $nRec     - ид на параметъра
+     * @param string      $sysId   - систем ид на параметър
+     * @param string      $name    - име на параметъра
+     * @param string      $type    - тип на параметъра
+     * @param NULL|text   $options - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix  - наставка
+     *
+     * @return stdClass $nRec     - ид на параметъра
      */
     protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null)
     {
         // Проверка дали типа е допустим
         expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
-            
+        
         // Подготовка на записа на параметъра
         expect($Type = cls::get("cond_type_{$type}"));
         $nRec = new stdClass();
@@ -324,7 +327,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (!empty($suffix)) {
             $nRec->suffix = $suffix;
         }
-            
+        
         // Само за типовете enum и set, се искат опции
         if ($type == 'enum' || $type == 'set') {
             $nRec->options = cond_type_abstract_Proto::options2text($options);
@@ -356,10 +359,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Параметри функция за вербализиране
      *
-     * @param  int   $id          - ид на параметър
-     * @param  mixed $domainClass - клас на домейна на параметъра
-     * @param  int   $domainId    - ид на домейна на параметъра
-     * @param  mixed $value       - стойност за вебализиране
+     * @param int   $id          - ид на параметър
+     * @param mixed $domainClass - клас на домейна на параметъра
+     * @param int   $domainId    - ид на домейна на параметъра
+     * @param mixed $value       - стойност за вебализиране
+     *
      * @return mixed - вербализирана стойност или FALSE ако не може
      */
     public static function toVerbal($id, $domainClass, $domainId, $value)
@@ -369,7 +373,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
             
             return $Type->toVerbal(trim($value));
         }
-         
+        
         return false;
     }
     
@@ -377,8 +381,9 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Ограничаване на символите на стойноста, ако е текст
      *
-     * @param  mixed $driverClass
-     * @param  mixed $value
+     * @param mixed $driverClass
+     * @param mixed $value
+     *
      * @return mixed $value
      */
     public static function limitValue($driverClass, $value)
@@ -387,11 +392,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90) {
             $bHtml = mb_strcut($value, 0, 90);
             $cHtml = mb_strcut($value, 90);
-             
+            
             $value = $bHtml . "\n[hide=" . tr('Вижте още') . ']' . $value . '[/hide]';
             $value = cls::get('type_Richtext')->toVerbal($value);
         }
-         
+        
         return $value;
     }
 }

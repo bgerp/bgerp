@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на справки по подразделения / дейности
  *
  *
  * @category  bgerp
  * @package   budget
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     По подразделения / Дейности
  */
 class budget_Reports extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -78,7 +77,7 @@ class budget_Reports extends core_Manager
      */
     public $listFields = 'location, department, activity, fromDate, toDate, state, accountId,
                        baseQuantity, baseAmount, debitQuantity, debitAmount';
-
+    
     
     /**
      * Описание на модела (таблицата)

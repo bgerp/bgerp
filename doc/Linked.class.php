@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Linked extends core_Manager
 {
-    
-    
     /**
      * Възможните действия във формата
      */
@@ -23,14 +23,16 @@ class doc_Linked extends core_Manager
     
     /**
      * Брой записи, които ще се гледат в bgerp_Recently - за подредба
-     * @var integer
+     *
+     * @var int
      */
     protected static $recentlyLimit = 20;
     
     
     /**
      * Дължина на селект полето
-     * @var integer
+     *
+     * @var int
      */
     protected static $titleLen = 50;
     
@@ -123,10 +125,10 @@ class doc_Linked extends core_Manager
     /**
      * Връща всички записи за подадените типове
      *
-     * @param string  $type
-     * @param integer $id
-     * @param boolean $showRejecte
-     * @param float   $limit
+     * @param string $type
+     * @param int    $id
+     * @param bool   $showRejecte
+     * @param float  $limit
      *
      * @return array
      */
@@ -154,17 +156,18 @@ class doc_Linked extends core_Manager
     /**
      * Връща вербализирани данни за различни преставяния
      *
-     * @param string  $type
-     * @param integer $val
-     * @param string  $viewType
-     * @param boolean $showRejecte
-     * @param integer $limit
+     * @param string $type
+     * @param int    $val
+     * @param string $viewType
+     * @param bool   $showRejecte
+     * @param int    $limit
      *
      * @return NULL|string|core_ET|array
      */
     public static function getListView($type, $val, $viewType = 'table', $showRejecte = true, $limit = 1000)
     {
         if (!self::haveRightFor('viewlist')) {
+            
             return;
         }
         
@@ -675,7 +678,7 @@ class doc_Linked extends core_Manager
      * @param core_Form   $form
      * @param string      $act
      * @param string      $type
-     * @param integer     $originFId
+     * @param int         $originFId
      * @param NULL|string $actType
      * @param array       $rUrl
      *
@@ -774,10 +777,10 @@ class doc_Linked extends core_Manager
     /**
      * Връща възможно най-добрият екшън за съответния документ
      *
-     * @param integer      $docId
-     * @param string       $type
-     * @param integer|NULL $folderId
-     * @param integer|NULL $userId
+     * @param int      $docId
+     * @param string   $type
+     * @param int|NULL $folderId
+     * @param int|NULL $userId
      *
      * @return string|mixed
      */
@@ -906,11 +909,11 @@ class doc_Linked extends core_Manager
     /**
      * Подготвя опциите за key2 за избор на документ
      *
-     * @param array              $params
-     * @param NULL|integer       $limit
-     * @param string             $q
-     * @param NULL|array|integer $onlyIds
-     * @param boolean            $includeHiddens
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|array|int $onlyIds
+     * @param bool           $includeHiddens
      *
      * @return array
      */
@@ -1054,11 +1057,11 @@ class doc_Linked extends core_Manager
     /**
      * Подготвя опциите за key2 за избор на папка
      *
-     * @param array              $params
-     * @param NULL|integer       $limit
-     * @param string             $q
-     * @param NULL|array|integer $onlyIds
-     * @param boolean            $includeHiddens
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|array|int $onlyIds
+     * @param bool           $includeHiddens
      *
      * @return array
      */
@@ -1264,11 +1267,11 @@ class doc_Linked extends core_Manager
     /**
      * Подготвя опциите за key2 за избор на нишка
      *
-     * @param array              $params
-     * @param NULL|integer       $limit
-     * @param string             $q
-     * @param NULL|array|integer $onlyIds
-     * @param boolean            $includeHiddens
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|array|int $onlyIds
+     * @param bool           $includeHiddens
      *
      * @return array
      */
@@ -1427,9 +1430,9 @@ class doc_Linked extends core_Manager
     /**
      * Връща последните записи от bgerp_Recently
      *
-     * @param string       $type
-     * @param string       $show
-     * @param NULL|integer $userId
+     * @param string   $type
+     * @param string   $show
+     * @param NULL|int $userId
      *
      * @return array
      */
@@ -1466,9 +1469,9 @@ class doc_Linked extends core_Manager
      * Помощна функция за връщане на линк към документ/файл
      *
      * @param string      $type
-     * @param integer     $valId
+     * @param int         $valId
      * @param NULL|string $comment
-     * @param boolean     $getUrlWithAccess
+     * @param bool        $getUrlWithAccess
      *
      * @return string|core_ET
      */

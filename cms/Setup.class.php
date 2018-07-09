@@ -46,15 +46,15 @@ defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -77,57 +77,57 @@ class cms_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Управление на един или няколко Интернет сайта';
-
+    
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-
-            'CMS_PAGE_WRAPPER' => array('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
-
-            'CMS_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
-            
-            'CMS_COPY_DEFAULT_TEXT' => array('text(rows=1)', 'caption=Добавка при копиране->Текст,width=100%'),
-
-            'CMS_COPY_ON_SYMBOL_COUNT' => array('int', 'caption=Добавка при копиране->Брой символи,width=100%'),
-    
-            'CMS_COPY_DISABLE_FOR' => array('keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Добавка при копиране->Изключване за'),
-            
-            'CMS_OGRAPH_IMAGE' => array('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
+        
+        'CMS_PAGE_WRAPPER' => array('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
+        
+        'CMS_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
+        
+        'CMS_COPY_DEFAULT_TEXT' => array('text(rows=1)', 'caption=Добавка при копиране->Текст,width=100%'),
+        
+        'CMS_COPY_ON_SYMBOL_COUNT' => array('int', 'caption=Добавка при копиране->Брой символи,width=100%'),
+        
+        'CMS_COPY_DISABLE_FOR' => array('keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Добавка при копиране->Изключване за'),
+        
+        'CMS_OGRAPH_IMAGE' => array('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
     );
-
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'cms_Domains',
-            'cms_Content',
-            'cms_Objects',
-            'cms_Articles',
-            'cms_Feeds',
-            'cms_Includes',
-            'cms_VerbalId',
-            'cms_GalleryGroups',
-            'cms_GalleryImages',
-            'migrate::contentOrder6',
-            'migrate::updateSearchKeywords',
-         );
-
-         
+        'cms_Domains',
+        'cms_Content',
+        'cms_Objects',
+        'cms_Articles',
+        'cms_Feeds',
+        'cms_Includes',
+        'cms_VerbalId',
+        'cms_GalleryGroups',
+        'cms_GalleryImages',
+        'migrate::contentOrder6',
+        'migrate::updateSearchKeywords',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'cms';
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', 'cms, ceo, admin'),
-        );
+        array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', 'cms, ceo, admin'),
+    );
     
     
     /**
@@ -149,7 +149,7 @@ class cms_Setup extends core_ProtoSetup
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-     
+        
         // Инсталираме плъгина
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
         $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_page_External', 'private');
@@ -158,10 +158,10 @@ class cms_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Галерии и картинки в RichText', 'cms_GalleryRichTextPlg', 'type_Richtext', 'private');
         
         $html .= $Bucket->createBucket('cmsFiles', 'Прикачени файлове в CMS', null, '104857600', 'user', 'user');
-
+        
         // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('cms_DefaultTheme');
- 
+        
         return $html;
     }
     
@@ -180,11 +180,11 @@ class cms_Setup extends core_ProtoSetup
     private static function getLocalhostDomain($lg)
     {
         static $domainIds = array();
-
+        
         if (!$domainIds[$lg]) {
             $domainIds[$lg] = cms_Domains::fetch("#domain = 'localhost' AND #lang = '{$lg}'")->id;
         }
-
+        
         if (!$domainIds[$lg]) {
             core_Classes::add('cms_DefaultTheme');
             $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => $lg);
@@ -205,12 +205,12 @@ class cms_Setup extends core_ProtoSetup
         $max = 1;
         $query = cms_Content::getQuery();
         $typeOrder = cls::get('type_Order');
-
+        
         while ($rec = $query->fetch()) {
             list($n, $m) = explode(' ', $rec->menu, 2);
             
             $n = rtrim($n, '.');
-
+            
             if ($m) {
                 $rec->menu = $m;
             }
@@ -257,7 +257,7 @@ class cms_Setup extends core_ProtoSetup
                 blogm_Categories::save($rec);
             }
         }
-
+        
         $feeds = cls::get('cms_Feeds');
         if ($feeds->db->tableExists($feeds->dbTableName)) {
             if (!$feeds->db->isFieldExists($feeds->dbTableName, 'domain_id')) {
@@ -276,7 +276,7 @@ class cms_Setup extends core_ProtoSetup
                 cms_Feeds::save($rec);
             }
         }
-
+        
         $newsbar = cls::get('newsbar_News');
         if ($newsbar->db->tableExists($newsbar->dbTableName)) {
             if (!$newsbar->db->isFieldExists($newsbar->dbTableName, 'domain_id')) {
@@ -298,7 +298,7 @@ class cms_Setup extends core_ProtoSetup
         }
     }
     
-
+    
     /**
      * Обновява (генерира наново) ключовите думи от външното съдържание
      */
@@ -311,14 +311,14 @@ class cms_Setup extends core_ProtoSetup
                 if (!cls::load($mvc, true)) {
                     continue ;
                 }
-            
+                
                 $Inst = cls::get($mvc);
                 $Inst->setupMvc();
                 
                 if (!$Inst->db->tableExists($Inst->dbTableName)) {
                     continue ;
                 }
-            
+                
                 $query = $mvc::getQuery();
                 while ($rec = $query->fetch()) {
                     $mvc::save($rec, 'searchKeywords');

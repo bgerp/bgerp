@@ -1,22 +1,24 @@
 <?php
 
 
-
 /**
  * Интерфейс за тема на форума на системата
  *
  *
  * @category  bgerp
  * @package   forum
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class forum_ThemeIntf
 {
     /**
      * Връща изгледа на дъските
+     *
      * @return core_ET
      */
     public function getBoardsLayout()
@@ -27,6 +29,7 @@ class forum_ThemeIntf
     
     /**
      * Връща началната страница на форума
+     *
      * @return core_ET
      */
     public function getIndexLayout()
@@ -37,6 +40,7 @@ class forum_ThemeIntf
     
     /**
      * Връща изгледа за единична тема
+     *
      * @return core_ET
      */
     public function getSingleThemeLayout()
@@ -47,6 +51,7 @@ class forum_ThemeIntf
     
     /**
      * Променя изгледа на формата за добавяне на нов коментар
+     *
      * @return core_ET
      */
     public function getPostFormLayout()
@@ -57,18 +62,20 @@ class forum_ThemeIntf
     
     /**
      * Променя изгледа полетата от формата за добавяне на нов коментар
+     *
      * @return core_ET
      */
     public function getPostFormFieldsLayout()
     {
         $tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
-
+        
         return $tpl->getBlock('FORM_FIELDS');
     }
     
     
     /**
      * Връща шаблона на коментарите
+     *
      * @return core_ET
      */
     public function getCommentsLayout()
@@ -79,6 +86,7 @@ class forum_ThemeIntf
     
     /**
      * Връща шаблона на страницата за показване на резултати
+     *
      * @return core_ET
      */
     public function getResultsLayout()
@@ -89,6 +97,7 @@ class forum_ThemeIntf
     
     /**
      * Връща шаблона на страницата за добавяне на нова тема
+     *
      * @return core_ET
      */
     public function getAddThemeLayout()
@@ -108,6 +117,7 @@ class forum_ThemeIntf
     
     /**
      * Връща изгледа на темата
+     *
      * @return core_ET
      */
     public function getThemeLayout()
@@ -118,6 +128,7 @@ class forum_ThemeIntf
     
     /**
      * Връща шаблона на браузването на една дъска
+     *
      * @return core_ET
      */
     public function getBrowseLayout()
@@ -128,6 +139,7 @@ class forum_ThemeIntf
     
     /**
      * Връща шаблона на формата за търсене
+     *
      * @return core_ET
      */
     public function getSearchFormLayout()
@@ -147,6 +159,7 @@ class forum_ThemeIntf
     
     /**
      * Връща картинка от темата
+     *
      * @param string $imgName - име на картинката
      * @param int    $size    - размер на картинката
      *                        Картинката трябва да е в папка 'img' на темата,

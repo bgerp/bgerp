@@ -7,16 +7,16 @@
  *
  * @category  extrapack
  * @package   epbags
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Импортирани търговски услуги
  */
 class transsrv_Import extends core_BaseClass
 {
-    
-    
     /**
      * Кой има право да променя?
      */
@@ -106,16 +106,16 @@ class transsrv_Import extends core_BaseClass
             if ($purchaseId) {
                 $purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
                 doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
-                    
+                
                 $data->fromCountry = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->fromCountry), 'id');
                 $data->toCountry = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->toCountry), 'id');
-                    
+                
                 core_Request::setProtected('d');
                 redirect(array('purchase_PurchasesDetails', 'CreateProduct', 'requestId' => $purchaseId, 'innerClass' => transsrv_ProductDrv::getClassId(), 'd' => $data, 'ret_url' => purchase_Purchases::getSingleUrlArray($purchaseId)));
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
-
+            
             return;
         }
         
@@ -127,13 +127,14 @@ class transsrv_Import extends core_BaseClass
     /**
      * Намиране на папка
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return NULL|int
      */
     private static function getFolderId($data)
     {
         expect($data->companyName);
-         
+        
         $query = crm_Companies::getQuery();
         $query->where(array("#name = '[#1#]'", $data->companyName));
         $cloneQuery = clone $query;
@@ -158,8 +159,9 @@ class transsrv_Import extends core_BaseClass
     /**
      * Форсира покупка
      *
-     * @param  int      $folderId
-     * @param  stdClass $data
+     * @param int      $folderId
+     * @param stdClass $data
+     *
      * @return int
      */
     private static function forcePurchaseId($folderId, $data)
@@ -191,7 +193,7 @@ class transsrv_Import extends core_BaseClass
         
         if ($pRec = $purQuery->fetch()) {
             cat_Products::logDebug('Има вече чернова покупка за транспортна услуга', $pRec->id);
-
+            
             return $pRec->id;
         }
         

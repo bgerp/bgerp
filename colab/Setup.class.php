@@ -15,16 +15,16 @@ defIfNot('COLAB_CREATABLE_DOCUMENTS_LIST', '');
  *
  * @category  bgerp
  * @package   colab
+ *
  * @author    Ivelin Dimov <ielin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class colab_Setup extends core_ProtoSetup
 {
-    
-
     /**
      * Версия на пакета
      */
@@ -56,7 +56,7 @@ class colab_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
+        'COLAB_CREATABLE_DOCUMENTS_LIST' => array('keylist(mvc=core_Classes,select=name)', 'caption=Кои документи могат да се създават от партньори->Документи,optionsFunc=colab_Setup::getDocumentOptions'),
     );
     
     
@@ -66,13 +66,13 @@ class colab_Setup extends core_ProtoSetup
     public function install()
     {
         $html = parent::install();
-    
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-    
+        
         // Закачане на плъгин за споделяне на папки с партньори към фирмите
         $html .= $Plugins->installPlugin('Споделяне на папки на фирми с партньори', 'colab_plg_FolderToPartners', 'crm_Companies', 'private');
-    
+        
         // Закачане на плъгин за споделяне на папки с партньори към лицата
         $html .= $Plugins->installPlugin('Споделяне на папки на лица с партньори', 'colab_plg_FolderToPartners', 'crm_Persons', 'private');
         
@@ -84,7 +84,7 @@ class colab_Setup extends core_ProtoSetup
         
         // Закачане към складове
         $html .= $Plugins->installPlugin('Споделяне складове с партньори', 'colab_plg_FolderToPartners', 'store_Stores', 'private');
-
+        
         // Закачаме плъгина към документи, които са видими за партньори
         $html .= $Plugins->installPlugin('Colab за приходни банкови документи', 'colab_plg_Document', 'bank_IncomeDocuments', 'private');
         $html .= $Plugins->installPlugin('Colab за разходни банкови документи', 'colab_plg_Document', 'bank_SpendingDocuments', 'private');
@@ -104,6 +104,7 @@ class colab_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Colab за протоколи за отговорно пазене', 'colab_plg_Document', 'store_ConsignmentProtocols', 'private');
         $html .= $Plugins->installPlugin('Colab за складови разписки', 'colab_plg_Document', 'store_Receipts', 'private');
         $html .= $Plugins->installPlugin('Colab за експедиционни нареждания', 'colab_plg_Document', 'store_ShipmentOrders', 'private');
+
 //     	$html .= $Plugins->installPlugin('Colab за сигнали', 'colab_plg_Document', 'support_Issues', 'private');
         $html .= $Plugins->installPlugin('Colab за резолюция на сигнал', 'colab_plg_Document', 'support_Resolutions', 'private');
         $html .= $Plugins->installPlugin('Colab за коментар', 'colab_plg_Document', 'doc_Comments', 'private');
@@ -135,7 +136,7 @@ class colab_Setup extends core_ProtoSetup
     public static function getDocumentOptions()
     {
         $options = core_Classes::getOptionsByInterface('colab_CreateDocumentIntf', 'title');
-         
+        
         return $options;
     }
     
@@ -158,7 +159,7 @@ class colab_Setup extends core_ProtoSetup
                     $arr[$classId] = $classId;
                 }
             }
-        
+            
             // Записват се ид-та на документите, които могат да се създават от контрактори
             if (count($arr)) {
                 core_Packs::setConfig('colab', array('COLAB_CREATABLE_DOCUMENTS_LIST' => keylist::fromArray($arr)));
@@ -236,6 +237,7 @@ class colab_Setup extends core_ProtoSetup
         $partners = core_Users::getSelectArr($params);
         
         if (!count($partners)) {
+            
             return;
         }
         
@@ -276,6 +278,7 @@ class colab_Setup extends core_ProtoSetup
         }
         
         if (!count($toSave)) {
+            
             return;
         }
         cls::get('colab_FolderToPartners')->saveArray($toSave);

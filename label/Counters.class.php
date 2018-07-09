@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Броячи за етикетите
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_Counters extends core_Master
 {
-    
-    
     /**
      * Плейсхолдер за брояча
      */
@@ -25,7 +24,6 @@ class label_Counters extends core_Master
      * Заглавие на модела
      */
     public $title = 'Броячи';
-    
     
     
     public $singleTitle = 'Брояч';
@@ -101,7 +99,7 @@ class label_Counters extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name, min, max, step, createdOn, createdBy';
-
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -130,9 +128,9 @@ class label_Counters extends core_Master
     /**
      * Към максималния брояч в модела добавя стъпката и връща резултата
      *
-     * @param integer $counterId - id на записа
+     * @param int $counterId - id на записа
      *
-     * @return integer - Нов номер
+     * @return int - Нов номер
      */
     public static function getCurrent($counterId)
     {
@@ -211,7 +209,7 @@ class label_Counters extends core_Master
      *
      * @param string $str - Стринга, който ще се проверява
      *
-     * @return boolean
+     * @return bool
      */
     public static function haveCounterPlace($str)
     {
@@ -228,10 +226,10 @@ class label_Counters extends core_Master
     /**
      * Замества плейсхолдера за брояч със съответната стойност
      *
-     * @param string  $str           - Стринг, в който ще се замества
-     * @param integer $counterId     - id на брояча
-     * @param integer $printId       - id на етикета
-     * @param boolean $updateCounter - Ако е FALSE не се обновява брояча
+     * @param string $str           - Стринг, в който ще се замества
+     * @param int    $counterId     - id на брояча
+     * @param int    $printId       - id на етикета
+     * @param bool   $updateCounter - Ако е FALSE не се обновява брояча
      *
      * @return string - Новия стринг
      */
@@ -317,9 +315,9 @@ class label_Counters extends core_Master
     /**
      * Активира шаблона
      *
-     * @param integer $id - id на записа
+     * @param int $id - id на записа
      *
-     * @return integer - id на записа
+     * @return int - id на записа
      */
     public static function activateCounter($id)
     {
@@ -348,7 +346,7 @@ class label_Counters extends core_Master
         }
     }
     
-
+    
     /**
      * Действия преди извличането на данните
      *

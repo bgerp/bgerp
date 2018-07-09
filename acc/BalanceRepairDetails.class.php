@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на детайли на счетоводните разлики
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_BalanceRepairDetails extends doc_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -97,6 +96,7 @@ class acc_BalanceRepairDetails extends doc_Detail
     
     /**
      * Сметките от кои групи да могат да се показват за избор от сметкоплана
+     *
      * @var unknown
      */
     public $selectAccountsFromByNum = '3,4,5,6,7';

@@ -1,41 +1,47 @@
 <?php
 
+
 /**
  * Мениджър на отчети за просрочени фактури
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Продажби » Просрочени фактури
  */
 class sales_reports_OverdueInvoices extends frame2_driver_TableData
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,salesMaster,acc';
-
+    
+    
     /**
      * Брой записи на страница
      *
      * @var int
      */
     protected $listItemsPerPage = 30;
-
+    
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'contragentId';
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'countryGroup,checkDate,';
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -51,7 +57,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         );
         $fieldset->FLD('salesTotalOverDue', 'double', 'input=none,single=none');
     }
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -68,12 +75,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $checkDate = dt::today();
         $form->setDefault('checkDate', "{$checkDate}");
     }
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -115,7 +124,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
         
         $timeLimit = count($salesInvoicesArr) * 0.05;
-            
+        
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
         }
@@ -138,11 +147,11 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             }
             
             $firstDocument = doc_Threads::getFirstDocument($salesInvoices->threadId);
-                
+            
             $className = $firstDocument->className;
-                
+            
             $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
-                
+            
             if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $unitedCheck) {
                 continue;
             }
@@ -180,12 +189,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         );
                         
                         if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
-                             
+                            
                             $iRec->dueDate < $rec->checkDate) {
                             $invoiceCurrentSummArr[$iRec->contragentId] += ($paydocs->amount - $paydocs->payout);
                         } else {
                             continue;
                         }
+                        
                         // масива с фактурите за показване
                         if (! array_key_exists($iRec->id, $sRecs)) {
                             $sRecs[$iRec->id] = (object) array(
@@ -236,14 +246,16 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         return $recs;
     }
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec
-     *                               - записа
-     * @param  boolean       $export
-     *                               - таблицата за експорт ли е
+     * @param stdClass $rec
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -271,16 +283,18 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $fld->FLD('paidDates', 'varchar', 'caption=Плащания,smartCenter');
             $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Неплатено');
         }
-
+        
         return $fld;
     }
-
+    
+    
     /**
      * Връща платена сума
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $paidAmount
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $paidAmount
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
@@ -288,13 +302,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         return $paidAmount;
     }
-
+    
+    
     /**
      * Връща дати на плащания
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $paidDates
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $paidDates
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
@@ -306,7 +322,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     continue;
                 }
                 $payDocClass = $Document->className;
-                    
+                
                 $paidDatesList .= ',' . $payDocClass::fetch($Document->that)->valior;
             }
         }
@@ -327,16 +343,18 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $paidDates .= "${paidDate}" . "\n\r";
             }
         }
-
+        
         return $paidDates;
     }
-
+    
+    
     /**
      * Връща просрочие на плащане
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $dueDate
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $dueDate
      */
     private static function getDueDate($dRec, $verbal = true, $rec)
     {
@@ -356,14 +374,16 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         return $dueDate;
     }
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec
-     *                        - записа
-     * @param  stdClass $dRec
-     *                        - чистия запис
+     * @param stdClass $rec
+     *                       - записа
+     * @param stdClass $dRec
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -376,7 +396,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
         
         $row->invoiceNo = ht::createLink(
-        
+            
             $invoiceNo,
             array(
                 $dRec->className,
@@ -425,7 +445,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         return $row;
     }
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -459,7 +480,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-
+    
+    
     /**
      * След подготовка на реда за експорт
      *
@@ -494,7 +516,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         
         $res->contragentId = $contragentName;
     }
-
+    
+    
     /**
      *
      * След подготовка на тулбара на единичен изглед.
@@ -505,12 +528,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     }
-
+    
+    
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param  stdClass    $rec
-     *                          - запис
+     * @param stdClass $rec
+     *                      - запис
+     *
      * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
      */
     public function getNextRefreshDates($rec)

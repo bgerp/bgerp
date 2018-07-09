@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Декодира tnef файлове
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tnef_EmailPlg extends core_Plugin
 {
-    
-    
     /**
      * Преди записване на файловете
      *

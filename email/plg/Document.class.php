@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин за документи, които могат да бъдат изпращани по имейл
  *
@@ -11,16 +10,16 @@
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       email_DocumentIntf
  */
 class email_plg_Document extends core_Plugin
 {
-    
-    
     /**
      * HTML или plain text изгледа на документ при изпращане по емайл.
      *

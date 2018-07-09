@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'calendarpicker_Plugin' -
  *
  *
  * @category  vendors
  * @package   calendarpicker
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class calendarpicker_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Изпълнява се преди рендирането на input
      */

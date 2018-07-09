@@ -7,16 +7,16 @@
  *
  * @category  vendors
  * @package   tests
+ *
  * @author    Yusein Yuseinov
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class fileman_tests_Files extends unit_Class
 {
-
-    
     /**
      * Първия файл
      */
@@ -45,7 +45,6 @@ class fileman_tests_Files extends unit_Class
      * Масив с id' тата на качените файлове
      */
     public static $idsArr = array();
-    
     
     
     public function __construct()
@@ -124,8 +123,9 @@ class fileman_tests_Files extends unit_Class
         
         // Съдържанието на файла
         $content1 = file_get_contents($path1);
-//        $content2 = file_get_contents($path2);
 
+//        $content2 = file_get_contents($path2);
+        
         // Генерираме съдържание, за да тестваме качването на несъществуващ файл
         $content2 = str::getRand();
         
@@ -172,7 +172,7 @@ class fileman_tests_Files extends unit_Class
             self::$fhArr[] = $fh2;
         }
     }
-
+    
     
     /**
      * Нова версия от файл в ОС
@@ -208,7 +208,7 @@ class fileman_tests_Files extends unit_Class
         // Очакваме да не са равни id' тата на файлове
         ut::expectEqual($id1 != $id2, true);
     }
-
+    
     
     /**
      * Нова версия от стринг
@@ -251,7 +251,7 @@ class fileman_tests_Files extends unit_Class
         // Очакваме да не са равни id' тата на файлове
         ut::expectEqual($id1 != $id2, true);
     }
-
+    
     
     /**
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
@@ -282,7 +282,7 @@ class fileman_tests_Files extends unit_Class
         // Очакваме след изтриването да няма такъв файл
         ut::expectEqual(is_file($filePath), false);
     }
-
+    
     
     /**
      * Екстрактване на файл в string. Връща стринга.
@@ -306,7 +306,7 @@ class fileman_tests_Files extends unit_Class
         
         // Очакваме да има съдържание
         ut::expectEqual($fileContent, true);
-
+        
         // Очакваме съдържанието да е точно определено
         ut::expectEqual($fileContent, 'Test2');
     }
@@ -338,7 +338,7 @@ class fileman_tests_Files extends unit_Class
         // Връщаме старото име на файла
         fileman::rename($fh, 'test1.txt');
     }
-
+    
     
     /**
      * Копиране на файл
@@ -363,7 +363,7 @@ class fileman_tests_Files extends unit_Class
         // Очакваме манипулаторите на двата файла да не съвпадат
         ut::expectEqual($fh != $fhCopied, true);
     }
-
+    
     
     /**
      * Връща id на посочения fileHnd
@@ -394,7 +394,7 @@ class fileman_tests_Files extends unit_Class
         // Очакваме да си съвпадат
         ut::expectEqual($id, $idFromFetch);
     }
-
+    
     
     /**
      * Връща масив от id-та  на файлове. Като аргумент получава масив или keylist от fileHandles.
@@ -442,7 +442,7 @@ class fileman_tests_Files extends unit_Class
             self::$idsArr = $newArr;
         }
     }
-
+    
     
     /**
      * Връща fileHnd на посоченото id
@@ -473,7 +473,7 @@ class fileman_tests_Files extends unit_Class
         // Очакваме да се еднакви
         ut::expectEqual($id, $idFromFetch);
     }
-
+    
     
     /**
      * Връща масив от fh-ри  на файлове. Като аргумент получава масив или keylist от id-та на файлове
@@ -488,7 +488,7 @@ class fileman_tests_Files extends unit_Class
             // Извикваме функцията за сетване на id' та
             self::test_fhKeylistToIds($mvc);
         }
-
+        
         // Вземаме от масива с id' та масива с манипулатори
         $fhsArr = fileman::idKeylistToFhs(self::$idsArr);
         
@@ -507,7 +507,7 @@ class fileman_tests_Files extends unit_Class
         // Очакваме да са равни
         ut::expectEqual($fhsArr, $fhsArrFromKList);
     }
-
+    
     
     /**
      * Връща всички мета-характеристики на файла
@@ -531,7 +531,7 @@ class fileman_tests_Files extends unit_Class
         
         // Времето сега
         $now = dt::now();
-
+        
         // Очакваме броя на мета данните да е 6
         ut::expectEqual(count($metaData), 6);
         
@@ -619,7 +619,7 @@ class fileman_tests_Files extends unit_Class
     {
         // Тества се в self::extract
     }
-
+    
     
     /**
      * Проверява дали файла със съответните данни съществува

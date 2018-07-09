@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   mobio
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class mobio_SMS extends core_Manager
 {
-    
-    
     /**
      * Кой има право да чете?
      */
@@ -44,6 +44,7 @@ class mobio_SMS extends core_Manager
      */
     public $canList = 'no_one';
     
+    
     /**
      * Кой има право да го изтрие?
      */
@@ -56,9 +57,8 @@ class mobio_SMS extends core_Manager
     public $interfaces = 'callcenter_SentSMSIntf';
     
     
-    
     public $title = 'Мобио';
-        
+    
     
     /**
      * Интерфейсен метод за изпращане на SMS' и
@@ -176,6 +176,7 @@ class mobio_SMS extends core_Manager
     /**
      * Инрерфейсен метод
      * Връща статуса на съобщението от съоветната услуга
+     *
      * @see callcenter_SentSMSIntf
      *
      * @param string $uid

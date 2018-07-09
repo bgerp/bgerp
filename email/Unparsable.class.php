@@ -1,16 +1,16 @@
 <?php 
 
-
-
 /**
  * Имейли, които не могат да се парсират
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Unparsable extends email_ServiceEmails
@@ -20,7 +20,7 @@ class email_Unparsable extends email_ServiceEmails
      */
     public $title = 'Имейли, които не могат да се парсират';
     
-
+    
     /**
      * Описание на модела
      */
@@ -28,7 +28,6 @@ class email_Unparsable extends email_ServiceEmails
     {
         $this->addFields();
     }
-
     
     
     /**
@@ -41,7 +40,7 @@ class email_Unparsable extends email_ServiceEmails
         $rec->accountId = $accId;
         $rec->uid = $uid;
         $rec->createdOn = dt::verbal2mysql();
-
+        
         self::save($rec);
     }
 }

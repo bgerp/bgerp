@@ -7,22 +7,22 @@
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.12
  */
 class crm_UsersLoginStatusPlg extends core_Plugin
 {
-    
-    
     /**
      * Прихваща извикването на getUrlForLoginLogStatus в core_Users
      * Връща URL към сингъла на профила
      *
      * @param core_Mvc $mvc
      * @param array    $resArr
-     * @param integer  $userId
+     * @param int      $userId
      */
     public function on_AfterGetUrlForLoginLogStatus($mvc, &$resArr, $userId = null)
     {
@@ -43,8 +43,8 @@ class crm_UsersLoginStatusPlg extends core_Plugin
             $resArr = crm_Profiles::getUrl($userId);
         }
     }
-
-
+    
+    
     public static function on_AfterPrepareListRows($mvc, $res, $data)
     {
         foreach ($data->rows as $id => &$row) {

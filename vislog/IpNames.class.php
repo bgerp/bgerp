@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'vislog_IpNames' -
  *
  *
  * @category  bgerp
  * @package   vislog
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class vislog_IpNames extends core_Manager
 {
-    
-    
     /**
      * Страница от менюто
      */
@@ -76,22 +75,22 @@ class vislog_IpNames extends core_Manager
         
         $this->setDbUnique('ip');
     }
-
-
+    
+    
     /**
      * Добавя име на IP-adresa
      */
     public static function add($name, $ip = null)
     {
         $name = str_replace('&amp;', '&', $name);
-
+        
         if (!$ip) {
             $ip = core_Users::getRealIpAddr();
         }
-
+        
         $rec = self::fetch(array("#ip = '[#1#]'", $ip));
         $mustSave = true;
-
+        
         if (!$rec) {
             $rec = (object) array('ip' => $ip, 'name' => $name);
         } else {

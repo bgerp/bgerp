@@ -6,17 +6,16 @@
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  */
 class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var bank_SpendingDocuments
@@ -64,7 +63,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
     {
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
-         
+        
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amount;
@@ -73,18 +72,18 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         } else {
             $amount = $rec->amount * $rec->rate;
         }
-         
+        
         $entry[] = array('amount' => $sign * $amount,
-                      'debit' => array($rec->debitAccId,
-                            array($rec->contragentClassId, $rec->contragentId),
-                            array($origin->className, $origin->that),
-                            array('currency_Currencies', $rec->dealCurrencyId),
-                            'quantity' => $sign * $rec->amountDeal),
-                     'credit' => array($rec->creditAccId,
-                            array('bank_OwnAccounts', $rec->ownAccount),
-                            array('currency_Currencies', $rec->currencyId),
-                            'quantity' => $sign * $rec->amount));
-         
+            'debit' => array($rec->debitAccId,
+                array($rec->contragentClassId, $rec->contragentId),
+                array($origin->className, $origin->that),
+                array('currency_Currencies', $rec->dealCurrencyId),
+                'quantity' => $sign * $rec->amountDeal),
+            'credit' => array($rec->creditAccId,
+                array('bank_OwnAccounts', $rec->ownAccount),
+                array('currency_Currencies', $rec->currencyId),
+                'quantity' => $sign * $rec->amount));
+        
         if ($reverse === true && ($rec->operationSysId == 'supplier2bankRet' || $rec->operationSysId == 'supplierAdvance2bankRet')) {
             $entry2 = $entry[0];
             $entry2['amount'] = abs($entry2['amount']);

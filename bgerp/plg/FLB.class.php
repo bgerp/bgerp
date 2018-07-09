@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин за обекти, които могат да имат Материално отговорни лица
  *
@@ -14,15 +13,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_FLB extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      */
@@ -82,11 +81,12 @@ class bgerp_plg_FLB extends core_Plugin
     /**
      * Помощна ф-я връщаща дали потребителя може да активира корицата или да я избира
      *
-     * @param  core_Master     $mvc
-     * @param  stdClass        $rec
-     * @param  int             $userId
-     * @param  activate|select $action
-     * @return boolean
+     * @param core_Master     $mvc
+     * @param stdClass        $rec
+     * @param int             $userId
+     * @param activate|select $action
+     *
+     * @return bool
      */
     public static function canUse($mvc, $rec, $userId, $action = 'activate')
     {
@@ -151,6 +151,7 @@ class bgerp_plg_FLB extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($res == 'no_one') {
+            
             return;
         }
         
@@ -173,6 +174,7 @@ class bgerp_plg_FLB extends core_Plugin
     {
         $cu = core_Users::getCurrent();
         if (haveRole('ceo', $cu)) {
+            
             return;
         }
         
@@ -210,10 +212,11 @@ class bgerp_plg_FLB extends core_Plugin
     /**
      * Добавя филтър към заявката
      *
-     * @param  core_Master $mvc
-     * @param  core_Query  $query
-     * @param  int|NULL    $users
-     * @param  boolean     $onlyActivate
+     * @param core_Master $mvc
+     * @param core_Query  $query
+     * @param int|NULL    $users
+     * @param bool        $onlyActivate
+     *
      * @return void
      */
     public static function addUserFilterToQuery($mvc, core_Query &$query, $users = null, $onlyActivate = false)

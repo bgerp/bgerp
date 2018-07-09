@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Avatarco Class
  *
@@ -16,16 +15,16 @@
  *
  * @category  vendors
  * @package   avatar
+ *
  * @author    Rodion Baskakov <rodion.baskakov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @usage
  */
 class avatar_Avatarco
 {
-    
-    
     /**
      * stores size of a single sprite to draw pattern on
      */
@@ -54,8 +53,10 @@ class avatar_Avatarco
     private $_side = 2;
     private $_alpha = false;
     
+    
     /**
      * @private $_shapesCenter stores arrays with coords of patterns to draw on squares in the middle area of userpic
+     *
      * @todo Generate more patterns. Up to 16.
      */
     private $_shapesCenter = array(
@@ -131,8 +132,10 @@ class avatar_Avatarco
         ),
     );
     
+    
     /**
      * @private $_shapesCenter stores arrays with coords of patterns to draw on squares in the corners of userpic
+     *
      * @todo Generate more patterns. Up to 16.
      */
     private $_shapesCorner = array(
@@ -192,8 +195,10 @@ class avatar_Avatarco
         )
     );
     
+    
     /**
      * @private $_shapesCenter stores arrays with coords of patterns to draw on squares on the sides of userpic
+     *
      * @todo Generate more patterns. Up to 16.
      */
     private $_shapesSide = array(
@@ -463,6 +468,7 @@ class avatar_Avatarco
             case 'corner':
                 $shape_id = hexdec(substr($this->_hash, 24, 1)) & (sizeof($this->_shapesCorner) - 1);
                 $shapes = $this->_shapesCorner;
+                
                 // no break
             default:
             break;

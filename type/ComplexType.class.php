@@ -13,16 +13,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_ComplexType extends type_Varchar
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -89,6 +89,7 @@ class type_ComplexType extends type_Varchar
     {
         // Ако няма стойност
         if (!is_array($value)) {
+            
             return;
         }
         
@@ -115,6 +116,7 @@ class type_ComplexType extends type_Varchar
                     if (empty($vLeft) || empty($vRight)) {
                         $this->error = 'Двете полета трябва да са попълнени';
                     }
+                    
                     // no break
                 case 'one':
                     break;
@@ -140,7 +142,7 @@ class type_ComplexType extends type_Varchar
             // В полето се записва стринга '[лява_част]|[дясна_част]'
             return $vLeft . '|' . $vRight;
         }
-
+        
         // Ако няма нито едно сетнато поле, не се прави нищо
     }
     
@@ -152,6 +154,7 @@ class type_ComplexType extends type_Varchar
     {
         // Ако няма стойност
         if (!strlen($value)) {
+            
             return;
         }
         
@@ -190,8 +193,9 @@ class type_ComplexType extends type_Varchar
     /**
      * Помощен метод връщащ вербалното представяне на лявата или дясната част
      *
-     * @param  double $double - стойността на лявата или дясната част
-     * @return double - вербалното представяне
+     * @param float $double - стойността на лявата или дясната част
+     *
+     * @return float - вербалното представяне
      */
     private function getVerbalPart($double)
     {
@@ -209,8 +213,9 @@ class type_ComplexType extends type_Varchar
     /**
      * Извличане на лявата и дясната част на стойността
      *
-     * @param  string $value - запис от вида : "число|число"
-     * @return array  $parts - масив с извлечена лявата и дясната част
+     * @param string $value - запис от вида : "число|число"
+     *
+     * @return array $parts - масив с извлечена лявата и дясната част
      */
     public static function getParts($value)
     {

@@ -8,40 +8,34 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_FileDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Версии на файловете';
     
     
-    
     public $canAdd = 'no_one';
-    
     
     
     public $canEdit = 'no_one';
     
     
-    
     public $canDelete = 'no_one';
-    
     
     
     public $canSingle = 'no_one';
     
     
-    
     public $canList = 'no_one';
-    
     
     
     public $canView = 'no_one';
@@ -51,14 +45,14 @@ class fileman_FileDetails extends core_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'fileId';
-    
+
 //    /**
 //     * Плъгини за зареждане
 //     */
 //    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_AlignDecimals,
 //        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals, plg_SaveAndNew';
     public $loadList = 'plg_Created';
-    
+
 //    /**
 //     * Полета, които ще се показват в листов изглед
 //     */
@@ -114,7 +108,7 @@ class fileman_FileDetails extends core_Detail
             
             // Информация за версията
             $fileVersionsArr[$fh]['versionInfo'] = self::getVerbal($rec, 'versionInfo');
-
+            
             // Вербалното име на файла
             $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($rec->fileId, 'name');
         }
@@ -127,11 +121,11 @@ class fileman_FileDetails extends core_Detail
             
             // Информация за файла
             $fileVersionsArr[$fh]['versionInfo'] = 'Оригинален файл';
-
+            
             // Вербалното име на файла
             $fileVersionsArr[$fh]['fileName'] = fileman_Files::getVerbal($cRec->firstFileVersionId, 'name');
         }
-
+        
         return $fileVersionsArr;
     }
 }

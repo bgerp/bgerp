@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Мениджър за човешките ресурси в производството
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     0.12
  */
 class planning_Hr extends core_Master
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -26,7 +25,7 @@ class planning_Hr extends core_Master
      * Заглавие
      */
     public $title = 'Служебни информации';
-
+    
     
     /**
      * Единично заглавие
@@ -50,8 +49,8 @@ class planning_Hr extends core_Master
      * Кой може да редактира
      */
     public $canEdit = 'ceo,planningMaster';
-
-
+    
+    
     /**
      * Кой може да създава
      */
@@ -145,7 +144,8 @@ class planning_Hr extends core_Master
     /**
      * Дефолтния код за лицето
      *
-     * @param  int    $personId
+     * @param int $personId
+     *
      * @return string
      */
     public static function getDefaultCode($personId)
@@ -163,7 +163,7 @@ class planning_Hr extends core_Master
         
         if ($form->isSubmitted()) {
             $rec->code = strtoupper($rec->code);
-                
+            
             if ($personId = $mvc->fetchField(array("#code = '[#1#]' AND #personId != {$rec->personId}", $rec->code), 'personId')) {
                 $personLink = crm_Persons::getHyperlink($personId, true);
                 $form->setError($personId, "Номерът е зает от|* {$personLink}");
@@ -220,32 +220,33 @@ class planning_Hr extends core_Master
     /**
      * Рендира информацията
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl;
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl;
      */
     public function renderData($data)
     {
         $tpl = getTplFromFile('crm/tpl/HrDetail.shtml');
         $tpl->append(tr('Служебен код') . ':', 'resTitle');
         $tpl->placeObject($data->row);
-         
+        
         if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId}")) {
             $tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, true), 'contract');
             $tpl->append(hr_Positions::getHyperlink($eRec->positionId), 'positionId');
         }
-         
+        
         if (isset($data->addExtUrl)) {
             $link = ht::createLink('', $data->addExtUrl, false, 'title=Добавяне на служебни данни,ef_icon=img/16/add.png,style=float:right; height: 16px;');
             $tpl->append($link, 'emBtn');
         }
-         
+        
         if (isset($data->editResourceUrl)) {
             $link = ht::createLink('', $data->editResourceUrl, false, 'title=Редактиране на служебни данни,ef_icon=img/16/edit.png,style=float:right; height: 16px;');
             $tpl->append($link, 'emBtn');
         }
-         
+        
         $tpl->removeBlocks();
-         
+        
         return $tpl;
     }
     
@@ -272,7 +273,8 @@ class planning_Hr extends core_Master
     /**
      * Връща всички служители, избрани като ресурси в папката
      *
-     * @param  int   $folderId - ид на папка, NULL за всички
+     * @param int $folderId - ид на папка, NULL за всички
+     *
      * @return array $options
      */
     public static function getByFolderId($folderId)
@@ -330,14 +332,15 @@ class planning_Hr extends core_Master
     /**
      * Връща кода като линк
      *
-     * @param  int     $personId - ид на служителя
+     * @param int $personId - ид на служителя
+     *
      * @return core_ET $link - линк към визитката
      */
     public static function getCodeLink($personId)
     {
         $code = planning_Hr::fetchField("#personId = {$personId}", 'code');
         $name = crm_Persons::getVerbal($personId, 'name');
-         
+        
         $singleUrl = array();
         if (!Mode::isReadOnly()) {
             $singleUrl = crm_Persons::getSingleUrlArray($personId);
@@ -365,9 +368,10 @@ class planning_Hr extends core_Master
     /**
      * Обръща масив от потребители в имена с техните кодове
      *
-     * @param  mixed   $arr       - масив или кейлист
-     * @param  boolean $withLinks
-     * @return array   $arr
+     * @param mixed $arr       - масив или кейлист
+     * @param bool  $withLinks
+     *
+     * @return array $arr
      */
     public static function getPersonsCodesArr($arr, $withLinks = false)
     {

@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   selec2
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class select2_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Името на hidden полето
      */
@@ -44,7 +44,7 @@ class select2_Plugin extends core_Plugin
      */
     protected static $minItems = 1;
     
-
+    
     /**
      * Броя на опциите, преди обработка
      */
@@ -107,7 +107,7 @@ class select2_Plugin extends core_Plugin
             
             // Опитваме се да покажем толкова на брой опции, колкото са зададени
             $rSugg = $maxSuggestions - count($sValArr);
-                        
+            
             if ($rSugg <= 0) {
                 $rSugg = $maxSuggestions;
             }
@@ -174,7 +174,7 @@ class select2_Plugin extends core_Plugin
         // Преобразуваме опциите в селекти
         foreach ((array) $optArr as $key => $val) {
             $optionsAttrArr = array();
-                        
+            
             if (is_object($val)) {
                 if ($val->group) {
                     if ($mustCloseGroup) {
@@ -190,7 +190,7 @@ class select2_Plugin extends core_Plugin
             }
             
             $newKey = "|{$key}|";
- 
+            
             if (is_array($value)) {
                 if ($value[$key]) {
                     $optionsAttrArr['selected'] = 'selected';
@@ -219,7 +219,7 @@ class select2_Plugin extends core_Plugin
         } elseif (self::$isMultiple) {
             $selectAttrArray['multiple'] = 'multiple';
         }
-         
+        
         $selectAttrArray['class'] = self::$className . ' ' . $attr['class'];
         $selectAttrArray['id'] = $attr['id'];
         $selectAttrArray['name'] = $name . '[]';
@@ -336,13 +336,13 @@ class select2_Plugin extends core_Plugin
             return false;
         }
     }
-   
-   
+    
+    
     /**
      * Връща максималния брой на опциите, които може да се избере
      *
-     * @param type_Key     $invoker
-     * @param integer|NULL $res
+     * @param type_Key $invoker
+     * @param int|NULL $res
      */
     public function on_AfterGetMaxSuggestions($invoker, &$res)
     {

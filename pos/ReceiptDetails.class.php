@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за "Бележки за продажби"
  *
  *
  * @category  bgerp
  * @package   pos
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class pos_ReceiptDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -52,7 +51,7 @@ class pos_ReceiptDetails extends core_Detail
      */
     public $canList = 'no_one';
     
-
+    
     /**
      * Кой може да променя?
      */
@@ -143,7 +142,7 @@ class pos_ReceiptDetails extends core_Detail
         
         if (!$recId = Request::get('recId', 'int')) {
             core_Statuses::newStatus('|Не е избран ред|*!', 'error');
-
+            
             return $this->returnError($recId);
         }
         
@@ -160,13 +159,13 @@ class pos_ReceiptDetails extends core_Detail
         $discount = $this->getFieldType('discountPercent')->fromVerbal($discount);
         if (!isset($discount)) {
             core_Statuses::newStatus('|Не е въведено валидна процентна отстъпка|*!', 'error');
-
+            
             return $this->returnError($rec->receiptId);
         }
         
         if ($discount > 1) {
             core_Statuses::newStatus('|Отстъпката не може да е над|* 100%!', 'error');
-
+            
             return $this->returnError($rec->receiptId);
         }
         
@@ -179,7 +178,6 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnResponse($rec->receiptId);
         }
         core_Statuses::newStatus('|Проблем при задаване на отстъпка|*!', 'error');
-        
         
         return $this->returnError($rec->receiptId);
     }
@@ -201,7 +199,7 @@ class pos_ReceiptDetails extends core_Detail
         if (!$id) {
             redirect(array('pos_Receipts', 'list'));
         }
-            
+        
         redirect(array('pos_Receipts', 'terminal', $id));
     }
     
@@ -216,7 +214,7 @@ class pos_ReceiptDetails extends core_Detail
             $receiptTpl = $this->Master->getReceipt($receiptId);
             $toolsTpl = $this->Master->renderToolsTab($receiptId);
             $paymentTpl = $this->Master->renderPaymentTab($receiptId);
-                
+            
             // Ще реплейснем само бележката
             $resObj = new stdClass();
             $resObj->func = 'html';
@@ -246,7 +244,7 @@ class pos_ReceiptDetails extends core_Detail
             
             return $res;
         }
-            
+        
         // Ако не сме в Ajax режим пренасочваме към терминала
         redirect(array($this->Master, 'Terminal', $receiptId));
     }
@@ -262,7 +260,7 @@ class pos_ReceiptDetails extends core_Detail
         // Трябва да има избран ред
         if (!$recId = Request::get('recId', 'int')) {
             core_Statuses::newStatus('|Не е избран ред|*!', 'error');
-
+            
             return $this->returnError($rec->receiptId);
         }
         
@@ -282,7 +280,7 @@ class pos_ReceiptDetails extends core_Detail
         
         if ($quantityId === false) {
             core_Statuses::newStatus('|Въведеното количество не е валидно|*!', 'error');
-
+            
             return $this->returnError($rec->receiptId);
         }
         
@@ -305,7 +303,6 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnResponse($rec->receiptId);
         }
         core_Statuses::newStatus('|Проблем при редакция на количество|*!', 'error');
-        
         
         return $this->returnError($rec->receiptId);
     }
@@ -346,7 +343,7 @@ class pos_ReceiptDetails extends core_Detail
         $amount = $this->getFieldType('amount')->fromVerbal($amount);
         if (!$amount || $amount <= 0) {
             core_Statuses::newStatus('|Сумата трябва да е положителна|*!', 'error');
-
+            
             return $this->returnError($recId);
         }
         
@@ -356,7 +353,7 @@ class pos_ReceiptDetails extends core_Detail
             // Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
             if (!cond_Payments::returnsChange($type) && (string) $amount > (string) $diff) {
                 core_Statuses::newStatus('|Платежния метод не позволява да се плати по-голяма сума от общата|*!', 'error');
-
+                
                 return $this->returnError($recId);
             }
         }
@@ -380,7 +377,6 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnResponse($recId);
         }
         core_Statuses::newStatus('|Проблем при плащането|*!', 'error');
-        
         
         return $this->returnError($recId);
     }
@@ -419,7 +415,6 @@ class pos_ReceiptDetails extends core_Detail
             return $this->returnResponse($receiptId);
         }
         core_Statuses::newStatus('|Проблем при изтриването на ред|*!', 'error');
-        
         
         return $this->returnError($receiptId);
     }
@@ -475,10 +470,10 @@ class pos_ReceiptDetails extends core_Detail
         if ($mvc->haveRightFor('delete', $rec) && !Mode::is('printing')) {
             $delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
             $row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''),
-                                                           'class' => 'pos-del-btn', 'data-recId' => $rec->id,
-                                                           'title' => 'Изтриване на реда',
-                                                           'data-warning' => tr('|Наистина ли искате да изтриете записа|*?'),
-                                                           'data-url' => $delUrl));
+                'class' => 'pos-del-btn', 'data-recId' => $rec->id,
+                'title' => 'Изтриване на реда',
+                'data-warning' => tr('|Наистина ли искате да изтриете записа|*?'),
+                'data-url' => $delUrl));
         }
     }
     
@@ -539,9 +534,11 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Метод връщаш обект с информация за избраното действие
      * и неговата стойност
-     * @param  string   $string - стринг където от вида "action|value"
+     *
+     * @param string $string - стринг където от вида "action|value"
+     *
      * @return stdClass $action - обект съдържащ ид и стойноста извлечени
-     *                         от стринга
+     *                  от стринга
      */
     public function getAction($string)
     {
@@ -561,6 +558,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Намира продукта по подаден номер и изчислява неговата цена
      * и отстъпка спрямо клиента, и ценоразписа
+     *
      * @param stdClass $rec
      */
     public function getProductInfo(&$rec)
@@ -611,9 +609,11 @@ class pos_ReceiptDetails extends core_Detail
     
     /**
      *  Намира последната продажба на даден продукт в текущата бележка
+     *
      *  @param int $productId - ид на продукта
      *  @param int $receiptId - ид на бележката
      *  @param int $packId - ид на опаковката
+     *
      *  @return mixed $rec/FALSE - Последния запис или FALSE ако няма
      */
     public function findSale($productId, $receiptId, $packId)
@@ -674,7 +674,8 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Използва се от репортите за извличане на данни за продажбата
      *
-     * @param  int   $receiptId - ид на бележка
+     * @param int $receiptId - ид на бележка
+     *
      * @return array $result - масив от всички плащания и продажби на бележката;
      */
     public static function fetchReportData($receiptId)

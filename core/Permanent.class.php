@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Максимален размер за полето на манипулатора
  */
@@ -20,16 +19,16 @@ defIfNot('CORE_PERMANENT_PREFIX_SALT', md5(EF_SALT . '_CORE_PERM'));
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Permanent extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -65,13 +64,13 @@ class core_Permanent extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id,key';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
@@ -119,9 +118,10 @@ class core_Permanent extends core_Manager
     /**
      * Извлича запис от кеша
      *
-     * @param  string   $key          - ключ на кеша
-     * @param  datetime $minCreatedOn - от коя дата насетне да се търси
-     * @return mixed    - кешираната стойност или NULL, ако не е намерена
+     * @param string   $key          - ключ на кеша
+     * @param datetime $minCreatedOn - от коя дата насетне да се търси
+     *
+     * @return mixed - кешираната стойност или NULL, ако не е намерена
      */
     public static function get($key, $minCreatedOn = null)
     {
@@ -141,7 +141,7 @@ class core_Permanent extends core_Manager
             
             return;
         }
-         
+        
         // Ако живота е изтекъл се изтрива записа, вместо да се връща-
         if ($rec->lifetime < time()) {
             self::delete($rec->id);
@@ -161,7 +161,8 @@ class core_Permanent extends core_Manager
     /**
      * Изтриване на постоянния кеш
      *
-     * @param  string $key
+     * @param string $key
+     *
      * @return int
      */
     public static function remove($key)
@@ -174,7 +175,8 @@ class core_Permanent extends core_Manager
     /**
      * Връща ключ за запазване
      *
-     * @param  string $key - оригиналния ключ
+     * @param string $key - оригиналния ключ
+     *
      * @return string $newKey - ключа за запис
      */
     private static function getKey($key)

@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * НКИД-Национална класификация на икономическите дейности
  *
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_NKID extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */

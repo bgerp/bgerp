@@ -36,6 +36,7 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_TO', '3600');
  */
 defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC', 2678400);
 
+
 /**
  * Колко папки от последно отворените да се показват при търсене
  */
@@ -153,15 +154,15 @@ defIfNot('DOC_DELETE_REJECTED_THREADS_PERIOD', core_DateTime::SECONDS_IN_MONTH);
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -199,7 +200,7 @@ class doc_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-    
+        
         // Кой пакет да използваме за генериране на PDF от HTML ?
         'BGERP_PDF_GENERATOR' => array('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да се използва за генериране на PDF?->Пакет'),
         'DOC_CHART_ADAPTER' => array('class(interface=doc_chartAdapterIntf,select=title, allowEmpty)', 'caption=Кой пакет да се използва за показване на графики?->Пакет, placeholder=Автоматично'),
@@ -210,7 +211,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_REPAIR_ALL' => array('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
         'DOC_SEARCH_LIMIT' => array('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
-
+        
         'DOC_NOTIFY_FOR_NEW_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
@@ -226,7 +227,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array('userList', 'caption=Известяване за отворени теми в папки на оттеглени потребители->Потребители'),
         'DOC_DELETE_REJECTED_THREADS_PERIOD' => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
     );
-
+    
     
     // Инсталиране на мениджърите
     public $managers = array(
@@ -271,32 +272,32 @@ class doc_Setup extends core_ProtoSetup
      * Нагласяне на крон
      */
     public $cronSettings = array(
-            array(
-                    'systemId' => doc_Threads::DELETE_SYSTEM_ID,
-                    'description' => 'Изтриване на оттеглени и документи нишки',
-                    'controller' => 'doc_Threads',
-                    'action' => 'DeleteThread',
-                    'period' => 5,
-                    'timeLimit' => 200,
-            ),
-            array(
-                    'systemId' => 'deleteOldObject',
-                    'description' => 'Изтриване на остарялите информации за обектите в документ',
-                    'controller' => 'doc_UsedInDocs',
-                    'action' => 'deleteOldObject',
-                    'period' => 1440,
-                    'offset' => 66,
-                    'timeLimit' => 120,
-            ),
-            array(
-                    'systemId' => 'AutoClose',
-                    'description' => 'Автоматично затваряне на папки',
-                    'controller' => 'doc_Folders',
-                    'action' => 'autoClose',
-                    'period' => 1440,
-                    'offset' => 111,
-                    'timeLimit' => 400
-            )
+        array(
+            'systemId' => doc_Threads::DELETE_SYSTEM_ID,
+            'description' => 'Изтриване на оттеглени и документи нишки',
+            'controller' => 'doc_Threads',
+            'action' => 'DeleteThread',
+            'period' => 5,
+            'timeLimit' => 200,
+        ),
+        array(
+            'systemId' => 'deleteOldObject',
+            'description' => 'Изтриване на остарялите информации за обектите в документ',
+            'controller' => 'doc_UsedInDocs',
+            'action' => 'deleteOldObject',
+            'period' => 1440,
+            'offset' => 66,
+            'timeLimit' => 120,
+        ),
+        array(
+            'systemId' => 'AutoClose',
+            'description' => 'Автоматично затваряне на папки',
+            'controller' => 'doc_Folders',
+            'action' => 'autoClose',
+            'period' => 1440,
+            'offset' => 111,
+            'timeLimit' => 400
+        )
     );
     
     
@@ -304,7 +305,7 @@ class doc_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments';
-        
+    
     
     /**
      * Инсталиране на пакета
@@ -312,10 +313,10 @@ class doc_Setup extends core_ProtoSetup
     public function install()
     {
         $html .= core_Roles::addOnce('powerUser', null, 'system');
-
+        
         // Добавяне на ролите за Ранг
         $rangRoles = array(
-                        
+            
             // Изпълнителен член на екип. Достъпни са му само папките,
             // които са споделени или на които е собственик
             'executive',
@@ -342,7 +343,7 @@ class doc_Setup extends core_ProtoSetup
         $html .= core_Roles::addOnce('partner', null, 'rang');
         
         $html = parent::install();
-
+        
         // Ако няма нито една роля за екип, добавяме екип за главна квартира
         $newTeam = false;
         
@@ -397,12 +398,13 @@ class doc_Setup extends core_ProtoSetup
         return $html;
     }
     
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'currency';
-              
-        
+    
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -431,7 +433,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Поправка на развалените folderId в doc_Containers
      *
-     * @return integer
+     * @return int
      */
     public static function repairBrokenFolderId()
     {
@@ -523,10 +525,11 @@ class doc_Setup extends core_ProtoSetup
                 
                 $db = new core_Db();
                 if (!$db->tableExists($Cls->dbTableName)) {
+                    
                     return;
                 }
                 $Cls->setupMvc();
-    
+                
                 $query = $Cls->getQuery();
                 $query->where("#state = 'pending'");
                 $query->show('state');
@@ -539,19 +542,19 @@ class doc_Setup extends core_ProtoSetup
             reportException($e);
         }
     }
-
-
+    
+    
     public function addPartnerRole1()
     {
         // Определяме най-високата роля за ранг и изтриваме другите
         // Ако потребителя има contractor, buyer или collabolator - задаваме му роля `partner`
         // Почистваме несъществуващите роли и експандваме за полето `roles`
         // Записваме двете полета за роли
-
+        
         // Изтриваме ролите contractor, buyer и collabolator
-
+        
         $uQuery = core_Users::getQuery();
-
+        
         $rangs = array();
         $rangs[] = core_Roles::fetchByName('ceo');
         $rangs[] = core_Roles::fetchByName('manager');
@@ -560,22 +563,22 @@ class doc_Setup extends core_ProtoSetup
         $rangs[] = $contractorR = core_Roles::fetchByName('contractor');
         $rangs[] = $buyerR = core_Roles::fetchByName('buyer');
         $rangs[] = $collaboratorR = core_Roles::fetchByName('collaborator');
-      
+        
         $roleTypes = core_Roles::getGroupedOptions();
         $allowedRolesForPartners = $roleTypes['rang'] + $roleTypes['external'];
         $allowedRolesForInsiders = $roleTypes['rang'] + $roleTypes['job'] + $roleTypes['team'] + $roleTypes['system'] + $roleTypes['position'];
-
+        
         if (!$contractorR) {
             
             return '<li>Миграцията addPartnerRole не е необходима</li>';
         }
-
+        
         $partnerR = core_Roles::fetchByName('partner');
         
         expect($partnerR);
-
+        
         $uMvc = cls::get('core_Users');
-
+        
         // Минаваме по всички съществуващи потребители
         while ($uRec = $uQuery->fetch()) {
             
@@ -588,22 +591,22 @@ class doc_Setup extends core_ProtoSetup
                 }
                 unset($kRoles[$r]);
             }
-
+            
             // Конвертираме потребителите сбез роля за ранг или със стара роля за парньор към новата роля `partner`
             if (!$rang || ($rang == $contractorR) || ($rang == $buyerR) || ($rang == $collaboratorR)) {
                 $rang = $partnerR;
             }
-
+            
             // Задаваме най-голямата определена роля за ранг
             $kRoles[$rang] = $rang;
-
+            
             // Премахваме несъществуващите роли
             foreach ($kRoles as $roleId) {
                 if (!core_Roles::fetchById($roleId)) {
                     unset($kRoles[$roleId]);
                 }
             }
-
+            
             // Филтрираме допустимите роли според ранга
             if ($rang == $partnerR) {
                 $allowed = $allowedRolesForPartners;
@@ -611,20 +614,20 @@ class doc_Setup extends core_ProtoSetup
                 $allowed = $allowedRolesForInsiders;
             }
             
-
+            
             // филтрираме само позволените роли за съответния ранг
             foreach ($kRoles as $r) {
                 if (!isset($allowed[$r])) {
                     unset($kRoles[$r]);
                 }
             }
-
+            
             $uRec->rolesInput = keylist::fromArray($kRoles);
             $uRec->roles = keylist::fromArray(core_Roles::expand($kRoles));
-
+            
             $uMvc->save_($uRec, 'rolesInput,roles');
         }
-
+        
         // Премахваме стартите роли за контрактор
         core_Roles::removeRoles(array($contractorR, $buyerR, $collaboratorR));
     }
@@ -674,8 +677,8 @@ class doc_Setup extends core_ProtoSetup
             doc_Files::recalcFiles($rec->containerId);
         }
     }
-
-
+    
+    
     /**
      * Добавя държавата на два езика в папките
      */
@@ -688,10 +691,10 @@ class doc_Setup extends core_ProtoSetup
             
             return ;
         }
-
+        
         $mvcInst = cls::get('doc_Folders');
         $query = $mvcInst->getQuery();
-                    
+        
         Mode::push('text', 'plain');
         Mode::push('htmlEntity', 'none');
         

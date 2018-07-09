@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин за филтриране на документи с вальор по ключови думи и дата,
  * показва и Обобщение на резултатите от списъчния изглед
@@ -39,44 +38,44 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_plg_DocumentSummary extends core_Plugin
 {
-    
-    
     /**
      * Масив с класове и съответните роли, които се изискват за private single на документа
      */
     public static $rolesAllMap = array(
-            'purchase_Invoices' => 'invoiceAll',
-            'sales_Invoices' => 'invoiceAll',
-            'sales_Proformas' => 'invoiceAll',
-            'store_ShipmentOrders' => 'storeAll',
-            'store_Receipts' => 'storeAll',
-            'store_Transfers' => 'storeAll',
-            'store_ConsignmentProtocols' => 'storeAll',
-            'store_InventoryNotes' => 'storeAll',
-            'purchase_Services' => 'storeAll',
-            'sales_Services' => 'storeAll',
-            'bank_IncomeDocuments' => 'bankAll',
-            'bank_SpendingDocuments' => 'bankAll',
-            'bank_ExchangeDocument' => 'bankAll',
-            'bank_InternalMoneyTransfer' => 'bankAll',
-            'cash_Pko' => 'cashAll',
-            'cash_Rko' => 'cashAll',
-            'cash_InternalMoneyTransfer' => 'cashAll',
-            'cash_ExchangeDocument' => 'cashAll',
-            'sales_Sales' => 'saleAll',
-            'purchase_Purchases' => 'purchaseAll',
-            'planning_DirectProductionNote' => 'planningAll,storeAll',
-            'planning_ConsumptionNotes' => 'planningAll,storeAll',
-            'planning_ReturnNotes' => 'planningAll,storeAll',
-            'planning_Jobs' => 'planningAll',
-            'planning_Tasks' => 'planningAll',
+        'purchase_Invoices' => 'invoiceAll',
+        'sales_Invoices' => 'invoiceAll',
+        'sales_Proformas' => 'invoiceAll',
+        'store_ShipmentOrders' => 'storeAll',
+        'store_Receipts' => 'storeAll',
+        'store_Transfers' => 'storeAll',
+        'store_ConsignmentProtocols' => 'storeAll',
+        'store_InventoryNotes' => 'storeAll',
+        'purchase_Services' => 'storeAll',
+        'sales_Services' => 'storeAll',
+        'bank_IncomeDocuments' => 'bankAll',
+        'bank_SpendingDocuments' => 'bankAll',
+        'bank_ExchangeDocument' => 'bankAll',
+        'bank_InternalMoneyTransfer' => 'bankAll',
+        'cash_Pko' => 'cashAll',
+        'cash_Rko' => 'cashAll',
+        'cash_InternalMoneyTransfer' => 'cashAll',
+        'cash_ExchangeDocument' => 'cashAll',
+        'sales_Sales' => 'saleAll',
+        'purchase_Purchases' => 'purchaseAll',
+        'planning_DirectProductionNote' => 'planningAll,storeAll',
+        'planning_ConsumptionNotes' => 'planningAll,storeAll',
+        'planning_ReturnNotes' => 'planningAll,storeAll',
+        'planning_Jobs' => 'planningAll',
+        'planning_Tasks' => 'planningAll',
     );
     
     
@@ -104,6 +103,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
+        
         // Добавяме глобалните роли за съответния клас да може да филтрират всички
         $rolesAll = self::$rolesAllMap[$mvc->className];
         if ($rolesAll) {
@@ -140,8 +140,9 @@ class acc_plg_DocumentSummary extends core_Plugin
     /**
      * Проверява дали този плъгин е приложим към зададен мениджър
      *
-     * @param  core_Mvc $mvc
-     * @return boolean
+     * @param core_Mvc $mvc
+     *
+     * @return bool
      */
     protected static function checkApplicability($mvc)
     {
@@ -189,7 +190,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         } else {
             $showFilterDateField = null;
         }
-
+        
         if (!isset($data->listFilter->fields['Rejected'])) {
             $data->listFilter->FNC('Rejected', 'int', 'input=hidden');
         }
@@ -224,7 +225,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                 }
             }
-             
+            
             if ($lastPeriod = core_Permanent::get('periodFilter' . $cKey)) {
                 if (!Request::get('selectPeriod')) {
                     Request::push(array('selectPeriod' => $lastPeriod));
@@ -233,7 +234,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     $data->listFilter->rec->to = $to;
                 }
             }
-
+            
             if ($mvc->filterFieldUsers !== false) {
                 if (!$haveUsers) {
                     $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
@@ -258,7 +259,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
                 core_Permanent::set('userFilter' . $cKey, $usedUsers, 24 * 60 * 100);
             }
-
+            
             if (($thisPeriod = Request::get('selectPeriod')) && ($thisPeriod != $lastPeriod)) {
                 core_Permanent::set('periodFilter' . $cKey, $thisPeriod, 24 * 60 * 100);
             }
@@ -293,7 +294,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if (count($dateRange) == 2) {
                 sort($dateRange);
             }
- 
+            
             if ($showFilterDateField) {
                 $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
                 $toField = $fromField;
@@ -302,7 +303,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
             }
-         
+            
             if ($dateRange[0] && $dateRange[1]) {
                 
                 //$extraFld1 = (!empty($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';
@@ -310,16 +311,16 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if ($fromField) {
                     $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59'))";
                 }
-
+                
                 if ($toField && $toField != $fromField) {
                     $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59'))";
                 }
-         
+                
                 if (!empty($mvc->termDateFld)) {
                     //	$extraField = (!empty($mvc->termDateFld)) ? " OR (#{$mvc->termDateFld} >= '[#1#]' AND #{$mvc->termDateFld} <= '[#2#] 23:59:59')" : '';
                 //	$where .= $extraField;
                 }
-               
+                
                 $data->query->where(array($where, $dateRange[0], $dateRange[1]));
             }
         }
@@ -403,6 +404,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
     {
         if (count($fieldsArr) == 0) {
+            
             return;
         }
         
@@ -440,7 +442,8 @@ class acc_plg_DocumentSummary extends core_Plugin
     /**
      * Рендира обобщението
      *
-     * @param  array   $res - Масив от записи за показване
+     * @param array $res - Масив от записи за показване
+     *
      * @return core_ET $tpl - Шаблон на обобщението
      */
     private static function renderSummary($res)
@@ -451,7 +454,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $double->params['decimals'] = 2;
         $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
         $rowTpl = $tpl->getBlock('ROW');
-       
+        
         if (count($res)) {
             foreach ($res as $rec) {
                 $row = new stdClass();
@@ -466,7 +469,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
                 
                 $row->caption = $rec->caption;
-               
+                
                 $rowTpl->placeObject($row);
                 $rowTpl->removeBlocks();
                 $rowTpl->append2master();

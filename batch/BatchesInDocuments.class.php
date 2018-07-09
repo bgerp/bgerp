@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Регистър за разпределяне на разходи
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_BatchesInDocuments extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -120,9 +119,10 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Рендиране на партидите на даде обект
      *
-     * @param  mixed   $detailClassId - клас на обект
-     * @param  id      $detailRecId   - ид на обект
-     * @param  id      $storeId       - ид на склад
+     * @param mixed $detailClassId - клас на обект
+     * @param id    $detailRecId   - ид на обект
+     * @param id    $storeId       - ид на склад
+     *
      * @return core_ET $tpl        - шаблона с рендирането
      */
     public static function renderBatches($detailClassId, $detailRecId, $storeId)
@@ -130,6 +130,7 @@ class batch_BatchesInDocuments extends core_Manager
         $detailClassId = cls::get($detailClassId)->getClassId();
         $rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
         if (!count($rInfo->operation)) {
+            
             return;
         }
         $operation = key($rInfo->operation);
@@ -171,7 +172,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 $block->append($quantity, 'quantity');
             }
-
+            
             $batch = implode(', ', $batch);
             
             if ($batchDef instanceof batch_definitions_Serial) {
@@ -219,10 +220,11 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Проверка на реда дали има проблеми с партидата
      *
-     * @param  mixed        $detailClassId
-     * @param  int          $detailRecId
-     * @param  string       $batch
-     * @param  string       $quantity
+     * @param mixed  $detailClassId
+     * @param int    $detailRecId
+     * @param string $batch
+     * @param string $quantity
+     *
      * @return FALSE|string
      */
     public static function checkBatchRow($detailClassId, $detailRecId, $batch, $quantity)
@@ -272,11 +274,11 @@ class batch_BatchesInDocuments extends core_Manager
             // За всеки
             while ($oRec = $query->fetch()) {
                 $serials = batch_Defs::getBatchArray($oRec->productId, $oRec->batch);
-                    
+                
                 // Проверяваме имали дублирани
                 $intersectArr = array_intersect($oSerials, $serials);
                 $intersect = count($intersectArr);
-                    
+                
                 // Ако има казваме, кои се повтарят
                 // един сериен номер не може да е на повече от един ред
                 if ($intersect) {
@@ -285,7 +287,7 @@ class batch_BatchesInDocuments extends core_Manager
                         
                         return "|Серийният номер|*: {$imploded}| се повтаря в документа|*";
                     }
-
+                    
                     return "|Серийните номера|*: {$imploded}| се повтарят в документа|*";
                 }
             }
@@ -449,7 +451,7 @@ class batch_BatchesInDocuments extends core_Manager
                         if ($quantity) {
                             $total += $quantity;
                         }
-                            
+                        
                         $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $quantity;
                         $saveBatches[$batch] = $quantity * $recInfo->quantityInPack;
                         
@@ -470,13 +472,13 @@ class batch_BatchesInDocuments extends core_Manager
                         $form->setError('serials', 'Серийните номера са повече от цялото количество');
                     }
                 }
-                    
+                
                 foreach ($batches as $b) {
                     $saveBatches[$b] = 1 / $recInfo->quantityInPack;
                     ++$total;
                 }
                 $fields[] = 'serials';
-                    
+                
                 if (is_array($foundBatches)) {
                     foreach ($foundBatches as $fb => $q) {
                         if (!array_key_exists($fb, $batches)) {
@@ -488,7 +490,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
             
             if ($form->cmd != 'updateQuantity') {
-                    
+                
                 // Не може да е разпределено по-голямо количество от допустимото
                 if ($total > ($recInfo->quantity / ($recInfo->quantityInPack))) {
                     $form->setError('newArray', 'Общото количество е над допустимото');
@@ -563,6 +565,7 @@ class batch_BatchesInDocuments extends core_Manager
         $error = $errorFields = array();
         $batches = $tableData['batch'];
         if (empty($tableData)) {
+            
             return;
         }
         
@@ -597,7 +600,7 @@ class batch_BatchesInDocuments extends core_Manager
                         $errorFields['quantity'][$key] = 'Попълнено количество без да има партида';
                         $errorFields['batch'][$key] = 'Попълнено количество без да има партида';
                     }
-            
+                    
                     $Max = ($isSerial) ? 'max=1' : '';
                     $Double = core_Type::getByName("double(min=0,{$Max})");
                     $qVal = $Double->isValid($quantity);
@@ -653,15 +656,17 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Записва масив с партиди и техните количества на ред
      *
-     * @param  mixed   $detailClassId
-     * @param  int     $detailRecId
-     * @param  array   $batchesArr
-     * @param  boolean $sync
+     * @param mixed $detailClassId
+     * @param int   $detailRecId
+     * @param array $batchesArr
+     * @param bool  $sync
+     *
      * @return void
      */
     public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = false)
     {
         if (!is_array($batchesArr)) {
+            
             return;
         }
         $recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
@@ -720,14 +725,16 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Помощна ф-я за показване на партидите във фактура
      *
-     * @param  int         $productId
-     * @param  text        $batches
+     * @param int  $productId
+     * @param text $batches
+     *
      * @return NULL|string
      */
     public static function displayBatchesForInvoice($productId, $batches)
     {
         $batches = explode(',', $batches);
         if (!count($batches)) {
+            
             return;
         }
         $res = array();

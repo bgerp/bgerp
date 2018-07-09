@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_GalleryImages extends core_Manager
 {
-    
-    
     /**
      * Кой може да чете
      */
@@ -66,6 +66,7 @@ class cms_GalleryImages extends core_Manager
     
     /**
      * Името на полето, което ще се използва от плъгина
+     *
      * @see cms_GalleryTitlePlg
      */
     public $galleryTitleFieldName = 'title';
@@ -128,7 +129,7 @@ class cms_GalleryImages extends core_Manager
     {
         $tArr = array(128, 128);
         $mArr = array(600, 450);
-            
+        
         $Fancybox = cls::get('fancybox_Fancybox');
         
         if ($rec->src) {
@@ -542,6 +543,7 @@ class cms_GalleryImages extends core_Manager
                 
                 // Добавяме вербалните представяния
                 $data->rows[$id] = $this->recToVerbal($rec, 'src, groupId');
+                
                 // Защитаваме променливите
                 
                 // Ако има права за редактиране
@@ -632,6 +634,7 @@ class cms_GalleryImages extends core_Manager
      * Подготвя полето за заглавие
      *
      * @param object $rec
+     *
      * @see cms_GalleryTitlePlg
      */
     public function prepareRecTitle(&$rec)

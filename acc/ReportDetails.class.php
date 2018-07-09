@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас показващ счетоводна информация за даден мениджър който е перо в счетоводството
  * За да работи трябва да се добави като детайл на съответния мениджър
@@ -13,15 +12,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_ReportDetails extends core_Manager
 {
-
-    
     /**
      * Кой има достъп до списъчния изглед
      */
@@ -44,9 +43,9 @@ class acc_ReportDetails extends core_Manager
         setIfNot($data->masterMvc->canAddacclimits, 'ceo,accLimits');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, true);
         setIfNot($data->masterMvc->showAccReportsInTab, true);
-
+        
         $data->TabCaption = 'Счетоводство';
-
+        
         $balanceRec = acc_Balances::getLastBalance();
         $data->balanceRec = $balanceRec;
         
@@ -66,14 +65,15 @@ class acc_ReportDetails extends core_Manager
         if (!$prepareTab || $prepareTab == 'AccReports') {
             $data->prepareTab = true;
         }
-
+        
         // Ако потребителя има достъп до репортите
         if (haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)) {
             
-
+            
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
             $data->renderReports = true;
+        
         //$data->Order = 1;
         } else {
             $data->renderReports = false;
@@ -87,6 +87,7 @@ class acc_ReportDetails extends core_Manager
     public function renderAccReports(&$data)
     {
         if ($data->renderReports === false) {
+            
             return;
         }
         
@@ -117,11 +118,12 @@ class acc_ReportDetails extends core_Manager
         // Ако мастъра не е перо, няма какво да се показва
         if (empty($items)) {
             $data->renderReports = false;
-
+            
             return;
         }
         
         if ($data->prepareTab === false) {
+            
             return;
         }
         
@@ -150,7 +152,7 @@ class acc_ReportDetails extends core_Manager
         // Ако баланса е заключен не показваме нищо
         if (core_Locks::isLocked(acc_Balances::saveLockKey)) {
             $data->balanceIsRecalculating = true;
-
+            
             return;
         }
         
@@ -258,8 +260,9 @@ class acc_ReportDetails extends core_Manager
     /**
      * Рендиране на данните за баланса
      *
-     * @param  stdClass $data - обект с данни от мастъра
-     * @return core_ET  - шаблона на детайла
+     * @param stdClass $data - обект с данни от мастъра
+     *
+     * @return core_ET - шаблона на детайла
      */
     private function renderBalanceReports(&$data)
     {
@@ -270,7 +273,7 @@ class acc_ReportDetails extends core_Manager
             if (!Mode::isReadOnly()) {
                 $link = ht::createLink($link, acc_Balances::getSingleUrlArray($data->balanceRec->id), false, array('title' => "Оборотна ведомост за|* \"{$link}\""));
             }
-             
+            
             $tpl->replace($link, 'periodId');
         }
         
@@ -330,7 +333,7 @@ class acc_ReportDetails extends core_Manager
                         unset($limitFields["item{$i}"]);
                     }
                 }
-               
+                
                 // Ако има записи показваме таблицата
                 if (count($rows)) {
                     $fields = core_TableView::filterEmptyColumns($rows, $fields, 'tools');
@@ -350,7 +353,7 @@ class acc_ReportDetails extends core_Manager
                     $tpl->append("<div class='summary-group'>" . $content . '</div>', 'CONTENT');
                     $count++;
                 }
-               
+                
                 // Ако има зададени лимити за тази сметка, показваме и тях
                 if (count($arr['limits'])) {
                     $unset1 = $unset2 = $unset3 = true;
@@ -376,7 +379,7 @@ class acc_ReportDetails extends core_Manager
                     $limitCount++;
                 }
             }
-           
+            
             if ($count > 1 && $data->canSeePrices !== false) {
                 $lastRow = "<div class='acc-footer' style='padding-right: 13px;'>" . tr('Сумарно'). ': ' . $data->totalRow . '</div>';
                 $tpl->append($lastRow, 'CONTENT');

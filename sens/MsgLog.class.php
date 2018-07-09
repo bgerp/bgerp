@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър за съобщенията на сензорите
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Мениджър за съобщенията на сензорите
  */
 class sens_MsgLog extends core_Manager
 {
-    
-    
     /**
      * Необходими мениджъри
      */
@@ -53,8 +52,8 @@ class sens_MsgLog extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,sens';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */

@@ -6,29 +6,29 @@
  *
  * @title Задаване на условия към задачите
  *
- *
  * @category  bgerp
  * @package   ca;
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cal_TaskConditions extends core_Detail
 {
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'baseId';
-
-     
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created,cal_Wrapper, plg_RowTools';
-
-
+    
+    
     /**
      * Заглавие
      */
@@ -54,7 +54,7 @@ class cal_TaskConditions extends core_Detail
      * Поле в което да се показва иконата за единичен изглед
      */
     public $rowToolsSingleField = 'title';
-
+    
     
     public $canAdd = 'powerUser';
     
@@ -69,10 +69,8 @@ class cal_TaskConditions extends core_Detail
      * Активен таб на менюто
      */
     public $currentTab = 'Задачи';
-
     
     
-     
     /**
      * Описание на модела (таблицата)
      */
@@ -83,21 +81,20 @@ class cal_TaskConditions extends core_Detail
         
         // id на зависимата задачата
         $this->FLD('dependId', 'key(mvc=cal_Tasks,select=title)', 'caption=Зависи от, mandatory');
-       
+        
         // Условие за активиране
         $this->FLD('activationCond', 'enum(onProgress=При прогрес, afterTime=След началото, beforeTime=Преди началото,
         														   afterTimeEnd=След края, beforeTimeEnd=Преди края)', 'caption=Условия->Обстоятелство,silent, autoFilter');
-       
+        
         // Каква част от задачата е изпълнена?
         $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Условия->Прогрес,input=none,notNull');
-
+        
         // Колко време е отнело изпълнението?
         $this->FLD('distTime', 'time(suggestions=1 час|2 часа|3 часа|1 ден|2 дена|3 дена|1 седм.|2 седм.|3 седм.|1 месец)', 'caption=Условия->Отместване с, input=none');
         
         $this->setDbIndex('baseId');
     }
-
-
+    
     
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
@@ -107,7 +104,7 @@ class cal_TaskConditions extends core_Detail
         if ($id = $data->form->rec->baseId) {
             $notAllowedCond = '#id NOT IN (' . implode(',', self::getInheritors($id, 'dependId')) . ')';
         }
-
+        
         $masterRec = cal_Tasks::fetch($data->form->rec->baseId);
         
         $data->form->setField('activationCond', array('removeAndRefreshForm' => 'progress|distTime'));
@@ -125,9 +122,9 @@ class cal_TaskConditions extends core_Detail
             $data->form->rec->activationCond == 'afterTimeEnd' || $data->form->rec->activationCond == 'beforeTimeEnd') {
             $data->form->setField('distTime', 'input');
         }
-
+        
         $progressArr[''] = '';
-
+        
         for ($i = 0; $i <= 100; $i += 10) {
             if ($data->form->progress > ($i / 100)) {
                 continue;
@@ -149,7 +146,7 @@ class cal_TaskConditions extends core_Detail
         while ($recTask = $query->fetch()) {
             if ($recTask->folderId == $masterRec->folderId) {
                 $task = $recTask->id. '.' .$recTask->title;
-                    
+                
                 $taskArr[$recTask->id] = $task;
             }
         }
@@ -163,12 +160,12 @@ class cal_TaskConditions extends core_Detail
             return new Redirect($link, '|Липсват задачи, от които да зависи задачата');
         }
     }
-
-
+    
     
     public function renderDetail($data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -176,7 +173,7 @@ class cal_TaskConditions extends core_Detail
         
         foreach ($data->recs as $rec) {
             $row = $this->recToVerbal($rec);
-                        
+            
             $cTpl = $tpl->getBlock('COMMENT_LI');
             $cTpl->placeObject($row);
             $cTpl->removeBlocks();
@@ -185,7 +182,7 @@ class cal_TaskConditions extends core_Detail
         
         return $tpl;
     }
-     
+    
     
     /**
      * Подготвяне на вербалните стойности
@@ -195,15 +192,15 @@ class cal_TaskConditions extends core_Detail
         if ($rec->progress == '0') {
             $row->progress = '';
         }
-       
+        
         
         if (!isset($rec->baceId)) {
             $rec = cal_TaskConditions::fetch($rec->id);
         }
         $taskRec = cal_Tasks::fetch($rec->baseId);
-
+        
         $row->condition = '<td>' . $row->tool . '</td><td>'  . $row->condition;
-         
+        
         if ($rec->activationCond == 'onProgress') {
             $row->condition .= $row->progress . tr(' от изпълнението на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
         }
@@ -246,8 +243,8 @@ class cal_TaskConditions extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Връща наследниците на даден запис
      */
@@ -258,7 +255,7 @@ class cal_TaskConditions extends core_Detail
         while ($rec = $query->fetch("#{$field} = ${id}")) {
             self::getInheritors($rec->id, $field, $arr);
         }
-
+        
         return $arr;
     }
     

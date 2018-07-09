@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за детайл в ешоп артикулите
  *
  *
  * @category  bgerp
  * @package   eshop
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_ProductDetails extends core_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -83,8 +82,8 @@ class eshop_ProductDetails extends core_Detail
         
         $this->setDbUnique('eshopProductId,title');
     }
-        
-     
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -95,7 +94,7 @@ class eshop_ProductDetails extends core_Detail
     {
         $form = &$data->form;
         $rec = $form->rec;
-    
+        
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId');
             if ($productRec->canStore == 'yes') {
@@ -133,10 +132,11 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Артикулът наличен ли е в подадения домейн
      *
-     * @param  int      $productId - артикул
-     * @param  int      $domainId  - домейн
-     * @param  int|NULL $id        - запис който да се игнорира
-     * @return boolean  - среща ли се артикулът в същия домейн?
+     * @param int      $productId - артикул
+     * @param int      $domainId  - домейн
+     * @param int|NULL $id        - запис който да се игнорира
+     *
+     * @return bool - среща ли се артикулът в същия домейн?
      */
     public static function isTheProductAlreadyInTheSameDomain($productId, $domainId, $id = null)
     {
@@ -150,7 +150,6 @@ class eshop_ProductDetails extends core_Detail
         
         return array_key_exists($domainId, $domainIds);
     }
-    
     
     
     /**
@@ -185,13 +184,13 @@ class eshop_ProductDetails extends core_Detail
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             $q = mb_strtolower($q);
             $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
-        
+            
             $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach ($qArr as $w) {
                 $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
-            
+        
         if ($limit) {
             $pQuery->limit($limit);
         }
@@ -209,11 +208,12 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Каква е цената във външната част
      *
-     * @param  int         $productId
-     * @param  int         $packagingId
-     * @param  double      $quantityInPack
-     * @param  int|NULL    $domainId
-     * @return NULL|double
+     * @param int      $productId
+     * @param int      $packagingId
+     * @param float    $quantityInPack
+     * @param int|NULL $domainId
+     *
+     * @return NULL|float
      */
     public static function getPublicDisplayPrice($productId, $packagingId = null, $quantityInPack = 1, $domainId = null)
     {
@@ -238,7 +238,7 @@ class eshop_ProductDetails extends core_Detail
                     $price *= 1 + cat_Products::getVat($productId);
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
-            
+                
                 $res->price = $price;
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
@@ -271,17 +271,18 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Подготовка на опциите във външната част
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public static function prepareExternal(&$data)
     {
         $data->rows = $data->recs = $data->paramListFields = array();
-
+        
         // Добавяне към колонките по една за всеки параметър
         $displayParams = eshop_Products::getParamsToDisplay($data->rec->id);
-        foreach ($displayParams as $paramId){
-        	$data->paramListFields["param{$paramId}"] = cat_Params::getVerbal($paramId, 'typeExt');
+        foreach ($displayParams as $paramId) {
+            $data->paramListFields["param{$paramId}"] = cat_Params::getVerbal($paramId, 'typeExt');
         }
         
         $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена,btn=|*&nbsp;');
@@ -303,7 +304,7 @@ class eshop_ProductDetails extends core_Detail
             $packagins = keylist::toArray($rec->packagings);
             
             // Кои параметри ще се показват
-            $params = cat_Products::getParams($rec->productId, NULL, TRUE);
+            $params = cat_Products::getParams($rec->productId, null, true);
             $intersect = array_intersect_key($params, $displayParams);
             
             // Всяка от посочените опаковки се разбива във отделни редове
@@ -316,9 +317,9 @@ class eshop_ProductDetails extends core_Detail
                 $clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 
                 $row = self::getExternalRow($clone);
-                foreach ($intersect as $pId => $pVal){
-                	$clone->{"param{$pId}"} = $pVal;
-                	$row->{"param{$pId}"} = $pVal;
+                foreach ($intersect as $pId => $pVal) {
+                    $clone->{"param{$pId}"} = $pVal;
+                    $row->{"param{$pId}"} = $pVal;
                 }
                 
                 $data->recs[] = $clone;
@@ -351,7 +352,8 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Външното представяне на артикула
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return stdClass $row
      */
     private static function getExternalRow($rec)
@@ -392,11 +394,11 @@ class eshop_ProductDetails extends core_Detail
                 $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
                 $row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
             }
-
+            
             if (isset($discountType['amount'], $discountType['percent'])) {
                 $row->catalogPrice .= ' / ';
             }
-
+            
             if (isset($discountType['percent'])) {
                 $discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($catalogPriceInfo->discount);
                 $discountPercent = str_replace('&nbsp;', '', $discountPercent);
@@ -412,8 +414,9 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Рендиране на опциите във външната част
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public static function renderExternal($data)
     {
@@ -439,14 +442,14 @@ class eshop_ProductDetails extends core_Detail
         
         // Подготовка на общите параметри
         $commonParamRows = array();
-        foreach ($data->commonParams as $paramId => $val){
-        	unset($data->listFields["param{$paramId}"]);
-        	$paramRow = cat_Params::recToVerbal($paramId);
-        	if(!empty($paramRow->suffix)){
-        		$val .= " {$paramRow->suffix}";
-        	}
-        	
-        	$commonParamRows[] = (object)array('caption' => $paramRow->name, 'value' => $val);
+        foreach ($data->commonParams as $paramId => $val) {
+            unset($data->listFields["param{$paramId}"]);
+            $paramRow = cat_Params::recToVerbal($paramId);
+            if (!empty($paramRow->suffix)) {
+                $val .= " {$paramRow->suffix}";
+            }
+            
+            $commonParamRows[] = (object) array('caption' => $paramRow->name, 'value' => $val);
         }
         
         $settings = cms_Domains::getSettings();
@@ -462,16 +465,16 @@ class eshop_ProductDetails extends core_Detail
         $tpl->append($cartInfo, 'ROW_AFTER');
         
         // Рендиране на таблицата с общите параметри
-        if(count($commonParamRows)){
-        	$commonParamsTpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
-        	foreach ($commonParamRows as $paramRow){
-        		$paramBlock = new core_ET("<tr><td>[#caption#]</td><td>[#value#]</td></tr>");
-        		$paramBlock->placeObject($paramRow);
-        		$paramBlock->removeBlocks();
-        		$paramBlock->removePlaces();
-        		$commonParamsTpl->append($paramBlock, 'row');
-        	}
-        	$tpl->append($commonParamsTpl, 'ROW_AFTER');
+        if (count($commonParamRows)) {
+            $commonParamsTpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
+            foreach ($commonParamRows as $paramRow) {
+                $paramBlock = new core_ET('<tr><td>[#caption#]</td><td>[#value#]</td></tr>');
+                $paramBlock->placeObject($paramRow);
+                $paramBlock->removeBlocks();
+                $paramBlock->removePlaces();
+                $commonParamsTpl->append($paramBlock, 'row');
+            }
+            $tpl->append($commonParamsTpl, 'ROW_AFTER');
         }
         
         return $tpl;
@@ -481,8 +484,9 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Връща достъпните артикули за избор от домейна
      *
-     * @param  int|NULL $domainId - домейн или текущия ако не е подаден
-     * @return array    $options    - възможните артикули
+     * @param int|NULL $domainId - домейн или текущия ако не е подаден
+     *
+     * @return array $options    - възможните артикули
      */
     public static function getAvailableProducts($domainId = null)
     {

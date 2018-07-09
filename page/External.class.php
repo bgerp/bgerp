@@ -4,9 +4,11 @@
  *
  * @category  bgerp
  * @package   page
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class page_External extends page_Html
@@ -19,7 +21,7 @@ class page_External extends page_Html
         $conf = core_Packs::getConfig('core');
         
         parent::__construct();
-
+        
         $this->replace('UTF-8', 'ENCODING');
         
         $this->push('css/common.css', 'CSS');

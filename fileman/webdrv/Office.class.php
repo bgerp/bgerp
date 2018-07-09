@@ -6,23 +6,25 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Office extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'preview';
     
-
+    
     /**
      * Връща всички табове, които ги има за съответния файл
      *
@@ -31,6 +33,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -56,9 +59,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             // Таб за текстовата част
             $tabsArr['text'] = (object)
             array(
-                    'title' => 'Текст',
-                    'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-                    'order' => 4,
+                'title' => 'Текст',
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'order' => 4,
             );
         }
         
@@ -71,9 +74,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
                 // Таб за информация
                 $tabsArr['html'] = (object)
                 array(
-                        'title' => 'HTML',
-                        'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('HTML') . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-                        'order' => 3,
+                    'title' => 'HTML',
+                    'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('HTML') . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'order' => 3,
                 );
                 
                 return $tabsArr;
@@ -92,15 +95,15 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
                 // Таб за информация
                 $tabsArr['html'] = (object)
                 array(
-                        'title' => 'HTML',
-                        'html' => $htmlPart,
-                        'order' => 3,
+                    'title' => 'HTML',
+                    'html' => $htmlPart,
+                    'order' => 3,
                 );
             }
             
             @unlink($path);
         }
-
+        
         return $tabsArr;
     }
     
@@ -111,6 +114,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::startProcessing
      */
     public static function startProcessing($fRec)
@@ -131,9 +135,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
     {
         // Параметри необходими за конвертирането
         $params = array(
-                'callBack' => 'fileman_webdrv_Office::afterExtractText',
-                'createdBy' => core_Users::getCurrent('id'),
-                'type' => 'text',
+            'callBack' => 'fileman_webdrv_Office::afterExtractText',
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'text',
         );
         
         if (is_object($fRec)) {
@@ -150,7 +154,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $lId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
             
@@ -198,15 +202,15 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Текстовата част
         $params['content'] = $text;
-
+        
         // Обновяваме данните за запис във fileman_Indexes
         $savedId = fileman_Indexes::saveContent($params);
-
+        
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
         if ($savedId) {
-
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
             return true;
@@ -228,22 +232,23 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
     /**
      * Конвертира файла към съответното разширение
      *
-     * @param  stdClass    $fRec
-     * @param  string      $toExt
-     * @param  boolean     $asynch
-     * @param  string      $callBack
-     * @param  string      $outType
+     * @param stdClass $fRec
+     * @param string   $toExt
+     * @param bool     $asynch
+     * @param string   $callBack
+     * @param string   $outType
+     *
      * @return NULL|string
      */
     public static function convertToFile($fRec, $toExt = 'pdf', $asynch = true, $callBack = 'fileman_webdrv_Office::afterConvertDocToJpg', $outType = 'jpg')
     {
         // Параметри необходими за конвертирането
         $params = array(
-                'callBack' => $callBack,
-                'dataId' => $fRec->dataId,
-                'asynch' => $asynch,
-                'createdBy' => core_Users::getCurrent('id'),
-                'type' => 'docTo' . ucfirst($toExt),
+            'callBack' => $callBack,
+            'dataId' => $fRec->dataId,
+            'asynch' => $asynch,
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'docTo' . ucfirst($toExt),
         );
         
         // Променливата, с която ще заключим процеса
@@ -295,8 +300,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      *
      * @param object $script - Обект със стойности
      *
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
-     *                 и записа от таблицата fconv_Process
+     * @return bool TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
+     *              и записа от таблицата fconv_Process
      *
      * @access protected
      */
@@ -324,7 +329,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $params['dataId']);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
             
@@ -336,13 +341,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             
             // Стартираме конвертирането синхронно
             $started = static::convertPdfToJpg($script->outFilePath, $params);
-    
+            
             // Отключваме заключения процес за конвертиране от офис към pdf формат
             core_Locks::release($params['lockId']);
         }
-
+        
         if ($started) {
-
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
             return true;
@@ -369,7 +374,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fileHnd);
-
+        
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '-%d.jpg';
         
@@ -416,8 +421,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      * @param object $script     - Обект със стойности
      * @param output $fileHndArr - Масив, в който след обработката ще се запишат получените файлове
      *
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
-     *                 и записа от таблицата fconv_Process
+     * @return bool TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
+     *              и записа от таблицата fconv_Process
      *
      * @access protected
      */
@@ -425,7 +430,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
     {
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);
-
+        
         // Шаблон за намиране на името на файла
         $pattern = '/^' . preg_quote($script->fName, '/') . "\-(?'num'[0-9]+)\.jpg$/i";
         
@@ -486,11 +491,11 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             
             // Текстовата част
             $params['content'] = $fileHndArr;
-    
+            
             // Обновяваме данните за запис във fileman_Indexes
             $savedId = fileman_Indexes::saveContent($params);
         } else {
-        
+            
             // Проверяваме дали е имало грешка при предишното конвертиране
             $error = fileman_Indexes::haveErrors($script->outFilePath, $params);
         }
@@ -505,7 +510,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         }
         
         if ($savedId) {
-
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
             return true;
@@ -531,13 +536,13 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
             
             return ;
         }
-
+        
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, false)) {
             
@@ -578,21 +583,21 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Вземаме тялото на HTML' а
         $html = str::cut($html, '<body>', '</body>');
-
+        
         // Поправяме текста, ако има нужда
         $html = i18n_Charset::convertToUtf8($html, 'UTF-8', true);
         
         // Текстовата част
         $params['content'] = $html;
-
+        
         // Обновяваме данните за запис във fileman_Indexes
         $savedId = fileman_Indexes::saveContent($params);
-
+        
         // Отключваме процеса
         core_Locks::release($params['lockId']);
         
         if ($savedId) {
-
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
             return true;

@@ -169,15 +169,15 @@ defIfNot('SALES_DELTA_MIN_PERCENT', '');
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -206,33 +206,33 @@ class sales_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'SALE_OVERDUE_CHECK_DELAY' => array('time', 'caption=Толеранс за просрочване на продажбата->Време'),
-            'SALE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
-            'SALE_CLOSE_OLDER_NUM' => array('int', 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
-            'SALE_FISC_PRINTER_DRIVER' => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
-            'SALE_INV_VAT_DISPLAY' => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
-            'SALE_INV_MIN_NUMBER1' => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
-            'SALE_INV_MAX_NUMBER1' => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
-            'SALE_INV_MIN_NUMBER2' => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
-            'SALE_INV_MAX_NUMBER2' => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
-            'SALE_INV_HAS_FISC_PRINTERS' => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
-            'SALE_SALE_DEF_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
-            'SALE_SALE_DEF_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
-            'SALE_INVOICE_DEF_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
-            'SALE_INVOICE_DEF_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
-            'SALE_INVOICES_SHOW_DEAL' => array('enum(auto=Автоматично,no=Никога,yes=Винаги)', 'caption=Показване на сделката в описанието на фактурата->Избор'),
-            'SALES_USE_RATE_IN_CONTRACTS' => array('enum(no=Не,yes=Да)', 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
-            'SALES_INVOICE_DEFAULT_VALID_FOR' => array('time', 'caption=Срок за плащане по подразбиране->Срок'),
-            'SALES_ADD_BY_PRODUCT_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Артикул'),
-            'SALES_ADD_BY_CREATE_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
-            'SALES_ADD_BY_LIST_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
-            'SALES_ADD_BY_IMPORT_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
-            'SALES_DELTA_CAT_GROUPS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
-            'SALES_ROUTES_CLOSE_DELAY' => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
-            'SALES_DEFAULT_VALIDITY_OF_QUOTATION' => array('time', 'caption=Оферти->Валидност'),
-            'SALES_PROD_NAME_LENGTH' => array('int(min=0)', 'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'),
-            'SALES_DELTA_MIN_PERCENT' => array('percent', 'caption=Неснижаема делта->Стойност'),
-            'SALES_TRANSPORT_PRODUCTS_ID' => array('keylist(mvc=cat_Products,select=name)', 'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'),
+        'SALE_OVERDUE_CHECK_DELAY' => array('time', 'caption=Толеранс за просрочване на продажбата->Време'),
+        'SALE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
+        'SALE_CLOSE_OLDER_NUM' => array('int', 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
+        'SALE_FISC_PRINTER_DRIVER' => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
+        'SALE_INV_VAT_DISPLAY' => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
+        'SALE_INV_MIN_NUMBER1' => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
+        'SALE_INV_MAX_NUMBER1' => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
+        'SALE_INV_MIN_NUMBER2' => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
+        'SALE_INV_MAX_NUMBER2' => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
+        'SALE_INV_HAS_FISC_PRINTERS' => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
+        'SALE_SALE_DEF_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
+        'SALE_SALE_DEF_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+        'SALE_INVOICE_DEF_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
+        'SALE_INVOICE_DEF_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
+        'SALE_INVOICES_SHOW_DEAL' => array('enum(auto=Автоматично,no=Никога,yes=Винаги)', 'caption=Показване на сделката в описанието на фактурата->Избор'),
+        'SALES_USE_RATE_IN_CONTRACTS' => array('enum(no=Не,yes=Да)', 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
+        'SALES_INVOICE_DEFAULT_VALID_FOR' => array('time', 'caption=Срок за плащане по подразбиране->Срок'),
+        'SALES_ADD_BY_PRODUCT_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Артикул'),
+        'SALES_ADD_BY_CREATE_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
+        'SALES_ADD_BY_LIST_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
+        'SALES_ADD_BY_IMPORT_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
+        'SALES_DELTA_CAT_GROUPS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
+        'SALES_ROUTES_CLOSE_DELAY' => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
+        'SALES_DEFAULT_VALIDITY_OF_QUOTATION' => array('time', 'caption=Оферти->Валидност'),
+        'SALES_PROD_NAME_LENGTH' => array('int(min=0)', 'caption=Дължина на артикула в името на продажбата->Дължина, customizeBy=powerUser'),
+        'SALES_DELTA_MIN_PERCENT' => array('percent', 'caption=Неснижаема делта->Стойност'),
+        'SALES_TRANSPORT_PRODUCTS_ID' => array('keylist(mvc=cat_Products,select=name)', 'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'),
     );
     
     
@@ -240,30 +240,30 @@ class sales_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'sales_Sales',
-            'sales_SalesDetails',
-            'sales_Routes',
-            'sales_Quotations',
-            'sales_QuotationsDetails',
-            'sales_ClosedDeals',
-            'sales_Services',
-            'sales_ServicesDetails',
-            'sales_Invoices',
-            'sales_InvoiceDetails',
-            'sales_Proformas',
-            'sales_ProformaDetails',
-            'sales_PrimeCostByDocument',
-            'sales_TransportValues',
-        );
-
+        'sales_Sales',
+        'sales_SalesDetails',
+        'sales_Routes',
+        'sales_Quotations',
+        'sales_QuotationsDetails',
+        'sales_ClosedDeals',
+        'sales_Services',
+        'sales_ServicesDetails',
+        'sales_Invoices',
+        'sales_InvoiceDetails',
+        'sales_Proformas',
+        'sales_ProformaDetails',
+        'sales_PrimeCostByDocument',
+        'sales_TransportValues',
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', 'sales, ceo, acc'),
-        );
-
+        array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', 'sales, ceo, acc'),
+    );
+    
     
     /**
      * Дефинирани класове, които имат интерфейси
@@ -277,21 +277,21 @@ class sales_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-            array('systemId' => 'Close invalid quotations',
-                  'description' => 'Затваряне на остарелите оферти',
-                  'controller' => 'sales_Quotations',
-                  'action' => 'CloseQuotations',
-                  'period' => 1440,
-                  'timeLimit' => 360,
-            ),
-            array('systemId' => 'Update Routes Next Visit',
-                  'description' => 'Изчисляване на посещенията на търговските маршрути',
-                  'controller' => 'sales_Routes',
-                  'action' => 'calcNextVisit',
-                  'offset' => 140,
-                  'period' => 1440,
-                  'timeLimit' => 360,
-            ),
+        array('systemId' => 'Close invalid quotations',
+            'description' => 'Затваряне на остарелите оферти',
+            'controller' => 'sales_Quotations',
+            'action' => 'CloseQuotations',
+            'period' => 1440,
+            'timeLimit' => 360,
+        ),
+        array('systemId' => 'Update Routes Next Visit',
+            'description' => 'Изчисляване на посещенията на търговските маршрути',
+            'controller' => 'sales_Routes',
+            'action' => 'calcNextVisit',
+            'offset' => 140,
+            'period' => 1440,
+            'timeLimit' => 360,
+        ),
     );
     
     
@@ -299,8 +299,8 @@ class sales_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('sales', 'invoicer,seePrice,dec'),
-            array('salesMaster', 'sales'),
+        array('sales', 'invoicer,seePrice,dec'),
+        array('salesMaster', 'sales'),
     );
     
     
@@ -327,11 +327,11 @@ class sales_Setup extends core_ProtoSetup
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#canStore = 'no'");
         $pQuery->show('name');
-         
+        
         while ($pRec = $pQuery->fetch()) {
             $suggestions[$pRec->id] = $pRec->name;
         }
-         
+        
         return $suggestions;
     }
     
@@ -383,7 +383,7 @@ class sales_Setup extends core_ProtoSetup
             $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
             if ($transportId) {
                 $products = array($transportId => $transportId);
-                 
+                
                 core_Packs::setConfig('sales', array('SALES_TRANSPORT_PRODUCTS_ID' => keylist::fromArray($products)));
                 $res .= "<li style='color:green'>Добавени са дефолтни артикули за транспорт</b></li>";
             }

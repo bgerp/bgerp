@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -44,10 +44,10 @@ class label_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', 'label, admin, ceo'),
-        );
+        array(3.66, 'Производство', 'Етикетиране', 'label_Prints', 'default', 'label, admin, ceo'),
+    );
     
-        
+    
     // Инсталиране на мениджърите
     public $managers = array(
         'label_Templates',
@@ -65,14 +65,14 @@ class label_Setup extends core_ProtoSetup
         'migrate::repairSerchKeywords',
     );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('seeLabel'),
-            array('label', 'seeLabel'),
-            array('labelMaster', 'label'),
+        array('seeLabel'),
+        array('label', 'seeLabel'),
+        array('labelMaster', 'label'),
     );
     
     
@@ -143,18 +143,21 @@ class label_Setup extends core_ProtoSetup
         $clsName = 'label_Labels';
         
         if (!cls::load($clsName, true)) {
+            
             return;
         }
         
         $clsInst = cls::get($clsName);
         
         if (!$clsInst->db->tableExists($clsInst->dbTableName)) {
+            
             return;
         }
         
         $pInst = cls::get('label_Prints');
         
         if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) {
+            
             return;
         }
         
@@ -203,24 +206,28 @@ class label_Setup extends core_ProtoSetup
         $clsName = 'label_Labels';
         
         if (!cls::load($clsName, true)) {
+            
             return;
         }
         
         $clsInst = cls::get($clsName);
         
         if (!$clsInst->db->tableExists($clsInst->dbTableName)) {
+            
             return;
         }
         
         $cItemsInst = cls::get('label_CounterItems');
         
         if (!$cItemsInst->db->isFieldExists($cItemsInst->dbTableName, str::phpToMysqlName('labelId'))) {
+            
             return;
         }
         
         $pInst = cls::get('label_Prints');
         
         if (!$pInst->db->isFieldExists($pInst->dbTableName, str::phpToMysqlName('labelId'))) {
+            
             return;
         }
         

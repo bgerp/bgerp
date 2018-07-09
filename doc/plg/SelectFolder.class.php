@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_SelectFolder extends core_Plugin
 {
-    
-    
     /**
      * След инициализирането на модела
      *
@@ -62,10 +62,10 @@ class doc_plg_SelectFolder extends core_Plugin
                     followRetUrl(array($mvc, 'list'), 'Документа не може да бъде създаден в папката', 'error');
                 }
             }
-                
+            
             return;
         }
-
+        
         if ($_companyId = Request::get('_companyId', 'key2(mvc=crm_Companies)')) {
             $cRec = crm_Companies::fetch($_companyId);
             if ($cRec) {
@@ -102,32 +102,34 @@ class doc_plg_SelectFolder extends core_Plugin
         if ($folderId) {
             $allParams['folderId'] = $folderId;
             
-           
+            
             $tpl = new Redirect(
+                    
                     // Редирект към създаването на документа в ясната папка
                     toUrl($allParams)
             
-           
+            
             );
-                
+            
             return false;
         }
- 
-
+        
+        
         // Ако няма форма - не правим нищо
         if (!$form) {
+            
             return;
         }
         
-
+        
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
         return false;
     }
-
-
+    
+    
     /**
      * Подготвя формата за избор на папка, за новия документ от клас $mvc
      */
@@ -147,11 +149,11 @@ class doc_plg_SelectFolder extends core_Plugin
         
         $retUrlOrg = Request::getParams();
         unset($retUrlOrg['virtual_url']);
-
+        
         if (in_array('crm_Companies', $coverArr)) {
             $form->FLD('_companyId', 'key2(mvc=crm_Companies, allowEmpty, restrictViewAccess=yes)', 'caption=Фирма,class=w100 clearSelect');
             $form->setField('_companyId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
-
+            
             $retUrl = $retUrlOrg;
             $retUrl['_companyId'] = crm_Companies::getUrlPlaceholder('id');
             $form->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => $retUrl), 'ef_icon =img/16/office-building-add.png, title=В папка на нова фирма');
@@ -172,7 +174,7 @@ class doc_plg_SelectFolder extends core_Plugin
             $retUrl['_projectId'] = doc_UnsortedFolders::getUrlPlaceholder('id');
             $form->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/vcard-add.png, title=В нов проект");
         } */
-
+        
         $defaultFolderId = Request::get('defaultFolderId');
         
         if (!$defaultFolderId) {
@@ -192,7 +194,8 @@ class doc_plg_SelectFolder extends core_Plugin
     /**
      * Помощен метод за определяне на URL при успешен запис или отказ
      *
-     * @param  core_Mvc $mvc
+     * @param core_Mvc $mvc
+     *
      * @return array
      */
     protected static function getRetUrl(core_Mvc $mvc)
@@ -213,7 +216,9 @@ class doc_plg_SelectFolder extends core_Plugin
     
     /**
      * Връща масив с допустимите корици, където може да се добави документа
-     * @param  core_Mvc $mvc
+     *
+     * @param core_Mvc $mvc
+     *
      * @return array
      */
     public static function getAllowedCovers(core_Mvc $mvc)
@@ -223,9 +228,10 @@ class doc_plg_SelectFolder extends core_Plugin
         
         // Ако няма корици се прескача плъгина
         if (!count($interfaces)) {
+            
             return;
         }
-         
+        
         // Ако има '*' се показват всички класове които могат да са корици
         if (in_array('*', $interfaces)) {
             $interfaces = array('doc_FolderIntf');
@@ -248,16 +254,17 @@ class doc_plg_SelectFolder extends core_Plugin
         return $coversArr;
     }
     
-
+    
     /**
      * Дефолтен метод, който разрешава документа да се слага в производлни папки
      */
     public static function on_AfterGetCoversAndInterfacesForNewDoc($mvc, &$res)
     {
         if ($res) {
+            
             return;
         }
-
+        
         if ($mvc->coversAndInterfacesForNewDoc) {
             $res = $mvc->coversAndInterfacesForNewDoc;
         } else {
@@ -265,8 +272,7 @@ class doc_plg_SelectFolder extends core_Plugin
         }
     }
     
-     
-
+    
     /**
      * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
      *
@@ -278,7 +284,7 @@ class doc_plg_SelectFolder extends core_Plugin
             $fRec = doc_Folders::fetch($folderId);
             if (!$allowedCovers[$fRec->coverClass]) {
                 $res = false;
-
+                
                 return false;
             }
         }

@@ -7,26 +7,26 @@
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_GalleryGroups extends core_Manager
 {
-    
-    
     /**
      * Кой има право да чете
      */
     public $canRead = 'user';
     
-
+    
     /**
      * Кой  може да пише?
      */
     public $canWrite = 'user';
-
+    
     
     /**
      * Заглавие
@@ -38,7 +38,6 @@ class cms_GalleryGroups extends core_Manager
      * Наименование на единичния обект
      */
     public $singleTitle = 'Група от картинки';
-    
     
     
     /**
@@ -55,6 +54,7 @@ class cms_GalleryGroups extends core_Manager
     
     /**
      * Кой може да променя съсъоянието
+     *
      * @see plg_State2
      */
     public $canChangestate = 'user';
@@ -74,6 +74,7 @@ class cms_GalleryGroups extends core_Manager
     
     /**
      * Името на полето, което ще се използва от плъгина
+     *
      * @see cms_GalleryTitlePlg
      */
     public $galleryTitleFieldName = 'title';
@@ -101,7 +102,7 @@ class cms_GalleryGroups extends core_Manager
         $this->FLD('tpl', 'html', 'caption=Шаблон');
         
         $this->FLD('style', 'varchar', 'caption=Стил');
-
+        
         $this->FLD('tWidth', 'int', 'caption=Тъмб->Широчина');
         $this->FLD('tHeight', 'int', 'caption=Тъмб->Височина');
         
@@ -135,14 +136,14 @@ class cms_GalleryGroups extends core_Manager
             7 => 'height',
             8 => 'roles',
         );
-                
+        
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($this, $file, $fields, null, array('delimiter' => '|'), false);
-         
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
-
+        
         return $res;
     }
     
@@ -179,11 +180,10 @@ class cms_GalleryGroups extends core_Manager
     /**
      * Връща id на групата по подразбиране
      *
-     * @return integer
+     * @return int
      */
     public static function getDefaultGroupId()
     {
-        
         // По подразбиране да се използва групата централни
         return cms_GalleryGroups::fetchField("#title = 'Централни'");
     }
@@ -323,11 +323,11 @@ class cms_GalleryGroups extends core_Manager
      * Ограничаваме заявката да се показват само групите споделени с определени потребители
      *
      * @param core_Query $query          - Заявката
-     * @param boolean    $orToPrevious   - Дали да се залепи с OR към предишната заявка
+     * @param bool       $orToPrevious   - Дали да се залепи с OR към предишната заявка
      * @param string     $rolesFieldName - Името на полето
-     * @param integer    $userId         - id на потребителя
+     * @param int        $userId         - id на потребителя
      *
-     * @return boolean
+     * @return bool
      */
     public static function restrictRoles(&$query, $orToPrevious = false, $rolesFieldName = 'roles', $userId = null)
     {
@@ -356,17 +356,16 @@ class cms_GalleryGroups extends core_Manager
         return true;
     }
     
-
     
     /**
      * Ограничаваме заявката да се показват само групите споделени до определени потребители
      *
      * @param core_Query $query          - Заявката
-     * @param boolean    $orToPrevious   - Дали да се залепи с OR към предишната заявка
+     * @param bool       $orToPrevious   - Дали да се залепи с OR към предишната заявка
      * @param string     $rolesFieldName - Името на полето
-     * @param integer    $userId         - id на потребителя
+     * @param int        $userId         - id на потребителя
      *
-     * @return boolean
+     * @return bool
      */
     public static function restrictSharedTo(&$query, $orToPrevious = false, $rolesFieldName = 'sharedTo', $userId = null)
     {
@@ -400,11 +399,11 @@ class cms_GalleryGroups extends core_Manager
      * Ограничаваме да се показва само групите създадени от съответния потребител
      *
      * @param core_Query $query          - Заявката
-     * @param boolean    $orToPrevious   - Дали да се залепи с OR към предишната заявка
+     * @param bool       $orToPrevious   - Дали да се залепи с OR към предишната заявка
      * @param string     $rolesFieldName - Името на полето
-     * @param integer    $userId         - id на потребителя
+     * @param int        $userId         - id на потребителя
      *
-     * @return boolean
+     * @return bool
      */
     public static function restrictCreated(&$query, $orToPrevious = false, $rolesFieldName = 'createdBy', $userId = null)
     {
@@ -435,6 +434,7 @@ class cms_GalleryGroups extends core_Manager
      * Подготвя полето за заглавие
      *
      * @param object $rec
+     *
      * @see cms_GalleryTitlePlg
      */
     public function prepareRecTitle(&$rec)
@@ -460,16 +460,16 @@ class cms_GalleryGroups extends core_Manager
         
         // Очакваме да е има права за добавяне
         $this->requireRightFor('list');
-    
+        
         // Обект с необходомите данни
         $data = new stdClass();
-    
+        
         // Създаваме заявката
         $data->query = $this->getQuery();
-    
+        
         // Подготвяме филтъра
         $this->prepareListFilter($data);
-    
+        
         // По - новите добавени да са по - напред
         $data->query->orderBy('#createdOn', 'DESC');
         
@@ -480,13 +480,13 @@ class cms_GalleryGroups extends core_Manager
         
         // Титлата на формата
         $data->title = 'Групи в галерия';
-    
+        
         // Брой елементи на страница
         $this->listItemsPerPage = $this->galleryListItemsPerPage;
-    
+        
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
-    
+        
         // Подготвяме записите за таблицата
         $this->prepareListRecs($data);
         
@@ -497,16 +497,16 @@ class cms_GalleryGroups extends core_Manager
         
         // Рендираме изгледа
         $tpl = $this->renderGalleryDialogList($data);
-    
+        
         // Задаваме врапера
         Mode::set('wrapper', 'page_Dialog');
-    
+        
         // Добавяме бутона за затваряне
         $tpl->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
-    
+        
         // Рендираме опаковката
         $tpl = $this->renderDialog($tpl);
-    
+        
         return $tpl;
     }
     

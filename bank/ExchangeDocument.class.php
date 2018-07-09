@@ -1,20 +1,20 @@
 <?php 
 
-
 /**
  * Документ за Смяна на валута
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_ExchangeDocument extends core_Master
 {
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -170,6 +170,7 @@ class bank_ExchangeDocument extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'peroFrom')) {
@@ -194,6 +195,7 @@ class bank_ExchangeDocument extends core_Master
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         if ($action != 'add') {
+            
             return;
         }
         
@@ -304,7 +306,7 @@ class bank_ExchangeDocument extends core_Master
                 
                 return true;
             }
-
+            
             return false;
         });
     }
@@ -314,8 +316,9 @@ class bank_ExchangeDocument extends core_Master
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {

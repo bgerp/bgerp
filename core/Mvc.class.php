@@ -1,12 +1,10 @@
 <?php
 
 
-
 /**
  * По подразбиране, няма префикс преди името на таблицата
  */
 defIfNot('EF_DB_TABLE_PREFIX', '');
-
 
 
 /**
@@ -27,42 +25,43 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  *
- * @method integer  save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
+ * @method int  save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
  * @method bool     haveRightFor(string $action, NULL|int|object $id = NULL, int|NULL $userId = NULL)
  */
 class core_Mvc extends core_FieldSet
 {
-
     /**
      * Дължината на защитната контролна сума за id-тата на този модел
      */
     public $idChecksumLen = EF_ID_CHECKSUM_LEN;
-
-
+    
+    
     /**
      * По подразбиране типа на id полето е int
      */
     protected $idType = 'int';
-
-
+    
+    
     /**
      * Името на класа, case sensitive
      */
     public $className;
-
-
+    
+    
     /**
      * Масив за кеширане на извлечените чрез fetch() записи
      */
     public $_cachedRecords;
-
-
+    
+    
     /**
      * Списък с полета, които трябва да се извлекат преди операция 'изтриване'
      * за записите, които ще бъдат изтрити. Помага за да се поддържа информация
@@ -70,25 +69,25 @@ class core_Mvc extends core_FieldSet
      */
     public $fetchFieldsBeforeDelete;
     
-
+    
     /**
      * Дали id-тата на този модел да са защитени?
      */
     public $protectId = true;
-
-
+    
+    
     /**
      * Инстанция на връзката с базата данни
      */
     public $db;
-
-
+    
+    
     /**
      * Име на съответстващата таблица в базата данни
      */
     public $dbTableName;
-
-
+    
+    
     /**
      * Индекси в базата данни
      */
@@ -101,20 +100,20 @@ class core_Mvc extends core_FieldSet
     public function _Singleton()
     {
     }
-
-
+    
+    
     /**
      * Енджина за таблицата в DB
      */
     public $dbEngine;
     
-
+    
     /**
      *  Колация за символите в DB
      */
     protected $dbCollation;
-
-
+    
+    
     /**
      * Какъв да е минималния брой за кеширане при подготовката на MakeArray4Select
      */
@@ -125,7 +124,7 @@ class core_Mvc extends core_FieldSet
      * Кеш за резултатите от makeArray4select(), когато са по-малко от $makeArray4selectLimit4Cache
      */
     public $makeArray4selectCache = array();
-
+    
     
     /**
      * Полета, които при клониране да не са попълнени
@@ -144,53 +143,52 @@ class core_Mvc extends core_FieldSet
     {
         // Сетваме параметрите по родителския начин
         parent::init($params);
-
+        
         // Задаваме името на класа
         if (!$this->className) {
             $this->className = cls::getClassName($this);
         }
-
+        
         // Задаваме базата данни по подразбиране, ако в description() тя не е установена
         $this->db = & cls::get('core_Db');
-
+        
         // Ако имаме описание на модел (т.е. метода $this->description() )
         if (cls::existsMethod($this, 'description')) {
             $class = $this->className;
-
+            
             // Намираме, кой е най-стария пра-родител на този клас, с 'description'
             do {
                 $descrClass = $class;
             } while (method_exists($class = get_parent_class($class), 'description'));
-
+            
             // Задаваме таблицата по подразбиране
             $this->dbTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($descrClass);
-
+            
             $this->FLD('id', $this->idType, 'input=hidden,silent,caption=№,unsigned,notNull');
-
+            
             // Създаваме описанието на таблицата
             $this->description();
         }
-
+        
         // Зареждаме мениджърите и плъгините
         $this->load($this->loadList);
-
+        
         // Изпращаме събитие, че създаването на класа е приключило
         $this->invoke('AfterDescription');
     }
-
-
+    
+    
     /**
      * Връща инстанция към този клас
      */
     public static function getSingleton()
     {
         $me = cls::get(get_called_class());
-         
+        
         return $me;
     }
-
-
-
+    
+    
     /**
      * Начално установяване на модела чрез http заявка (само в Debug)
      */
@@ -199,21 +197,21 @@ class core_Mvc extends core_FieldSet
         if (!isDebug()) {
             error('@SETUP може да се прави само в DEBUG режим');
         }
-
+        
         // Форсираме системния потребител
         core_Users::forceSystemUser();
-
+        
         $res = $this->setupMVC();
         
         $res .= core_Classes::add($this);
         
         // Де-форсираме системния потребител
         core_Users::cancelSystemUser();
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Задава списък с полета или връзки, които в комбинация са уникални
      */
@@ -221,8 +219,8 @@ class core_Mvc extends core_FieldSet
     {
         return $this->setDbIndex($fieldsList, $indexName, 'UNIQUE');
     }
-
-
+    
+    
     /**
      * Задава индекс върху списък от полета или връзки
      */
@@ -231,62 +229,63 @@ class core_Mvc extends core_FieldSet
         $rec = new stdClass();
         $rec->fields = $fieldsList;
         $rec->type = $type;
-
+        
         if (!$indexName) {
             $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($fieldsList))));
         }
-
+        
         if (isset($this->dbIndexes[$indexName])) {
             error('@Дублирано име за индекс в базата данни', $indexName, $this->dbIndexes);
         }
-
+        
         $this->dbIndexes[$indexName] = $rec;
     }
-
-
+    
+    
     /**
      * Връща един запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
     public static function fetch($cond, $fields = '*', $cache = true)
     {
         expect($cond !== null && (is_int($cond) || is_string($cond) || is_array($cond)), $cond);
-
+        
         $me = cls::get(get_called_class());
-
+        
         $query = $me->getQuery();
-
+        
         if (is_array($cond)) {
             $cond = $query->substituteArray($cond);
         }
-
+        
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {
             expect(!is_object($cond), $cond);
             $cacheKey = $cond . '|' . $fields;
-
+            
             if (isset($me->_cachedRecords[$cacheKey])) {
                 if (is_object($me->_cachedRecords[$cacheKey])) {
                     
                     return clone ($me->_cachedRecords[$cacheKey]);
                 }
-
+                
                 return $me->_cachedRecords[$cacheKey];
             }
         }
         
         if ($cache === 'only') {
+            
             return;
         }
-
+        
         if ($fields != '*') {
             $query->show($fields);
         }
-
+        
         // Лимитираме само до 1 резултат
         $query->limit(1);
-
+        
         $rec = $query->fetch($cond);
-
+        
         // Ако е необходимо, записваме в кеша
         if ($cache) {
             if (is_object($rec)) {
@@ -296,7 +295,7 @@ class core_Mvc extends core_FieldSet
             }
             $me->_cachedRecords[$cacheKey] = $cacheData;
         }
-
+        
         return $rec;
     }
     
@@ -337,58 +336,58 @@ class core_Mvc extends core_FieldSet
         if (!$rec) {
             $rec = static::fetch($cond, $field, $cache);
         }
-
+        
         return $rec->{$field};
     }
-
-
+    
+    
     /**
      * Записва редът (записа) в таблицата
      */
     public function save_(&$rec, $fields = null, $mode = null)
     {
         $fields = $this->prepareSaveFields($fields, $rec);
-
+        
         $table = $this->dbTableName;
-
+        
         foreach ($fields as $name => $dummy) {
             if ($name == 'id' && !$mode) {
                 continue;
             }
-
+            
             $value = $rec->{$name};
-
+            
             $field = $this->getField($name);
-
+            
             // Правим MySQL представяне на стойността
             $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
-
+            
             // Ако няма mySQL представяне на тази стойност, то тя не участва в записа
             if ($value === null) {
                 continue;
             }
-
+            
             $mysqlField = str::phpToMysqlName($name);
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
         
         $mode = str_replace(' ', '_', strtolower($mode));
-
+        
         if ($rec->id > 0 && $mode != 'replace') {
             switch ($mode) {
                 case 'low_priority':
                     $query = "UPDATE LOW_PRIORITY `{$table}` SET {$query} WHERE id = {$rec->id}";
                     break;
-
+                
                 case 'ignore':
                     $query = "UPDATE IGNORE `{$table}` SET {$query} WHERE id = {$rec->id}";
                     break;
-
+                
                 case '':
                 case 'update':
                     $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
                     break;
-
+                
                 default:
                     error('Неподдържан режим на запис', $mode, $rec);
             }
@@ -397,43 +396,43 @@ class core_Mvc extends core_FieldSet
                 case 'replace':
                     $query = "REPLACE `{$table}` SET {$query}";
                     break;
-
+                
                 case 'ignore':
                     $query = "INSERT IGNORE `{$table}` SET {$query}";
                     break;
-
+                
                 case 'delayed':
                     $query = "INSERT DELAYED `{$table}` SET {$query}";
                     break;
-
+                
                 case '':
                 case 'update':
                     $query = "INSERT  INTO `{$table}` SET {$query}";
                     break;
-
+                
                 default:
                     error('Неподдържан режим на запис', $mode, $rec);
             }
         }
-
+        
         if (!$this->db->query($query)) {
             
             return false;
         }
-         
+        
         $this->dbTableUpdated();
-
+        
         if (!$rec->id) {
             $rec->id = $this->db->insertId();
             $this->invoke('afterCreate', array($rec, $fields, $mode));
         } else {
             $this->invoke('afterUpdate', array($rec, $fields, $mode));
         }
-
+        
         return $rec->id;
     }
-
-
+    
+    
     /**
      * Записва няколко записа от модела с една заявка, ако има дуплицирани, обновява ги
      */
@@ -447,7 +446,7 @@ class core_Mvc extends core_FieldSet
         
         // Гарантираме си, че $fields са масив
         $fields = arr::make($fields, true);
-
+        
         // Определяме полетата, които ще записваме
         $fieldsArr = array();
         $fieldsMvc = $this->selectFields('FLD');
@@ -462,11 +461,11 @@ class core_Mvc extends core_FieldSet
         
         // Очакваме, че имаме поне едно поле, което да записваме
         expect(count($fieldsArr));
-
+        
         // Композираме началото и края на заявката към db
         $queryBegin = "INSERT INTO `{$this->dbTableName}` (" . rtrim($insertFields, ',') . ') VALUES ';
         $queryEnd = ' ON DUPLICATE KEY UPDATE ' . rtrim($updateFields, ',');
-
+        
         // Изчисляваме, колко байта не трябва да превишава стринга със стойностите
         $maxLen = CORE_MAX_SQL_QUERY - strlen($queryBegin) - strlen($queryEnd);
         
@@ -499,7 +498,7 @@ class core_Mvc extends core_FieldSet
                 return false;
             }
         }
-
+        
         return true;
     }
     
@@ -521,7 +520,7 @@ class core_Mvc extends core_FieldSet
     {
         if ($fields === null) {
             $recFields = get_object_vars($rec);
-
+            
             foreach ($recFields as $name => $dummy) {
                 if ($this->fields[$name]->kind == 'FLD') {
                     $fields[$name] = true;
@@ -530,11 +529,11 @@ class core_Mvc extends core_FieldSet
         } else {
             $fields = arr::make($fields, true);
         }
-
+        
         return $fields;
     }
-
-
+    
+    
     /**
      * Изтрива записи отговарящи на условието
      * Максималния брой на изтритите записи се задава в $limit
@@ -543,24 +542,24 @@ class core_Mvc extends core_FieldSet
     public static function delete($cond, $limit = null, $orderBy = null)
     {
         expect($cond !== null);
-
+        
         $me = cls::get(get_called_class());
-
+        
         $query = $me->getQuery();
-
+        
         if ($limit) {
             $query->limit($limit);
         }
-
+        
         if ($orderBy) {
             $query->orderBy($orderBy);
         }
-
+        
         $deletedRecsCnt = $query->delete($cond);
-
+        
         return $deletedRecsCnt;
     }
-
+    
     
     /**
      * Преброява всички записи отговарящи на условието
@@ -568,15 +567,14 @@ class core_Mvc extends core_FieldSet
     public static function count($cond = '1=1', $limit = null)
     {
         $me = cls::get(get_called_class());
-
+        
         $query = $me->getQuery();
         
         $cnt = $query->count($cond, $limit);
         
-
         return $cnt;
     }
-
+    
     
     /**
      * Връща времето на последната модификация на MySQL-ската таблица на модела
@@ -584,21 +582,21 @@ class core_Mvc extends core_FieldSet
     public static function getDbTableUpdateTime()
     {
         $me = cls::get(get_called_class());
-
+        
         if (empty($me->lastUpdateTime)) {
             $dbRes = $me->db->query("SELECT UPDATE_TIME\n" .
                 "FROM   information_schema.tables\n" .
                 "WHERE  TABLE_SCHEMA = '{$me->db->dbName}'\n" .
                 "   AND TABLE_NAME = '{$me->dbTableName}'");
             $dbObj = $me->db->fetchObject($dbRes);
-
+            
             $me->lastUpdateTime = $dbObj->UPDATE_TIME;
         }
-
+        
         return $me->lastUpdateTime;
     }
-
-
+    
+    
     /**
      * Извиква се след като е променяна MySQL-ската таблица
      */
@@ -607,21 +605,21 @@ class core_Mvc extends core_FieldSet
         $this->_cachedRecords = array();
         $this->lastUpdateTime = DT::verbal2mysql();
     }
-
-
+    
+    
     public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $query = self::getQuery();
-
+        
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
                 
                 return array();
             }
-
+            
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-
+            
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
@@ -629,12 +627,12 @@ class core_Mvc extends core_FieldSet
         
         $titleFld = $params['titleFld'];
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
-       
+        
         if ($q) {
             if ($q{0} == '"') {
                 $strict = true;
             }
-
+            
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
             $q = mb_strtolower($q);
@@ -650,21 +648,21 @@ class core_Mvc extends core_FieldSet
                 $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
- 
+        
         if ($limit) {
             $query->limit($limit);
         }
-
+        
         $query->show('id,' . $titleFld);
-
+        
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec->{$titleFld};
         }
- 
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
      * на $class отговарящи на условието where
@@ -672,9 +670,9 @@ class core_Mvc extends core_FieldSet
     public function makeArray4Select_($fields = null, $where = '', $index = 'id', $orderBy = null)
     {
         $query = $this->getQuery();
-
+        
         $arrFields = arr::make($fields, true);
-
+        
         if ($fields) {
             $query->show($fields);
             $query->show($index);
@@ -682,7 +680,7 @@ class core_Mvc extends core_FieldSet
         }
         
         $res = null;
-
+        
         $handler = md5("{$fields} . {$where} . {$index} . {$orderBy} . {$this->className}");
         
         $res = $this->makeArray4selectCache[$handler];
@@ -697,12 +695,12 @@ class core_Mvc extends core_FieldSet
         
         if (!is_array($res)) {
             $res = array();
-
+            
             while ($rec = $query->fetch($where)) {
                 $id = $rec->id;
-
+                
                 $res[$rec->{$index}] = '';
-
+                
                 if ($fields) {
                     foreach ($arrFields as $fld) {
                         $res[$rec->{$index}] .= ($res[$rec->{$index}] ? ' ' : '') . $this->getVerbal($rec, $fld);
@@ -710,12 +708,12 @@ class core_Mvc extends core_FieldSet
                 } else {
                     $res[$rec->{$index}] = $this->getRecTitle($rec);
                 }
-
+                
                 $res[$rec->{$index}] = strip_tags($res[$rec->{$index}]);
-
+                
                 $res[$rec->{$index}] = str_replace(array('&lt;', '&amp;'), array('<', '&'), $res[$rec->{$index}]);
             }
-
+            
             if ($cnt >= $this->makeArray4selectLimit4Cache) {
                 core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
             } else {
@@ -723,12 +721,10 @@ class core_Mvc extends core_FieldSet
             }
         }
         
- 
- 
         return $res;
     }
-
-
+    
+    
     /**
      * Конвертира един запис в разбираем за човека вид
      * Входният параметър $rec е оригиналният запис от модела
@@ -737,65 +733,65 @@ class core_Mvc extends core_FieldSet
     public static function recToVerbal_($rec, &$fields = '*')
     {
         $me = cls::get(get_called_class());
-
+        
         $modelFields = $me->selectFields('');
-
+        
         if ($fields === '*') {
             $fields = $modelFields;
         } else {
             $fields = arr::make($fields, true);
         }
-
+        
         $row = new stdClass();
-
+        
         if (count($fields) > 0) {
             foreach ($fields as $name => $caption) {
                 expect($name);
                 if (!$row->{$name} && $modelFields[$name]) {
                     //DEBUG::startTimer("GetVerbal");
                     $row->{$name} = $me->getVerbal($rec, $name);
-
+                    
                     //DEBUG::stopTimer("GetVerbal");
                 }
             }
         }
-
+        
         return $row;
     }
-
-
+    
+    
     /**
      * Превръща стойността на посоченото поле във вербална
      */
     public static function getVerbal_($rec, $fieldName)
     {
         $me = cls::get(get_called_class());
-
+        
         if (is_numeric($rec) && ($rec > 0)) {
             $rec = $me->fetch($rec);
         }
-
+        
         if (!is_object($rec)) {
             
             return '?????';
         }
-
+        
         expect(is_scalar($fieldName));
-
+        
         expect($me->fields[$fieldName], 'Не съществуващо поле: ' . $fieldName);
-
+        
         $value = $rec->{$fieldName};
-
+        
         if (isset($me->fields[$fieldName]->options) && is_array($me->fields[$fieldName]->options)) {
             $res = $me->fields[$fieldName]->options[$value];
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -812,7 +808,7 @@ class core_Mvc extends core_FieldSet
                 'nick',
                 'id'
             );
-
+            
             foreach ($titleFields as $fieldName) {
                 if (isset($cRec->{$fieldName})) {
                     $tpl = new ET("[#{$fieldName}#]");
@@ -820,10 +816,10 @@ class core_Mvc extends core_FieldSet
                 }
             }
         }
-
+        
         if ($tpl) {
             $tpl = new ET($tpl);
-
+            
             //Ескейпваме всички записи, които имат шаблони преди да ги заместим
             if ($escaped) {
                 $places = $tpl->getPlaceholders();
@@ -832,29 +828,29 @@ class core_Mvc extends core_FieldSet
                     $cRec->{$place} = type_Varchar::escape($rec->{$place});
                 }
             }
-
+            
             if ($fieldName == 'id' && isset($me->singleTitle)) {
                 $cRec->id = tr("|{$me->singleTitle}|* №") . $cRec->id;
             }
             
             $tpl->placeObject($cRec);
-
+            
             $value = (string) $tpl;
             
             return $value;
         }
     }
-
-
+    
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на ключа
      */
     public static function getTitleById($id, $escaped = true)
     {
         $me = cls::get(get_called_class());
-
+        
         $rec = new stdClass();
-
+        
         try {
             $rec = $me->fetchRec($id);
         } catch (ErrorException $e) {
@@ -872,19 +868,19 @@ class core_Mvc extends core_FieldSet
     /**
      *
      *
-     * @param integer $id
-     * @param boolean $escaped
+     * @param int  $id
+     * @param bool $escaped
      */
     public static function getTitleForId_($id, $escaped = true)
     {
         return self::getTitleById($id);
     }
     
-
+    
     /**
      * Връща линк към подадения обект
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */
@@ -904,9 +900,10 @@ class core_Mvc extends core_FieldSet
         return $link;
     }
     
-
+    
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален
+     *
      * @param: $rec stdClass записа, който ще се проверява
      * @param: $fields array|string полетата, които не уникални.
      * @return: bool
@@ -928,7 +925,7 @@ class core_Mvc extends core_FieldSet
                 }
             } else {
                 $fields = false;
-
+                
                 return true;
             }
         }
@@ -936,34 +933,34 @@ class core_Mvc extends core_FieldSet
         foreach ($checkFields as $fArr) {
             $fieldSetFlag = true;
             $cond = $rec->id ? "#id != {$rec->id}" : '';
-
+            
             foreach ($fArr as $fName) {
                 if (!isset($rec->{$fName})) {
                     $fieldSetFlag = false;
                     break;
                 }
-
+                
                 $field = $this->getField($fName);
-
+                
                 $value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull, $field->value);
-
+                
                 $cond .= ($cond ? ' AND ' : '') . "#{$fName} = {$value}";
             }
- 
+            
             // Ако всички полета от множеството са сетнати, правим проверка, дали подобен запис съществува
             if ($fieldSetFlag && ($exRec = $this->fetch($cond))) {
                 $fields = $fArr;
-
+                
                 return false;
             }
         }
-
+        
         $fields = false;
-
+        
         return true;
     }
-
-
+    
+    
     /**
      * Начално установяване на таблицата в базата данни,
      * без да губим данните от предишни установявания
@@ -971,19 +968,19 @@ class core_Mvc extends core_FieldSet
     public function setupMVC()
     {
         $html = '<li>Създаване на модела <b>' . $this->className . "</b></li><ul style='margin-bottom:10px;'>";
-
+        
         // Запалваме събитието on_BeforeSetup
         if ($this->invoke('BeforeSetupMVC', array(&$html)) === false) {
             $html .= '<li>Пропускаме началното установяване на модела</li>';
-
+            
             return "${html}</ul>";
         }
-
+        
         if ($this->oldClassName) {
             $oldTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($this->oldClassName);
-
+            
             $newTableName = $this->dbTableName;
-
+            
             if (!$this->db->tableExists($newTableName)) {
                 if ($this->db->tableExists($oldTableName)) {
                     $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}");
@@ -991,91 +988,92 @@ class core_Mvc extends core_FieldSet
                 }
             }
         }
-
+        
         // Какви физически полета има таблицата?
         $fields = $this->selectFields("#kind == 'FLD'");
-
+        
         if ($this->dbTableName && count($fields)) {
             $tableName = $this->dbTableName;
-
+            
             $db = $this->db;     // За краткост
-
+            
             // Параметри на таблицата
             $tableParams = array('ENGINE' => $this->dbEngine,
-                                 'CHARACTER' => $this->dbCharacter,
-                                 'COLLATION' => $this->dbCollation);
+                'CHARACTER' => $this->dbCharacter,
+                'COLLATION' => $this->dbCollation);
+            
             // Създаваме таблицата, ако не е създадена
             $action = $db->forceTable($tableName, $tableParams, $debugLog) ?
             '<li class="debug-new">Създаване на таблица:  ' :
             '<li class="debug-info">Съществуваща от преди таблица:  ';
-
+            
             $html .= "{$action}<b>{$this->dbTableName}</b></li>" . $debugLog;
-
+            
             foreach ($fields as $name => $field) {
-
+                
                 // Нулираме флаговете за промяна
                 $updateName = $updateType = $updateOptions = $updateSize =
                 $updateNotNull = $updateSigned = $updateDefault = $updateCollation = false;
-
+                
                 // Пропускаме PRI полето
                 if ($name == 'id' && $this->idType == 'int') {
                     continue;
                 }
-
+                
                 // Името на полето, така, както трябва да е в таблицата
                 $name = str::phpToMysqlName($name);
-
+                
                 // Първи в списъка за проверка, попада полето с име, както е в модела
                 $fieldsCheckList = $name;
-
+                
                 // Ако има стари полета, и те влизат в списъка за проверка
                 if ($field->oldFieldName) {
                     $fieldsCheckList = $fieldsCheckList . '|' . $field->oldFieldName;
                 }
-
+                
                 foreach (explode('|', $fieldsCheckList) as $fn) {
-
+                    
                     // Не бива в модела, да има поле като старото
                     if ($this->fields[$fn] && ($fn != $name)) {
                         error('@Дублиране на старо име на поле и съществуващо поле', "'{$fn}'");
                     }
-
+                    
                     $fn = str::phpToMysqlName($fn);
-
+                    
                     $dfAttr = $db->getFieldAttr($tableName, $fn);
-
+                    
                     // Ако поле с такова име съществува, работим върху него
                     if ($dfAttr) {
                         break;
                     }
                 }
-
+                
                 // Установяваме mfArrt с параметрите на модела
                 $mfAttr = $field->type->getMysqlAttr();
                 
                 if ($mfAttr->collation == 'ci') {
                     $mfAttr->collation = $this->db->dbCharset . '_general_ci';
                 }
-
+                
                 $mfAttr->field = $dfAttr->field;
-
+                
                 $mfAttr->notNull = $field->notNull ? true : false;
-
+                
                 if (isset($field->value)) {
                     $mfAttr->default = $field->value;
                 }
-
+                
                 $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? true : false;
-
+                
                 $mfAttr->name = $name;
-
+                
                 $green = " style='color:#007733;'";     // Стил за маркиране
                 $info = '';     // Тук ще записваме текущия ред с информация какво правим
                 // Дали ще създаваме или променяме името на полето
                 if ($mfAttr->name != $mfAttr->field) {
                     $updateName = true;     // Ще се прави UPDATE на името
                 }
-
+                
                 // Обновяване на типа
                 $updateType = ($mfAttr->type != $dfAttr->type);
                 $style = $updateType ? $green : '';
@@ -1084,14 +1082,14 @@ class core_Mvc extends core_FieldSet
                     $_tt .= " ({$dfAttr->type})";
                 }
                 $info .= "<span{$style}>${_tt}</span>";
-
+                
                 // Обновяване на опциите
                 if ($this->db->isType($mfAttr->type, 'have_options')) {
                     $info .= '(';
-
+                    
                     if (count($mfAttr->options)) {
                         $comma = '';
-
+                        
                         foreach ($mfAttr->options as $opt) {
                             if (is_array($dfAttr->options) && in_array($opt, $dfAttr->options)) {
                                 $info .= $comma . str_replace("'", "''", $opt);
@@ -1100,31 +1098,31 @@ class core_Mvc extends core_FieldSet
                                 $info .= $comma . "<span{$green}>" .
                                 str_replace("'", "''", $opt) . '</span>';
                             }
-
+                            
                             $comma = ', ';
                         }
                     }
-
+                    
                     $info .= ') ';
                 }
-
+                
                 // Ще обновяваме ли размера
                 if ($this->db->isType($mfAttr->type, 'have_len')) {
                     $updateSize = $mfAttr->size != $dfAttr->size;
                     $style = $updateSize ? $green : '';
                     $info .= "(<span{$style}>{$mfAttr->size}</span>)";
                 }
-
+                
                 // Ще обновяваме ли notNull
                 $updateNotNull = ($mfAttr->notNull != $dfAttr->notNull);
                 $style = $updateNotNull ? $green : '';
                 $info .= ", <span{$style}>" . ($mfAttr->notNull ?
                     'NOT NULL' : 'NULL') . '</span>';
-
+                
                 // Ще обновяваме ли default?
                 $updateDefault = ($mfAttr->default != $dfAttr->default);
                 $style = $updateDefault ? $green : '';
-
+                
                 if ($mfAttr->default) {
                     $info .= ", <span{$style}>{$mfAttr->default}</span>";
                 } elseif ($updateDefault) {
@@ -1134,7 +1132,7 @@ class core_Mvc extends core_FieldSet
                         $info .= ", <span{$style}>NULL</span>";
                     }
                 }
-
+                
                 // Ще обновяваме ли с/без знак?
                 if ($this->db->isType($mfAttr->type, 'can_be_unsigned')) {
                     $updateUnsigned = $mfAttr->unsigned != $dfAttr->unsigned;
@@ -1142,7 +1140,7 @@ class core_Mvc extends core_FieldSet
                     $info .= ", <span{$style}>" .
                     ($mfAttr->unsigned ? 'UNSIGNED' : 'SIGNED') . '</span>';
                 }
-
+                
                 // Ще обновяваме ли колацията?
                 if ($this->db->isType($mfAttr->type, 'have_collation')) {
                     setIfNot($mfAttr->collation, $field->collation, $this->db->dbCollation);
@@ -1152,7 +1150,7 @@ class core_Mvc extends core_FieldSet
                     $info .= ", <span{$style}>" .
                     ($mfAttr->collation) . '</span>';
                 }
-
+                
                 // Трябва ли да извършим обновяване/създаване на полето
                 if ($updateName || $updateType || $updateOptions || $updateSize ||
                     $updateNotNull || $updateUnsigned || $updateDefault || $updateCollation) {
@@ -1177,7 +1175,7 @@ class core_Mvc extends core_FieldSet
                         } else {
                             $html .= "<li class='debug-error'>Проблем при добавяне на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
                         }
-
+                        
                         continue;
                     }
                 } else {
@@ -1191,11 +1189,11 @@ class core_Mvc extends core_FieldSet
                 }
                 $html .= "<li{$liClass}>" . $title . ': ' . $info . '</li>';
             }
-
+            
             $indexes = $this->db->getIndexes($this->dbTableName);
-
+            
             unset($indexes['PRIMARY']);
- 
+            
             // Добавяме индексите
             if (is_array($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $name => $indRec) {
@@ -1206,7 +1204,7 @@ class core_Mvc extends core_FieldSet
                     foreach ($fArr as $fName) {
                         list($fName, ) = explode('(', $fName);
                         $fName = trim($fName);
-
+                        
                         $fType = $this->getFieldType($fName);
                         
                         $mySqlAttr = $fType->getMysqlAttr();
@@ -1222,7 +1220,7 @@ class core_Mvc extends core_FieldSet
                         }
                         $fieldsList .= ($fieldsList ? ',' : '') . $fName . $addLimit;
                     }
- 
+                    
                     if ($indexes[$name]) {
                         $exFields = $indexes[$name][$indRec->type];
                         $exFieldsList = '';
@@ -1241,7 +1239,7 @@ class core_Mvc extends core_FieldSet
                         unset($indexes[$name]);
                         
                         $fieldsList = str_replace(' ', '', $fieldsList);
-
+                        
                         // Ако полетата на съществуващия индекс са същите като на зададения, не се прави нищо
                         if (strtolower($exFieldsList) == strtolower($fieldsList)) {
                             $html .= "<li>Съществуващ индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>'</li>";
@@ -1254,7 +1252,7 @@ class core_Mvc extends core_FieldSet
                         $act = 'Добавен';
                         $cssClass = 'debug-new';
                     }
-                   
+                    
                     try {
                         if ($this->db->forceIndex($this->dbTableName, $fieldsList, $indRec->type, $name)) {
                             $html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$fieldsList}</b>'</li>";
@@ -1266,7 +1264,7 @@ class core_Mvc extends core_FieldSet
                     }
                 }
             }
-
+            
             if (count($indexes)) {
                 foreach ($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, '', 'DROP', $name);
@@ -1279,11 +1277,11 @@ class core_Mvc extends core_FieldSet
         
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
-
+        
         return "${html}</ul>";
     }
-
-
+    
+    
     /**
      * Връща асоциирана db-заявка към MVC-обекта
      *
@@ -1294,11 +1292,11 @@ class core_Mvc extends core_FieldSet
         $params = arr::make($params);
         setIfNot($params['mvc'], $this);
         $res = & cls::get('core_Query', $params);
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Връща асоциираната форма към MVC-обекта
      */
@@ -1307,30 +1305,30 @@ class core_Mvc extends core_FieldSet
         $params = arr::make($params);
         setIfNot($params['mvc'], $this);
         $res = & cls::get('core_Form', $params);
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Магически метод, който прихваща извикванията на липсващи статични методи
      */
     public static function __callStatic($method, $args)
     {
         $class = get_called_class();
-
+        
         $me = cls::get($class);
-
+        
         //Debug::log("Start $class->{$method}");
-
+        
         $res = $me->__call($method, $args);
-
+        
         //Debug::log("Finish $class->{$method}");
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Името на ДБ таблицата, в която се пазят данните на този модел
      *
@@ -1340,8 +1338,8 @@ class core_Mvc extends core_FieldSet
     {
         return static::instance()->dbTableName;
     }
-
-
+    
+    
     /**
      * Статичен достъп до (единствения, понеже е singleton) обект от този клас
      *
@@ -1365,8 +1363,8 @@ class core_Mvc extends core_FieldSet
     {
         return cls::get(get_called_class());
     }
-
-
+    
+    
     /**
      * Добавя контролна сума към ID параметър
      */
@@ -1376,40 +1374,42 @@ class core_Mvc extends core_FieldSet
             
             return $id;
         }
-
+        
         $hash = substr(base64_encode(md5(EF_SALT . $this->className . $id)), 0, $this->idChecksumLen);
         
         return $id . $hash;
     }
     
-
+    
     /**
      * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
      */
     public function unprotectId_($id)
     {
         $id = $this->db->escape($id);
-
+        
         if (!$this->protectId) {
             
             return $id;
         }
-
+        
         $idStrip = substr($id, 0, strlen($id) - $this->idChecksumLen);
         $idProt = $this->protectId($idStrip);
-
+        
         if ($id == $idProt) {
             
             return $idStrip;
         }
         sleep(2);
         Debug::log('Sleep 2 sec. in' . __CLASS__);
-
+        
         return false;
     }
     
+    
     /**
      * Прави стандартна 'обвивка' на изгледа
+     *
      * @todo: да се отдели като плъгин
      */
     public function renderWrapping_($tpl, $data = null)
@@ -1421,9 +1421,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя alert запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logAlert($action, $objectId = null, $lifeDays = 14)
     {
@@ -1435,9 +1435,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя err запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logErr($action, $objectId = null, $lifeDays = 10)
     {
@@ -1449,9 +1449,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя warning запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logWarning($action, $objectId = null, $lifeDays = 10)
     {
@@ -1463,9 +1463,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя notice запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logNotice($action, $objectId = null, $lifeDays = 5)
     {
@@ -1477,9 +1477,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя info запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logInfo($action, $objectId = null, $lifeDays = 7)
     {
@@ -1491,9 +1491,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя debug запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logDebug($action, $objectId = null, $lifeDays = 1)
     {
@@ -1505,9 +1505,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя info запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logRead($action, $objectId = null, $lifeDays = 180)
     {
@@ -1523,9 +1523,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя info запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logWrite($action, $objectId = null, $lifeDays = 360)
     {
@@ -1541,9 +1541,9 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя info запис в log_Data
      *
-     * @param string  $action
-     * @param integer $objectId
-     * @param integer $lifeDays
+     * @param string $action
+     * @param int    $objectId
+     * @param int    $lifeDays
      */
     public static function logLogin($action, $objectId = null, $lifeDays = 180)
     {
@@ -1564,7 +1564,7 @@ class core_Mvc extends core_FieldSet
     {
         // Временно спрян процеса по оптимизиране на таблиците
         return;
-
+        
         $db = cls::get('core_Db');
         
         $dbName = $db->escape($db->dbName);

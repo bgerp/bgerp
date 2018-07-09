@@ -1,34 +1,33 @@
 <?php
 
 
-
 /**
  * Клас  'type_Nick' - Тип за никове
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Nick extends type_Varchar
 {
-    
-    
     /**
      * Дължина на полето в mySql таблица
      */
     public $dbFieldLen = 64;
     
-
+    
     /**
      * Параметър определящ максималната широчина на полето
      */
     public $maxFieldSize = 10;
-
+    
     
     /**
      * Конвертира от вербална стойност
@@ -38,6 +37,7 @@ class type_Nick extends type_Varchar
         $value = parent::fromVerbal(trim($value));
         
         if ($value === '') {
+            
             return;
         }
         
@@ -45,13 +45,13 @@ class type_Nick extends type_Varchar
         
         if (!$this->isValidNick($value, $this->params['allowEmail'])) {
             $this->error = 'Въвели сте недопустима стойност:|* ' . parent::escape($value);
-
+            
             return false;
         }
         
         return $value;
     }
-
+    
     
     /**
      * Нормализира кейса и спец. символи в nika
@@ -64,7 +64,7 @@ class type_Nick extends type_Varchar
             $nick = str::toUpperAfter($nick, '.');
             $nick = str::toUpperAfter($nick, '_');
         }
-
+        
         return $nick;
     }
     
@@ -72,10 +72,10 @@ class type_Nick extends type_Varchar
     /**
      * Проверява дали е валиден
      *
-     * @param string  $nick
-     * @param boolean $allowEmail
+     * @param string $nick
+     * @param bool   $allowEmail
      *
-     * @return boolean
+     * @return bool
      */
     public function isValidNick($value, $allowEmail = false)
     {
@@ -83,14 +83,14 @@ class type_Nick extends type_Varchar
             
             return true;
         }
-
+        
         // Шаблон за потребителско име.
         // Позволени са малки и големи латински букви, цифри, долни черти и точки.
         // Трябва да започва с буква.
         // Между началото и края може да има букви, цифри и долни черти и точки.
         // Трябва да завършва с буква или цифра.
         $pattern = "/^[a-z]{1}([a-z0-9\._]*)[a-z0-9]+$/i";
-
+        
         if (!preg_match($pattern, $value)) {
             
             return false;
@@ -121,8 +121,9 @@ class type_Nick extends type_Varchar
     public static function convertValueToNick($value)
     {
         $value = trim($value);
-
+        
         return $value;
+        
         //Дължина на стринга
         $len = strlen($value);
         
@@ -167,7 +168,7 @@ class type_Nick extends type_Varchar
             
             return false;
         }
-
+        
         //Разделяме имейл-а на локална част и домейн
         $arr = explode('@', $value);
         

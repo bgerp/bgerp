@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Типове договори
  *
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_NKPD extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -92,10 +91,10 @@ class bglocal_NKPD extends core_Master
                 
                 return array();
             }
-        
+            
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-        
+            
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
@@ -113,13 +112,13 @@ class bglocal_NKPD extends core_Master
             }
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             $q = mb_strtolower($q);
-        
+            
             if ($strict) {
                 $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
-        
+            
             $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach ($qArr as $w) {
                 $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
@@ -129,14 +128,14 @@ class bglocal_NKPD extends core_Master
         if ($limit) {
             $query->limit($limit);
         }
-    
+        
         $query->show('id,searchFieldXpr');
         
         $res = array();
         while ($rec = $query->fetch()) {
             $res[$rec->id] = trim($rec->searchFieldXpr);
         }
-    
+        
         return $res;
     }
 }

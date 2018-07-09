@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'plg_GroupByDate' - Плъгин за групиране на записите на модел по общо поле
  *
@@ -11,16 +10,16 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_GroupByField extends core_Plugin
 {
-    
-    
     /**
      *  Преди рендиране на лист таблицата
      */
@@ -28,9 +27,11 @@ class plg_GroupByField extends core_Plugin
     {
         // Ако няма записи, не правим нищо
         if (!count($data->recs)) {
+            
             return;
         }
         if (!count($data->rows)) {
+            
             return;
         }
         
@@ -38,24 +39,25 @@ class plg_GroupByField extends core_Plugin
         
         // Ако не е зададено поле за групиране, не правим нищо
         if (!($field = $mvc->groupByField)) {
+            
             return;
         }
-         
+        
         // Премахваме като колона полето, което ще групираме
         unset($data->listFields[$field]);
-         
+        
         // Колко е броя на колоните
         $columns = count($data->listFields);
-         
+        
         $groups = array();
-         
+        
         // Изчличаме в масив всички уникални стойностти на полето
         foreach ($recs as $index => $rec1) {
             $groups[$rec1->{$field}] = $data->rows[$index]->{$field};
         }
-         
+        
         $rows = array();
-         
+        
         // За всяко поле за групиране
         foreach ($groups as $groupId => $groupVerbal) {
             $groupVerbal = $mvc->renderGroupName($data, $groupId, $groupVerbal);
@@ -66,19 +68,19 @@ class plg_GroupByField extends core_Plugin
             }
             
             $rows['|' . $groupId] = ht::createElement(
-            
+                
                 'tr',
                     $rowAttr,
                     new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . '</td>')
             
             );
-    
+            
             // За всички записи
             foreach ($recs as $id => $rec) {
-                 
+                
                 // Ако стойността на полето им за групиране е същата като текущото
                 if ($rec->{$field} == $groupId) {
-    
+                    
                     // Скриваме това поле от записа, и поставяме реда под групиращото поле
                     unset($data->rows[$id]->{$field});
                     if (is_object($data->rows[$id])) {

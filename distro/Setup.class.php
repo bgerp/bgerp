@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   distro
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class distro_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -50,18 +50,18 @@ class distro_Setup extends core_ProtoSetup
      * Мениджъри за инсталиране
      */
     public $managers = array(
-            'distro_Group',
-            'distro_Files',
-            'distro_Automation',
-            'distro_Repositories',
-            'distro_Actions',
-            'distro_RenameDriver',
-            'distro_DeleteDriver',
-            'distro_CopyDriver',
-            'distro_AbsorbDriver',
-            'distro_ArchiveDriver',
-            'migrate::reposToKey',
-            'migrate::syncFiles',
+        'distro_Group',
+        'distro_Files',
+        'distro_Automation',
+        'distro_Repositories',
+        'distro_Actions',
+        'distro_RenameDriver',
+        'distro_DeleteDriver',
+        'distro_CopyDriver',
+        'distro_AbsorbDriver',
+        'distro_ArchiveDriver',
+        'migrate::reposToKey',
+        'migrate::syncFiles',
     );
     
     
@@ -86,7 +86,7 @@ class distro_Setup extends core_ProtoSetup
             
             return ;
         }
-
+        
         $fQuery = $cls->getQuery();
         
         unset($fQuery->fields['repos']);

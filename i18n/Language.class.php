@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'i18n_Language' - Откриване на езика на текст
  *
@@ -10,27 +9,28 @@
  *
  * @category  vendors
  * @package   i18n
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class i18n_Language
 {
-    
     /**
      * Масив с най-често срещаните 3-буквени последователности в различните езици
      */
     public static $lgAnalyzer;
     
-
+    
     /**
      * Определя езика в началото на даден текст
      */
     public static function detect($text, $prefLangArr = array())
     {
         $res = self::getLgRates($text);
-
+        
         if (!count($res)) {
             
             return ;
@@ -50,8 +50,8 @@ class i18n_Language
         
         return $maxs[0];
     }
-
-
+    
+    
     /**
      * Връща рейтингите на различните езици спрямо дадения текст
      */
@@ -60,7 +60,7 @@ class i18n_Language
         self::prepareLgAnalyzer();
         
         $rate = array();
-
+        
         // Премахваме .com
         $text = str_replace(array('.com', '.COM'), array(), $text);
         
@@ -109,8 +109,8 @@ class i18n_Language
         
         return $count;
     }
-
-
+    
+    
     /**
      * Подготвя анализатора за езици
      */
@@ -474,7 +474,7 @@ class i18n_Language
                 bKmhveQ4kpWSn+oalVFb1ZFm1/u5PwmLzv9hN9UppUXWJAHHuvAR6LF4cFojAtkL/SL3Hcg7kjNzeG26
                 AbZTo+AxvsK/G6QtelbguZ0uvl7MNquLnj93Ba0mzjLAmUd1pYlXge/xqFM0A/uoxL9fbK5a+QrisAb/
                 hEZEeV2wL1FvyKroRYzFP/3f//3/MCC8xA==')));
-
+            
             foreach (array('bg', 'ru', 'mk', 'sr') as $lg) {
                 foreach (self::$lgAnalyzer[$lg] as $word => $rate) {
                     $word = str::utf2ascii($word);

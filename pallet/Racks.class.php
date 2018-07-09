@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Стелажи
  *
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pallet_Racks extends core_Master
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -63,8 +62,8 @@ class pallet_Racks extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,pallet';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -106,13 +105,13 @@ class pallet_Racks extends core_Master
      */
     public $rowToolsField = 'num';
     
-
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/rack.png';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -418,7 +417,7 @@ class pallet_Racks extends core_Master
             $html .= "<span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . '</span>';
         }
         
-         
+        
         $html .= '</div>';
         
         $html .= "<table cellspacing='1' class='pallet-table'>";
@@ -452,7 +451,7 @@ class pallet_Racks extends core_Master
                         }
                         
                         $html .= Ht::createLink(
-                        
+                            
                             $mvc->rackRowConv($r) . $c,
                             array('pallet_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
                             false,
@@ -529,14 +528,14 @@ class pallet_Racks extends core_Master
                         }
                         
                         $html .= Ht::createLink(
-                        
+                            
                             $mvc->rackRowConv($r) . $c,
                             array('pallet_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
                             false,
                             array('title' => $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['title'])
                         
                         );
-                        
+                    
                     // Ако няма палет на това палет място
                     } else {
                         /* Проверка за това палет място в детайлите */
@@ -649,9 +648,10 @@ class pallet_Racks extends core_Master
     /**
      * Връща CSS клас за оцветяване на палет място в зависимост от носещите колони
      *
-     * @param  int    $c
-     * @param  int    $rackColumns
-     * @param  int    $constrColumnsStep
+     * @param int $c
+     * @param int $rackColumns
+     * @param int $constrColumnsStep
+     *
      * @return string
      */
     public static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
@@ -670,7 +670,7 @@ class pallet_Racks extends core_Master
             
             return 'constrColumnRight';
         }
-
+        
         return '';
     }
     
@@ -678,9 +678,10 @@ class pallet_Racks extends core_Master
     /**
      * Проверка дали групите за продукта от палета са допустими за стелажа
      *
-     * @param  int     $rackId
-     * @param  int     $palletId
-     * @return boolean
+     * @param int $rackId
+     * @param int $palletId
+     *
+     * @return bool
      */
     public static function checkIfProductGroupsAreAllowed($rackId, $productId)
     {
@@ -717,10 +718,10 @@ class pallet_Racks extends core_Master
                 
                 return false;
             }
-
+            
             return true;
         }
-
+        
         return true;
     }
     
@@ -728,8 +729,9 @@ class pallet_Racks extends core_Master
     /**
      * Проверка дали е валидно палет мястото - дали съществува палет id-то, и дали реда и колоната са реални
      *
-     * @param  string  $palletPlace
-     * @return boolean
+     * @param string $palletPlace
+     *
+     * @return bool
      */
     public static function checkIfPalletPlaceExists($palletPlace)
     {
@@ -784,10 +786,11 @@ class pallet_Racks extends core_Master
      * на базата на пет проверки:
      * съществуващо ПМ, свободно ПМ, неизползваемо ПМ, допустими продуктови групи, резервирано ПМ
      *
-     * @param  int    $rackId
-     * @param  int    $palletId
-     * @param  string $palletPlace
-     * @return array  $fResult
+     * @param int    $rackId
+     * @param int    $palletId
+     * @param string $palletPlace
+     *
+     * @return array $fResult
      */
     public static function isSuitable($rackId, $productId, $palletPlace)
     {
@@ -843,6 +846,7 @@ class pallet_Racks extends core_Master
      * По палет място (ПМ) започващо с номер на стелажа връща ПМ започващо с rackId
      *
      * @param $arrayForExplode
+     *
      * @return array $fResult
      */
     public static function ppRackNum2rackId($stringForExplode)
@@ -872,6 +876,7 @@ class pallet_Racks extends core_Master
      * По палет място (ПМ) започващо с rackId на стелажа връща ПМ започващо с номер
      *
      * @param $arrayForExplode
+     *
      * @return array $fResult
      */
     public static function ppRackId2RackNum($stringForExplode)
@@ -903,7 +908,8 @@ class pallet_Racks extends core_Master
      * Ако string-а е 'ALL' връща 100.
      * Ако string-а не е 'ALL" връща съответния номер на ред (за A - 1, за B -2 и т.н.)
      *
-     * @param  string|int $value
+     * @param string|int $value
+     *
      * @return string|int
      */
     public static function rackRowConv($value)
@@ -918,7 +924,7 @@ class pallet_Racks extends core_Master
                 
                 return 100;
             }
-
+            
             return (ord($value) - 64);
         }
         
@@ -927,7 +933,7 @@ class pallet_Racks extends core_Master
                 
                 return 'ALL';
             }
-
+            
             return (chr($value + 64));
         }
     }

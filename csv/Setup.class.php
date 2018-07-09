@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Разделител
  */
@@ -34,16 +33,16 @@ defIfNot('CSV_DEC_POINT', '&#44;');
  *
  * @category  bgerp
  * @package   csv
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class csv_Setup extends core_ProtoSetup
 {
-
-    
     /**
      * Версия на пакета
      */
@@ -54,8 +53,8 @@ class csv_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Пакет за работа с CSV файлове';
-
-
+    
+    
     /**
      * Описание на конфигурационните константи
      */

@@ -1,29 +1,28 @@
 <?php
 
 
-
 /**
  * Документ "Ценоразпис"
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Документ "Ценоразпис"
  */
 class price_ListDocs extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
-
-
+    
+    
     /**
      * Флаг, който указва, че документа е партньорски
      */
@@ -47,7 +46,6 @@ class price_ListDocs extends core_Master
      */
     public $loadList = 'plg_RowTools2, price_Wrapper, plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_SelectFolder';
-        
     
     
     /**
@@ -126,7 +124,7 @@ class price_ListDocs extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
-
+    
     
     /**
      * Полета, които при клониране да не са попълнени
@@ -150,7 +148,7 @@ class price_ListDocs extends core_Master
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Продукти->Опаковки,columns=3');
         $this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
         $this->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)', 'caption=Шаблон,notNull,default=yes');
-    
+        
         $this->FLD('round', 'int', 'caption=Закръгляне на цена->В мярка');
         $this->FLD('roundPack', 'int', 'caption=Закръгляне на цена->В опаковка');
     }
@@ -198,14 +196,14 @@ class price_ListDocs extends core_Master
     private function getDefaultCurrency($rec)
     {
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
-         
+        
         if (cls::haveInterface('doc_ContragentDataIntf', $folderClass)) {
             $coverId = doc_Folders::fetchCoverId($rec->folderId);
             
             $currencyCode = $folderClass::getDefaultCurrencyId($coverId);
             $currencyId = currency_Currencies::getIdByCode($currencyCode);
         }
-         
+        
         return ($currencyId) ? $currencyId : acc_Periods::getBaseCurrencyCode($rec->date);
     }
     
@@ -213,8 +211,9 @@ class price_ListDocs extends core_Master
     /**
      * Подготвя всички политики до които има достъп потребителя
      *
-     * @param  stdClass $rec - запис от модела
-     * @return array    $options - масив с опции
+     * @param stdClass $rec - запис от модела
+     *
+     * @return array $options - масив с опции
      */
     private function getDefaultPolicies($rec)
     {
@@ -293,6 +292,7 @@ class price_ListDocs extends core_Master
     private function prepareDetailRows(&$data)
     {
         if (!count($data->rec->products)) {
+            
             return;
         }
         
@@ -347,7 +347,7 @@ class price_ListDocs extends core_Master
             
             return strcmp($b->priceM, $a->priceM);
         }
-             
+        
         return strcmp($a->code, $b->code);
     }
     
@@ -393,12 +393,12 @@ class price_ListDocs extends core_Master
                 (count($arr)) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
                 
                 $rec->details->products[$productRec->id] = (object) array(
-                                               'productId' => $productRec->id,
-                                               'code' => $productRec->code,
-                                               'measureId' => $productRec->measureId,
-                                               'vat' => cat_Products::getVat($productRec->id, $rec->date),
-                                               'pack' => null,
-                                               'groups' => $arr);
+                    'productId' => $productRec->id,
+                    'code' => $productRec->code,
+                    'measureId' => $productRec->measureId,
+                    'vat' => cat_Products::getVat($productRec->id, $rec->date),
+                    'pack' => null,
+                    'groups' => $arr);
             }
         }
     }
@@ -416,6 +416,7 @@ class price_ListDocs extends core_Master
         $rec->listRec = price_Lists::fetch($rec->policyId);
         
         if (!count($rec->details->products)) {
+            
             return;
         }
         $packArr = keylist::toArray($rec->packagings);
@@ -483,9 +484,11 @@ class price_ListDocs extends core_Master
     /**
      * Проверяване дали продукта поддържа избраната опаковка
      * ако поддържа и изчислява цената, и ъпдейтва информацията
-     * @param  stdClass $rec     - записа от модела
-     * @param  stdClass $product - информацията за продукта
-     * @param  int      $packId  - ид на опаковката
+     *
+     * @param stdClass $rec     - записа от модела
+     * @param stdClass $product - информацията за продукта
+     * @param int      $packId  - ид на опаковката
+     *
      * @return stdClass $clone - информация за продукта с опаковката
      */
     private function calculateProductWithPack($rec, $product, $packagingRec)
@@ -493,6 +496,7 @@ class price_ListDocs extends core_Master
         $clone = clone $product;
         $price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date);
         if (!$price) {
+            
             return;
         }
         
@@ -508,7 +512,7 @@ class price_ListDocs extends core_Master
         $clone->perPack = $packagingRec->quantity;
         $clone->eanCode = ($packagingRec->eanCode) ? $packagingRec->eanCode : null;
         $clone->pack = $packagingRec->packagingId;
-            
+        
         return $clone;
     }
     
@@ -516,8 +520,9 @@ class price_ListDocs extends core_Master
     /**
      * Обръщане на детайла във вербален вид
      *
-     * @param  stdClass $rec       - запис на детайла
-     * @param  stdClass $masterRec - мастъра
+     * @param stdClass $rec       - запис на детайла
+     * @param stdClass $masterRec - мастъра
+     *
      * @return stdClass $row - вербално представяне на детайла
      */
     private function getVerbalDetail($rec, $data)
@@ -698,9 +703,10 @@ class price_ListDocs extends core_Master
      *  	  го показваме в първата обходена група, която е
      *  	  посочена в масива с определените групи
      *
-     * @param  array $array     - Масив с информацията за продуктите
-     * @param  array $groupsArr - Кои групи ще се показват,
-     *                          NULL ако са всичките
+     * @param array $array     - Масив с информацията за продуктите
+     * @param array $groupsArr - Кои групи ще се показват,
+     *                         NULL ако са всичките
+     *
      * @return array $grouped - масив с групираните продукти
      */
     private function groupProductsByGroups(&$array, $groupsArr)
@@ -822,9 +828,11 @@ class price_ListDocs extends core_Master
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {

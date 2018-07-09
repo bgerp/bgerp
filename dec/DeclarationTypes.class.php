@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Типове декларации
  *
  *
  * @category  bgerp
  * @package   dec
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class dec_DeclarationTypes extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -139,7 +138,7 @@ class dec_DeclarationTypes extends core_Master
             $rec->sysId = $rec->name;
             $rec->createdBy = -1;
             self::save($rec);
-            
+        
         // Ако имаме вече създадени шаблони
         } else {
             $query = self::getQuery();

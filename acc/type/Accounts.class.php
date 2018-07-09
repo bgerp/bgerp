@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас acc_type_Accounts, за избиране на счетоводни сметки
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_type_Accounts extends type_Keylist
 {
-    
-    
     /**
      * Инициализиране на обекта
      */

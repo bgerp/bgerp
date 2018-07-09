@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_Os' - Стартиране на процеси на OS
  *
@@ -10,16 +9,16 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Os
 {
-    
-    
     /**
      * Връща TRUE ако операционната система е Windows
      */
@@ -102,16 +101,16 @@ class core_Os
         
         return @rmdir($dir);
     }
-
-
+    
+    
     /**
      * Изтрива файловете в посочената директория и нейните под-директории,
      * които не са прочитани в последните скудни указани от $maxAge
      *
-     * @param string  $dir
-     * @param integer $maxAge
+     * @param string $dir
+     * @param int    $maxAge
      *
-     * @return integer - Броя на изтритите файлове
+     * @return int - Броя на изтритите файлове
      */
     public static function deleteOldFiles($dir, $maxAge = 86400, $negativePattern = null, $positivePattern = null)
     {
@@ -147,7 +146,7 @@ class core_Os
         
         // Брояч за изтриванията
         $delCnt = 0;
-
+        
         // Изтриваме всички, файлове, кото са по стари от дадено време в директорията за временни файлове
         if (defined('EF_TEMP_PATH')) {
             if (!is_dir(EF_TEMP_PATH)) {
@@ -173,11 +172,11 @@ class core_Os
                 $resText .= ($resText ? "\n" : '') . ($delCnt > 1 ? 'Бяха изтрити' : 'Беше изтрит') . " {$delCnt} " . ($delCnt > 1 ? 'файла' : 'файл') . ' от ' . EF_SBF_PATH;
             }
         }
-
+        
         return $resText;
     }
     
-
+    
     /**
      * Връща масив със всички поддиректории и файлове от посочената начална директория
      *
@@ -185,6 +184,7 @@ class core_Os
      * 'files' => [],
      * 'dirs'  => [],
      * )
+     *
      * @param string $root
      * @result array
      */
@@ -217,17 +217,17 @@ class core_Os
                 @closedir($handle);
             }
         }
- 
+        
         return $files;
     }
-
+    
     
     /**
      * Връща времето на последната промяна на файл в директорията
      *
      * @param string $dir - Директорията
      *
-     * @return integer - Времето на последната промяна
+     * @return int - Времето на последната промяна
      */
     public static function getTimeOfLastModifiedFile($dir, $negativePattern = null, $positivePattern = null)
     {
@@ -291,6 +291,7 @@ class core_Os
         return $res;
     }
     
+    
     /**
      * Връща броя на стартираните процеси на Apache
      */
@@ -301,18 +302,18 @@ class core_Os
         } else {
             $proc = 'apache';
         }
-
+        
         return $this->countProc($proc);
     }
-
-
+    
+    
     /**
      * Връща броя на стартираните процеси на Apache
      */
     public function countProc($proc)
     {
         $processes = 0;
-
+        
         if ($this->isWindows()) {
             $output = shell_exec('tasklist');
             $lines = explode("\n", $output);
@@ -324,11 +325,11 @@ class core_Os
         } else {
             $processes = exec("ps -A | grep {$proc} | wc -l");
         }
- 
+        
         return $processes;
     }
-
-
+    
+    
     /**
      * Връща информация колко памет е заета.
      * За сега работи само под Linux
@@ -348,7 +349,7 @@ class core_Os
      * Връща информация с колко памет разполага ОС
      * За сега работи само под Linux
      *
-     * @return integer|NULL
+     * @return int|NULL
      */
     public static function getMemoryLimit()
     {
@@ -366,7 +367,7 @@ class core_Os
      * Връща информация с колко памет разполага ОС
      * За сега работи само под Linux
      *
-     * @return integer|NULL
+     * @return int|NULL
      */
     public static function getFreeMemory()
     {
@@ -406,8 +407,8 @@ class core_Os
      * Връща информация за диска в който се намира подадения път
      * За сега работи само под Linux
      *
-     * @param string  $path
-     * @param boolean $percent
+     * @param string $path
+     * @param bool   $percent
      *
      * @return string|NULL
      */
@@ -422,6 +423,7 @@ class core_Os
         
         return $pathSpaceArr[3];
     }
+    
     
     /**
      * Връща информация за диска в който се намира подадения път
@@ -442,8 +444,8 @@ class core_Os
         
         return $pathSpaceArr;
     }
-
-
+    
+    
     /**
      * Съдава пътищата посочени във входния аргумент
      *
@@ -457,7 +459,7 @@ class core_Os
                 $path = $caption;
                 $caption = '';
             }
-
+            
             if (!is_dir($path)) {
                 if (!mkdir($path, $mode, $recursive)) {
                     $res .= "<li class='debug-error'>Не може да се създаде директорията <b>{$path}</b> {$caption}</li>";
@@ -536,17 +538,17 @@ class core_Os
     /**
      * Връща размера на memory_limit в байтове
      *
-     * @return integer
+     * @return int
      */
     public static function getBytesFromMemoryLimit($memoryLimit = null)
     {
         if (!isset($memoryLimit)) {
             $memoryLimit = ini_get('memory_limit');
         }
-
+        
         return self::getBytes($memoryLimit);
     }
-
+    
     
     /**
      * Converts shorthand memory notation value to bytes
@@ -562,14 +564,16 @@ class core_Os
             // The 'G' modifier is available since PHP 5.1.0
             case 'g':
                 $val *= 1024;
+                
                 // no break
             case 'm':
                 $val *= 1024;
+                
                 // no break
             case 'k':
                 $val *= 1024;
         }
-
+        
         return $val;
     }
 }

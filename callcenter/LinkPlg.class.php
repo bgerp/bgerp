@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_LinkPlg extends core_Plugin
 {
-    
-    
     /**
      * Прихваща извикването на getLink
      * Замества линковете към централата
@@ -23,7 +23,7 @@ class callcenter_LinkPlg extends core_Plugin
      * @param string   $resUrl
      * @param string   $verbal
      * @param string   $canonical
-     * @param boolean  $isFax
+     * @param bool     $isFax
      * @param array    $attr
      */
     public static function on_AfterGetLink($mvc, &$res, $verbal, $canonical, $isFax = false, $attr = array())

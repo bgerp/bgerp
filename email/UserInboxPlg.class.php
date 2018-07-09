@@ -13,9 +13,11 @@ defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_UserInboxPlg extends core_Plugin
@@ -34,7 +36,7 @@ class email_UserInboxPlg extends core_Plugin
                 
                 //Данни необходими за създаване на папка
                 $eRec = new stdClass();
-            
+                
                 //Добавяме полето имейл, необходима за създаване на корица
                 $eRec->email = email_Inboxes::getUserEmail($rec->id);
                 $eRec->accountId = $corpAccRec->id;
@@ -52,12 +54,13 @@ class email_UserInboxPlg extends core_Plugin
         if ($rec->first && $rec->id) {
             // На първия потребител даваме и ceo роля. Необходимо ли е?
             core_Users::addRole($rec->id, 'ceo');
+            
             // Първия потребител го присъединяваме към основния екип
             core_Users::addRole($rec->id, BGERP_ROLE_HEADQUARTER);
         }
     }
     
-
+    
     /**
      * Изпълнява се след създаване на потребител
      */
@@ -67,9 +70,9 @@ class email_UserInboxPlg extends core_Plugin
             // Не можем да асоциираме новия потребител с човек, който вече има профил
             $user->personId = null;
         }
-
+        
         expect($user->names, $user);
-
+        
         // Създава или обновява профилната визитка на новия потребител.
         $personId = crm_Profiles::syncPerson($user->personId, $user);
         
@@ -87,20 +90,20 @@ class email_UserInboxPlg extends core_Plugin
                    'userId' => $user->id
                )
            );
-
+            
             // Обратно синхронизиране
             crm_Profiles::syncUser(crm_Persons::fetch($personId));
         }
     }
     
-
+    
     /**
      * Изпълнява се след обновяване на информацията за потребител
      */
     public static function on_AfterUpdate($mvc, $rec, $fields = null)
     {
         $fieldsArr = $mvc->prepareSaveFields($fields, $rec);
-
+        
         if ($fieldsArr['nick'] && $rec->nick) {
             if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId'))) {
                 crm_Profiles::syncPerson($personId, $rec);
@@ -149,17 +152,17 @@ class email_UserInboxPlg extends core_Plugin
         }
     }
     
-
+    
     /**
      * Попълва данните на формата със подадената визитка
      */
     public static function on_AfterPrepareEditForm(core_Users $mvc, $data)
     {
         $data->form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Лице->Държава,mandatory,after=email');
-
+        
         if ($data->form->rec->id) {
             $profRec = crm_Profiles::fetch("#userId = {$data->form->rec->id}");
-   
+            
             if ($profRec) {
                 $pRec = crm_Persons::fetch($profRec->personId);
                 if ($pRec) {
@@ -170,8 +173,8 @@ class email_UserInboxPlg extends core_Plugin
         }
         
         $data->form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
-         
-
+        
+        
         if (empty($data->form->rec->id)) {
             $personId = Request::get('personId', 'int');
             if (!empty($personId) && $personRec = crm_Persons::fetch($personId)) {
@@ -186,7 +189,7 @@ class email_UserInboxPlg extends core_Plugin
                 if (!empty($emails[0])) {
                     $tN = cls::get('type_Nick');
                     list($nick, ) = explode('@', $emails[0]);
-
+                    
                     if ($nick) {
                         $nick = $tN->normalize($nick);
                         if ($tN->isValid($nick) && !core_Users::fetch(array("LOWER(#nick) = '[#1#]'", $nick))) {
@@ -196,11 +199,11 @@ class email_UserInboxPlg extends core_Plugin
                 }
                 
                 $data->form->setDefault('names', $personRec->name);
-
+                
                 Request::push(array('names' => $personRec->name, 'email' => $personRec->email));
                 $data->form->setField('names', 'input=hidden');
                 $data->personRec = $personRec;
-             
+                
                 $data->form->FNC('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,caption=Визитка,forceField');
                 $data->form->setDefault('personId', $personId);
             }
@@ -230,9 +233,9 @@ class email_UserInboxPlg extends core_Plugin
         if (EF_USSERS_EMAIL_AS_NICK) {
             $nick = type_Nick::parseEmailToNick($rec->nick);
         }
-
+        
         $userId = core_Users::fetchField("#nick = '{$nick}'", 'id');
-
+        
         if (!$userId) {
             
             return false;
@@ -240,13 +243,13 @@ class email_UserInboxPlg extends core_Plugin
         
         //Името на папката
         $folderTitle = email_Inboxes::getUserEmail($userId);
-
+        
         
         //Вземаме id' то на потребителя, който е inCharge
         return $inCharge = doc_Folders::fetchField(array("#title = '[#1#]'", $folderTitle), 'inCharge');
     }
-
-
+    
+    
     /**
      * Определяне на правата за действия над потребителите
      */

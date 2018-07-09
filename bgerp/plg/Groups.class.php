@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'bgerp_plg_Groups' - Поддръжка на групи и групиране
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class bgerp_plg_Groups extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */

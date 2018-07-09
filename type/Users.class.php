@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Keylist с избрани потребители. Могат да се избират или самостоятелни потребители или цели екипи
  *
@@ -14,16 +13,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       core_Users
  */
 class type_Users extends type_Keylist
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -55,11 +54,11 @@ class type_Users extends type_Keylist
     public function prepareOptions($value = null)
     {
         core_Debug::log('Start user options');
-
+        
         $mvc = cls::get($this->params['mvc']);
-                
+        
         if (!isset($this->options)) {
-         
+            
             // Към екипните роли добавяме ролите за всички потребители
             if ($this->params['rolesForAll'] && $this->params['rolesForAll'] != 'no_one') {
                 $rolesForAll = arr::make($this->params['rolesForAll'], true);
@@ -86,34 +85,34 @@ class type_Users extends type_Keylist
                 
                 return;
             }
-                
+            
             $uQuery = core_Users::getQuery();
             $uQuery->orderBy('nick', 'ASC');
-                
+            
             // Потребителите, които ще покажем, трябва да имат посочените роли
             $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
             $uQuery->likeKeylist('roles', $roles);
-                
+            
             // Масива, където ще пълним опциите
             $this->options = array();
-                
+            
             $removeClosedGroups = true;
             if ($this->params['showClosedGroups']) {
                 $removeClosedGroups = false;
             }
-                
+            
             if (haveRole($this->params['rolesForAll'])) {
                     
                     // Показваме всички екипи
                 $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
-                    
+                
                 // Добавя в началото опция за избор на всички потребители на системата
                 $all = new stdClass();
                 $all->title = tr('Всички потребители');
                 $all->attr = array('class' => 'all-users', 'style' => 'color:#777;');
                 $uQueryCopy = clone($uQuery);
                 $allUsers = '';
-                    
+                
                 while ($uRec = $uQueryCopy->fetchAndCache()) {
                     $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
                 }
@@ -123,37 +122,37 @@ class type_Users extends type_Keylist
                 // Показваме само екипите на потребителя
                 $teams = core_Users::getUserRolesByType(null, 'team', 'keylist', $removeClosedGroups);
             }
-                
+            
             $teams = keylist::toArray($teams);
-                
+            
             $rolesArr = type_Keylist::toArray($roles);
-                
+            
             $userArr = core_Users::getRolesWithUsers();
-                
+            
             $cuRecArr = array();
-                
+            
             foreach ($teams as $t) {
                 $group = new stdClass();
                 $tRole = core_Roles::fetchById($t);
                 $group->title = tr('Екип') . ' "' . $tRole . '"';
                 $group->attr = array('class' => 'team', 'style' => 'background-color:#000;color:#fc0');
-                    
+                
                 $this->options[$t . ' team'] = $group;
-                                  
+                
                 $teamMembers = '';
-                    
+                
                 $haveTeamMembers = false;
-                    
+                
                 foreach ((array) $userArr[$t] as $uId) {
                     $uRec = $userArr['r'][$uId];
                     $uRec->id = $uId;
-                        
+                    
                     if (!empty($rolesArr)) {
                         if (!type_Keylist::isIn($rolesArr, $uRec->roles)) {
                             continue;
                         }
                     }
-                        
+                    
                     if ($uRec->state != 'rejected') {
                         $key = $t . '_' . $uId;
                         $this->options[$key] = new stdClass();
@@ -163,16 +162,16 @@ class type_Users extends type_Keylist
                     } else {
                         $rejected .= $rejected ? '|' . $uId : $uId;
                     }
-                        
+                    
                     $teamMembers .= $teamMembers ? '|' . $uId : $uId;
-                        
+                    
                     if ($this->params['cuFirst'] == 'yes' && empty($cuRecArr)) {
                         if ($this->options[$key] && ($uId == $cu)) {
                             $cuRecArr[$key] = $this->options[$key];
                         }
                     }
                 }
-                    
+                
                 if ($haveTeamMembers) {
                     // Добавка за да има все пак разлика между един потребител и екип,
                     // в който само той е участник
@@ -184,7 +183,7 @@ class type_Users extends type_Keylist
                     unset($this->options[$t . ' team']);
                 }
             }
-                
+            
             if (!empty($cuRecArr)) {
                 $this->options = $cuRecArr + $this->options;
             }
@@ -199,13 +198,13 @@ class type_Users extends type_Keylist
                 $this->options[$key]->attr = array('class' => 'team');
             }
         }
-
+        
         if (isset($this->params['filter'])) {
             call_user_func($this->params['filter'], $this);
         }
-               
+        
         core_Debug::log('Stop user options');
-
+        
         return $this->options;
     }
     
@@ -220,15 +219,15 @@ class type_Users extends type_Keylist
         if (empty($value)) {
             $value = '|' . core_Users::getCurrent() . '|';
         }
-
+        
         foreach ($this->options as $key => $optObj) {
             if ($value == $optObj->keylist || $key == $value) {
                 break;
             }
         }
-
+        
         parent::setFieldWidth($attr);
-
+        
         return ht::createSelect($name, $this->options, $key, $attr);
     }
     
@@ -279,7 +278,7 @@ class type_Users extends type_Keylist
                     }
                 }
             }
-
+            
             $this->error = 'Некоректна стойност';
             
             return false;
@@ -304,6 +303,7 @@ class type_Users extends type_Keylist
         }
         
         if (!$exist) {
+            
             return;
         }
         
@@ -314,9 +314,10 @@ class type_Users extends type_Keylist
     /**
      * Връща масив с групите със съответния потребители
      *
-     * @param integer $userId
+     * @param int $userId
      *
      * @return array
+     *
      * @see type_User::getUserFromTeams
      */
     public static function getUserFromTeams($userId = null)
@@ -351,7 +352,7 @@ class type_Users extends type_Keylist
     /**
      * Връща стринг с първия екип и потребителя в който участва потребителя
      *
-     * @param integer $userId
+     * @param int $userId
      *
      * @return string
      */

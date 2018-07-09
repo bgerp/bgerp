@@ -7,16 +7,16 @@
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_Emails extends core_BaseClass
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -65,15 +65,16 @@ class drdata_Emails extends core_BaseClass
         
         // Ако визуалната проверка не е вярна връщаме грешката
         if ($result['error'] = self::isWrongEmail($email)) {
+            
             return;
         }
         
         // Проверка на MX записа на домейна
         list($user, $domain) = explode('@', $email);
-     
+        
         if (($mxhosts = self::mxAndARecordsValidate($domain)) === false) {
             $result['warning'] = "Възможен е проблем с домейна|* {$user}@<b>{$domain}</b>";
-         
+            
             return;
         }
         
@@ -82,6 +83,7 @@ class drdata_Emails extends core_BaseClass
         }
         
         if (self::isInAlwaysOK($domain)) {
+            
             return;
         }
         
@@ -97,7 +99,7 @@ class drdata_Emails extends core_BaseClass
     public static function mxAndARecordsValidate($domain)
     {
         $hosts = @dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
-  
+        
         if (!$hosts) {
             
             return false;

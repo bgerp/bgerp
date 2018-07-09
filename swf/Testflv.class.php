@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Тестов клас за swfObject 2
  *
  *
  * @category  vendors
  * @package   swf
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class Testflv
 {
-    
     /**
      * Плъгини за зареждане
      */

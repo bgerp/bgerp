@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_plg_Phone' -
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_plg_Phone extends core_Plugin
 {
-    
-    
     /**
      * @todo Чака за документация...
      */

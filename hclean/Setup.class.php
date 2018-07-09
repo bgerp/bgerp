@@ -15,15 +15,15 @@ defIfNot('HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE', 'yes');
  *
  * @category  vendors
  * @package   hclean
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hclean_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */

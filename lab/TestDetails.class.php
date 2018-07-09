@@ -1,71 +1,82 @@
 <?php
 
+
 /**
  * Мениджира детайлите на тестовете (Details)
  *
  *
  * @category  bgerp
  * @package   lab
+ *
  * @author    Milen Georgiev <milen@download.bg>
  *            Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class lab_TestDetails extends core_Detail
 {
-
     /**
      * Заглавие
      */
     public $title = 'Детайли на тест';
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, plg_RowNumbering,
                           plg_Printing, lab_Wrapper, plg_Sorting, 
                           Tests=lab_Tests, Params=lab_Parameters, Methods=lab_Methods,plg_PrevAndNext, plg_SaveAndNew';
-
+    
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'testId';
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'methodId,paramName,value,comment=@Коментар';
-
+    
+    
     /**
      * Кой има право да добавя?
      *
      * @var string|array
      */
     public $canAdd = 'ceo,masterLab';
-
+    
+    
     /**
      * Кой има право да променя?
      *
      * @var string|array
      */
     public $canEdit = 'ceo,masterLab';
-
+    
+    
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,masterLab';
-
+    
+    
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     public $tabName = 'lab_Tests';
-
+    
+    
     /**
      * Роли, които могат да записват
      */
     public $canWrite = 'ceo,masterLab';
-
+    
+    
     /**
      * Преди подготовката на полетата за листовия изглед
      */
@@ -75,7 +86,8 @@ class lab_TestDetails extends core_Detail
             $data->listFields['state'] = 'Състояние';
         }
     }
-
+    
+    
     /**
      * Описание на модела
      */
@@ -109,9 +121,9 @@ class lab_TestDetails extends core_Detail
         $this->FLD('better', 'enum(up=по-големия,down=по-малкия)', 'caption=По-добрия е,unit= резултат,after=title');
         
         $this->FLD(
-        
+            
             'results',
-        
+            
             'table(columns= value ,captions=Стойност,widths=8em)',
             'caption=Измервания||Additional,autohide,advanced,after=title,single=none'
         
@@ -119,7 +131,8 @@ class lab_TestDetails extends core_Detail
         
         $this->setDbUnique('testId, methodId');
     }
-
+    
+    
     /**
      * Променя заглавието и добавя стойност по default в селекта за избор на тест
      *
@@ -171,7 +184,7 @@ class lab_TestDetails extends core_Detail
                 $allMethodsArr[$mRec->id] = $mRec->name;
             }
         }
-      
+        
         $methodIdSelectArr = array();
         $data->allMethodsArr = $allMethodsArr;
         
@@ -201,13 +214,13 @@ class lab_TestDetails extends core_Detail
             }
         }
     }
-
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        
         // Заглавие
         $testHandler = lab_Tests::getHandle($data->masterId) . lab_Tests::fetchField($data->form->rec->testId, 'title');
         
@@ -218,7 +231,8 @@ class lab_TestDetails extends core_Detail
             $data->form->title = 'Добавяне на метод за тест|* "' . $testHandler . '"';
         }
     }
-
+    
+    
     /**
      * Обработка на Master детайлите
      *
@@ -228,7 +242,6 @@ class lab_TestDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        
         // $row->value
         if (is_numeric($row->value)) {
             // $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
@@ -248,7 +261,8 @@ class lab_TestDetails extends core_Detail
         $row->refValue = '---';
         $row->error = '---';
     }
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -278,7 +292,7 @@ class lab_TestDetails extends core_Detail
                             
                             
                             $recs[$key]->refValue = $testsDet->value;
-                           
+                            
                             
                             if ($recs[$key]->refValue) {
                                 $deviation = core_Type::getByName('percent')->toVerbal(
@@ -287,7 +301,7 @@ class lab_TestDetails extends core_Detail
                             } else {
                                 $deviation = '---';
                             }
-                        
+                            
                             if ($testsDet->better) {
                                 $recs[$key]->better = $testsDet->better;
                                 
@@ -306,7 +320,7 @@ class lab_TestDetails extends core_Detail
                                     $row->error = "<div style='float: right;color: green'>" .
                                          number_format($deviation, 2, ',', ' ') . '%' . '</div>';
                                 }
-                               
+                                
                                 
                                 if ($recs[$key]->better == 'down' && $recs[$key]->value > $recs[$key]->refValue) {
                                     $row->error = "<div style='float: right;color: red'>" .
@@ -322,7 +336,8 @@ class lab_TestDetails extends core_Detail
             }
         }
     }
-
+    
+    
     /**
      * Създаване $rec->value, $rec->error и запис на lastChangeOn в 'lab_Tests'
      *
@@ -332,11 +347,9 @@ class lab_TestDetails extends core_Detail
      */
     public static function on_BeforeSave($mvc, &$id, $rec)
     {
-        
         // Подготовка на масива за резултатите ($rec->results)
         $resultsArr = json_decode($rec->results);
         
-       
         
         if ($rec->methodId && lab_Methods::fetchField($rec->methodId, 'formula')) {
             $resArr = $resultsArr;
@@ -375,7 +388,7 @@ class lab_TestDetails extends core_Detail
         } else {
             $resultsArr = $resultsArr->value;
         }
-       
+        
         // trim array elements
         if (is_array($resultsArr)) {
             foreach ($resultsArr as $k => $v) {
@@ -391,16 +404,16 @@ class lab_TestDetails extends core_Detail
             // намираме средното аритметично
             $sum = 0;
             $totalResults = 0;
-        
+            
             $resCnt = count($resultsArr);
-         
+            
             for ($i = 0; $i < $resCnt; $i ++) {
                 if (trim($resultsArr[$i])) {
                     $sum += trim($resultsArr[$i]);
                     $totalResults ++;
                 }
             }
-       
+            
             $rec->value = 0;
             if (! empty($totalResults)) {
                 $rec->value = $sum / $totalResults;
@@ -417,7 +430,8 @@ class lab_TestDetails extends core_Detail
         
         // END Обработки в зависимост от типа на параметъра
     }
-
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -454,6 +468,7 @@ class lab_TestDetails extends core_Detail
                 $data->toolbar->addSelectBtn($options);
             }
         }
+        
         // Count all methods
         $allMethodsQuery = $mvc->Methods->getQuery();
         
@@ -480,7 +495,8 @@ class lab_TestDetails extends core_Detail
         
         // END Count methods
     }
-
+    
+    
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
@@ -498,14 +514,16 @@ class lab_TestDetails extends core_Detail
             }
         }
     }
-
+    
+    
     /**
      * Изчислява израза
      *
      * @param  $expr
      *            - формулата
-     * @param  array  $params
-     *                        - параметрите
+     * @param array $params
+     *                      - параметрите
+     *
      * @return string $res - изчисленото количество
      */
     public static function calcExpr($expr, $params)

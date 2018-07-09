@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Изходящи фактури
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_Invoices extends deals_InvoiceMaster
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -27,8 +26,8 @@ class sales_Invoices extends deals_InvoiceMaster
      * Абревиатура
      */
     public $abbr = 'Inv';
-
-
+    
+    
     /**
      * Флаг, който указва, че документа е партньорски
      */
@@ -95,8 +94,8 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,sales,acc';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -155,16 +154,16 @@ class sales_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-            'place' => 'lastDocUser|lastDoc',
-            'responsible' => 'lastDocUser|lastDoc',
-            'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
-            'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
-            'uicNo' => 'clientData|lastDocUser|lastDoc',
-            'contragentPCode' => 'clientData|lastDocUser|lastDoc',
-            'contragentPlace' => 'clientData|lastDocUser|lastDoc',
-            'contragentAddress' => 'clientData|lastDocUser|lastDoc',
-            'accountId' => 'lastDocUser|lastDoc',
-            'template' => 'lastDocUser|lastDoc|defMethod',
+        'place' => 'lastDocUser|lastDoc',
+        'responsible' => 'lastDocUser|lastDoc',
+        'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+        'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
+        'uicNo' => 'clientData|lastDocUser|lastDoc',
+        'contragentPCode' => 'clientData|lastDocUser|lastDoc',
+        'contragentPlace' => 'clientData|lastDocUser|lastDoc',
+        'contragentAddress' => 'clientData|lastDocUser|lastDoc',
+        'accountId' => 'lastDocUser|lastDoc',
+        'template' => 'lastDocUser|lastDoc|defMethod',
     );
     
     
@@ -172,12 +171,12 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
     public static $updateContragentdataField = array(
-                        'vatId' => 'contragentVatNo',
-                        'uicId' => 'uicNo',
-                        'egn' => 'uicNo',
-                        'pCode' => 'contragentPCode',
-                        'place' => 'contragentPlace',
-                        'address' => 'contragentAddress',
+        'vatId' => 'contragentVatNo',
+        'uicId' => 'uicNo',
+        'egn' => 'uicNo',
+        'pCode' => 'contragentPCode',
+        'place' => 'contragentPlace',
+        'address' => 'contragentAddress',
     );
     
     
@@ -188,9 +187,10 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,dealValue,accountId,number,state';
     
-
+    
     /**
      * Кой може да променя активирани записи
+     *
      * @see change_Plugin
      */
     public $canChangerec = 'accMaster, ceo, invoicer';
@@ -240,15 +240,15 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $tplArr = array();
         $tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml',
-                'narrowContent' => 'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
+            'narrowContent' => 'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
         $tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml',
-                'narrowContent' => 'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
+            'narrowContent' => 'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
         $tplArr[] = array('name' => 'Фактура за факторинг', 'content' => 'sales/tpl/InvoiceFactoring.shtml',
-                'narrowContent' => 'sales/tpl/InvoiceFactoringNarrow.shtml', 'lang' => 'bg');
+            'narrowContent' => 'sales/tpl/InvoiceFactoringNarrow.shtml', 'lang' => 'bg');
         $tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml',
-                'narrowContent' => 'sales/tpl/InvoiceHeaderNormalNarrowEN.shtml', 'lang' => 'en', 'oldName' => 'Фактура EN');
+            'narrowContent' => 'sales/tpl/InvoiceHeaderNormalNarrowEN.shtml', 'lang' => 'en', 'oldName' => 'Фактура EN');
         $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml',
-                'narrowContent' => 'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
+            'narrowContent' => 'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
         $tplArr[] = array('name' => 'Фактура с цени в евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
         $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg');
         
@@ -265,6 +265,7 @@ class sales_Invoices extends deals_InvoiceMaster
     private function prepareFromProforma($proformaRec, &$form)
     {
         if (isset($form->rec->id)) {
+            
             return;
         }
         
@@ -326,7 +327,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
             }
         }
-         
+        
         if (empty($data->flag)) {
             if ($ownAcc = bank_OwnAccounts::getCurrent('id', false)) {
                 $form->setDefault('accountId', $ownAcc);
@@ -341,7 +342,7 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $firstRec = $firstDoc->rec();
-         
+        
         $tLang = doc_TplManager::fetchField($rec->template, 'lang');
         core_Lg::push($tLang);
         
@@ -431,6 +432,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
     {
         if (empty($rec->number)) {
+            
             return;
         }
         
@@ -587,6 +589,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $nextNum = $maxNum + 1;
         
         if ($nextNum > $max) {
+            
             return;
         }
         
@@ -601,13 +604,14 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         // Ако резултата е 'no_one' пропускане
         if ($res == 'no_one') {
+            
             return;
         }
         
         if ($action == 'add' && isset($rec->threadId)) {
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             $docState = $firstDoc->fetchField('state');
-             
+            
             if (!($firstDoc->isInstanceOf('sales_Sales') && $docState == 'active')) {
                 $res = 'no_one';
             }
@@ -635,6 +639,7 @@ class sales_Invoices extends deals_InvoiceMaster
     
     /**
      * След рендиране на копия за принтиране
+     *
      * @see doc_plg_MultiPrint
      *
      * @param core_Mvc $mvc     - мениджър
@@ -684,9 +689,10 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Връща сумата на ддс-то на платените в брой фактури, в основната валута
      *
-     * @param  date   $from - от
-     * @param  date   $to   - до
-     * @return double $amount - сумата на ддс-то на платените в брой фактури
+     * @param date $from - от
+     * @param date $to   - до
+     *
+     * @return float $amount - сумата на ддс-то на платените в брой фактури
      */
     public static function getVatAmountInCash($from, $to = null)
     {
@@ -708,15 +714,16 @@ class sales_Invoices extends deals_InvoiceMaster
         
         return round($amount, 2);
     }
-
+    
     
     /**
      * Може ли ф-та да бъде контирана/възстановена
      *
-     * @param  stdClass    $rec
-     * @param  string|NULL $msg
-     * @param  boolean     $restore
-     * @return boolean
+     * @param stdClass    $rec
+     * @param string|NULL $msg
+     * @param bool        $restore
+     *
+     * @return bool
      */
     public function isAllowedToBePosted($rec, &$msg, $restore = false)
     {
@@ -731,7 +738,7 @@ class sales_Invoices extends deals_InvoiceMaster
             if ($newDate > $rec->date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
                 $msg = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' . $newDate .')';
-
+                
                 return false;
             }
             
@@ -746,7 +753,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($iBefore = $queryBefore->fetch()) {
             $numberB = $this->recToVerbal($iBefore, 'number')->number;
             $msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|*";
-
+            
             return false;
         }
         
@@ -756,7 +763,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($iAfter = $queryAfter->fetch()) {
             $numberA = $this->recToVerbal($iAfter, 'number')->number;
             $msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|*";
-
+            
             return false;
         }
         
@@ -800,7 +807,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         $conf = core_Packs::getConfig('sales');
         $def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->SALE_INVOICE_DEF_TPL_BG : $conf->SALE_INVOICE_DEF_TPL_EN;
-         
+        
         return $def;
     }
     
@@ -812,14 +819,14 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $self = cls::get(get_called_class());
         $rec = $self->fetch($id);
-    
+        
         if (!$rec->number) {
             $hnd = $self->abbr . $rec->id;
         } else {
             $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
             $hnd = $self->abbr . $number;
         }
-    
+        
         return $hnd;
     }
     
@@ -837,7 +844,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 $rec = static::fetch("#number = '{$number}'");
             }
         }
-    
+        
         return $rec;
     }
     
@@ -848,11 +855,11 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterActivation($mvc, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
-         
+        
         if (!empty($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('store_ShipmentOrders')) {
-                    
+                
                 // Ако източника на ф-та е ЕН, записва се че е към нея
                 $sRec = $Source->fetch('fromContainerId,containerId');
                 if (empty($sRec->fromContainerId)) {

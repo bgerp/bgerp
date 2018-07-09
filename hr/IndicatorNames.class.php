@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на Имената на индикаторите
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Имена на индикаторите
  */
 class hr_IndicatorNames extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -52,7 +51,7 @@ class hr_IndicatorNames extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'debug,admin';
-
+    
     
     /**
      * Плъгини за зареждане
@@ -71,14 +70,15 @@ class hr_IndicatorNames extends core_Manager
         
         $this->setDbUnique('classId,uniqueId');
     }
-
+    
     
     /**
      * Връща id-то на дадения индикатор. Ако липсва - добавя го.
      *
-     * @param  string   $name     - заглавие на индикатора
-     * @param  mixed    $class    - клас на индикатора
-     * @param  int      $uniqueId - уникален номер
+     * @param string $name     - заглавие на индикатора
+     * @param mixed  $class    - клас на индикатора
+     * @param int    $uniqueId - уникален номер
+     *
      * @return stdClass $rec - форсирания запис
      */
     public static function force($name, $class, $uniqueId)
@@ -105,7 +105,8 @@ class hr_IndicatorNames extends core_Manager
     /**
      * Нормализира името на индикатора
      *
-     * @param  string $name
+     * @param string $name
+     *
      * @return string $name
      */
     public static function normalizeName($name)

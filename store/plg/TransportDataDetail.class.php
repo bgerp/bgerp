@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'store_plg_TransportDataDetail' добавящ транспортната информация на детайл на складов документ
  *
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_plg_TransportDataDetail extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -75,7 +74,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         // Показване на транспортното тегло/обем ако няма, се показва 'live'
         $row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
         $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->volumeField});
-    
+        
         // Показване на ЛЕ на реда, ако ако не е зададена същата такава от потребителя
         $masterInputUnits = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'transUnitsInput');
         $masterInputUnits = is_array($masterInputUnits) ? $masterInputUnits : array();
@@ -96,7 +95,7 @@ class store_plg_TransportDataDetail extends core_Plugin
      *                           - weight - теглото на реда
      *                           - volume - теглото на реда
      * @param int      $masterId
-     * @param boolean  $force
+     * @param bool     $force
      */
     public static function on_AfterGetTransportInfo($mvc, &$res, $masterId, $force = false)
     {
@@ -148,7 +147,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             
             $units[$unitId] += $uQuantity;
         }
-            
+        
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
@@ -160,12 +159,12 @@ class store_plg_TransportDataDetail extends core_Plugin
     /**
      * Връща теглото на реда, ако няма изчислява го на момента
      *
-     * @param core_Mvc    $mvc
-     * @param double|NULL $res
-     * @param int         $productId
-     * @param int         $packagingId
-     * @param double      $quantity
-     * @param double|NULL $weight
+     * @param core_Mvc   $mvc
+     * @param float|NULL $res
+     * @param int        $productId
+     * @param int        $packagingId
+     * @param float      $quantity
+     * @param float|NULL $weight
      */
     public function on_AfterGetWeight($mvc, &$res, $productId, $packagingId, $quantity, $weight = null)
     {
@@ -181,12 +180,12 @@ class store_plg_TransportDataDetail extends core_Plugin
     /**
      * Връща обема на реда, ако няма изчислява го на момента
      *
-     * @param core_Mvc    $mvc
-     * @param double|NULL $res
-     * @param int         $productId
-     * @param int         $packagingId
-     * @param double      $quantity
-     * @param double|NULL $weight
+     * @param core_Mvc   $mvc
+     * @param float|NULL $res
+     * @param int        $productId
+     * @param int        $packagingId
+     * @param float      $quantity
+     * @param float|NULL $weight
      */
     public function on_AfterGetVolume($mvc, &$res, $productId, $packagingId, $quantity, $volume = null)
     {
@@ -237,22 +236,24 @@ class store_plg_TransportDataDetail extends core_Plugin
     /**
      * Какви са използваните ЛЕ
      *
-     * @param  core_Mvc $mvc       - документ
-     * @param  array    $res       - масив с резултати
-     * @param  stdClass $masterRec - ид на мастъра
+     * @param core_Mvc $mvc       - документ
+     * @param array    $res       - масив с резултати
+     * @param stdClass $masterRec - ид на мастъра
+     *
      * @return void
      */
     public static function on_AfterGetTransUnits($mvc, &$res, $masterRec)
     {
         if (!empty($res)) {
+            
             return;
         }
-         
+        
         $res = array();
         $dQuery = $mvc->getQuery();
         $dQuery->where("#{$mvc->masterKey} = {$masterRec->id}");
         $dQuery->show('transUnitId,transUnitQuantity');
-         
+        
         while ($dRec = $dQuery->fetch()) {
             if (!empty($dRec->transUnitId)) {
                 $res[$dRec->transUnitId] += $dRec->transUnitQuantity;
@@ -261,7 +262,7 @@ class store_plg_TransportDataDetail extends core_Plugin
                 ++$res[$defUnitId];
             }
         }
-         
+        
         return $res;
     }
 }

@@ -19,6 +19,7 @@ defIfNot('MAX_ALLOWED_ATTACHMENTS_IN_FAX', 10);
  *
  * @category   vendors
  * @package    efax
+ *
  * @author     Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 3
@@ -30,7 +31,7 @@ class efax_Setup extends core_ProtoSetup
      */
     public $version = '0.1';
     
-  
+    
     /**
      * Описание на модула
      */
@@ -42,8 +43,8 @@ class efax_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'EFAX_SENDER_BOX' => array('key(mvc=email_Inboxes,select=email)', 'caption=Имейл за изпращане на факсове->Имейл'),
-        );
-
+    );
+    
     
     /**
      *  Инсталиране на пакета
@@ -53,7 +54,7 @@ class efax_Setup extends core_ProtoSetup
         $html = parent::install();
         
         $html = core_Classes::add('efax_Sender');
-                
+        
         return $html;
     }
     

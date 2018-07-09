@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'doc_plg_TransferDocs'
  *
@@ -10,16 +9,16 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class doc_plg_TransferDoc extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *

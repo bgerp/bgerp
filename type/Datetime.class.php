@@ -7,16 +7,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Datetime extends type_Date
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -49,7 +49,7 @@ class type_Datetime extends type_Date
     public function renderInput_($name, $value = '', &$attr = array())
     {
         setIfNot($value, $attr['value']);
-
+        
         if ($value) {
             if (is_array($value)) {
                 $date = $value['d'];
@@ -63,7 +63,7 @@ class type_Datetime extends type_Date
                 }
             }
         }
-
+        
         if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0) {
             $time = '';
         }
@@ -82,7 +82,7 @@ class type_Datetime extends type_Date
             $sugArr[] = $time;
             sort($sugArr);
             $sugList = implode('|', $sugArr);
-
+            
             setIfNot($ts, $this->params['timeSuggestions'], $sugList);
             
             if (!is_array($ts)) {
@@ -102,11 +102,11 @@ class type_Datetime extends type_Date
         } else {
             $ts = array('' => '', $time => $time);
         }
-
+        
         $timeInput = ht::createCombo($name . '[t]', $time, $attr, $ts);
-
+        
         $input->append($timeInput);
-
+        
         return $input;
     }
     
@@ -122,39 +122,41 @@ class type_Datetime extends type_Date
         } elseif (is_array($valueIn)) {
             $value = $valueIn;
         }
-    
+        
         if (!trim($value['d']) && trim($value['t'])) {
             $value['d'] = date('d-m-Y');
         }
-
+        
         $time = trim($value['t']);
-
+        
         if (!strlen($time) && strlen($value['d'])) {
             $time = $this->params['defaultTime'];
         }
-
+        
         $val1 = trim(trim($value['d']) . ' ' . $time);
         
-
+        
         if (!$val1) {
+            
             return;
         }
-
+        
         $val2 = dt::verbal2mysql($val1);
-         
+        
         if ($val2) {
             if ($val2 < '1970-01-01 02:00:00' || $val2 > '2038-01-01 00:00:00') {
                 $this->error = 'Извън UNIX ерата|*: <B>1970 - 2038</B>';
                 
                 return false;
             }
-
+            
             return $val2;
         }
         $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(null, 'd-m-Y G:i', null, false) . "</B>'";
-            
+        
         return false;
     }
+    
     
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
@@ -162,7 +164,7 @@ class type_Datetime extends type_Date
     public function toVerbal($value, $useFormat = true)
     {
         list($d, $t) = explode(' ', $value);
-
+        
         $stp = $this->timePart;
         $sf = $this->params['format'];
         
@@ -174,14 +176,14 @@ class type_Datetime extends type_Date
         }
         
         $res = parent::toVerbal($value, $useFormat);
-
+        
         $this->timePart = $stp;
         $this->params['format'] = $sf;
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Връща стойността по подразбиране за съответния тип
      */

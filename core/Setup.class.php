@@ -88,7 +88,6 @@ defIfNot('CORE_SUCCESS_LOGIN_AUTOCOMPLETE', 3);
 defIfNot('CORE_LOGIN_LOG_FETCH_DAYS_LIMIT', 3888000);
 
 
-
 /**
  * Колко време назад да се търси в лога за first_login
  * 14 дни
@@ -140,12 +139,10 @@ defIfNot('CORE_LOGIN_INFO', '|*(|само за администраторите 
 defIfNot('CORE_PAGE_WRAPPER', 'core_page_InternalModern');
 
 
-
 /**
  * Дали да може да се регистрират нови потребители от логин формата
  */
 defIfNot('CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM', 'no');
-
 
 
 /**
@@ -210,21 +207,22 @@ define('CORE_CODE_VERSION', '18.25-Shabran');
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Setup extends core_ProtoSetup
 {
-    
     /**
      * Последна стабилна версия на цялата система
      */
     const CURRENT_VERSION = CORE_CODE_VERSION;
     
-
+    
     /**
      * Версия на пакета
      */
@@ -259,64 +257,64 @@ class core_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-           'CORE_LAST_DB_VERSION' => array('varchar(32)', 'caption=Версия на системата->База данни,readOnly'),
-            
-           'CORE_CODE_VERSION' => array('varchar(32)', 'caption=Версия на системата->Код,readOnly'),
-
-           'EF_DATE_FORMAT' => array('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=user'),
-           
-           'EF_DATE_NARROW_FORMAT' => array('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=user'),
-           
-           'EF_DATE_USE_TIMEOFFSET' => array('enum(yes=Да, no=Не)', 'caption=Дали да се използва времевата зона на потребителя->Избор, customizeBy=user'),
-            
-           'EF_NUMBER_THOUSANDS_SEP' => array('enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=user'),
-            
-           'EF_NUMBER_DEC_POINT' => array('enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=user'),
-            
-           'EF_USER_LANG' => array('enum()', 'caption=Език на интерфейса след логване->Език, customizeBy=user, optionsFunc=core_Lg::getLangOptions'),
-            
-           'TYPE_KEY_MAX_SUGGESTIONS' => array('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'),
-           
-           'CORE_MAX_OPT_FOR_OPEN_GROUPS' => array('int', 'caption=Критичен брой опции|*&comma;| под който се отварят групите->Опции'),
-           
-           'CORE_AUTOHIDE_SHARED_USERS' => array('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
-
-           'EF_APP_TITLE' => array('varchar(16)', 'caption=Наименование на приложението->Име'),
-            
-           'CORE_SYSTEM_NICK' => array('varchar(16)', 'caption=Системен потребител->Ник'),
-
-           'CORE_SYSTEM_NAME' => array('varchar(16)', 'caption=Системен потребител->Име'),
-
-           'CORE_FIRST_ADMIN' => array('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
-       
-           'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст'),
-      
-           'EF_MAX_EXPORT_CNT' => array('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
-           
-           'CORE_MAX_ROWS_FOR_PRINTING' => array('int', 'caption=Размер на страницата при печат->Брой редове'),
-           
-           'PLG_SEACH_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
-           
-           'CORE_LOGIN_TIMESTAMP_DEVIATION' => array('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
-           
-           'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
-           
-           'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
-           
-           'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
-           
-           'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
-           
-           'CORE_TEMP_PATH_MAX_AGE' => array('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
-            
-           'CORE_PAGE_WRAPPER' => array('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
-
-           'CORE_PORTAL_ARRANGE' => array('enum(notifyTaskRecentlyCal=Известия - Задачи - Последно и Календар,notifyTaskCalRecently=Известия - Задачи - Календар и Последно,recentlyNotifyTaskCal=Последно - Известия - Задачи и Календар,taskNotifyRecentlyCal=Задачи - Известия - Последно и Календар)', 'caption=Вътрешен изглед->Портал, customizeBy=powerUser'),
-
-           'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
-           
-           'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
-              
+        'CORE_LAST_DB_VERSION' => array('varchar(32)', 'caption=Версия на системата->База данни,readOnly'),
+        
+        'CORE_CODE_VERSION' => array('varchar(32)', 'caption=Версия на системата->Код,readOnly'),
+        
+        'EF_DATE_FORMAT' => array('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=user'),
+        
+        'EF_DATE_NARROW_FORMAT' => array('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=user'),
+        
+        'EF_DATE_USE_TIMEOFFSET' => array('enum(yes=Да, no=Не)', 'caption=Дали да се използва времевата зона на потребителя->Избор, customizeBy=user'),
+        
+        'EF_NUMBER_THOUSANDS_SEP' => array('enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=user'),
+        
+        'EF_NUMBER_DEC_POINT' => array('enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=user'),
+        
+        'EF_USER_LANG' => array('enum()', 'caption=Език на интерфейса след логване->Език, customizeBy=user, optionsFunc=core_Lg::getLangOptions'),
+        
+        'TYPE_KEY_MAX_SUGGESTIONS' => array('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'),
+        
+        'CORE_MAX_OPT_FOR_OPEN_GROUPS' => array('int', 'caption=Критичен брой опции|*&comma;| под който се отварят групите->Опции'),
+        
+        'CORE_AUTOHIDE_SHARED_USERS' => array('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
+        
+        'EF_APP_TITLE' => array('varchar(16)', 'caption=Наименование на приложението->Име'),
+        
+        'CORE_SYSTEM_NICK' => array('varchar(16)', 'caption=Системен потребител->Ник'),
+        
+        'CORE_SYSTEM_NAME' => array('varchar(16)', 'caption=Системен потребител->Име'),
+        
+        'CORE_FIRST_ADMIN' => array('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
+        
+        'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст'),
+        
+        'EF_MAX_EXPORT_CNT' => array('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
+        
+        'CORE_MAX_ROWS_FOR_PRINTING' => array('int', 'caption=Размер на страницата при печат->Брой редове'),
+        
+        'PLG_SEACH_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
+        
+        'CORE_LOGIN_TIMESTAMP_DEVIATION' => array('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
+        
+        'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
+        
+        'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
+        
+        'CORE_LOGIN_LOG_FIRST_LOGIN_DAYS_LIMIT' => array('time(suggestions=1 седмица|2 седмици|1 месец|2 месеца)', 'caption=Колко време назад да се търси в лога за first_login->Време'),
+        
+        'CORE_COOKIE_LIFETIME' => array('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
+        
+        'CORE_TEMP_PATH_MAX_AGE' => array('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
+        
+        'CORE_PAGE_WRAPPER' => array('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
+        
+        'CORE_PORTAL_ARRANGE' => array('enum(notifyTaskRecentlyCal=Известия - Задачи - Последно и Календар,notifyTaskCalRecently=Известия - Задачи - Календар и Последно,recentlyNotifyTaskCal=Последно - Известия - Задачи и Календар,taskNotifyRecentlyCal=Задачи - Известия - Последно и Календар)', 'caption=Вътрешен изглед->Портал, customizeBy=powerUser'),
+        
+        'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
+        
+        'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
+    
     );
     
     
@@ -360,10 +358,10 @@ class core_Setup extends core_ProtoSetup
      * Папки, които трябва да бъдат създадени
      */
     protected $folders = array(
-            EF_SBF_PATH => 'за уеб ресурси', // sbf root за приложението
-            EF_TEMP_PATH => 'за временни файлове', // временни файлове
-            EF_UPLOADS_PATH => 'за качени файлове',// файлове на потребители
-        );
+        EF_SBF_PATH => 'за уеб ресурси', // sbf root за приложението
+        EF_TEMP_PATH => 'за временни файлове', // временни файлове
+        EF_UPLOADS_PATH => 'за качени файлове',// файлове на потребители
+    );
     
     
     /**
@@ -381,8 +379,8 @@ class core_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin'),
     );
-
-
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -400,7 +398,7 @@ class core_Setup extends core_ProtoSetup
                 $html .= self::addUniqLines($src, $dest);
             }
         }
-
+        
         // Иконата
         $dest = EF_INDEX_PATH . '/favicon.ico';
         if (!file_exists($dest)) {
@@ -411,7 +409,7 @@ class core_Setup extends core_ProtoSetup
                 $html .= "<li class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
             }
         }
-
+        
         
         // Изтриване на старите файлове от sbf директорията
         $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2 * 30 * 24 * 60 * 60, "#^_[a-z0-9\-\/_]+#i");
@@ -430,7 +428,7 @@ class core_Setup extends core_ProtoSetup
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
-
+        
         // Нагласяване на Крон да почиства core_Forwards
         $rec = new stdClass();
         $rec->systemId = 'ClearForwards';
@@ -470,7 +468,7 @@ class core_Setup extends core_ProtoSetup
         
         $html .= core_Classes::add('core_page_Internal');
         $html .= core_Classes::add('core_page_InternalModern');
-
+        
         
         $html .= static::addCronToDelOldTempFiles();
         
@@ -496,7 +494,7 @@ class core_Setup extends core_ProtoSetup
         $rec->delay = 0;
         $rec->timeLimit = 120;
         $res .= core_Cron::addOnce($rec);
-
+        
         return $res;
     }
     
@@ -625,7 +623,7 @@ class core_Setup extends core_ProtoSetup
         // Ако намери стрингкове, които не са преведени, ги премахваме от модела
         while ($rec = $query->fetch()) {
             $translated = str_ireplace(array("\n\r", "\r\n", "\n", "\r"), '<br />', $rec->translated);
-        
+            
             $translated = core_Lg::prepareKey($translated);
             
             if ($translated == $rec->kstring) {
@@ -641,14 +639,14 @@ class core_Setup extends core_ProtoSetup
         }
     }
     
-
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */
     public function getCommonJs()
     {
         $conf = core_Packs::getConfig('core');
-
+        
         $intTheme = cls::get($conf->CORE_PAGE_WRAPPER);
         
         if (method_exists($intTheme, 'getCommonJs')) {
@@ -677,7 +675,7 @@ class core_Setup extends core_ProtoSetup
     {
         // Вземаме инстанция на core_Interfaces
         $Interfaces = cls::get('core_Interfaces');
-    
+        
         // id' то на интерфейса
         $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
         
@@ -718,8 +716,8 @@ class core_Setup extends core_ProtoSetup
             $Inst->db->query("UPDATE {$Inst->dbTableName} SET {$searchField} = REPLACE({$searchField}, '*', '')");
         }
     }
-
-
+    
+    
     /**
      * Копира линиите от файла $src в $dest, които не се съдържат в него
      */
@@ -737,7 +735,7 @@ class core_Setup extends core_ProtoSetup
             
             return "<li class=\"debug-error\">Не може да се записва във файла: <b>{$dest}</b></li>";
         }
-
+        
         if (!is_readable($src)) {
             
             return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$src}</b></li>";
@@ -747,11 +745,11 @@ class core_Setup extends core_ProtoSetup
             
             return "<li class=\"debug-error\">Не може да бъде прочетен файла: <b>{$dest}</b></li>";
         }
-     
+        
         $exFile = file_get_contents($dest);
-
+        
         $lines = file_get_contents($src);
-
+        
         $lines = explode("\n", $lines);
         
         $flagChange = false;
@@ -765,13 +763,13 @@ class core_Setup extends core_ProtoSetup
                 $newLines++;
             }
         }
-
+        
         if ($newLines > 0) {
             $res = "<li class=\"debug-new\">Във файла <b>{$dest}</b> са копирани {$newLines} линии от файла <b>{$src}</b></li>";
         } else {
             $res = "<li class=\"debug-info\">Във файла <b>{$dest}</b> не са копирани линии от файла <b>{$src}</b></li>";
         }
-
+        
         return $res;
     }
     

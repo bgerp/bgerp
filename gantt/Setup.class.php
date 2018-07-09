@@ -5,15 +5,15 @@
  *
  * @category  bgerp
  * @package   gantt
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class gantt_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -36,7 +36,7 @@ class gantt_Setup extends core_ProtoSetup
      * Път до css файла
      */
     //	var $commonCSS = 'gantt/lib/ganttCustom.css';
-
+    
     /**
      * Пакет без инсталация
      */

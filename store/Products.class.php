@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_Products' за наличните в склада артикули
  * Данните постоянно се опресняват от баланса
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_Products extends core_Detail
 {
-    
-    
     /**
      * Ключ с който да се заключи ъпдейта на таблицата
      */
@@ -112,6 +111,7 @@ class store_Products extends core_Detail
     {
         // Ако няма никакви записи - нищо не правим
         if (!count($data->recs)) {
+            
             return;
         }
         $isDetail = isset($data->masterMvc);
@@ -121,10 +121,10 @@ class store_Products extends core_Detail
             $row->productId = cat_Products::getVerbal($rec->productId, 'name');
             $icon = cls::get('cat_Products')->getIcon($rec->productId);
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
-
+            
             $pRec = cat_Products::fetch($rec->productId, 'code,isPublic,createdOn');
             $row->code = cat_Products::getVerbal($pRec, 'code');
-           
+            
             if ($isDetail) {
                    
                    // Показване на запазеното количество
@@ -137,7 +137,7 @@ class store_Products extends core_Detail
                     }
                 }
                 $rec->measureId = $basePack;
-                   
+                
                 // Линк към хронологията
                 if (acc_BalanceDetails::haveRightFor('history')) {
                     $to = dt::today();
@@ -151,11 +151,11 @@ class store_Products extends core_Detail
             } else {
                 $rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
             }
-           
+            
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity;
             $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
-           
+            
             $row->measureId = cat_UoM::getTitleById($rec->measureId);
         }
     }
@@ -232,7 +232,7 @@ class store_Products extends core_Detail
             // Ако се търси по ключови думи, търсим по тези от външното поле
             if (isset($rec->search)) {
                 plg_Search::applySearch($rec->search, $data->query, 'keywords');
-            
+                
                 // Ако ключовата дума е число, търсим и по ид
                 if (type_Int::isInt($rec->search)) {
                     $data->query->orWhere("#productId = {$rec->search}");
@@ -290,7 +290,7 @@ class store_Products extends core_Detail
         
         if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
             $self->logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
-
+            
             return;
         }
         
@@ -335,6 +335,7 @@ class store_Products extends core_Detail
         }
         
         if (!count($array)) {
+            
             return;
         }
         
@@ -357,10 +358,11 @@ class store_Products extends core_Detail
     /**
      * Колко е количеството на артикула в складовете
      *
-     * @param  int      $productId    - ид на артикул
-     * @param  int|NULL $storeId      - конкретен склад, NULL ако е във всички
-     * @param  boolean  $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
-     * @return double   $sum          - сумата на количеството, общо или разполагаемо
+     * @param int      $productId    - ид на артикул
+     * @param int|NULL $storeId      - конкретен склад, NULL ако е във всички
+     * @param bool     $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
+     *
+     * @return float $sum          - сумата на количеството, общо или разполагаемо
      */
     public static function getQuantity($productId, $storeId = null, $freeQuantity = false)
     {
@@ -395,6 +397,7 @@ class store_Products extends core_Detail
     {
         if (haveRole('debug')) {
             if (isset($data->masterMvc)) {
+                
                 return;
             }
             $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
@@ -422,10 +425,10 @@ class store_Products extends core_Detail
     public function act_Truncate()
     {
         requireRole('debug');
-         
+        
         // Изчистваме записите от моделите
         store_Products::truncate();
-         
+        
         return new Redirect(array($this, 'list'));
     }
     
@@ -439,6 +442,7 @@ class store_Products extends core_Detail
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
         
         if (!count($data->rows)) {
+            
             return;
         }
         
@@ -471,12 +475,12 @@ class store_Products extends core_Detail
         while ($rec = $query->fetch("#storeId = {$storeId}  AND #state = 'active'")) {
             $options[$rec->id] = cat_Products::getTitleById($rec->productId, false);
         }
-
+        
         if (!count($options)) {
             $options[''] = '';
         }
     }
-
+    
     
     /**
      * Обновяване на резервираните наличности по крон
@@ -487,8 +491,8 @@ class store_Products extends core_Detail
         core_App::setTimeLimit(200);
         
         $docArr = array('store_ShipmentOrders' => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'),
-                        'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
-                        'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
+            'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
+            'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
         );
         
         $result = $queue = array();
@@ -562,7 +566,7 @@ class store_Products extends core_Detail
                     $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'q' => $td->quantity);
                     $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'q' => -1 * $td->quantity);
                 }
-                 
+                
                 core_Permanent::set("reserved_{$tRec->containerId}", $reserved, 4320);
             }
             
@@ -590,7 +594,7 @@ class store_Products extends core_Detail
         // Заклюване на процеса
         if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
             $this->logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
-
+            
             return;
         }
         
@@ -608,7 +612,7 @@ class store_Products extends core_Detail
                 
                 return false;
             }
-
+            
             return true;
         });
         
@@ -619,7 +623,7 @@ class store_Products extends core_Detail
             });
             $this->saveArray($unsetArr, 'id,reservedQuantity');
         }
-             
+        
         // Освобождаване на процеса
         core_Locks::release(self::SYNC_LOCK_KEY);
         core_Debug::$isLogging = true;
@@ -667,15 +671,15 @@ class store_Products extends core_Detail
         }
         
         $tpl = new core_ET($links);
-    
+        
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();
             $resObj->func = 'html';
             $resObj->arg = array('id' => "reserve{$id}", 'html' => $tpl->getContent(), 'replace' => true);
-    
+            
             return array($resObj);
         }
-
+        
         return $tpl;
     }
 }

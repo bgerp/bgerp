@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър за изпратените SMS-и
  *
  *
  * @category  vendors
  * @package   prosms
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Мениджър за изпратените SMS-и
  */
 class prosms_Dlr extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */

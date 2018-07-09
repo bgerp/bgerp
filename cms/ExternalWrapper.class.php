@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'cms_ExternalWrapper'
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_ExternalWrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * HTML клас за табовете на обвивката
      */
@@ -93,9 +92,10 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
         static $i;
         $i++;
         if ($i > 1) {
+            
             return;
         }
-
+        
         // Редниране на обвивката от бащата
         parent::on_AfterRenderWrapping($invoker, $tpl, $blankTpl, $data);
         

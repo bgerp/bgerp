@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -103,18 +102,18 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
             $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->rec->fromDate, $data->rec->toDate, $data->rec->ent1Id, $data->rec->ent2Id, $data->rec->ent3Id);
             
             $baseBalanceRec = array('docId' => 'Начален баланс',
-                    'debitQuantity' => 0, 'creditQuantity' => 0, 'debitAmount' => 0, 'creditAmount' => 0,
-                    'blQuantity' => $balHistory['summary']['baseQuantity'],
-                    'blAmount' => $balHistory['summary']['blAmount'],
-                    'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
+                'debitQuantity' => 0, 'creditQuantity' => 0, 'debitAmount' => 0, 'creditAmount' => 0,
+                'blQuantity' => $balHistory['summary']['baseQuantity'],
+                'blAmount' => $balHistory['summary']['blAmount'],
+                'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
             $blBalanceRec = array('docId' => 'Краен баланс',
-                    'debitQuantity' => $balHistory['summary']['debitQuantity'],
-                    'debitAmount' => $balHistory['summary']['debitAmount'],
-                    'creditQuantity' => $balHistory['summary']['creditQuantity'],
-                    'credittAmount' => $balHistory['summary']['creditAmount'],
-                    'blQuantity' => $balHistory['summary']['blQuantity'],
-                    'blAmount' => $balHistory['summary']['blAmount'],
-                    'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
+                'debitQuantity' => $balHistory['summary']['debitQuantity'],
+                'debitAmount' => $balHistory['summary']['debitAmount'],
+                'creditQuantity' => $balHistory['summary']['creditQuantity'],
+                'credittAmount' => $balHistory['summary']['creditAmount'],
+                'blQuantity' => $balHistory['summary']['blQuantity'],
+                'blAmount' => $balHistory['summary']['blAmount'],
+                'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
             
             array_unshift($balHistory['history'], $baseBalanceRec);
             $balHistory['history'][] = $blBalanceRec;
@@ -126,20 +125,20 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $newRec = (object) array('date' => $period['from']);
                 $newRec->from = $period['from'];
                 $newRec->to = $period['to'];
-                 
+                
                 // Намираме движенията по сметката за тези пера за тази дата
                 $Balance = new acc_ActiveShortBalance(array('from' => $period['from'], 'to' => $period['to'], 'accs' => $accSysId, 'cacheBalance' => false, 'item1' => $data->rec->ent1Id, 'item2' => $data->rec->ent2Id, 'item3' => $data->rec->ent3Id));
                 $balance = $Balance->getBalance($accSysId);
-                         
+                
                 // Ако има баланс
                 if (count($balance)) {
                     foreach ($balance as $b) {
-                
+                        
                         // И в нея да участват перата
                         if (!($b->ent1Id == $data->rec->ent1Id && $b->ent2Id == $data->rec->ent2Id && $b->ent3Id == $data->rec->ent3Id)) {
                             continue;
                         }
-                             
+                        
                         // Сабираме салдата и оборотите
                         foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity', 'baseAmount', 'debitAmount', 'creditAmount', 'blAmount') as $fld) {
                             if (isset($b->{$fld})) {
@@ -162,12 +161,13 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
     /**
      * Връща масив с периоди от две дати
      *
-     * @param  date           $from   - От дата
-     * @param  date           $to     - До дата
-     * @param  day|week|month $period - тип на периода: ден, месец, година
-     * @return array          $periods - масив с началната и крайната дата на периодите
-     *                               ['from'] - Начална дата
-     *                               ['to']   - Крайна дата
+     * @param date           $from   - От дата
+     * @param date           $to     - До дата
+     * @param day|week|month $period - тип на периода: ден, месец, година
+     *
+     * @return array $periods - масив с началната и крайната дата на периодите
+     *               ['from'] - Начална дата
+     *               ['to']   - Крайна дата
      */
     public static function getDatesByPeriod($from, $to, $period)
     {
@@ -179,7 +179,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         
         $periods = array();
         $curDate = $from;
-         
+        
         switch ($period) {
             case 'day':
                 $toDate = $curDate;
@@ -203,12 +203,12 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
             
             // Интересувани чустата дата без часът
             $curDate = dt::verbal2mysql($curDate, false);
-             
+            
             // Ако групираме по седмици
             if ($period == 'week') {
                 $curDate = dt::addSecs(60 * 60 * 26, $toDate);
                 $curDate = dt::verbal2mysql($curDate, false);
-            
+                
                 $toDate = dt::addSecs(60 * 60 * 26 * 7, $toDate);
                 $toDate = dt::verbal2mysql($toDate, false);
             
@@ -217,7 +217,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $curDate = dt::addSecs(60 * 60 * 26, $toDate);
                 $curDate = dt::verbal2mysql($curDate, false);
                 $toDate = dt::getLastDayOfMonth($curDate);
-                 
+            
             // Ако групираме по години
             } elseif ($period == 'year') {
                 $curDate = dt::addSecs(60 * 60 * 26, $toDate);
@@ -230,7 +230,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $curDate = dt::verbal2mysql($curDate, false);
                 $toDate = $curDate;
             }
-             
+            
             if ($toDate > $to) {
                 $toDate = $to;
             }
@@ -248,20 +248,21 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
         
         $tpl = $this->getReportLayout();
         
         $explodeTitle = explode(' » ', $this->title);
-            
+        
         $title = tr("|{$explodeTitle[1]}|*");
-
+        
         $tpl->replace($title, 'TITLE');
         
         // Рендираме статичната форма
         $this->prependStaticForm($tpl, 'FORM');
-         
+        
         // Рендираме таблицата с намерените записи
         $tableMvc = new core_Mvc;
         $tableMvc->FLD('baseQuantity', 'int', 'tdClass=accCell');
@@ -274,14 +275,14 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         $tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
         
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
-         
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
-         
+        
         if ($data->Pager) {
             $tpl->append($data->Pager->getHtml(), 'PAGER_TOP');
             $tpl->append($data->Pager->getHtml(), 'PAGER_BOTTOM');
         }
-         
+        
         $embedderTpl->append($tpl, 'data');
     }
     
@@ -294,7 +295,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
     public function getReportLayout_()
     {
         $tpl = getTplFromFile('acc/tpl/PeriodBalanceReportLayout.shtml');
-    
+        
         return $tpl;
     }
     
@@ -305,15 +306,15 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
     public function prepareListFields_(&$data)
     {
         $data->listFields = array(
-                            'baseQuantity' => 'Начално->К-во',
-                            'baseAmount' => 'Начално->Сума',
-                            'debitQuantity' => 'Дебит->К-во',
-                            'debitAmount' => 'Дебит->Сума',
-                            'creditQuantity' => 'Кредит->К-во',
-                            'creditAmount' => 'Кредит->Сума',
-                            'blQuantity' => 'Остатък->К-во',
-                            'blAmount' => 'Остатък->Сума',);
-
+            'baseQuantity' => 'Начално->К-во',
+            'baseAmount' => 'Начално->Сума',
+            'debitQuantity' => 'Дебит->К-во',
+            'debitAmount' => 'Дебит->Сума',
+            'creditQuantity' => 'Кредит->К-во',
+            'creditAmount' => 'Кредит->Сума',
+            'blQuantity' => 'Остатък->К-во',
+            'blAmount' => 'Остатък->Сума',);
+        
         switch ($data->rec->step) {
             case 'day':
                 $dateCaption = 'Ден';
@@ -383,10 +384,10 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
                 $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
                 $data->Pager = $pager;
-
+                
                 $data->Pager->itemsCount = count($data->recs);
             }
-    
+            
             // За всеки запис
             foreach ($data->recs as &$rec) {
                 foreach (array('base', 'debit', 'credit', 'bl') as $type) {
@@ -400,7 +401,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 if (isset($data->Pager) && !$data->Pager->isOnPage()) {
                     continue;
                 }
-    
+                
                 // Вербално представяне на записа
                 $row = $mvc->getVerbalRec($rec);
                 if ($canSeeHistory) {
@@ -421,7 +422,8 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
     /**
      * Вербално представяне на групираните записи
      *
-     * @param  stdClass $rec - групиран запис
+     * @param stdClass $rec - групиран запис
+     *
      * @return stdClass $row - вербален запис
      */
     private function getVerbalRec($rec)
@@ -429,7 +431,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         $rec = (object) $rec;
         $row = new stdClass();
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-         
+        
         if (isset($rec->docId)) {
             try {
                 $Class = cls::get($rec->docType);
@@ -442,7 +444,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 }
             }
         }
-         
+        
         switch ($this->innerForm->step) {
             case 'week':
                 $row->from = dt::mysql2verbal($rec->from, 'd.m.Y');
@@ -485,7 +487,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 }
             }
         }
-             
+        
         if ($rec->ROW_ATTR) {
             $row->ROW_ATTR = $rec->ROW_ATTR;
         }

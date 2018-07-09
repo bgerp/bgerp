@@ -6,60 +6,69 @@
  */
 defIfNot('LOCAL_IP', '127.0.0.1');
 
+
 /**
  * Порт
  */
 defIfNot('PORT', '8500');
+
 
 /**
  * Протокол
  */
 defIfNot('PROTOCOL', 'udp');
 
+
 /**
  * IP на хост от който се приемат данни // IP на демона, от където праща данните
  */
 defIfNot('DATA_SENDER', '127.0.0.1');
+
 
 /**
  * Домейн на системата
  */
 defIfNot('LOG_URL', 'http://bgerp.local/tracking_Log/Log/?');
 
+
 /**
  * Период на рестартиране на сървиса
  */
 defIfNot('RESTART_PERIOD', '3600');
+
 
 /**
  * pid на процеса за слушане
  */
 defIfNot('PID', '');
 
+
 /**
  * Команден ред за изпълнение на командата
  */
 defIfNot('CMD', '');
+
 
 /**
  * Команден ред за изпълнение на командата
  */
 defIfNot('DAYS_TO_KEEP', '60');
 
+
 /**
  * Клас 'tracking_Setup'
  *
  * @category  bgerp
  * @package   tracking
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tracking_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -88,15 +97,16 @@ class tracking_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'LOCAL_IP' => array('ip', 'mandatory, caption=IP от което ще се четат данните'),
-            'PORT' => array('int', 'mandatory, caption=Порт'),
-            'PROTOCOL' => array('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
-            'DATA_SENDER' => array('ip', 'mandatory, caption=Адрес на изпращач'),
-            'LOG_URL' => array('varchar(255)', 'mandatory, caption=Url за логване'),
-            'RESTART_PERIOD' => array('int()', 'mandatory, caption=Период за рестарт'),
-            'PID' => array('varchar(readonly)', 'caption=PID на процеса за слушане,input=readonly,readonly'),
-            'DAYS_TO_KEEP' => array('int()', 'mandatory, caption=Живот за логовете'),
-           // 'CMD' => array ('varchar(255)', 'input=hidden, caption=Команда на процеса'),
+        'LOCAL_IP' => array('ip', 'mandatory, caption=IP от което ще се четат данните'),
+        'PORT' => array('int', 'mandatory, caption=Порт'),
+        'PROTOCOL' => array('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
+        'DATA_SENDER' => array('ip', 'mandatory, caption=Адрес на изпращач'),
+        'LOG_URL' => array('varchar(255)', 'mandatory, caption=Url за логване'),
+        'RESTART_PERIOD' => array('int()', 'mandatory, caption=Период за рестарт'),
+        'PID' => array('varchar(readonly)', 'caption=PID на процеса за слушане,input=readonly,readonly'),
+        'DAYS_TO_KEEP' => array('int()', 'mandatory, caption=Живот за логовете'),
+        
+        // 'CMD' => array ('varchar(255)', 'input=hidden, caption=Команда на процеса'),
     );
     
     
@@ -104,20 +114,22 @@ class tracking_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'tracking_Vehicles',
-            'tracking_Log'
+        'tracking_Vehicles',
+        'tracking_Log'
     );
-
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'tracking';
     
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.4, 'Мониторинг', 'Проследяване', 'tracking_Vehicles', 'default', 'tracking,ceo,admin'),
+        array(3.4, 'Мониторинг', 'Проследяване', 'tracking_Vehicles', 'default', 'tracking,ceo,admin'),
     );
     
     
@@ -128,7 +140,7 @@ class tracking_Setup extends core_ProtoSetup
     {
         //Данни за работата на cron
         $conf = core_Packs::getConfig('tracking');
-    
+        
         // Наглася Cron да стартира приемача на данни
         $rec = new stdClass();
         $rec->systemId = 'trackingWatchDog';
@@ -154,9 +166,9 @@ class tracking_Setup extends core_ProtoSetup
         } else {
             $html .= '<li>Процеса за тракерите е стартиран от преди това.</li>';
         }
-    
+        
         $html .= parent::install();
-    
+        
         return $html;
     }
     
@@ -165,6 +177,7 @@ class tracking_Setup extends core_ProtoSetup
      * Проверява дали е пуснат сървиса, и ако не е го пуска
      *
      * @param string
+     *
      * @return array
      */
     public function cron_WatchDog()
@@ -172,6 +185,7 @@ class tracking_Setup extends core_ProtoSetup
         if (!self::isStarted()) {
             self::Start();
         }
+        
         /*
          * @todo: На определено време е добре сървиса да се рестартира.
          */
@@ -186,18 +200,18 @@ class tracking_Setup extends core_ProtoSetup
     private function Start()
     {
         $conf = core_Packs::getConfig('tracking');
-
+        
         if (!self::isStarted()) {
             $cmd = 'php ' . realpath(dirname(__FILE__)) . '/sockListener.php'
                     . ' ' . $conf->PROTOCOL . ' ' . $conf->LOCAL_IP
                     . ' ' . $conf->PORT
                     . ' ' . $conf->LOG_URL;
-    
+            
             $pid = @exec(sprintf('%s > /dev/null 2>&1 & echo $!', $cmd));
-
+            
             core_Packs::setConfig('tracking', array('PID' => $pid, 'CMD' => $cmd));
         }
-    
+        
         return ($pid);
     }
     
@@ -210,7 +224,7 @@ class tracking_Setup extends core_ProtoSetup
     private static function Stop()
     {
         $pid = core_Packs::getConfigKey('tracking', 'PID');
-
+        
         if (!empty($pid)) {
             $res = posix_kill($pid, 9);
         }
@@ -228,7 +242,7 @@ class tracking_Setup extends core_ProtoSetup
     {
         $pid = core_Packs::getConfigKey('tracking', 'PID');
         $cmd = core_Packs::getConfigKey('tracking', 'CMD');
-
+        
         // Взимаме PID-а от конфигурацията - ако няма стойност - процеса е спрян
         if (empty($pid)) {
             
@@ -237,17 +251,19 @@ class tracking_Setup extends core_ProtoSetup
         
         // Парсираме резултата от ps -fp <PID> команда и взимаме командната линия на процеса
         @exec('ps -fp ' . $pid, $output);
+        
         // Ако командата се съдържа в резултата от ps значи процеса е нашия
         if (strpos($output[1], $cmd) !== false) {
             
             return (true);
         }
+        
         // Процеса не е нашия и чистим връзката с него
         core_Packs::setConfig('tracking', array('PID' => '', 'CMD' => ''));
         
-
         return (false);
     }
+    
     
     /**
      * Де-инсталиране на пакета

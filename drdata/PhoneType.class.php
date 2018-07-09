@@ -7,15 +7,16 @@
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_PhoneType extends type_Varchar
 {
-    
     /**
      * Параметър определящ максималната широчина на полето
      */
@@ -56,8 +57,8 @@ class drdata_PhoneType extends type_Varchar
         
         return $resNumStr;
     }
-
-
+    
+    
     /**
      * Добавя еднократно новият номер към списъка с номера
      *
@@ -70,7 +71,7 @@ class drdata_PhoneType extends type_Varchar
     {
         $nubersStr = self::getNumberStr($numbers);
         $newStr = self::getNumberStr($new, 0);
-
+        
         if (strpos($nubersStr, $newStr) === false) {
             if ($mode == 'append') {
                 $numbers .= ', ' . $new;
@@ -78,11 +79,11 @@ class drdata_PhoneType extends type_Varchar
                 $numbers = $new . ', ' . $numbers;
             }
         }
-
+        
         return $numbers;
     }
-
-
+    
+    
     /**
      * Рендиране на input-поле
      */
@@ -91,15 +92,15 @@ class drdata_PhoneType extends type_Varchar
         if ($this->params['type'] == 'fax') {
             $this->maxFieldSize = 14;
         }
-
+        
         if (isset($this->params[0])) {
             $this->maxFieldSize = $this->params[0];
         }
-
+        
         if (isset($this->params['size'])) {
             $this->maxFieldSize = $this->params['size'];
         }
-
+        
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -132,8 +133,9 @@ class drdata_PhoneType extends type_Varchar
     public function toVerbal_($telNumber)
     {
         $telNumber = trim($telNumber);
-
+        
         if (!$telNumber) {
+            
             return;
         }
         
@@ -158,69 +160,70 @@ class drdata_PhoneType extends type_Varchar
         }
         
         $parsedTel = static::toArray($telNumber, $this->params);
-
+        
         $telNumber = parent::toVerbal_($telNumber);
-
+        
         if ($parsedTel == false) {
             
             return "<span class='red' title='" . tr('Неразпознаваем телефонен номер||Unrecognizable phone number') . "'>{$telNumber}</span>";
         }
         $res = new ET();
         $value = '';
-
+        
         foreach ($parsedTel as $t) {
             $res->append($add);
-
+            
             $value = '';
-
+            
             if ($t->countryCode) {
                 $value .= $t->countryCode;
             }
-
+            
             if ($t->areaCode) {
                 $value .= $t->areaCode;
             }
-
+            
             if ($t->number) {
                 $value .= $t->number;
             }
-
+            
             $attr = array();
-
+            
             if (($t->country != 'Unknown') && ($t->area != 'Unknown') && $t->area && $t->country) {
                 $attr['title'] = "{$t->country}, {$t->area}";
             } elseif (($t->country != 'Unknown') && $t->country) {
                 $attr['title'] = "{$t->country}";
             }
-                
+            
             $title = $t->original;
-                
+            
             //$res->append(ht::createLink($title, 'tel:00'. $value, NULL, $attr));
             $res->append(self::getLink($title, $value, false, $attr));
-
+            
             if ($t->internal) {
                 $res->append(tr('вътр.') . $t->internal) ;
             }
-
+            
             $add = ', ';
         }
         
-
         return $res;
     }
-
-
+    
+    
     /**
      * Конвертира списък от телефонни номера до масив
      *
-     * @param  string $str
-     * @param  array  $params
-     * @return array  резултата е същия като на @see drdata_Phones::parseTel()
+     * @param string $str
+     * @param array  $params
+     *
+     * @return array резултата е същия като на @see drdata_Phones::parseTel()
      */
     public static function toArray($str, $params = array())
     {
         $Phones = cls::get('drdata_Phones');
         $conf = core_Packs::getConfig('drdata');
+        
         // Ако не е подаден телефонния код на държавата, ще се използва от конфигурационната константа
         if (!($code = $params['countryPhoneCode'])) {
             $code = $conf->COUNTRY_PHONE_CODE;
@@ -237,9 +240,9 @@ class drdata_PhoneType extends type_Varchar
             
             return $str;
         }
-
+        
         $result = $Phones->parseTel($str, $code, $params['areaPhoneCode']);
-
+        
         return $result;
     }
     
@@ -249,7 +252,7 @@ class drdata_PhoneType extends type_Varchar
      *
      * @param string           $verbal
      * @param drdata_PhoneType $canonical
-     * @param boolean          $isFax
+     * @param bool             $isFax
      */
     public static function getLink_($verbal, $canonical, $isFax = false, $attr = array())
     {
@@ -258,7 +261,7 @@ class drdata_PhoneType extends type_Varchar
         } else {
             $res = ht::createLink($verbal, 'tel:00' . $canonical, null, $attr);
         }
-       
+        
         return $res;
     }
 }

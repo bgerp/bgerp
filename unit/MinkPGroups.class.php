@@ -6,15 +6,16 @@
  *
  * @category  bgerp
  * @package   tests
+ *
  * @author    Pavlinka Dainovska <pdainovska@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class unit_MinkPGroups extends core_Manager
 {
-     
     /**
      * Стартира последователно тестовете от MinkPGroups
      */
@@ -22,6 +23,7 @@ class unit_MinkPGroups extends core_Manager
     public function act_Run()
     {
         if (!TEST_MODE) {
+            
             return;
         }
         
@@ -37,9 +39,10 @@ class unit_MinkPGroups extends core_Manager
         $res .= '  8.'.$this->act_CreateCompany1();
         $res .= '  9.'.$this->act_CreateCompany2();
         $res .= '  10.'.$this->act_FilterCrmGroup();
-
+        
         return $res;
     }
+    
     
     /**
      * Логване
@@ -47,18 +50,21 @@ class unit_MinkPGroups extends core_Manager
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
+        
         //$browser->start('http://localhost/');
         $host = unit_Setup::get('DEFAULT_HOST');
         $browser->start($host);
+        
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-
+        
         return $browser;
     }
-  
+    
+    
     /**
      * 1. Създаване на група - подниво на "Продукти"
      */
@@ -67,7 +73,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нова група
         $browser->click('Каталог');
         $browser->click('Групи');
@@ -77,10 +83,11 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-
+            
             return $this->reportErr('Дублиране на група', 'info');
         }
     }
+    
     
     /**
      * 2. Създаване на групи - подниво на поднивото
@@ -90,7 +97,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на подниво
         $browser->click('Каталог');
         $browser->click('Групи');
@@ -100,9 +107,10 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-
+            
             return $this->reportErr('Дублиране на група', 'info');
         }
+        
         // Създаване на подниво
         $browser->press('Нов запис');
         $browser->setValue('name', 'Малки');
@@ -110,10 +118,11 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-
+            
             return $this->reportErr('Дублиране на група', 'info');
         }
     }
+    
     
     /**
      * 3. Създаване на артикул от първата група от последното ниво
@@ -123,7 +132,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нов артикул от първата група от последното ниво
         $browser->click('Каталог');
         $browser->press('Нов запис');
@@ -137,6 +146,7 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
     }
     
+    
     /**
      * 4. Създаване на артикул от втората група от последното ниво
      */
@@ -146,7 +156,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нов артикул - продукт
         $browser->click('Каталог');
         $browser->press('Нов запис');
@@ -160,6 +170,7 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
     }
     
+    
     /**
      * 5. Филтриране по група артикули
      */
@@ -168,8 +179,9 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         $browser->click('Каталог');
+        
         // търсене
         $browser->setValue('groupId', 'Продукти');
         $browser->press('Филтрирай');
@@ -185,6 +197,7 @@ class unit_MinkPGroups extends core_Manager
         }
     }
     
+    
     /**
      * 6. Създаване на група контрагенти - подниво на клиенти
      */
@@ -193,7 +206,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нова група
         $browser->click('Визитник');
         $browser->click('Групи');
@@ -203,10 +216,11 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-
+            
             return $this->reportErr('Дублиране на група', 'info');
         }
     }
+    
     
     /**
      * 7. Създаване на група контрагенти - подниво на поднивото
@@ -216,7 +230,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нова група
         $browser->click('Визитник');
         $browser->click('Групи');
@@ -226,7 +240,7 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-
+            
             return $this->reportErr('Дублиране на група', 'info');
         }
         $browser->click('Групи');
@@ -236,10 +250,11 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
-
+            
             return $this->reportErr('Дублиране на група', 'info');
         }
     }
+    
     
     /**
      * 8. Създаване на фирма от първата група от последното ниво
@@ -249,7 +264,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нова фирма
         $browser->click('Визитник');
         $browser->press('Нова фирма');
@@ -261,6 +276,7 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
     }
     
+    
     /**
      * 9. Създаване на фирма от втората група от последното ниво
      */
@@ -269,7 +285,7 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на нова фирма
         $browser->click('Визитник');
         $browser->press('Нова фирма');
@@ -281,6 +297,7 @@ class unit_MinkPGroups extends core_Manager
         $browser->press('Запис');
     }
     
+    
     /**
      * 10. Филтриране по група контрагенти
      */
@@ -289,8 +306,9 @@ class unit_MinkPGroups extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         $browser->click('Визитник');
+        
         // търсене
         $browser->setValue('groupId', 'Клиенти');
         $browser->press('Филтрирай');

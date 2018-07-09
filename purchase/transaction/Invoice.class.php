@@ -1,17 +1,17 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа purchase_Invoices
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
@@ -39,11 +39,11 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         setIfNot($rec->journalDate, $this->class->getDefaultAccDate($rec->date));
         
         $result = (object) array(
-                'reason' => "Входяща фактура №{$rec->number}", // основанието за ордера
-                'valior' => $rec->journalDate,   // датата на ордера
-                'entries' => array(),
+            'reason' => "Входяща фактура №{$rec->number}", // основанието за ордера
+            'valior' => $rec->journalDate,   // датата на ордера
+            'entries' => array(),
         );
-    
+        
         if (Mode::get('saveTransaction')) {
             if (empty($rec->number)) {
                 if ($rec->type == 'dc_note') {
@@ -80,25 +80,25 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 }
             }
         }
-         
+        
         if ($origin->isInstanceOf('findeals_AdvanceReports')) {
             $origin = $origin->getOrigin();
         }
         
         $entries = array();
-    
+        
         if (isset($cloneRec->vatAmount)) {
             $entries[] = array(
-                    'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
-    
-                    'debit' => array('4531'),
-    
-                    'credit' => array('4530', array($origin->className, $origin->that)),
+                'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
+                
+                'debit' => array('4531'),
+                
+                'credit' => array('4530', array($origin->className, $origin->that)),
             );
         }
-    
+        
         $result->entries = $entries;
-         
+        
         return $result;
     }
 }

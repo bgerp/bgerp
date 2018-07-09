@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Рендер за хипервръзка към калкулатора
  *
  *
  * @category  vendors
  * @package   calculator
+ *
  * @author    Milen Georgiev
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class calculator_View
 {
-    
-    
     /**
      * Връща хипервръзка с икона за стартиране на калкулатора
      */

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Действия в разпределена файлова група
  *
  * @category  bgerp
  * @package   distro
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class distro_Actions extends embed_Manager
 {
-    
-    
     /**
      * Дали да се създаде директория (ако липсва), при пускане на процеси
      */
@@ -31,13 +30,13 @@ class distro_Actions extends embed_Manager
      * Интерфейс на драйверите
      */
     public $driverInterface = 'distro_ActionsDriverIntf';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Дейстие';
-
+    
     
     /**
      * Разглеждане на листов изглед
@@ -49,43 +48,43 @@ class distro_Actions extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'distro_Wrapper, plg_Created, plg_State';
-
+    
     
     /**
      * Кой има право да чете?
      */
     public $canRead = 'admin';
-        
-
+    
+    
     /**
      * Кой може да пише?
      */
     public $canWrite = 'powerUser';
-        
-
+    
+    
     /**
      * Кой може да изтрива?
      */
     public $canDelete = 'no_one';
-        
-
+    
+    
     /**
      * Кой може да оттегля?
      */
     public $canReject = 'no_one';
-        
-
+    
+    
     /**
      * Кой може да редактира?
      */
     public $canEdit = 'no_one';
-
-
+    
+    
     /**
      * Колонки в листовия изглед
      */
     public $listFields = 'Info=Информация, createdOn=Стартирано->На, createdBy=Стартирано->От, completedOn=Приключено||Completed->На';
-
+    
     
     /**
      * Ключ, който ще се използва за мастер
@@ -141,7 +140,7 @@ class distro_Actions extends embed_Manager
             if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
                 continue ;
             }
-
+            
             $me = cls::get(get_called_class());
             
             core_Request::setProtected(array($me->driverClassField, 'groupId', 'repoId', 'fileId'));
@@ -218,8 +217,8 @@ class distro_Actions extends embed_Manager
     /**
      * Връща стринг, който ще се използва за прихващане на грешки при пускане на процесите
      *
-     * @param integer $id
-     * @param integer $repoId
+     * @param int $id
+     * @param int $repoId
      *
      * @return string
      */
@@ -242,8 +241,8 @@ class distro_Actions extends embed_Manager
     /**
      * Връща пътя на файла за грешките
      *
-     * @param integer $id
-     * @param integer $repoId
+     * @param int $id
+     * @param int $repoId
      *
      * @return string
      */
@@ -264,7 +263,7 @@ class distro_Actions extends embed_Manager
     /**
      * Връща URL-то за прихващане на грешки
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string
      */
@@ -288,11 +287,11 @@ class distro_Actions extends embed_Manager
         // Нотифицираме инициатора на екшъна
         if ($rec->createdBy > 0) {
             $driverInst = $this->getDriver($rec);
-        
+            
             $title = $driverInst ? mb_strtolower($driverInst->title) : 'действие';
-        
+            
             $msg = '|Грешка при|* |' . $title;
-        
+            
             bgerp_Notifications::add($msg, array('distro_Group', 'single', $rec->groupId), $rec->createdBy);
         }
         
@@ -367,7 +366,7 @@ class distro_Actions extends embed_Manager
         }
         
         $this->notifyErr($rec);
-
+        
         $rec->completedOn = dt::now();
         $rec->StopExec = true;
         $this->save($rec, 'completedOn');
@@ -428,16 +427,16 @@ class distro_Actions extends embed_Manager
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
         }
-
+        
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
         // Подготвяме вербалните стойности за редовете
         $this->prepareListRows($data);
-     
+        
         // Подготвяме лентата с инструменти
         $this->prepareListToolbar($data);
-
+        
         return $data;
     }
     
@@ -451,7 +450,7 @@ class distro_Actions extends embed_Manager
         if (!isset($data->listClass)) {
             $data->listClass = 'listRowsDetail';
         }
-
+        
         if (!isset($this->currentTab)) {
             $this->currentTab = $data->masterMvc->title;
         }
@@ -605,8 +604,8 @@ class distro_Actions extends embed_Manager
             }
         }
     }
-
-
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
@@ -652,10 +651,10 @@ class distro_Actions extends embed_Manager
                     }
                     
                     $ssh = distro_Repositories::connectToRepo($rec->repoId);
-                
+                    
                     if (!$ssh) {
                         $mvc->notifyErr($rec);
-                
+                        
                         return ;
                     }
                     

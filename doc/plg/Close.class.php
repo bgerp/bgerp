@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_Close extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -47,7 +47,7 @@ class doc_plg_Close extends core_Plugin
                 $closeMsg = 'Сигурни ли сте, че искате да закриете тази нишка и да не може да се добавят документи в нея|*?';
                 $closeBtn = 'Затваряне||Close';
             }
-
+            
             if ($data->rec->state == 'closed') {
                 $data->toolbar->addBtn('Откриване', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id=btnActivate,row=2,ef_icon = img/16/lock_unlock.png,title=Откриване на {$singleTitle}");
                 $data->toolbar->setWarning('btnActivate', $activeMsg);
@@ -110,6 +110,7 @@ class doc_plg_Close extends core_Plugin
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action != 'changestate') {
+            
             return;
         }
         
@@ -117,7 +118,7 @@ class doc_plg_Close extends core_Plugin
         expect($id = Request::get('id', 'int'));
         expect($rec = $mvc->fetch($id));
         $mvc->requireRightFor('close', $rec);
-         
+        
         $state = ($rec->state == 'closed') ? 'active' : 'closed';
         $action = ($state == 'closed') ? 'Приключване' : 'Активиране';
         
@@ -125,7 +126,7 @@ class doc_plg_Close extends core_Plugin
             $rec->brState = $rec->state;
             $rec->exState = $rec->state;
             $rec->state = $state;
-        
+            
             $mvc->save($rec);
             if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
                 doc_Prototypes::sync($rec->containerId);

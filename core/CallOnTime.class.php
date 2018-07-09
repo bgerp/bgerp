@@ -7,15 +7,15 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_CallOnTime extends core_Manager
 {
-    
-    
     /**
      * Кой има право да променя?
      */
@@ -39,7 +39,6 @@ class core_CallOnTime extends core_Manager
      */
     protected $canDelete = 'debug';
     
-
     
     public $title = 'Еднократни процеси';
     
@@ -50,9 +49,7 @@ class core_CallOnTime extends core_Manager
     public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2, plg_Search, plg_Sorting';
     
     
-    
     public $searchFields = 'hash, className, methodName, data, callOn, state';
-    
     
     
     public function description()
@@ -71,13 +68,13 @@ class core_CallOnTime extends core_Manager
     /**
      * Добавя функция, която да се изпълни след определено време
      *
-     * @param string  $className
-     * @param string  $methodName
-     * @param mixed   $data
-     * @param date    $callOn
-     * @param boolean $once
+     * @param string $className
+     * @param string $methodName
+     * @param mixed  $data
+     * @param date   $callOn
+     * @param bool   $once
      *
-     * @return integer
+     * @return int
      */
     public static function setCall($className, $methodName, $data = null, $callOn = null, $once = false)
     {
@@ -126,7 +123,7 @@ class core_CallOnTime extends core_Manager
      * @param mixed  $data
      * @param date   $callOn
      *
-     * @return integer
+     * @return int
      */
     public static function setOnce($className, $methodName, $data = null, $callOn = null)
     {
@@ -139,9 +136,10 @@ class core_CallOnTime extends core_Manager
     /**
      * Изтриване на вече зададен запис, който все още не е изпълнен
      *
-     * @param  string $className
-     * @param  string $methodName
-     * @param  mixed  $data
+     * @param string $className
+     * @param string $methodName
+     * @param mixed  $data
+     *
      * @return void
      */
     public static function remove($className, $methodName, $data)
@@ -200,7 +198,7 @@ class core_CallOnTime extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
@@ -227,7 +225,7 @@ class core_CallOnTime extends core_Manager
         $query = self::getQuery();
         $query->where("#callOn <= '{$now}'");
         $query->where("#state != 'pending'");
-
+        
         while ($rec = $query->fetch()) {
             
             // Ако сме се доближили до края - да приключваме процеса
@@ -243,9 +241,10 @@ class core_CallOnTime extends core_Manager
             self::save($nRec, 'state');
             
             $singletons = cls::$singletons;
-
+            
             try {
                 $class = cls::get($rec->className);
+                
                 // Изпълняваме подадената функция с префикс callback_
                 $callback = array($class, 'callback_' . $rec->methodName);
                 $res .= call_user_func($callback, $rec->data) . "\n";

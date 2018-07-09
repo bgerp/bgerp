@@ -1,20 +1,20 @@
 <?php
 
 
-/** 
+/**
  * Организациони структурии
  *
  * @category  vendors
  * @package   orgchart
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class orgchart_Adapter extends core_BaseClass
 {
-    
-    
     /**
      * начертаване на организациони структури по даден двумерен масив
      *
@@ -42,7 +42,7 @@ class orgchart_Adapter extends core_BaseClass
         $orgChartCnt++;
         
         $idChart = 'orgChart' . $orgChartCnt;
-    
+        
         $level = 'NULL';
         $nestedLists = static::transformArrayToNestedLists($orgData, $level);
         
@@ -51,12 +51,11 @@ class orgchart_Adapter extends core_BaseClass
         
         // Генерираме необходимия маркъп за плъгина
         $tpl->append("<div class='organisation'>{$nestedLists}</div><div id='{$idChart}'></div>");
-
+        
         $tpl->push('orgchart/lib/jquery.orgchart.css', 'CSS');
         $tpl->push('orgchart/lib/jquery.orgchart.js', 'JS');
-            
+        
         jquery_Jquery::run($tpl, "$('.organisation > ul').orgChart({container: $('#{$idChart}'), interactive: true});", true);
-      
         
         return $tpl;
     }

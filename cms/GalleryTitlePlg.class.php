@@ -19,16 +19,16 @@ defIfNot('CMS_GALLERY_TITLE_HANDLER_PTR', 'dddd');
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cms_GalleryTitlePlg extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -49,7 +49,7 @@ class cms_GalleryTitlePlg extends core_Plugin
         
         // Полето да е уникално
 //        $mvc->setDbUnique($this->galleryTitleFieldName);
-
+        
         // @todo - да се премахне след като се прмахне добавката в on_AfterSetupMvc
         if (!$mvc->fields['vid']) {
             $mvc->FLD('vid', 'varchar(128)', 'caption=Вербално ID, width=100%, input=none');
@@ -61,7 +61,7 @@ class cms_GalleryTitlePlg extends core_Plugin
      * Извиква се преди вкарване на запис в таблицата на модела
      *
      * @param core_Mvc $mvc
-     * @param integer  $id
+     * @param int      $id
      * @param object   $rec
      * @param mixed    $fields
      */
@@ -125,6 +125,7 @@ class cms_GalleryTitlePlg extends core_Plugin
                 }
                 
                 $i++;
+                
                 // Добавяме новото име
                 $recTitleNew = $recTitle . $dash . $i;
             }

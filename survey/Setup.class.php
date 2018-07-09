@@ -10,15 +10,15 @@
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class survey_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -47,25 +47,25 @@ class survey_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'survey_Surveys',
-            'survey_Alternatives',
-            'survey_Votes',
-            'survey_Options',
-        );
+        'survey_Surveys',
+        'survey_Alternatives',
+        'survey_Votes',
+        'survey_Options',
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'survey';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', 'survey, ceo'),
-        );
+        array(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', 'survey, ceo'),
+    );
     
     
     /**

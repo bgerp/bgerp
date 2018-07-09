@@ -1,31 +1,31 @@
 <?php
 
 
-
 /**
  * Базов клас за наследяване на детайл на ф-ри
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_InvoiceDetail extends doc_Detail
 {
-    
     /**
      * Помощен масив за мапиране на полета изпозлвани в deals_Helper
      */
     public $map = array('rateFld' => 'rate',
-                         'chargeVat' => 'vatRate',
-                         'quantityFld' => 'quantity',
-                         'valior' => 'date',
-                         'alwaysHideVat' => true,);
+        'chargeVat' => 'vatRate',
+        'quantityFld' => 'quantity',
+        'valior' => 'date',
+        'alwaysHideVat' => true,);
     
-
+    
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
@@ -37,7 +37,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public $priceFields = 'amount,discount,packPrice';
     
-
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -48,8 +48,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
-
-
+    
+    
     /**
      * Да се показва ли вашия номер
      */
@@ -88,13 +88,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         $rec = &$data->form->rec;
         $masterRec = $data->masterRec;
-    
+        
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-    
+        
         $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
         $data->form->setOptions('productId', array('' => ' ') + $products);
-    
+        
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
         }
@@ -125,8 +125,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * След подготовка на лист тулбара
      */
@@ -141,16 +141,16 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $text = ($mvc->metaProducts == 'canSell') ? 'продаваеми' : 'купуваеми';
                 $error = "error=Няма {$text} артикули,";
             }
-    
+            
             $data->toolbar->addBtn(
-    
+                
                 'Артикул',
-    
+                
                 array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => true),
                     "id=btnAdd,{$error} order=10,title=Добавяне на артикул",
-    
+                
                 'ef_icon = img/16/shopping.png'
-    
+            
             );
         }
         
@@ -195,7 +195,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $this->save($det);
             }
         }
-         
+        
         // Редирект обратно към фактурата
         return followRetUrl(null, 'Артикулите от сделката са копирани успешно');
     }
@@ -210,9 +210,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->price) || empty($rec->quantityInPack)) {
+            
             return;
         }
-    
+        
         $rec->packPrice = $rec->price * $rec->quantityInPack;
     }
     
@@ -244,20 +245,20 @@ abstract class deals_InvoiceDetail extends doc_Detail
         if (count($recs)) {
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
-        
+            
             // За всеки запис ако е променен от оригиналния показваме промяната
             $count = 0;
             foreach ($recs as &$dRec) {
                 $originRef = $cached->recs[$count][$dRec->productId];
-                    
+                
                 $diffQuantity = $dRec->quantity - $originRef['quantity'];
                 $diffPrice = $dRec->packPrice - $originRef['price'];
-                    
+                
                 if (round($diffQuantity, 5) != 0) {
                     $dRec->quantity = $diffQuantity;
                     $dRec->changedQuantity = true;
                 }
-                    
+                
                 if (round($diffPrice, 5) != 0) {
                     $dRec->packPrice = $diffPrice;
                     $dRec->changedPrice = true;
@@ -274,6 +275,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!count($data->rows)) {
+            
             return;
         }
         
@@ -299,6 +301,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($masterRec->type != 'dc_note') {
+            
             return;
         }
         
@@ -423,7 +426,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->{$mvc->masterKey})) {
             $hasType = $mvc->Master->getField('type', false);
-    
+            
             if (empty($hasType) || (isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'invoice')) {
                 $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
                 
@@ -500,7 +503,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             if (isset($mvc->LastPricePolicy)) {
                 $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
-                    
+                
                 if ($policyInfoLast->price != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
@@ -520,7 +523,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             if ($masterRec->type == 'dc_note') {
                 if (!isset($rec->packPrice) || !isset($rec->quantity)) {
                     $form->setError('packPrice,packQuantity', 'Количеството и сумата трябва да са попълнени');
-
+                    
                     return;
                 }
             }
@@ -529,7 +532,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning)) {
                 $form->setError('quantity', $warning);
             }
-    
+            
             if ($masterRec->type != 'dc_note') {
                 $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             }
@@ -542,7 +545,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $origin = $mvc->Master->getOrigin($masterRec);
                 $dealInfo = $origin->getAggregateDealInfo();
                 $products = $dealInfo->get('products');
-                        
+                
                 if (count($products)) {
                     foreach ($products as $p) {
                         if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
@@ -553,7 +556,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         }
                     }
                 }
-                        
+                
                 if (!$policyInfo) {
                     $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
                     $Policy = cls::get('price_ListToCustomers');
@@ -564,7 +567,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if (empty($policyInfo->price)) {
                     $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
                 } else {
-                            
+                    
                     // Ако се обновява запис се взима цената от него, ако не от политиката
                     $rec->price = $policyInfo->price;
                     $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
@@ -602,7 +605,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             // Записваме основната мярка на продукта
             $rec->amount = $rec->packPrice * $rec->quantity;
-                
+            
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);

@@ -5,9 +5,11 @@
  *
  * @category  vendors
  * @package   oembed
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class replace_Plugin extends core_Plugin
@@ -15,7 +17,7 @@ class replace_Plugin extends core_Plugin
     public function on_BeforeCatchRichElements($mvc, &$html)
     {
         $matches = array();
-
+        
         if (preg_match("/^\#replace\s(.+)/iu", $html, $matches)) {
             if ($matches[1]) {
                 $groups = $matches[1];
@@ -28,7 +30,7 @@ class replace_Plugin extends core_Plugin
                         $toArr[] = $to;
                         $midArr[] = '{' . $rand . count($toArr) . '}';
                     }
- 
+                    
                     if (is_array($fromArr)) {
                         $html = str_replace($fromArr, $midArr, $html);
                         $html = str_replace($midArr, $toArr, $html);

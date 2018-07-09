@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   docoffice
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class docoffice_Pdf
 {
-    
-    
     /**
      * Конвертиране на офис документи с помощта на unoconv
      *
@@ -59,6 +59,7 @@ class docoffice_Pdf
         }
         
         $Script->setCheckProgramsArr('pdftotext');
+        
         // Стартираме скрипта синхронно
         if ($Script->run($params['asynch']) === false) {
             fileman_Indexes::createError($params);
@@ -116,6 +117,7 @@ class docoffice_Pdf
         fileman_Indexes::haveErrors($outFilePath, $params);
         
         $Script->setCheckProgramsArr('convert');
+        
         // Стартираме скрипта синхронно
         if ($Script->run($params['asynch']) === false) {
             fileman_Indexes::createError($params);

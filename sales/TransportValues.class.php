@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел за кеширани изчислени транспортни цени
  *
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_TransportValues extends core_Manager
 {
-
-
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -27,21 +26,21 @@ class sales_TransportValues extends core_Manager
      * Масив за мапване на стойностите от мениджърите
      */
     private static $map = array(
-            'masterMvc' => 'sales_Sales',
-            'deliveryTermId' => 'deliveryTermId',
-            'contragentClassId' => 'contragentClassId',
-            'contragentId' => 'contragentId',
-            'productId' => 'productId',
-            'packagingId' => 'packagingId',
-            'deliveryLocationId' => 'deliveryLocationId',
-            'valior' => 'valior',
-            'quantity' => 'quantity',
-            'price' => 'price',
-            'packPrice' => 'packPrice',
-            'chargeVat' => 'chargeVat',
-            'currencyRate' => 'currencyRate',
-            'currencyId' => 'currencyId',
-            'countryId' => 'countryId',
+        'masterMvc' => 'sales_Sales',
+        'deliveryTermId' => 'deliveryTermId',
+        'contragentClassId' => 'contragentClassId',
+        'contragentId' => 'contragentId',
+        'productId' => 'productId',
+        'packagingId' => 'packagingId',
+        'deliveryLocationId' => 'deliveryLocationId',
+        'valior' => 'valior',
+        'quantity' => 'quantity',
+        'price' => 'price',
+        'packPrice' => 'packPrice',
+        'chargeVat' => 'chargeVat',
+        'currencyRate' => 'currencyRate',
+        'currencyId' => 'currencyId',
+        'countryId' => 'countryId',
     );
     
     
@@ -49,38 +48,38 @@ class sales_TransportValues extends core_Manager
      * Заглавие
      */
     public $title = 'Изчислен транспорт';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'sales_Wrapper';
-
-
+    
+    
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
-
-
+    
+    
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'no_one';
-
-
+    
+    
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
-
-
+    
+    
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'no_one';
-
-
+    
+    
     /**
      * Полета, които се виждат
      */
@@ -115,16 +114,17 @@ class sales_TransportValues extends core_Manager
     /**
      * Връща информация за цената на транспорта, към клиент
      *
-     * @param  int         $deliveryTermId - условие на доставка
-     * @param  int         $productId      - ид на артикул
-     * @param  int         $packagingId    - ид на опаковка
-     * @param  double      $quantity       - к-во
-     * @param  double      $totalWeight    - общо тегло
-     * @param  double      $totalVolume    - общ обем
-     * @param  array       $deliveryData   - информация за доставка
+     * @param int   $deliveryTermId - условие на доставка
+     * @param int   $productId      - ид на артикул
+     * @param int   $packagingId    - ид на опаковка
+     * @param float $quantity       - к-во
+     * @param float $totalWeight    - общо тегло
+     * @param float $totalVolume    - общ обем
+     * @param array $deliveryData   - информация за доставка
+     *
      * @return FALSE|array $res       - информация за цената на транспорта или NULL, ако няма
-     *                                    ['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
-     *                                    ['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
+     *                     ['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
+     *                     ['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
      */
     public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $totalVolume, $deliveryData)
     {
@@ -137,7 +137,7 @@ class sales_TransportValues extends core_Manager
         
         $weight = cat_Products::getTransportWeight($productId, $quantity);
         $volume = cat_Products::getTransportVolume($productId, $quantity);
-         
+        
         if (empty($weight) && isset($weight) && empty($volume)) {
             $totalFee = null;
         } else {
@@ -164,8 +164,8 @@ class sales_TransportValues extends core_Manager
     /**
      * Нормализира общото тегло
      *
-     * @param double             $totalWeight
-     * @param double             $totalWeight
+     * @param float              $totalWeight
+     * @param float              $totalWeight
      * @param cond_TransportCalc $TransportCostDriver
      */
     private static function normalizeTotalWeight($totalWeight, $productId, cond_TransportCalc $TransportCostDriver)
@@ -192,10 +192,11 @@ class sales_TransportValues extends core_Manager
     /**
      * Връща теглото и обема
      *
-     * @param  int    $productId
-     * @param  int    $packagingId
-     * @param  double $quantity
-     * @return array  $res
+     * @param int   $productId
+     * @param int   $packagingId
+     * @param float $quantity
+     *
+     * @return array $res
      */
     public static function getWeightAndVolume($productId, $packagingId, $quantity)
     {
@@ -204,13 +205,13 @@ class sales_TransportValues extends core_Manager
         // Колко е еденичното транспортно тегло на артикула
         $res['weight'] = cat_Products::getTransportWeight($productId, $quantity);
         $res['volume'] = cat_Products::getTransportVolume($productId, $quantity);
-         
+        
         // Ако теглото е 0 и няма обем, да не се изчислява транспорт
         if (empty($res['weight']) && isset($res['weight']) && empty($res['volume'])) {
             
             return array();
         }
-         
+        
         return $res;
     }
     
@@ -218,9 +219,10 @@ class sales_TransportValues extends core_Manager
     /**
      * Връща начисления транспорт към даден документ
      *
-     * @param  mixed         $docClassId - ид на клас на документ
-     * @param  int           $docId      - ид на документ
-     * @param  int           $recId      - ид на ред на документ
+     * @param mixed $docClassId - ид на клас на документ
+     * @param int   $docId      - ид на документ
+     * @param int   $recId      - ид на ред на документ
+     *
      * @return stdClass|NULL - записа, или NULL ако няма
      */
     public static function get($docClassId, $docId, $recId)
@@ -235,10 +237,11 @@ class sales_TransportValues extends core_Manager
     /**
      * Синхронизира сумата на скрития транспорт на един ред на документ
      *
-     * @param  mixed  $docClassId - ид на клас на документ
-     * @param  int    $docId      - ид на документ
-     * @param  int    $recId      - ид на ред на документ
-     * @param  double $fee        - начисления скрит транспорт
+     * @param mixed $docClassId - ид на клас на документ
+     * @param int   $docId      - ид на документ
+     * @param int   $recId      - ид на ред на документ
+     * @param float $fee        - начисления скрит транспорт
+     *
      * @return void
      */
     public static function sync($docClass, $docId, $recId, $fee, $deliveryTimeFromFee = null)
@@ -264,7 +267,7 @@ class sales_TransportValues extends core_Manager
                     $exRec->deliveryTime = $deliveryTimeFromFee;
                 }
             }
-             
+            
             // Ъпдейт / Добавяне на записа
             $exRec->fee = $fee;
             if (isset($deliveryTimeFromFee)) {
@@ -298,12 +301,12 @@ class sales_TransportValues extends core_Manager
     public function act_Truncate()
     {
         requireRole('debug');
-            
+        
         // Изчистване записите от моделите
         self::truncate();
-            
+        
         $this->logWrite('Изтриване на кеша на транспортните суми');
-    
+        
         return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
     }
     
@@ -311,14 +314,15 @@ class sales_TransportValues extends core_Manager
     /**
      * Помощна ф-я връщаща п. кода и държава от подадени данни
      *
-     * @param  mixed       $contragentClassId - клас на контрагента
-     * @param  int         $contragentId      - ид на контрагента
-     * @param  string|NULL $pCode             - пощенски код
-     * @param  int|NULL    $countryId         - ид на държава
-     * @param  int|NULL    $locationId        - ид на локация
-     * @return array       $res
-     *                                       ['pCode']     - пощенски код
-     *                                       ['countryId'] - ид на държава
+     * @param mixed       $contragentClassId - клас на контрагента
+     * @param int         $contragentId      - ид на контрагента
+     * @param string|NULL $pCode             - пощенски код
+     * @param int|NULL    $countryId         - ид на държава
+     * @param int|NULL    $locationId        - ид на локация
+     *
+     * @return array $res
+     *               ['pCode']     - пощенски код
+     *               ['countryId'] - ид на държава
      */
     public static function getCodeAndCountryId($contragentClassId, $contragentId, $pCode = null, $countryId = null, $locationId = null)
     {
@@ -366,9 +370,10 @@ class sales_TransportValues extends core_Manager
     /**
      * Колко е начисления скрит танспорт за документа
      *
-     * @param  mixed  $docClass - клас на документа
-     * @param  int    $docId    - ид на документа
-     * @return double $count  - общо начислени разходи
+     * @param mixed $docClass - клас на документа
+     * @param int   $docId    - ид на документа
+     *
+     * @return float $count  - общо начислени разходи
      */
     public static function calcInDocument($docClass, $docId)
     {
@@ -398,11 +403,12 @@ class sales_TransportValues extends core_Manager
     /**
      * Показване на хинт при изчисление на цена
      *
-     * @param  string          $amountRow    - вербалната сума на реда
-     * @param  double          $amountFee    - вербалната транспортна такса
-     * @param  double          $vat          - процент ДДС
-     * @param  double          $currencyRate - валутен курс
-     * @param  string          $chargeVat    - режим на ДДС
+     * @param string $amountRow    - вербалната сума на реда
+     * @param float  $amountFee    - вербалната транспортна такса
+     * @param float  $vat          - процент ДДС
+     * @param float  $currencyRate - валутен курс
+     * @param string $chargeVat    - режим на ДДС
+     *
      * @return core_ET|varchar $amountRow  - сумата на реда с хинт
      */
     public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
@@ -438,13 +444,14 @@ class sales_TransportValues extends core_Manager
     /**
      * Сумата на видимия транспорт в документа
      *
-     * @param  core_Query $query           - заявка
-     * @param  string     $productFld      - име на полето на артикула
-     * @param  string     $amountFld       - име на полето на сумата
-     * @param  string     $packPriceFld    - име на полето на цената на опаковката
-     * @param  string     $packQuantityFld - име на полето на количеството на опаковката
-     * @param  string     $discountFld     - име на полето за отстъпката
-     * @return double     $amount         - сума на видимия транспорт в основна валута без ДДС
+     * @param core_Query $query           - заявка
+     * @param string     $productFld      - име на полето на артикула
+     * @param string     $amountFld       - име на полето на сумата
+     * @param string     $packPriceFld    - име на полето на цената на опаковката
+     * @param string     $packQuantityFld - име на полето на количеството на опаковката
+     * @param string     $discountFld     - име на полето за отстъпката
+     *
+     * @return float $amount         - сума на видимия транспорт в основна валута без ДДС
      */
     public static function getVisibleTransportCost(core_Query $query, $productFld = 'productId', $amountFld = 'amount', $packPriceFld = 'packPrice', $packQuantityFld = 'packQuantity', $discountFld = 'discount')
     {
@@ -474,12 +481,13 @@ class sales_TransportValues extends core_Manager
     /**
      * Връща общото тегло и общия обем на масив с артикули
      *
-     * @param  array  $products    - масив с артикули
-     * @param  string $productFld  - поле съдържащо ид-то на артикул
-     * @param  string $quantityFld - поле съдържащо количеството на артикул
-     * @return double $res
-     *                            ['weight']     - общо тегло
-     *                            ['volume']     - общ обем
+     * @param array  $products    - масив с артикули
+     * @param string $productFld  - поле съдържащо ид-то на артикул
+     * @param string $quantityFld - поле съдържащо количеството на артикул
+     *
+     * @return float $res
+     *               ['weight']     - общо тегло
+     *               ['volume']     - общ обем
      */
     public static function getTotalWeightAndVolume($products, $productFld = 'productId', $quantityFld = 'quantity', $packagingFld = 'packagingId')
     {
@@ -504,19 +512,21 @@ class sales_TransportValues extends core_Manager
      * Помощна функция връщаща сумата на реда
      * Използва се след инпута на формата на документите
      *
-     * @param  int        $deliveryTermId     - ид на условие на доставка
-     * @param  mixed      $contragentClassId  - клас на контрагента
-     * @param  int        $contragentId       - ид на контрагента
-     * @param  int        $productId          - ид на артикула
-     * @param  int        $packagingId        - ид на опаковка
-     * @param  double     $quantity           - количество
-     * @param  int|NULL   $deliveryLocationId - ид на локация
+     * @param int      $deliveryTermId     - ид на условие на доставка
+     * @param mixed    $contragentClassId  - клас на контрагента
+     * @param int      $contragentId       - ид на контрагента
+     * @param int      $productId          - ид на артикула
+     * @param int      $packagingId        - ид на опаковка
+     * @param float    $quantity           - количество
+     * @param int|NULL $deliveryLocationId - ид на локация
+     *
      * @return NULL|array $feeArray        - сумата на транспорта
      */
     public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null)
     {
         // Ако може да се изчислява скрит транспорт
         if (!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
+            
             return;
         }
         
@@ -539,10 +549,10 @@ class sales_TransportValues extends core_Manager
      * Връща вербалното показване на транспортните цени
      *
      * @param stdClass $row                   - вербалното представяне на реда
-     * @param double   $leftTransportCost     - остатъка за транспорт
-     * @param double   $hiddenTransportCost   - скрития транспорт
-     * @param double   $expectedTransportCost - очаквания транспорт
-     * @param double   $visibleTransportCost  - явния транспорт
+     * @param float    $leftTransportCost     - остатъка за транспорт
+     * @param float    $hiddenTransportCost   - скрития транспорт
+     * @param float    $expectedTransportCost - очаквания транспорт
+     * @param float    $visibleTransportCost  - явния транспорт
      */
     public static function getVerbalTransportCost(&$row, &$leftTransportCost, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost)
     {
@@ -563,15 +573,15 @@ class sales_TransportValues extends core_Manager
     }
     
     
-    
     /**
      * Помощен метод дали има грешка при избраното условие на доставка
      *
-     * @param  int          $deliveryTermId     - условие на доставка
-     * @param  string       $deliveryAddress    - точно място на доставка
-     * @param  int          $contragentClassId  - клас на контрагента
-     * @param  int          $contragentId       - ид на контрагент
-     * @param  int|NULL     $deliveryLocationId - адрес на локация
+     * @param int      $deliveryTermId     - условие на доставка
+     * @param string   $deliveryAddress    - точно място на доставка
+     * @param int      $contragentClassId  - клас на контрагента
+     * @param int      $contragentId       - ид на контрагент
+     * @param int|NULL $deliveryLocationId - адрес на локация
+     *
      * @return FALSE|string - съобщението за грешка, което ще се показва
      */
     public static function getDeliveryTermError($deliveryTermId, $deliveryAddress, $contragentClassId, $contragentId, $deliveryLocationId)
@@ -608,10 +618,11 @@ class sales_TransportValues extends core_Manager
     /**
      * Помощна функция за подотовка на цената на транспорта
      *
-     * @param  stdClass  $rec       - запис
-     * @param  core_Form $form      - форма
-     * @param  stdClass  $masterRec - мастър запис
-     * @param  array     $map       - масив за мапване на полетата
+     * @param stdClass  $rec       - запис
+     * @param core_Form $form      - форма
+     * @param stdClass  $masterRec - мастър запис
+     * @param array     $map       - масив за мапване на полетата
+     *
      * @return void
      */
     public static function prepareFee(&$rec, &$form, $masterRec, $map = array())
@@ -623,14 +634,14 @@ class sales_TransportValues extends core_Manager
             $rec->fee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
             $rec->deliveryTimeFromFee = self::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
         }
- 
+        
         if ($masterRec->deliveryAdress) {
             if ($parsePlace = drdata_Address::parsePlace($masterRec->deliveryAdress)) {
                 $countryId = $parsePlace->countryId;
                 $PCode = $parsePlace->pCode;
             }
         }
-
+        
         if (!$countryId) {
             $countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : null;
             $PCode = !empty($masterRec->pCode) ? $masterRec->pCode : null;
@@ -640,10 +651,11 @@ class sales_TransportValues extends core_Manager
         if (isset($rec->{$map['productId']})) {
             $Driver = cat_Products::getDriver($rec->{$map['productId']});
             if (!$Driver->canCalcTransportFee($rec->{$map['productId']})) {
+                
                 return;
             }
         }
-         
+        
         // Колко е очаквания транспорт
         $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
         

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Добавяне на документи към ричтекст
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Log extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -92,6 +91,7 @@ class doc_Log extends core_Manager
                 // Сетваме пейджъра
                 $data->dialogPager = & cls::get('core_Pager', array('pageVar' => 'P_' . get_called_class()));
             }
+            
             // Добавяме страниците към пейджъра
             $data->dialogPager->itemsPerPage = $perPage;
         }
@@ -255,7 +255,7 @@ class doc_Log extends core_Manager
         
         // Заместваме страницирането
         $tpl->append($this->RenderDialogAddDocPager($data), 'pager');
-           
+        
         // Добавяме клас към бодито
         $tpl->append('dialog-window', 'BODY_CLASS_NAME');
         

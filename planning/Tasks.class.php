@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на Производствени операции
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Производствени операции
  */
 class planning_Tasks extends core_Master
 {
-    
-    
     /**
      * Дали може да бъде само в началото на нишка
      */
@@ -221,7 +220,7 @@ class planning_Tasks extends core_Master
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Произвеждане->Служители,after=fixedAssets');
         $this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
-    
+        
         $this->setDbIndex('inputInTask');
     }
     
@@ -232,7 +231,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $rec = $data->rec;
-    
+        
         $d = new stdClass();
         $d->masterId = $rec->id;
         $d->masterClassId = planning_Tasks::getClassId();
@@ -240,7 +239,7 @@ class planning_Tasks extends core_Master
             $d->noChange = true;
             unset($data->editUrl);
         }
-         
+        
         cat_products_Params::prepareParams($d);
         $data->paramData = $d;
     }
@@ -260,11 +259,11 @@ class planning_Tasks extends core_Master
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
         }
-    
+        
         // Ако има записани допълнителни полета от артикула
         if (is_array($data->rec->additionalFields) && count($data->rec->additionalFields)) {
             $productFields = planning_Tasks::getFieldsFromProductDriver($data->rec->productId);
-    
+            
             // Добавяне на допълнителните полета от артикула
             foreach ($data->rec->additionalFields as $field => $value) {
                 if (!isset($value) || $value === '') {
@@ -273,13 +272,13 @@ class planning_Tasks extends core_Master
                 if (!isset($productFields[$field])) {
                     continue;
                 }
-                    
+                
                 // Рендират се
                 $block = clone $tpl->getBlock('ADDITIONAL_VALUE');
                 $field1 = $productFields[$field]->caption;
                 $field1 = explode('->', $field1);
                 $field1 = (count($field1) == 2) ? $field1[1] : $field1[0];
-                    
+                
                 $block->placeArray(array('value' => $productFields[$field]->type->toVerbal($value), 'field' => tr($field1)));
                 $block->removePlaces();
                 $tpl->append($block, 'ADDITIONAL');
@@ -303,20 +302,20 @@ class planning_Tasks extends core_Master
         $red = new color_Object('#FF0000');
         $blue = new color_Object('green');
         $grey = new color_Object('#bbb');
-    
+        
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
-    
+        
         $color = ($rec->progress <= 1) ? $blue : $red;
         $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-         
+        
         $grey->setGradient($color, $rec->progress);
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-    
+        
         if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
             $remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
             $rec->remainingTime = cal_Tasks::roundTime($remainingTime);
-             
+            
             $typeTime = cls::get('type_Time');
             if ($rec->remainingTime > 0) {
                 $row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
@@ -324,19 +323,19 @@ class planning_Tasks extends core_Master
                 $row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
             }
         }
-    
+        
         // Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
         if (isset($rec->expectedTimeStart, $rec->timeDuration)) {
             $rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
             $row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
         }
-    
+        
         if (isset($rec->originId)) {
             $origin = doc_Containers::getDocument($rec->originId);
             $row->originId = $origin->getLink();
             $row->originShortLink = $origin->getShortHyperlink();
         }
-    
+        
         if (isset($rec->inputInTask)) {
             $row->inputInTask = planning_Tasks::getLink($rec->inputInTask);
         }
@@ -354,14 +353,14 @@ class planning_Tasks extends core_Master
                 $rec->{$quantityFld} *= $rec->quantityInPack;
                 $row->{$quantityFld} = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($rec->{$quantityFld});
             }
-                    
+            
             $row->{$quantityFld} .= ' ' . "<span style='font-weight:normal'>" . $shortUom . '</span>';
         }
         
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
-            
+        
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
@@ -371,15 +370,15 @@ class planning_Tasks extends core_Master
         
         // Проверяване на времената
         foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField) {
-                    
+            
             // Вербализиране на времената
             $DateTime = core_Type::getByName('datetime(format=d.m H:i)');
             $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
             $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
-                    
+            
             // Ако има очаквано и оригинално време
             if (isset($rec->{$eTimeField}, $rec->{$timeField})) {
-        
+                
                 // Колко е разликата в минути между тях?
                 $diffVerbal = null;
                 $diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
@@ -388,10 +387,10 @@ class planning_Tasks extends core_Master
                     $diffVerbal = cls::get('type_Int')->toVerbal($diff);
                     $diffVerbal = ($diff > 0) ? "<span class='red'>+{$diffVerbal}</span>" : "<span class='green'>{$diffVerbal}</span>";
                 }
-                        
+                
                 // Ако има разлика
                 if (isset($diffVerbal)) {
-                            
+                    
                     // Показва се след очакваното време в скоби, с хинт оригиналната дата
                     $hint = tr('Зададено') . ': ' . $row->{$timeField};
                     $diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
@@ -428,7 +427,7 @@ class planning_Tasks extends core_Master
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
-    
+        
         $row->title = self::getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -463,7 +462,7 @@ class planning_Tasks extends core_Master
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
                 $form->setError('timeEnd', 'Крайният срок трябва да е след началото на операцията');
             }
-    
+            
             if (!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)) {
                 if (strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)) {
                     $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителноста не отговарят на въведената крайната дата');
@@ -539,7 +538,8 @@ class planning_Tasks extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -558,9 +558,9 @@ class planning_Tasks extends core_Master
         $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
         $dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity / {$rec->quantityInPack})");
         $dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
-            
+        
         $res = $dQuery->fetch();
-            
+        
         // Преизчисляваме общото тегло
         $rec->totalWeight = $res->sumWeight;
         $rec->totalQuantity = $res->sumQuantity;
@@ -640,19 +640,20 @@ class planning_Tasks extends core_Master
     {
         // Ако записа е създаден с клониране не се прави нищо
         if ($rec->_isClone === true) {
+            
             return;
         }
-         
+        
         if (isset($rec->originId)) {
             $originDoc = doc_Containers::getDocument($rec->originId);
             $originRec = $originDoc->fetch();
-    
+            
             // Ако е по източник
             if (isset($rec->systemId)) {
                 $tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
                 if (isset($tasks[$rec->systemId])) {
                     $def = $tasks[$rec->systemId];
-                     
+                    
                     // Намираме на коя дефолтна операция отговаря и извличаме продуктите от нея
                     $r = array();
                     foreach (array('production' => 'product', 'input' => 'input', 'waste' => 'waste') as $var => $type) {
@@ -667,7 +668,7 @@ class planning_Tasks extends core_Master
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
-                                    
+                                
                                 planning_ProductionTaskProducts::save($nRec);
                             }
                         }
@@ -675,13 +676,14 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-         
+        
         // Копиране на параметрите на артикула към операцията
         
         if (!is_array($rec->params)) {
+            
             return;
         }
-            
+        
         $tasksClassId = planning_Tasks::getClassId();
         foreach ($rec->params as $k => $o) {
             if (!isset($rec->{$k})) {
@@ -705,7 +707,7 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-    
+        
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
@@ -754,7 +756,7 @@ class planning_Tasks extends core_Master
                     $form->FLD("paramcat{$pId}", 'double', "caption=Параметри на задачата->{$name},mandatory,before=description");
                     $ParamType = cat_Params::getTypeInstance($pId, $mvc, $rec->id);
                     $form->setFieldType("paramcat{$pId}", $ParamType);
-                
+                    
                     // Дефолта е параметъра от дефолтната задача за този артикул, ако има такава
                     if (isset($rec->systemId, $tasks[$rec->systemId])) {
                         $form->setDefault("paramcat{$pId}", $tasks[$rec->systemId]->params[$pId]);
@@ -764,7 +766,7 @@ class planning_Tasks extends core_Master
                         $suffix = cat_Params::getVerbal($paramRec, 'suffix');
                         $form->setField("paramcat{$pId}", "unit={$suffix}");
                     }
-                
+                    
                     if (isset($v)) {
                         if ($ParamType instanceof fileman_FileType) {
                             $form->setDefault("paramcat{$pId}", $v);
@@ -772,14 +774,14 @@ class planning_Tasks extends core_Master
                             $form->setSuggestions("paramcat{$pId}", array('' => '', "{$v}" => "{$v}"));
                         }
                     }
-                
+                    
                     $rec->params["paramcat{$pId}"] = (object) array('paramId' => $pId);
                 }
             }
             
             $packs = cat_Products::getPacks($rec->productId);
             $form->setOptions('packagingId', $packs);
-                
+            
             $measureId = ($originRec->productId == $rec->productId) ? $originRec->packagingId : cat_Products::fetchField($rec->productId, 'measureId');
             $form->setDefault('packagingId', $measureId);
             $productInfo = cat_Products::getProductInfo($rec->productId);
@@ -802,14 +804,14 @@ class planning_Tasks extends core_Master
                 $form->setField('storeId', 'input,mandatory');
             }
             $form->setField('indTime', "unit=|за|* 1 {$measureShort}");
-                
+            
             if ($rec->productId == $originRec->productId) {
                 $toProduce = ($originRec->quantity - $originRec->quantityProduced) / $originRec->quantityInPack;
                 if ($toProduce > 0) {
                     $form->setDefault('plannedQuantity', $toProduce);
                 }
             }
-                
+            
             // Подаване на формата на драйвера на артикула, ако иска да добавя полета
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $Driver->addTaskFields($rec->productId, $form);
@@ -847,12 +849,12 @@ class planning_Tasks extends core_Master
             $taskClassId = planning_Tasks::getClassId();
             $haveDetail = planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}");
             $haveParams = cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}");
-                
+            
             if ($haveDetail || $haveParams) {
                 $form->setReadOnly('productId');
                 $form->setReadOnly('packagingId');
             }
-                
+            
             if ($haveDetail && $data->action != 'clone') {
                 if (!empty($rec->fixedAssets)) {
                     $form->setField('fixedAssets', 'input=none');
@@ -869,8 +871,9 @@ class planning_Tasks extends core_Master
     /**
      * Връща масив със съществуващите задачи
      *
-     * @param  int      $containerId
-     * @param  stdClass $data
+     * @param int      $containerId
+     * @param stdClass $data
+     *
      * @return void
      */
     protected function prepareExistingTaskRows($containerId, &$data)
@@ -934,7 +937,7 @@ class planning_Tasks extends core_Master
     public function renderTasks($data)
     {
         $tpl = new ET('');
-    
+        
         // Ако няма намерени записи, не се рендира нищо
         // Рендираме таблицата с намерените задачи
         $table = cls::get('core_TableView', array('mvc' => $this));
@@ -943,7 +946,7 @@ class planning_Tasks extends core_Master
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $tpl = $table->get($data->rows, $data->listFields);
-         
+        
         // Имали бутони за добавяне
         if (isset($data->addUrlArray)) {
             $btn = ht::createBtn('Нова операция', $data->addUrlArray, false, false, "title=Създаване на производствена операция към задание,ef_icon={$this->singleIcon}");
@@ -971,7 +974,7 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-         
+        
         $rec->additionalFields = count($rec->additionalFields) ? $rec->additionalFields : null;
     }
     
@@ -979,7 +982,8 @@ class planning_Tasks extends core_Master
     /**
      * Ф-я връщаща полетата специфични за артикула от драйвера
      *
-     * @param  int   $productId
+     * @param int $productId
+     *
      * @return array
      */
     public static function getFieldsFromProductDriver($productId)
@@ -988,7 +992,7 @@ class planning_Tasks extends core_Master
         if ($Driver = cat_Products::getDriver($productId)) {
             $Driver->addTaskFields($productId, $form);
         }
-         
+        
         return $form->selectFields();
     }
     
@@ -1045,7 +1049,7 @@ class planning_Tasks extends core_Master
             $data->listFilter->setField('state', 'placeholder=Всички,formOrder=1000');
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
-        
+            
             if ($state = $data->listFilter->rec->state) {
                 if ($state != 'pendingandactive') {
                     $data->query->where("#state = '{$state}'");
@@ -1060,9 +1064,10 @@ class planning_Tasks extends core_Master
     /**
      * Връща масив от задачи към дадено задание
      *
-     * @param  int     $jobId      - ид на задание
-     * @param  boolean $onlyActive - Не оттеглените или само активните/събудени/спрени
-     * @return array   $res         - масив с намерените задачи
+     * @param int  $jobId      - ид на задание
+     * @param bool $onlyActive - Не оттеглените или само активните/събудени/спрени
+     *
+     * @return array $res         - масив с намерените задачи
      */
     public static function getTasksByJob($jobId, $onlyActive = false)
     {
@@ -1089,21 +1094,22 @@ class planning_Tasks extends core_Master
      * Ако са въведени две от времената (начало, продължителност, край) а третото е празно, изчисляваме го.
      * ако е въведено само едно време или всички не правим нищо
      *
-     * @param  stdClass $rec - записа който ще попълним
+     * @param stdClass $rec - записа който ще попълним
+     *
      * @return void
      */
     protected static function fillGapsInRec(&$rec)
     {
         if (isset($rec->timeStart, $rec->timeDuration) && empty($rec->timeEnd)) {
-                
+            
             // Ако има начало и продължителност, изчисляваме края
             $rec->timeEnd = dt::addSecs($rec->timeDuration, $rec->timeStart);
         } elseif (isset($rec->timeStart, $rec->timeEnd) && empty($rec->timeDuration)) {
-                
+            
             // Ако има начало и край, изчисляваме продължителността
             $rec->timeDuration = $diff = strtotime($rec->timeEnd) - strtotime($rec->timeStart);
         } elseif (isset($rec->timeDuration, $rec->timeEnd) && empty($rec->timeStart)) {
-                
+            
             // Ако има продължителност и край, изчисляваме началото
             $rec->timeStart = dt::addSecs(-1 * $rec->timeDuration, $rec->timeEnd);
         }
@@ -1116,9 +1122,10 @@ class planning_Tasks extends core_Master
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         if (empty($rec->id)) {
+            
             return;
         }
-         
+        
         // Добавяне на всички ключови думи от прогреса
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $dQuery->XPR('concat', 'varchar', 'GROUP_CONCAT(#searchKeywords)');
@@ -1135,20 +1142,21 @@ class planning_Tasks extends core_Master
     /**
      * Връща количеството произведено по задачи по дадено задание
      *
-     * @param  mixed                     $jobId
-     * @param  product|input|waste|start $type
-     * @return double                    $quantity
+     * @param mixed                     $jobId
+     * @param product|input|waste|start $type
+     *
+     * @return float $quantity
      */
     public static function getProducedQuantityForJob($jobId)
     {
         expect($jobRec = planning_Jobs::fetchRec($jobId));
-         
+        
         $query = planning_Tasks::getQuery();
         $query->XPR('sum', 'double', 'SUM((COALESCE(#totalQuantity, 0) - COALESCE(#scrappedQuantity, 0))* #quantityInPack)');
         $query->where("#originId = {$jobRec->containerId} AND #productId = {$jobRec->productId}");
         $query->where("#state != 'rejected' AND #state != 'pending'");
         $query->show('totalQuantity,sum');
-    
+        
         $sum = $query->fetch()->sum;
         $quantity = (!empty($sum)) ? $sum : 0;
         
@@ -1159,7 +1167,8 @@ class planning_Tasks extends core_Master
     /**
      * Връща името на операцията готово за партида
      *
-     * @param  mixed  $taskId - ид на операцията
+     * @param mixed $taskId - ид на операцията
+     *
      * @return string $batchName - името на партидата, генерирана от операцията
      */
     public static function getBatchName($taskId)
@@ -1176,6 +1185,7 @@ class planning_Tasks extends core_Master
     
     /**
      * В кои корици може да се вкарва документа
+     *
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getCoversAndInterfacesForNewDoc()

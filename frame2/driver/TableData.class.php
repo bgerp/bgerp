@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Базов драйвер за справки показващи стандартни таблични данни
  *
  *
  * @category  bgerp
  * @package   frame2
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class frame2_driver_TableData extends frame2_driver_Proto
 {
-    
-    
     /**
      * Брой записи на страница
      *
@@ -37,6 +36,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField;
@@ -65,7 +65,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Връща заглавието на отчета
      *
-     * @param  stdClass    $rec - запис
+     * @param stdClass $rec - запис
+     *
      * @return string|NULL - заглавието или NULL, ако няма
      */
     public function getTitle($rec)
@@ -81,7 +82,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Подготвя данните на справката от нулата, които се записват в модела
      *
-     * @param  stdClass      $rec - запис на справката
+     * @param stdClass $rec - запис на справката
+     *
      * @return stdClass|NULL $data - подготвените данни
      */
     public function prepareData($rec)
@@ -98,17 +100,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Рендиране на данните на справката
      *
-     * @param  stdClass $rec - запис на справката
-     * @return core_ET  - рендирания шаблон
+     * @param stdClass $rec - запис на справката
+     *
+     * @return core_ET - рендирания шаблон
      */
     public function renderData($rec)
     {
         $tpl = new core_ET('[#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]');
-    
+        
         $data = (is_object($rec->data)) ? $rec->data : new stdClass();
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
-    
+        
         // Подготовка на пейджъра
         if (!Mode::isReadOnly()) {
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
@@ -116,7 +119,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
             $data->Pager->itemsCount = count($data->recs);
         }
-    
+        
         // Вербализиране само на нужните записи
         if (is_array($data->recs)) {
             
@@ -138,7 +141,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $tpl->replace($data->Pager->getHtml(), 'PAGER_TOP');
             $tpl->replace($data->Pager->getHtml(), 'PAGER_BOTTOM');
         }
-    
+        
         // Рендиране на лист таблицата
         $fld = $this->getTableFieldSet($rec);
         $table = cls::get('core_TableView', array('mvc' => $fld));
@@ -147,7 +150,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         if (core_Packs::isInstalled('uiext')) {
             uiext_Labels::showLabels($this, $rec->containerId, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
         }
-
+        
         $filterFields = arr::make($this->filterEmptyListFields, true);
         $filterFields['_tagField'] = '_tagField';
         
@@ -169,7 +172,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
-    
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
         $tpl->removeBlocks();
         $tpl->removePlaces();
@@ -182,9 +185,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Подреждане на записите първо по-поле и после групиране по полр
      *
-     * @param  int    $recs
-     * @param  string $field
-     * @return array  $newRecs
+     * @param int    $recs
+     * @param string $field
+     *
+     * @return array $newRecs
      */
     private function orderByGroupField($recs, $groupField)
     {
@@ -199,7 +203,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $newRecs = array_replace($newRecs, $subArr);
             }
         }
-    
+        
         return $newRecs;
     }
     
@@ -228,6 +232,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected function groupRows($recs, &$rows, $listFields, $field, $data)
     {
         if (!count($rows)) {
+            
             return;
         }
         $columns = count($listFields);
@@ -243,7 +248,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             if ($data->groupedFieldOnNewRow === true) {
                 $groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
                 $groupVerbal = $this->getGroupedTr($columns, $groupId, $groupVerbal, $data);
-                    
+                
                 $newRows['|' . $groupId] = ht::createElement('tr', $rowAttr, $groupVerbal);
                 $newRows['|' . $groupId]->removeBlocks();
                 $newRows['|' . $groupId]->removePlaces();
@@ -261,7 +266,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                     
                     if (is_object($rows[$index])) {
                         $newRows[$index] = clone $rows[$index];
-                            
+                        
                         // Веднъж групирано, премахваме записа от старите записи
                         unset($rows[$index]);
                     }
@@ -278,16 +283,17 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Подготовка на реда за групиране
      *
-     * @param  int      $columnsCount - брой колони
-     * @param  string   $groupValue   - невербалното име на групата
-     * @param  string   $groupVerbal  - вербалното име на групата
-     * @param  stdClass $data         - датата
-     * @return string   - съдържанието на групиращия ред
+     * @param int      $columnsCount - брой колони
+     * @param string   $groupValue   - невербалното име на групата
+     * @param string   $groupVerbal  - вербалното име на групата
+     * @param stdClass $data         - датата
+     *
+     * @return string - съдържанието на групиращия ред
      */
     protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
     {
         $groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='{$columnsCount}'><b>" . $groupVerbal . '</b></td>';
-    
+        
         return $groupVerbal;
     }
     
@@ -295,13 +301,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Връща полетата за експортиране във csv
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     public function getCsvExportFieldset($rec)
     {
         $fld = $this->getTableFieldSet($rec, true);
-    
+        
         return $fld;
     }
     
@@ -309,8 +316,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Подготвя данните на справката от нулата, които се записват в модела
      *
-     * @param  stdClass      $rec    - запис на справката
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - запис на справката
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return stdClass|NULL $data - подготвените данни
      */
     protected function getListFields($rec, $export = false)
@@ -332,9 +340,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Връща редовете на CSV файл-а
      *
-     * @param  stdClass       $rec         - запис
-     * @param  core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
-     * @return array          $recs                - записите за експорт
+     * @param stdClass       $rec         - запис
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     *
+     * @return array $recs                - записите за експорт
      */
     public function getExportRecs($rec, $ExportClass)
     {
@@ -354,9 +363,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Подготовка на реда за експорт във CSV
      *
-     * @param  stdClass       $rec
-     * @param  stdClass       $dRec
-     * @param  core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     * @param stdClass       $rec
+     * @param stdClass       $dRec
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     *
      * @return stdClass
      */
     public function getExportRec_($rec, $dRec, $ExportClass)
@@ -368,8 +378,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
-     * @param  stdClass $rec
-     * @return boolean  $res
+     * @param stdClass $rec
+     *
+     * @return bool $res
      */
     public function canSendNotificationOnRefresh($rec)
     {
@@ -378,11 +389,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $query->where("#reportId = {$rec->id}");
         $query->orderBy('id', 'DESC');
         $query->limit(2);
-    
+        
         // Маха се последната
         $all = $query->fetchAll();
         unset($all[key($all)]);
-    
+        
         // Ако няма предпоследна, бие се нотификация
         if (!count($all)) {
             
@@ -397,21 +408,21 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $oldRec = $all[key($all)]->oldRec;
         $dataRecsNew = $rec->data->recs;
         $dataRecsOld = $oldRec->data->recs;
-    
+        
         $newContainerIds = $oldContainerIds = array();
         
         if (is_array($rec->data->recs)) {
             $newContainerIds = arr::extractValuesFromArray($rec->data->recs, $this->newFieldToCheck);
         }
-    
+        
         if (is_array($oldRec->data->recs)) {
             $oldContainerIds = arr::extractValuesFromArray($oldRec->data->recs, $this->newFieldToCheck);
         }
-    
+        
         // Ако има нови документи бие се нотификация
         $diff = array_diff_key($newContainerIds, $oldContainerIds);
         $res = (is_array($diff) && count($diff));
-    
+        
         return $res;
     }
     
@@ -432,8 +443,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     abstract protected function prepareRecs($rec, &$data = null);
@@ -442,8 +454,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     abstract protected function detailRecToVerbal($rec, &$dRec);
@@ -452,8 +465,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     abstract protected function getTableFieldSet($rec, $export = false);

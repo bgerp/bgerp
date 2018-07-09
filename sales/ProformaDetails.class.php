@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'sales_ProformaDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_ProformaDetails extends deals_InvoiceDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на проформата';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -71,13 +70,13 @@ class sales_ProformaDetails extends deals_InvoiceDetail
      */
     public $canDelete = 'ceo, sales';
     
-        
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'RowNumb';
-
-
+    
+    
     /**
      * Полета свързани с цени
      */

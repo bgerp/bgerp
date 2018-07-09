@@ -6,15 +6,16 @@
  *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cal_TaskType extends core_Mvc
 {
     public $interfaces = 'cal_TaskTypeIntf';
-    
     
     
     public $title = 'Задача';
@@ -33,9 +34,9 @@ class cal_TaskType extends core_Mvc
     /**
      * Може ли вградения обект да се избере
      *
-     * @param NULL|integer $userId
+     * @param NULL|int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canSelectDriver($userId = null)
     {
@@ -111,7 +112,7 @@ class cal_TaskType extends core_Mvc
      * @param cal_TaskType $Driver
      * @param cal_Tasks    $mvc
      * @param string|NULL  $res
-     * @param integer      $id
+     * @param int          $id
      *
      * @return string
      */

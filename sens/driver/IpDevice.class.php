@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Прототип на драйвер за IP устройство
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Сензори
  */
 class sens_driver_IpDevice extends core_BaseClass
 {
-    
-    
     /**
      * Интерфейси, поддържани от всички наследници
      */
@@ -45,7 +44,8 @@ class sens_driver_IpDevice extends core_BaseClass
     
     /**
      * Брой последни стойности на базата на които се изчислява средна стойност
-     * @var integer
+     *
+     * @var int
      */
     public $avgCnt = 10;
     
@@ -137,7 +137,7 @@ class sens_driver_IpDevice extends core_BaseClass
         if (!$this->settings && $this->id) {
             permanent_Settings::setObject($this);
         }
-
+        
         return $this->settings;
     }
     
@@ -190,7 +190,8 @@ class sens_driver_IpDevice extends core_BaseClass
             $Params->save($rec);
         }
     }
-
+    
+    
     /**
      * Добавя във формата за настройки на сензора
      * стандартните параметри и условията
@@ -225,18 +226,18 @@ class sens_driver_IpDevice extends core_BaseClass
                 while ($res = $queryParams->fetch()) {
                     $arrRes["{$res->unit}"] = $res->param . ' ' . $res->details;
                 }
-
+                
                 $arrRes = array('empty' => '') + $arrRes;
                 $form->FLD(
                     'name_' . $p,
                     'enum',
                     'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Наименование,hint=Наименование' . $onChange . ',input'
                 );
-
+                
                 $form->setOptions("name_{$p}", $arrRes);
                 
                 $form->FLD(
-                
+                    
                     'angular_' . $p,
                     'double(decimals=2)',
                     'caption=Параметри - периоди на следене - ' . $pArr['param'] .'->Ъглов коефициент,hint=Коефициент на линейното уравнение,input'
@@ -305,7 +306,7 @@ class sens_driver_IpDevice extends core_BaseClass
         // Обикаляме всички параметри на драйвера и всичко с префикс logPeriod от настройките
         // и ако му е времето го записваме в indicationsLog-а
         $settingsArr = (array) $this->getSettings();
-
+        
         foreach ($this->params as $param => $arr) {
             // Ако в сетингите е зададено, че параметъра е изчисляем:
             // Създаваме logPeriod
@@ -313,7 +314,7 @@ class sens_driver_IpDevice extends core_BaseClass
                 $settingsArr["logPeriod_{$settingsArr["name_{$param}"]}"] = $settingsArr["logPeriod_{$param}"];
                 $param = $settingsArr["name_{$param}"];
             }
-
+            
             // Дали параметъра е зададен да се логва при промяна?
             if ($arr['onChange']) {
                 // Дали има промяна? Ако - ДА записваме в лог-а
@@ -329,7 +330,7 @@ class sens_driver_IpDevice extends core_BaseClass
                 
                 if ($currentMinute % $settingsArr["logPeriod_{$param}"] == 0) {
                     sens_IndicationsLog::add(
-                    
+                        
                         $this->id,
                         $param,
                         $this->stateArr["${param}"]
@@ -353,6 +354,7 @@ class sens_driver_IpDevice extends core_BaseClass
                     $cond = $this->stateArr[$settingsArr["alarm_{$i}_param"]] > $settingsArr["alarm_{$i}_value"];
                     break;
                 default:
+                
                 // Прескачаме недефинираните аларми
                 continue 2;
             }
@@ -390,11 +392,12 @@ class sens_driver_IpDevice extends core_BaseClass
                 }
             }   // if ($cond)
         }
-
+        
         if (is_array($newOuts)) {
             $this->setOuts($newOuts);
             $this->updateState();
         }
+        
         // Добавяме последните аларми към състоянието ако е имало такива
         $this->stateArr = array_merge((array) $this->stateArr, (array) $lastMsgArr);
         
@@ -406,6 +409,7 @@ class sens_driver_IpDevice extends core_BaseClass
      * Връща URL - входна точка за настройка на данните за този обект.
      * Ключа в URL-то да бъде декориран с кодировка така,
      * че да е валиден само за текущата сесия на потребителя.
+     *
      * @param object $object
      */
     public function getUrl()
@@ -416,6 +420,7 @@ class sens_driver_IpDevice extends core_BaseClass
     
     /**
      * Връща линк с подходяща картинка към входната точка за настройка на данните за този обект
+     *
      * @param object $object
      */
     public function getLink()
@@ -445,7 +450,7 @@ class sens_driver_IpDevice extends core_BaseClass
     {
         $this->loadState();
         $settings = (array) $this->settings;
-
+        
         $html = '<table colspan=0 rowspan=0>';
         foreach ($this->params as $param => $properties) {
             

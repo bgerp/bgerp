@@ -7,16 +7,16 @@
  *
  * @category  denny
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title Номер + Срок на годност
  */
 class batch_definitions_StringAndDate extends batch_definitions_Varchar
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -40,10 +40,11 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param  string   $value    - стойноста, която ще проверяваме
-     * @param  quantity $quantity - количеството
-     * @param  string   &$msg     -текста на грешката ако има
-     * @return boolean  - валиден ли е кода на партидата според дефиницията или не
+     * @param string   $value    - стойноста, която ще проверяваме
+     * @param quantity $quantity - количеството
+     * @param string   &$msg     -текста на грешката ако има
+     *
+     * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
     public function isValid($value, $quantity, &$msg)
     {
@@ -64,7 +65,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         if (isset($this->rec->length)) {
             if (mb_strlen($string) > $this->rec->length) {
                 $msg = "|*{$string} |е над допустимата дължина от|* <b>{$this->rec->length}</b>";
-
+                
                 return false;
             }
         }
@@ -72,7 +73,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         if (!dt::checkByMask($date, $this->rec->format)) {
             $f = dt::mysql2verbal(dt::today(), $this->rec->format);
             $msg = "|Срока на годност трябва да е във формата|* <b>{$f}</b>";
-
+            
             return false;
         }
         
@@ -80,7 +81,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
             $substring = substr($string, 0, mb_strlen($this->rec->prefix));
             if ($substring != $this->rec->prefix) {
                 $msg = "|Партидата трябва да започва с|* <b>{$this->rec->prefix}</b>";
-
+                
                 return false;
             }
         }
@@ -97,7 +98,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     public function getBatchClassType()
     {
         $Type = core_Type::getByName('varchar');
-    
+        
         return $Type;
     }
     
@@ -105,9 +106,10 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     /**
      * Какви са свойствата на партидата
      *
-     * @param  string $value - номер на партидара
-     * @return array  - свойства на партидата
-     *                      масив с ключ ид на партидна дефиниция и стойност свойството
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               масив с ключ ид на партидна дефиниция и стойност свойството
      */
     public function getFeatures($value)
     {
@@ -149,7 +151,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
     public function orderBatchesInStore(&$batches, $storeId, $date = null)
     {
         $dates = array_keys($batches);
-    
+        
         if (is_array($dates)) {
             usort($dates, function ($a, $b) {
                 list($aLeft, $aDate) = explode('|', $a);
@@ -173,7 +175,7 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
             foreach ($dates as $date) {
                 $sorted[$date] = $batches[$date];
             }
-                
+            
             $batches = $sorted;
         }
     }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_Receipts'
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_Receipts extends store_DocumentMaster
 {
-    
-    
     /**
      * Заглавие
      */
@@ -50,12 +49,13 @@ class store_Receipts extends store_DocumentMaster
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
-
+    
     
     /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
+     *
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, store';
@@ -71,8 +71,8 @@ class store_Receipts extends store_DocumentMaster
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,store';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -107,20 +107,20 @@ class store_Receipts extends store_DocumentMaster
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume,lineId, createdOn, createdBy';
-
-
+    
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'folderId,storeId,note';
-
+    
     
     /**
      * Детайла, на модела
      */
     public $details = 'store_ReceiptDetails,store_DocumentPackagingDetail' ;
     
-
+    
     /**
      * Заглавие в единствено число
      */
@@ -131,8 +131,8 @@ class store_Receipts extends store_DocumentMaster
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/store-receipt.png';
-
-   
+    
+    
     /**
      * Групиране на документите
      */
@@ -231,9 +231,11 @@ class store_Receipts extends store_DocumentMaster
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
@@ -252,11 +254,11 @@ class store_Receipts extends store_DocumentMaster
     {
         $tplArr = array();
         $tplArr[] = array('name' => 'Складова разписка',
-                          'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptNarrow.shtml',
-                          'toggleFields' => array('masterFld' => null, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
+            'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
         $tplArr[] = array('name' => 'Складова разписка с цени',
-                          'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptPricesNarrow.shtml',
-                          'toggleFields' => array('masterFld' => null, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+            'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptPricesNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
@@ -271,10 +273,10 @@ class store_Receipts extends store_DocumentMaster
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-         
+        
         if ($rec->isReverse == 'no') {
             if (deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('active', 'pending', 'draft'))) {
-                 
+                
                 // Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
                 if ($iRec = purchase_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")) {
                     if (purchase_Invoices::haveRightFor('single', $iRec)) {
@@ -294,8 +296,9 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Трябва ли ръчно да се подготвя документа в Транспортната линия
      *
-     * @param  mixed   $id - ид или запис на документа
-     * @return boolean - TRUE или FALSE
+     * @param mixed $id - ид или запис на документа
+     *
+     * @return bool - TRUE или FALSE
      */
     public function requireManualCheckInTransportLine($id)
     {

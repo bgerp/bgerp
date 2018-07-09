@@ -33,9 +33,11 @@ defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
@@ -44,13 +46,10 @@ class core_Debug
     public static $startMicroTime;
     
     
-    
     public static $lastMicroTime;
     
     
-    
     public static $debugTime = array();
-    
     
     
     public static $timers = array();
@@ -73,8 +72,8 @@ class core_Debug
      * Кеш - дали се намираме в DEBUG режим
      */
     public static $isDebug;
-
-
+    
+    
     /**
      * При дъмп - колко нива преглеждаме
      */
@@ -85,8 +84,8 @@ class core_Debug
      * При дъмп - колко нива са отворени
      */
     public static $dumpViewLevels = 5;
-
-
+    
+    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
@@ -94,7 +93,7 @@ class core_Debug
     {
     }
     
- 
+    
     /**
      * Инициализираме таймерите
      */
@@ -107,8 +106,8 @@ class core_Debug
             self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало ' . date('Y-m-d H:i:s', time()));
         }
     }
-
-
+    
+    
     /**
      * Пускаме хронометъра за посоченото име
      */
@@ -116,6 +115,7 @@ class core_Debug
     {
         // Функцията работи само в режим DEBUG
         if (!isDebug()) {
+            
             return;
         }
         
@@ -136,11 +136,12 @@ class core_Debug
     {
         // Функцията работи само в режим DEBUG
         if (!isDebug()) {
+            
             return;
         }
         
         self::init();
-  
+        
         if (self::$timers[$name]->start) {
             $workingTime = core_DateTime::getMicrotime() - self::$timers[$name]->start;
             self::$timers[$name]->workingTime += $workingTime;
@@ -156,15 +157,16 @@ class core_Debug
     {
         // Функцията работи само в режим DEBUG
         if (!isDebug() || !core_Debug::$isLogging) {
+            
             return;
         }
-
+        
         self::init();
         
         $rec = new stdClass();
         $rec->start = core_DateTime::getMicrotime() - self::$startMicroTime;
         $rec->name = $name;
-
+        
         self::$debugTime[] = $rec;
     }
     
@@ -175,11 +177,11 @@ class core_Debug
     public static function getExecutionTime()
     {
         self::init();
-
+        
         return number_format((core_DateTime::getMicrotime() - self::$startMicroTime), 5);
     }
-
-
+    
+    
     /**
      * Връща watch point лога
      */
@@ -188,15 +190,15 @@ class core_Debug
         self::init();
         
         $html = '';
-
+        
         if (count(self::$debugTime)) {
             self::log('Край ' . core_DateTime::now());
-
+            
             $html .= "\n<div class='debug_block' style=''>" .
             "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul><li style='padding:15px 0px 15px 0px;'>";
             
             $html .= core_Html::mixedToHtml($_COOKIE) . '</li>';
-                        
+            
             foreach (self::$debugTime as $rec) {
                 $rec->name = core_ET::escape($rec->name);
                 $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start), 5) . ': ' . @htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
@@ -204,24 +206,24 @@ class core_Debug
             
             $html .= "\n</ul></div>";
         }
-
+        
         return $html;
     }
-
-
+    
+    
     /**
      * Връща измерванията на таймерите
      */
     private static function getTimers()
     {
         $html = '';
-
+        
         if (count(self::$timers)) {
             $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:table;color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
             
             arsort(self::$timers);
-
+            
             foreach (self::$timers as $name => $t) {
                 $html .= "\n<li> '{$name}' => " . number_format($t->workingTime, 5) . ' sec.';
             }
@@ -239,12 +241,11 @@ class core_Debug
     public static function getLog()
     {
         $html = self::getWpLog() . self::getTimers();
-
+        
         return $html;
     }
-
-
-
+    
+    
     /**
      * Показва страница с дебъг информация
      */
@@ -253,10 +254,10 @@ class core_Debug
         // Ако сме в работен, а не тестов режим, не показваме прекъсването
         if (!isDebug()) {
             error_log("Breakpoint on line ${breakLine} in ${breakFile}");
-
+            
             return;
         }
- 
+        
         $errHtml = self::getErrorHtml($html, $stack, $type);
         
         $errHtml .= core_Debug::getLog();
@@ -270,18 +271,17 @@ class core_Debug
         
         // Записваме за всеки случай и като файл
         file_put_contents(EF_TEMP_PATH . '/err.log.html', $page . "\n\n");
-
+        
         return  $page;
     }
-
-
-
+    
+    
     public static function getTraceAsHtml($trace)
     {
         $trace = self::prepareTrace($trace);
-
+        
         $result = '';
-
+        
         foreach ($trace as $row) {
             if ($i++ % 2) {
                 $bgk = '#ffd';
@@ -294,20 +294,20 @@ class core_Debug
             }
             $result .= '</tr>';
         }
-
+        
         $result = '<div><table border="0" style="border-collapse: collapse;" cellpadding="5">'. $result . '</table></div>';
-
+        
         return $result;
     }
-
-
+    
+    
     /**
      * Подготвя за показване данни от подаден масив от данни отговарящи на работен стек
      */
     private static function prepareTrace($trace)
     {
         $rtn = array();
-
+        
         foreach ($trace as $count => $frame) {
             $file = 'unknown';
             if (!empty($frame['file'])) {
@@ -328,7 +328,7 @@ class core_Debug
                 }
                 $args = join(', ', $args);
             }
-
+            
             $rtn[] = array(
                 $file,
                 $githubLink,
@@ -341,40 +341,41 @@ class core_Debug
                 ),
             );
         }
-
+        
         return $rtn;
     }
-
-
+    
+    
     /**
      * URL на сорс-код файл в централизирано репозитори
      *
-     * @param  string         $file
-     * @param  int            $line
-     * @return string|boolean FALSE при проблем, иначе пълно URL
+     * @param string $file
+     * @param int    $line
+     *
+     * @return string|bool FALSE при проблем, иначе пълно URL
      */
     private static function getGithubSourceUrl($file, $line)
     {
         $selfPath = str_replace('\\', '/', dirname(dirname(__FILE__)));
-
+        
         $file = str_replace(array('\\', $selfPath), array('/', ''), $file);
-
+        
         if (defined('BGERP_GIT_BRANCH')) {
             $branch = BGERP_GIT_BRANCH;
         } else {
             $branch = 'dev';
         }
-
+        
         $url = "https://github.com/bgerp/bgerp/blob/{$branch}{$file}#L{$line}";
-
+        
         return $url;
     }
-
-
+    
+    
     private static function formatValue($v)
     {
         $result = '';
-
+        
         if (is_string($v)) {
             $result = "'" . htmlentities($v, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "'";
         } elseif (is_array($v)) {
@@ -394,14 +395,14 @@ class core_Debug
         } else {
             $result = $v;
         }
-
+        
         return $result;
     }
-
+    
     private static function arrayToString($arr)
     {
         $nArr = array();
-
+        
         if (is_object($arr)) {
             $arrNew = (array) $arr;
             foreach ($arrNew as $key => $part) {
@@ -429,12 +430,11 @@ class core_Debug
                 $nArr[$i] = self::formatValue($v);
             }
         }
-
+        
         return '[' . implode(', ', $nArr) . ']';
     }
-
-
-
+    
+    
     /**
      * Връща кода от php файла, около посочената линия
      * Прави базово форматиране
@@ -445,6 +445,7 @@ class core_Debug
     public static function getCodeAround($file, $line, $range = 4)
     {
         if (strpos($file, "eval()'d") !== false) {
+            
             return;
         }
         
@@ -456,7 +457,6 @@ class core_Debug
         }
         
         $source = @file_get_contents($file);
-                
         if (!$source) {
             
             return $code;
@@ -480,8 +480,8 @@ class core_Debug
         
         return $code;
     }
-
-
+    
+    
     /**
      * Анализира стека и премахва тази, част от него, която е създадена след прекъсването
      *
@@ -501,24 +501,24 @@ class core_Debug
             'error:',
             'expect:'
         );
-
+        
         $breakpointPos = $breakFile = $breakLine = null;
-
+        
         foreach ($stack as $i => $f) {
             if (in_array(strtolower($f['function'] . ':' . (isset($f['class']) ? $f['class'] : '')), $intFunc)) {
                 $breakpointPos = $i;
             }
         }
-
+        
         if (isset($breakpointPos)) {
             $breakLine = $stack[$breakpointPos]['line'];
             $breakFile = $stack[$breakpointPos]['file'];
             $stack = array_slice($stack, $breakpointPos + 1);
         }
-
+        
         return array($stack, $breakFile, $breakLine);
     }
-
+    
     
     /**
      * Рендира стека
@@ -526,18 +526,18 @@ class core_Debug
     private static function renderStack($stack)
     {
         $result = '';
-
+        
         foreach ($stack as $f) {
             $hash = md5($f['file']. ':' . $f['line']);
             $result .= "<hr><br><div id=\"{$hash}\">";
             $result .= core_Html::mixedToHtml($f);
             $result .= '</div>';
         }
-
+        
         return $result;
     }
-
-
+    
+    
     /**
      * Подготвя HTML страница с дебъг информация за съответното състояние
      */
@@ -555,14 +555,14 @@ class core_Debug
             $data['tabNav'] .= ' <li><a href="#">Дъмп</a></li>';
             $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Html::arrayToHtml($state['dump'], self::$dumpOpenLevels, self::$dumpViewLevels) . '</div>';
         }
-
+        
         // Подготовка на стека
         if (isset($state['stack'])) {
             list($stack, $breakFile, $breakLine) = self::analyzeStack($state['stack']);
             $data['tabNav'] .= ' <li><a href="#">Стек</a></li>';
             $data['tabContent'] .= '<div class="simpleTabsContent">' . self::getTraceAsHtml($stack) . '</div>';
         }
-
+        
         // Подготовка на кода
         if (!isset($breakFile) && isset($state['breakFile'])) {
             $breakFile = $state['breakFile'];
@@ -570,7 +570,7 @@ class core_Debug
         if (!isset($breakLine) && isset($state['breakLine'])) {
             $breakLine = $state['breakLine'];
         }
-
+        
         if (isset($breakFile, $breakLine)) {
             $data['code'] = self::getCodeAround($breakFile, $breakLine);
         }
@@ -596,15 +596,15 @@ class core_Debug
         $data['httpStatusCode'] = $state['httpStatusCode'];
         $data['httpStatusMsg'] = $state['httpStatusMsg'];
         $data['background'] = $state['background'];
-
+        
         if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = substr($state['errTitle'], 1);
         }
-
+        
         if (isset($state['errTitle'])) {
             $data['errTitle'] = $state['errTitle'];
         }
-
+        
         $lineHtml = self::getEditLink($breakFile, $breakLine, $breakLine);
         $fileHtml = self::getEditLink($breakFile);
         
@@ -619,20 +619,20 @@ class core_Debug
                 $data['header'] .= " в <i>{$fileHtml}</i>";
             }
         }
-
+        
         if (!empty($state['update'])) {
             $data['update'] = ht::createLink('Обновяване на системата', $state['update']);
         }
-
-
+        
+        
         $tpl = new core_NT(getFileContent('core/tpl/Debug.shtml'));
-
+        
         $res = $tpl->render($data);
-
+        
         return $res;
     }
     
-
+    
     /**
      * Рендира страница за грешка
      */
@@ -642,22 +642,21 @@ class core_Debug
         if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = $state['httpStatusMsgBg'];
         }
-
+        
         if (!empty($state['update'])) {
             $state['update'] = ht::createLink('Инициализиране', $state['update'], null, 'ef_icon=img/16/refresh-img.png');
         }
-           
+        
         $state['back'] = ht::createLink('Назад', 'javascript:onclick=history.back(-1)', null, 'ef_icon=img/16/back-img.png');
         
         $state['forward'] = ht::createLink('Към сайта', array('Index'), null, 'ef_icon=img/16/next-img.png');
-
+        
         $page = $tpl->render($state);
- 
+        
         return $page;
     }
-
-
-
+    
+    
     /**
      * Показва съобщението за грешка и евентуално дебъг информация
      *
@@ -735,16 +734,16 @@ class core_Debug
         }
         
         $state = array('errType' => $errType,
-                        'errTitle' => $errTitle,
-                        'errDetail' => $errDetail,
-                        'dump' => $dump,
-                        'stack' => $stack,
-                        'contex' => $contex,
-                        'breakFile' => $breakFile,
-                        'breakLine' => $breakLine,
-                        'update' => $update,
-                        
-            );
+            'errTitle' => $errTitle,
+            'errDetail' => $errDetail,
+            'dump' => $dump,
+            'stack' => $stack,
+            'contex' => $contex,
+            'breakFile' => $breakFile,
+            'breakLine' => $breakLine,
+            'update' => $update,
+        
+        );
         
         // Изваждаме от титлата httpStatusCode, ако е наличен
         if ($state['httpStatusCode'] = (int) $errTitle) {
@@ -754,12 +753,12 @@ class core_Debug
         } else {
             $state['httpStatusCode'] = 500;
         }
-
+        
         list($state['httpStatusMsg'], $state['httpStatusMsgBg'], $state['background']) = self::getHttpStatusMsg($state['httpStatusCode']);
-
+        
         return $state;
     }
-
+    
     
     /**
      * Показва състоянието за грешка или/и го записва в локална тем директория или на отдалечен сървър
@@ -774,17 +773,17 @@ class core_Debug
         if (!$supressShowing && !headers_sent()) {
             header($_SERVER['SERVER_PROTOCOL']. ' ' . $state['httpStatusCode'] . ' ' . $state['httpStatusMsg']);
             header('Content-Type: text/html; charset=UTF-8');
-
+            
             echo isDebug() ? $debugPage : self::getErrorPage($state);
         }
         
-
+        
         // Определяме заглавието на грешката в лога
         $ctr = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
         $act = $_GET['Act'] ? $_GET['Act'] : 'default';
         $title = EF_DB_NAME . '_' . $ctr . '_' . $act . '_' . $state['httpStatusCode'];
         $title = preg_replace('/[^A-Za-z0-9_?!]/', '_', $title);
-
+        
         // Ако е необходимо записваме дебъг информацията
         if (defined('EF_DEBUG_LOG_PATH')) {
             if (!is_dir(EF_DEBUG_LOG_PATH)) {
@@ -797,13 +796,13 @@ class core_Debug
         if (defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting) {
             $url = EF_REMOTE_ERROR_REPORT_URL;
             $data = array('data' => gzcompress($debugPage),
-                            'domain' => $_SERVER['SERVER_NAME'],
-                            'errCtr' => $ctr,
-                            'errAct' => $act,
-                            'dbName' => EF_DB_NAME,
-                            'title' => ltrim($state['errTitle'], '@'),
-                          );
-
+                'domain' => $_SERVER['SERVER_NAME'],
+                'errCtr' => $ctr,
+                'errAct' => $act,
+                'dbName' => EF_DB_NAME,
+                'title' => ltrim($state['errTitle'], '@'),
+            );
+            
             // use key 'http' even if you send the request to https://...
             $options = array(
                 'http' => array(
@@ -816,8 +815,8 @@ class core_Debug
             $result = @file_get_contents($url, false, $context);
         }
     }
-
- 
+    
+    
     /**
      * Прихваща състоянията на грешка и завършването на програмата (в т.ч. и аварийно)
      */
@@ -825,14 +824,14 @@ class core_Debug
     {
         // От тук нататък спираме показването на грешки
         ini_set('display_errors', '0');
-
+        
         // рапортуваме само тези, които са зададени в конфиг. константа
         set_error_handler(array('core_Debug', 'errorHandler'));
-
+        
         register_shutdown_function(array('core_Debug', 'shutdownHandler'));
     }
-
-
+    
+    
     /**
      * Функция - обработвач на състоянията на грешки
      */
@@ -840,17 +839,20 @@ class core_Debug
     {
         // Ако грешката нито ще я показваме нито ще я логваме - връщаме управлението
         if (!($errno & CORE_ERROR_REPORTING_LEVEL) && !($errno & CORE_ERROR_LOGGING_LEVEL)) {
+            
             return;
         }
+        
         // Когато сме в режим на маскиране на грешките (@) да не показваме съобщение
         if (CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0) {
+            
             return;
         }
         
         // Подготвяме състоянието, отговарящо на грешката
         $errType = self::getErrorLevel($errno);
         $state = self::prepareErrorState($errType, '500 @' . $errstr, $errstr, null, debug_backtrace(), $errcontext, $breakFile, $breakLine);
-
+        
         // Ако грешката само ще я логваме, но няма да я показваме - поддтискаме показването
         if (!($errno & CORE_ERROR_REPORTING_LEVEL) && ($errno & CORE_ERROR_LOGGING_LEVEL)) {
             // Само логваме показването на грешката
@@ -860,8 +862,8 @@ class core_Debug
             die;
         }
     }
-
-
+    
+    
     /**
      * Извиква се преди спиране на програмата. Ако има грешка - показва я.
      */
@@ -869,10 +871,11 @@ class core_Debug
     {
         if ($error = error_get_last()) {
             if (!($error['type'] & CORE_ERROR_REPORTING_LEVEL)) {
+                
                 return;
             }
             
-
+            
             $errType = self::getErrorLevel($error['type']);
             
             $state = self::prepareErrorState($errType, '500 @' . $error['message'], $error['message'], null, null, $_SERVER, $error['file'], $error['line']);
@@ -880,8 +883,8 @@ class core_Debug
             die;
         }
     }
-
-
+    
+    
     /**
      * Връща новото на грешката
      */
@@ -933,10 +936,11 @@ class core_Debug
                 default:
                     $name = "ERROR №{$errorCode}";
         }
- 
+        
         return $name;
     }
-  
+    
+    
     /**
      * Връща вербалния http статус на ексепшъна
      */
@@ -972,8 +976,8 @@ class core_Debug
         
         return array($httpStatusMsg, $httpStatusMsgBg, $background);
     }
-
-
+    
+    
     /**
      * Връща, ако може линк за редактиране на файла
      */
@@ -986,7 +990,7 @@ class core_Debug
             list($file, $line) = explode('(', $file);
             $line = (int) $line;
         }
-
+        
         if (!$title) {
             if (!$line) {
                 //$line = 1;
@@ -995,7 +999,7 @@ class core_Debug
                 $title = $file . ':' . $line;
             }
         }
-
+        
         if (defined('EF_DEBUG_EDIT_URL')) {
             $fromTo = array('FILE' => urlencode($file));
             if ($line) {
@@ -1008,11 +1012,11 @@ class core_Debug
         if ($editUrl) {
             $title = "<a href='{$editUrl}'>{$title}</a>";
         }
-
+        
         return $title;
     }
-
-
+    
+    
     /**
      * Дали се намираме в DEBUG режим
      * Намираме се в DEBUG режим, ако е изпълнено едно от следните неща:
@@ -1022,7 +1026,6 @@ class core_Debug
      */
     public static function isDebug()
     {
- 
         // Връщаме кеширания резултат ако има такъв
         if (is_bool(self::$isDebug)) {
             
@@ -1031,28 +1034,28 @@ class core_Debug
         
         // IP на потребителя
         $realIpAdd = $_SERVER['REMOTE_ADDR'];
-
+        
         // Ако не е дефинирана константата или, ако e IP-то ни е от масива
         if (defined('EF_DEBUG') && (EF_DEBUG === true || strpos('' . EF_DEBUG, $realIpAdd) !== false)) {
             self::$isDebug = true;
-
+            
             return true;
         }
         
         $cookieName = self::getDebugCookie();
- 
+        
         if ($_COOKIE[$cookieName]) {
             self::$isDebug = true;
-
+            
             return true;
         }
-
+        
         // Не се намираме в DEBUG режим
         self::$isDebug = false;
-
+        
         return false;
     }
-
+    
     
     /**
      * Връща масив с два елемента - име на куки и стойност на куки, които са флаг за дебъг режим
@@ -1061,18 +1064,18 @@ class core_Debug
     public static function getDebugCookie()
     {
         $cookie = 'n' . md5(EF_SALT . $_SERVER['REMOTE_ADDR'] . 'DEBUG2');
-
+        
         return $cookie;
     }
-
-
+    
+    
     /**
      * Задава куки за дебъг режим
      */
     public static function setDebugCookie()
     {
         setcookie(self::getDebugCookie(), time(), time() + DEBUG_COOKIE_LIFETIME, '/');
- 
+        
         self::$isDebug = true;
     }
 }

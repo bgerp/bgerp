@@ -1,5 +1,6 @@
 <?php
 
+
 cls::load('acc_strategy_Strategy');
 
 
@@ -9,20 +10,21 @@ cls::load('acc_strategy_Strategy');
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_strategy_WAC extends acc_strategy_Strategy
 {
-    
     /**
      * Тип на сметката, към която е тази стратегия
      */
     protected $accountType;
-
-
+    
+    
     /**
      * Текущото количество
      */
@@ -38,8 +40,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     /**
      * Захранване на стратегията с данни
      *
-     * @param double $quantity
-     * @param double $amount
+     * @param float $quantity
+     * @param float $amount
      */
     public function feed($quantity, $amount)
     {
@@ -57,10 +59,12 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     public function consume($quantity)
     {
         if ($quantity == 0) {
+            
             return;
         }
         
         if ($this->quantity == 0) {
+            
             return;
         }
         
@@ -77,7 +81,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
      * някаква цена, или не се достигне максималния брой опити
      * Ако абсолютно никога не е имало движения връщаме NULL
      *
-     * @param double   $quantity   - к-то което ще проверяваме
+     * @param float    $quantity   - к-то което ще проверяваме
      * @param date     $date       - дата към която търсим цената
      * @param string   $accSysId   - систем ид на сметка със стратегия
      * @param mixed    $item1      - ид на перо на първа позиция / NULL ако няма / '*' Всички пера

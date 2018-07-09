@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Select' - Добавя селектор на ред от таблица
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_Select extends core_Plugin
 {
-
-
     /**
      * Изпълнява се след инициализиране на мениджъра
      */
@@ -25,11 +24,11 @@ class plg_Select extends core_Plugin
         $actArr = arr::make($mvc->doWithSelected, true);
         $actArr['delete'] = '*Изтриване';
         $mvc->doWithSelected = $actArr;
-
+        
         Request::setProtected('Selected');
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -37,11 +36,12 @@ class plg_Select extends core_Plugin
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
             return;
         }
         
         $data->listFields = arr::combine(array('_checkboxes' =>
-                "|*<input type='checkbox' onclick=\"return toggleAllCheckboxes(this);\" name='toggle'  class='checkbox'>"), $data->listFields);
+            "|*<input type='checkbox' onclick=\"return toggleAllCheckboxes(this);\" name='toggle'  class='checkbox'>"), $data->listFields);
     }
     
     
@@ -56,6 +56,7 @@ class plg_Select extends core_Plugin
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
             return;
         }
         
@@ -81,6 +82,7 @@ class plg_Select extends core_Plugin
     public function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
             return;
         }
         
@@ -100,19 +102,19 @@ class plg_Select extends core_Plugin
     public function on_BeforeAction($mvc, &$res, $act)
     {
         $actArr = arr::make($mvc->doWithSelected, true);
-
+        
         if ($act == 'dowithselected') {
             $mvc->requireRightFor('list');
             
             $row = Request::get('R');
-                        
+            
             if (!count($row)) {
                 $res = new Redirect(getRetUrl(), '|Моля, изберете поне един ред');
                 
                 return false;
             }
             
-
+            
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             foreach ($row as $id => $on) {
                 foreach ($actArr as $action => $caption) {
@@ -122,7 +124,7 @@ class plg_Select extends core_Plugin
                     }
                 }
             }
-             
+            
             // Махаме действията, които не са достъпни за нито един избран ред
             foreach ($actArr as $action => $caption) {
                 if (!$cnt[$action]) {
@@ -140,16 +142,16 @@ class plg_Select extends core_Plugin
             
             $res->append("\n<h2>" . tr('Действия с избраните редове') . ':</h2>');
             $res->append("\n<table class='no-border-table'>");
-
+            
             foreach ($actArr as $action => $caption) {
                 $res->append("\n<tr><td>");
                 $res->append(ht::createBtn(
                     ltrim($caption, '*') . '|* (' . $cnt[$action] . ')',
                     array(
-                            $mvc,
-                            $action,
-                            'Selected' => $listArr[$action],
-                            'ret_url' => Request::get('ret_url')),
+                        $mvc,
+                        $action,
+                        'Selected' => $listArr[$action],
+                        'ret_url' => Request::get('ret_url')),
                         null,
                         null,
                         "ef_icon=img/16/{$action}.png"
@@ -158,17 +160,18 @@ class plg_Select extends core_Plugin
             }
             
             $res->append("\n</table>");
-
+            
             $res = $mvc->renderWrapping($res);
             
             return false;
         } elseif ($actArr[$act]{0} == '*') {
             if (Request::get('id')) {
+                
                 return;
             }
-
+            
             $sel = Request::get('Selected');
-
+            
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
             
@@ -184,7 +187,7 @@ class plg_Select extends core_Plugin
             }
             
             $caption = tr(mb_strtolower(ltrim($actArr[$act], '*')));
-
+            
             if ($processed == 1) {
                 $res = new Redirect(getRetUrl(), "|Беше направено|* {$caption} |на|* {$processed} |запис");
             } elseif ($processed > 1) {
@@ -192,7 +195,7 @@ class plg_Select extends core_Plugin
             } else {
                 $res = new Redirect(getRetUrl(), "|Не беше направено|* {$caption} |на нито един запис");
             }
-
+            
             return false;
         }
     }
@@ -221,11 +224,13 @@ class plg_Select extends core_Plugin
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
             return;
         }
         
         // Ако няма никакви редове не правим нищо
         if (!count($data->rows)) {
+            
             return;
         }
         
@@ -256,6 +261,7 @@ class plg_Select extends core_Plugin
     public function on_AfterPrepareListToolbar($mvc, $data)
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
             return;
         }
         
@@ -271,15 +277,18 @@ class plg_Select extends core_Plugin
     public function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
             return;
         }
         
         if (!count($data->rows)) {
+            
             return;
         }
         
         // Ако няма никакви редове не правим нищо
         if (!count($data->rows)) {
+            
             return;
         }
         

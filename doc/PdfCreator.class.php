@@ -1,19 +1,23 @@
 <?php
 
+
 /**
  * Генериране на PDF файлове от HTML файл чрез web kit
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_PdfCreator extends core_Manager
 {
     const PDF_BUCKET = 'pdf';
+    
     
     /**
      * Заглавие
@@ -167,7 +171,7 @@ class doc_PdfCreator extends core_Manager
     /**
      * Проверява дали може да се направи конвертирането
      *
-     * @return boolean
+     * @return bool
      */
     public static function canConvert()
     {
@@ -199,21 +203,21 @@ class doc_PdfCreator extends core_Manager
         
         // Ако е инстанция на core_ET
         if ($html instanceof core_ET) {
-        
+            
             // Вземаме масива с всички чакащи CSS файлове
             $cssArr = $html->getArray('CSS', false);
             foreach ((array) $cssArr as $cssPath) {
                 try {
-        
+                    
                     // Опитваме се да вземаме съдържанието на CSS
                     $css .= "\n" . file_get_contents(sbf($cssPath, '', true));
                 } catch (core_exception_Expect $e) {
-        
+                    
                     // Ако възникне грешка, добавяме в лога
                     self::logErr("Не може да се взема CSS файла: {$cssPath}");
                 }
             }
-        
+            
             // Вземаме всички стилове
             $styleArr = $html->getArray('STYLES', false);
             foreach ((array) $styleArr as $styles) {

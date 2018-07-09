@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Помощен мениджър за рендиране на документ
  *
  * @category  vendors
  * @package   color
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class color_Renderer extends core_Manager
 {
-    
-
     /**
      * Заглавие на модела
      */
@@ -48,7 +47,7 @@ class color_Renderer extends core_Manager
     public static function getResourceUrl($width = 1, $height = 1, $r, $g, $b)
     {
         Request::setProtected('w,h,r,g,b');
-
+        
         return toUrl(array('color_Renderer', 'render', 'w' => $width, 'h' => $height, 'r' => $r, 'g' => $g, 'b' => $b), 'absolute');
     }
 }

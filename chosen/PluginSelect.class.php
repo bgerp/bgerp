@@ -9,9 +9,11 @@
  *
  * @category  vendors
  * @package   chosen
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class chosen_PluginSelect extends core_Plugin
@@ -20,7 +22,8 @@ class chosen_PluginSelect extends core_Plugin
     {
         ht::setUniqId($attr);
     }
-
+    
+    
     /**
      * Изпълнява се след рендирането на input
      */
@@ -28,6 +31,7 @@ class chosen_PluginSelect extends core_Plugin
     {
         // За да не влиза в конфликт с комбо-бокса
         if ($attr['ajaxAutoRefreshOptions']) {
+            
             return;
         }
         
@@ -42,22 +46,25 @@ class chosen_PluginSelect extends core_Plugin
         
         // Ако опциите са под минималното - нищо не правим
         if (count($invoker->options) < $minItems) {
+            
             return;
         }
-
+        
         // Ако имаме комбо - не правим chosen
         if (count($invoker->suggestions)) {
+            
             return;
         }
         
         // Ако няма JS нищо не правим
         if (Mode::is('javascript', 'no')) {
+            
             return;
         }
         
         $tpl->push($conf->CHOSEN_PATH . '/chosen.css', 'CSS');
         $tpl->push($conf->CHOSEN_PATH . '/chosen.jquery.js', 'JS');
-
+        
         if ($invoker->params['allowEmpty']) {
             $allowEmpty = ', allow_single_deselect: true';
         }

@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Pdf extends fileman_webdrv_Office
 {
-    
-    
     /**
      * Преобразува цветовия модел на подадения PDF файл от RGB в CMYK
      *
@@ -57,7 +57,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Задаваме placeHolder' ите за входния и изходния файл
         $Script->setFile('INPUTF', $file);
         $Script->setFile('OUTPUTF', $outFilePath);
- 
+        
         $Script->setProgram('gs', fileman_Setup::get('GHOSTSCRIPT_PATH'));
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
@@ -104,6 +104,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Office::getTabs
      */
     public static function getTabs($fRec)
@@ -115,12 +116,12 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
             $barcodeUrl = toUrl(array('fileman_webdrv_Pdf', 'barcodes', $fRec->fileHnd), true);
             $tabsArr['barcodes'] = (object)
             array(
-                    'title' => 'Баркодове',
-                    'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Баркодове') . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-                    'order' => 6,
+                'title' => 'Баркодове',
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Баркодове') . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'order' => 6,
             );
         }
-
+        
         return $tabsArr;
     }
     
@@ -131,6 +132,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Office::startProcessing
      */
     public static function startProcessing($fRec)
@@ -146,6 +148,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Office::extractText
      */
     public static function extractText($fRec)
@@ -168,6 +171,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         }
         
         $lId = self::prepareLockId($fRec);
+        
         // Променливата, с която ще заключим процеса
         $params['lockId'] = self::getLockId($params['type'], $lId);
         
@@ -211,6 +215,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Office::convertToJpg
      */
     public static function convertToJpg($fRec)
@@ -226,7 +231,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
             
@@ -245,7 +250,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     /**
      * Дали може да се извлича баркод
      *
-     * @return boolean
+     * @return bool
      */
     public static function canGetBarcodes()
     {

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър за класове които използват вградени драйвери. При създаване се избира драйвер,
  * който в последствие поема част от управлението на мастъра
@@ -9,16 +8,16 @@
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class core_Embedder extends core_Master
 {
-    
-    
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
@@ -150,7 +149,7 @@ class core_Embedder extends core_Master
                 }
             }
         }
-    
+        
         // Ако няма достъпни драйвери полето е readOnly иначе оставяме за избор само достъпните такива
         if (!count($interfaces)) {
             $form->setReadOnly($mvc->innerClassField);
@@ -163,7 +162,7 @@ class core_Embedder extends core_Master
                 $form->setReadOnly($mvc->innerClassField);
             }
         }
-    
+        
         // Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
         if ($id = $rec->id) {
             $form->setReadOnly($mvc->innerClassField);
@@ -189,7 +188,7 @@ class core_Embedder extends core_Master
                 $Driver->addEmbeddedFields($form);
                 
                 $form->input(null, 'silent');
-                    
+                
                 // Източника модифицира формата при нужда
                 $Driver->prepareEmbeddedForm($form);
                 
@@ -222,12 +221,12 @@ class core_Embedder extends core_Master
                 if (!$Driver->canSelectInnerObject()) {
                     $form->setError($mvc->innerClassField, 'Нямате права за избрания източник');
                 }
-                    
+                
                 // Източника проверява подадената форма
                 $Driver->checkEmbeddedForm($form);
             }
         }
-         
+        
         if ($form->isSubmitted()) {
             $form->rec->{$mvc->innerFormField} = clone $form->rec;
         }
@@ -278,6 +277,7 @@ class core_Embedder extends core_Master
         }
         
         if (!cls::load($innerClass, true)) {
+            
             return;
         }
         $innerDrv = cls::get($innerClass);

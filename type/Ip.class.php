@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'type_IP' - тип за съхранение и обработка на IP v4 адрес
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class type_IP extends type_Varchar
 {
-    
-    
     /**
      * Дължина на полето в mySql таблица
      */
@@ -42,6 +41,7 @@ class type_IP extends type_Varchar
         $value = trim($value);
         
         if (empty($value)) {
+            
             return;
         }
         
@@ -61,6 +61,7 @@ class type_IP extends type_Varchar
     public function toVerbal_($value)
     {
         if (empty($value)) {
+            
             return;
         }
         
@@ -114,7 +115,7 @@ class type_IP extends type_Varchar
      *
      * @param string $ip
      *
-     * @return boolean
+     * @return bool
      */
     public static function isPrivate($ip)
     {
@@ -127,12 +128,12 @@ class type_IP extends type_Varchar
             
             return true;
         }
- 
+        
         if ($ip == '::1') {
             
             return true;
         }
-
+        
         if (strpos($ip, '192.168.') === 0) {
             
             return true;
@@ -147,8 +148,8 @@ class type_IP extends type_Varchar
         
         return false;
     }
-
-
+    
+    
     /**
      * Връща TRUE, ако IP-то на потребителя е от локалния компютър
      */
@@ -173,7 +174,7 @@ class type_IP extends type_Varchar
             
             return true;
         }
-            
+        
         expect(type_Ip::isPrivate($ip));     // @todo: да се махне
         
         return false;

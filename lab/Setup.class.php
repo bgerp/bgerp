@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class lab_Setup
  *
@@ -11,16 +10,16 @@
  *
  * @category  bgerp
  * @package   lab
+ *
  * @author    Milen Georgiev <milen@download.bg>
  *            Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class lab_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -55,30 +54,32 @@ class lab_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'lab_Tests',
-            'lab_Parameters',
-            'lab_Methods',
-            'lab_TestDetails'
-        );
-
-        
+        'lab_Tests',
+        'lab_Parameters',
+        'lab_Methods',
+        'lab_TestDetails'
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     //  var $roles ='lab';
-
+    
     public $roles = array(
-             array('lab'),
-             array('masterLab', 'lab'),
-     );
+        array('lab'),
+        array('masterLab', 'lab'),
+    );
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', 'lab, ceo'),
-        );
-
-        
+        array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', 'lab, ceo'),
+    );
+    
+    
     /**
      * Де-инсталиране на пакета
      */

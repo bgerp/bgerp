@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_reports_DataLog extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -26,7 +26,6 @@ class sens2_reports_DataLog extends frame_BaseDriver
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo, sens, admin';
-    
     
     
     /**
@@ -61,8 +60,8 @@ class sens2_reports_DataLog extends frame_BaseDriver
         $form->FLD('orderField', 'enum(,time=Време,indicatorId=Индикатор,value=Стойност)', 'caption=Подредба->По,formOrder=110000');
         $form->FLD('orderBy', 'enum(,asc=Възходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
     }
-
-
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
@@ -90,7 +89,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
         }
     }
     
-
+    
     /**
      * Подготвя вътрешното състояние, на база въведените данни
      */
@@ -101,32 +100,32 @@ class sens2_reports_DataLog extends frame_BaseDriver
         
         $DateTime = cls::get('type_Datetime');
         $KeyList = cls::get('type_KeyList', array('params' => array('mvc' => 'sens2_Indicators', 'select' => 'title')));
-         
+        
         if (!strpos($filter->to, ' ')) {
             $filter->to .= ' 23:59:59';
         }
-         
+        
         $query = sens2_DataLogs::getQuery();
-         
+        
         $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $filter->from, $filter->to));
-         
+        
         $query->in('indicatorId', keylist::toArray($filter->indicators));
         
         $pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
         $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
         $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
-
+        
         $data->pager = $pager;
         $data->pager->setLimit($query);
         
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
         }
-         
+        
         return $data;
     }
-
-
+    
+    
     /**
      * Рендира вградения обект
      *
@@ -138,7 +137,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
         $layout->replace($this->title, 'TITLE');
         
         $this->prependStaticForm($layout, 'FORM');
-    
+        
         if (count($data->recs)) {
             if ($this->innerForm->orderField) {
                 arr::sortObjects($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
@@ -151,19 +150,19 @@ class sens2_reports_DataLog extends frame_BaseDriver
             
             $this->invoke('AfterPrepareListRows', array($data, $data));
         }
-            
+        
         $table = cls::get('core_TableView', array('mvc' => cls::get('sens2_DataLogs')));
-    
+        
         $layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
-            
+        
         if ($data->pager) {
             $layout->append($data->pager->getHtml(), 'data');
         }
         
         $embedderTpl->append($layout, 'innerState');
     }
-
-
+    
+    
     /**
      * Може ли вградения обект да се избере
      */

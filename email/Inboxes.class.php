@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Имейл кутии
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Inboxes extends core_Master
 {
-    
-    
     /**
      * Процент на съвпадание в имената на имейлите, които липсват
      * На всеки 4 един трябва да съвпада
@@ -67,7 +66,6 @@ class email_Inboxes extends core_Master
     public $defaultDefaultDocuments = 'email_Outgoings';
     
     
-    
     public $canSingle = 'powerUser';
     
     
@@ -105,7 +103,7 @@ class email_Inboxes extends core_Master
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'doc_FolderIntf'; // Интерфейс за корица на папка
-        
+    
     
     /**
      * полета от БД по които ще се търси
@@ -159,12 +157,12 @@ class email_Inboxes extends core_Master
      * Масив с имена на имейли, които ще се изключват от списъка с имейли, при отговор
      */
     protected static $removeEmailsUserNameArr = array('webmaster',
-                                                      'no-reply',
-                                                      'noreply',
-                                                      'no_reply',
-                                                      'mailer-daemon',
-                                                      'autoreply'
-                                                      );
+        'no-reply',
+        'noreply',
+        'no_reply',
+        'mailer-daemon',
+        'autoreply'
+    );
     
     
     /**
@@ -200,7 +198,7 @@ class email_Inboxes extends core_Master
     {
         return $rec->email;
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -271,7 +269,7 @@ class email_Inboxes extends core_Master
         } else {
             $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
         }
-
+        
         if (empty($allAccounts)) {
             if (email_Accounts::haveRightFor('add')) {
                 redirect(array('email_Accounts', 'add'), false, '|Моля добавете активен акаунт');
@@ -339,9 +337,9 @@ class email_Inboxes extends core_Master
      * Връща масив с ключове - кутите (имейлите) и стойности - id-тата на сметките към които са
      * Ако е зададена $accId филтрира и оставя само кутиите, които са към посочената сметка
      *
-     * @param int     $accId
-     * @param boolean $removeClosed
-     * @param boolean $removeRejected
+     * @param int  $accId
+     * @param bool $removeClosed
+     * @param bool $removeRejected
      *
      * @return array
      */
@@ -355,7 +353,7 @@ class email_Inboxes extends core_Master
             if ($removeRejected) {
                 $query->where("#state != 'rejected'");
             }
-
+            
             if ($removeClosed) {
                 $query->where("#state != 'closed'");
             }
@@ -372,7 +370,7 @@ class email_Inboxes extends core_Master
         return self::$allBoxes[$key];
     }
     
-
+    
     /**
      * Намира първия имейл в стринга, който е записан в системата
      */
@@ -389,7 +387,7 @@ class email_Inboxes extends core_Master
                 $accId = $accRec->id;
             }
         }
-
+        
         // Ако сметката е частна, то $toBox е нейния имейл
         if ($accRec->type == 'single') {
             
@@ -403,20 +401,20 @@ class email_Inboxes extends core_Master
             $mime->getHeader('To') . ' ' .
             $mime->getHeader('Cc')
         ));
- 
+        
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
         if (!is_array($emailsArr) || !count($emailsArr)) {
             
             return $accRec->email;
         }
-
+        
         // Всички вътрешни кутии към тази сметка
         $allBoxes = static::getAllInboxes($accId);
-     
+        
         // Търсим във всички съществуващи кутии
         foreach ($emailsArr as  &$eml) {
             $eml = self::replaceDomains($eml);
-
+            
             // Първия имейл, който отговаря на кутия е $toBox
             if ($allBoxes[$eml]) {
                 
@@ -440,7 +438,7 @@ class email_Inboxes extends core_Master
                 if (!$nick || !$domain) {
                     continue;
                 }
-
+                
                 // Намираме потребител, съответстващ на емейл адреса
                 $userRec = $powerUsers[$nick];
                 
@@ -460,9 +458,9 @@ class email_Inboxes extends core_Master
                     $rec->access = 'private';
                     
                     $rec->id = self::fetchField("#email = '{$rec->email}'", 'id');
-
+                    
                     self::save($rec);
-
+                    
                     return $rec->email;
                 }
             }
@@ -476,8 +474,8 @@ class email_Inboxes extends core_Master
         // По подразбиране, $toBox е емейла на кутията от където се тегли писмото
         return $accRec->email;
     }
-
-
+    
+    
     /**
      * В дадения имейл, замества alias-ите на домейните, които са посочени за замяна във web-конфигурацията
      *
@@ -496,7 +494,7 @@ class email_Inboxes extends core_Master
                 $replaceDomainArr = false;
             }
         }
-
+        
         if ($replaceDomainArr && count($replaceDomainArr)) {
             list($toNick, $toDomain) = explode('@', $toEmail);
             foreach ($replaceDomainArr as $fromReplace => $toReplace) {
@@ -569,6 +567,7 @@ class email_Inboxes extends core_Master
         }
     }
     
+    
     /**
      * При създаването на вербалния ред, добавя линк и икона в заглавието на сметката
      */
@@ -578,11 +577,10 @@ class email_Inboxes extends core_Master
             $accRec = email_Accounts::fetch($rec->accountId);
             
             $accRow = email_Accounts::recToVerbal($accRec, 'id,email,-list');
-
+            
             $row->accountId = $accRow->email;
         }
     }
-
     
     
     /**
@@ -597,8 +595,9 @@ class email_Inboxes extends core_Master
     /**
      * Определя дали един имейл адрес е "ОБЩ" или не е.
      *
-     * @param  string  $email
-     * @return boolean
+     * @param string $email
+     *
+     * @return bool
      */
     public static function isGeneric($email)
     {
@@ -612,23 +611,24 @@ class email_Inboxes extends core_Master
      * Форсира папката, с име този имейл. Ако папката липсва, но това е валиден
      * имейл на PowerUser
      *
-     * @param  string $email
-     * @return int    key(mvc=doc_Folders)
+     * @param string $email
+     *
+     * @return int key(mvc=doc_Folders)
      */
     public static function forceFolder($email)
     {
         $folderId = null;
-
+        
         $email = strtolower(trim($email));
-
+        
         $rec = static::fetch("#email = '{$email}'");
-      
+        
         if (!$rec) {
             // Ако това е корпоративен имейл - създава кутията и папката към нея
             
             // Вземаме корпоративната сметка
             $corpAccRec = email_Accounts::getCorporateAcc();
-        
+            
             // Ако няма корпоративна сметка - връщаме FALSE
             if (!$corpAccRec) {
                 
@@ -636,17 +636,17 @@ class email_Inboxes extends core_Master
             }
             
             list($user, $domain) = explode('@', $email);
-    
+            
             if ($domain == $corpAccRec->domain) {
                 $powerUsers = email_Inboxes::getPowerUsers();
-            
+                
                 if ($userRec = $powerUsers[$user]) {
                     $rec = new stdClass();
                     $rec->email = $email;
                     $rec->accountId = $corpAccRec;
                     $rec->inCharge = $userRec->id;
                     $rec->access = 'private';
-
+                    
                     $folderId = static::forceCoverAndFolder($rec->id);
                 }
             }
@@ -676,7 +676,7 @@ class email_Inboxes extends core_Master
             
             return false;
         }
-
+        
         $id = email_Inboxes::fetchField("#email = '{$email}'");
         
         return $id;
@@ -695,7 +695,7 @@ class email_Inboxes extends core_Master
             
             return false;
         }
-
+        
         // Ако не сме подали параметър, вземаме id-то на текущия потребител
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -708,7 +708,7 @@ class email_Inboxes extends core_Master
         
         // Вземаме nick' а на потребителя
         $nick = core_Users::fetchField($userId, 'nick');
-
+        
         // Вземаме корпоративната сметка
         $corpAccRec = email_Accounts::getCorporateAcc();
         
@@ -733,7 +733,7 @@ class email_Inboxes extends core_Master
      *
      * @param email $email
      *
-     * @return integer $rec->inCharge
+     * @return int $rec->inCharge
      */
     public static function getEmailInCharge($email)
     {
@@ -755,9 +755,9 @@ class email_Inboxes extends core_Master
      * Връща масив с ключ имейлите и стойността за това поле в модела
      * Може да се премахнат зададените типове от акаунтите
      *
-     * @param array   $emailsArr
-     * @param string  $field
-     * @param boolean $removeCommonAndCorporate
+     * @param array  $emailsArr
+     * @param string $field
+     * @param bool   $removeCommonAndCorporate
      *
      * @return array
      */
@@ -775,7 +775,7 @@ class email_Inboxes extends core_Master
         }
         
         $resArr[$hash] = array();
-    
+        
         // Премахваме зададените акаунти от имейлите
         if ($removeAccType) {
             $emailArrForRemove = email_Accounts::getEmailsByType($removeAccType);
@@ -804,8 +804,8 @@ class email_Inboxes extends core_Master
     /**
      * Връща масив с id-та, на които текущия потребител е отговорник (или споделен)
      *
-     * @param NULL|integer $userId
-     * @param boolean      $checkShared
+     * @param NULL|int $userId
+     * @param bool     $checkShared
      *
      * @return array
      */
@@ -835,9 +835,9 @@ class email_Inboxes extends core_Master
     /**
      * Намира всички потребители, които са `inCharge` на подадените масиви
      *
-     * @param array   $idsArr
-     * @param boolean $addShared
-     * @param boolean $onlyWithNotify
+     * @param array $idsArr
+     * @param bool  $addShared
+     * @param bool  $onlyWithNotify
      *
      * @return array
      */
@@ -882,8 +882,8 @@ class email_Inboxes extends core_Master
     /**
      * Намира всички потребители, които са `inCharge` на подадените масиви
      *
-     * @param array   $emailsArr
-     * @param boolean $removeCommonAndCorporate
+     * @param array $emailsArr
+     * @param bool  $removeCommonAndCorporate
      *
      * @return array
      */
@@ -897,7 +897,7 @@ class email_Inboxes extends core_Master
             
             return array();
         }
-
+        
         $hash = md5(implode('|', $emailsArr) . '||' . implode('|', $removeAccType));
         
         if (isset($usersArr[$hash])) {
@@ -962,10 +962,11 @@ class email_Inboxes extends core_Master
             }
         }
     }
-
+    
     
     /**
      * Редиректва към добавяне на кутия
+     *
      * @redirect
      */
     public static function redirect()
@@ -1029,18 +1030,18 @@ class email_Inboxes extends core_Master
                 $options[$rec->id] = $rec->email;
             }
         }
-
+        
         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
         $corpAccRec = email_Accounts::getCorporateAcc();
-         
+        
         if ($corpAccRec && email_Accounts::canSendEmail($corpAccRec->id)) {
-             
+            
             // 2a. Общия корпоративен
             
             // Ако не е зададено да се показват само персоналните
             if (!$personalOnly) {
                 $rec = self::fetch("#email = '{$corpAccRec->email}' AND #state = 'active'");
-                                
+                
                 if ($rec) {
                     $options[$rec->id] = $rec->email;
                 }
@@ -1049,7 +1050,7 @@ class email_Inboxes extends core_Master
             // 2b. Корпоративния на потребителя
             
             $userEmail = email_Inboxes::getUserEmail($userId);
-
+            
             if ($userEmail && ($rec = self::fetch("#email = '{$userEmail}' AND #state = 'active'"))) {
                 $options[$rec->id] = $rec->email;
             }
@@ -1057,7 +1058,7 @@ class email_Inboxes extends core_Master
             //2a. Общия корпоративен
             //2b. Корпоративния на потребителя
         }
-
+        
         // 3. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
         // 3а. Имейлите, на които сме inCharge
         // 3b. Имейлите, които ни са споделени
@@ -1095,7 +1096,7 @@ class email_Inboxes extends core_Master
         $options = $options + $inChargeEmailArr + $sharedEmailArr;
         
         // Вече трябва да има открита поне една кутия
-
+        
         expect(count($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
         
         return $options;
@@ -1121,7 +1122,7 @@ class email_Inboxes extends core_Master
                 $powerUsers[strtolower($uRec->nick)] = $uRec;
             }
         }
-
+        
         return $powerUsers;
     }
     
@@ -1129,8 +1130,8 @@ class email_Inboxes extends core_Master
     /**
      * Връща масив с всички имейл кутии
      *
-     * @param boolean $removeRejected
-     * @param boolean $removeClosed
+     * @param bool $removeRejected
+     * @param bool $removeClosed
      *
      * @return array
      */
@@ -1211,7 +1212,7 @@ class email_Inboxes extends core_Master
                 }
             }
         }
-
+        
         return $allEmailsArr;
     }
     

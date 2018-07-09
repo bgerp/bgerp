@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от Движение по сметки на  доставчици
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
@@ -9,20 +8,21 @@
  *
  * @category  bgerp
  * @package   trz
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_reports_LeaveDaysPersons extends frame_BaseDriver
 {
-    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo, trz';
-
-
+    
+    
     /**
      * Заглавие
      */
@@ -40,7 +40,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
      */
     public $listItemsPerPage = 50;
     
-
+    
     /**
      * Добавя полетата на вътрешния обект
      *
@@ -55,7 +55,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
-     
+    
     
     /**
      * Проверява въведените данни
@@ -91,7 +91,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
             
             $options[$t] = $title;
         }
-
+        
         $form->setOptions('team', $options);
     }
     
@@ -105,16 +105,16 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     {
         $data = new stdClass();
         $data->recs = array();
-
+        
         $data->rec = $this->innerForm;
-
+        
         $this->prepareListFields($data);
         
         $query = crm_Profiles::getQuery();
         $query->where("(#stateDateFrom IS NOT NULL AND #stateDateTo IS NOT NULL AND #stateDateFrom <= '{$data->rec->from}' AND #stateDateTo >= '{$data->rec->from}')
                         OR
     	               (#stateDateFrom IS NOT NULL AND #stateDateTo IS NOT NULL AND #stateDateFrom <= '{$data->rec->to}' AND #stateDateTo >= '{$data->rec->to}')");
-
+        
         $recs = array();
         while ($rec = $query->fetch()) {
             $index = $rec->userId;
@@ -124,13 +124,13 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
                     'info' => $rec->stateInfo,
                     'from' => $rec->stateDateFrom,
                     'to' => $rec->stateDateTo,
-            
-            );
+                
+                );
         }
         
         $qProfiles = crm_Profiles::getQuery();
         $recProfiles = $qProfiles->fetchAll();
-
+        
         foreach ($recProfiles as $id => $r) {
             if ($r->state != 'active') {
                 unset($recProfiles[$id]);
@@ -147,7 +147,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
             if ($data->rec->departments) {
                 $eQuery = planning_Hr::getQuery();
                 $eQuery->where("#personId = '{$re->person}'");
-
+                
                 $eRec = $eQuery->fetch();
                 $departments = keylist::toArray($eRec->departments);
                 if (!$departments[$data->rec->departments]) {
@@ -155,7 +155,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
                 }
             }
         }
-
+        
         if ($data->rec->team) {
             $message = $data->rec->team;
             $flag = 0;
@@ -166,19 +166,19 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
             $message = 'Отсъстващи';
             $flag = -1;
         }
-
-
+        
+        
         $all = count($recProfiles);
         $missing = count($recs);
-    
+        
         $data->recs[] = (object) array(
             'missing' => $message,
             'percent' => $missing / $all,
             'flag' => $flag);
-
+        
         return $data;
     }
-
+    
     
     /**
      * След подготовката на показването на информацията
@@ -203,15 +203,15 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
                 }
                 
                 $row = $mvc->getVerbal($rec);
-                    
+                
                 $data->rows[$id] = $row;
             }
         }
-       
+        
         $res = $data;
     }
     
-
+    
     /**
      * Връща шаблона на репорта
      *
@@ -233,36 +233,37 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-  
+        
         $tpl = $this->getReportLayout();
         
         $title = explode(' » ', $this->title);
         
         $tpl->replace($title[1], 'TITLE');
-    
+        
         $this->prependStaticForm($tpl, 'FORM');
-
+        
         $tpl->placeObject($data->row);
-    
-
+        
+        
         $f = cls::get('core_FieldSet');
-
+        
         $f->FLD('missing', 'varchar');
         $f->FLD('percent', 'percent');
-
+        
         $table = cls::get('core_TableView', array('mvc' => $f));
-
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
         if ($data->pager) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
-    
+        
         $embedderTpl->append($tpl, 'data');
     }
-
+    
     
     /**
      * Подготвя хедърите на заглавията на таблицата
@@ -270,12 +271,12 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         $data->listFields = array(
-                'missing' => 'Отсъстващи',
-                'percent' => 'Процент',
-                );
+            'missing' => 'Отсъстващи',
+            'percent' => 'Процент',
+        );
     }
-
-       
+    
+    
     /**
      * Вербалното представяне на ред от таблицата
      */
@@ -284,9 +285,9 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
         $Percent = cls::get('type_Percent');
         $Varchar = cls::get('type_Varchar');
         
-
+        
         $row = new stdClass();
-
+        
         if ($rec->flag == 0) {
             // вербализираме екипа
             $tRole = core_Roles::getVerbal($rec->missing, 'role');
@@ -302,8 +303,8 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
         
         return $row;
     }
-      
-      
+    
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -312,21 +313,21 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-              
+        
         unset($innerState->recs);
     }
-      
-      
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->to} 23:59:59";
-              
+        
         return $activateOn;
     }
-
+    
     
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
@@ -336,7 +337,6 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
      */
     public function exportCsv()
     {
-
         /*$exportFields = $this->innerState->listFields;
 
         $conf = core_Packs::getConfig('core');
@@ -383,7 +383,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
 
         return $csv;*/
     }
-
+    
     
     /**
      * Ще направим row-овете в CSV формат
@@ -392,7 +392,6 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
      */
     protected function generateCsvRows_($rec)
     {
-        
         /*$exportFields = $this->innerState->listFields;
 
         $rec = $this->getVerbal($rec);
@@ -432,9 +431,9 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     public function getReportTitle()
     {
         $explodeTitle = explode(' » ', $this->title);
-    
+        
         $title = tr("|{$explodeTitle[1]}|*");
-    
+        
         return $title;
     }
 }

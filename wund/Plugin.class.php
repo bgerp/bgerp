@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'wund_Plugin'
  *
@@ -9,9 +8,11 @@
  *
  * @category  vendors
  * @package   recently
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class wund_Plugin extends core_Plugin
@@ -19,11 +20,12 @@ class wund_Plugin extends core_Plugin
     public function on_AfterPrepareGroupDate($mvc, &$res, $date)
     {
         if (dt::addDays(3) < $date) {
+            
             return;
         }
-
+        
         $forRec = wund_Forecasts::getForecast($date);
-
+        
         if ($forRec) {
             $thumb = new thumb_Img($forRec->iconUrl, 20, 20, 'url');
             $iconUrl = $thumb->getUrl();

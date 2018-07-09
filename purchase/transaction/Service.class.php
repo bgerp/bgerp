@@ -6,18 +6,17 @@
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class purchase_transaction_Service extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var purchase_Services
@@ -27,6 +26,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     
     /**
      * Транзакция за запис в журнала
+     *
      * @param int $id
      */
     public function getTransaction($id)
@@ -42,11 +42,11 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         }
         
         $entries = array();
-         
+        
         // Всяко ЕН трябва да има поне един детайл
         if (count($rec->details) > 0) {
             if ($rec->isReverse == 'yes') {
-                 
+                
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
                 $reverseSource = cls::getInterface('acc_TransactionSourceIntf', 'sales_Services');
                 $entries = $reverseSource->getReverseEntries($rec, $origin);
@@ -55,13 +55,13 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
                 $entries = $this->getEntries($rec, $origin);
             }
         }
-    
+        
         $transaction = (object) array(
-                'reason' => 'Протокол за покупка на услуги #' . $rec->id,
-                'valior' => $rec->valior,
-                'entries' => $entries,
+            'reason' => 'Протокол за покупка на услуги #' . $rec->id,
+            'valior' => $rec->valior,
+            'entries' => $entries,
         );
-    
+        
         return $transaction;
     }
     
@@ -93,18 +93,18 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
                     $amountAllocated = $amount * $rec->currencyRate;
                     
                     $entries[] = array(
-                            'amount' => $sign * $amountAllocated, // В основна валута
-                            'debit' => array('60201',
-                                             $dRec1->expenseItemId,
-                                            array('cat_Products', $dRec1->productId),
-                                            'quantity' => $sign * $dRec1->quantity),
-                            'credit' => array($rec->accountId,
-                                              array($rec->contragentClassId, $rec->contragentId),
-                                              array($origin->className, $origin->that),
-                                              array('currency_Currencies', $currencyId),
-                                              'quantity' => $sign * $amount,
-                            ),
-                            'reason' => $dRec1->reason,
+                        'amount' => $sign * $amountAllocated, // В основна валута
+                        'debit' => array('60201',
+                            $dRec1->expenseItemId,
+                            array('cat_Products', $dRec1->productId),
+                            'quantity' => $sign * $dRec1->quantity),
+                        'credit' => array($rec->accountId,
+                            array($rec->contragentClassId, $rec->contragentId),
+                            array($origin->className, $origin->that),
+                            array('currency_Currencies', $currencyId),
+                            'quantity' => $sign * $amount,
+                        ),
+                        'reason' => $dRec1->reason,
                     );
                     
                     // Корекция на стойности при нужда
@@ -122,21 +122,21 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
                 $vat = $this->class->_total->vat;
                 $vatAmount = $this->class->_total->vat * $rec->currencyRate;
                 $entries[] = array(
-                        'amount' => $sign * $vatAmount, // В основна валута
-        
-                        'credit' => array(
-                                $rec->accountId,
-                                array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                                array($origin->className, $origin->that),			// Перо 2 - Сделка
-                                array('currency_Currencies', $currencyId), // Перо 3 - Валута
-                                'quantity' => $sign * $vat, // "брой пари" във валутата на продажбата
-                        ),
-        
-                        'debit' => array(
-                                '4530',
-                                array($origin->className, $origin->that),
-                        ),
-                        'reason' => 'ДДС за начисляване при фактуриране',
+                    'amount' => $sign * $vatAmount, // В основна валута
+                    
+                    'credit' => array(
+                        $rec->accountId,
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array($origin->className, $origin->that),			// Перо 2 - Сделка
+                        array('currency_Currencies', $currencyId), // Перо 3 - Валута
+                        'quantity' => $sign * $vat, // "брой пари" във валутата на продажбата
+                    ),
+                    
+                    'debit' => array(
+                        '4530',
+                        array($origin->className, $origin->that),
+                    ),
+                    'reason' => 'ДДС за начисляване при фактуриране',
                 );
             }
         }

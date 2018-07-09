@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Абстрактен клас за наследяване на складови документи
  *
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class store_DocumentMaster extends core_Master
 {
-    
-    
     /**
      * Полета свързани с цени
      */
@@ -133,7 +132,7 @@ abstract class store_DocumentMaster extends core_Master
         );
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
-
+        
         $mvc->setDbIndex('valior');
     }
     
@@ -163,16 +162,16 @@ abstract class store_DocumentMaster extends core_Master
         if (!trans_Lines::count("#state = 'active'")) {
             $form->setField('lineId', 'input=none');
         }
-    
+        
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('locationId')->type->options =
         array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
-    
+        
         expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
-             
+        
         $form->setDefault('currencyId', $dealInfo->get('currency'));
         $form->setDefault('currencyRate', $dealInfo->get('rate'));
         $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
@@ -197,24 +196,25 @@ abstract class store_DocumentMaster extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-         
+        
         $Detail = $this->mainDetail;
         $query = $this->{$Detail}->getQuery();
         $query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
-    
+        
         $recs = $query->fetchAll();
-    
+        
         deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
@@ -223,7 +223,7 @@ abstract class store_DocumentMaster extends core_Master
         $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
         $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-    
+        
         return $this->save($rec);
     }
     
@@ -237,18 +237,20 @@ abstract class store_DocumentMaster extends core_Master
         
         // Ако документа е клониран пропуска се
         if ($rec->_isClone === true) {
+            
             return;
         }
         
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
         // използваме го за автоматично попълване на детайлите на документа
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
-    
+            
             // Ако документа е обратен не слагаме продукти по дефолт
             if ($rec->isReverse == 'yes') {
+                
                 return;
             }
-    
+            
             $copyBatches = false;
             $Detail = $mvc->mainDetail;
             $aggregatedDealInfo = $origin->getAggregateDealInfo();
@@ -293,7 +295,7 @@ abstract class store_DocumentMaster extends core_Master
                     if (!isset($info->meta['canStore']) || ($toShip <= 0)) {
                         continue;
                     }
-                     
+                    
                     $shipProduct = new stdClass();
                     $shipProduct->{$mvc->{$Detail}->masterKey} = $rec->id;
                     $shipProduct->productId = $product->productId;
@@ -348,23 +350,23 @@ abstract class store_DocumentMaster extends core_Master
             $tpl->append($btnOut, 'PACKAGING_BTNS');
         }
     }
-
-
+    
+    
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
     public function prepareSingle_($data)
     {
         parent::prepareSingle_($data);
-         
+        
         $rec = &$data->rec;
         if (empty($data->noTotal)) {
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }
     }
-
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -377,7 +379,7 @@ abstract class store_DocumentMaster extends core_Master
         }
         
         $row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
-       
+        
         if (isset($fields['-list'])) {
             if ($rec->amountDelivered) {
                 $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
@@ -387,7 +389,7 @@ abstract class store_DocumentMaster extends core_Master
             
             $row->title = $mvc->getLink($rec->id, 0);
         }
-         
+        
         if (isset($fields['-single'])) {
             core_Lg::push($rec->tplLang);
             
@@ -435,8 +437,8 @@ abstract class store_DocumentMaster extends core_Master
         
         $row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
     }
-
-   
+    
+    
     /**
      * Документа не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      */
@@ -449,14 +451,15 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Може ли документа да се добави в посочената нишка?
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $docState = $firstDoc->fetchField('state');
-    
+        
         // Може да се добавя само към активиран документ
         if ($docState == 'active') {
             if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
@@ -468,15 +471,16 @@ abstract class store_DocumentMaster extends core_Master
         
         return false;
     }
-
-
+    
+    
     /**
      * Връща масив от използваните нестандартни артикули в документа
      *
-     * @param  int   $id - ид на документа
+     * @param int $id - ид на документа
+     *
      * @return param $res - масив с използваните документи
-     *                  ['class'] - инстанция на документа
-     *                  ['id'] - ид на документа
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
@@ -491,19 +495,19 @@ abstract class store_DocumentMaster extends core_Master
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
-    
+        
         $row = (object) array(
-                'title' => $title,
-                'authorId' => $rec->createdBy,
-                'author' => $this->getVerbal($rec, 'createdBy'),
-                'state' => $rec->state,
-                'recTitle' => $title
+            'title' => $title,
+            'authorId' => $rec->createdBy,
+            'author' => $this->getVerbal($rec, 'createdBy'),
+            'state' => $rec->state,
+            'recTitle' => $title
         );
-    
+        
         return $row;
     }
-
-
+    
+    
     /**
      * Променяме шаблона в зависимост от мода
      */
@@ -526,32 +530,34 @@ abstract class store_DocumentMaster extends core_Master
         
         return $res;
     }
-
-
+    
+    
     /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
-     * @param  int|object                 $id
+     * @param int|object $id
+     *
      * @return bgerp_iface_DealAggregator
+     *
      * @see bgerp_DealIntf::getDealInfo()
      */
     public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-    
+        
         // Конвертираме данъчната основа към валутата идваща от продажбата
         $aggregator->setIfNot('deliveryLocation', $rec->locationId);
         $aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
         $aggregator->setIfNot('storeId', $rec->storeId);
         $aggregator->setIfNot('shippedValior', $rec->valior);
-    
+        
         $Detail = $this->mainDetail;
         $dQuery = $this->{$Detail}->getQuery();
         $dQuery->where("#{$this->{$Detail}->masterKey} = {$rec->id}");
-    
+        
         // Подаваме на интерфейса най-малката опаковка с която е експедиран продукта
         while ($dRec = $dQuery->fetch()) {
-             
+            
             // Подаваме най-малката опаковка в която е експедиран продукта
             $push = true;
             $index = $dRec->productId;
@@ -561,7 +567,7 @@ abstract class store_DocumentMaster extends core_Master
                     $push = false;
                 }
             }
-    
+            
             // Ако ще обновяваме информацията за опаковката
             if ($push) {
                 $arr = (object) array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
@@ -592,7 +598,8 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Информация за логистичните данни
      *
-     * @param  mixed $rec - ид или запис на документ
+     * @param mixed $rec - ид или запис на документ
+     *
      * @return array $data - логистичните данни
      *
      *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
@@ -617,20 +624,20 @@ abstract class store_DocumentMaster extends core_Master
         $rec = $this->fetchRec($rec);
         $ownCompany = crm_Companies::fetchOurCompany();
         $ownCountryId = $ownCompany->country;
-         
+        
         if ($locationId = store_Stores::fetchField($rec->storeId, 'locationId')) {
             $storeLocation = crm_Locations::fetch($locationId);
             $ownCountryId = $storeLocation->countryId;
         }
-         
+        
         $contragentData = doc_Folders::getContragentData($rec->folderId);
         $contragentCountryId = $contragentData->countryId;
-         
+        
         if (isset($rec->locationId)) {
             $contragentLocation = crm_Locations::fetch($rec->locationId);
             $contragentCountryId = $contragentLocation->countryId;
         }
-         
+        
         $ownPart = ($this instanceof store_ShipmentOrders) ? 'from' : 'to';
         $contrPart = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
         
@@ -678,25 +685,26 @@ abstract class store_DocumentMaster extends core_Master
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
-     * @param  mixed               $id     - ид или запис на документа
-     * @param  deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
-     * @return array               $details - масив с артикули готови за запис
-     *                                    o productId      - ид на артикул
-     *                                    o packagingId    - ид на опаковка/основна мярка
-     *                                    o quantity       - количество опаковка
-     *                                    o quantityInPack - количество в опаковката
-     *                                    o discount       - отстъпка
-     *                                    o price          - цена за единица от основната мярка
+     * @param mixed               $id     - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     *
+     * @return array $details - масив с артикули готови за запис
+     *               o productId      - ид на артикул
+     *               o packagingId    - ид на опаковка/основна мярка
+     *               o quantity       - количество опаковка
+     *               o quantityInPack - количество в опаковката
+     *               o discount       - отстъпка
+     *               o price          - цена за единица от основната мярка
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
     {
         $details = array();
         $rec = static::fetchRec($id);
-    
+        
         $Detail = cls::get($this->mainDetail);
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = {$rec->id}");
-         
+        
         while ($dRec = $query->fetch()) {
             $dRec->quantity /= $dRec->quantityInPack;
             if (!($forMvc instanceof sales_Proformas)) {
@@ -709,7 +717,7 @@ abstract class store_DocumentMaster extends core_Master
             unset($dRec->createdBy);
             $details[] = $dRec;
         }
-         
+        
         return $details;
     }
     
@@ -717,17 +725,18 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Информацията на документа, за показване в транспортната линия
      *
-     * @param  mixed $id
+     * @param mixed $id
+     *
      * @return array
-     *                  ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *                  ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *                  ['currencyId'] string|NULL - валутата на документа
-     *                  ['notes']      string|NULL - забележки за транспортната линия
-     *                  ['stores']     array       - склад(ове) в документа
-     *                  ['weight']     double|NULL - общо тегло на стоките в документа
-     *                  ['volume']     double|NULL - общ обем на стоките в документа
-     *                  ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *                  [transUnitId] => quantity
+     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId'] string|NULL - валутата на документа
+     *               ['notes']      string|NULL - забележки за транспортната линия
+     *               ['stores']     array       - склад(ове) в документа
+     *               ['weight']     double|NULL - общо тегло на стоките в документа
+     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               [transUnitId] => quantity
      */
     public function getTransportLineInfo_($rec)
     {

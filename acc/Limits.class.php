@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * acc_Limists модел за определяне на счетоводни лимити
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Limits extends core_Manager
 {
-    
-    
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
@@ -120,6 +119,7 @@ class acc_Limits extends core_Manager
     
     /**
      * Преди показване на форма за добавяне/промяна.
+     *
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param stdClass $data
@@ -363,8 +363,8 @@ class acc_Limits extends core_Manager
         
         bgerp_Notifications::clear(array($mvc, 'list'));
     }
-        
-        
+    
+    
     /**
      * Екшън проверяващ дали лимитите са надвишени
      */
@@ -393,11 +393,13 @@ class acc_Limits extends core_Manager
         
         // Ако няма баланс не правим нищо
         if (!$balanceId) {
+            
             return;
         }
         
         // Ако няма записи не правим нищо
         if (!acc_Limits::count()) {
+            
             return;
         }
         
@@ -413,6 +415,7 @@ class acc_Limits extends core_Manager
         
         // Ако няма зададени лимити не правим нищо
         if (!count($limitedAccounts)) {
+            
             return;
         }
         
@@ -451,12 +454,12 @@ class acc_Limits extends core_Manager
             // За всеки запис от баланса
             if (count($balanceArr)) {
                 foreach ($balanceArr as $bRec) {
-                     
+                    
                     // Ако сметката е различна, пропускаме
                     if ($bRec->accountId != $rec->accountId) {
                         continue;
                     }
-                     
+                    
                     // За перата от 1 до 3, ако са зададени и на записа са различни, записа не участва в групирането
                     if (isset($rec->item1) && $rec->item1 != $bRec->ent1Id) {
                         continue;
@@ -518,7 +521,7 @@ class acc_Limits extends core_Manager
                         if (!array_key_exists($userId, $sendNotificationsTo)) {
                             $sendNotificationsTo[$userId] = array();
                         }
-                         
+                        
                         $sendNotificationsTo[$userId] = array_merge($sendNotificationsTo[$userId], $notDimensionalItems);
                     }
                 }

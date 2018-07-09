@@ -7,14 +7,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_type_SayTime extends type_Varchar
 {
-    
     /**
      * Параметър определящ максималната широчина на полето
      */
@@ -24,8 +25,9 @@ class doc_type_SayTime extends type_Varchar
     /**
      * Преобразуване на време от вербална стойност към представяне в минути
      *
-     * @param  string $timeStr
-     * @return array  $timeInMins
+     * @param string $timeStr
+     *
+     * @return array $timeInMins
      */
     public function fromVerbal($timeStr)
     {
@@ -188,7 +190,8 @@ class doc_type_SayTime extends type_Varchar
     /**
      * на време от минути във вербална стойност
      *
-     * @param  int    $timeMin
+     * @param int $timeMin
+     *
      * @return string $timeStr
      */
     public static function toVerbal($timeMin)

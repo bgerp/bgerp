@@ -7,14 +7,15 @@
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Milen Georgiev <milen@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Accounts extends core_Master
 {
-    
     /**
      * Плъгини за работа
      */
@@ -33,9 +34,8 @@ class email_Accounts extends core_Master
     public $canRead = 'admin, ceo';
     
     
-    
     public $canList = 'admin';
-
+    
     
     /**
      * Кой може да разглежда сингъла на документите?
@@ -48,7 +48,7 @@ class email_Accounts extends core_Master
      */
     public $canWrite = 'admin';
     
-         
+    
     /**
      * полета от БД по които ще се търси
      */
@@ -119,36 +119,35 @@ class email_Accounts extends core_Master
             'caption=Изтегляне->Изтриване,hint=Кога писмото да бъде изтрито от IMAP/POP3 сметката след получаване в системата?,placeholder=Никога,unit=след получаване,oldFiledName=datetime'
         );
         $this->FLD('imapFlag', 'enum(,seen=Като прочетени,unseen=Като непрочетени)', 'caption=Маркиране,placeholder=Без промяна');
-
+        
         // Изпращане
         $this->FLD('smtpServer', 'varchar', 'caption=Изпращане->SMTP сървър,width=100%,oldFieldName=smtp', array('attr' => array('id' => 'smtpServer')));
         $this->FLD('smtpSecure', 'enum(no=Без криптиране,tls=TLS,ssl=SSL)', 'caption=Изпращане->Сигурност', array('attr' => array('id' => 'smtpSecure')));
         $this->FLD('smtpAuth', 'enum(no=Не се изисква,LOGIN=Изисква се,NTLM=MS NTLM)', 'caption=Изпращане->Аутентикация', array('attr' => array('id' => 'smtpAuth')));
         $this->FLD('smtpUser', 'varchar', 'caption=Изпращане->Потребител,width=100%', array('attr' => array('id' => 'smtpUser')));
         $this->FLD('smtpPassword', 'password(64,autocomplete=off)', 'caption=Изпращане->Парола,width=100%,crypt');
-
+        
         $this->setDbUnique('email');
     }
-
-
-
+    
+    
     /**
      * Изплънява се след подготовката на вербалните стойности за записа
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         //  protocol, server, user, smtpServer, smtpUser,
-
+        
         if ($fields['-list']) {
             $row->retreiving = $mvc->getVerbal($rec, 'protocol');
             $row->retreiving .= ' / ' . $mvc->getVerbal($rec, 'server');
             $row->retreiving .= '<br>' . $mvc->getVerbal($rec, 'user');
-
+            
             $row->sending = $mvc->getVerbal($rec, 'smtpServer');
             $row->sending .= '<br>' . $mvc->getVerbal($rec, 'smtpUser');
         }
     }
-
+    
     
     /**
      * Връща записа на корпоративната сметка, ако има такъв
@@ -160,10 +159,10 @@ class email_Accounts extends core_Master
         if ($rec) {
             list($rec->user, $rec->domain) = explode('@', $rec->email);
         }
-
+        
         return $rec;
     }
-
+    
     
     /**
      * Връща всички активни корпоративни и общи домейни
@@ -293,10 +292,11 @@ class email_Accounts extends core_Master
     public static function canSendEmail($id)
     {
         $rec = self::fetch($id);
-
+        
         return ($rec->smtpServer != '' && $rec->state == 'active');
     }
-
+    
+    
     /**
      * Връща името за папката
      */
@@ -317,8 +317,8 @@ class email_Accounts extends core_Master
     {
         return $rec->email;
     }
-
-
+    
+    
     /**
      * Преди рендиране на формата за редактиране
      */
@@ -326,8 +326,8 @@ class email_Accounts extends core_Master
     {
         $data->form->setDefault('access', 'private');
     }
-
-
+    
+    
     /**
      * Проверка за валидност на входните данни
      */
@@ -370,7 +370,7 @@ class email_Accounts extends core_Master
                     }
                 }
             }
- 
+            
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
             try {
@@ -393,19 +393,19 @@ class email_Accounts extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Проверява дали домейна е общ
      */
     public static function isGroupDomain($domain)
     {
         $rec = static::fetch("#email LIKE '%{$domain}' AND #applyRouting = 'yes'");
-
+        
         return $rec;
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -425,29 +425,30 @@ class email_Accounts extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Когато се създава акаунт, към него се съзадава и входяща пощенска кутия
      */
     public function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
         if (email_Inboxes::fetch("#email = '{$rec->email}'")) {
+            
             return;
         }
-
+        
         $boxRec = new stdClass();
-
+        
         $boxRec->email = $rec->email;
-
+        
         $boxRec->accountId = $rec->id;
-
+        
         setIfNot($boxRec->access, $rec->access, 'private');
-
+        
         $userId = core_Users::getCurrent();
         
         setIfNot($boxRec->inCharge, $rec->inCharge, $userId);
-
+        
         setIfNot($boxRec->shared, $rec->shared);
         
         // @todo: Да се махне долния участък, след повсеместния ъпдейт
@@ -470,13 +471,13 @@ class email_Accounts extends core_Master
     public static function loadData()
     {
         $mvc = cls::get('email_Accounts');
-
+        
         if (defined('BGERP_DEFAULT_EMAIL_FROM') && BGERP_DEFAULT_EMAIL_FROM != '') {
             if (!$mvc->fetch(array("#email = '[#1#]'", BGERP_DEFAULT_EMAIL_FROM))) {
                 $rec = new stdClass();
-
+                
                 $rec->email = BGERP_DEFAULT_EMAIL_FROM;
-        
+                
                 // Дали да се рутират писмата, получени на този акаунт
                 defIfNot('BGERP_DEFAULT_EMAIL_APPLY_ROUTING', 'yes');
                 $rec->applyRouting = BGERP_DEFAULT_EMAIL_APPLY_ROUTING;
@@ -491,7 +492,7 @@ class email_Accounts extends core_Master
                 // Входящо получаване
                 defIfNot('BGERP_DEFAULT_EMAIL_HOST', 'localhost');
                 $rec->server = BGERP_DEFAULT_EMAIL_HOST;
-
+                
                 defIfNot('BGERP_DEFAULT_EMAIL_PROTOCOL', 'imap');
                 $rec->protocol = BGERP_DEFAULT_EMAIL_PROTOCOL;
                 
@@ -504,14 +505,14 @@ class email_Accounts extends core_Master
                 
                 defIfNot('BGERP_DEFAULT_EMAIL_FOLDER', 'inbox');
                 $rec->folder = BGERP_DEFAULT_EMAIL_FOLDER;
-
+                
                 $rec->user = BGERP_DEFAULT_EMAIL_USER;
                 $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD ;
                 
                 // Изтегляне
                 $rec->state = 'active';
                 $rec->period = 1;
-
+                
                 defIfNot('BGERP_DEFAULT_EMAIL_DELETE', 'no');
                 $rec->deleteAfterRetrieval = BGERP_DEFAULT_EMAIL_DELETE;
                 
@@ -530,13 +531,13 @@ class email_Accounts extends core_Master
                 
                 defIfNot('BGERP_DEFAULT_EMAIL_SMTP_PASSWORD', null);
                 $rec->smtpPassword = BGERP_DEFAULT_EMAIL_SMTP_PASSWORD;
-
+                
                 $mvc->save($rec, null, 'IGNORE');
-                                
+                
                 $res .= '<li>Добавен вх./изх. имейл сметка: ' . BGERP_DEFAULT_EMAIL_FROM;
             }
         }
-
+        
         return $res;
     }
     
@@ -544,8 +545,9 @@ class email_Accounts extends core_Master
     /**
      * Определя дали един имейл адрес е "ОБЩ" или не е.
      *
-     * @param  string  $email
-     * @return boolean
+     * @param string $email
+     *
+     * @return bool
      */
     public static function isGeneric($email)
     {
@@ -554,7 +556,7 @@ class email_Accounts extends core_Master
         return (boolean) $rec && ($rec->applyRouting == 'yes');
     }
     
-
+    
     /**
      * @return PHPMailer
      */
@@ -563,7 +565,7 @@ class email_Accounts extends core_Master
         expect($accId = email_Inboxes::fetchField("#email = '{$emailFrom}'", 'accountId'));
         
         expect($rec = self::fetch($accId));
-
+        
         $params = array();
         
         // Метода за изпращане на писма ще е SMTP
@@ -583,7 +585,7 @@ class email_Accounts extends core_Master
             $params['Host'] = substr($params['Host'], 6);
             $rec->smtpSecure = 'tls';
         }
-
+        
         if (count($hostArr) == 2) {
             $params['Port'] = $hostArr[1];
         } else {
@@ -618,11 +620,11 @@ class email_Accounts extends core_Master
         } else {
             $params['SMTPAuth'] = false;
         }
-
+        
         $params['XMailer'] = 'bgERP email client';
-
+        
         $pml = cls::get('phpmailer_Instance', $params);
-
+        
         return $pml;
     }
 }

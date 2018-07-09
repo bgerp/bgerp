@@ -6,6 +6,7 @@
  */
 defIfNot('FASTSCROLL_HIDE_AFTER_SEC', '3');
 
+
 /**
  * Съотнощение между височината на страницата и височината на прозореца, при която да работи плъгина
  */
@@ -18,9 +19,11 @@ defIfNot('FASTSCROLL_ACTIVE_RATIO', '2');
  *
  * @category  vendors
  * @package   fastscroll
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fastscroll_Setup extends core_ProtoSetup
@@ -32,8 +35,8 @@ class fastscroll_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'FASTSCROLL_HIDE_AFTER_SEC' => array('time(suggestions=1сек|2сек|3сек|4сек|5сек)', 'caption=Скриване на стрелките за бързо скролиране след->Време за изчакване'),
-            'FASTSCROLL_ACTIVE_RATIO' => array('double', 'caption=Показване при скрита/видима част->Съотношение'),
+        'FASTSCROLL_HIDE_AFTER_SEC' => array('time(suggestions=1сек|2сек|3сек|4сек|5сек)', 'caption=Скриване на стрелките за бързо скролиране след->Време за изчакване'),
+        'FASTSCROLL_ACTIVE_RATIO' => array('double', 'caption=Показване при скрита/видима част->Съотношение'),
     );
     
     
@@ -77,8 +80,8 @@ class fastscroll_Setup extends core_ProtoSetup
         
         return $html;
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */
@@ -95,7 +98,6 @@ class fastscroll_Setup extends core_ProtoSetup
     {
         return 'fastscroll/lib/fastscroll.css';
     }
-    
     
     
     public function removeOldPlugins()

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас acc_type_Account, за избиране на счетоводна сметка
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_type_Account extends type_Key
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -50,7 +49,7 @@ class acc_type_Account extends type_Key
         $root = $this->params['root'];
         $select = $this->params['select'];
         $regInterfaces = $this->params['regInterfaces'];
-       
+        
         $options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
         
         // Ако има зададени интерфейси на аналитичностите
@@ -91,13 +90,13 @@ class acc_type_Account extends type_Key
     public static function filterSuggestions($list, &$suggestions)
     {
         $hand = md5(json_encode(array($list, $suggestions)));
-
+        
         $res = core_Cache::get('accSuggestions', $hand);
         
         if (!is_array($res)) {
             $arr = explode('|', $list);
             expect(count($arr) <= 3, 'Най-много могат да са зададени 3 интерфейса');
-           
+            
             foreach ($arr as $index => $el) {
                 if ($el == 'none') {
                     continue;
@@ -106,7 +105,7 @@ class acc_type_Account extends type_Key
             }
             
             if (count($suggestions)) {
-               
+                
                 // За всяка сметка
                 foreach ($suggestions as $id => $sug) {
                     if (is_object($sug)) {

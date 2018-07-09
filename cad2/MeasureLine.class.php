@@ -1,11 +1,11 @@
 <?php
 
+
 /**
  * Чертае оразмерителна линия
  */
 class cad2_MeasureLine extends cad2_Shape
 {
-    
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
@@ -30,8 +30,8 @@ class cad2_MeasureLine extends cad2_Shape
         $form->FLD('By', 'float', 'caption=By');
         $form->FLD('dist', 'float', 'caption=Отстояние');
     }
-
-
+    
+    
     /**
      * Метод за изрисуване на фигурата
      */
@@ -41,11 +41,11 @@ class cad2_MeasureLine extends cad2_Shape
         
         $svg->setAttr('stroke', '#0000fe');
         $svg->setAttr('stroke-width', 0.1);
-
+        
         self::draw($svg, $Ax, $Ay, $Bx, $By, $dist);
     }
-
-
+    
+    
     /**
      * Метод за изрисуване на оразмерителна линия
      */
@@ -53,7 +53,7 @@ class cad2_MeasureLine extends cad2_Shape
     {
         // разстояние след линията
         $offset = 2;
-
+        
         if ($dist < 0) {
             $Mx = $Ax;
             $My = $Ay;
@@ -63,10 +63,10 @@ class cad2_MeasureLine extends cad2_Shape
             $By = $My;
             $dist = abs($dist);
         }
-
+        
         $svg->openGroup();
         $svg->setAttr('stroke-width', 0.2);
-
+        
         $A = new cad2_Vector($Ax, $Ay);
         $B = new cad2_Vector($Bx, $By);
         
@@ -80,10 +80,10 @@ class cad2_MeasureLine extends cad2_Shape
         
         $A1 = $A->add($svg->p($normalAngle, $dist));
         $B1 = $B->add($svg->p($normalAngle, $dist));
-       
+        
         $A2 = $A1->add($svg->p($normalAngle, $offset));
         $B2 = $B1->add($svg->p($normalAngle, $offset));
-      
+        
         // A - A2
         $svg->startPath();
         $svg->moveTo($A->x, $A->y, true);
@@ -105,9 +105,9 @@ class cad2_MeasureLine extends cad2_Shape
         // Текст
         $ab = new cad2_Vector($B1->x - $A1->x, $B1->y - $A1->y);
         $text = $measureText ? $measureText . ' mm' : round($ab->r). ' mm';
-
+        
         $width = 0.3 * strlen($text) * ($svg->getAttr('font-size') / 10);
-
+        
         $ab1 = $svg->p($ab->a, -$width);
         $td = $svg->p($ab->a + pi() / 2, -2.5);
         if (rad2deg($ab->a) > (90 - 0.001) && rad2deg($ab->a) < (270 - 0.001)) {
@@ -144,8 +144,8 @@ class cad2_MeasureLine extends cad2_Shape
         $svg->lineTo($Ar2->x, $Ar2->y, true);
         
         //$svg->moveTo(80, 80, TRUE);
-
-
+        
+        
         $svg->closeGroup();
     }
 }

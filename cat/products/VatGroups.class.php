@@ -1,21 +1,22 @@
 <?php
 
+
 /**
  * Клас 'cat_products_Vat'
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cat_products_VatGroups extends core_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -69,7 +70,7 @@ class cat_products_VatGroups extends core_Detail
         $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=Група,mandatory');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
     }
-
+    
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -81,11 +82,11 @@ class cat_products_VatGroups extends core_Detail
     {
         if ($form->isSubmitted()) {
             $now = dt::verbal2mysql();
-    
+            
             if (!$form->rec->validFrom) {
                 $form->rec->validFrom = $now;
             }
-    
+            
             if ($form->rec->validFrom < $now) {
                 $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
             }
@@ -123,6 +124,7 @@ class cat_products_VatGroups extends core_Detail
     public static function on_AfterPrepareListRows1(core_Detail $mvc, $data)
     {
         if (!$data->rows) {
+            
             return;
         }
         
@@ -232,9 +234,10 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Коя е активната данъчна група към дата
      *
-     * @param  int           $productId
-     * @param  datetime|NULL $date
-     * @return double|FALSE  $value
+     * @param int           $productId
+     * @param datetime|NULL $date
+     *
+     * @return float|FALSE $value
      */
     public static function getCurrentGroup($productId, $date = null)
     {
@@ -246,7 +249,7 @@ class cat_products_VatGroups extends core_Detail
         $query->where("#validFrom <= '{$date}'");
         $query->orderBy('#validFrom', 'DESC');
         $query->limit(1);
-             
+        
         $value = false;
         if ($rec = $query->fetch()) {
             $value = acc_VatGroups::fetch($rec->vatGroup);
@@ -259,9 +262,10 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Намира артикулите с посочена ДДС ставка към подадената дата
      *
-     * @param  double    $percent - търсен процент
-     * @param  date|NULL $date    - към коя дата
-     * @return array     $products - намерените артикули
+     * @param float     $percent - търсен процент
+     * @param date|NULL $date    - към коя дата
+     *
+     * @return array $products - намерените артикули
      */
     public static function getByVatPercent($percent, $date = null)
     {

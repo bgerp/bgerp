@@ -7,19 +7,20 @@
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class trans_Helper
 {
-    
-    
     /**
      * Конвертира масив към табличен такъв
      *
-     * @param  mixed $array
+     * @param mixed $array
+     *
      * @return array $res
      */
     public static function convertToUnitTableArr($array)
@@ -36,11 +37,11 @@ abstract class trans_Helper
     }
     
     
-    
     /**
      * Конвертира масив с ЛЕ към такъв удобен за работа на core_Table
      *
-     * @param  mixed $value
+     * @param mixed $value
+     *
      * @return array $res
      */
     public static function convertTableUnitToTableArr($value)
@@ -59,7 +60,8 @@ abstract class trans_Helper
     /**
      * Конвертира таблични данни на ЛЕ към нормален масив
      *
-     * @param  array      $arr
+     * @param array $arr
+     *
      * @return array|NULL $res
      */
     public static function convertTableToNormalArr($arr)
@@ -84,8 +86,9 @@ abstract class trans_Helper
     /**
      * Комбинира транспортните единици
      *
-     * @param  mixed $transUnits
-     * @param  mixed $transUnitsTable
+     * @param mixed $transUnits
+     * @param mixed $transUnitsTable
+     *
      * @return array $combined
      */
     public static function getCombinedTransUnits(&$transUnits, &$transUnitsTable)
@@ -106,9 +109,10 @@ abstract class trans_Helper
     /**
      * Показва транспортните единици в документа
      *
-     * @param  mixed   $transUnits
-     * @param  mixed   $transUnitsTable
-     * @param  boolean $newLines
+     * @param mixed $transUnits
+     * @param mixed $transUnitsTable
+     * @param bool  $newLines
+     *
      * @return string
      */
     public static function displayTransUnits($transUnits, $transUnitsTable = array(), $newLines = false)
@@ -145,6 +149,7 @@ abstract class trans_Helper
     public static function sumTransUnits(&$arr, $unitTable)
     {
         if (empty($unitTable)) {
+            
             return;
         }
         
@@ -162,9 +167,10 @@ abstract class trans_Helper
     /**
      * Проверка на транспортните единици
      *
-     * @param  array   $arr1
-     * @param  array   $arr2
-     * @return boolean
+     * @param array $arr1
+     * @param array $arr2
+     *
+     * @return bool
      */
     public static function checkTransUnits($arr1, $arr2)
     {

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'avatar_Plugin' -
  *
  *
  * @category  vendors
  * @package   avatar
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class avatar_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -48,7 +47,7 @@ class avatar_Plugin extends core_Plugin
     {
         $data->listFields = array('avatar' => 'Аватар') + $data->listFields;
     }
-        
+    
     
     /**
      * Връща html <img> елемент, отговарящ на аватара на потребителя
@@ -62,7 +61,7 @@ class avatar_Plugin extends core_Plugin
         $attr = array();
         
         $attr['width'] = $width;
-
+        
         if (!$minHeight) {
             $minHeight = $width . 'px';
         }
@@ -76,7 +75,7 @@ class avatar_Plugin extends core_Plugin
             $urlX2 = self::getUrl($userId, $email, $width * 2);
             $attr['srcset'] = "{$urlX2} 2x";
         }
-
+        
         $attr['alt'] = '';
         unset($attr['baseName']);
         
@@ -86,8 +85,8 @@ class avatar_Plugin extends core_Plugin
         
         return $img;
     }
-
-
+    
+    
     /**
      * Връща URL към аватара с посочените параметри
      */
@@ -114,10 +113,9 @@ class avatar_Plugin extends core_Plugin
         if (!$imgUrl) {
             $imgUrl = sbf('img/100/noavatar.png', '');
         }
-
+        
         return $imgUrl;
     }
-
     
     
     /**

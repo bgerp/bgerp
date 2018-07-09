@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'doc_DocumentIntf' - Интерфейс за мениджърите на документи
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title:    Интерфейс за мениджърите на документи
  */
 class doc_DocumentIntf
 {
-    
-    
     /**
      * Намира най-подходящите $rec->folderId (папка)
      * и $rec->threadId за дадения документ
@@ -113,8 +112,9 @@ class doc_DocumentIntf
     /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public function canAddToThread($threadId)
     {
@@ -153,6 +153,7 @@ class doc_DocumentIntf
      * @param string $type     - Разширението на файла
      *
      * return array $res - Масив с fileHandler' и на документите
+     *
      * @deprecated
      * @see doc_DocumentIntf::convertTo()
      */
@@ -176,6 +177,7 @@ class doc_DocumentIntf
         return $this->class->convertTo($type, $fileName);
     }
     
+    
     /**
      * Връша прикачените файлове в документите
      *
@@ -192,10 +194,12 @@ class doc_DocumentIntf
     /**
      * Връща масив от използваните документи в даден документ (като цитат или
      * са включени в детайлите му)
-     * @param  int   $id - ид на документ
+     *
+     * @param int $id - ид на документ
+     *
      * @return param $res - масив с използваните документи
-     *                  ['class'] - инстанция на документа
-     *                  ['id'] - ид на документа
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
      */
     public function getUsedDocs($id)
     {
@@ -209,7 +213,7 @@ class doc_DocumentIntf
      * в които може да бъде добавен документ от типа на $mvc
      *
      * @param core_Query $query      Заявка към doc_Folders
-     * @param boolean    $viewAccess
+     * @param bool       $viewAccess
      */
     public function restrictQueryOnlyFolderForDocuments($query, $viewAccess = false)
     {
@@ -268,7 +272,7 @@ class doc_DocumentIntf
     /**
      * Връща хеша на подадения документ
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return string|NULL
      */

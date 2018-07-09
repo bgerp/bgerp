@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   hljs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hljs_Adapter
 {
-    
-    
     /**
      * Активираме оцветяването на кода
      *
@@ -30,7 +30,7 @@ class hljs_Adapter
         
         return $tpl;
     }
-
+    
     
     /**
      * Добавям нужните елементи на шаблона
@@ -55,10 +55,10 @@ class hljs_Adapter
                 $css = 'hljs/' . $conf->HLJS_VERSION . '/styles/default.css';
             }
         }
-
+        
         // Добавяме CSS
         $tpl->push($css, 'CSS');
-
+        
         // Добавяме JS
         $tpl->push('hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js', 'JS');
         jquery_Jquery::run($tpl, 'runHljs();', true);

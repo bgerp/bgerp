@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Интерфейс за бизнес информация, обобщена за всички документи по една сделка
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_DealAggregatorIntf
 {
-    
-    
     /**
      * Генерира агрегираната бизнес информация за тази сделка
      *
@@ -34,7 +33,8 @@ class bgerp_DealAggregatorIntf
      *  Документите, реализиращи интерфейса @link bgerp_DealIntf
      *  Документите, в състояние различно от `draft` и `rejected`
      *
-     * @param  int                        $id ид на документ
+     * @param int $id ид на документ
+     *
      * @return bgerp_iface_DealAggregator
      */
     public function getAggregateDealInfo($id)

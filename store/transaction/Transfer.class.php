@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_Transfers
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class store_transaction_Transfer extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -31,12 +31,12 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-                'reason' => "Междускладов трансфер №{$rec->id}",
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => "Междускладов трансфер №{$rec->id}",
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
-    
+        
         $error = true;
         $dQuery = store_TransfersDetails::getQuery();
         $dQuery->where("#transferId = '{$rec->id}'");
@@ -52,20 +52,20 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
             // Ако артикула е вложим сметка 321
             $accId = '321';
             $result->entries[] = array(
-                    'credit' => array($accId,
-                            array('store_Stores', $rec->fromStore), // Перо 1 - Склад
-                            array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
-                            'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
-                    ),
-    
-                    'debit' => array($accId,
-                            array('store_Stores', $rec->toStore), // Перо 1 - Склад
-                            array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
-                            'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
-                    ),
+                'credit' => array($accId,
+                    array('store_Stores', $rec->fromStore), // Перо 1 - Склад
+                    array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
+                    'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
+                ),
+                
+                'debit' => array($accId,
+                    array('store_Stores', $rec->toStore), // Перо 1 - Склад
+                    array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
+                    'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
+                ),
             );
         }
-    
+        
         if (Mode::get('saveTransaction')) {
             if ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');

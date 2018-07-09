@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Документ за Нареждане разписки
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_CashWithdrawOrders extends bank_DocumentBlank
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -169,9 +168,11 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Интерфейс за класовете ползващи перманентни данни
  *
  *
  * @category  vendors
  * @package   permanent
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за перманентни данни
  */
 class permanent_SettingsIntf
 {
-    
-    
     /**
      * Връща ключ под който ще се запишат данните
      */
@@ -66,6 +65,7 @@ class permanent_SettingsIntf
     
     /**
      * Задава вътрешните настройки на обекта
+     *
      * @param object $data
      */
     public function setSettings($data)

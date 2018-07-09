@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'store_plg_RequestDetail' за записване на поръчаните количества в детайл на складов документ
- * @see store_plg_Request
  *
+ * @see store_plg_Request
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_plg_RequestDetail extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -41,9 +40,11 @@ class store_plg_RequestDetail extends core_Plugin
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+            
             return;
         }
         $showRequested = false;
@@ -93,6 +94,7 @@ class store_plg_RequestDetail extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -109,10 +111,11 @@ class store_plg_RequestDetail extends core_Plugin
      * Дали потребителя е 'Заявител' на складовия документ и
      * може да променя заявените количества
      *
-     * @param  core_Mvc $mvc
-     * @param  stdClass $rec
-     * @param  int|NULL $userId
-     * @return boolean
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param int|NULL $userId
+     *
+     * @return bool
      */
     private static function isApplicant($masterMvc, $masterRec, $userId = null)
     {
@@ -121,7 +124,7 @@ class store_plg_RequestDetail extends core_Plugin
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
-    
+        
         // Създателя на документа и ceo-то са 'Заявители'
         if (haveRole('ceo', $userId)) {
             
@@ -131,7 +134,7 @@ class store_plg_RequestDetail extends core_Plugin
             
             return true;
         }
-    
+        
         // Ако потребителя може да контира в склада той НЕ е 'заявител'
         if (bgerp_plg_FLB::canUse('store_Stores', $masterRec->{$masterMvc->storeFieldName}, $userId)) {
             
@@ -143,7 +146,7 @@ class store_plg_RequestDetail extends core_Plugin
             
             return true;
         }
-    
+        
         return false;
     }
     

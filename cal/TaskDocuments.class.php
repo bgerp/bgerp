@@ -6,11 +6,12 @@
  *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @deprecated
  */
 class cal_TaskDocuments extends core_Detail
@@ -90,7 +91,6 @@ class cal_TaskDocuments extends core_Detail
     public $currentTab = 'Задачи';
     
     
-    
     public $listFields = 'containerId, comment';
     
     
@@ -111,8 +111,8 @@ class cal_TaskDocuments extends core_Detail
     /**
      * Добавя запис
      *
-     * @param integer $taskId
-     * @param integer $cId
+     * @param int $taskId
+     * @param int $cId
      *
      * @return NULL|float
      */
@@ -137,11 +137,13 @@ class cal_TaskDocuments extends core_Detail
         return $sId;
     }
     
+    
     /**
      * Връща първия документ, добавен към задачата
      *
-     * @param  integer       $taskId
-     * @return integer|FALSE
+     * @param int $taskId
+     *
+     * @return int|FALSE
      */
     public static function getFirstDocumentCid($taskId)
     {
@@ -160,7 +162,8 @@ class cal_TaskDocuments extends core_Detail
         
         return $rec->containerId;
     }
-
+    
+    
     /**
      * Изпълнява се след създаване на нов запис
      *
@@ -171,7 +174,7 @@ class cal_TaskDocuments extends core_Detail
     {
         if ($rec->containerId) {
             $document = doc_Containers::getDocument($rec->containerId);
-
+            
             // Записваме в лога
             cal_Tasks::logWrite('Добавяне на документ', $rec->taskId);
             $document->instance->logInAct('Добавяне към задача', $document->that);
@@ -182,7 +185,7 @@ class cal_TaskDocuments extends core_Detail
     /**
      *
      * @param cal_TaskDocuments $mvc
-     * @param integer           $id
+     * @param int               $id
      * @param stdClass          $rec
      * @param NULL|string       $fields
      */
@@ -202,9 +205,9 @@ class cal_TaskDocuments extends core_Detail
     /**
      * Логва действието
      *
-     * @param string                $msg
-     * @param NULL|stdClass|integer $rec
-     * @param string                $type
+     * @param string            $msg
+     * @param NULL|stdClass|int $rec
+     * @param string            $type
      */
     public function logInAct($msg, $rec = null, $type = 'write')
     {
@@ -282,7 +285,7 @@ class cal_TaskDocuments extends core_Detail
     /**
      * Подготвя заглавието на документа, за избор в опциите
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return string
      */
@@ -296,6 +299,7 @@ class cal_TaskDocuments extends core_Detail
         
         return $title;
     }
+    
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -377,10 +381,10 @@ class cal_TaskDocuments extends core_Detail
     /**
      * Проверява дали документа се цитира в източника
      *
-     * @param integer $id
-     * @param integer $cid
+     * @param int $id
+     * @param int $cid
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkDocExist($id, $cid)
     {

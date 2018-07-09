@@ -7,34 +7,36 @@
  *
  * @category  bgerp
  * @package   unipi
+ *
  * @author    Orlin Dimitrov <orlin369@gmail.com>
  * @copyright 2018 POLYGONTeam OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Електромер SDM120
+ *
  * @see       https://bg-etech.de/download/manual/SDM120CT-Modbus.pdf
  */
 class eastron_SDM120 extends sens2_ioport_Abstract
 {
-
     /**
      * Типът слотове за сензорите от този вид
      */
     const SLOT_TYPES = 'RS485';
     
-
+    
     /**
      * Заглавие на драйвера
      */
     public $title = 'Електромер SDM120';
     
-
+    
     /**
      * Интерфейс за входно-изходен порт
      */
     public $intefaces = 'sens2_ioport_Intf';
-
-
+    
+    
     /**
      * Описание на входовете
      */
@@ -94,7 +96,7 @@ class eastron_SDM120 extends sens2_ioport_Abstract
             
             return "Грешка при четене от {$config->ip}";
         }
-                
+        
         return $res;
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на домейни (TLD)
  *
@@ -10,16 +9,16 @@
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/156
  */
 class drdata_Domains extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -75,7 +74,7 @@ class drdata_Domains extends core_Manager
     {
         // Подготвяме пътя до файла с данните
         $file = 'drdata/data/publicdomains.csv';
-             
+        
         // Кои колонки ще вкарваме
         $fields = array(
             0 => 'domain',
@@ -98,17 +97,18 @@ class drdata_Domains extends core_Manager
     /**
      * Проверка дали един домейн е публичен имейл доставчик или не
      *
-     * @param  string  $domain
-     * @return boolean TRUE - публичен, FALSE - не е публичен
+     * @param string $domain
+     *
+     * @return bool TRUE - публичен, FALSE - не е публичен
      */
     public static function isPublic($domain)
     {
         if (strpos($domain, '@')) {
             list($left, $domain) = explode('@', $domain);
         }
-
+        
         $domain = strtolower(trim($domain));
-
+        
         return (boolean) static::fetch(array(
             "#domain = '[#1#]'"
             . " AND #state = 'active'"
@@ -124,7 +124,9 @@ class drdata_Domains extends core_Manager
      * масива от домейни $domains
      *
      * @param array $domains масив от домейни; (обикновено) се генерира в
+     *
      * @link email_Incomings::scanForPublicDomains().
+     *
      * @return array масив с следните елементи:
      *
      * o [added]        - броя успешно добавени домейни

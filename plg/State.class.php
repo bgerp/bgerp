@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_State' - Поддръжка на поле 'state' за състояние на ред
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_State extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -25,8 +24,8 @@ class plg_State extends core_Plugin
     {
         self::setStateField($mvc);
     }
-
-
+    
+    
     public static function setStateField($mvc)
     {
         if (!$mvc->fields['state']) {
@@ -46,7 +45,7 @@ class plg_State extends core_Plugin
                  'caption=Състояние,column=none,input=none'
             );
         }
-
+        
         foreach ($mvc->fields['state']->type->options as $state => $verbal) {
             if (is_object($verbal)) {
                 $optArr[$state] = $verbal;
@@ -57,7 +56,7 @@ class plg_State extends core_Plugin
                 $optArr[$state] = $opt;
             }
         }
- 
+        
         $mvc->fields['state']->type->options = $optArr;
     }
     

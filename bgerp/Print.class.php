@@ -6,34 +6,29 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @deprecated
  */
 class bgerp_Print extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Отпечатване на документи в мобилен принтер';
     
     
-    
     public $canAdd = 'no_one';
-    
     
     
     public $canDelete = 'no_one';
     
     
-    
     public $canEdit = 'no_one';
-    
     
     
     public $canList = 'no_one';

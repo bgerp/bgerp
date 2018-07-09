@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Движения на партиди
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_Movements extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -109,7 +108,7 @@ class batch_Movements extends core_Detail
         
         if (isset($rec->productId)) {
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        
+            
             if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
                 $row->batch = $Definition->toVerbal($rec->batch);
             }
@@ -140,6 +139,7 @@ class batch_Movements extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if (isset($data->masterMvc) && $data->masterMvc instanceof batch_Items) {
+            
             return;
         }
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
@@ -239,8 +239,9 @@ class batch_Movements extends core_Detail
     /**
      * Записва движение на партида от документ
      *
-     * @param  mixed   $containerId - ид на контейнер
-     * @return boolean - успех или не
+     * @param mixed $containerId - ид на контейнер
+     *
+     * @return bool - успех или не
      */
     public static function saveMovement($containerId)
     {
@@ -251,6 +252,7 @@ class batch_Movements extends core_Detail
             // Ако е покупка/продажба трябва да има експедирано/доставено с нея
             $actions = type_Set::toArray($doc->fetchField('contoActions'));
             if (!isset($actions['ship'])) {
+                
                 return;
             }
         }
@@ -278,16 +280,16 @@ class batch_Movements extends core_Detail
                     
                     // Движението, което ще запишем
                     $mRec = (object) array('itemId' => $itemId,
-                                          'quantity' => $quantity,
-                                          'operation' => $jRec->operation,
-                                          'docType' => $doc->getClassId(),
-                                          'docId' => $doc->that,
-                                          'date' => $jRec->date,
+                        'quantity' => $quantity,
+                        'operation' => $jRec->operation,
+                        'docType' => $doc->getClassId(),
+                        'docId' => $doc->that,
+                        'date' => $jRec->date,
                     );
                     
                     // Запис на движението
                     $id = self::save($mRec);
-                     
+                    
                     // Ако има проблем със записа, сетваме грешка
                     if (!$id) {
                         $result = false;
@@ -316,9 +318,10 @@ class batch_Movements extends core_Detail
     /**
      * Изтрива записите породени от документа
      *
-     * @param  mixed $class - ид на документ
-     * @param  mixed $rec   - ид или запис на документа
-     * @return void  - изтрива движенията породени от документа
+     * @param mixed $class - ид на документ
+     * @param mixed $rec   - ид или запис на документа
+     *
+     * @return void - изтрива движенията породени от документа
      */
     public static function removeMovement($class, $rec)
     {
@@ -380,9 +383,10 @@ class batch_Movements extends core_Detail
     /**
      * Връща масив с линкове към движенията на партидите
      *
-     * @param  int    $productId
-     * @param  string $batch
-     * @return array  $batch
+     * @param int    $productId
+     * @param string $batch
+     *
+     * @return array $batch
      */
     public static function getLinkArr($productId, $batch)
     {
@@ -400,7 +404,7 @@ class batch_Movements extends core_Detail
                 }
                 $b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
             }
-        
+            
             $b = ($b instanceof core_ET) ? $b->getContent() : $b;
         }
         

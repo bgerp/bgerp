@@ -4,18 +4,17 @@
  *
  * @category  vendors
  * @package   tremol
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see pos_FiscalPrinterIntf
  *
  */
 class tremol_FiscPrinterDriver extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -58,7 +57,8 @@ class tremol_FiscPrinterDriver extends core_Manager
     /**
      * Връща съдържанието на файла
      *
-     * @param  object $data
+     * @param object $data
+     *
      * @return string - съдържанието на бъдещия файл
      */
     private function makeFileContent($data)
@@ -73,7 +73,7 @@ class tremol_FiscPrinterDriver extends core_Manager
         $vatGroups = self::getVatGroupKeys();
         $defaultGroup = ($data->hasVat) ? $conf->TREMOL_BASE_GROUP_WITH_VAT : $conf->TREMOL_BASE_GROUP_WITH_ZERO_VAT;
         $defaultGroup = acc_VatGroups::fetchField("#sysId = '{$defaultGroup}'", 'title');
-             
+        
         $products = $data->products;
         
         // Попълваме ддс групите на артикулите
@@ -165,7 +165,8 @@ class tremol_FiscPrinterDriver extends core_Manager
      *  );
      *
      *
-     * @param  object $data
+     * @param object $data
+     *
      * @return void
      */
     public function createFile($data)

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'planning_ConsumptionNormDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за влагане';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -72,7 +71,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     public $listFields = 'productId, packagingId, packQuantity';
     
-        
+    
     /**
      * Активен таб
      */
@@ -113,16 +112,19 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	if(!count($data->rows)) return;
-    	 
-    	foreach ($data->rows as $id => &$row){
-    		$rec = $data->recs[$id];
-    	
-    		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
-    		if(strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending'))){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE, NULL, 'class=doc-negative-quantiy');
-    		}
-    	}
+        if (!count($data->rows)) {
+            
+            return;
+        }
+        
+        foreach ($data->rows as $id => &$row) {
+            $rec = $data->recs[$id];
+            
+            $warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
+            if (strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending'))) {
+                $row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', false, null, 'class=doc-negative-quantiy');
+            }
+        }
     }
     
     
@@ -131,15 +133,15 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-    	$rec = &$form->rec;
-    	if(isset($rec->productId)){
-    		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
-    		$storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
-    		
-    		if(isset($storeId) && $canStore == 'yes'){
-    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
-    			$form->info = $storeInfo->formInfo;
-    		}
-    	}
+        $rec = &$form->rec;
+        if (isset($rec->productId)) {
+            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+            $storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
+            
+            if (isset($storeId) && $canStore == 'yes') {
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+                $form->info = $storeInfo->formInfo;
+            }
+        }
     }
 }

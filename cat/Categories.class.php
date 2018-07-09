@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на категории с продукти.
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_Categories extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -318,7 +317,8 @@ class cat_Categories extends core_Master
     /**
      * Връща мета дефолт мета данните на папката
      *
-     * @param  int   $id - ид на категория
+     * @param int $id - ид на категория
+     *
      * @return array $meta - масив с дефолт мета данни
      */
     public function getDefaultMeta($id)
@@ -358,9 +358,10 @@ class cat_Categories extends core_Master
      * Връща мета дефолт параметрите със техните дефолт стойностти, които да се добавят във формата на
      * универсален артикул, създаден в папката на корицата
      *
-     * @param  int   $id - ид на корицата
+     * @param int $id - ид на корицата
+     *
      * @return array $params - масив с дефолтни параметри И техните стойности
-     *                  <ид_параметър> => <дефолтна_стойност>
+     *               <ид_параметър> => <дефолтна_стойност>
      */
     public function getDefaultProductParams($id)
     {
@@ -398,11 +399,12 @@ class cat_Categories extends core_Master
     /**
      * Връща възможните за избор прототипни артикули с дадения драйвер и свойства
      *
-     * @param  int|NULL    $driverId - Ид на продуктов драйвер
-     * @param  string|NULL $meta     - Мета свойство на артикулите
-     * @param  int|NULL    $limit    - Ограничаване на резултатите
-     * @param  int|NULL    $folderId - Папка
-     * @return array       $newOptions - прототипните артикули
+     * @param int|NULL    $driverId - Ид на продуктов драйвер
+     * @param string|NULL $meta     - Мета свойство на артикулите
+     * @param int|NULL    $limit    - Ограничаване на резултатите
+     * @param int|NULL    $folderId - Папка
+     *
+     * @return array $newOptions - прототипните артикули
      */
     public static function getProtoOptions($driverId = null, $meta = null, $limit = null, $folderId = null)
     {
@@ -485,7 +487,8 @@ class cat_Categories extends core_Master
     /**
      * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
      *
-     * @param  mixed                   $id - ид или запис
+     * @param mixed $id - ид или запис
+     *
      * @return public|private|template - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)

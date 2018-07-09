@@ -1,16 +1,17 @@
 <?php
 
 
-
 /**
  * Клас  'type_Table' - Въвеждане на таблични данни
  *
  *
  * @category  bgerp
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  *
@@ -18,15 +19,12 @@
  */
 class type_Table extends type_Blob
 {
-    
-    
     /**
      * Стойност по подразбиране
      */
     public $defaultValue = '';
     
-
-
+    
     /**
      * Индивидуални полета, в които има грешки
      */
@@ -42,9 +40,8 @@ class type_Table extends type_Blob
         
         parent::init($params);
     }
-
-
-
+    
+    
     /**
      * Рендира HTML инпут поле
      */
@@ -53,11 +50,11 @@ class type_Table extends type_Blob
         if (is_string($value)) {
             $value = json_decode($value, true);
         }
-
+        
         if (!is_array($value)) {
             $value = array();
         }
-
+        
         $columns = $this->getColumns();
         $opt = array();
         foreach ($columns as $field => $fObj) {
@@ -73,11 +70,11 @@ class type_Table extends type_Blob
             if ($fObj->width) {
                 $attr[$field]['style'] .= ";width:{$fObj->width}";
             }
-
+            
             $selOpt = $field . '_opt';
             $suggestOpt = $field . '_sgt';
             $readOnlyFld = $field . '_ro';
-
+            
             if ($this->params[$selOpt]) {
                 if (is_string($this->params[$selOpt])) {
                     $opt = explode('|', $this->params[$selOpt]);
@@ -153,7 +150,7 @@ class type_Table extends type_Blob
         
         $tpl = str_replace('"', '\\"', "<tr>{$tpl}</tr>");
         $tpl = str_replace("\n", '', $tpl);
-    
+        
         $id = 'table_' . $name;
         $btn = ht::createElement('input', array('id' => 'dblRow_' . $name, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));
         
@@ -162,7 +159,7 @@ class type_Table extends type_Blob
         $attrTable['style'] .= ';margin-bottom:5px;';
         $attrTable['id'] = $id;
         unset($attrTable['value']);
-
+        
         $res = ht::createElement('table', $attrTable, "<tr style=\"background-color:rgba(200, 200, 200, 0.3);\">{$row0}</tr><tr>{$row1}</tr>{$rows}");
         $res = "<div class='scrolling-holder'>" . $res . '</div>';
         $res .= "\n{$btn}\n";
@@ -175,7 +172,7 @@ class type_Table extends type_Blob
         
         return $res;
     }
-
+    
     
     /**
      * Помощна ф-я сетваща определено поле като грешно
@@ -195,6 +192,7 @@ class type_Table extends type_Blob
     public function isValid($value)
     {
         if (empty($value)) {
+            
             return;
         }
         
@@ -209,7 +207,7 @@ class type_Table extends type_Blob
                     }
                 }
             }
-
+            
             if (count($errFld)) {
                 $res['error'] = 'Непопълнено задължително поле';
                 $this->errorFields = $res['errorFields'] = $errFld;
@@ -217,7 +215,7 @@ class type_Table extends type_Blob
                 return $res;
             }
         }
-
+        
         if ($this->params['validate']) {
             $valueToValidate = @json_decode($value, true);
             $res = call_user_func_array($this->params['validate'], array($valueToValidate, $this));
@@ -230,13 +228,14 @@ class type_Table extends type_Blob
         }
     }
     
-
+    
     /**
      * Връща вербално представяне на стойността на двоичното поле
      */
     public function toVerbal($value)
     {
         if (empty($value)) {
+            
             return;
         }
         
@@ -246,18 +245,18 @@ class type_Table extends type_Blob
         
         if ($this->params['render']) {
             $res = call_user_func_array($this->params['render'], array($value, $this));
-
+            
             return $res;
         }
-
+        
         if (is_array($value)) {
             $columns = $this->getColumns();
             $opt = $this->getOptions();
-
+            
             foreach ($columns as $field => $fObj) {
                 $row0 .= html_entity_decode("<td class='formTypeTable'>{$fObj->caption}</td>", ENT_QUOTES, 'UTF-8');
             }
- 
+            
             $i = 0;
             do {
                 $isset = false;
@@ -276,11 +275,11 @@ class type_Table extends type_Blob
                         $empty = false;
                     }
                 }
-
+                
                 if (!$empty) {
                     $rows .= "<tr>{$row}</tr>";
                 }
-
+                
                 $i++;
             } while ($isset);
             
@@ -289,8 +288,8 @@ class type_Table extends type_Blob
         
         return $res;
     }
-
-
+    
+    
     /**
      * Показва таблицата
      */
@@ -298,19 +297,20 @@ class type_Table extends type_Blob
     {
         if (is_string($value)) {
             $len = strlen($value);
-
+            
             if (!$len) {
+                
                 return;
             }
-
+            
             $value = @json_decode($value, true);
         }
         
         $columns = $this->getColumns();
-
+        
         if ($len && !is_array($value)) {
             $this->error = 'Некоректни таблични данни';
-                
+            
             return false;
         }
         
@@ -320,7 +320,7 @@ class type_Table extends type_Blob
         do {
             $isset = false;
             $empty = true;
-
+            
             foreach ($columns as $field => $fObj) {
                 if (isset($value[$field][$i])) {
                     $isset = true;
@@ -329,26 +329,26 @@ class type_Table extends type_Blob
                     $empty = false;
                 }
             }
-
+            
             if (!$empty) {
                 foreach ($columns as $field => $fObj) {
                     $res[$field][] = trim($value[$field][$i]);
                 }
             }
-
+            
             $i++;
         } while ($isset);
-
+        
         $res = @json_encode($res);
         
         if ($res == '[]') {
             $res = null;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Връща колоните на таблицата
      */
@@ -367,18 +367,18 @@ class type_Table extends type_Blob
         }
         
         $res = array();
- 
+        
         foreach ($colsArr as $i => $c) {
             $obj = new stdClass();
             $obj->caption = $captionArr[$i] ? $captionArr[$i] : $c;
             $obj->width = $widthsArr[$i];
             $res[$c] = $obj;
         }
- 
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Подготвя опциите
      */
@@ -388,7 +388,7 @@ class type_Table extends type_Blob
         $columns = $this->getColumns();
         foreach ($columns as $field => $fObj) {
             $selOpt = $field . '_opt';
-
+            
             if ($this->params[$selOpt]) {
                 if (is_string($this->params[$selOpt])) {
                     $opt = explode('|', $this->params[$selOpt]);
@@ -400,11 +400,11 @@ class type_Table extends type_Blob
                 }
             }
         }
-
+        
         return $opt;
     }
-
-
+    
+    
     /**
      * Преобразува Json представяне на типа към PHP масив
      *
@@ -420,9 +420,9 @@ class type_Table extends type_Blob
             if (is_string($value)) {
                 $value = @json_decode($value, true);
             }
-
+            
             $r = 0;
-          
+            
             do {
                 $empty = true;
                 $obj = new StdClass();
@@ -438,7 +438,7 @@ class type_Table extends type_Blob
                 $r++;
             } while (!$empty);
         }
-
+        
         return $res;
     }
 }

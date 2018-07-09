@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Rejected' - Поддръжка на състоянието rejected
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Rejected extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -33,15 +32,15 @@ class plg_Rejected extends core_Plugin
         if (!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
         }
-
+        
         $mvc->FLD('exState', clone($mvc->fields['state']->type), 'caption=Пред. състояние,column=none,input=none,single=none,notNull,forceField');
         
         $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none,forceField');
-
+        
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none,column=none,forceField');
-
+        
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване');
-
+        
         setIfNot($invoker->canRejectsysdata, 'no_one');
     }
     
@@ -92,7 +91,7 @@ class plg_Rejected extends core_Plugin
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png,title=Всички ' . mb_strtolower($mvc->title));
         } else {
             $rejCnt = $data->rejQuery->count();
-
+            
             if ($rejCnt) {
                 $data->rejQuery->orderBy('#modifiedOn', 'DESC', 100);
                 $data->rejQuery->limit(1);
@@ -128,6 +127,7 @@ class plg_Rejected extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         if (!isset($rec->id) || $rec->state == 'rejected') {
+            
             return;
         }
         
@@ -135,7 +135,7 @@ class plg_Rejected extends core_Plugin
         $rec->state = 'rejected';
         $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
-
+        
         $mvc->logWrite('Оттегляне', $rec->id);
     }
     
@@ -155,6 +155,7 @@ class plg_Rejected extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         if (!isset($rec->id) || $rec->state != 'rejected') {
+            
             return;
         }
         
@@ -162,8 +163,8 @@ class plg_Rejected extends core_Plugin
         $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
     }
-
-
+    
+    
     /**
      * Смяна статута на 'rejected'
      *
@@ -178,7 +179,7 @@ class plg_Rejected extends core_Plugin
             $mvc->requireRightFor('reject', $rec);
             $mvc->reject($rec);
             $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
-
+            
             $mvc->logInAct('Оттегляне', $rec);
             
             return false;
@@ -228,7 +229,7 @@ class plg_Rejected extends core_Plugin
                     $requiredRoles = $mvc->getRequiredRoles('rejectsysdata', $rec, $userId);
                 }
             }
-
+            
             // Не могат да се възстановяват не-оттеглении записи
             if ($action == 'restore' && $rec->state != 'rejected') {
                 $requiredRoles = 'no_one';
@@ -258,7 +259,6 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        
         // Добавяме скрито полето за оттегляне
         if (!isset($data->listFilter->fields['Rejected'])) {
             $data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
@@ -271,8 +271,8 @@ class plg_Rejected extends core_Plugin
             $data->listFilter->setDefault('Rejected', $rejectedId);
         }
     }
-
-
+    
+    
     /**
      * Преди извличане на записите от БД
      *

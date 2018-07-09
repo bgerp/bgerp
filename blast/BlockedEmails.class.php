@@ -1,59 +1,67 @@
 <?php 
 
-
 /**
  * Списък с имейли, до които няма да се праща информационни (бласт) съобщения
  *
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blast_BlockedEmails extends core_Manager
 {
-    
     /**
      * Заглавие
      */
     public $title = 'Адреси, на които не се изпращат циркулярни имейли';
+    
     
     /**
      * Кой има право да чете?
      */
     protected $canRead = 'ceo, blast, admin';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'ceo, blast, admin';
+    
     
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'ceo, blast, admin';
     
+    
     /**
      * Кой може да го види?
      */
     protected $canView = 'ceo, blast, admin';
+    
     
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'ceo, blast, admin';
     
+    
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'ceo, blast, admin';
     
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
+    
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -96,7 +104,7 @@ class blast_BlockedEmails extends core_Manager
      * @param blast_BlockedEmails $mvc
      * @param stdClass            $rec
      *
-     * @return boolean
+     * @return bool
      *
      * @see bgerp_plg_Import
      */
@@ -139,7 +147,7 @@ class blast_BlockedEmails extends core_Manager
      *
      * @param string $email
      *
-     * @return boolean
+     * @return bool
      */
     public static function isBlocked($email)
     {
@@ -179,7 +187,7 @@ class blast_BlockedEmails extends core_Manager
      *
      * @param string $email
      *
-     * @return integer
+     * @return int
      */
     public static function unBlockEmail($email)
     {
@@ -199,11 +207,11 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Добавя подадения имейл в списъка
      *
-     * @param string         $email
-     * @param boolean|string $update
-     * @param string         $state- ok, blocked, error
+     * @param string      $email
+     * @param bool|string $update
+     * @param string      $state- ok, blocked, error
      *
-     * @return integer|NULL
+     * @return int|NULL
      */
     public static function addEmail($email, $update = true, $state = 'ok')
     {
@@ -303,6 +311,7 @@ class blast_BlockedEmails extends core_Manager
         $rec = self::fetch(array("#email = '[#1#]'", $email));
         
         if (!$rec) {
+            
             return;
         }
         
@@ -315,7 +324,7 @@ class blast_BlockedEmails extends core_Manager
      *
      * @param string $email
      *
-     * @return boolean
+     * @return bool
      */
     public static function validateEmail_($email)
     {
@@ -366,7 +375,7 @@ class blast_BlockedEmails extends core_Manager
      * Преди запис в модела
      *
      * @param blast_BlockedEmails $mvc
-     * @param NULL|integer        $rec
+     * @param NULL|int            $rec
      * @param stdClass            $rec
      */
     public static function on_BeforeSave($mvc, $res, $rec)

@@ -1,24 +1,22 @@
 <?php
 
 
-
-
 /**
  * Клас 'keyboard_Plugin' -
  *
  *
  * @category  vendors
  * @package   keyboard
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class keyboard_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди рендирането на HTML input
      */
@@ -27,6 +25,7 @@ class keyboard_Plugin extends core_Plugin
         $conf = core_Packs::getConfig('keyboard');
         
         if ($this->doNotUse($invoker)) {
+            
             return;
         }
         
@@ -44,6 +43,7 @@ class keyboard_Plugin extends core_Plugin
         $conf = core_Packs::getConfig('keyboard');
         
         if ($this->doNotUse($invoker)) {
+            
             return;
         }
         

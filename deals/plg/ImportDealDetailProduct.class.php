@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин за импорт на артикули към бизнес документи. Закача се към техен детайл който има интерфейс 'deals_DealImportCsvIntf'
  *
@@ -17,15 +16,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class deals_plg_ImportDealDetailProduct extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      *
@@ -35,7 +34,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
     }
-    
     
     
     /**
@@ -111,7 +109,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         }
                         
                         if (!$form->gotErrors()) {
-                        
+                            
                             // Импортиране на данните от масива в зададените полета
                             $msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
                             
@@ -155,12 +153,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             
             // Подготвяме данните за реда
             $obj = (object) array('code' => $row[$fields['code']],
-                                 'quantity' => $row[$fields['quantity']],
-                                 'pack' => ($row[$fields['pack']]) ? $row[$fields['pack']] : null,
-                                 'price' => $row[$fields['price']] ? $row[$fields['price']] : null,
-                                 'batch' => ($row[$fields['batch']]) ? $row[$fields['batch']] : null,
+                'quantity' => $row[$fields['quantity']],
+                'pack' => ($row[$fields['pack']]) ? $row[$fields['pack']] : null,
+                'price' => $row[$fields['price']] ? $row[$fields['price']] : null,
+                'batch' => ($row[$fields['batch']]) ? $row[$fields['batch']] : null,
             );
-        
+            
             // Подсигуряваме се, че подадените данни са във вътрешен вид
             $obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
             $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
@@ -176,14 +174,14 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $err[$i][] = $obj->code . ' |Няма продукт с такъв код|*';
                 continue;
             }
-
+            
             $packs = cat_Products::getPacks($pRec->productId);
             
             if (isset($obj->pack)) {
                 $obj->exPack = $obj->pack;
-
+                
                 $packId = cat_UoM::fetchBySinonim($obj->pack)->id;
-
+                
                 if (!$packId) {
                     foreach ($packs as $pId => $pName) {
                         if (strpos($obj->pack, $pName) !== false) {
@@ -198,7 +196,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             } else {
                 $obj->pack = key($packs);
             }
-
+            
             if ($obj->price) {
                 if ($isPartner === false) {
                     $obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
@@ -226,7 +224,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if (isset($pRec->packagingId) && $pRec->packagingId != $obj->pack) {
                     $err[$i][] = $obj->code . '|Подадения баркод е за друга опаковка|*';
                 }
-                  
+                
                 if (!array_key_exists($obj->pack, $packs)) {
                     $err[$i][] = $obj->code . ' |Артикулът не поддържа подадената мярка/опаковка|* (' . implode(',', $packs) . ')';
                 }
@@ -287,7 +285,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         return $msg;
     }
     
-
+    
     /**
      * Импортиране на записите ред по ред от мениджъра
      */
@@ -296,7 +294,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $added = $failed = 0;
         
         foreach ($rows as $row) {
-                
+            
             // Опитваме се да импортираме записа
             try {
                 if ($mvc->import($masterId, $row)) {
@@ -306,12 +304,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $failed++;
             }
         }
-    
+        
         $msg = ($added == 1) ? '|Импортиран е|* 1 |артикул|*' : "|Импортирани са|* {$added} |артикула|*";
         if ($failed != 0) {
             $msg .= ". |Не са импортирани|* {$failed} |артикула";
         }
-    
+        
         return $msg;
     }
     
@@ -326,11 +324,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         
         core_Cache::remove($mvc->className, $key);
         $nRec = (object) array('delimiter' => $rec->delimiter,
-                              'enclosure' => $rec->enclosure,
-                              'firstRow' => $rec->firstRow,
-                              'codecol' => $rec->codecol,
-                              'quantitycol' => $rec->quantitycol,
-                              'pricecol' => $rec->pricecol);
+            'enclosure' => $rec->enclosure,
+            'firstRow' => $rec->firstRow,
+            'codecol' => $rec->codecol,
+            'quantitycol' => $rec->quantitycol,
+            'pricecol' => $rec->pricecol);
         
         
         core_Cache::set($mvc->className, $key, $nRec, 1440);
@@ -339,6 +337,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     
     /**
      * Подготовка на формата за импорт на артикули
+     *
      * @param unknown $form
      */
     private static function prepareForm(&$form)
@@ -352,9 +351,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $form->FLD('delimiter', 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител,maxRadio=5,placeholder=Автоматично');
         $form->FLD('enclosure', 'varchar(1,size=3)', 'width=100%,caption=Настройки->Ограждане,placeholder=Автоматично');
         $form->FLD('firstRow', 'enum(,data=Данни,columnNames=Имена на колони)', 'width=100%,caption=Настройки->Първи ред,placeholder=Автоматично');
-
+        
         $form->setSuggestions('delimiter', array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
-
+        
         $form->setSuggestions('enclosure', array('' => '', '"' => '"', '\'' => '\''));
         $form->setDefault('delimiter', ',');
         $form->setDefault('enclosure', '"');
@@ -409,6 +408,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         

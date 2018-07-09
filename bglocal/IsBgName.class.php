@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'bglocal_IsBgName' -
  *
@@ -9,19 +8,22 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Gabriela Petrova
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_IsBgName extends core_Manager
 {
-    
     /**
      * Статично зареждане на
+     *
      * @var string
      */
     public static $bgNames = '';
+    
     
     /**
      * Тестов екшън

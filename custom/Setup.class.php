@@ -6,16 +6,16 @@
  *
  * @category  bgerp
  * @package   custom
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class custom_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -44,9 +44,8 @@ class custom_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'custom_Settings',
-        );
-    
+        'custom_Settings',
+    );
     
     
     public $deprecated = true;

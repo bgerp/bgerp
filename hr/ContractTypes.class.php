@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Типове договори
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hr_ContractTypes extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -81,7 +80,7 @@ class hr_ContractTypes extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, name,createdBy,modifiedOn';
-
+    
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -128,7 +127,7 @@ class hr_ContractTypes extends core_Master
             $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
             $rec->sysId = $rec->name;
             self::save($rec);
-            
+        
         // Ако имаме вече създадени шаблони
         } else {
             $query = self::getQuery();

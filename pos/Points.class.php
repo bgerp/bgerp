@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за "Точки на продажба"
  *
  *
  * @category  bgerp
  * @package   pos
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class pos_Points extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -28,7 +27,7 @@ class pos_Points extends core_Master
      */
     public $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,
                      pos_Wrapper, plg_Sorting, plg_Printing, plg_Current,plg_State, plg_Modified';
-
+    
     
     /**
      * Наименование на единичния обект
@@ -70,8 +69,8 @@ class pos_Points extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, pos';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -89,7 +88,7 @@ class pos_Points extends core_Master
      */
     public $canReject = 'admin, pos';
     
-
+    
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -153,7 +152,9 @@ class pos_Points extends core_Master
     
     /**
      * Намира кой е дефолт контрагента на Точката на продажба
-     * @param  int   $id - ид на точкта
+     *
+     * @param int $id - ид на точкта
+     *
      * @return mixed $id/FALSE - ид на контрагента или FALSE ако няма
      */
     public static function defaultContragent($id = null)
@@ -269,9 +270,10 @@ class pos_Points extends core_Master
      * Може ли потребителя да избере точката на продажба.
      * Може само ако има права да избира касата и склада в точката
      *
-     * @param  mixed       $rec    - ид или запис
-     * @param  string|NULL $userId - потребител, NULL за текущия
-     * @return boolean     $res       - може ли да избира точката на продажба
+     * @param mixed       $rec    - ид или запис
+     * @param string|NULL $userId - потребител, NULL за текущия
+     *
+     * @return bool $res       - може ли да избира точката на продажба
      */
     public static function canSelectPos($rec, $userId = null)
     {

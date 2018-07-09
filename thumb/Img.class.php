@@ -1,5 +1,6 @@
 <?php
 
+
 defIfNot('JPEGOPTIM_CMD', 'jpegoptim -q [#path#]');
 
 defIfNot('JPEGTRAN_CMD', 'jpegtran -copy none -optimize -outfile [#path#] [#path#]');
@@ -15,15 +16,16 @@ defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]')
  *
  * @category  vendors
  * @package   img
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  *
  */
 class thumb_Img
 {
-    
     /**
      * Масив със забраненете разширения за файловете
      */
@@ -40,32 +42,32 @@ class thumb_Img
      * Сол за генериране на ключ за криптиране
      */
     const KEY_SALT = 'IMAGE THUMBNAILS';
-
-
+    
+    
     /**
      * @var int Широчина на контейнера за скалираното изображение
      */
     protected $boxWidth;
-
-
+    
+    
     /**
      * @var int Височина на контейнера за скалираното скалираното изображение
      */
     protected $boxHeight;
- 
-
+    
+    
     /**
      * @var string Изходното изображение
      */
     protected $source;
-
-
+    
+    
     /**
      * @var string Тип на данните за оригиналното изображение: url, path, fileman, string, gdRes
      */
     protected $sourceType;
-
-
+    
+    
     /**
      * @var resource Съдържание на картинката, като GD ресурс
      */
@@ -76,20 +78,20 @@ class thumb_Img
      * @var int Широчина на изходното изображение
      */
     protected $width;
-
-
+    
+    
     /**
      * @var int Височина на изходното изображение
      */
     protected $height;
-
-
+    
+    
     /**
      * @var string Съдържание на картинката, като стринг
      */
     protected $imgAsString;
-
-
+    
+    
     /**
      * var @string Вербално име на умалената картинка
      */
@@ -123,19 +125,19 @@ class thumb_Img
      * @var int колко секунди да е жив кешът за това изображение
      */
     protected $expirationTime;
-
+    
     
     /**
-     * @var boolean дали генерираното URL да е абсолютно
+     * @var bool дали генерираното URL да е абсолютно
      */
     protected $isAbsolute;
-
+    
     
     /**
      * var int (0 - 100) колко процента да е качеството на jpeg изображенията
      */
     protected $quality;
-
+    
     
     /**
      * var string на коя страна е възможно да се завърти изображението ('left' или 'right')
@@ -147,8 +149,8 @@ class thumb_Img
      * Широчина на скалираното изображение
      */
     protected $scaledWidth;
-
-
+    
+    
     /**
      * Височина на скалираното изображение
      */
@@ -159,20 +161,20 @@ class thumb_Img
      * @var string Пътят във файловата система, където да бъде записано изображението
      */
     protected $thumbPath;
-
-
+    
+    
     /**
      * @var thumb_Img Копие на обекта с дройно по-големи рамери
      */
     private $size2x;
     
-
+    
     /**
      * Какви параметри има този клас
      */
     public static $argumentList = 'source, boxWidth, boxHeight, sourceType, verbalName, format, timeout, mode, expirationTime, isAbsolute, quality, possibleRotation, thumbPath';
-
-
+    
+    
     /**
      * Конструктор, който създава обект от изображение
      */
@@ -196,7 +198,7 @@ class thumb_Img
         
         // Първия елемент дали е масив? Ако да - очакваме там да са аргументите
         $isArraySource = is_array($source);
-
+        
         foreach (arr::make(self::$argumentList) as $i => $argName) {
             if ($isArraySource && isset($source[$i])) {
                 $this->{$argName} = $source[$i];
@@ -208,7 +210,7 @@ class thumb_Img
         }
         
         expect($this->boxWidth > 0 && $this->boxHeight > 0, $this);
-
+        
         // Времена за кеширане на умалени изображения
         if (!$this->expirationTime) {
             switch ($this->sourceType) {
@@ -227,15 +229,15 @@ class thumb_Img
                     expect(false, 'Непознат тип за източник на графичен файл', $this->sourceType);
             }
         }
- 
+        
         if ($this->boxWidth && $this->boxHeight) {
             $this->size2x = clone($this);
             $this->size2x->boxWidth *= 2;
             $this->size2x->boxHeight *= 2;
         }
     }
-
-
+    
+    
     /**
      * Връща имиджа като стринг
      */
@@ -279,11 +281,11 @@ class thumb_Img
                     expect(false, 'Непознат тип за източник на графичен файл', $this->sourceType);
             }
         }
-
+        
         return $this->imgAsString;
     }
     
-
+    
     /**
      * Прави хеш, с голяма вероятност уникален, спрямо картинката и параметрите на мащабирането
      */
@@ -308,15 +310,15 @@ class thumb_Img
                 case 'gdRes':
                     $param = md5($this->getAsString($this->source));
             }
-
+            
             $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->boxWidth . '|' .
                 $this->boxHeight . '|' . $this->mode . '|' . $this->quality . '|' . $this->possibleRotation . EF_SALT);
         }
-
+        
         return $this->hash;
     }
     
-
+    
     /**
      * Връща GD ресурс, създаден от картинката
      */
@@ -344,16 +346,17 @@ class thumb_Img
                             }
                             @unlink($fileName);
                         }
+
 //                         }
                     }
                 }
             }
         }
-
+        
         return $this->gdRes;
     }
-
-
+    
+    
     /**
      * Задаваме височината и широчината
      */
@@ -368,7 +371,7 @@ class thumb_Img
                     $this->gdRes = $this->source;
                 }
             }
-
+            
             if ($this->gdRes) {
                 $this->width = imagesx($this->gdRes);
                 $this->height = imagesy($this->gdRes);
@@ -384,7 +387,7 @@ class thumb_Img
                     default:
                         expect(false, 'Непознат тип за източник на графичен файл', $this->sourceType);
                 }
-
+                
                 expect($uri);
                 if (is_readable($uri)) {
                     $fimg = new thumb_FastImageSize($uri);
@@ -403,15 +406,15 @@ class thumb_Img
     public function getSize()
     {
         $this->setWidthAndHeight();
-
+        
         if (!$this->scaledWidth || !$this->scaledHeight || !$this->ratio) {
             list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->boxWidth, $this->boxHeight, $this->mode, (boolean) $this->possibleRotation);
         }
-
+        
         return array($this->width, $this->height);
     }
-
-
+    
+    
     /**
      * Връща името на умаленото изображение
      */
@@ -429,7 +432,7 @@ class thumb_Img
                     $uri = fileman_Files::fetchByFh($this->source, 'path');
                 break;
             }
-
+            
             // Ако от името не можем да опрределим формата - пробваме съдържанието
             if (strlen($uri) && is_readable($uri)) {
                 $fimg = new thumb_FastImageSize($uri);
@@ -455,8 +458,8 @@ class thumb_Img
         
         return $this->format;
     }
-
-
+    
+    
     /**
      * Връща името на умалената картинка
      */
@@ -473,8 +476,8 @@ class thumb_Img
         
         return $this->thumbName;
     }
-
-
+    
+    
     /**
      * Връща пътя до умалената картинка
      */
@@ -484,7 +487,7 @@ class thumb_Img
             $conf = core_Packs::getConfig('thumb');
             $this->thumbPath = $conf->THUMB_IMG_PATH . '/' . $this->getThumbName();
         }
-
+        
         return $this->thumbPath;
     }
     
@@ -533,11 +536,11 @@ class thumb_Img
             $conf = core_Packs::getConfig('thumb');
             $this->thumbUrl = sbf($conf->THUMB_IMG_DIR . '/' . $this->getThumbName(), '', $this->isAbsolute);
         }
-
+        
         return $this->thumbUrl;
     }
-
-
+    
+    
     /**
      * Връща ключа за криптиране на отложение връзки
      */
@@ -545,8 +548,8 @@ class thumb_Img
     {
         $key = sha1(EF_SALT . self::KEY_SALT);
     }
-
-
+    
+    
     /**
      * Връща УРЛ към  картинката, което е с отложено изпълнение
      * Картинката, ако липсва ще се генерира, когато URL-то се покаже
@@ -567,8 +570,8 @@ class thumb_Img
         
         return toUrl(array('thumb_M', 'R', 't' => $id), $type);
     }
-
-
+    
+    
     /**
      * Връща урл към умаленото изображение
      *
@@ -588,7 +591,7 @@ class thumb_Img
         if (!file_exists($path) || (filemtime($path) + $this->expirationTime < time())) {
             if (($this->sourceType != 'gdRes') && ($mode == 'deferred' || ($mode == 'auto' && !Mode::is('text', 'xhtml')))) {
                 $url = $this->getDeferredUrl();
-
+                
                 return $url;
             }
             $this->saveThumb();
@@ -599,11 +602,11 @@ class thumb_Img
         } else {
             $url = $this->getThumbUrl();
         }
-
+        
         return $url;
     }
-
-
+    
+    
     /**
      * създава и записва thumb изображението
      */
@@ -611,7 +614,7 @@ class thumb_Img
     {
         // ToDo: Ако картинката е зададена като файл, размерите и съответстват на изходните, няма ротация и форматите са едни и същи,
         // можем да направим само копиране на файла, вместо да минаваме през GD
-
+        
         if ($gdRes = $this->getGdRes()) {
             $path = $this->getThumbPath();
             
@@ -655,21 +658,21 @@ class thumb_Img
                     file_put_contents($path, $asString);
                 }
             }
-
+            
             $type = $this->getThumbFormat();
-
+            
             if (!$type && $path) {
                 $type = fileman_Files::getExt($path);
             }
-
+            
             if (thumb_Setup::get('OPTIMIZATORS') && !empty($path) && $type) {
                 $M = cls::get('thumb_M');
                 $M->forOptimization[$path] = $type;
             }
         }
     }
-
-
+    
+    
     /**
      * Връща умаленото изображение, като html <img> таг
      *
@@ -684,7 +687,7 @@ class thumb_Img
         $this->getSize();
         setIfNot($attr['width'], $this->scaledWidth);
         setIfNot($attr['height'], $this->scaledHeight);
-     
+        
         if ((log_Browsers::isRetina() && $this->size2x) || (Mode::get('screenWidth') > 1024)) {
             // За случаите, когато имаме дисплей с по-висока плътност
             $url2x = $this->size2x->getUrl();
@@ -694,13 +697,13 @@ class thumb_Img
         setIfNot($attr['alt'], $this->verbalName);
         
         unset($attr['isAbsolute']);
-
+        
         $img = ht::createImg($attr);
-
+        
         return $img;
     }
-
-
+    
+    
     /**
      * Мащабира входни размери на правоъгълник, така, че да се запази пропорцията и
      * всеки един от новите размери е по-малък или равен на зададените максимални
@@ -720,7 +723,7 @@ class thumb_Img
             
             return array($boxWidth, $boxHeight, 1);
         }
-
+        
         $wRatio = $boxWidth / $width;
         $hRatio = $boxHeight / $height;
         
@@ -740,13 +743,13 @@ class thumb_Img
             default:
                 expect(false);
         }
-
+        
         if ($allowRotate) {
             list($rW, $rH, $rR) = self::scaleSize($height, $width, $boxWidth, $boxHeight, $mode);
             expect($ratio);
             $rK = ($rR < 1) ? 1 / $rR : $rR;
             $nK = ($ratio < 1) ? 1 / $ratio : $ratio;
-
+            
             if ($rK < $nK) {
                 $ratio = $rR;
                 $tempWidth = $width;
@@ -757,11 +760,11 @@ class thumb_Img
         }
         $newHeight = ceil($ratio * $height);
         $newWidth = ceil($ratio * $width);
-
+        
         return array($newWidth, $newHeight, $ratio, $rotate, $rK, $nK);
     }
-
-
+    
+    
     /**
      * Скалира изображение, към нова широчина и височина
      *
@@ -802,7 +805,7 @@ class thumb_Img
         }
         
         imagecopyresampled($newImg, $im, 0, 0, 0, 0, $dstWidth, $dstHeight, $width, $height);
- 
+        
         return $newImg;
     }
     

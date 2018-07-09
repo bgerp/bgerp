@@ -6,15 +6,16 @@
  *
  * @category  vendors
  * @package   docoffice
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class docoffice_Unoconv extends core_Manager
 {
     public $interfaces = 'docoffice_ConverterIntf';
-    
     
     
     public $title = 'Unoconv';
@@ -83,7 +84,7 @@ class docoffice_Unoconv extends core_Manager
         
         // Скрипта, който ще конвертира
         $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
-
+        
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('docoffice_Unoconv::afterConvertDoc');
         
@@ -102,7 +103,7 @@ class docoffice_Unoconv extends core_Manager
         
         // Увеличаваме броя на направените конвертирания с единица
         docoffice_Office::increaseConvertCount();
-
+        
         $Script->setCheckProgramsArr($unoconv);
         
         // Стартираме скрипта синхронно
@@ -124,7 +125,7 @@ class docoffice_Unoconv extends core_Manager
      *
      * @param fconv_Script $script - Парамтри
      *
-     * @return boolean
+     * @return bool
      */
     public static function afterConvertDoc($script)
     {
@@ -155,7 +156,6 @@ class docoffice_Unoconv extends core_Manager
             return $result;
         }
     }
-
     
     
     /**

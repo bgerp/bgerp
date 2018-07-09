@@ -1,25 +1,26 @@
 <?php
 
+
 /**
  * Кеш на изгледа на частните артикули
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_ProductTplCache extends core_Master
 {
-    
-    
     /**
      * Необходими плъгини
      */
     public $loadList = 'plg_RowTools2, cat_Wrapper';
-     
+    
     
     /**
      * Заглавие на мениджъра
@@ -87,7 +88,7 @@ class cat_ProductTplCache extends core_Master
         
         $this->FLD('cache', 'blob(1000000, serialize, compress)', 'input=none,caption=Html,column=none');
         $this->FLD('time', 'datetime', 'input=none,caption=Дата');
-
+        
         $this->setDbIndex('productId');
         $this->setDbIndex('time');
     }
@@ -119,8 +120,8 @@ class cat_ProductTplCache extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Подготовка на филтър формата
      */
@@ -159,10 +160,10 @@ class cat_ProductTplCache extends core_Master
     public function act_Truncate()
     {
         requireRole('admin,debug,ceo');
-         
+        
         // Изчистваме записите от моделите
         self::truncate();
-         
+        
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite('Изтриване на кеша на изгледите на артикула');
         
@@ -173,8 +174,9 @@ class cat_ProductTplCache extends core_Master
     /**
      * Връща кешираните данни на артикула за дадено време ако има
      *
-     * @param  int           $productId - ид на артикул
-     * @param  datetime|NULL $time      - време
+     * @param int           $productId - ид на артикул
+     * @param datetime|NULL $time      - време
+     *
      * @return mixed
      */
     public static function getCache($productId, $time, $type, $documentType, $lang)
@@ -187,7 +189,7 @@ class cat_ProductTplCache extends core_Master
         $query->orderBy('time', 'DESC');
         $query->limit(1);
         $rec = $query->fetch();
-
+        
         if (!empty($rec)) {
             $res = array("{$productModifiedOn}" => null, "{$rec->time}" => $rec->cache);
             krsort($res);
@@ -204,10 +206,11 @@ class cat_ProductTplCache extends core_Master
     /**
      * Кешира заглавието на артикула
      *
-     * @param  int                   $productId
-     * @param  datetime|NULL         $time
-     * @param  enum(internal,public) $documentType
-     * @return string                - заглавието на артикула
+     * @param int                   $productId
+     * @param datetime|NULL         $time
+     * @param enum(internal,public) $documentType
+     *
+     * @return string - заглавието на артикула
      */
     public static function cacheTitle($rec, $time, $documentType, $lang)
     {
@@ -219,7 +222,7 @@ class cat_ProductTplCache extends core_Master
         if (!self::fetch(("#productId = {$rec->id} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
             $cacheRec->time = $time;
         } else {
-        
+            
             // Ако записваме нов кеш той е с датата на модифициране на артикула
             $cacheRec->time = $rec->modifiedOn;
         }
@@ -252,9 +255,10 @@ class cat_ProductTplCache extends core_Master
     /**
      * Кешира описанието на артикула
      *
-     * @param  int                   $productId
-     * @param  datetime|NULL         $time
-     * @param  enum(public,internal) $documentType
+     * @param int                   $productId
+     * @param datetime|NULL         $time
+     * @param enum(public,internal) $documentType
+     *
      * @return core_ET
      */
     public static function cacheDescription($productId, $time, $documentType, $lang, $componentQuantity)
@@ -272,7 +276,7 @@ class cat_ProductTplCache extends core_Master
         if (!self::fetch(("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))) {
             $cacheRec->time = $time;
         } else {
-        
+            
             // Ако записваме нов кеш той е с датата на модифициране на артикула
             $cacheRec->time = $pRec->modifiedOn;
         }
@@ -286,7 +290,7 @@ class cat_ProductTplCache extends core_Master
         if (isset($time)) {
             self::save($cacheRec);
         }
-            
+        
         return $cacheRec->cache;
     }
 }

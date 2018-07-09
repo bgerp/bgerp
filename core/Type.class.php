@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Type' - Прототип на класовете за типове
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Type extends core_BaseClass
 {
-    
-    
     /**
      * Параметрите на типа
      *
@@ -42,9 +41,7 @@ class core_Type extends core_BaseClass
     public $suggestions;
     
     
-    
     public $tdClass = '';
-    
     
     
     public $error = '';
@@ -68,6 +65,7 @@ class core_Type extends core_BaseClass
     public function toVerbal_($value)
     {
         if ($value === null) {
+            
             return;
         }
         
@@ -184,7 +182,7 @@ class core_Type extends core_BaseClass
                 $res->options[] = $key;
             }
         }
- 
+        
         if ($this->params['unsigned']) {
             $res->unsigned = true;
         }
@@ -201,7 +199,7 @@ class core_Type extends core_BaseClass
         
         return $res;
     }
-
+    
     
     /**
      * Връща атрибутите на MySQL полето
@@ -239,8 +237,9 @@ class core_Type extends core_BaseClass
     /**
      * Въртрешно PHP представяне на произволна стойност, сериализирана в MySQL поле.
      *
-     * @param  string $value
-     * @return mixed  stdClass, array, string, ...
+     * @param string $value
+     *
+     * @return mixed stdClass, array, string, ...
      */
     public function fromMysql($value)
     {
@@ -316,7 +315,7 @@ class core_Type extends core_BaseClass
             if ($res['error']) {
                 $this->error = $res['error'];
             }
-         
+            
             return $res;
         }
     }
@@ -328,7 +327,7 @@ class core_Type extends core_BaseClass
     public function createInput($name, $value, $attr)
     {
         $this->setFieldWidth($attr);
-
+        
         setIfNot($attr['type'], 'text');
         if (count($this->suggestions)) {
             $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);
@@ -338,8 +337,8 @@ class core_Type extends core_BaseClass
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Подреждане на предложенията по вътрешните им стойности и добавяне на $value
      * Приема се, че предложенията са зададени с вербални стойности
@@ -354,7 +353,7 @@ class core_Type extends core_BaseClass
                 unset($this->suggestions['']);
             }
             
-
+            
             if ($this->error) {
                 $opt[$this->fromVerbal($value)] = $value;
             } else {
@@ -416,7 +415,7 @@ class core_Type extends core_BaseClass
         $toArr = array('&aaa;', '&bbb;', '&ccc;', '&ddd;', '&eee;', '&fff;', '&ggg;');
         
         $name = str_replace($fromArr, $toArr, $name);
-
+        
         if ($leftBracketPos > 0) {
             $rightBracketPos = strrpos($name, ')');
             
@@ -452,18 +451,18 @@ class core_Type extends core_BaseClass
         if ($typeName == 'type_Enum') {
             
             return cls::get($typeName, array(
-                    'options' => $p
-                ));
+                'options' => $p
+            ));
         } elseif ($typeName == 'type_Set') {
             
             return cls::get($typeName, array(
-                    'suggestions' => $p
-                ));
+                'suggestions' => $p
+            ));
         }
-
+        
         return cls::get($typeName, array(
-                    'params' => $p
-                ));
+            'params' => $p
+        ));
     }
     
     
@@ -477,22 +476,22 @@ class core_Type extends core_BaseClass
     public static function mixedToString($o)
     {
         static $i = 0;
-
+        
         $i++;
-
+        
         if ($i > 4) {
             $i--;
-
+            
             return '...';
         }
-
+        
         $r = gettype($o);
-
+        
         if (is_object($o)) {
             $r = get_class($o);
             $o = get_object_vars($o);
         }
-
+        
         if (is_array($o)) {
             if ($r != 'array') {
                 $openBracket = '{';
@@ -502,7 +501,7 @@ class core_Type extends core_BaseClass
                 $closeBracket = ']';
             }
             $r = "(${r}) {$openBracket}";
-
+            
             if (count($o)) {
                 
                 // Променлива, с която отбелязваме, че обикаляме за първи път масива
@@ -534,10 +533,11 @@ class core_Type extends core_BaseClass
             $r = "(${r}) " . $o;
         }
         $i--;
-
+        
         return $r;
     }
-
+    
+    
     /**
      * Определя и задава широчината на полето
      */
@@ -546,7 +546,7 @@ class core_Type extends core_BaseClass
         if ($options === null) {
             $options = $this->options;
         }
-
+        
         if (!$size && !$this->maxFieldSize && is_array($options)) {
             $this->maxFieldSize = 1;
             $i = 1;
@@ -557,7 +557,7 @@ class core_Type extends core_BaseClass
                     $title = $opt;
                 }
                 list($title, ) = explode('||', $title);
-
+                
                 $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
                 if ($i++ > 100) {
                     break;
@@ -565,20 +565,20 @@ class core_Type extends core_BaseClass
             }
             $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
         }
- 
+        
         // Определяме размера на най-дългия възможен стринг, като най-дългата опция
         if (!$size && $this->maxFieldSize > 0) {
             $size = $this->maxFieldSize;
         }
-
+        
         if (!$size && $this->params['size']) {
             $size = $this->params['size'];
         }
-
+        
         if (!$size && $this->params[0]) {
             $size = $this->params[0];
         }
-
+        
         if (is_array($this->options)) {
             $size *= 1.1;
         }
@@ -593,7 +593,7 @@ class core_Type extends core_BaseClass
             } else {
                 $wClass = 'w100';
             }
-
+            
             $attr['class'] .= ($attr['class'] ? ' ' : '') . $wClass;
         }
     }

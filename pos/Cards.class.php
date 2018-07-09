@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел за клиентски карти
  *
  *
  * @category  bgerp
  * @package   pos
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pos_Cards extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -27,13 +26,13 @@ class pos_Cards extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'pos_Wrapper, plg_Printing, plg_Search, plg_Sorting, plg_State2, plg_RowTools2';
-   
+    
     
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Клиентска карта';
- 
+    
     
     /**
      * Кой може да пише?
@@ -175,8 +174,9 @@ class pos_Cards extends core_Manager
     /**
      * Връща контрагента отговарящ на номера на картата
      *
-     * @param  string                     $number     - номер на карта
-     * @param  int                        $ctrClassId - ид на класа от който трябва да е контрагента
+     * @param string $number     - номер на карта
+     * @param int    $ctrClassId - ид на класа от който трябва да е контрагента
+     *
      * @return FALSE|core_ObjectReference - референция към контрагента
      */
     public static function getContragent($number, $ctrClassId = null)

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Интерфейс за бизнес информация по сделка, носена от документ
  *
@@ -11,14 +10,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_DealIntf
 {
-    
     /**
      * Информацията, която този документ допринася към сделка
      *

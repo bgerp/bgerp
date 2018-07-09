@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Клас 'planning_ConsumptionNotes' - Документ за Протокол за влагане в производството
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_ConsumptionNotes extends deals_ManifactureMaster
 {
-    
-    
     /**
      * Заглавие
      */
@@ -146,7 +145,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      */
     public $singleIcon = 'img/16/produce_in.png';
     
- 
+    
     /**
      * Поле за филтриране по дата
      */
@@ -212,19 +211,20 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Какво да е предупреждението на бутона за контиране
      *
-     * @param int $id            - ид
+     * @param int    $id         - ид
      * @param string $isContable - какво е действието
-     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     *
+     * @return NULL|string - текста на предупреждението или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
-    	$rec = $this->fetchRec($id);
-    	$dQuery = planning_ConsumptionNoteDetails::getQuery();
-    	$dQuery->where("#noteId = {$id}");
-    	$dQuery->show('productId, quantity');
-    	 
-    	$warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
-    
-    	return $warning;
+        $rec = $this->fetchRec($id);
+        $dQuery = planning_ConsumptionNoteDetails::getQuery();
+        $dQuery->where("#noteId = {$id}");
+        $dQuery->show('productId, quantity');
+        
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
+        
+        return $warning;
     }
 }

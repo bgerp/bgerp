@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   csstoinlin
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class csstoinline_ToInline
 {
-
-    
     /**
      * Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
      * <style type=text/css> ... </style>

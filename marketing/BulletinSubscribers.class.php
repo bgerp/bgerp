@@ -6,25 +6,24 @@
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.12
  */
 class marketing_BulletinSubscribers extends core_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'bulletinId';
-
     
     
     public $title = 'Абонати за бюлетин';
     
-
+    
     /**
      * Заглавие на единичния обект
      */
@@ -76,10 +75,9 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * Брой записи на страница
      *
-     * @var integer
+     * @var int
      */
     public $listItemsPerPage = 20;
-    
     
     
     public $listFields = 'id, email, ip, brid, createdOn, createdBy';
@@ -102,8 +100,8 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      *
      *
-     * @param integer $bId
-     * @param string  $email
+     * @param int    $bId
+     * @param string $email
      */
     public static function addData($bId, $email)
     {
@@ -136,7 +134,7 @@ class marketing_BulletinSubscribers extends core_Detail
         // Разблокираме имейла, ако е бил блокиран
         blast_BlockedEmails::addEmail($email, 'force', 'ok');
     }
-
+    
     
     /**
      *
@@ -163,7 +161,7 @@ class marketing_BulletinSubscribers extends core_Detail
      *
      * @param IP|NULL $ip
      *
-     * @return boolean
+     * @return bool
      */
     public static function haveRecForIp($bId, $ip = null)
     {

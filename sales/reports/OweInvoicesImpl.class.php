@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка
  * по отклоняващи се цени в продажбите
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -39,7 +38,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
      * Брой записи на страница
      */
     public $listItemsPerPage = 50;
-
+    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -68,8 +67,8 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         
         $this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
-
-
+    
+    
     /**
      * Проверява въведените данни
      *
@@ -78,8 +77,8 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     public function checkEmbeddedForm(core_Form &$form)
     {
     }
-
-
+    
+    
     /**
      * Подготвя вътрешното състояние, на база въведените данни
      *
@@ -100,8 +99,10 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         if ($data->rec->contragentFolderId) {
             $contragentCls = doc_Folders::fetchField("#id = {$data->rec->contragentFolderId}", 'coverClass');
             $contragentId = doc_Folders::fetchField("#id = {$data->rec->contragentFolderId}", 'coverId');
+            
             // всичко за контрагента
             $contragentRec = cls::get($contragentCls)->fetch($contragentId);
+            
             // записваме го в датата
             $data->contragent = $contragentRec;
             $data->contragent->titleLink = cls::get($contragentCls)->getShortHyperLink($contragentId);
@@ -109,7 +110,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         
         // търсим всички продажби, които са на този книент и са активни
         $querySales = sales_Sales::getQuery();
-    
+        
         // коя е текущата ни валута
         $currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId($data->rec->from), 'code');
         $querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND #state = 'active'");
@@ -133,26 +134,29 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                     // нефакторираното е разлика на доставеното и фактурираното
                     $data->notInv += $recSale->amountDelivered - $recSale->amountInvoiced;
                 }
-        
+                
                 // плащаме във валутата на сделката
                 $data->currencyId = $recSale->currencyId;
-    
+                
                 // то ще търсим всички фактури
                 // които са в нишката на тази продажба
                 // и са активни
                 $queryInvoices = sales_Invoices::getQuery();
                 $queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active' AND #date <= '{$data->rec->from}'");
                 $queryInvoices->orderBy('#date', 'ASC');
-    
+                
                 // перот на селката
                 $saleItem = acc_Items::fetchItem('sales_Sales', $recSale->id);
+                
                 // перото на контрагента
                 $contragentItem = acc_Items::fetchItem($contragentCls, $contragentId);
+                
                 // перото на валутата
                 $currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($recSale->currencyId));
-    
+                
                 // от началото на активния счетоводен период
                 $cDate = $firstDayAfter3Months;
+                
                 // броим фактурите в сделката
                 $invCnt = 1;
                 while ($invRec = $queryInvoices->fetch()) {
@@ -167,15 +171,16 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                 'item3' => $currencyItem->id,
                                 'strict' => true,
                                 'cacheBalance' => false));
-                                
+                            
                             // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
                             $Balance = $Balance->getBalanceBefore($accId);
                             $balHistory = acc_ActiveShortBalance::getBalanceHystory($accId, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
-    
+                            
                             if (is_array($balHistory['history'])) {
                                 foreach ($balHistory['history'] as $history) {
                                     // платено по сделката
                                     $paid[$saleItem->id]['creditAmount'] += $history['creditAmount'];
+                                    
                                     // сделката
                                     $paid[$saleItem->id]['debitAmount'] += $history['debitAmount'];
                                 }
@@ -184,54 +189,56 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                         
                         $cDate = dt::addDays(1, $cDate);
                     }
-        
+                    
                     // сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
                     $amountVat = $invRec->dealValue - $invRec->discountAmount + $invRec->vatAmount;
-    
+                    
                     if ($amountVat < 0) {
                         $amountRest = $amountVat;
                     }
+                    
                     //$amountRest = 0;
                     
-                        
+                    
                     // фактурираното то всяка сделка (сумарно от всички фактури)
                     $amountVatArr[$saleItem->id] += $amountVat;
-    
+                    
                     // правим рековете
                     $data->recs[] = (object) array('contragentCls' => $contragentCls,
-                                                        'contragentId' => $contragentId,
-                                                        'eic' => $contragentRec->vatId,
-                                                        'currencyId' => $recSale->currencyId,
-                                                        'invId' => $invRec->id,
-                                                        'invType' => $invRec->type,
-                                                        'date' => $invRec->date,
-                                                        'number' => $invRec->number,
-                                                        'displayRate' => $invRec->displayRate,
-                                                        'rate' => $invRec->rate,
-                                                        'saleId' => $saleItem->id,
-                                                        'amountVat' => $amountVat,
-                                                        'amountRest' => $amountRest,
-                                                        'paymentState' => $recSale->paymentState,
-                                                        'dueDate' => $invRec->dueDate
-                        );
+                        'contragentId' => $contragentId,
+                        'eic' => $contragentRec->vatId,
+                        'currencyId' => $recSale->currencyId,
+                        'invId' => $invRec->id,
+                        'invType' => $invRec->type,
+                        'date' => $invRec->date,
+                        'number' => $invRec->number,
+                        'displayRate' => $invRec->displayRate,
+                        'rate' => $invRec->rate,
+                        'saleId' => $saleItem->id,
+                        'amountVat' => $amountVat,
+                        'amountRest' => $amountRest,
+                        'paymentState' => $recSale->paymentState,
+                        'dueDate' => $invRec->dueDate
+                    );
                     $invCntArr[$saleItem->id] = $invCnt++;
                 }
             }
         }
-
+        
         if (is_array($data->recs)) {
             foreach ($data->recs as $id => $rec) {
-               
+                
                 // ако имаме повече от една фактура в сделката
                 if ($invCntArr[$rec->saleId] > 1) {
-    
+                
                 // само една фактура
                 } else {
-    
+                    
                     // ако сделката не е фактурирана цялата
                     if ($amountVatArr[$rec->saleId] != $rec->amountVat) {
                         // от сумата на сделката вадим фактурираното и платеното
                         $rec->amountRest = $amountVatArr[$rec->saleId] - $rec->amountVat - $paid[$rec->saleId]['creditAmount'];
+                    
                     // ако сделката е фактурирана изцяло
                     } else {
                         // от сумата й вадим платеното
@@ -250,7 +257,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                     $rec->amount = round($rec->amount, 2);
                 }
             }
-          
+            
             if (isset($data->notInv)) {
                 if ($data->currencyId != $currencyNow) {
                     $data->notInv = currency_CurrencyRates::convertAmount($data->notInv, $data->rec->from, $currencyNow, $data->currencyId);
@@ -264,7 +271,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                 if ($line !== 0) {
                     continue;
                 }
-               
+                
                 
                 for ($i = $line; $i < count($values); ++$i) {
                     //$data->recs[$i]->amountRest = 0;
@@ -273,7 +280,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                     } else {
                         $p = $paid[$data->recs[$i]->saleId]['creditAmount'];
                     }
-                   
+                    
                     // разпределяме платеното по фактури
                     if ($data->recs[$i]->saleId == $data->recs[$i + 1]->saleId) {
                         if ($paid[$data->recs[$i]->saleId]['creditAmount'] > '0') {
@@ -292,13 +299,13 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                             $toPaid = round($toPaid, 2);
                             $flag = false;
                         }
-              
+                        
                         // ако е фактура
                         if ($data->recs[$i]->invType == 'invoice') {
                             if ($toPaid > 0) {
                                 $data->recs[$i]->amountRest = $toPaid;
                                 $data->recs[$i + 1]->amountRest = $data->recs[$i + 1]->amountVat;
-     
+                                
                                 if (count($values) % 2 != 0 && $data->recs[$i + 2]) {
                                     $data->recs[$i + 2]->amountRest = $data->recs[$i + 2]->amountVat;
                                 }
@@ -325,6 +332,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                                     }
                                 }
                             }
+                            
                             // ако е известие
                         // TODO как ще се разпределя лащането?
                         } else {
@@ -340,14 +348,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         if (is_array($data->recs)) {
             $data->sum = new stdClass();
             foreach ($data->recs as $currRec) {
                 $data->sum->amountVat += $currRec->amountVat;
                 $data->sum->toPaid += $currRec->amountRest;
                 $data->sum->currencyId = $currRec->currencyId;
-    
+                
                 if ($currRec->dueDate == null || $currRec->dueDate < $data->rec->from) {
                     $currRec->amount = $currRec->amountRest;
                     $data->sum->arrears += $currRec->amount;
@@ -356,14 +364,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                     $data->sum->arrears += 0;
                 }
             }
-    
+            
             
             usort($data->recs, function ($a, $b) {
                 
                 return strcmp($a->date, $b->date);
             });
         }
-    
+        
         return $data;
     }
     
@@ -375,9 +383,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     {
         // Подготвяме страницирането
         $data = $res;
-         
+        
         $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
-         
+        
         $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
         $data->pager = $pager;
         
@@ -391,7 +399,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                 if (!$pager->isOnPage()) {
                     continue;
                 }
-        
+                
                 $row = $mvc->getVerbal($rec);
                 
                 // добавяме на редовете със сума и съответната валута
@@ -406,7 +414,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					<span class='cCode'>{$data->currencyId}</span>
 				 	<span>{$row->amountRest}</span>
 				</div>";
-        
+                
                 $dueDate = sales_Invoices::fetchField($rec->invId, dueDate);
                 
                 if ($dueDate == null || $dueDate < dt::now()) {
@@ -423,11 +431,11 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					</div>";
                     $data->summary->amountArrears = 0;
                 }
-        
+                
                 $data->rows[] = $row;
             }
         }
-
+        
         // правим един служебен ред за нефактурирано
         if ($data->notInv && $mvc->innerForm->notInv == 'no') {
             $row = new stdClass();
@@ -441,21 +449,23 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 						<span class='cCode'>{$data->currencyId}</span>
 						<span>${amountVat}</span></b>
 				</div>";
-                
+            
             $data->rows[] = $row;
-
+            
             // ако нямаме обобщен ред
             if (!$data->summary) {
                 // си правим един, които да съдържа нефактурираното
                 // и валуюитата на сделката
                 $data->summary = (object) array('amountInv' => $Double->toVerbal($data->notInv),
-                                                 'currencyId' => $data->currencyId
+                    'currencyId' => $data->currencyId
                 );
+            
             // ако вече има
             } else {
-
+                
                 // добавяме нафактурираното към сумата на вече намерените
                 $data->summary->amountInv += $data->notInv;
+                
                 //$data->summary->amountInv = $Double->toVerbal($data->summary->amountInv);
                 $data->summary->currencyId = $data->currencyId;
             }
@@ -467,7 +477,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             'amountToPaid' => $Double->toVerbal($data->sum->toPaid),
             'amountArrears' => $Double->toVerbal($data->sum->arrears)
         );
-
+        
         $res = $data;
     }
     
@@ -480,7 +490,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     public function getReportLayout_()
     {
         $tpl = getTplFromFile('sales/tpl/OweInvoiceLayout.shtml');
-         
+        
         return $tpl;
     }
     
@@ -493,13 +503,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-  
+        
         $tpl = $this->getReportLayout();
         
         $tpl->replace($this->getReportTitle(), 'TITLE');
-
+        
         $tpl->replace($data->contragent->titleLink, 'contragent');
         $tpl->replace($data->contragent->vatId, 'eic');
         
@@ -507,20 +518,20 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         $tpl->replace($from, 'from');
         
         $tpl->placeObject($data->rec);
-
+        
         $f = $this->getFields();
         
         $table = cls::get('core_TableView', array('mvc' => $f));
-    
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-
+        
         if (count($data->summary)) {
             $data->summary->colspan = count($data->listFields) - 3;
             $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN amountArrears--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b><!--ET_END amountArrears--></td></tr>");
-                
+            
             $afterRow->placeObject($data->summary);
         }
-
+        
         if (count($data->rows)) {
             $tpl->append($afterRow, 'ROW_AFTER');
         }
@@ -539,13 +550,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         $data->listFields = array(
-                'date' => 'Дата',
-                'dueDate' => 'Падеж',
-                'number' => 'Номер',
-                'amountVat' => 'Сума',
-                'amountRest' => 'Остатък',
-                'amount' => 'Просрочие',
-                //'paymentState' => 'Състояние',
+            'date' => 'Дата',
+            'dueDate' => 'Падеж',
+            'number' => 'Номер',
+            'amountVat' => 'Сума',
+            'amountRest' => 'Остатък',
+            'amount' => 'Просрочие',
+            
+            //'paymentState' => 'Състояние',
         );
     }
     
@@ -559,9 +571,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $VatType = cls::get('drdata_VatType');
-    
+        
         $row = new stdClass();
-
+        
         $row->contragent = cls::get($rec->contragentCls)->getShortHyperLink($rec->contragentId);
         $row->eic = $VatType->toVerbal($rec->eic) ;
         
@@ -578,15 +590,15 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $url = toUrl(array('sales_Invoices','single', $rec->invId), 'absolute');
             $row->number = ht::createLink($number, $url, false, array('ef_icon' => 'img/16/invoice.png'));
         }
-
+        
         $row->amountVat = $Double->toVerbal($rec->amountVat);
         $row->amountRest = $Double->toVerbal($rec->amountRest);
         $row->amount = $Double->toVerbal($rec->amount);
-
+        
         $state = array('pending' => 'Чакащо', 'overdue' => 'Просрочено', 'paid' => 'Платено', 'repaid' => 'Издължено');
-     
+        
         $row->paymentState = $state[$rec->paymentState];
-
+        
         return $row;
     }
     
@@ -599,7 +611,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-
+        
         unset($innerState->recs);
     }
     
@@ -610,7 +622,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->to} 23:59:59";
-         
+        
         return $activateOn;
     }
     
@@ -621,13 +633,13 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     public function getReportTitle()
     {
         $explodeTitle = explode(' » ', $this->title);
-         
+        
         $title = tr("|{$explodeTitle[1]}|*");
-    
+        
         return $title;
     }
-
-
+    
+    
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
      *
@@ -637,31 +649,31 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     public function exportCsv()
     {
         $conf = core_Packs::getConfig('core');
-
+        
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
-
+        
         $csv = '';
-
+        
         $rowContragent = 'Клиент: ' . $this->innerState->contragent->name ."\n";
         $rowContragent .= 'ЗДДС № / EIC: ' . $this->innerState->contragent->vatId."\n";
         $rowContragent .= 'Към дата: ' . $this->innerForm->from;
-
+        
         $fields = $this->getFields();
         $exportFields = $this->innerState->listFields;
-         
+        
         if (count($this->innerState->recs)) {
             foreach ($this->innerState->recs as $rec) {
                 $state = array('pending' => 'Чакащо', 'overdue' => 'Просрочено', 'paid' => 'Платено', 'repaid' => 'Издължено');
-                 
+                
                 $rec->paymentState = $state[$rec->paymentState];
             }
-             
+            
             $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
             $csv = $rowContragent. "\n" . $csv;
         }
-
+        
         return $csv;
     }
     
@@ -671,13 +683,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
     {
         // Кои полета ще се показват
         $f = new core_FieldSet;
-   
+        
         $f->FLD('date', 'date');
         $f->FLD('dueDate', 'date');
         $f->FLD('number', 'int');
@@ -685,7 +698,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         $f->FLD('amountRest', 'double');
         $f->FLD('amount', 'double');
         $f->FLD('paymentState', 'varchar');
-    
+        
         return $f;
     }
 }

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'cams_plg_RecordState' - Поддръжка на поле 'state' за камера
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cams_plg_RecordState extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -88,6 +87,7 @@ class cams_plg_RecordState extends core_Plugin
     public function on_BeforeAction($mvc, &$content, &$act)
     {
         if ($act != 'changestate') {
+            
             return;
         }
         

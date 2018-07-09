@@ -1,27 +1,26 @@
 <?php
 
 
-
 /**
  * Постинги
  *
  *
  * @category  bgerp
  * @package   forum
+ *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class forum_Postings extends core_Detail
 {
-    
-    
     /**
      * Заглавие на страницата
      */
     public $title = 'Постинги';
-
+    
     
     /**
      * Единично заглавие
@@ -45,13 +44,13 @@ class forum_Postings extends core_Detail
      * Кой може да го разглежда?
      */
     public $canList = 'forum, ceo, admin, cms';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'forum, ceo, admin, cms';
-
+    
     
     /**
      * Полета за изглед
@@ -99,7 +98,7 @@ class forum_Postings extends core_Detail
         $this->FLD('lastWho', 'int', 'caption=Последно->Кой, input=none');
         $this->FLD('themeId', 'int', 'caption=Тема, input=none');
     }
-
+    
     
     /**
      *  Скриване на полето за тип на темата, ако няма права потребителя
@@ -163,7 +162,7 @@ class forum_Postings extends core_Detail
                 // Заявка за работа с темата
                 $themeQuery = $this->getQuery();
                 $themeQuery->where("#themeId = {$rec->id}");
-               
+                
                 if ($rec->postingsCnt > $conf->FORUM_POSTS_PER_PAGE) {
                     
                     // Подготвяме пейджъра на темата ако има достатъчно коментари
@@ -202,11 +201,11 @@ class forum_Postings extends core_Detail
             foreach ($data->themeRows as $row) {
                 $themeTpl = $tpl->getBlock('ROW');
                 $themeTpl->placeObject($row);
-                 
+                
                 // Добавяме иконката взависимост дали темата е заключена/отключена
                 ($row->locked == 'заключена') ? $icon = $lockedIcon : $icon = $openIcon;
                 $themeTpl->replace($icon, 'ICON');
-                 
+                
                 // Адреса на темата, която ще отваря темата
                 $pagerUrl = toUrl(array('forum_Postings', 'Theme', $row->id), 'relative');
                 if ($row->pager) {
@@ -214,7 +213,7 @@ class forum_Postings extends core_Detail
                      // Рендираме пейджъра на темата до заглавието и
                     $themeTpl->replace($row->pager->getHtml($pagerUrl), 'THEME_PAGER');
                 }
-                 
+                
                 $themeTpl->removeBlocks();
                 $themeTpl->append2master();
             }
@@ -224,7 +223,7 @@ class forum_Postings extends core_Detail
         
         $layout->replace($tpl, 'THEMES');
         $layout->replace($data->pager->getHtml(), 'PAGER');
-         
+        
         return $layout;
     }
     
@@ -260,7 +259,7 @@ class forum_Postings extends core_Detail
         
         // Ако имаме форма за добавяне на нов постинг към темата
         if ($data->postForm) {
-        
+            
             // Зареждаме REQUEST данните във формата за коментар
             $rec = $data->postForm->input();
             
@@ -291,7 +290,7 @@ class forum_Postings extends core_Detail
         
         return $layout;
     }
-
+    
     
     /**
      * Подготовка на Постингите от нишката, и формата за коментар
@@ -391,7 +390,7 @@ class forum_Postings extends core_Detail
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
         $tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
-
+        
         return $tpl;
     }
     
@@ -416,7 +415,7 @@ class forum_Postings extends core_Detail
         
         // Ако имаме форма за започване на нова тема
         if ($data->form) {
-        
+            
             // Зареждаме REQUEST данните във формата за коментар
             $rec = $data->form->input();
             
@@ -608,6 +607,7 @@ class forum_Postings extends core_Detail
     
     /**
      * Рендира туулбара на темата
+     *
      * @return core_ET
      */
     public function renderTopicToolbar($data, $tpl)
@@ -710,7 +710,8 @@ class forum_Postings extends core_Detail
     
     
     /**
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return core_ET
      */
     public function renderMove($data)
@@ -794,7 +795,7 @@ class forum_Postings extends core_Detail
         if ($data->q) {
             plg_Search::applySearch($data->q, $data->query);
         }
-      
+        
         $conf = core_Packs::getConfig('forum');
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
         $data->pager->setLimit($data->query);
@@ -816,7 +817,7 @@ class forum_Postings extends core_Detail
                         // тема е вече там
                         continue;
                     }
-                        
+                    
                     // Ако темата на коментара, не е в резултатите ние вкарваме в масива
                     // с резултати темата вместо коментара
                     $rec = $themeRec;
@@ -853,7 +854,7 @@ class forum_Postings extends core_Detail
                 $themeTpl->placeObject($row);
                 $themeTpl->removeBlocks();
                 $themeTpl->removePlaces();
-                 
+                
                 $tpl->append($themeTpl, 'ROW');
             }
         } else {
@@ -932,14 +933,15 @@ class forum_Postings extends core_Detail
               // Ако постинга е коментар към тема, ние обновяваме, кой е последния коментар в нея
             $mvc->updateStatistics($rec->themeId, $rec->createdOn, $rec->createdBy);
         }
-         
+        
         // Обновяваме статистическата информация в дъската където е направен постинга
         $mvc->Master->updateBoard($rec->boardId);
     }
-   
-   
+    
+    
     /**
      * Обновяваме статистическата информация на темата
+     *
      * @param int      $themeId   - ид на темата
      * @param datetime $createdOn - дата на публикуване
      * @param int createdBy - автор
@@ -947,19 +949,19 @@ class forum_Postings extends core_Detail
     public function updateStatistics($themeId, $createdOn, $createdBy)
     {
         $rec = $this->fetch($themeId);
-            
+        
         // Избираме постингите, принадлежащи на темата
         $query = $this->getQuery();
         $query->where("#themeId = {$themeId}");
-            
+        
         // Обновяваме, кой и кога е направил последния коментар
         $rec->last = $createdOn;
         $rec->lastWho = $createdBy;
         $rec->postingsCnt = $query->count();
         $this->save($rec);
     }
-   
-   
+    
+    
     /**
      *  Модификации на вербалните стойности на някои полета, взависимост от екшъна
      */
@@ -1024,6 +1026,7 @@ class forum_Postings extends core_Detail
         
         if ($fields['-theme'] || $fields['-topic']) {
             $row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
+            
             //$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));
         }
     }
@@ -1095,7 +1098,7 @@ class forum_Postings extends core_Detail
                 $verbalBoard = $data->listFilter->getFieldType('board')->toVerbal($filter->board);
                 $data->title .= ' в дъска |*<span style="color:darkblue;">"' . $verbalBoard . '"</font>';
             }
-                
+            
             if ($filter->posting == 'all') {
                 
                 // Ако търсим по всички постинги добавяме и коментарите
@@ -1117,8 +1120,10 @@ class forum_Postings extends core_Detail
     
     /**
      * Обновява броя на индивидуалните посещения на темата, след запис в лога
-     * @param  stdClass $theme
-     * @param  int      $cnt
+     *
+     * @param stdClass $theme
+     * @param int      $cnt
+     *
      * @return void
      */
     public function updateThemeViews($theme, $cnt)

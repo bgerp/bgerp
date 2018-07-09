@@ -6,18 +6,20 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Archive extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'content';
@@ -31,6 +33,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -104,8 +107,8 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
     /**
      * Уплоадва файла от архива
      *
-     * @param object  $fRec  - Записите за файла
-     * @param integer $index - Номера на файлам, който ще се екстрактва
+     * @param object $fRec  - Записите за файла
+     * @param int    $index - Номера на файлам, който ще се екстрактва
      *
      * @return fileHandler - Манипулатор на файл
      */
@@ -123,8 +126,8 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         // Връщаме манипулатора на файла
         return $fh;
     }
-
-
+    
+    
     /**
      * Извлича текстовата част от файла
      *
@@ -218,34 +221,34 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 } catch (ErrorException $e) {
                     continue;
                 }
-            
+                
                 $ext = fileman_Files::getExt($path);
-            
+                
                 $webdrvArr = fileman_Indexes::getDriver($ext);
                 if (empty($webdrvArr)) {
                     continue;
                 }
-            
+                
                 $drvInst = false;
                 foreach ($webdrvArr as $drv) {
                     if (!$drv) {
                         continue;
                     }
-                     
+                    
                     if (!method_exists($drv, 'extractText')) {
                         continue;
                     }
-            
+                    
                     // За да не зацикля, когато има много архиви в самите архиви
                     if (!$checInnerArchive && ($drv instanceof fileman_webdrv_Archive)) {
                         continue;
                     }
-            
+                    
                     $drvInst = $drv;
-                     
+                    
                     break;
                 }
-            
+                
                 if (!$drvInst) {
                     continue;
                 }
@@ -253,6 +256,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 $eText = '';
                 try {
                     $extractedCnt++;
+                    
                     // Извличаме текстовата част от драйвера
                     $eText = $drvInst->extractText($extractedPath);
                 } catch (ErrorException $e) {

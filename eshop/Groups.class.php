@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на групи с продукти.
  *
  *
  * @category  bgerp
  * @package   eshop
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_Groups extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -51,7 +50,7 @@ class eshop_Groups extends core_Master
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     public $searchFields = 'name';
-
+    
     
     /**
      * Наименование на единичния обект
@@ -118,6 +117,7 @@ class eshop_Groups extends core_Master
      */
     public $canDelete = 'no_one';
     
+    
     /**
      * Нов темплейт за показване
      */
@@ -161,11 +161,11 @@ class eshop_Groups extends core_Master
         if (count($opt) == 1) {
             $data->form->setReadOnly('menuId');
         }
-
+        
         $data->form->setOptions('menuId', $opt);
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
@@ -184,15 +184,15 @@ class eshop_Groups extends core_Master
         $form->showFields = 'search, menuId';
         
         $form->input('search, menuId', 'silent');
-
+        
         $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
-
+        
         $form->setField('menuId', 'refreshForm');
         
         if (count($opt) == 0) {
             redirect(array('cms_Content'), false, '|Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
         }
-
+        
         if (!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
@@ -222,7 +222,7 @@ class eshop_Groups extends core_Master
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
-
+        
         $data = new stdClass();
         $data->menuId = Request::get('cMenuId', 'int');
         
@@ -235,14 +235,14 @@ class eshop_Groups extends core_Master
         cms_Content::setCurrent($data->menuId);
         
         $layout = $this->getLayout();
-
+        
         if (($q = Request::get('q')) && $menuId > 0) {
             $layout->replace(cms_Content::renderSearchResults($menuId, $q), 'PAGE_CONTENT');
-
+            
             vislog_History::add("Търсене в продуктите: {$q}");
         }
-
-
+        
+        
         if (self::mustShowSideNavigation()) {
             // Ако имаме поне 4-ри групи продукти
             $this->prepareNavigation($data);
@@ -254,7 +254,7 @@ class eshop_Groups extends core_Master
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
-
+        
         // Добавя канонично URL
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         cms_Content::addCanonicalUrl($url, $layout);
@@ -276,17 +276,17 @@ class eshop_Groups extends core_Master
         
         return $layout;
     }
-
-
+    
+    
     /**
      * Връща дали е необходимо да се показва навигация на групите
      */
     private static function mustShowSideNavigation()
     {
         $conf = core_Packs::getConfig('eshop');
-
+        
         $menuId = Mode::get('cMenuId');
-
+        
         if (!$menuId) {
             $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
         }
@@ -303,7 +303,7 @@ class eshop_Groups extends core_Master
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
-
+        
         $data = new stdClass();
         
         $data->groupId = Request::get('id', 'int');
@@ -349,7 +349,7 @@ class eshop_Groups extends core_Master
     {
         $query = self::getQuery();
         $query->where("#state = 'active' AND #menuId = {$data->menuId}");
-       
+        
         while ($rec = $query->fetch()) {
             $rec->url = self::getUrl($rec);
             $data->recs[] = $rec;
@@ -418,7 +418,7 @@ class eshop_Groups extends core_Master
         if (is_array($data->recs)) {
             foreach ($data->recs as $rec) {
                 $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
-     
+                
                 if ($rec->icon) {
                     $img = new thumb_Img($rec->icon, 400, 300, 'fileman');
                     $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'img');
@@ -428,12 +428,12 @@ class eshop_Groups extends core_Master
                 $all->append($tpl);
             }
         }
-
+        
         $rec = new stdClass();
         $rec->seoTitle = tr('Всички продукти');
         
         cms_Content::setSeo($all, $rec);
-   
+        
         return $all;
     }
     
@@ -449,7 +449,7 @@ class eshop_Groups extends core_Master
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
         setIfNot($data->rec->seoTitle, $data->rec->name);
-
+        
         cms_Content::setSeo($groupTpl, $data->rec);
         
         return $groupTpl;
@@ -487,7 +487,7 @@ class eshop_Groups extends core_Master
         $query = $this->getQuery();
         
         $query->where("#state = 'active'");
-
+        
         $groupId = $data->groupId;
         $productId = $data->productId;
         $menuId = $data->menuId;
@@ -532,7 +532,7 @@ class eshop_Groups extends core_Master
             
             $data->links[] = $l;
         }
-
+        
         $data->searchCtr = 'eshop_Groups';
         $data->searchAct = 'ShowAll';
     }
@@ -619,7 +619,7 @@ class eshop_Groups extends core_Master
         return $url;
     }
     
-
+    
     /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
      */
@@ -627,25 +627,25 @@ class eshop_Groups extends core_Master
     {
         $res = array();
         $query = self::getQuery();
-
+        
         $query->where("#menuId = {$menuId} AND #state = 'active'");
         $groups = array();
         while ($rec = $query->fetch()) {
             $groups[$rec->id] = $rec->id;
         }
- 
+        
         if (!empty($groups)) {
             $queryM = eshop_Products::getQuery();
             $queryM->where('#groupId IN (' . implode(',', $groups) . ')');
             $queryM->limit($maxResults);
-
+            
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 5, 64);
             while ($r = $query->fetch()) {
                 $title = $r->name;
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
-
+                
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
             }
             
@@ -656,11 +656,11 @@ class eshop_Groups extends core_Master
                     $title = $r->name;
                     $url = eshop_Products::getUrl($r);
                     $url['q'] = $q;
-
+                    
                     $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
                 }
             }
-
+            
             if (count($res) < $maxResults) {
                 $query = clone($queryM);
                 plg_Search::applySearch($q, $query, null, 3);
@@ -668,15 +668,15 @@ class eshop_Groups extends core_Master
                     $title = $r->name;
                     $url = eshop_Products::getUrl($r);
                     $url['q'] = $q;
-
+                    
                     $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
                 }
             }
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
@@ -687,8 +687,8 @@ class eshop_Groups extends core_Master
         
         return $url;
     }
-
-
+    
+    
     /**
      * Титлата за листовия изглед
      * Съдържа и текущия домейн
@@ -697,8 +697,8 @@ class eshop_Groups extends core_Master
     {
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
-
-
+    
+    
     /**
      * Връща масив с групите, които оттоварят на посочения или на текущия домейн
      */
@@ -707,7 +707,7 @@ class eshop_Groups extends core_Master
         if (!$domainId) {
             $domainId = cms_Domains::getPublicDomain('id');
         }
-
+        
         $query = self::getQuery();
         $query->EXT('domainId', 'cms_Content', 'externalKey=menuId');
         $query->where("#domainId = {$domainId} AND #state = 'active'");
@@ -716,11 +716,11 @@ class eshop_Groups extends core_Master
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec->name;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Имплементация на метод, необходим за plg_StructureAndOrder
      */
@@ -729,7 +729,7 @@ class eshop_Groups extends core_Master
         return false;
     }
     
-
+    
     /**
      * Необходим метод за подреждането
      */
@@ -752,22 +752,23 @@ class eshop_Groups extends core_Master
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Връща групите в избрания домейн
      *
-     * @param  int|NULL $domainId
-     * @return array    $groups
+     * @param int|NULL $domainId
+     *
+     * @return array $groups
      */
     public static function getByDomain($domainId = null)
     {
         $groups = array();
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
-         
+        
         // Намиране на опциите, които са вързани към артикули от подадения домейн
         $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
         $contentQuery = cms_Content::getQuery();

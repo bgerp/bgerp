@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'cond_Wrapper'
  *
@@ -10,14 +9,15 @@
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_Wrapper extends plg_ProtoWrapper
 {
-    
     /**
      * Описание на табовете
      */

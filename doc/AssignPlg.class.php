@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_AssignPlg extends core_Plugin
 {
-    
-    
     /**
      * Кой може да възлага
      */
@@ -25,7 +25,6 @@ class doc_AssignPlg extends core_Plugin
      * Кой може да променя активирани записи
      */
     public $canChangerec = 'doc, admin, ceo';
-    
     
     
     public $loadList = 'change_Plugin';
@@ -196,7 +195,7 @@ class doc_AssignPlg extends core_Plugin
         
         // Титлата на документа в долния регистър
         $docSingleTitleLower = mb_strtolower($mvc->singleTitle);
-
+        
         // Заглавието на сигнала във НЕвербален вид
         $title = str::limitLen($mvc->getDocumentRow($iRec->id)->recTitle, 90);
         
@@ -255,7 +254,7 @@ class doc_AssignPlg extends core_Plugin
                 $row->assign .= crm_Profiles::createLink($aId);
             }
         }
-
+        
         if ($rec->assignedDate) {
             $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');
         }
@@ -297,7 +296,6 @@ class doc_AssignPlg extends core_Plugin
             }
         }
     }
-    
     
     
     public static function on_AfterPrepareSingle($mvc, &$res, $data)

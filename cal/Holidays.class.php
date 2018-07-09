@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'cal_Holidays' - Регистър на празнични дни
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class cal_Holidays extends core_Master
 {
-
     /**
      * Плъгини за зареждане
      */
@@ -33,7 +33,7 @@ class cal_Holidays extends core_Master
      */
     public $title = 'Данни за празниците в календара';
     
-
+    
     /**
      * полета от БД по които ще се търси
      */
@@ -57,20 +57,21 @@ class cal_Holidays extends core_Master
      */
     public $singleTitle = 'Събитие';
     
-         
+    
     /**
      * Икона по подразбиране за единичния обект
      */
     public $singleIcon = 'img/16/calendar_1.png';
     
+    
     /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'cal/tpl/SingleLayoutHolidays.shtml';
-
+    
     public $canWrite = 'no_one';
-
-
+    
+    
     public static $priorities = array(
         'holiday' => 79,
         'international' => 78,
@@ -79,6 +80,7 @@ class cal_Holidays extends core_Master
         'workday' => 75,
         'orthodox' => 74,
         'muslim' => 73);
+    
     
     /**
      * Описание на модела (таблицата)
@@ -272,8 +274,8 @@ class cal_Holidays extends core_Master
         
         $this->setDbUnique('key');
     }
-
-
+    
+    
     /**
      * Обновява празниците в календара
      */
@@ -284,30 +286,30 @@ class cal_Holidays extends core_Master
         
         // Годината на датата от преди 30 дни е начална
         $cYear = date('Y', time() - 30 * 24 * 60 * 60);
-
+        
         // Начална дата
         $fromDate = "{$cYear}-01-01";
-
+        
         // Крайна дата
         $toDate = ($cYear + 2) . '-12-31';
-
+        
         // Масив с години, за които ще се вземат рожденните дни
         $years = array($cYear, $cYear + 1, $cYear + 2);
-
+        
         // Префикс на клучовете за рожденните дни на това лице
         $prefix = 'HOLIDAY-';
         
         //$code2Cards = array();
-         
+        
         $card = self::bCards();
         
         $query = self::getQuery();
-
+        
         while ($rec = $query->fetch()) {
             if (!$rec->key) {
                 continue;
             }
-
+            
             foreach ($years as $year) {
                 $key = $rec->key;
                 
@@ -315,7 +317,7 @@ class cal_Holidays extends core_Master
                 if ($rec->year && ($rec->year != $year)) {
                     continue;
                 }
-                           
+                
                 if ($rec->base == 'EST') {
                     $base = dt::getOrthodoxEasterTms($year);
                     $delta = 0;
@@ -332,7 +334,7 @@ class cal_Holidays extends core_Master
                 }
                 
                 $calRec = new stdClass();
-               
+                
                 $calRec->key = $prefix . $rec->key . $year;
                 $calRec->time = date('Y-m-d', $base + 24 * 60 * 60 * ($delta + $rec->day));
                 $calRec->type = $rec->type;
@@ -347,30 +349,29 @@ class cal_Holidays extends core_Master
                 $calRec->users = $card[$rec->type];
                 
                 $calRec->priority = self::$priorities[$rec->type];
-
+                
                 if (!$calRec->priority) {
                     $calRec->priority = 71;
                 }
-               
+                
                 $events[] = $calRec;
             }
         }
         
         $resArr = cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
-
+        
         $status = 'В календара са добавени ' . $resArr['new'] . ', обновени ' . $resArr['updated'] .
             ' и изтрити ' . $resArr['deleted'] . ' празнични или специални дни';
-
+        
         return $status;
     }
-        
-
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
-        
         // Подготвяме пътя до файла с данните
         $file = 'bglocal/data/Holidays.csv';
         
@@ -390,7 +391,7 @@ class cal_Holidays extends core_Master
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null);
-         
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
         
@@ -420,7 +421,7 @@ class cal_Holidays extends core_Master
         }
     }
     
-   
+    
     /**
      * Доподготвя вербалните стойности
      */
@@ -430,7 +431,7 @@ class cal_Holidays extends core_Master
             $row->nameday = null;
         } else {
             $pData = new stdClass();
-
+            
             $pData->namesArr = self::getLatinNames($rec->nameday);
             crm_Persons::prepareNamedays($pData);
             $tpl = crm_Persons::renderNamedays($pData);
@@ -439,13 +440,13 @@ class cal_Holidays extends core_Master
         }
         
         $row->iconStyle = ht::getIconStyle('cal/icons/' . strtolower($rec->type) . '.png');
-
+        
         if (strlen($rec->type) == 2) {
             $row->type = tr('Национален празник на') . ' <b>' . $row->type . '</b>';
         }
     }
-
-
+    
+    
     /**
      * Връща масив с имена на латиница от описание на Именици
      */
@@ -459,10 +460,10 @@ class cal_Holidays extends core_Master
             $n = strtolower(trim($n));
             $res[$n] = $n;
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Форма за търсене по дадена ключова дума
@@ -493,7 +494,7 @@ class cal_Holidays extends core_Master
         $profiles = array();
         
         $query = crm_Persons::getQuery();
-                       
+        
         while ($rec = $query->fetch()) {
             if ($rec->country) {
                 if ($recCompanies->inCharge) {
@@ -510,7 +511,7 @@ class cal_Holidays extends core_Master
         
         $queryCompanies = crm_Companies::getQuery();
         $queryCompanies->show('id,country,inCharge,shared');
-
+        
         while ($recCompanies = $queryCompanies->fetch()) {
             if ($recCompanies->country) {
                 if ($recCompanies->inCharge) {
@@ -532,7 +533,7 @@ class cal_Holidays extends core_Master
             
             $inChargePerCountry[$recPerson->letterCode2] = $a;
         }
-
+        
         return $inChargePerCountry;
     }
 }

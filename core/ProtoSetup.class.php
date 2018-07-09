@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class core_ProtoSetup
  *
@@ -10,9 +9,11 @@
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_ProtoSetup
@@ -21,6 +22,7 @@ class core_ProtoSetup
      * Да се инициализира ли, след промяна на конфигурацията?
      */
     const INIT_AFTER_CONFIG = true;
+    
     
     /**
      * Версия на пакета
@@ -51,57 +53,57 @@ class core_ProtoSetup
      */
     public $info;
     
-
+    
     /**
      * Описание на конфигурационните константи за този модул
      */
     protected $configDescription = array();
     
-
+    
     /**
      * Стойности на константите за конфигурацията на пакета
      */
     public static $conf = array();
-
-
+    
+    
     /**
      * Пътища до папки, които трябва да бъдат създадени
      */
     protected $folders = array();
-
-
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array();
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles;
     
-
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
     protected $defClasses;
-
-
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      * array(ред в менюто, Меню, Под-меню, Мениджър, Екшън, Роли за достъп)
      */
     public $menuItems = array();
-
-
+    
+    
     /**
      * Масив с настойки за Cron
      *
      * @var array
      */
     protected $cronSettings;
-
+    
     
     /**
      * Дали пакета е системен
@@ -129,33 +131,33 @@ class core_ProtoSetup
         if (!Mode::get('dbInit')) {
             Mode::set('dbInit', core_Packs::isFirstSetup() ? 'first' : 'update');
         }
-
+        
         // Взимаме името на пакета
         $packName = $this->getPackName();
         
         // Създаване моделите в базата данни
         $instances = array();
-
+        
         // Масив с класовете, които имат интерфейси
         $this->defClasses = arr::make($this->defClasses, true);
-
+        
         foreach (arr::make($this->managers) as $manager) {
-
+            
             // Ако мениджърът е миграция - изпълняваме я еднократно
             if (stripos($manager, 'migrate::') === 0) {
                 list($migrate, $method) = explode('::', $manager);
                 $html .= $this->callMigrate($method, $packName);
-
+                
                 continue;
             }
-
+            
             $instances[$manager] = &cls::get($manager);
-
+            
             // Допълваме списъка, защото проверяваме дали мениджърите имат интерфейси
             $this->defClasses[$manager] = $manager;
-
+            
             expect(method_exists($instances[$manager], 'setupMVC'), $instances, $manager);
-
+            
             $html .= $instances[$manager]->setupMVC();
         }
         
@@ -164,8 +166,8 @@ class core_ProtoSetup
         
         // Добавяне на класове, поддържащи интерфейси в регистъра core_Classes
         $html .= $this->setClasses();
-
-
+        
+        
         // Добавяме дефинираните роли в модула
         foreach (arr::make($this->roles) as $role) {
             $html .= core_Roles::addOnce($role);
@@ -213,7 +215,7 @@ class core_ProtoSetup
         
         return $html;
     }
-
+    
     
     /**
      * Зареждане на първоначалните данни
@@ -224,8 +226,8 @@ class core_ProtoSetup
         $htmlRes = '';
         
         $method = 'loadSetupData' . $itr;
-
-
+        
+        
         // Зареждане на данните в моделите
         $instances = array();
         foreach (arr::make($this->managers) as $man) {
@@ -240,10 +242,10 @@ class core_ProtoSetup
         
         // Нагласяване на Крон
         $htmlRes .= $this->setCron();
-
+        
         // Добавяне на елементи в Менюто
         $htmlRes .= $this->setMenuItems();
-
+        
         return $htmlRes;
     }
     
@@ -312,8 +314,8 @@ class core_ProtoSetup
         
         return $pathStr;
     }
-
-
+    
+    
     /**
      * Връща името на пакета, за когото е този сетъп
      *
@@ -325,8 +327,8 @@ class core_ProtoSetup
         
         return $packName;
     }
-
-
+    
+    
     /**
      * Връща конфигурацията на пакета в който се намира Setup-а
      *
@@ -341,8 +343,8 @@ class core_ProtoSetup
         
         return self::$conf[$packName];
     }
-
-
+    
+    
     /**
      * Връща стойността на посочената константа
      *
@@ -355,13 +357,13 @@ class core_ProtoSetup
         if (!$absolute) {
             $prefix = strtoupper(self::getPackName()) . '_';
         }
-
+        
         $name = $prefix . $name;
         
         if ($userId > 0) {
             core_Users::sudo($userId);
         }
-
+        
         $conf = self::getConfig();
         $res = $conf->{$name};
         
@@ -371,8 +373,8 @@ class core_ProtoSetup
         
         return $res;
     }
-
-
+    
+    
     /**
      * Връща стойност на дефинирана константа
      *
@@ -383,7 +385,7 @@ class core_ProtoSetup
     public static function getConst($constName)
     {
         expect(defined($constName), $constName);
-
+        
         return constant($constName);
     }
     
@@ -408,7 +410,7 @@ class core_ProtoSetup
         return $res;
     }
     
-
+    
     /**
      * Добавя дефинираните класове в модела за класове, поддържащи интерфейси
      *
@@ -417,26 +419,26 @@ class core_ProtoSetup
     protected function setClasses()
     {
         $classes = arr::make($this->defClasses);
-
+        
         foreach (arr::make($this->managers) as $manager) {
-
+            
             // Ако менидръжит е миграция - изпълняваме я еднократно
             if (stripos($manager, 'migrate::') === 0) {
                 continue;
             }
             $classes[$manager] = $manager;
         }
-
+        
         $res = '';
-
+        
         foreach ($classes as $cls) {
             $res .= core_Classes::add($cls);
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Функция, която добавя настройките за Cron
      */
@@ -448,37 +450,37 @@ class core_ProtoSetup
             }
             
             $res = '';
-
+            
             foreach ($this->cronSettings as $setting) {
                 $res .= core_Cron::addOnce($setting);
             }
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Добавяне на елементите на менюто за този модул
      */
     protected function setMenuItems()
     {
         $res = '';
-
+        
         if (count($this->menuItems)) {
             $conf = $this->getConfig();
             
             // Името на пакета
             $packName = $this->getPackName();
-
+            
             // 3-те имена на константите за менюто
             $constPosition = strtoupper($packName). '_MENU_POSITION';
             $constMenuName = strtoupper($packName). '_MENU';
             $constSubMenu = strtoupper($packName). '_SUB_MENU';
             $constView = strtoupper($packName). '_VIEW';
-
+            
             foreach ($this->menuItems as $id => $item) {
-
+                
                 // задаваме позицията в менюто
                 // с приоритет е от конфига
                 if ($item['row']) {
@@ -488,7 +490,7 @@ class core_ProtoSetup
                 } else {
                     expect($row);
                 }
-            
+                
                 // задаваме името на менюто
                 // с приоритет е от конфига
                 if ($item['menu']) {
@@ -506,14 +508,14 @@ class core_ProtoSetup
                 } elseif ($item[2]) {
                     $subMenu = $item[2];
                 }
-
+                
                 $ctr = $item['ctr'] ? $item['ctr'] : $item[3];
                 $act = $item['act'] ? $item['act'] : $item[4];
                 $roles = $item['roles'] ? $item['roles'] : $item[5];
-        
+                
                 // Добавя елемента на менюто
                 $res .= bgerp_Menu::addOnce($row, $menu, $subMenu, $ctr, $act, $roles);
-                                    
+                
                 unset($row);
                 unset($menu);
                 unset($subMenu);
@@ -521,9 +523,9 @@ class core_ProtoSetup
         }
         
         $cacheKey = 'menuObj_' . core_Lg::getCurrent();
-                    
+        
         core_Cache::remove('Menu', $cacheKey);
-
+        
         return $res;
     }
     
@@ -536,7 +538,7 @@ class core_ProtoSetup
     public function getConfigDescription()
     {
         $description = $this->configDescription;
-                              
+        
         return $description;
     }
 }

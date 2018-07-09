@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   currency
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class currency_FinIndexes extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -34,12 +34,13 @@ class currency_FinIndexes extends core_Manager
      */
     public $listFields = 'indexName, period, forDate, indexValue';
     
+    
     /**
      * Кой може да го прочете?
      */
     public $canRead = 'ceo,admin,cash,bank,currency';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -81,6 +82,7 @@ class currency_FinIndexes extends core_Manager
     public function act_LoadEuriborCsv()
     {
         $res = '';
+        
         // Зареждаме файлове за обработка
         $csvFiles = array('http://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EURIBOR_' . date('Y') . '.csv');
         foreach ($csvFiles as $csvFile) {
@@ -244,6 +246,7 @@ class currency_FinIndexes extends core_Manager
     public function act_LoadEoniaCsv()
     {
         $res = '';
+        
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/hist_EONIA_2012.csv");
         $csvFiles = array('http://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EONIA_' . date('Y') . '.csv');
@@ -312,6 +315,7 @@ class currency_FinIndexes extends core_Manager
     public function act_LoadSofibidSofiborCsv()
     {
         $res = '';
+        
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/Sofibor_Sofibid.csv");
         $csvFiles = array('http://www.bnb.bg/FinancialMarkets/FMSofibidAndSofibor/index.htm?download=csv&period&search=');
@@ -495,16 +499,16 @@ class currency_FinIndexes extends core_Manager
         $data->toolbar->addBtn('Зареждане EONIA', array($this, 'loadEoniaCsv'), null, 'title= Зареждане на Euro OverNight Index Average');
         $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($this, 'loadSofibidSofiborCsv'), null, 'title= Зареждане на Sofia Interbank Bid Rate и Sofia Interbank Offered Rate');
     }
-
-
+    
+    
     public static function getIndex($name, $period, $date, $force = true)
     {
         expect(in_array($name, array('SOFIBOR', 'SOFIBID', 'EONIA', 'EURIBOR'), $name));
-
+        
         $me = cls::get('currency_FinIndexes');
         $periodType = $me->getFieldType('period');
         expect(in_array($period, $periodType->options), $period);
-
+        
         $res = self::fetchField("#indexName = '{$name}' AND #period = '{$period}' AND #date = '{$date}'", 'indexValue');
         
         if (($res === null) && $force) {
@@ -518,7 +522,7 @@ class currency_FinIndexes extends core_Manager
             
             $res = $me->getIndex($name, $period, $date, false);
         }
-
+        
         return $res;
     }
 }

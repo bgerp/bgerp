@@ -13,16 +13,16 @@ defIfNot('EF_NUMBER_DECIMALS', 4);
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Double extends core_Type
 {
-    
-    
     /**
      * Тип на полето в mySql таблица
      */
@@ -39,14 +39,14 @@ class type_Double extends core_Type
      * Параметър определящ максималната широчина на полето
      */
     public $maxFieldSize = 12;
-
-
+    
+    
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
     public $tdClass = 'rightCol';
-
-
+    
+    
     /**
      * Намира стойността на числото, от стринга, който е въвел потребителя
      * Входния стринг може да не е форматиран добре, също може да съдържа прости
@@ -69,12 +69,14 @@ class type_Double extends core_Type
         $value = str_replace($from, $to, trim($value));
         
         if (!strlen($value)) {
+            
             return;
         }
         
         $value = $this->prepareVal($value, $allowOct, $allowHex);
         
         if (!strlen($value)) {
+            
             return;
         }
         
@@ -92,7 +94,7 @@ class type_Double extends core_Type
             $value = '0';
         }
         $code = "\$val = ${value};";
-
+        
         // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
         $signP = '(\*|\/|\+|\-|\.|\,)';
         $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))|\=|[^0-9\(\)]{1}[^0-9\(\)]{1}/";
@@ -103,7 +105,7 @@ class type_Double extends core_Type
             return (float) $val;
         }
         $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
-            
+        
         return false;
     }
     
@@ -129,15 +131,16 @@ class type_Double extends core_Type
     public function toVerbal($value)
     {
         if (!strlen($value)) {
+            
             return;
         }
         
         $conf = core_Packs::getConfig('core');
-
+        
         if (!$this->params['decPoint']) {
             $this->params['decPoint'] = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
         }
-
+        
         if (!isset($this->params['thousandsSep'])) {
             $this->params['thousandsSep'] = html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
         }
@@ -157,7 +160,7 @@ class type_Double extends core_Type
             // Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
             $this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
         }
-
+        
         // Закръгляме числото преди да го обърнем в нормален вид
         $value = round($value, $this->params['decimals']);
         $ts = Mode::is('forSearch') ? '' : $this->params['thousandsSep'];
@@ -180,9 +183,9 @@ class type_Double extends core_Type
     /**
      * Премахва символите за осмична и шестнайсетична бройна система, ако не са позволени
      *
-     * @param string  $double
-     * @param boolean $allowOct
-     * @param boolean $allowHex
+     * @param string $double
+     * @param bool   $allowOct
+     * @param bool   $allowHex
      *
      * @return string
      */

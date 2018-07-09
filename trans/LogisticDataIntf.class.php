@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Интерфейс за логистични данни
  *
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за документи с логистични данни
  */
 class trans_LogisticDataIntf
 {
-    
-    
     /**
      * Клас имплементиращ мениджъра
      */
@@ -27,7 +26,8 @@ class trans_LogisticDataIntf
     /**
      * Информация за логистичните данни
      *
-     * @param  mixed $rec - ид или запис на документ
+     * @param mixed $rec - ид или запис на документ
+     *
      * @return array $data - логистичните данни
      *
      *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'page_Empty' - Шаблон за празна страница
  *
@@ -10,16 +9,16 @@
  *
  * @category  ef
  * @package   page
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class page_Empty extends page_Html
 {
-    
-    
     /**
      * Конструктор
      */

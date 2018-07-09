@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас  'type_Class' - Ключ към запис в мениджъра core_Classes
  *
@@ -10,15 +9,15 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class type_Class extends type_Key
 {
-    
-    
     /**
      * Инициализиране на типа
      */
@@ -29,8 +28,8 @@ class type_Class extends type_Key
         $this->params['mvc'] = 'core_Classes';
         setIfNot($this->params['select'], 'name');
     }
-
-
+    
+    
     /**
      * Подготвя масив с опции за показване в падащия списък
      */
@@ -69,8 +68,8 @@ class type_Class extends type_Key
                         
                         // Добавяме името като OPTGROUP
                         $newOptions[$optArr[0]] = (object) array(
-                                'title' => trim($optArr[0]),
-                                'group' => true,
+                            'title' => trim($optArr[0]),
+                            'group' => true,
                         );
                         $newOptions[$index] = trim($optArr[1]);
                     } else {
@@ -108,11 +107,11 @@ class type_Class extends type_Key
         if (!$value) {
             $value = $attr['value'];
         }
-
+        
         if (!is_numeric($value)) {
             $value = $this->fromVerbal($value);
         }
-
+        
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -138,7 +137,7 @@ class type_Class extends type_Key
     /**
      *
      *
-     * @param string|integer $value
+     * @param string|int $value
      */
     public function fromVerbal($value)
     {
@@ -148,17 +147,17 @@ class type_Class extends type_Key
         }
         
         $error = false;
-
+        
         $savedOpt = $this->options;
-
+        
         $interface = $this->params['interface'];
         $mvc = cls::get($this->params['mvc']);
         $this->options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         
         $classNameOptions = $mvc->getOptionsByInterface($interface, 'name');
-
+        
         $value = parent::fromVerbal($value);
- 
+        
         // Възможно е $value да е името на класа
         if (is_numeric($value)) {
             if (!$this->options[$value]) {
@@ -166,7 +165,7 @@ class type_Class extends type_Key
             }
         } elseif (isset($value)) {
             $v = $value;
-
+            
             if (!(($value = array_search($v, $this->options)) || ($value = array_search($v, $classNameOptions)))) {
                 $error = true;
             }
@@ -175,9 +174,9 @@ class type_Class extends type_Key
         if ($error) {
             $this->error = 'Несъществуващ клас';
         }
-
+        
         $this->options = $savedOpt;
-
+        
         return $value;
     }
     

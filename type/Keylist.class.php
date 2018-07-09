@@ -1,30 +1,28 @@
 <?php
 
 
-
-
 /**
  * Клас  'type_Keylist' - Списък от ключове към редове от MVC модел
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Keylist extends core_Type
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
     public $dbFieldType = 'text';
     
-
+    
     /**
      * Тук записваме само числа
      */
@@ -38,7 +36,7 @@ class type_Keylist extends core_Type
      */
     public $handler;
     
-
+    
     /**
      * Конструктор. Дава възможност за инициализация
      */
@@ -54,13 +52,14 @@ class type_Keylist extends core_Type
     public function toVerbal_($value)
     {
         static $cache;
-
+        
         if (empty($value)) {
+            
             return;
         }
         
         $value = trim($value);
-
+        
         // Очакваме валиден keylist
         if (preg_match('/^[0-9\\|]*$/', $value)) {
             $div = '|';
@@ -71,19 +70,20 @@ class type_Keylist extends core_Type
         }
         
         $value = trim($value, $div);
-
+        
         $vals = explode($div, $value);
         
         $mvc = cls::get($this->params['mvc']);
-       
+        
         $ids = str_replace($div, ',', $value);
         
         if ($ids) {
             if (($res = $cache[$mvc->className][$ids]) === null) {
                 $query = $mvc->getQuery();
+                
                 //$query->where("#id IN ($ids)");
                 //while($query->fetchAndCache()) {}
- 
+                
                 foreach ($vals as $v) {
                     if ($v) {
                         $name = $this->getVerbal($v);
@@ -107,7 +107,7 @@ class type_Keylist extends core_Type
                         $res .= ($res ? $delimeter : '') . $name;
                     }
                 }
-
+                
                 $cache[$mvc->className][$ids] = $res;
             }
         }
@@ -152,6 +152,7 @@ class type_Keylist extends core_Type
     /**
      * Ако получи списък, вместо keylist, и в същото време
      * има select = конкретно поле от и mvc
+     *
      * @todo: да се направи конвертирането
      */
     public function toMysql($value, $db, $notNull, $defValue)
@@ -185,7 +186,7 @@ class type_Keylist extends core_Type
         if (!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
-
+        
         if ($value === null) {
             $emptyValue = true;
         }
@@ -202,7 +203,7 @@ class type_Keylist extends core_Type
         // Определяме броя на колоните, ако не са зададени.
         $maxChars = $this->params['maxChars'];
         $col = self::getCol((array) $this->suggestions, $maxChars);
-      
+        
         $i = 0;
         $html = '';
         $trOpen = false;
@@ -219,7 +220,7 @@ class type_Keylist extends core_Type
             
             $groupOpen = 0;
             $addKeylistWide = false;
-
+            
             if (count($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
@@ -243,7 +244,7 @@ class type_Keylist extends core_Type
                     if ($groupOpen) {
                         $html .= '</table></td>';
                     }
-                   
+                    
                     $minusUrl = sbf('img/16/toggle2.png', '');
                     $minusImg = ht::createElement('img', array('src' => $minusUrl,  'class' => 'btns-icon minus'));
                     
@@ -261,7 +262,7 @@ class type_Keylist extends core_Type
                     
                     // Ако е вдигнат флага, за отваряне на група
                     if ($v->autoOpen) {
-                    
+                        
                         // Добавяме класа за отворена група
                         $class .= ' group-autoOpen';
                     }
@@ -270,7 +271,7 @@ class type_Keylist extends core_Type
                     
                     $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group noSelect'><div>" . $checkImg  . $uncheckImg . "<span class='invertTitle'>". $v->title . '</span>' .  $plusImg . $minusImg . '</div></td></tr>' .
                         "<tr><td><table class='inner-keylist'>";
-                  
+                    
                     $groupOpen = 1;
                     $haveChecked = false;
                     $i = 0;
@@ -298,12 +299,12 @@ class type_Keylist extends core_Type
                     }
                     
                     $v = type_Varchar::escape($v);
-
+                    
                     list(, $uId) = explode('_', $key);
                     if ($this->info[$uId]) {
                         $v = "<span class='profile-state'>" . $v . '</span>';
                     }
- 
+                    
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if ($i == 0 && $j > 0) {
@@ -336,9 +337,9 @@ class type_Keylist extends core_Type
                 $url = array($mvc, 'list');
                 $title = ht::createLink($title, $url, false, 'style=font-weight:bold;');
             }
-
+            
             $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
-
+            
             $html = "<span class='{$cssClass}'>{$msg} {$title}</div>";
         }
         
@@ -350,11 +351,11 @@ class type_Keylist extends core_Type
         $tpl = HT::createElement('table', $attr, $html);
         jquery_Jquery::run($tpl, 'keylistActions();', true);
         jquery_Jquery::run($tpl, 'checkForHiddenGroups();', true);
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Определяне на броя колонки за чексбоксчетата
      *
@@ -372,7 +373,7 @@ class type_Keylist extends core_Type
                 $maxChars = $maxChars / 2;
             }
         }
- 
+        
         // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
         $i = 0;
         foreach ($options as $key => $v) {
@@ -390,7 +391,7 @@ class type_Keylist extends core_Type
         $max2 = $max[2][0] + $max[2][1] + 4;
         $max3 = $max[3][0] + $max[3][1] + $max[3][2] + 8;
         $max4 = $max[4][0] + $max[4][1] + $max[4][2] + $max[4][3] + 12;
-
+        
         if ($max2 > $maxChars) {
             $col = 1;
         } elseif ($max3 > $maxChars) {
@@ -403,8 +404,8 @@ class type_Keylist extends core_Type
         
         return $col;
     }
-
-
+    
+    
     /**
      * Връща масив със всички предложения за този списък
      */
@@ -413,11 +414,11 @@ class type_Keylist extends core_Type
         if (!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
-
+        
         return $this->suggestions;
     }
-
-
+    
+    
     /**
      * Подготвя предложенията за списъка
      *
@@ -436,7 +437,7 @@ class type_Keylist extends core_Type
             }
             setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
         }
-
+        
         if (!isset($this->suggestions)) {
             $this->suggestions = array();
         }
@@ -446,12 +447,12 @@ class type_Keylist extends core_Type
         if ($select = $this->params['select']) {
             $mvc = &cls::get($this->params['mvc']);
             $query = $mvc->getQuery();
-                
+            
             if ($groupBy = $this->params['groupBy']) {
                 $query->orderBy("#{$groupBy}")
                 ->show($groupBy);
             }
-
+            
             if ($where = $this->params['where']) {
                 $query->where("{$where}");
             }
@@ -459,18 +460,18 @@ class type_Keylist extends core_Type
             if ($orderBy = $this->params['orderBy']) {
                 $query->orderBy("#{$orderBy}", null, 100);
             }
-             
+            
             if ($select != '*') {
                 $query->show($select)
                 ->show('id')
                 ->orderBy($select);
             }
-                
+            
             // Ако имаме метод, за подготвяне на заявката - задействаме го
             if ($onPrepareQuery = $this->params['prepareQuery']) {
                 cls::callFunctArr($onPrepareQuery, array($this, $query));
             }
-                
+            
             // Ако имаме where клауза за сортиране
             if ($where = $this->params['where']) {
                 $query->where($where);
@@ -545,7 +546,7 @@ class type_Keylist extends core_Type
                         $group = $rec->{$groupBy};
                     }
                 }
-                    
+                
                 if ($select != '*') {
                     $this->suggestions[$rec->id] = $mvc->getVerbal($rec, $select);
                 } else {
@@ -572,6 +573,7 @@ class type_Keylist extends core_Type
     public function fromVerbal_($value)
     {
         if (!is_array($value)) {
+            
             return;
         }
         
@@ -598,11 +600,11 @@ class type_Keylist extends core_Type
         $res = '';
         
         if (is_array($value) && !empty($value)) {
-
+            
             // Сортираме ключовете на масива, за да има
             // стринга винаги нормализиран вид - от по-малките към по-големите
             ksort($value);
-
+            
             foreach ($value as $id => $val) {
                 if (empty($id) && empty($val)) {
                     continue;
@@ -669,7 +671,7 @@ class type_Keylist extends core_Type
             
             return strpos($list, '|' . $key . '|') !== false;
         }
-
+        
         return false;
     }
     
@@ -677,8 +679,9 @@ class type_Keylist extends core_Type
     /**
      * Добавя нов ключ към keylist
      *
-     * @param  mixed  $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)
-     * @param  int    $key   ключ за добавяне
+     * @param mixed $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)
+     * @param int   $key   ключ за добавяне
+     *
      * @return string `|key1|key2| ... |key|`
      */
     public static function addKey($klist, $key)
@@ -705,7 +708,7 @@ class type_Keylist extends core_Type
         $klist2Arr = self::toArray($klist2);
         
         $newArr = $klist1Arr + $klist2Arr;
-
+        
         if ($klist3) {
             $newArr += self::toArray($klist3);
         }
@@ -713,7 +716,7 @@ class type_Keylist extends core_Type
         if ($klist4) {
             $newArr += self::toArray($klist4);
         }
-      
+        
         $newKlist = self::fromArray($newArr);
         
         return $newKlist;
@@ -739,13 +742,14 @@ class type_Keylist extends core_Type
         
         return $newKlist;
     }
-
+    
     
     /**
      * Премахва ключ от keylist
      *
-     * @param  mixed  $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)
-     * @param  int    $key   ключ за премахване
+     * @param mixed $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)
+     * @param int   $key   ключ за премахване
+     *
      * @return string `|key1|key2| ... |key|`
      */
     public static function removeKey($klist, $key)
@@ -759,8 +763,8 @@ class type_Keylist extends core_Type
         
         return $klist;
     }
-
-
+    
+    
     /**
      * Връща истина или лъжа за това дали дадения стринг отговаря за синтаксиса на keylist
      */
@@ -771,10 +775,9 @@ class type_Keylist extends core_Type
         } else {
             $res = false;
         }
-
+        
         return $res;
     }
-    
     
     
     /**
@@ -782,7 +785,7 @@ class type_Keylist extends core_Type
      *
      * @param mixed $klist - Масив или klist, който да се проверява
      *
-     * @return boolean - Ако е празен, връщаме истина
+     * @return bool - Ако е празен, връщаме истина
      */
     public static function isEmpty($klist)
     {
@@ -804,7 +807,7 @@ class type_Keylist extends core_Type
      *
      * @param string|array $fArr   - Първият масив/keylist
      * @param string|array $sArr   - Вторият масив/keylist
-     * @param boolean      $useKey - Дали да се използват ключовете за сравнение
+     * @param bool         $useKey - Дали да се използват ключовете за сравнение
      *
      * @return array $arr - Масив с различията
      *               $arr['same'] - без промяна
@@ -834,8 +837,8 @@ class type_Keylist extends core_Type
         
         return $arr;
     }
-
-
+    
+    
     /**
      * Нормализира записа на keylist
      */
@@ -844,7 +847,7 @@ class type_Keylist extends core_Type
         $arr = explode('|', trim($list, '|'));
         asort($arr);
         $list = '|' . implode('|', $arr) . '|';
-
+        
         return $list;
     }
 }

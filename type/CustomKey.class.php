@@ -23,19 +23,18 @@
  * на промените обаче, приемаме по-консервативен подход - клонираме класа type_Key, разработваме
  * и тестваме type_CustomKey и след това интегрираме промените обратно в type_Key.
  *
- *
  * @category  ef
  * @package   type
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_CustomKey extends type_Key
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -46,8 +45,8 @@ class type_CustomKey extends type_Key
      * Дължина на полето в mySql таблица
      */
     public $dbFieldLen = '32';
-
-
+    
+    
     /**
      * Стойност по подразбиране
      */
@@ -87,6 +86,7 @@ class type_CustomKey extends type_Key
     /**
      *
      * @param mixed $keyValue
+     *
      * @return stdClass
      */
     protected function fetchForeignRec($keyValue)

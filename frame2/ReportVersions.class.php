@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за предишни състояния на динамичните справки
  *
  *
  * @category  bgerp
  * @package   frame2
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class frame2_ReportVersions extends core_Detail
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -140,7 +139,8 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Подготвя данните на справката във подходящ формат за сравнение
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return stdClass $obj
      */
     private static function getDataToCompare($rec)
@@ -224,7 +224,7 @@ class frame2_ReportVersions extends core_Detail
         $vId = Request::get('vId', 'int');
         if (empty($vId) || $vId != $data->masterId) {
             $data->render = false;
-
+            
             return;
         }
         
@@ -242,7 +242,7 @@ class frame2_ReportVersions extends core_Detail
             
             return new core_ET('');
         }
-    
+        
         return parent::renderDetail_($data);
     }
     
@@ -277,7 +277,8 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Колко е максималния брой на версиите за пазене
      *
-     * @param  int $reportId - ид на справка
+     * @param int $reportId - ид на справка
+     *
      * @return int $maxKeepHistory  - максимален брой пазения
      */
     private static function getMaxCount($reportId)
@@ -294,7 +295,8 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Поддържа допустимия брой на версиите
      *
-     * @param  int      $reportId
+     * @param int $reportId
+     *
      * @return int|NULL
      */
     public static function keepInCheck($reportId)
@@ -329,7 +331,8 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Коя е последната версия на спавката
      *
-     * @param  int $reportId - ид на справката
+     * @param int $reportId - ид на справката
+     *
      * @return int - ид на последната версия
      */
     public static function getLatestVersionId($reportId)
@@ -346,13 +349,15 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Деселектиране на избраната версия на отчета от сета
      *
-     * @param  int  $reportId
+     * @param int $reportId
+     *
      * @return void
      */
     public static function unSelectVersion($reportId)
     {
         $versionArr = Mode::get(self::PERMANENT_SAVE_NAME);
         if (!isset($versionArr[$reportId])) {
+            
             return;
         }
         
@@ -364,8 +369,9 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Избор на определена версия
      *
-     * @param  int  $reportId  - ид на отчет
-     * @param  int  $versionId - ид на версия
+     * @param int $reportId  - ид на отчет
+     * @param int $versionId - ид на версия
+     *
      * @return void
      */
     public static function checkoutVersion($reportId, $versionId)

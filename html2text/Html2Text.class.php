@@ -1,5 +1,6 @@
 <?php
 
+
 /*************************************************************************
  *                                                                       *
  * class.html2text.inc                                                   *
@@ -44,15 +45,15 @@
  *
  * @category  vendors
  * @package   html2text
+ *
  * @author    Jon Abernathy <jon@chuggnutt.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class html2text_Html2Text
 {
-    
-    
     /**
      * Contains the HTML content to convert.
      *
@@ -74,7 +75,7 @@ class html2text_Html2Text
     /**
      * Maximum width of the formatted text, in columns.
      *
-     * @var integer $width
+     * @var int $width
      * @access public
      */
     public $width = 70;
@@ -86,6 +87,7 @@ class html2text_Html2Text
      *
      * @var array $search
      * @access public
+     *
      * @see $replace
      */
     public $search = array(
@@ -145,6 +147,7 @@ class html2text_Html2Text
      *
      * @var array $replace
      * @access public
+     *
      * @see $search
      */
     public $replace = array(
@@ -261,8 +264,9 @@ class html2text_Html2Text
     /**
      * Indicates whether content in the $html variable has been converted yet.
      *
-     * @var boolean $converted
+     * @var bool $converted
      * @access private
+     *
      * @see $html, $text
      */
     public $_converted = false;
@@ -273,6 +277,7 @@ class html2text_Html2Text
      *
      * @var string $link_list
      * @access private
+     *
      * @see _build_link_list()
      */
     public $_link_list;
@@ -297,9 +302,10 @@ class html2text_Html2Text
      * will instantiate with that source propagated, all that has
      * to be done it to call get_text().
      *
-     * @param string  $source    HTML content
-     * @param boolean $from_file Indicates $source is a file to pull content from
+     * @param string $source    HTML content
+     * @param bool   $from_file Indicates $source is a file to pull content from
      * @access public
+     *
      * @return void
      */
     public function set($source = '', $from_file = false)
@@ -313,9 +319,10 @@ class html2text_Html2Text
     /**
      * Loads source HTML into memory, either from $source string or a file.
      *
-     * @param string  $source    HTML content
-     * @param boolean $from_file Indicates $source is a file to pull content from
+     * @param string $source    HTML content
+     * @param bool   $from_file Indicates $source is a file to pull content from
      * @access public
+     *
      * @return void
      */
     public function set_html($source, $from_file = false)
@@ -336,6 +343,7 @@ class html2text_Html2Text
      * Returns the text, converted from HTML.
      *
      * @access public
+     *
      * @return string
      */
     public function get_text()
@@ -352,6 +360,7 @@ class html2text_Html2Text
      * Prints the text, converted from HTML.
      *
      * @access public
+     *
      * @return void
      */
     public function print_text()
@@ -364,7 +373,9 @@ class html2text_Html2Text
      * Alias to print_text(), operates identically.
      *
      * @access public
+     *
      * @return void
+     *
      * @see print_text()
      */
     public function p()
@@ -382,6 +393,7 @@ class html2text_Html2Text
      * $width characters.
      *
      * @access private
+     *
      * @return void
      */
     public function _convert()
@@ -428,10 +440,11 @@ class html2text_Html2Text
      * text, with numeric indices to the original point in the text they
      * appeared.
      *
-     * @param integer $link_count Counter tracking current link number
-     * @param string  $link       URL of the link
-     * @param string  $display    Part of the text to associate number with
+     * @param int    $link_count Counter tracking current link number
+     * @param string $link       URL of the link
+     * @param string $display    Part of the text to associate number with
      * @access private
+     *
      * @return string
      */
     public function _build_link_list($link_count, $link, $display)
@@ -444,14 +457,14 @@ class html2text_Html2Text
                 
                 return "{[{a href='${display}'}]}${display}{[{/a}]}";
             }
-
+            
             return "{[{a href='${link}'}]}${display}{[{/a}]}" ;
         }
         if (trim($link) == trim($display)) {
             
             return $display;
         }
-
+        
         return $display . ' ' . $link . ' ';
     }
 }

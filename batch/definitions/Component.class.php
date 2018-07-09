@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Базов драйвер за партиден клас 'Символ + цифри'
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title Символи + цифри
  */
 class batch_definitions_Component extends batch_definitions_Proto
 {
-    
-    
     /**
      * Име на полето за партида в документа
      *
@@ -41,10 +40,11 @@ class batch_definitions_Component extends batch_definitions_Proto
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param  string   $value    - стойноста, която ще проверяваме
-     * @param  quantity $quantity - количеството
-     * @param  string   &$msg     -текста на грешката ако има
-     * @return boolean  - валиден ли е кода на партидата според дефиницията или не
+     * @param string   $value    - стойноста, която ще проверяваме
+     * @param quantity $quantity - количеството
+     * @param string   &$msg     -текста на грешката ако има
+     *
+     * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
     public function isValid($value, $quantity, &$msg)
     {
@@ -60,7 +60,7 @@ class batch_definitions_Component extends batch_definitions_Proto
         $parts = explode($delimiter, $value);
         if (count($parts) != 2) {
             $msg = "Партидата трябва да съдържа '{$delimiter}'";
-
+            
             return false;
         }
         
@@ -89,14 +89,15 @@ class batch_definitions_Component extends batch_definitions_Proto
     /**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      *
-     * @param  string $value
+     * @param string $value
+     *
      * @return string $value
      */
     public function normalize($value)
     {
         $delimiter = html_entity_decode($this->rec->delimiter);
         $value = str_replace($delimiter, '|', $value);
-    
+        
         return ($value == '') ? null : $value;
     }
     
@@ -116,11 +117,12 @@ class batch_definitions_Component extends batch_definitions_Proto
     /**
      * Какви са свойствата на партидата
      *
-     * @param  string $value - номер на партидара
-     * @return array  - свойства на партидата
-     *                      o name    - заглавие
-     *                      o classId - клас
-     *                      o value   - стойност
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               o name    - заглавие
+     *               o classId - клас
+     *               o value   - стойност
      */
     public function getFeatures($value)
     {

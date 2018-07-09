@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Банкови сметки на фирмата
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_OwnAccounts extends core_Master
 {
-    
-    
     /**
      * Да се създаде папка при създаване на нов запис
      */
@@ -181,7 +180,7 @@ class bank_OwnAccounts extends core_Master
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-    
+        
         $this->setDbUnique('title');
     }
     
@@ -203,7 +202,7 @@ class bank_OwnAccounts extends core_Master
                 if ($balRec = acc_Balances::getLastBalance()) {
                     $bQuery = acc_BalanceDetails::getQuery();
                     acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, null, $bankItem->id);
-                     
+                    
                     // Събираме ги да намерим крайното салдо на перото
                     while ($bRec = $bQuery->fetch()) {
                         $rec->blAmount += $bRec->blAmount;
@@ -247,6 +246,7 @@ class bank_OwnAccounts extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         if (!count($data->rows)) {
+            
             return;
         }
         
@@ -325,7 +325,8 @@ class bank_OwnAccounts extends core_Master
      * Проверка дали може да се добавя банкова сметка в ownAccounts(Ако броя
      * на собствените сметки отговаря на броя на сметките на Моята компания в
      * bank_Accounts то не можем да добавяме нова сметка от този мениджър
-     * @return boolean TRUE/FALSE - можем ли да добавяме нова сметка
+     *
+     * @return bool TRUE/FALSE - можем ли да добавяме нова сметка
      */
     public function canAddOwnAccount()
     {
@@ -365,7 +366,7 @@ class bank_OwnAccounts extends core_Master
             
             return false;
         }
-
+        
         $acc = bank_Accounts::fetch($ownAcc->bankAccountId);
         $acc->currencyCode = currency_Currencies::getCodeById($acc->currencyId);
         expect($acc, $ownAcc);
@@ -411,7 +412,7 @@ class bank_OwnAccounts extends core_Master
                 // Проверка дали вече нямаме наша сметка с този IBAN
                 if (self::fetchField("#bankAccountId = '{$accountRec->id}'")) {
                     $form->setError('iban', 'Вече има наша сметка с този|* IBAN');
-
+                    
                     return;
                 }
                 
@@ -420,7 +421,7 @@ class bank_OwnAccounts extends core_Master
                 if (!empty($accountRec)) {
                     if ($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId) {
                         $form->setError('iban', 'Подадения IBAN принадлежи на чужда сметка');
-
+                        
                         return;
                     }
                 }
@@ -443,11 +444,12 @@ class bank_OwnAccounts extends core_Master
     /**
      * Добавя нова наша сметка
      *
-     * @param  string $iban
-     * @param  int    $currencyId
-     * @param  string $bank
-     * @param  string $bic
-     * @return int    $accId
+     * @param string $iban
+     * @param int    $currencyId
+     * @param string $bank
+     * @param string $bic
+     *
+     * @return int $accId
      */
     private function addNewAccount($iban, $currencyId, $bank, $bic)
     {
@@ -483,6 +485,7 @@ class bank_OwnAccounts extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
+     *
      * @param int $objectId
      */
     public static function getItemRec($objectId)
@@ -505,6 +508,7 @@ class bank_OwnAccounts extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -545,6 +549,7 @@ class bank_OwnAccounts extends core_Master
     /**
      * Подготвя и осъществява търсене по банка, изпозлва се
      * в банковите документи
+     *
      * @param stdClass $data
      * @param array    $fields - масив от полета в полета в които ще се
      *                         търси по bankId

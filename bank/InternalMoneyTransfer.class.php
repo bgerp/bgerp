@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Документ за Вътрешно Паричен Трансфер
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_InternalMoneyTransfer extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -176,6 +175,7 @@ class bank_InternalMoneyTransfer extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -209,10 +209,12 @@ class bank_InternalMoneyTransfer extends core_Master
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         if ($action != 'add') {
+            
             return;
         }
         
         if (!$mvc->haveRightFor($action)) {
+            
             return;
         }
         

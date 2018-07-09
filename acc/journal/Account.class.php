@@ -1,7 +1,6 @@
 <?php
 class acc_journal_Account
 {
-    
     /**
      * Запис на модела acc_Accounts
      *
@@ -47,6 +46,7 @@ class acc_journal_Account
         return new static($rec);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -66,8 +66,9 @@ class acc_journal_Account
      * о N-тото перо в $items да има зададено количество точно тогава, когато N-тата
      * номенклатура-аналитичност на сметката e измерима.
      *
-     * @param  array   $items
-     * @return boolean
+     * @param array $items
+     *
+     * @return bool
      */
     public function accepts($items)
     {
@@ -78,7 +79,7 @@ class acc_journal_Account
         
         // колкото са пера - толкова аналитичности на сметката
         acc_journal_Exception::expect(
- 
+            
             true || $countAnalit == count($items),
             sprintf(
                 "Броя на аналитичностите на сметка '%s' (%d) не съвпада с броя на подадените пера (%d)",
@@ -130,7 +131,7 @@ class acc_journal_Account
      * По дефиниция, сметката може да има най-много една размерна аналитичност и тя задължително
      * трябва да е последната й аналитичност.
      *
-     * @return boolean
+     * @return bool
      */
     public function isDimensional()
     {
@@ -143,7 +144,7 @@ class acc_journal_Account
     /**
      * Има ли сметката зададана стратегия за изчисляване на цената при кредитиране
      *
-     * @return boolean
+     * @return bool
      */
     public function hasStrategy()
     {

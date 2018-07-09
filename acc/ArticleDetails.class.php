@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на детайли на Мемориален ордер
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_ArticleDetails extends doc_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -46,7 +45,7 @@ class acc_ArticleDetails extends doc_Detail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума, reason=Информация';
- 
+    
     
     /**
      * Активен таб
@@ -111,9 +110,9 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('reason', 'varchar', 'caption=Информация');
         
         $this->FLD(
-        
+            
             'debitAccId',
-        
+            
             'acc_type_Account(remember,allowEmpty)',
             'caption=Дебит->Сметка и пера,mandatory,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount,tdClass=articleCell,silent'
         
@@ -125,9 +124,9 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD(
-        
+            
             'creditAccId',
-        
+            
             'acc_type_Account(remember,allowEmpty)',
             'caption=Кредит->Сметка и пера,mandatory,tdClass=articleCell,removeAndRefreshForm=creditEnt1|creditEnt2|creditEnt3|creditQuantity|creditPrice|amount,silent'
         
@@ -210,7 +209,7 @@ class acc_ArticleDetails extends doc_Detail
         }
         
         $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
-         
+        
         $quantityOnly = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
         ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
         
@@ -238,7 +237,7 @@ class acc_ArticleDetails extends doc_Detail
                 if ($masterRec->useCloseItems == 'yes') {
                     $form->getField("{$type}Ent{$i}")->type->params['showAll'] = true;
                 }
-               
+                
                 // Ако номенклатурата има интерфейс
                 if (!empty($list->rec->regInterfaceId)) {
                     
@@ -320,6 +319,7 @@ class acc_ArticleDetails extends doc_Detail
     protected static function on_AfterInputEditForm($mvc, $form)
     {
         if (!$form->isSubmitted()) {
+            
             return;
         }
         
@@ -392,6 +392,7 @@ class acc_ArticleDetails extends doc_Detail
                     $rec->{"{$type}Amount"} = $rec->amount;
                 }
             }
+            
             
             /**
              * Проверка дали debitAmount == debitAmount

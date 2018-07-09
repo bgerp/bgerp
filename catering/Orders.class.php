@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Поръчки на храна
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_Orders extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -40,7 +39,7 @@ class catering_Orders extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'requestId, companyId';
-
+    
     
     /**
      * Права
@@ -244,8 +243,8 @@ class catering_Orders extends core_Master
         // ENDOF Prepare render table
         
         $data->toolbar->addBtn('Назад', array('Ctr' => $this,
-                'Act' => 'list',
-                'ret_url' => true));
+            'Act' => 'list',
+            'ret_url' => true));
         
         // Поставяме toolbar-а
         // $tpl->append($mvc->renderSingleToolbar($data), 'SingleToolbar');

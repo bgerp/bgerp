@@ -7,15 +7,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Upload extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -26,7 +26,6 @@ class fileman_Upload extends core_Manager
      * Заглавие
      */
     public $title = 'Качвания на файлове';
-    
     
     
     public $canAdd = 'every_one';
@@ -169,7 +168,7 @@ class fileman_Upload extends core_Manager
     /**
      * Връща линк към подадения обект
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */
@@ -212,7 +211,7 @@ class fileman_Upload extends core_Manager
                     <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
                 </div>
             </form>');
-
+        
         $currUrl = getCurrentUrl();
         $currUrl['Upload'] = '1';
         $currUrl['ajax_mode'] = '1';

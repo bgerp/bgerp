@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'cat_UoM' - мерни единици и опаковки
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_UoM extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -27,8 +26,8 @@ class cat_UoM extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'packEdit, ceo, sales, purchase';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -39,26 +38,26 @@ class cat_UoM extends core_Manager
      * Кой може сменя състоянието
      */
     public $canChangestate = 'cat, ceo';
-
+    
     
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'cat, ceo';
-
+    
     
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'cat, ceo';
-  
-
+    
+    
     /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'cat,ceo';
- 
-
+    
+    
     /**
      * Заглавие
      */
@@ -88,13 +87,13 @@ class cat_UoM extends core_Manager
      */
     public $canEditsysdata = 'cat,ceo';
     
-
+    
     /**
      * Шаблон за заглавието
      */
     public $recTitleTpl = '[#shortName#]';
     
-
+    
     /**
      * Работен кеш
      */
@@ -156,7 +155,7 @@ class cat_UoM extends core_Manager
     public static function getUomOptions()
     {
         $options = cls::get(get_called_class())->makeArray4Select('name', "#type = 'uom' AND state NOT IN ('closed')");
-         
+        
         return $options;
     }
     
@@ -184,9 +183,10 @@ class cat_UoM extends core_Manager
      * ф-я закръгляща к-то в подадената опаковка, ако к-то е много-малко или много
      * голямо и има по точна мярка се закръгля към нея
      *
-     * @param  int    $uomId
-     * @param  double $quantity
-     * @return double $res
+     * @param int   $uomId
+     * @param float $quantity
+     *
+     * @return float $res
      */
     public static function round(&$uomId, $quantity)
     {
@@ -242,7 +242,8 @@ class cat_UoM extends core_Manager
     
     /**
      * Конвертира стойност от една мярка към основната и
-     * @param double amount - стойност
+     *
+     * @param float amount - стойност
      * @param int $unitId - ид на мярката
      */
     public static function convertToBaseUnit($amount, $unitId)
@@ -263,7 +264,8 @@ class cat_UoM extends core_Manager
     
     /**
      * Конвертира стойност от основната мярка на дадена мярка
-     * @param double amount - стойност
+     *
+     * @param float amount - стойност
      * @param int $unitId - ид на мярката
      */
     public static function convertFromBaseUnit($amount, $unitId)
@@ -286,9 +288,10 @@ class cat_UoM extends core_Manager
      * Функция връщащи масив от всички мерки които са сродни
      * на посочената мярка (примерно за грам това са : килограм, тон и др)
      *
-     * @param  int     $measureId
-     * @param  boolean $short
-     * @return array   $options
+     * @param int  $measureId
+     * @param bool $short
+     *
+     * @return array $options
      */
     public static function getSameTypeMeasures($measureId, $short = false)
     {
@@ -313,8 +316,8 @@ class cat_UoM extends core_Manager
         
         return $options;
     }
-
-
+    
+    
     /**
      * Връща, (ако има) мярка, която е в отношение ratio спрямо текущата
      */
@@ -343,10 +346,11 @@ class cat_UoM extends core_Manager
     /**
      * Функция която конвертира стойност от една мярка в друга сродна мярка
      *
-     * @param  double       $value - Стойноста за конвертиране
-     * @param  int          $from  - Id на мярката от която ще обръщаме
-     * @param  int          $to    - Id на мярката към която конвертираме
-     * @return FALSE|double - Конвертираната стойност или FALSE ако мерките са от различен тип
+     * @param float $value - Стойноста за конвертиране
+     * @param int   $from  - Id на мярката от която ще обръщаме
+     * @param int   $to    - Id на мярката към която конвертираме
+     *
+     * @return FALSE|float - Конвертираната стойност или FALSE ако мерките са от различен тип
      */
     public static function convertValue($value, $from, $to)
     {
@@ -355,13 +359,13 @@ class cat_UoM extends core_Manager
         } else {
             $fromRec = static::fetch($from);
         }
-
+        
         if (is_string($to) && !is_numeric($to)) {
             $toRec = self::fetchBySinonim($to);
         } else {
             $toRec = static::fetch($to);
         }
-       
+        
         expect($fromRec, "Неразпозната мярка: {$from}", $fromRec);
         expect($toRec, "Неразпозната мярка: {$to}", $toRec);
         
@@ -385,7 +389,8 @@ class cat_UoM extends core_Manager
     /**
      * Връща краткото име на мярката
      *
-     * @param  int    $id - ид на мярка
+     * @param int $id - ид на мярка
+     *
      * @return string - краткото име на мярката
      */
     public static function getShortName($id)
@@ -444,7 +449,9 @@ class cat_UoM extends core_Manager
     
     /**
      * Връща мерна еденициа по систем ид
-     * @param  string   $sysId - sistem Id
+     *
+     * @param string $sysId - sistem Id
+     *
      * @return stdClass $rec - записа отговарящ на сис ид-то
      */
     public static function fetchBySysId($sysId)
@@ -463,7 +470,8 @@ class cat_UoM extends core_Manager
      * Връща запис отговарящ на име на мерна единица
      * (включва българско, английско или фонетично записване)
      *
-     * @param  string   $unit - дума по която се търси
+     * @param string $unit - дума по която се търси
+     *
      * @return stdClass $rec - записа отговарящ на сис Ид-то
      */
     public static function fetchBySinonim($unit)
@@ -486,11 +494,13 @@ class cat_UoM extends core_Manager
     /**
      * Помощна ф-я правеща умно закръгляне на сума в най-оптималната близка
      * мерна единица от същия тип
-     * @param  double  $val      - сума за закръгляне
-     * @param  string  $sysId    - системно ид на мярка
-     * @param  boolean $verbal   - дали да са вербални числата
-     * @param  boolean $asObject - да се върне обект със стойност, мярка или като стринг
-     * @return string  - закръглената сума с краткото име на мярката
+     *
+     * @param float  $val      - сума за закръгляне
+     * @param string $sysId    - системно ид на мярка
+     * @param bool   $verbal   - дали да са вербални числата
+     * @param bool   $asObject - да се върне обект със стойност, мярка или като стринг
+     *
+     * @return string - закръглената сума с краткото име на мярката
      */
     public static function smartConvert($val, $sysId, $verbal = true, $asObject = false)
     {
@@ -503,7 +513,7 @@ class cat_UoM extends core_Manager
         // Извличат се мерките от същия тип и се премахва празния елемент в масива
         $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
         unset($sameMeasures['']);
-       
+        
         if ($sysId == 'l') {
             $sameMeasures = array();
             $sameMeasures[$typeUom->id] = $typeUom->name;
@@ -523,7 +533,7 @@ class cat_UoM extends core_Manager
         foreach ($sameMeasures as $mId => $name) {
             $all[$mId] = cat_UoM::convertFromBaseUnit($val, $mId);
         }
-       
+        
         // Сумите се пдореждат в възходящ ред
         asort($all);
         
@@ -556,7 +566,7 @@ class cat_UoM extends core_Manager
         
         $data->toolbar->removeBtn('btnAdd');
         $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => $type), "ef_icon=img/16/star_2.png,title=Добавяне на нова {$title}");
-    
+        
         if (!haveRole('debug')) {
             unset($data->listFields['sysId']);
         }
@@ -594,7 +604,7 @@ class cat_UoM extends core_Manager
     {
         // Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
         if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
-    
+            
             // Променяма да сочи към single-a
             $data->retUrl = toUrl(array('cat_UoM', 'list', 'type' => $data->form->rec->type));
         }
@@ -637,8 +647,9 @@ class cat_UoM extends core_Manager
     /**
      * Дали мярката е тегловна (грам, килограм, тон и т.н.)
      *
-     * @param  int     $uomId
-     * @return boolean
+     * @param int $uomId
+     *
+     * @return bool
      */
     public static function isWeightMeasure($uomId)
     {

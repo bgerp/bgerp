@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'cal_Wrapper'
  *
@@ -10,16 +9,16 @@
  *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cal_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
@@ -40,12 +39,13 @@ class cal_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('cal_Calendar', 'year',  'from' => $from), 'Календар->Година', 'powerUser,admin');
         
         $this->TAB('cal_Tasks', 'Задачи', 'admin,doc,powerUser');
+        
         //$this->TAB('cal_TaskConditions', 'Задачи', 'admin,doc,powerUser');
         $this->TAB('cal_Reminders', 'Напомняния', 'powerUser');
         $this->TAB('cal_Holidays', 'Празници', 'admin');
         $this->TAB('cal_Test', 'Тест', 'debuger');
         
-       
+        
         $this->title = 'Календар';
     }
 }

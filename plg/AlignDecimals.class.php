@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Подравняване на десетични числа, според зададени в типа type_Double на минималния и максималния брой цифри след запетаята
  *
@@ -17,16 +16,16 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      https://github.com/bgerp/ef/issues/6
  */
 class plg_AlignDecimals extends core_Plugin
 {
-    
-    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -41,6 +40,7 @@ class plg_AlignDecimals extends core_Plugin
         
         // Ако няма никакви записи - нищо не правим
         if (!count($recs)) {
+            
             return;
         }
         
@@ -70,7 +70,7 @@ class plg_AlignDecimals extends core_Plugin
                 $type = clone($field->type);
                 $type->params['decimals'] = $optDecimals;
                 unset($type->params['smartRound']);
-              
+                
                 foreach ($recs as $i => $rec) {
                     $rows[$i]->{$name} = str_replace(strip_tags($rows[$i]->{$name}), $type->toVerbal($rec->{$name}), $rows[$i]->{$name});
                 }

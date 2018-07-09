@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'plg_LastUsedKeys' - Кога за последно са използвани ключовете
  *
@@ -13,16 +12,16 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_LastUsedKeys extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */

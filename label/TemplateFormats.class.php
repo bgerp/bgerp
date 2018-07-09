@@ -7,20 +7,19 @@
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_TemplateFormats extends core_Detail
 {
-    
-    
     /**
      * Заглавие на модела
      */
     public $title = 'Формати за параметрите';
-    
     
     
     public $singleTitle = 'Формати';
@@ -62,9 +61,7 @@ class label_TemplateFormats extends core_Detail
     public $masterKey = 'templateId';
     
     
-    
     public $listFields = 'type, placeHolder, formatParams';
-    
     
     
     public $rowToolsField = 'type';
@@ -105,10 +102,11 @@ class label_TemplateFormats extends core_Detail
     /**
      * Добавяне на параметър към шаблон за етикети, или обновяване на съществуващ
      *
-     * @param  int        $templateId  - ид на шаблона
-     * @param  string     $placeholder - име на плейсхолдъра
-     * @param  string     $type        - тип на параметъра (caption, counter, image, html, barcode)
-     * @param  array|NULL $params      - допълнителни параметри
+     * @param int        $templateId  - ид на шаблона
+     * @param string     $placeholder - име на плейсхолдъра
+     * @param string     $type        - тип на параметъра (caption, counter, image, html, barcode)
+     * @param array|NULL $params      - допълнителни параметри
+     *
      * @return int
      */
     public static function addToTemplate($templateId, $placeholder, $type, $params = null)
@@ -173,11 +171,11 @@ class label_TemplateFormats extends core_Detail
             
             // URL за добавяне
             $captionUrl = $counterUrl = $imageUrl = $htmlUrl = $barcodeUrl = array(
-                    $mvc,
-                    'add',
-                    $masterKey => $data->masterId,
-                    'ret_url' => true
-                );
+                $mvc,
+                'add',
+                $masterKey => $data->masterId,
+                'ret_url' => true
+            );
             
             // URL за добавяне на шаблон за надпис
             $captionUrl['type'] = 'caption';
@@ -374,7 +372,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Връща масив с добаваните плейсхолдери за дадания шаблон
      *
-     * @param integer $templateId - id на шаблона
+     * @param int $templateId - id на шаблона
      *
      * @return array - Масив с добавените стойности
      */
@@ -460,12 +458,14 @@ class label_TemplateFormats extends core_Detail
         switch ($type) {
             // Ако е плейсхолдер
             case 'caption':
+                
                 // Максимална дължина на символите
                 $form->FNC('MaxLength', 'int(min=1, max=500)', 'caption=Макс. символи, input=input');
             break;
             
             // Ако е брояч
             case 'counter':
+                
                 // Кой брояч да се използва
                 $form->FNC('CounterId', 'key(allowEmpty, mvc=label_Counters, select=name, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'caption=Брояч, input=input');
                 
@@ -498,6 +498,7 @@ class label_TemplateFormats extends core_Detail
             break;
             
             case 'image':
+                
                 // Широчина на изображението
                 $form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px, mandatory');
                 
@@ -509,11 +510,13 @@ class label_TemplateFormats extends core_Detail
             break;
             
             case 'html':
+                
                 // Максимална дължина на символите
                 $form->FNC('MaxLength', 'int(min=1, max=5000)', 'caption=Макс. символи, input=input');
             break;
             
             case 'barcode':
+                
                 // Вземаем всички баркодове, които можем да генерираме
                 $barcodesArr = barcode_Generator::getAllowedBarcodeTypesArr();
                 $barcodesArr = array('' => '') + $barcodesArr;
@@ -543,7 +546,7 @@ class label_TemplateFormats extends core_Detail
      * Добавя функционални полета към подадената форма, за всички детайли към мастер
      *
      * @param core_Form $form     - Формата
-     * @param integer   $masterId - id на мастер
+     * @param int       $masterId - id на мастер
      */
     public static function addFieldForTemplate(&$form, $masterId)
     {
@@ -571,6 +574,7 @@ class label_TemplateFormats extends core_Detail
             
             // Заглавието на полета
             $caption = 'Параметри->' . $placeHolder;
+            
             // Ако е image
             if ($rec->type == 'image') {
                 
@@ -595,11 +599,11 @@ class label_TemplateFormats extends core_Detail
                 
                 // Ако е зададена максимална дължина
                 if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
-                
+                    
                     // Задаваме стрингов тип с максимална дължина
                     $type = "html({$maxLength})";
                 } else {
-                
+                    
                     // Типа без максимална дължина
                     $type = 'html';
                 }
@@ -628,7 +632,6 @@ class label_TemplateFormats extends core_Detail
      * Може да се дублира с FLD полетата.
      *
      * @param string $placeHolder - Името на плейсхолдера
-     *
      * @param string - Новото име на плейсхолдера
      */
     public static function getPlaceholderFieldName($placeHolder)
@@ -640,11 +643,11 @@ class label_TemplateFormats extends core_Detail
     /**
      * Връща вербалното представаня на данните за плейсхолдера
      *
-     * @param integer $templateId     - id на шаблона
-     * @param string  $place          - Името на плейсхолдера
-     * @param string  $val            - Вербалната стойност
-     * @param string  $printId        - id на етикета
-     * @param boolean $updateTempData - Ако е FALSE, при вземане на данните да не се обновяват стойностите им в модела
+     * @param int    $templateId     - id на шаблона
+     * @param string $place          - Името на плейсхолдера
+     * @param string $val            - Вербалната стойност
+     * @param string $printId        - id на етикета
+     * @param bool   $updateTempData - Ако е FALSE, при вземане на данните да не се обновяват стойностите им в модела
      *
      * @return string - Вербалното представяне на стойността
      */
@@ -795,7 +798,7 @@ class label_TemplateFormats extends core_Detail
                 }
             }
         } elseif ($type == 'html') {
-        
+            
             // Стринга, който ще се използва в масива за ключ
             $valStr = $val . '|' . $updateTempData;
             
@@ -861,7 +864,7 @@ class label_TemplateFormats extends core_Detail
             // Добавяме в полето
             $row->formatParams .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
         }
-       
+        
         // Инстанция на мастера
         $Master = $mvc->Master;
         
@@ -913,7 +916,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Активира използваните броячи в шаблоните
      *
-     * @param integer $templateId - id на шаблона
+     * @param int $templateId - id на шаблона
      */
     public static function activateCounters($templateId)
     {

@@ -1,23 +1,23 @@
 <?php
 
 
-
 /**
  * Клас 'batch_plg_DocumentActions' - За генериране на партидни движения от документите
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @todo да се разработи
  */
 class batch_plg_DocumentMovement extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -59,6 +59,7 @@ class batch_plg_DocumentMovement extends core_Plugin
         if ($rec->state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {
                 if (isset($saveFileds)) {
+                    
                     return;
                 }
             }

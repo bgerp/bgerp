@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * class findeals_Setup
  *
@@ -9,15 +10,15 @@
  *
  * @category  bgerp
  * @package   findeals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class findeals_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -52,32 +53,32 @@ class findeals_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'findeals_Deals',
-            'findeals_AdvanceDeals',
-            'findeals_DebitDocuments',
-            'findeals_CreditDocuments',
-            'findeals_ClosedDeals',
-            'findeals_AdvanceReports',
-            'findeals_AdvanceReportDetails',
-        );
-
-        
+        'findeals_Deals',
+        'findeals_AdvanceDeals',
+        'findeals_DebitDocuments',
+        'findeals_CreditDocuments',
+        'findeals_ClosedDeals',
+        'findeals_AdvanceReports',
+        'findeals_AdvanceReportDetails',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('pettyCashReport'),
-            array('findeals', 'pettyCashReport,seePrice'),
-            array('findealsMaster', 'findeals'),
+        array('pettyCashReport'),
+        array('findeals', 'pettyCashReport,seePrice'),
+        array('findealsMaster', 'findeals'),
     );
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', 'findeals, ceo, acc'),
-        );
+        array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', 'findeals, ceo, acc'),
+    );
     
     
     /**

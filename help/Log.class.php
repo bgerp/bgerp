@@ -1,6 +1,5 @@
 <?php 
 
-
 // Игнориране на затварянето на модул "Help"
 defIfNot('BGERP_DEMO_MODE', false);
 
@@ -11,15 +10,15 @@ defIfNot('BGERP_DEMO_MODE', false);
  *
  * @category  bgerp
  * @package   help
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class help_Log extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -30,7 +29,7 @@ class help_Log extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Лог';
-
+    
     
     /**
      * Разглеждане на листов изглед
@@ -44,7 +43,6 @@ class help_Log extends core_Master
     public $loadList = 'help_Wrapper, plg_RowTools2';
     
     
-   
     /**
      * Полета за листовия изглед
      */
@@ -55,13 +53,13 @@ class help_Log extends core_Master
      * Кой има право да чете?
      */
     public $canRead = 'user';
-        
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
-
+    
     
     /**
      * Описание на модела
@@ -73,7 +71,7 @@ class help_Log extends core_Master
         $this->FLD('seeOn', 'datetime', 'caption=Видяно->На, hint=Кога за първи път е видяно');
         $this->FLD('seeCnt', 'int', 'caption=Видяно->Брой, hint=Колко пъти е видяно');
         $this->FLD('closedOn', 'datetime', 'caption=Затворено->На, hint=Кога е затворено');
-
+        
         $this->setDbUnique('userId,infoId');
     }
     
@@ -83,20 +81,19 @@ class help_Log extends core_Master
      */
     public static function getDisplayMode($infoId, $userId = null, $increasSeeCnt = true)
     {
-
         // Ако нямаме потребител, вземаме текущия
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
-
+        
         if (!$userId) {
             
             return 'none';
         }
-
+        
         $nowDate = dt::now();
         $conf = core_Packs::getConfig('help');
-
+        
         $rec = help_Log::fetch("#infoId = {$infoId} AND (#userId = {$userId})");
         if (!$rec) {
             $rec = new stdClass();
@@ -106,7 +103,7 @@ class help_Log extends core_Master
             $rec->seeCnt = 0;
             $rec->closedOn = null;
         }
-
+        
         if ($rec->seeCnt < max($conf->HELP_MAX_CLOSE_DISPLAY_CNT, $conf->HELP_MAX_OPEN_DISPLAY_CNT)) {
             if ($increasSeeCnt) {
                 $rec->seeCnt++;
@@ -133,7 +130,7 @@ class help_Log extends core_Master
                 
                 return 'open';
             }
-                
+            
             return 'close';
         }
         
@@ -142,6 +139,7 @@ class help_Log extends core_Master
             
             return 'open';
         }
+        
         // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
         // връщаме 'none'
         return 'none';
@@ -155,7 +153,7 @@ class help_Log extends core_Master
     {
         // За кой клас се отнася
         $id = core_Request::get('id', 'int');
-
+        
         // днешната дата
         $nowDate = dt::now();
         

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на ресурсите свързани с обекти
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_ObjectResources extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -161,7 +160,8 @@ class planning_ObjectResources extends core_Manager
     /**
      * Опции за избиране на всички артикули, като които може да се използва артикула за влагане
      *
-     * @param  int   $measureId - ид на мярка
+     * @param int $measureId - ид на мярка
+     *
      * @return array $products - опции за избор на артикули
      */
     private function getAvailableSimilarProducts($measureId, $productId)
@@ -184,7 +184,7 @@ class planning_ObjectResources extends core_Manager
     {
         if (!haveRole('ceo,planning')) {
             $data->notConvertableAnymore = true;
-
+            
             return;
         }
         
@@ -201,6 +201,7 @@ class planning_ObjectResources extends core_Manager
         }
         
         if (!(count($data->rows) || isset($pInfo->meta['canConvert']))) {
+            
             return;
         }
         
@@ -223,6 +224,7 @@ class planning_ObjectResources extends core_Manager
     {
         // Ако няма записи и вече не е вложим да не се показва
         if (!count($data->rows) && $data->notConvertableAnymore) {
+            
             return;
         }
         
@@ -249,8 +251,8 @@ class planning_ObjectResources extends core_Manager
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -270,7 +272,7 @@ class planning_ObjectResources extends core_Manager
                 }
             }
         }
-         
+        
         // За да се добави ресурс към обект, трябва самия обект да може да има ресурси
         if ($action == 'add' && isset($rec)) {
             if ($mvc->fetch("#objectId = {$rec->objectId}")) {
@@ -298,12 +300,14 @@ class planning_ObjectResources extends core_Manager
     /**
      * Връща себестойността на материала
      *
-     * @param  int    $objectId - ид на артикула - материал
-     * @return double $selfValue - себестойността му
+     * @param int $objectId - ид на артикула - материал
+     *
+     * @return float $selfValue - себестойността му
      */
     public static function getSelfValue($objectId, $quantity = 1, $date = null)
     {
         if (empty($objectId)) {
+            
             return;
         }
         
@@ -315,9 +319,9 @@ class planning_ObjectResources extends core_Manager
             if (!$date) {
                 $date = dt::now();
             }
-                
+            
             $pInfo = cat_Products::getProductInfo($objectId);
-                
+            
             // Ако артикула е складируем взимаме среднопритеглената му цена от склада
             if (isset($pInfo->meta['canStore'])) {
                 $selfValue = cat_Products::getWacAmountInStore($quantity, $objectId, $date);
@@ -333,10 +337,11 @@ class planning_ObjectResources extends core_Manager
     /**
      * Връща среднопритеглената цена на артикула в сметката на незавършеното производство
      *
-     * @param  int    $quantity - к-во
-     * @param  int    $objectId - ид на артикул
-     * @param  date   $date     - към коя дата
-     * @return double $selfValue - среднопритеглената цена
+     * @param int  $quantity - к-во
+     * @param int  $objectId - ид на артикул
+     * @param date $date     - към коя дата
+     *
+     * @return float $selfValue - среднопритеглената цена
      */
     public static function getWacAmountInProduction($quantity, $objectId, $date)
     {
@@ -358,8 +363,9 @@ class planning_ObjectResources extends core_Manager
     /**
      * Намира еквивалентите за влагане артикули на даден артикул
      *
-     * @param  int   $likeProductId - на кой артикул му търсим еквивалентните
-     * @param  int   $ignoreRecId   - ид на ред, който да се игнорира
+     * @param int $likeProductId - на кой артикул му търсим еквивалентните
+     * @param int $ignoreRecId   - ид на ред, който да се игнорира
+     *
      * @return array - масив за избор с еквивалентни артикули
      */
     public static function getEquivalentProducts($likeProductId, $ignoreRecId = null)
@@ -390,7 +396,8 @@ class planning_ObjectResources extends core_Manager
     /**
      * Връща масив със всички артикули, които могат да се влагат като друг артикул
      *
-     * @param  int   $productId - ид на продукта, като който ще се влагат
+     * @param int $productId - ид на продукта, като който ще се влагат
+     *
      * @return array - намерените артикули
      */
     private static function fetchConvertableProducts($productId, $array, &$res = array())
@@ -416,9 +423,10 @@ class planning_ObjectResources extends core_Manager
     /**
      * Намира средната еденична цена на всички заместващи артикули на подаден артикул
      *
-     * @param  int         $productId - артикул, чиято средна цена търсим
-     * @param  string|NULL $date      - към коя дата
-     * @return NULL|double $avgPrice - средна цена
+     * @param int         $productId - артикул, чиято средна цена търсим
+     * @param string|NULL $date      - към коя дата
+     *
+     * @return NULL|float $avgPrice - средна цена
      */
     public static function getAvgPriceEquivalentProducts($productId, $date = null)
     {

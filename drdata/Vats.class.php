@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_Vats' -
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_Vats extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -36,15 +35,15 @@ class drdata_Vats extends core_Manager
      * color:red
      */
     const statusBulstat = 'bulstat';
-
-
+    
+    
     /**
      * Това е VAT номер, но с невалиден синтаксис
      * color:red
      */
     const statusSyntax = 'syntax';
-
-
+    
+    
     /**
      * Това е VAT номер с правилен синтаксис, но не е известно дали е валиден
      * color:green
@@ -65,7 +64,7 @@ class drdata_Vats extends core_Manager
      */
     const statusValid = 'valid';
     
-
+    
     /**
      * Колко най-много vat номера да бъдат обновени след залез?
      */
@@ -85,7 +84,6 @@ class drdata_Vats extends core_Manager
     public static $unknowTTL = 86400;
     
     
-    
     /**
      * Заглавие
      */
@@ -98,7 +96,6 @@ class drdata_Vats extends core_Manager
     public $canWrite = 'admin';
     
     
-    
     public $canAdd = 'no_one';
     
     
@@ -107,13 +104,13 @@ class drdata_Vats extends core_Manager
      */
     public $canList = 'admin';
     
-
+    
     /**
      * Списък с VAT номера, които трябва да се обновят на shutdown
      */
     public $updateOnShutdown = array();
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -124,7 +121,7 @@ class drdata_Vats extends core_Manager
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Проверен на,input=none');
         $this->FLD('lastUsed', 'datetime(format=smartTime)', 'caption=Използван на,input=none');
         $this->FLD('info', 'varchar', 'caption=Информация');
-
+        
         $this->setDbUnique('vat');
     }
     
@@ -182,8 +179,8 @@ class drdata_Vats extends core_Manager
     {
         $data->toolbar->addBtn('Проверка на VAT номер', array($mvc, 'Check'));
     }
-
-
+    
+    
     /**
      * Подреждане - първо новите
      */
@@ -196,7 +193,8 @@ class drdata_Vats extends core_Manager
     /**
      * Пълна проверка на VAT номер - синтактична + онлайн проверка.
      *
-     * @param  string $vat
+     * @param string $vat
+     *
      * @return string 'syntax', 'valid', 'invalid', 'unknown'
      */
     public function check($vat)
@@ -204,7 +202,7 @@ class drdata_Vats extends core_Manager
         $canonocalVat = $this->canonize($vat);
         
         $rec = $this->fetch(array("#vat = '[#1#]'", $canonocalVat));
-                
+        
         if (!$rec) {
             // Ако нямаме кеширан запис за този VAT номер, създаваме нов и го записваме
             $rec = new stdClass();
@@ -240,7 +238,8 @@ class drdata_Vats extends core_Manager
     /**
      * Проверка за валидността на VAT номер, включително и чрез сървиз на EC
      *
-     * @param  string $vat Каноничен ват
+     * @param string $vat Каноничен ват
+     *
      * @return string 'valid', 'invalid', 'unknown'
      */
     public function checkStatus($vat)
@@ -269,7 +268,7 @@ class drdata_Vats extends core_Manager
             $vatNumber = substr($vat, 2);
             
             try {
-                
+
 //                 ini_set("default_socket_timeout", 5);
                 
                 $client = @new SoapClient('http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl', array('connection_timeout' => 4));
@@ -298,7 +297,7 @@ class drdata_Vats extends core_Manager
         
         return array($res, $info);
     }
-
+    
     
     /**
      * Обновяване на статуса на VAT номера след залез
@@ -312,7 +311,7 @@ class drdata_Vats extends core_Manager
         }
     }
     
-
+    
     /**
      * Проверява дали номерът започва с префикс, като за VAT
      */
@@ -324,7 +323,7 @@ class drdata_Vats extends core_Manager
             
             return true;
         }
-            
+        
         return false;
     }
     
@@ -334,8 +333,9 @@ class drdata_Vats extends core_Manager
      *
      * @see http://php.net/manual/de/function.preg-match.php
      *
-     * @param  integer $vat VAT number to test e.g. GB123 4567 89
-     * @return integer -1 if country not included OR 1 if the VAT Num matches for the country OR 0 if no match
+     * @param int $vat VAT number to test e.g. GB123 4567 89
+     *
+     * @return int -1 if country not included OR 1 if the VAT Num matches for the country OR 0 if no match
      */
     public function checkSyntax($vat)
     {
@@ -410,8 +410,7 @@ class drdata_Vats extends core_Manager
                 
                 return false;
         }
-
-
+        
         return preg_match($regex, $vat);
     }
     
@@ -489,9 +488,11 @@ class drdata_Vats extends core_Manager
     /**
      * Функция връщаща ЕИК то по зададен VAT номер, Ако е подаден ЕИК се връща
      * директно
-     * @param  string $vatNo - Ват номер
+     *
+     * @param string $vatNo - Ват номер
+     *
      * @return string - ЕИК номера извлечен от Ват-а, или ако е ЕИК
-     *                      директно го връща
+     *                директно го връща
      */
     public static function getUicByVatNo($vat)
     {

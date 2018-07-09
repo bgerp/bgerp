@@ -19,15 +19,15 @@ defIfNot('MAX_OFFICE_PACKET_CONVERT_COUNT', 50);
  *
  * @category  vendors
  * @package   docoffice
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class docoffice_Office
 {
-    
-    
     /**
      * Стартира офис пакета
      */
@@ -41,7 +41,7 @@ class docoffice_Office
         
         // Вземаме порта на офис пакета
         $port = static::getOfficePort();
-        
+
 //        pclose(popen(OFFICE_PACKET_PATH . "2>&1 >/dev/null &", "r"));
         @pclose(popen('nohup `' . OFFICE_PACKET_PATH . " -headless -accept='socket,host=localhost,port={$port};urp;StarOffice.ServiceManager' -nofirststartwizard -nologo` &", 'r'));
         
@@ -58,10 +58,9 @@ class docoffice_Office
             
             return true;
         }
-            
+        
         // Ако има грешка при стартирането
         log_System::add('docoffice_Office', 'Грешка при стартирането на ' . OFFICE_PACKET_PATH, null, 'info');
-        
         
         return false;
     }
@@ -74,7 +73,7 @@ class docoffice_Office
     {
         // Броя на направените обработки след последното нулиране на брояча
         $count = static::getConvertedCount();
-
+        
         // Ако броя име е по голям или равен на максимално допустимия
         if ($count >= MAX_OFFICE_PACKET_CONVERT_COUNT) {
             
@@ -95,7 +94,7 @@ class docoffice_Office
         // Стартираме офис пакета
         static::startOffice();
     }
-
+    
     
     /**
      * Убива процеса на офис пакета
@@ -104,7 +103,7 @@ class docoffice_Office
     {
         // Вземаме process id' то на офис пакета
         $pid = static::getStartedOfficePid();
-
+        
         if (!$pid) {
             
             return ;
@@ -114,12 +113,12 @@ class docoffice_Office
         
         // Заключваме офис пакета
         static::lockOffice(100, 50);
-
+        
         // Убиваме процеса
         $sh = "kill {$pid}";
         
         exec($sh, $dummy, $res);
-
+        
         // Ако всичко е минало както трябва
         if ($res === 0) {
             
@@ -136,10 +135,9 @@ class docoffice_Office
             
             return true;
         }
-            
+        
         // Ако има грешка при спирането
         log_System::add('docoffice_Office', 'Грешка при спирането на ' . OFFICE_PACKET_PATH, null, 'warning');
-        
         
         return false;
     }
@@ -156,6 +154,7 @@ class docoffice_Office
         // Определяме името на офис пакета
         $baseName = basename(OFFICE_PACKET_PATH);
         $baseName = escapeshellarg($baseName);
+        
         // Намираме process id' то на офис пакета
         $sh = "ps -aux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
         $pid = exec($sh);
@@ -228,7 +227,7 @@ class docoffice_Office
     {
         // Process id' то на office пакета
         $officePid = static::getStartedOfficePid();
-
+        
         // Ако не е стартиране
         if (!$officePid) {
             

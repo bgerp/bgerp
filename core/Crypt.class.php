@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Ключа с който ще се криптира, ако не бъде зададен експлицитно
  */
@@ -14,16 +13,16 @@ defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Crypt extends core_BaseClass
 {
-    
-    
     /**
      * Кодиране чрез размяна
      */
@@ -130,7 +129,7 @@ class core_Crypt extends core_BaseClass
     public static function encode(&$res, $str, $key, $minRand)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
-
+        
         // Установяваме стринга-разделител
         $div = self::getDivStr($key);
         
@@ -167,7 +166,6 @@ class core_Crypt extends core_BaseClass
      */
     public static function decode(&$res, $str, $key)
     {
-        
         // Ако дължината не е кратна на 16 връщаме грешка
         if (strlen($str) % 16) {
             $res = false;
@@ -200,7 +198,7 @@ class core_Crypt extends core_BaseClass
             
             if ($divPos === false) {
                 $res = false;
-            
+                
                 return;
             }
         }
@@ -266,7 +264,7 @@ class core_Crypt extends core_BaseClass
         } else {
             $var = serialize($var);
         }
-
+        
         $var = gzcompress($var);
         $var = self::encodeStr($var, $key . 'encodeVar');
         $var = base64_encode($var);
@@ -306,7 +304,6 @@ class core_Crypt extends core_BaseClass
         } else {
             $var = unserialize($var);
         }
-
         
         return $var;
     }

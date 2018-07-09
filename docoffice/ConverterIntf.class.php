@@ -6,16 +6,16 @@
  *
  * @category  vendors
  * @package   docoffice
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за конвертиране на office документи
  */
 class docoffice_ConverterIntf
 {
-
-    
     /**
      * Конвертира office документи
      *

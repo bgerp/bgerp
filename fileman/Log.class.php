@@ -1,19 +1,20 @@
 <?php
 
+
 /**
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Log extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -80,7 +81,6 @@ class fileman_Log extends core_Manager
     const DIALOG_LIST_ITEMS_PER_PAGE = 5;
     
     
-    
     public $listFields = 'fileId=Линк, action, lastOn';
     
     
@@ -108,9 +108,9 @@ class fileman_Log extends core_Manager
     /**
      * Обновява информацията за използването на файла
      *
-     * @param mixed   $fileHnd - Запис от fileman_Files или манипулатор на файла
-     * @param string  $action  - Съответнотното действие: upload, preview
-     * @param integer $userId  - id на потребитля
+     * @param mixed  $fileHnd - Запис от fileman_Files или манипулатор на файла
+     * @param string $action  - Съответнотното действие: upload, preview
+     * @param int    $userId  - id на потребитля
      */
     public static function updateLogInfo($fileHnd, $action, $userId = null)
     {
@@ -136,7 +136,7 @@ class fileman_Log extends core_Manager
         
         // Обновяваме времето на последно използване на данните
         fileman_Data::updateLastUse($fRec->dataId);
-
+        
         // Ако системния потребител, връщаме
         if ($userId < 1) {
             
@@ -261,7 +261,7 @@ class fileman_Log extends core_Manager
             // Да не се извикат останалите
             return false;
         }
-            
+        
         // Ако сме в листовия изглед
         // Добавяме плъгина
         $mvc->load('plg_GroupByDate');
@@ -493,7 +493,7 @@ class fileman_Log extends core_Manager
             // Да не се извикат останалите
             return false;
         }
-            
+        
         // Обхождаме масива
         foreach ((array) ($data->recs) as $id => $rec) {
                 
@@ -501,13 +501,13 @@ class fileman_Log extends core_Manager
             $data->rows[$id]->fileId = fileman_Files::getLinkById($rec->fileId);
         }
     }
-
-
+    
+    
     /**
      * Връща иконата за подадения файл
      *
      * @param fileHnd $fh   - Манупулатор на файла
-     * @param integer $size - Размер на файла
+     * @param int     $size - Размер на файла
      */
     public static function getIcon($fh, $size = 48)
     {
@@ -610,6 +610,7 @@ class fileman_Log extends core_Manager
      * Извиква се след SetUp-а на таблицата за модела
      *
      * За съвместимост със стари бази
+     *
      * @todo Може да се премахне
      */
     public static function on_AfterSetupMvc($mvc, &$res)

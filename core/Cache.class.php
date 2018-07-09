@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Колко голям да бъде максималния обект, който се съхранява
  * в кеша не-компресиран?
@@ -33,16 +32,16 @@ defIfNot('CORE_CACHE_PREFIX_SALT', md5(EF_SALT . '_CORE_CACHE'));
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Cache extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -61,30 +60,27 @@ class core_Cache extends core_Manager
     public $canList = 'admin';
     
     
-    
     public $canAdd = 'no_one';
-    
     
     
     public $canEdit = 'no_one';
     
     
-    
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id,key';
     
-
+    
     /**
      * Дали да се използва кеширане в хита
      */
     public static $stopCaching = false;
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -210,17 +206,17 @@ class core_Cache extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Изтриване на изтеклите записи', array(
-                $mvc,
-                'DeleteExpiredData',
-                'ret_url' => true
-            ));
+            $mvc,
+            'DeleteExpiredData',
+            'ret_url' => true
+        ));
         
         $data->toolbar->addBtn('Изтриване на всички записи', array(
-                $mvc,
-                'DeleteExpiredData',
-                'all' => true,
-                'ret_url' => true
-            ));
+            $mvc,
+            'DeleteExpiredData',
+            'all' => true,
+            'ret_url' => true
+        ));
         
         $data->toolbar->removeBtn('btnAdd');
         
@@ -237,8 +233,8 @@ class core_Cache extends core_Manager
         
         return new Redirect(array('core_Cache'), $this->cron_DeleteExpiredData(Request::get('all')));
     }
-
-
+    
+    
     /**
      * След изтриване на записи на модела
      *
@@ -252,7 +248,6 @@ class core_Cache extends core_Manager
             $mvc->deleteData($rec->key, true);
         }
     }
-
     
     
     /**
@@ -284,7 +279,7 @@ class core_Cache extends core_Manager
         return $msg;
     }
     
-
+    
     /**
      * Изтрива целия кеш
      */
@@ -300,7 +295,7 @@ class core_Cache extends core_Manager
         }
     }
     
-
+    
     /**
      * Подреждане - най-отгоре са последните записи
      */
@@ -367,18 +362,18 @@ class core_Cache extends core_Manager
                 $res = unserialize($res);
             }
         }
-
+        
         if ($res) {
             
             return $res;
         }
- 
+        
         if ($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key), null, false)) {
             if ($keepMinutes) {
                 $rec->lifetime = time() + $keepMinutes * 60;
                 $this->save($rec, 'lifetime');
             }
-                        
+            
             $data = $rec->data;
             if (!is_object($rec->data)) {
                 if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
@@ -405,11 +400,12 @@ class core_Cache extends core_Manager
         } elseif (function_exists('xcache_unset')) {
             @xcache_unset($key);
         }
-
+        
         if ($onlyInMemory) {
+            
             return;
         }
-
+        
         return $this->delete(array("#key = '[#1#]'", $key));
     }
     
@@ -423,10 +419,10 @@ class core_Cache extends core_Manager
             
             return false;
         }
-
+        
         $saved = false;
         $keepSeconds = $keepMinutes * 60;
-
+        
         if (function_exists('apcu_store')) {
             $saved = @apcu_store($key, $data, $keepSeconds);
             if (!$saved) {
@@ -443,14 +439,14 @@ class core_Cache extends core_Manager
                 self::logNotice('Грешка при записване в XCACHE');
             }
         }
-
+        
         $rec = new stdClass();
         
         // Задаваме ключа
         $rec->key = $key;
         
         if (!$saved) {
-
+            
             // Сериализираме обекта
             $rec->data = serialize($data);
             
@@ -465,8 +461,8 @@ class core_Cache extends core_Manager
         
         $this->save($rec, null, 'REPLACE');
     }
-
-
+    
+    
     /**
      * Метоз за кратковременно кеширане с аргумент
      * - фукция, която извлича резултата
@@ -478,20 +474,20 @@ class core_Cache extends core_Manager
         } else {
             $key = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . $name . '|' . json_encode($param));
         }
-
+        
         $Cache = cls::get('core_Cache');
-
+        
         if ($resObj = $Cache->getData($key)) {
             $res = $resObj->res;
         } else {
             $res = $fn($param);
-
+            
             $resObj = new stdClass();
             $resObj->res = $res;
             
             $Cache->setData($key, $resObj, 120);
         }
- 
+        
         return $res;
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Вкарваме файловете необходими за работа с програмата.
  */
@@ -11,15 +12,15 @@ require_once 'phpsass/SassParser.php';
  *
  * @category  vendors
  * @package   sass
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sass_Converter
 {
-    
-    
     /**
      * Конвертира sass в css файл
      *

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Бюджетиране - опаковка
  *
  *
  * @category  bgerp
  * @package   budget
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class budget_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */

@@ -1,22 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_SystemWrapper' - Поддържа системното меню и табове-те на пакета 'Core'
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_SystemWrapper extends plg_ProtoWrapper
 {
-    
     /**
      * Описание на табовете
      */
@@ -51,7 +51,7 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Settings', 'Вътрешни->Персонализация', 'debug');
         $this->TAB('core_Forwards', 'Вътрешни->Пренасочвания', 'debug');
         $this->TAB('core_CallOnTime', 'Вътрешни->Отложени', 'debug');
-
+        
         Mode::set('pageSubMenu', 'Админ');
     }
 }

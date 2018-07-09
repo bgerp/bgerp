@@ -13,16 +13,16 @@ defIfNot('EF_LANGUAGES', 'bg=Български,en=Английски');
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Lg extends core_Manager
 {
-    
-    
     /**
      * Речник
      */
@@ -71,7 +71,6 @@ class core_Lg extends core_Manager
     public $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools2';
     
     
-    
     protected static $keyStringLen = 32;
     
     
@@ -83,7 +82,7 @@ class core_Lg extends core_Manager
         $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,optionsFunc=core_Lg::getLangOptions, suggestions=');
         $this->FLD('kstring', 'varchar(' . static::$keyStringLen . ')', 'caption=Стринг,export, width=100%, mandatory');
         $this->FLD('translated', 'text', 'caption=Превод,export, width=100%, class=translated, mandatory');
-
+        
         $this->setDbUnique('kstring,lg');
     }
     
@@ -107,20 +106,20 @@ class core_Lg extends core_Manager
     public function act_ResetDB()
     {
         requireRole('debug');
-
+        
         bgerp_data_Translations::loadData('everytime');
-
+        
         redirect(array($this));
     }
-
-
+    
+    
     /**
      * Експортира непопълнените данни, за съответния език
      */
     public function act_ExportCSV()
     {
         requireRole('debug');
-
+        
         $lg = Request::get('lg');
         if ($lg == 'bg') {
             $lg = 'en';
@@ -128,7 +127,7 @@ class core_Lg extends core_Manager
         
         $res = array();
         $query = self::getQuery();
- 
+        
         while ($rec = $query->fetch()) {
             if (($rec->lg == $lg) && !preg_match('/[а-я]/iu', $rec->translated)) {
                 $res[$rec->kstring] = $rec;
@@ -140,7 +139,7 @@ class core_Lg extends core_Manager
             }
             $res[$rec->kstring] = $rec;
         }
-
+        
         foreach ($res as $key => $rec) {
             if ($rec->remove) {
                 unset($res[$key]);
@@ -148,26 +147,27 @@ class core_Lg extends core_Manager
                 $res[$key]->lg = $lg;
             }
         }
-
+        
         $csv = csv_Lib::createCsv($res, $this, array('lg' => 'lg', 'kstring' => 'kstring', 'translated' => 'translated'));
         
         header('Content-type: application/csv');
         header('Content-Disposition: attachment; filename=bgERP_translation.csv');
         header('Pragma: no-cache');
         header('Expires: 0');
-         
+        
         echo $csv;
-    
+        
         shutdown();
     }
-
+    
+    
     /**
      * Задава за текущия език на интерфейса, валиден за сесията
      */
     public static function set($lg, $force = true)
     {
         $langArr = arr::make(EF_LANGUAGES, true);
-
+        
         if ($langArr[$lg] && ($force || !Mode::get('lg'))) {
             Mode::setPermanent('lg', $lg);
         }
@@ -208,15 +208,15 @@ class core_Lg extends core_Manager
             
             return $kstring;
         }
-
+        
         // Ако не е зададен език, превеждаме на текущия
         if (!$lg) {
             $lg = core_Lg::getCurrent();
         }
         
         $this->prepareDictForLg($lg);
-
-
+        
+        
         if (!$key) {
             // Разбиваме стринга на участъци, който са разделени със символа '|'
             $strArr = explode('|', $kstring);
@@ -254,9 +254,9 @@ class core_Lg extends core_Manager
                         $translated[] = substr($phrase, 1);
                         continue;
                     }
-           
+                    
                     $ascii = (mb_detect_encoding($phrase, 'ASCII', true) == 'ASCII');
-
+                    
                     if ($ascii && (!preg_match('/[a-z]/i', $phrase) || $lg != 'en')) {
                         $translated[] = $phrase;
                     } else {
@@ -314,8 +314,7 @@ class core_Lg extends core_Manager
         return $res;
     }
     
- 
-
+    
     /**
      * Подготвяме думите в речника
      *
@@ -329,10 +328,10 @@ class core_Lg extends core_Manager
         
         if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
             $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
-        
+            
             if (!$this->dict[$lg]) {
                 $query = self::getQuery();
-        
+                
                 while ($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
                     $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
                 }
@@ -357,11 +356,11 @@ class core_Lg extends core_Manager
             }
             core_Lg::set($lg);
         }
-     
+        
         return $lg;
     }
-
-
+    
+    
     /**
      * Връща езика по подразбиране за системата
      */
@@ -372,8 +371,8 @@ class core_Lg extends core_Manager
         
         return $lg;
     }
-
-
+    
+    
     /**
      * Изтрива кеша при ъпдейт
      */
@@ -391,11 +390,11 @@ class core_Lg extends core_Manager
     {
         // Подрежда словосъчетанията по обратен на постъпването им ред
         $data->query->orderBy(array(
-                'id' => 'DESC'
-            ));
-
+            'id' => 'DESC'
+        ));
+        
         $langArr = arr::make(EF_LANGUAGES, true);
-
+        
         // Превод
         foreach ($langArr as $lg => &$lgName) {
             $lgName = tr($lgName);
@@ -424,7 +423,7 @@ class core_Lg extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $filterRec = $data->listFilter->input();
-      
+        
         if (!$filterRec->lg) {
             $data->listFilter->rec->lg = $filterRec->lg = core_Lg::getCurrent();
         }
@@ -436,9 +435,9 @@ class core_Lg extends core_Manager
             
             if ($filterRec->filter) {
                 $data->query->where(array(
-                        "#kstring LIKE '%[#1#]%'",
-                        $filterRec->filter
-                    ));
+                    "#kstring LIKE '%[#1#]%'",
+                    $filterRec->filter
+                ));
             }
         }
     }
@@ -458,19 +457,19 @@ class core_Lg extends core_Manager
                     $tpl->append(' | ');
                 }
                 $tpl->append(ht::createLink($title, array(
-                            'core_Lg',
-                            'Set',
-                            'lg' => $lg,
-                            'ret_url' => true
-                        )));
+                    'core_Lg',
+                    'Set',
+                    'lg' => $lg,
+                    'ret_url' => true
+                )));
                 $div = true;
             }
         }
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготовка на листовия тулбар
      */
@@ -554,7 +553,7 @@ class core_Lg extends core_Manager
         
         // Езици, които използват кирилица
         $cyrillicLangArr = array('bg', 'ru', 'md', 'sr');
-
+        
         // Текущия език
         $currLg = static::getCurrent();
         
@@ -571,7 +570,7 @@ class core_Lg extends core_Manager
         
         return $str;
     }
- 
+    
     
     public static function on_BeforeImportRec($mvc, $rec)
     {
@@ -581,14 +580,14 @@ class core_Lg extends core_Manager
             $rec->createdBy = -1;
         }
     }
-
-   
+    
+    
     /**
      * Проверява подадения език, дали е добър за използване
      *
      * @param string $lg - Езика, който ще се проверява
      *
-     * @return boolean
+     * @return bool
      */
     public static function isGoodLg($lg)
     {
@@ -605,15 +604,15 @@ class core_Lg extends core_Manager
         // Проверяваме дали са еднакви
         return false;
     }
-
-
+    
+    
     /**
      * Връща масив от езиците на системата
      */
     public static function getLangs()
     {
         $res = arr::make(EF_LANGUAGES, true);
-
+        
         return $res;
     }
     
@@ -662,7 +661,7 @@ class core_Lg extends core_Manager
         $form = cls::get('core_Form');
         
         $form->title = 'Изтриване на преводи';
-         
+        
         $form->FLD('users', 'users', 'caption=Тип,mandatory,silent');
         
         $form->toolbar->addSbBtn('Изтриване', 'save', 'ef_icon = img/16/delete.png, title = Изтрива преводите за съответния потребител');
@@ -691,7 +690,7 @@ class core_Lg extends core_Manager
         }
         
         $tpl = $this->renderWrapping($form->renderHtml());
-         
+        
         return $tpl;
     }
 }

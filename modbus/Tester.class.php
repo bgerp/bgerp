@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Тестер за Modbus IP устройство
  *
  *
  * @category  vendors
  * @package   modbus
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class modbus_Tester extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */

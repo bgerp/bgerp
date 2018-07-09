@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за "Бързи бутони"
  *
  *
  * @category  bgerp
  * @package   pos
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class pos_Favourites extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -27,7 +26,7 @@ class pos_Favourites extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, plg_Sorting, plg_Printing, pos_Wrapper, plg_State2';
-
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -63,8 +62,8 @@ class pos_Favourites extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,pos';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -184,7 +183,7 @@ class pos_Favourites extends core_Manager
                 }
             }
         }
-       
+        
         return $cache;
     }
     
@@ -203,7 +202,8 @@ class pos_Favourites extends core_Manager
     /**
      * Подготвяме единичен продукт от модела
      *
-     * @param  stdClass $rec - запис от модела
+     * @param stdClass $rec - запис от модела
+     *
      * @return stdClass $obj - обект с информацията за продукта
      */
     public function prepareProductObject($rec)
@@ -228,9 +228,10 @@ class pos_Favourites extends core_Manager
     /**
      * Рендираме Продуктите и техните категории в подходящ вид
      *
-     * @param  stdClass $data - обект съдържащ масивите с продуктите,
-     *                        категориите и темата по подразбиране
-     * @return core_ET  $tpl - шаблона с продуктите
+     * @param stdClass $data - обект съдържащ масивите с продуктите,
+     *                       категориите и темата по подразбиране
+     *
+     * @return core_ET $tpl - шаблона с продуктите
      */
     public static function renderPosProducts($data)
     {
@@ -270,7 +271,8 @@ class pos_Favourites extends core_Manager
     /**
      * Рендира продуктите във вид подходящ за пос терминала
      *
-     * @param  array   $products - масив от продукти с информацията за тях
+     * @param array $products - масив от продукти с информацията за тях
+     *
      * @return core_ET $tpl - шаблон с продуктите
      */
     public function renderProducts($products, &$tpl)
@@ -285,7 +287,7 @@ class pos_Favourites extends core_Manager
                 
                 $row->image = ht::createElement('img', array('src' => $imageURL, 'width' => '90px', 'height' => '90px'));
             }
-                
+            
             $rowTpl = clone($blockTpl);
             $rowTpl->placeObject($row);
             $rowTpl->removeBlocks();
@@ -329,6 +331,7 @@ class pos_Favourites extends core_Manager
     {
         // Ако няма бутони не се прави нищо
         if (!pos_Favourites::count()) {
+            
             return;
         }
         

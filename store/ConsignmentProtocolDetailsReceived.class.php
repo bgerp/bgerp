@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_ConsignmentProtocolDetailsReceived'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на протоколите за отговорно пазене-върнати';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -73,7 +72,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId=Получено от Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем, packPrice, amount,transUnitId=ЛЕ';
-
+    
     
     /**
      * Полета свързани с цени
@@ -107,7 +106,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     {
         // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
         $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
-         
+        
         return $products;
     }
 }

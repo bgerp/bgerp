@@ -1,14 +1,17 @@
 <?php
 
+
 /**
  * Плъгин позволяващ разширението на единичния изглед на мастъри с данни от други мениджъри
  *
  *
  * @category  bgerp
  * @package   groups
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/336
  */
@@ -25,7 +28,7 @@ class groups_Extendable extends core_Plugin
     {
         static::attachExtenders($master, $data->rec);
     }
-
+    
     
     /**
      * Реализация на метода $master::addExtender() по подразбиране
@@ -64,7 +67,7 @@ class groups_Extendable extends core_Plugin
         // Добавяме екстендерите като детайли на мастър класа
         //
         $details = array();
-
+        
         foreach ($extenders as $key => $ext) {
             $prefix = $ext['prefix'];
             $className = $ext['className'];
@@ -74,8 +77,8 @@ class groups_Extendable extends core_Plugin
         
         $master->attachDetails($details);
     }
-
-
+    
+    
     /**
      * Извлича описанията на екстендерите на групите, в които се намира записа $rec
      *
@@ -109,7 +112,8 @@ class groups_Extendable extends core_Plugin
     /**
      * Името на полето съдържащо информация за групите в които е съотв. запис на $master
      *
-     * @param  core_Master $master
+     * @param core_Master $master
+     *
      * @return string
      */
     protected static function getGroupsFieldName(core_Master $master)

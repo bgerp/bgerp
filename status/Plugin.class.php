@@ -6,24 +6,24 @@
  *
  * @category  vendors
  * @package   status
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class status_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Добавя статус съобщение към избрания потребител
      *
      * @param core_Mvc $mvc
-     * @param integer  $res
+     * @param int      $res
      * @param string   $text     - Съобщение, което ще добавим
      * @param enum     $type     - Типа на съобщението - success, notice, warning, error
-     * @param integer  $userId   - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
-     * @param integer  $lifeTime - След колко време да е неактивно
+     * @param int      $userId   - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
+     * @param int      $lifeTime - След колко време да е неактивно
      * @param string   $hitId    - Уникално ID на хита
      */
     public function on_AfterNewStatus($mvc, &$res, $text, $type, $userId, $lifeTime, $hitId)

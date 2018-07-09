@@ -1,14 +1,17 @@
 <?php
 
+
 /**
  * Действие на скрипт за нотифициране
  *
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_ScriptActionNotify
@@ -17,14 +20,14 @@ class sens2_ScriptActionNotify
      * Поддържани интерфейси
      */
     public $interfaces = 'sens2_ScriptActionIntf';
-
-
+    
+    
     /**
      * Наименование на действието
      */
     public $title = 'Известяване на потребители';
-
-
+    
+    
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
@@ -46,13 +49,13 @@ class sens2_ScriptActionNotify
         foreach ($inds as $i => $v) {
             $suggestions[$i] = $i;
         }
-
+        
         asort($suggestions);
         $form->setSuggestions('cond', $suggestions);
-
+        
         $form->setDefault('users', '|' . core_Users::getCurrent() . '|');
     }
-   
+    
     
     /**
      * Проверява след  субмитване формата с настройки на контролера
@@ -64,26 +67,25 @@ class sens2_ScriptActionNotify
     public function checkActionForm($form)
     {
     }
-
-
+    
+    
     public function toVerbal($rec)
     {
         $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
         $UL = cls::get('type_UserList');
         $users = $UL->toVerbal($rec->users);
-
+        
         $message = type_Varchar::escape($rec->message);
         
         $EN = core_Type::getByName('type_Enum(normal=Нормален, warning=Предупреждение, alert=Тревога)');
         $priority = $EN->toVerbal($rec->priority);
-     
+        
         $res = "Известие ({$priority}) <span style=\"color:green\">`{$message}`</span> към {$users}, ако {$cond}";
- 
+        
         return $res;
     }
-
-
-
+    
+    
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
@@ -101,22 +103,22 @@ class sens2_ScriptActionNotify
                 return 'closed';
             }
         }
-
+        
         // Проверяваме дали е удобно да се пращат SMS-и по това време
-
+        
         // Задаваме го на изхода
         $userList = keylist::toArray($rec->users);
-
+        
         foreach ($userList as $userId) {
             $res = bgerp_Notifications::add($rec->message, array('sens2_Scripts', 'Single', $rec->scriptId), $userId, $rec->priority);
         }
-                
-         
+        
+        
         if ($res !== false) {
             
             return 'active';
         }
-
+        
         return 'stopped';
     }
 }

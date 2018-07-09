@@ -7,9 +7,11 @@
  *
  * @category  bgerp
  * @package   tooltip
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tooltip_Plugin
@@ -26,7 +28,7 @@ class tooltip_Plugin
         }
         $block = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $text);
         $tpl->append($block);
-                
+        
         $tpl->push('tooltip/lib/tooltip.css', 'CSS');
         $tpl->push('tooltip/lib/tooltipCustom.js', 'JS');
         

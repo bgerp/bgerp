@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Модел съдържащ актуална информация, кой имейл адрес на кой обект (визитка или друг) отговаря.
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Addresses extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -93,7 +92,8 @@ class email_Addresses extends core_Manager
     /**
      * Последно модифицирания обект, който притежава този имейл адрес
      *
-     * @param  string   $email
+     * @param string $email
+     *
      * @return stdClass {classId: ..., objectId: ... }
      */
     public static function getObjectByEmail($email)
@@ -110,10 +110,11 @@ class email_Addresses extends core_Manager
     /**
      * Създава или променя вече съществуваща връзка м/у имейл и обект
      *
-     * @param  string  $email
-     * @param  int     $classId  key(mvc=core_Classes)
-     * @param  int     $objectId
-     * @return boolean FALSE при неуспех
+     * @param string $email
+     * @param int    $classId  key(mvc=core_Classes)
+     * @param int    $objectId
+     *
+     * @return bool FALSE при неуспех
      */
     public static function addEmail($email, $classId, $objectId)
     {
@@ -130,10 +131,11 @@ class email_Addresses extends core_Manager
     /**
      * Прекъсва връзката между обект и всички негови регистрирани имейл адреси.
      *
-     * @param  string  $email
-     * @param  int     $classId  key(mvc=core_Classes)
-     * @param  int     $objectId
-     * @return boolean FALSE при неуспех
+     * @param string $email
+     * @param int    $classId  key(mvc=core_Classes)
+     * @param int    $objectId
+     *
+     * @return bool FALSE при неуспех
      */
     public static function removeEmails($classId, $objectId)
     {

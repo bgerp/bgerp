@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас  'type_Url' - Тип за URL адреси
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class type_Url extends type_Varchar
 {
-    
-    
     /**
      * Дължина на полето в mySql таблица
      */
@@ -32,6 +31,7 @@ class type_Url extends type_Varchar
         $value = trim($value);
         
         if (empty($value)) {
+            
             return;
         }
         
@@ -64,13 +64,14 @@ class type_Url extends type_Varchar
     public function fromVerbal($value)
     {
         if (!trim($value)) {
+            
             return;
         }
-
+        
         if (strpos($value, '://') === false) {
             $value = 'http://' . $value;
         }
-
+        
         $res = $this->isValid($value);
         
         return $value;
@@ -86,6 +87,7 @@ class type_Url extends type_Varchar
         $value = strtolower($value);
         
         if (!$value) {
+            
             return;
         }
         
@@ -150,7 +152,7 @@ class type_Url extends type_Varchar
             
             //Правим опит да се свържем с http акаунта
             $arr = array('http' => array(
-                    'timeout' => 2)
+                'timeout' => 2)
             );
             stream_context_set_default($arr);
             $headers = @get_headers($url);

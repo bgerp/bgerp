@@ -24,16 +24,16 @@ defIfNot('SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT', 5);
  *
  * @category  vendors
  * @package   chosen
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      https://select2.github.io/
  */
 class select2_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -62,7 +62,7 @@ class select2_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-    
+        
         // Минималния брой елементи, за които няма да сработи SELECT2
         'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
         'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
@@ -98,6 +98,7 @@ class select2_Setup extends core_ProtoSetup
         // Плъгини за keylist и наследниците му
         $html .= $Plugins->forcePlugin('Select2 за тип Keylist', 'select2_Plugin', 'type_Keylist', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
+
 //        $html .= $Plugins->forcePlugin('Select2 за тип UsersList', 'select2_Plugin', 'type_UserList', 'private');
         
         $html .= $Plugins->forcePlugin('Select2 за тип Users', 'select2_PluginSelect', 'type_Users', 'private');
@@ -127,8 +128,8 @@ class select2_Setup extends core_ProtoSetup
     {
         core_Plugins::delete("#name = 'Select2 за тип UsersList'");
     }
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_SaveAndNew' - Инструменти за изтриване и редактиране на ред
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_SaveAndNew extends core_Plugin
 {
-    
-    
     /**
      * Логика за определяне къде да се пренасочва потребителския интерфейс.
      *
@@ -28,10 +27,10 @@ class plg_SaveAndNew extends core_Plugin
     {
         if ($data->form->cmd == 'save_n_new') {
             $data->retUrl = array($mvc, 'add', 'ret_url' => $data->retUrl);
-           
+            
             // Добавяме стойностите на връщане към "тихите" полета
             $fields = $data->form->selectFields("#silent == 'silent'");
-           
+            
             if (count($fields)) {
                 foreach ($fields as $name => $fld) {
                     if ($fld->input == 'hidden' || $fld->remember == 'remember' || $fld->type->params['remember'] == 'remember') {
@@ -39,11 +38,11 @@ class plg_SaveAndNew extends core_Plugin
                     }
                 }
             }
-           
+            
             // Записваме в сесията, полетата със запомняне
             $fields = $data->form->selectFields("#remember || #name == 'id'");
             
-
+            
             // Правим статус за информация на потребителя
             if (is_a($mvc, 'core_Detail')) {
                 $action = tr('Добавен е нов') . ' ';
@@ -52,8 +51,9 @@ class plg_SaveAndNew extends core_Plugin
                 $action = tr('Създаден е нов') . ' ';
                 $obj = tr('обект');
             }
+            
             // status_Messages::newStatus($action . ($mvc->singleTitle ? tr(mb_strtolower($mvc->singleTitle)) : $obj));
-
+            
             if (count($fields)) {
                 foreach ($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
@@ -65,7 +65,7 @@ class plg_SaveAndNew extends core_Plugin
                 $fields = $data->form->selectFields("#remember == 'info' || #name == 'id'");
                 
                 $info = '';
-
+                
                 // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
                 if (count($fields)) {
                     foreach ($fields as $name => $fld) {
@@ -79,14 +79,14 @@ class plg_SaveAndNew extends core_Plugin
                         }
                     }
                 }
-
+                
                 if ($mvc->rememberTpl && $id) {
                     $row = $mvc->recToVerbal($mvc->fetch($id));
                     $tpl = new ET($mvc->rememberTpl);
                     $tpl->placeObject($row);
                     $info = $tpl->getContent();
                 }
-             
+                
                 if ($info) {
                     $info = '<div style="padding:5px; background-color:#ffffcc; border:solid 1px #cc9;">' .
                     tr('Последно добавено') . ": <ul style='margin:5px;padding-left:10px;'>{$info}</ul></div>";
@@ -120,6 +120,7 @@ class plg_SaveAndNew extends core_Plugin
         // Ако след записа, трябва да изпратим новото id към друг екшън - не показваме бутона
         $retUrl = getRetUrl();
         if (is_array($retUrl) && in_array($mvc::getUrlPlaceholder('id'), $retUrl)) {
+            
             return;
         }
         if (empty($data->form->rec->id)) {
@@ -134,6 +135,7 @@ class plg_SaveAndNew extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if ($data->form->rec->id) {
+            
             return;
         }
         

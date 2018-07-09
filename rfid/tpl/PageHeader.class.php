@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'tpl_PageHeader' -
  *
  *
  * @category  bgerp
  * @package   rfid
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class rfid_tpl_PageHeader extends core_ET
 {
-    
-    
     /**
      * @todo Чака за документация...
      */

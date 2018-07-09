@@ -1,6 +1,5 @@
 <?php 
 
-
 /**
  * Входящи документи
  *
@@ -8,14 +7,15 @@
  *
  * @category  bgerp
  * @package   incoming
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class incoming_Documents extends core_Master
 {
-    
     /**
      * Старото име на класа
      */
@@ -27,12 +27,12 @@ class incoming_Documents extends core_Master
      */
     public $interfaces = array(
         
-            // Интерфейс за документ
-            'doc_DocumentIntf',
+        // Интерфейс за документ
+        'doc_DocumentIntf',
         
-            // Интерфейс за създаване на входящ документ
-            'fileman_FileActionsIntf',
-        );
+        // Интерфейс за създаване на входящ документ
+        'fileman_FileActionsIntf',
+    );
     
     
     /**
@@ -166,7 +166,7 @@ class incoming_Documents extends core_Master
      * Кой може да променя записа?
      */
     public $canChangerec = 'powerUser';
-
+    
     
     /**
      * Описание на модела
@@ -183,12 +183,11 @@ class incoming_Documents extends core_Master
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни, input=none');
         $this->FLD('archTomNumber', 'int', 'column=none,caption=Архивиране->Том №,autohide');
         $this->FLD('archTomYear', 'enum(,2016,2017,2018,2019)', 'column=none,caption=Архивиране->Година,autohide');
-
+        
         $this->setDbUnique('dataId');
     }
     
-
-     
+    
     /**
      * @todo Чака за документация...
      */
@@ -197,7 +196,7 @@ class incoming_Documents extends core_Master
         // $tpl->replace(doclog_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
     
-
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -211,15 +210,15 @@ class incoming_Documents extends core_Master
                 $title .= ' / ';
             }
         }
-
+        
         if (strlen($rec->date)) {
             $title .= self::getVerbal($rec, 'date');
         }
-
+        
         if ($escaped) {
             $title = type_Varchar::escape($title);
         }
-
+        
         return $title;
     }
     
@@ -235,14 +234,13 @@ class incoming_Documents extends core_Master
     {
         $row->title = self::getRecTitle($rec);
     }
-
+    
     
     /**
      * @todo Чака за документация...
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-         
         // Манупулатора на файла
         $fileHnd = $mvc->db->escape(Request::get('fh'));
         
@@ -256,7 +254,7 @@ class incoming_Documents extends core_Master
             // Масив с баркодовете
             $text = fileman_Indexes::getTextForIndex($fileHnd);
             
-             
+            
             // Попълваме описанието за файла
             $data->form->setDefault('description', $text);
             
@@ -370,10 +368,10 @@ class incoming_Documents extends core_Master
         $row->state = $rec->state;
         
         $row->recTitle = $this->getRecTitle($rec, false);
-       
+        
         return $row;
     }
-
+    
     
     /**
      * В кои корици може да се вкарва документа
@@ -391,7 +389,8 @@ class incoming_Documents extends core_Master
      * Входящи документи могат да се добавят само в папки с корица контрагент.
      *
      * @param $folderId int ид на папката
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -399,8 +398,8 @@ class incoming_Documents extends core_Master
         
         return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || ($coverClass == 'doc_UnsortedFolders');
     }
-
-
+    
+    
     /**
      * Преценява дали файла с посоченото име и дължина може да съдържа документ
      */
@@ -410,16 +409,16 @@ class incoming_Documents extends core_Master
         if (!count($typeToLen)) {
             $typeToLen = arr::make('pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50,csv=1', true);
         }
-
+        
         $ext = fileman_Files::getExt($fileName);
-
+        
         if (($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
             
             return true;
         }
     }
-
-
+    
+    
     /**
      * Интерфейсен метод на fileman_FileActionsIntf
      *
@@ -436,7 +435,7 @@ class incoming_Documents extends core_Master
     {
         if (self::canKeepDoc($fRec->name, $fRec->fileLen)) {
             $dfRec = doc_files::fetch("#fileHnd = '{$fRec->fileHnd}'");
-
+            
             // Създаваме масива за съзване на визитка
             $arr = array();
             $inst = cls::get('incoming_Documents');
@@ -447,7 +446,7 @@ class incoming_Documents extends core_Master
             $arr['incoming']['title'] = 'Входящ документ';
             $arr['incoming']['icon'] = $inst->singleIcon;
         }
-
+        
         return $arr;
     }
     

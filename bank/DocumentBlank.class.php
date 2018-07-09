@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Документ за наследяване от банковите бланки (Платежно нареждане, Вносна бележка и Нареждане разписка)
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class bank_DocumentBlank extends core_Master
 {
-
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -105,7 +104,7 @@ abstract class bank_DocumentBlank extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->recTitle = $rec->reason;
-    
+        
         return $row;
     }
     

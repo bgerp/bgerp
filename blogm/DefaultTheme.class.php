@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Клас връщащ темата за блога
  *
  * @category  bgerp
  * @package   blogm
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blogm_DefaultTheme extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -115,7 +114,7 @@ class blogm_DefaultTheme extends core_Manager
         } else {
             $template = 'blogm/themes/default/BlogLayoutNarrow.shtml';
         }
-
+        
         return $template;
     }
 }

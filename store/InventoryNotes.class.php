@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_InventoryNotes'
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_InventoryNotes extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -119,20 +118,20 @@ class store_InventoryNotes extends core_Master
      * Главен детайл на модела
      */
     public $mainDetail = 'store_InventoryNoteSummary';
-   
+    
     
     /**
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/InventoryNote/SingleLayout.shtml';
-
-
+    
+    
     /**
      * Файл с шаблон за единичен изглед в мобилен
      */
     public $singleLayoutFileNarrow = 'store/tpl/InventoryNote/SingleLayoutNarrow.shtml';
-
-
+    
+    
     /**
      * Да се забрани ли кеширането на документа
      */
@@ -162,7 +161,7 @@ class store_InventoryNotes extends core_Master
      */
     public $listAddBtn = false;
     
-
+    
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
@@ -233,8 +232,9 @@ class store_InventoryNotes extends core_Master
     /**
      * Намира МОЛ-те на които ще начитаме липсите
      *
-     * @param  stdClass $rec
-     * @return array    $options
+     * @param stdClass $rec
+     *
+     * @return array $options
      */
     private static function getSelectedResponsiblePersons($rec)
     {
@@ -294,7 +294,8 @@ class store_InventoryNotes extends core_Master
      * Можели документа да се добави в посочената папка
      *
      * @param $folderId int ид на папката
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
@@ -311,15 +312,15 @@ class store_InventoryNotes extends core_Master
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
-    
+        
         $row = (object) array(
-                'title' => $title,
-                'authorId' => $rec->createdBy,
-                'author' => $this->getVerbal($rec, 'createdBy'),
-                'state' => $rec->state,
-                'recTitle' => $title
+            'title' => $title,
+            'authorId' => $rec->createdBy,
+            'author' => $this->getVerbal($rec, 'createdBy'),
+            'state' => $rec->state,
+            'recTitle' => $title
         );
-    
+        
         return $row;
     }
     
@@ -458,7 +459,7 @@ class store_InventoryNotes extends core_Master
                     $userId = crm_Profiles::fetchField("#personId = {$sRec->contragentId}", 'userId');
                     $row->sales[$index] = (object) array('sales' => array(), 'link' => crm_Profiles::createLink($userId));
                 }
-            
+                
                 $class = "state-{$sRec->state}";
                 $link = sales_Sales::getLink($sRec->id, 0, false);
                 $row->sales[$index]->sales[] = "<span class='{$class}'>{$link}</span>";
@@ -481,28 +482,29 @@ class store_InventoryNotes extends core_Master
             $tpl->append($block, 'SALES_BLOCK');
         }
     }
-
-
+    
+    
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $tpl->push('store/js/InventoryNotes.js', 'JS');
-
+        
         jquery_Jquery::run($tpl, 'noteActions();');
-
+        
         if (!Mode::is('printing')) {
             $tpl->removeBlock('COUNTER');
         }
     }
-
+    
     
     /**
      * Връща артикулите в протокола
      *
-     * @param  stdClass $rec - ид или запис
-     * @return array    $res - масив с артикули
+     * @param stdClass $rec - ид или запис
+     *
+     * @return array $res - масив с артикули
      */
     public function getCurrentProducts($rec)
     {
@@ -524,13 +526,14 @@ class store_InventoryNotes extends core_Master
     /**
      * Масив с артикулите срещани в счетоводството
      *
-     * @param  stClass $rec
+     * @param stClass $rec
+     *
      * @return array
-     *                     o productId      - ид на артикул
-     *                     o groups         - в кои групи е
-     *                     o blQuantity     - к-во
-     *                     o searchKeywords - ключови думи
-     *                     o modifiedOn     - текуща дата
+     *               o productId      - ид на артикул
+     *               o groups         - в кои групи е
+     *               o blQuantity     - к-во
+     *               o searchKeywords - ключови думи
+     *               o modifiedOn     - текуща дата
      */
     private function getProductsFromBalance($rec)
     {
@@ -564,11 +567,11 @@ class store_InventoryNotes extends core_Master
                 
                 $productId = acc_Items::fetchField($bRec->{"ent{$productPositionId}Id"}, 'objectId');
                 $aRec = (object) array('noteId' => $rec->id,
-                                      'productId' => $productId,
-                                      'groups' => null,
-                                      'modifiedOn' => $now,
-                                      'createdBy' => core_Users::SYSTEM_USER,
-                                      'blQuantity' => $bRec->blQuantity);
+                    'productId' => $productId,
+                    'groups' => null,
+                    'modifiedOn' => $now,
+                    'createdBy' => core_Users::SYSTEM_USER,
+                    'blQuantity' => $bRec->blQuantity);
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
                 
                 $groups = cat_Products::fetchField($productId, 'groups');
@@ -589,7 +592,8 @@ class store_InventoryNotes extends core_Master
      * Синхронизиране на множеството на артикулите идващи от баланса
      * и текущите записи.
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return void
      */
     public function sync($id)
@@ -604,7 +608,7 @@ class store_InventoryNotes extends core_Master
         
         // Извличаме текущите записи
         $currentArr = $this->getCurrentProducts($rec);
-         
+        
         // Избраните групи
         $rGroup = cat_Groups::getDescendantArray($rec->groups);
         $rGroup = keylist::toArray($rGroup);
@@ -637,12 +641,12 @@ class store_InventoryNotes extends core_Master
         if (count($syncedArr['insert'])) {
             $Summary->saveArray($syncedArr['insert']);
         }
-         
+        
         // На останалите им обновяваме определени полета
         if (count($syncedArr['update'])) {
             $Summary->saveArray($syncedArr['update'], 'id,noteId,productId,blQuantity,groups,modifiedOn,searchKeywords');
         }
-         
+        
         $deleted = 0;
         
         // Ако трябва да се трият артикули
@@ -658,14 +662,14 @@ class store_InventoryNotes extends core_Master
                 }
             }
         }
-         
+        
         // Дебъг информация
         if (haveRole('debug')) {
             core_Statuses::newStatus('Данните са синхронизирани');
             if ($deleted) {
                 core_Statuses::newStatus("Изтрити са {$deleted} реда");
             }
-        
+            
             if ($added = count($syncedArr['insert'])) {
                 core_Statuses::newStatus("Добавени са {$added} реда");
             }
@@ -696,7 +700,8 @@ class store_InventoryNotes extends core_Master
     /**
      * Инвалидиране на кеша на документа
      *
-     * @param  mixed $rec – ид или запис
+     * @param mixed $rec – ид или запис
+     *
      * @return void
      */
     public static function invalidateCache($rec)
@@ -711,8 +716,9 @@ class store_InventoryNotes extends core_Master
     /**
      * Връща ключа за кеширане на данните
      *
-     * @param  stdClass $rec - запис
-     * @return string   $key  - уникален ключ
+     * @param stdClass $rec - запис
+     *
+     * @return string $key  - уникален ключ
      */
     public static function getCacheKey($rec)
     {
@@ -817,7 +823,7 @@ class store_InventoryNotes extends core_Master
         // Добавяне на бутоните на формата
         $form->toolbar->addSbBtn('Бланка', 'save', 'ef_icon = img/16/disk.png, title = Генериране на бланка');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-         
+        
         // Рендиране на обвивката и формата
         return $this->renderWrapping($form->renderHtml());
     }
@@ -826,7 +832,8 @@ class store_InventoryNotes extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -872,10 +879,11 @@ class store_InventoryNotes extends core_Master
     /**
      * Метод за създаване на нов протокол за инвентаризация
      *
-     * @param  int       $storeId     - склад
-     * @param  date|NULL $valior      - вальор
-     * @param  boolean   $loadCurrent - дали да се заредят всички артикули в склада
-     * @return int       $id             - ид на протокола
+     * @param int       $storeId     - склад
+     * @param date|NULL $valior      - вальор
+     * @param bool      $loadCurrent - дали да се заредят всички артикули в склада
+     *
+     * @return int $id             - ид на протокола
      */
     public static function createDraft($storeId, $valior = null, $loadCurrent = false)
     {
@@ -883,9 +891,9 @@ class store_InventoryNotes extends core_Master
         expect(store_Stores::fetch($storeId), "Няма склад с ид {$storeId}");
         
         $rec = (object) array('storeId' => $storeId,
-                             'valior' => $valior,
-                             'hideOthers' => (!$loadCurrent) ? 'yes' : 'no',
-                             'folderId' => store_Stores::forceCoverAndFolder($storeId));
+            'valior' => $valior,
+            'hideOthers' => (!$loadCurrent) ? 'yes' : 'no',
+            'folderId' => store_Stores::forceCoverAndFolder($storeId));
         
         static::route($rec);
         
@@ -899,14 +907,15 @@ class store_InventoryNotes extends core_Master
     /**
      * Добавяне на ред към протокол за инвентаризация
      *
-     * @param  int         $noteId               - ид на протокол
-     * @param  int         $productId            - ид на артикул
-     * @param  int         $packagingId          - ид на мярка/опаковка
-     * @param  double      $quantityInPack       - к-во в опаковката
-     * @param  double      $foundPackQuantity    - намерено количество опаковки
-     * @param  double|NULL $expectedPackQuantity - очаквано количество опаковка, ако не се зададе е 0
-     * @param  string|NULL $batch                - партиден номер, опционален
-     * @return int         - ид на записа
+     * @param int         $noteId               - ид на протокол
+     * @param int         $productId            - ид на артикул
+     * @param int         $packagingId          - ид на мярка/опаковка
+     * @param float       $quantityInPack       - к-во в опаковката
+     * @param float       $foundPackQuantity    - намерено количество опаковки
+     * @param float|NULL  $expectedPackQuantity - очаквано количество опаковка, ако не се зададе е 0
+     * @param string|NULL $batch                - партиден номер, опционален
+     *
+     * @return int - ид на записа
      */
     public static function addRow($noteId, $productId, $packagingId, $quantityInPack, $foundPackQuantity, $expectedPackQuantity = null, $batch = null)
     {
@@ -935,10 +944,10 @@ class store_InventoryNotes extends core_Master
         
         // Подготовка на записа
         $rec = (object) array('noteId' => $noteId,
-                             'productId' => $productId,
-                             'packagingId' => $packagingId,
-                             'quantityInPack' => $quantityInPack,
-                             'quantity' => $quantity,
+            'productId' => $productId,
+            'packagingId' => $packagingId,
+            'quantityInPack' => $quantityInPack,
+            'quantity' => $quantity,
         );
         
         // Валидация на партидния номер ако има

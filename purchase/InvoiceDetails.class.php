@@ -1,22 +1,20 @@
 <?php 
 
-
-
 /**
  * Детайли на фактурите
  *
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class purchase_InvoiceDetails extends deals_InvoiceDetail
 {
-    
-    
     /**
      * Заглавие
      */

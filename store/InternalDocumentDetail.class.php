@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Абстрактен клас за наследяване от вътрешни складови документи
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class store_InternalDocumentDetail extends doc_Detail
 {
-    
-    
     /**
      * Поле за артикула
      */
@@ -49,9 +48,10 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_CalcQuantity(core_Mvc $mvc, $rec)
     {
         if (empty($rec->quantityInPack) || empty($rec->packQuantity)) {
+            
             return;
         }
-    
+        
         $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     }
     
@@ -69,7 +69,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         $products = $mvc->getProducts($masterRec);
         expect(count($products));
-            
+        
         if (isset($rec->productId) && !array_key_exists($rec->productId, $products)) {
             $products[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
         }
@@ -100,7 +100,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
-    
+        
         if (!$currencyRate) {
             $form->setError('currencyRate', 'Не може да се изчисли курс');
         }
@@ -125,7 +125,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-        
+            
             $autoPrice = false;
             
             if (!isset($rec->packPrice)) {
@@ -163,9 +163,10 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
         if (empty($rec->packPrice) || empty($rec->packQuantity)) {
+            
             return;
         }
-    
+        
         $rec->amount = $rec->packPrice * $rec->packQuantity;
     }
     
@@ -176,6 +177,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         if (!count($data->rows)) {
+            
             return;
         }
         $unsetAmounts = true;

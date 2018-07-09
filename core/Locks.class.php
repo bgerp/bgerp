@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Клас 'core_Lock' - Мениджър за заключване на обекти
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Locks extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
     public $title = 'Заключвания';
+    
     
     /**
      * Кои полета ще бъдат показани?
@@ -96,10 +96,10 @@ class core_Locks extends core_Manager
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
         $lockExpire = time() + $maxDuration;
-
+        
         // Увеличаваме времето за изпълнение (евентуално) за времето до изтичане на лок-а
         core_App::setTimeLimit($maxDuration);
-
+        
         $rec = $Locks->locks[$objectId];
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
@@ -200,7 +200,7 @@ class core_Locks extends core_Manager
      *
      * @param string $objectId - Стринга, за който се проверява дали не е заключен
      *
-     * @return boolean - Връща TRUE, ако обекта е заключен
+     * @return bool - Връща TRUE, ако обекта е заключен
      */
     public static function isLocked($objectId)
     {
@@ -220,11 +220,11 @@ class core_Locks extends core_Manager
     /**
      * Правим последователно няколко опита да заключим обекта, през интервал 1 сек
      *
-     * @param string  $objectId    - Стринга, за който се проверява дали не е заключен
-     * @param integer $maxDuration - За колко време да заключим
-     * @param integer $maxTrays    - Колко опита да се направи за заключване
+     * @param string $objectId    - Стринга, за който се проверява дали не е заключен
+     * @param int    $maxDuration - За колко време да заключим
+     * @param int    $maxTrays    - Колко опита да се направи за заключване
      *
-     * @return boolean
+     * @return bool
      */
     public static function waitForLock($objectId, $maxDuration = 10, $maxTrays = 5)
     {
@@ -232,7 +232,7 @@ class core_Locks extends core_Manager
         while ($maxTrays > 0) {
             sleep(1);
             Debug::log('Sleep 1 sec. in' . __CLASS__);
-
+            
             if (static::get($objectId, $maxDuration, 0)) {
                 
                 return true;
@@ -241,7 +241,7 @@ class core_Locks extends core_Manager
             $maxTrays--;
         }
     }
-
+    
     
     /**
      * Изпълнява се преди подготовката на показваните редове

@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Data extends core_Manager
 {
-    
-    
     /**
      * Знак, който ще се замества с линк към обекта, ако съществува
      */
@@ -68,24 +68,20 @@ class log_Data extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_SystemWrapper, log_Wrapper';
     
     
-    
     public $listItemsPerPage = 50;
-    
     
     
     public $listFields = 'id, actTime, userId=Потребител,  text, type=Тип, ipId=IP адрес, brId=Браузър';
     
     
-    
     protected static $toAdd = array();
-    
     
     
     /**
@@ -102,10 +98,10 @@ class log_Data extends core_Manager
         $this->FLD('classCrc', 'bigint', 'caption=Данни->Клас');
         $this->FLD('objectId', 'int', 'caption=Данни->Обект');
         $this->FLD('lifeTime', 'int', 'caption=Време живот, notNull');
-         
+        
         $this->FNC('text', 'varchar', 'caption=Съобщение');
         $this->FNC('actTime', 'datetime', 'caption=Време');
-         
+        
         $this->setDbIndex('ipId');
         $this->setDbIndex('brId');
         $this->setDbIndex('userId');
@@ -113,7 +109,7 @@ class log_Data extends core_Manager
         $this->setDbIndex('type');
         $this->setDbIndex('actionCrc');
         $this->setDbIndex('classCrc,objectId');
-
+        
         $this->dbEngine = 'InnoDB';
     }
     
@@ -121,11 +117,11 @@ class log_Data extends core_Manager
     /**
      *
      *
-     * @param string                $type
-     * @param string                $message
-     * @param string|object|NULL    $className
-     * @param integer|NULL|stdClass $objectId
-     * @param integer               $lifeDays
+     * @param string             $type
+     * @param string             $message
+     * @param string|object|NULL $className
+     * @param int|NULL|stdClass  $objectId
+     * @param int                $lifeDays
      */
     public static function add($type, $message, $className = null, $objectId = null, $lifeDays = 180)
     {
@@ -153,7 +149,7 @@ class log_Data extends core_Manager
         $toAdd['objectId'] = $objectId;
         $toAdd['time'] = dt::mysql2timestamp();
         $toAdd['lifeTime'] = $lifeDays * 86400;
-                
+        
         self::$toAdd[] = $toAdd;
         
         $logStr = $className;
@@ -166,10 +162,10 @@ class log_Data extends core_Manager
     /**
      * Дали потребиеля може да вижда лога на съотвения потребител
      *
-     * @param integer      $userId
-     * @param NULL|integer $currUserId
+     * @param int      $userId
+     * @param NULL|int $currUserId
      *
-     * @return boolean
+     * @return bool
      */
     public static function canViewUserLog($userId, $currUserId = null)
     {
@@ -207,8 +203,8 @@ class log_Data extends core_Manager
     /**
      * Връща масив с логовете за потребителя
      *
-     * @param integer $userId
-     * @param integer $perPage
+     * @param int $userId
+     * @param int $perPage
      *
      * @return array
      *               array rows
@@ -241,11 +237,11 @@ class log_Data extends core_Manager
      * Връща броя на записите за съответния обект
      *
      * @param object|string $className
-     * @param integer       $objectId
+     * @param int           $objectId
      * @param NULL|string   $type
      * @param NULL|string   $act
      *
-     * @return NULL|integer
+     * @return NULL|int
      */
     public static function getObjectCnt($className, $objectId, $type = null, $act = null)
     {
@@ -261,7 +257,7 @@ class log_Data extends core_Manager
      * Връща записите за съответния обект
      *
      * @param object|string $className
-     * @param integer       $objectId
+     * @param int           $objectId
      * @param NULL|string   $type
      * @param NULL|string   $act
      *
@@ -283,7 +279,7 @@ class log_Data extends core_Manager
         while ($rec = $query->fetch()) {
             $resArr[$rec->id] = $rec;
         }
-    
+        
         return $resArr;
     }
     
@@ -292,7 +288,7 @@ class log_Data extends core_Manager
      * Връща заявка за съответния обект
      *
      * @param object|string $className
-     * @param integer       $objectId
+     * @param int           $objectId
      * @param NULL|string   $type
      * @param NULL|string   $act
      *
@@ -332,7 +328,7 @@ class log_Data extends core_Manager
      * Връща всички записи за съответния обект
      *
      * @param object|string $className
-     * @param integer       $objectId
+     * @param int           $objectId
      * @param core_Pager    $pager
      * @param NULL|string   $type
      *
@@ -508,9 +504,9 @@ class log_Data extends core_Manager
     /**
      *
      *
-     * @param string       $action
-     * @param string       $className
-     * @param NULL|integer $objectId
+     * @param string   $action
+     * @param string   $className
+     * @param NULL|int $objectId
      *
      * @return string
      */
@@ -707,7 +703,7 @@ class log_Data extends core_Manager
                 $classSuggArr[$className] = $className;
             }
         }
-            
+        
         if (trim($rec->class)) {
             $classSuggArr[$rec->class] = $rec->class;
         }
@@ -785,7 +781,7 @@ class log_Data extends core_Manager
                         if ($className) {
                             if (cls::load($className, true)) {
                                 $clsInst = cls::get($className);
-                        
+                                
                                 if (method_exists($clsInst, 'getTitleForId_')) {
                                     $objVal = $clsInst->getTitleForId($objValRec->objectId);
                                 } else {

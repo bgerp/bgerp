@@ -1,27 +1,26 @@
 <?php
 
 
-
 /**
  * Клас 'store_Transfers' - Документ за междускладови трансфери
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_Transfers extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Междускладови трансфери';
-
-
+    
+    
     /**
      * Име на документа в бързия бутон за добавяне в папката
      */
@@ -45,7 +44,7 @@ class store_Transfers extends core_Master
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
-
+    
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
@@ -71,8 +70,8 @@ class store_Transfers extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,store';
-
-
+    
+    
     /**
      * Кой има право да променя?
      */
@@ -113,14 +112,14 @@ class store_Transfers extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, weight, volume,lineId, folderId, createdOn, createdBy';
-
-
+    
+    
     /**
      * Детайла, на модела
      */
     public $details = 'store_TransfersDetails';
     
-
+    
     /**
      * Кой е главния детайл
      *
@@ -139,8 +138,8 @@ class store_Transfers extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/SingleLayoutTransfers.shtml';
-
-   
+    
+    
     /**
      * Файл за единичния изглед в мобилен
      */
@@ -163,8 +162,8 @@ class store_Transfers extends core_Master
      * Как се казва полето в което е избран склада
      */
     public $storeFieldName = 'fromStore';
-
-
+    
+    
     /**
      * Дата на очакване
      */
@@ -175,8 +174,8 @@ class store_Transfers extends core_Master
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/transfers.png';
-
-
+    
+    
     /**
      * Полета за филтър по склад
      */
@@ -242,6 +241,7 @@ class store_Transfers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -352,8 +352,8 @@ class store_Transfers extends core_Master
             $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);
         }
     }
-
-
+    
+    
     /**
      * Може ли да бъде добавен документа в папката
      */
@@ -363,7 +363,7 @@ class store_Transfers extends core_Master
         
         return cls::haveInterface('store_iface_TransferFolderCoverIntf', $folderClass);
     }
-        
+    
     
     /**
      * Връща информацията за документа в папката
@@ -390,10 +390,11 @@ class store_Transfers extends core_Master
     /**
      * Връща масив от използваните нестандартни артикули в СР-то
      *
-     * @param  int   $id - ид на СР
+     * @param int $id - ид на СР
+     *
      * @return param $res - масив с използваните документи
-     *                  ['class'] - инстанция на документа
-     *                  ['id'] - ид на документа
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
@@ -412,6 +413,7 @@ class store_Transfers extends core_Master
     
     /**
      * В кои корици може да се вкарва документа
+     *
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getCoversAndInterfacesForNewDoc()
@@ -433,17 +435,19 @@ class store_Transfers extends core_Master
     
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
+     *
      * @see acc_AllowArticlesCostCorrectionDocsIntf
      *
-     * @param  mixed $id - ид или запис
+     * @param mixed $id - ид или запис
+     *
      * @return array $products        - масив с информация за артикули
-     *                  o productId       - ид на артикул
-     *                  o name            - име на артикула
-     *                  o quantity        - к-во
-     *                  o amount          - сума на артикула
-     *                  o inStores        - масив с ид-то и к-то във всеки склад в който се намира
-     *                  o transportWeight - транспортно тегло на артикула
-     *                  o transportVolume - транспортен обем на артикула
+     *               o productId       - ид на артикул
+     *               o name            - име на артикула
+     *               o quantity        - к-во
+     *               o amount          - сума на артикула
+     *               o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+     *               o transportWeight - транспортно тегло на артикула
+     *               o transportVolume - транспортен обем на артикула
      */
     public function getCorrectableProducts($id)
     {
@@ -454,19 +458,19 @@ class store_Transfers extends core_Master
         while ($dRec = $query->fetch()) {
             if (!array_key_exists($dRec->newProductId, $products)) {
                 $products[$dRec->newProductId] = (object) array('productId' => $dRec->newProductId,
-                        'quantity' => 0,
-                        'name' => cat_Products::getTitleById($dRec->newProductId, false),
-                        'amount' => null,
-                        'transportWeight' => $dRec->weight,
-                        'transportVolume' => $dRec->volume,
-                        'inStores' => array($rec->toStore => 0),
+                    'quantity' => 0,
+                    'name' => cat_Products::getTitleById($dRec->newProductId, false),
+                    'amount' => null,
+                    'transportWeight' => $dRec->weight,
+                    'transportVolume' => $dRec->volume,
+                    'inStores' => array($rec->toStore => 0),
                 );
             }
             
             $products[$dRec->newProductId]->quantity += $dRec->quantity;
             $products[$dRec->newProductId]->inStores[$rec->toStore] += $dRec->quantity;
         }
-    
+        
         return $products;
     }
     
@@ -474,7 +478,8 @@ class store_Transfers extends core_Master
     /**
      * Информация за логистичните данни
      *
-     * @param  mixed $rec - ид или запис на документ
+     * @param mixed $rec - ид или запис на документ
+     *
      * @return array $data - логистичните данни
      *
      *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
@@ -520,13 +525,14 @@ class store_Transfers extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-    
+        
         return $this->save($rec);
     }
     
@@ -534,17 +540,18 @@ class store_Transfers extends core_Master
     /**
      * Информацията на документа, за показване в транспортната линия
      *
-     * @param  mixed $id
+     * @param mixed $id
+     *
      * @return array
-     *                  ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     *                  ['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     *                  ['currencyId'] string|NULL - валутата на документа
-     *                  ['notes']      string|NULL - забележки за транспортната линия
-     *                  ['stores']     array       - склад(ове) в документа
-     *                  ['weight']     double|NULL - общо тегло на стоките в документа
-     *                  ['volume']     double|NULL - общ обем на стоките в документа
-     *                  ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *                  [transUnitId] => quantity
+     *               ['baseAmount'] double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']     double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId'] string|NULL - валутата на документа
+     *               ['notes']      string|NULL - забележки за транспортната линия
+     *               ['stores']     array       - склад(ове) в документа
+     *               ['weight']     double|NULL - общо тегло на стоките в документа
+     *               ['volume']     double|NULL - общ обем на стоките в документа
+     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               [transUnitId] => quantity
      */
     public function getTransportLineInfo_($rec)
     {
@@ -562,19 +569,20 @@ class store_Transfers extends core_Master
     /**
      * Какво да е предупреждението на бутона за контиране
      *
-     * @param int $id            - ид
+     * @param int    $id         - ид
      * @param string $isContable - какво е действието
-     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     *
+     * @return NULL|string - текста на предупреждението или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
-    	$rec = $this->fetchRec($id);
-    	$dQuery = store_TransfersDetails::getQuery();
-    	$dQuery->where("#transferId = {$id}");
-    	$dQuery->show('newProductId, quantity');
-    	
-    	$warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, 'newProductId');
-    
-    	return $warning;
+        $rec = $this->fetchRec($id);
+        $dQuery = store_TransfersDetails::getQuery();
+        $dQuery->where("#transferId = {$id}");
+        $dQuery->show('newProductId, quantity');
+        
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, 'newProductId');
+        
+        return $warning;
     }
 }

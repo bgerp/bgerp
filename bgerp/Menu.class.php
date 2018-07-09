@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Връзки в основното меню
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_Menu extends core_Manager
 {
-    
-    
     /**
      * Дали да се изтриват неинсталираните менюта в текущия хит
      */
@@ -80,7 +79,7 @@ class bgerp_Menu extends core_Manager
             $query->orderBy('#row,#id', 'ASC');
             $pos = array();
             $next = 1;
-
+            
             while ($rec = $query->fetch()) {
                 $newRec = clone($rec);
                 if (!($thisMenu = $pos[$rec->menu])) {
@@ -97,7 +96,7 @@ class bgerp_Menu extends core_Manager
                 $newRec->act = $rec->act ? $rec->act : 'default';
                 $menuObj[$rec->menu . ':' . $rec->subMenu] = $newRec;
             }
-
+            
             core_Cache::set('Menu', $cacheKey, $menuObj, 1400);
         }
         
@@ -106,7 +105,7 @@ class bgerp_Menu extends core_Manager
         if (!count($menuObj) && (strpos(Request::get('Ctr'), 'core_') === false)) {
             redirect(array('core_Packs'));
         }
- 
+        
         return $menuObj;
     }
     
@@ -214,7 +213,7 @@ class bgerp_Menu extends core_Manager
         return $bestKey;
     }
     
-
+    
     /**
      * Връща данните за менюто на текущия потребител
      */
@@ -224,7 +223,7 @@ class bgerp_Menu extends core_Manager
         
         if (($menuObj) && (count($menuObj))) {
             foreach ($menuObj as $key => $rec) {
-            
+                
                 // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
                 // $mainMenuItems[$pageMenu] = TRUE; Дали това главно меню вече е показано
                 
@@ -280,10 +279,9 @@ class bgerp_Menu extends core_Manager
                 }
             }
         }
-
+        
         return array($menus, $subMenus);
     }
-    
     
     
     /**
@@ -527,8 +525,6 @@ class bgerp_Menu extends core_Manager
         
         return $msg;
     }
-    
-    
     
     
     /**

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'plg_PrevAndNext' - Добавя бутони за предишен и следващ във форма за редактиране
  * и при разглеждането на няколко записа
@@ -9,16 +8,16 @@
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_PrevAndNext extends core_Plugin
 {
-    
-    
     /**
      * След описанието на модела
      */
@@ -30,7 +29,7 @@ class plg_PrevAndNext extends core_Plugin
             $mvc->doWithSelected['browse'] = 'Преглед';
         }
     }
-
+    
     
     /**
      * Промяна на бутоните
@@ -41,7 +40,7 @@ class plg_PrevAndNext extends core_Plugin
     public static function on_AfterPrepareRetUrl($mvc, $data)
     {
         $selKey = static::getModeKey($mvc);
-
+        
         if (Mode::is($selKey)) {
             $Cmd = Request::get('Cmd');
             
@@ -74,7 +73,7 @@ class plg_PrevAndNext extends core_Plugin
                 
                 // Превръщаме в масив, списъка с избраниуте id-та
                 $selArr = arr::make($sel);
-    
+                
                 // Записваме масива в сесията, под уникален за модела ключ
                 Mode::setPermanent($selKey, $selArr);
                 
@@ -90,34 +89,35 @@ class plg_PrevAndNext extends core_Plugin
                 $data = new stdClass();
             }
             expect($data->rec = $mvc->fetch($id));
-                
+            
             // Трябва да има $rec за това $id
             if (!($data->rec)) {
-                    
+                
                 // Имаме ли въобще права за единичен изглед?
                 $mvc->requireRightFor('single');
             }
-                
+            
             $mvc->requireRightFor('single', $data->rec);
-                
+            
             $data->buttons = new stdClass();
             $data->buttons->prevId = self::getNeighbour($mvc, $data->rec, -1);
             $data->buttons->nextId = self::getNeighbour($mvc, $data->rec, +1);
-                
+            
             // Подготвяме данните за единичния изглед
             $mvc->prepareSingle($data);
-                
+            
             // Рендираме изгледа
             $tpl = $mvc->renderSingle($data);
-                
+            
             // Опаковаме изгледа
             $tpl = $mvc->renderWrapping($tpl, $data);
-                
+            
             $res = $tpl;
-                
+            
             return false;
         }
     }
+    
     
     /**
      * Връща id на съседния запис в зависимост next/prev
@@ -129,25 +129,27 @@ class plg_PrevAndNext extends core_Plugin
     {
         $id = $rec->id;
         if (!$id) {
+            
             return;
         }
-
+        
         $selKey = static::getModeKey($mvc);
         $selArr = Mode::get($selKey);
         $res = null;
-
+        
         if (count($selArr)) {
             $selId = array_search($id, $selArr);
             if ($selId === false) {
+                
                 return;
             }
             $selNeighbourId = $selId + $dir;
             $res = $selArr[$selNeighbourId];
         }
-
+        
         return $res;
     }
- 
+    
     
     /**
      * Преди подготовката на формата
@@ -159,10 +161,10 @@ class plg_PrevAndNext extends core_Plugin
     public static function on_BeforePrepareEditForm($mvc, &$res, &$data)
     {
         if ($sel = Request::get('Selected')) {
-
+            
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
-             
+            
             // Зареждаме id-то на първия запис за редактиране
             expect(ctype_digit($id = $selArr[0]));
             
@@ -199,15 +201,15 @@ class plg_PrevAndNext extends core_Plugin
                 }
             }
         }
-
-   
+        
+        
         if ($sel = Request::get('Selected')) {
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
         }
-
+        
         if (!empty($selArr)) {
- 
+            
             // Записваме масива в сесията, под уникален за модела ключ
             Mode::setPermanent($selKey, $selArr);
             
@@ -231,7 +233,7 @@ class plg_PrevAndNext extends core_Plugin
             
             $pos = array_search($id, $selArr) + 1;
             $data->prevAndNextIndicator = $pos . '/' . count($selArr);
-             
+            
             $data->buttons = new stdClass();
             $data->buttons->prevId = self::getNeighbour($mvc, $data->form->rec, -1);
             $data->buttons->nextId = self::getNeighbour($mvc, $data->form->rec, +1);
@@ -255,19 +257,19 @@ class plg_PrevAndNext extends core_Plugin
                 }
                 
                 $data->form->toolbar->addFnBtn($data->prevAndNextIndicator, '', 'class=noicon fright,order=30');
-
+                
                 if (isset($data->buttons->prevId)) {
                     $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
                 } else {
                     $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30, title = Предишен');
                 }
             }
-
+            
             $data->form->setHidden('ret_url', Request::get('ret_url'));
         }
     }
-
-
+    
+    
     /**
      * След подготовка на тулбара на единичен изглед.
      *

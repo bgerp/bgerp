@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от продажбени артикули
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_reports_SalesArticle extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -28,21 +27,21 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      * Заглавие
      */
     public $title = 'Артикули » Продажбени артикули';
-
+    
     
     /**
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
-
-
+    
+    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     //public $oldClassName = 'doc_SalesArticleReport';
     
-
-
+    
+    
     /**
      * Брой записи на страница
      */
@@ -83,7 +82,6 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      * Кой може да го разглежда?
      */
     public $canList = 'cat,ceo,sales,purchase';
-
     
     
     /**
@@ -97,8 +95,8 @@ class cat_reports_SalesArticle extends frame_BaseDriver
         $form->FLD('to', 'date', 'caption=Край');
         $form->FLD('user', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител');
     }
-      
-
+    
+    
     /**
      * Подготвя формата за въвеждане на данни за вътрешния обект
      *
@@ -119,9 +117,9 @@ class cat_reports_SalesArticle extends frame_BaseDriver
             
             $form->setDefault('user', key($userFromTeamsArr));
         }
-
+        
         $today = dt::today();
-         
+        
         $form->setDefault('from', date('Y-m-01', strtotime('-1 months', dt::mysql2timestamp(dt::now()))));
         $form->setDefault('to', dt::addDays(-1, $today));
         
@@ -136,7 +134,6 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
-                 
         // Размяна, ако периодите са объркани
         if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
             $mid = $form->rec->from;
@@ -144,7 +141,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
             $form->rec->to = $mid;
         }
     }
-
+    
     
     /**
      * Подготвя вътрешното състояние, на база въведените данни
@@ -158,46 +155,46 @@ class cat_reports_SalesArticle extends frame_BaseDriver
         $fRec = $data->fRec = $this->innerForm;
         
         $this->prepareListFields($data);
-      
+        
         $querySales = sales_SalesDetails::getQuery();
         $queryShipment = store_ShipmentOrderDetails::getQuery();
         $queryServices = sales_ServicesDetails::getQuery();
-
-
+        
+        
         if ($fRec->from) {
             $querySales->where("#createdOn >= '{$fRec->from} 00:00:00'");
             $queryShipment->where("#createdOn >= '{$fRec->from} 00:00:00'");
             $queryServices->where("#createdOn >= '{$fRec->from} 00:00:00'");
         }
-
+        
         if ($fRec->to) {
             $querySales->where("#createdOn <= '{$fRec->to} 23:59:59'");
             $queryShipment->where("#createdOn <= '{$fRec->to} 23:59:59'");
             $queryServices->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
-
+        
         if (($fRec->user != 'all_users') && (strpos($fRec->user, '|-1|') === false)) {
             $querySales->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
             $queryShipment->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
             $queryServices->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
         }
-       
-
+        
+        
         while ($rec = $querySales->fetch()) {
             $data->articleCnt['sales'][$rec->classId][$rec->productId]++;
         }
-
+        
         while ($recShipment = $queryShipment->fetch()) {
             $data->articleCnt['shipment'][$recShipment->classId][$recShipment->productId]++;
         }
-
+        
         while ($recServices = $queryServices->fetch()) {
             $data->articleCnt['services'][$recServices->classId][$recServices->productId]++;
         }
- 
+        
         // Сортиране на данните
         arsort($data->articleCnt);
-
+        
         return $data;
     }
     
@@ -207,20 +204,19 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      */
     public function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
-
         // Подготвяме страницирането
         $data = $res;
         if (!Mode::is('printing')) {
             $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-    
+            
             $pager->itemsCount = count($data->articleCnt, COUNT_RECURSIVE);
             $pager->calc();
             $data->pager = $pager;
         }
         $rows = $mvc->getVerbal($data->articleCnt);
-
+        
         if (is_array($rows)) {
             foreach ($rows as $id => $row) {
                 $cu = getCurrentUrl();
@@ -232,7 +228,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
                             continue;
                         }
                     }
-
+                    
                     $data->rows[$id] = $row;
                 }
             }
@@ -247,21 +243,21 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     {
         $Users = cls::get('type_Users');
         $Int = cls::get('type_Int');
-
+        
         foreach ($rec as $doc => $artCnt) {
             foreach ($artCnt as $artClassId => $productCnt) {
                 foreach ($productCnt as $product => $cnt) {
                     $row = new stdClass();
                     $row->article = cat_Products::getTitleById($product);
-        
+                    
                     if ($doc == 'sales') {
                         $row->salesCnt = $Int->toVerbal($cnt);
                     }
                     if ($doc == 'shipment' || $doc == 'services') {
                         $row->shipmentCnt = $Int->toVerbal($cnt);
                     }
-        
-        
+                    
+                    
                     if (!$user) {
                         $row->createdBy = 'Анонимен';
                     } elseif ($user == -1) {
@@ -269,7 +265,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
                     } else {
                         $row->createdBy = $Users->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
                     }
-        
+                    
                     $rows[] = $row;
                 }
             }
@@ -278,7 +274,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
         return $rows;
     }
     
-
+    
     /**
      * Връща шаблона на репорта
      *
@@ -287,7 +283,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     public function getReportLayout_()
     {
         $tpl = getTplFromFile('cat/tpl/SalesArticleReportLayout.shtml');
-         
+        
         return $tpl;
     }
     
@@ -316,38 +312,39 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-         
+        
         $tpl = $this->getReportLayout();
         
         $explodeTitle = explode(' » ', $this->title);
         
         $title = tr("|{$explodeTitle[1]}|*");
-         
+        
         $tpl->replace($title, 'TITLE');
-         
+        
         $this->prependStaticForm($tpl, 'FORM');
-         
+        
         $tpl->placeObject($data->row);
-         
+        
         $tableMvc = new core_Mvc;
         $tableMvc->FLD('article', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
         $tableMvc->FLD('salesCnt', 'int', 'tdClass=itemClass,smartCenter');
         $tableMvc->FLD('shipmentCnt', 'int', 'tdClass=itemClass,smartCenter');
-
+        
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
-
+        
         $tpl->append($table->get($data->rows, 'article=Продукт,
     					     salesCnt=Продажба (бр.),
     					     shipmentCnt=Доставка (бр.),
                              '), 'CONTENT');
-
+        
         if ($data->pager) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
-         
-    
+        
+        
         $embedderTpl->append($tpl, 'data');
     }
     
@@ -357,6 +354,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -366,8 +364,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
         $f->FLD('article', 'varchar');
         $f->FLD('salesCnt', 'int');
         $f->FLD('shipmentCnt', 'int');
-
-    
+        
         return $f;
     }
     
@@ -399,14 +396,14 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     {
         $exportFields = $this->getExportFields();
         $fields = $this->getFields();
-
+        
         $dataRec = array();
-    
+        
         $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields);
-         
+        
         return $csv;
     }
-     
+    
     
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда

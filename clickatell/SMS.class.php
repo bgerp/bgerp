@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   clickatell
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class clickatell_SMS extends core_Manager
 {
-    
-    
     /**
      * Кой има право да чете?
      */
@@ -44,6 +44,7 @@ class clickatell_SMS extends core_Manager
      */
     public $canList = 'no_one';
     
+    
     /**
      * Кой има право да го изтрие?
      */
@@ -54,7 +55,6 @@ class clickatell_SMS extends core_Manager
      * Интерфейсния клас за изпращане на SMS
      */
     public $interfaces = 'callcenter_SentSMSIntf';
-    
     
     
     public $title = 'Clickatell';
@@ -87,10 +87,10 @@ class clickatell_SMS extends core_Manager
             
             // Вземаме шаблона
             $tpl = new ET($conf->CLICKATELL_URL);
-
+            
             // Заместваме данните
             $tpl->placeArray(array('FROM' => urlencode($sender), 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message), 'APIID' => $conf->CLICKATELL_APIID, 'USERNAME' => $conf->CLICKATELL_USERNAME, 'PASSWORD' => $conf->CLICKATELL_PASSWORD));
-
+            
             // Вземаме съдържанието
             $url = $tpl->getContent();
             
@@ -106,10 +106,10 @@ class clickatell_SMS extends core_Manager
 //
 //            // Вземаме резултата
 //            $retRes = file_get_contents($url, 0, $ctx);
-
+            
             // Разделяме стринга
             $sendStatusArr = explode(':', $retRes);
-     
+            
             // Ако изпращането е било успешно
             if ($sendStatusArr[0] == 'ID') {
                 
@@ -170,6 +170,7 @@ class clickatell_SMS extends core_Manager
     /**
      * Инрерфейсен метод
      * Връща статуса на съобщението от съоветната услуга
+     *
      * @see callcenter_SentSMSIntf
      *
      * @param string $uid
@@ -239,10 +240,10 @@ class clickatell_SMS extends core_Manager
         
         // Вземаме шаблона
         $tpl = new ET($conf->CLICKATELL_CHECK_URL);
-
+        
         // Заместваме данните
         $tpl->placeArray(array('APIID' => $conf->CLICKATELL_APIID, 'USERNAME' => $conf->CLICKATELL_USERNAME, 'PASSWORD' => $conf->CLICKATELL_PASSWORD));
-
+        
         // Вземаме съдържанието
         $url = $tpl->getContent();
         

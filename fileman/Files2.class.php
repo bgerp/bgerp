@@ -12,17 +12,16 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @deprecated
  */
 class fileman_Files2 extends core_Master
 {
-    
-    
     /**
      * Създаване на файл от файл в ОС. Връща fh на новосъздания файл.
      *
@@ -49,7 +48,7 @@ class fileman_Files2 extends core_Master
         
         // Очакваме да има такава кофа
         expect($bucketId = fileman_Buckets::fetchByName($bucket), 'Несъществуваща кофа.');
-
+        
         // Абсорбираме файла
         $data = fileman_Data::absorb($path, $type);
         
@@ -61,7 +60,7 @@ class fileman_Files2 extends core_Master
         
         // Инвокваме функцията
         $me->invoke('prepareFileName', array(&$name, $dataId));
-
+        
         // Проверяваме дали същия файл вече съществува
         if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
             
@@ -95,7 +94,7 @@ class fileman_Files2 extends core_Master
         
         return self::absorb($data, $bucket, $name, 'string');
     }
-
+    
     
     /**
      * Нова версия от файл в ОС
@@ -128,7 +127,7 @@ class fileman_Files2 extends core_Master
         
         return $versionId;
     }
-
+    
     
     /**
      * Нова версия от стринг
@@ -158,7 +157,7 @@ class fileman_Files2 extends core_Master
         
         return $versionId;
     }
-
+    
     
     /**
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
@@ -211,7 +210,7 @@ class fileman_Files2 extends core_Master
         
         // Времето на екстрактване
         $rec->extractedOn = dt::verbal2Mysql();
-
+        
         // Записваме информация за екстрактването
         fileman_Files::save($rec, 'extractedOn');
         
@@ -224,7 +223,7 @@ class fileman_Files2 extends core_Master
         
         return $copyPath;
     }
-
+    
     
     /**
      * Екстрактване на файл в string. Връща стринга.
@@ -286,7 +285,7 @@ class fileman_Files2 extends core_Master
         
         return $rec->name;
     }
-
+    
     
     /**
      * Копиране на файл
@@ -337,7 +336,7 @@ class fileman_Files2 extends core_Master
         // Връщаме манипулатора на файла
         return $newRec->fileHnd;
     }
-
+    
     
     /**
      * Връща id на посочения fileHnd
@@ -353,7 +352,7 @@ class fileman_Files2 extends core_Master
         
         return $id;
     }
-
+    
     
     /**
      * Връща масив от id-та  на файлове. Като аргумент получава масив или keylist от fileHandles.
@@ -402,7 +401,7 @@ class fileman_Files2 extends core_Master
         
         return $idsArr;
     }
-
+    
     
     /**
      * Връща fileHnd на посоченото id
@@ -418,7 +417,7 @@ class fileman_Files2 extends core_Master
         
         return $fh;
     }
-
+    
     
     /**
      * Връща масив от fh-ри  на файлове. Като аргумент получава масив или keylist от id-та на файлове
@@ -466,13 +465,12 @@ class fileman_Files2 extends core_Master
         
         return $fhsArr;
     }
-
+    
     
     /**
      * Връща всички мета-характеристики на файла
      *
      * @param strign $fh - Манипулатор на файла
-     *
      * @param return array(
      *      'name' => '...',
      *      'bucket' => '...',
@@ -490,7 +488,7 @@ class fileman_Files2 extends core_Master
         // Вземаме записите
         $rec = fileman_Files::fetchByFh($fh);
         $data = fileman_Data::fetch($rec->dataId);
-
+        
         // Очакваме да има такъв запис
         expect($rec && $data, 'Няма такъв запис.');
         
@@ -585,7 +583,7 @@ class fileman_Files2 extends core_Master
      *
      * @param string $tempFile - Файла, който ще бъде изтрит с директорията
      *
-     * @return boolean $deleted - Връща TRUE, ако изтриването протече коректно
+     * @return bool $deleted - Връща TRUE, ако изтриването протече коректно
      */
     public static function deleteTempPath($tempFile)
     {
@@ -603,7 +601,6 @@ class fileman_Files2 extends core_Master
         
         return $deleted;
     }
-    
     
     
     public static function on_AfterSetupMvc($mvc, &$res)
@@ -650,7 +647,7 @@ class fileman_Files2 extends core_Master
         
         // Нормализираме името на файла
         $inputFileName = fileman_Files::normalizeFileName($inputFileName);
-
+        
         // Вземаме името на файла и разширението
         $recFileNameArr = fileman_Files::getNameAndExt($inputFileName);
         
@@ -688,7 +685,7 @@ class fileman_Files2 extends core_Master
      *
      * @param string $path - Пътя до файла
      *
-     * @return boolean
+     * @return bool
      */
     public static function isCorrectPath($path)
     {
@@ -709,7 +706,7 @@ class fileman_Files2 extends core_Master
         
         return $isCorrect[$path];
     }
-
+    
     
     /**
      * Връща mime типа за съответния файл
@@ -735,7 +732,7 @@ class fileman_Files2 extends core_Master
         
         // Изпълняваме командата
         $res = exec("{$fileCmd} --mime-type  \"{$path}\"");
- 
+        
         // Вземаме позицията на интервала
         list($p, $mime) = explode(' ', $res);
         
@@ -749,7 +746,7 @@ class fileman_Files2 extends core_Master
                 $mime = 'application/x-msdownload';
             }
         }
-
+        
         // Връщаме mime типа
         return $mime;
     }
@@ -808,7 +805,7 @@ class fileman_Files2 extends core_Master
      *
      * @param string $path - Пътя до файла
      *
-     * @return integer - Размера на файла в байтове
+     * @return int - Размера на файла в байтове
      */
     public static function getFileSizeFromFilePath($path)
     {
@@ -885,7 +882,7 @@ class fileman_Files2 extends core_Master
      * Връща линк към сингъла на файла
      *
      * @param fileHnd     $fh       - Манипулатор на файла
-     * @param boolean     $absolute - Дали линка да е абсолютен
+     * @param bool        $absolute - Дали линка да е абсолютен
      * @param array       $attr     - Други параметри
      * @param string|NULL $name     - Името, което да се използва
      *
@@ -953,7 +950,7 @@ class fileman_Files2 extends core_Master
      * Връща URL към сингъла на файла
      *
      * @param fileHnd $fh       - Манипулатор на файла
-     * @param boolean $absolute - Дали URL-то да е абсолютен
+     * @param bool    $absolute - Дали URL-то да е абсолютен
      *
      * @return string - URL към сингъла
      */
@@ -979,9 +976,9 @@ class fileman_Files2 extends core_Master
     public static function addStrToFile($fileStr, $name)
     {
         $tempDir = fileman::getTempPath() . '/' . $name;
-    
+        
         expect(@file_put_contents($tempDir, $fileStr) !== false);
-    
+        
         return $tempDir;
     }
     
@@ -992,7 +989,7 @@ class fileman_Files2 extends core_Master
      * @param string|stdClass $fh
      * @param NULL|datetime   $lastUse
      *
-     * @return boolean
+     * @return bool
      */
     public static function updateLastUse($fh, $lastUse = null)
     {

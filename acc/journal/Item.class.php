@@ -1,5 +1,6 @@
 <?php
 
+
 class acc_journal_Item
 {
     /**
@@ -8,16 +9,19 @@ class acc_journal_Item
      */
     public $id;
     
+    
     /**
      *
      * @var int key(mvc=core_Classes)
      */
     private $classId;
     
+    
     /**
      * @var int key(mvc=$classId)
      */
     private $objectId;
+    
     
     /**
      *
@@ -63,8 +67,9 @@ class acc_journal_Item
     /**
      * Дали перото поддържа зададения интерфейс?
      *
-     * @param  int|string $iface име или id на интерфейс (@see core_Interfaces)
-     * @return boolean
+     * @param int|string $iface име или id на интерфейс (@see core_Interfaces)
+     *
+     * @return bool
      */
     public function implementsInterface($iface)
     {
@@ -81,7 +86,7 @@ class acc_journal_Item
         if (is_numeric($iface)) {
             acc_journal_Exception::expect($iface = core_Interfaces::fetchField($iface, 'name'), 'Липсващ интерфейс');
         }
-       
+        
         // Ако перото е системно (класа му е acc_Items) то винаги отговаря на интерфейса
         if ($this->classId == acc_Items::getClassId()) {
             
@@ -90,6 +95,7 @@ class acc_journal_Item
         
         return cls::haveInterface($iface, $this->classId);
     }
+    
     
     /**
      * "Засилва" записа
@@ -110,6 +116,7 @@ class acc_journal_Item
         
         return $this->id;
     }
+    
     
     /**
      * Връща името на класа на регистъра на перото

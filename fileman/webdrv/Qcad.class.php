@@ -12,15 +12,15 @@ defIfNot('QCAD_PATH', '');
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
 {
-    
-    
     /**
      * Типа на изходния файл
      *
@@ -69,7 +69,7 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
-
+        
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '.' . self::$fileType;
         

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'cond_DeliveryTerms' - Условия на доставка
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_DeliveryTerms extends core_Master
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -65,20 +64,20 @@ class cond_DeliveryTerms extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin';
     
-
+    
     /**
      * Кой може да променя състоянието на Условията на доставка
      */
     public $canChangestate = 'ceo,admin';
-
-
+    
+    
     /**
      * Заглавие
      */
@@ -169,7 +168,8 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Връща имплементация на драйвера за изчисляване на транспортната себестойност
      *
-     * @param  mixed                   $id - ид, запис или NULL
+     * @param mixed $id - ид, запис или NULL
+     *
      * @return cond_TransportCalc|NULL
      */
     public static function getTransportCalculator($id)
@@ -187,9 +187,10 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Дали да се изчислява скрития транспорт, за дадения артикул
      *
-     * @param  mixed   $id        - ид или запис
-     * @param  int     $productId - ид на артикул
-     * @return boolean $res  - да се начислява ли скрит транспорт или не
+     * @param mixed $id        - ид или запис
+     * @param int   $productId - ид на артикул
+     *
+     * @return bool $res  - да се начислява ли скрит транспорт или не
      */
     public static function canCalcHiddenCost($id, $productId)
     {
@@ -243,7 +244,8 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Проверява даден стринг дали съдържа валиден код CASE SENSITIVE
      *
-     * @param  string   $code - код
+     * @param string $code - код
+     *
      * @return int|NULL - ид на кода или NULL - ако не е открит
      */
     public static function getTermCodeId($code)
@@ -270,13 +272,14 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Помощен метод допълващ условието на доставка с адреса
      *
-     * @param  int      $deliveryCode      - текста на търговското условие
-     * @param  int      $contragentClassId - класа на контрагента
-     * @param  int      $contragentId      - ид на котнрагента
-     * @param  int      $storeId           - ид на склада
-     * @param  int      $locationId        - ид на локация
-     * @param  core_Mvc $document          - за кой документ се отнася
-     * @return string   - условието за доставка допълнено с адреса, ако може да се определи
+     * @param int      $deliveryCode      - текста на търговското условие
+     * @param int      $contragentClassId - класа на контрагента
+     * @param int      $contragentId      - ид на котнрагента
+     * @param int      $storeId           - ид на склада
+     * @param int      $locationId        - ид на локация
+     * @param core_Mvc $document          - за кой документ се отнася
+     *
+     * @return string - условието за доставка допълнено с адреса, ако може да се определи
      */
     public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $document)
     {

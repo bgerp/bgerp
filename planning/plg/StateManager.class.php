@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин добавящ към документ следните състояние: чернова, чакащо, аквитно, приключено, спряно, оттеглено и събудено
  * и управляващ преминаването им от едно в друго
@@ -19,15 +18,15 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_plg_StateManager extends core_Plugin
 {
-    
-    
     /**
      * За кои действия да се изисква основание
      */
@@ -72,8 +71,8 @@ class planning_plg_StateManager extends core_Plugin
             $mvc->demandReasonChangeState = arr::make($mvc->demandReasonChangeState, true);
         }
     }
-
-
+    
+    
     /**
      * След подготовка на тулбара на единичен изглед.
      *
@@ -101,7 +100,7 @@ class planning_plg_StateManager extends core_Plugin
             
             $data->toolbar->addBtn('Приключване', array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => true), $attr);
         }
-         
+        
         // Добавяне на бутон за спиране
         if ($mvc->haveRightFor('stop', $rec)) {
             $attr = array('ef_icon' => 'img/16/control_pause.png', 'title' => 'Спиране на документа','warning' => 'Сигурни ли сте, че искате да спрете документа', 'order' => 30, 'row' => 2);
@@ -111,7 +110,7 @@ class planning_plg_StateManager extends core_Plugin
             
             $data->toolbar->addBtn('Пауза', array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => true), $attr);
         }
-         
+        
         // Добавяне на бутон за събуждане
         if ($mvc->haveRightFor('wakeup', $rec)) {
             $attr = array('ef_icon' => 'img/16/lightbulb.png', 'title' => 'Събуждане на документа','warning' => 'Сигурни ли сте, че искате да събудите документа', 'order' => 30, 'row' => 3);
@@ -121,7 +120,7 @@ class planning_plg_StateManager extends core_Plugin
             
             $data->toolbar->addBtn('Събуждане', array($mvc, 'changeState', $rec->id, 'type' => 'wakeup', 'ret_url' => true), $attr);
         }
-         
+        
         // Добавяне на бутон за активиране от различно от чернова състояние
         if ($mvc->haveRightFor('activateAgain', $rec)) {
             $attr = array('ef_icon' => 'img/16/control_play.png', 'title' => 'Активиране на документа','warning' => 'Сигурни ли сте, че искате да активирате документа|*?', 'order' => 30);
@@ -162,28 +161,28 @@ class planning_plg_StateManager extends core_Plugin
         if (($action == 'close' || $action == 'stop' || $action == 'wakeup' || $action == 'activateagain' || $action == 'activate') && isset($rec)) {
             switch ($action) {
                 case 'close':
-    
+                    
                     // Само активните, събудените и спрените могат да бъдат приключени
                     if ($rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'closed') {
                         $requiredRoles = 'no_one';
                     }
                     break;
                 case 'stop':
-    
+                    
                     // Само активните могат да бъдат спрени
                     if ($rec->state != 'active' && $rec->state != 'wakeup') {
                         $requiredRoles = 'no_one';
                     }
                     break;
                 case 'wakeup':
-    
+                    
                     // Само приключените могат да бъдат събудени
                     if ($rec->state != 'closed') {
                         $requiredRoles = 'no_one';
                     }
                     break;
                 case 'activateagain':
-    
+                    
                     // Дали може да бъде активирана отново, след като е било променено състоянието
                     if ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'waiting' || $rec->state == 'template' || $rec->state == 'pending') {
                         $requiredRoles = 'no_one';
@@ -197,9 +196,9 @@ class planning_plg_StateManager extends core_Plugin
                     }
                     break;
             }
-    
+            
             if ($requiredRoles != 'no_one') {
-                 
+                
                 // Минимални роли за промяна на състоянието
                 $requiredRoles = $mvc->getRequiredRoles('changestate', $rec);
             }
@@ -224,11 +223,11 @@ class planning_plg_StateManager extends core_Plugin
     {
         if (strtolower($action) == 'changestate') {
             $mvc->requireRightFor('changestate');
-        
+            
             expect($id = Request::get('id', 'int'));
             expect($rec = $mvc->fetch($id));
             expect($action = Request::get('type', 'enum(close,stop,wakeup,activateAgain,activate)'));
-        
+            
             // Проверяваме правата за съответното действие затваряне/активиране/спиране/събуждане
             $mvc->requireRightFor($action, $rec);
             
@@ -236,7 +235,7 @@ class planning_plg_StateManager extends core_Plugin
                 if (in_array($action, $mvc->demandReasonChangeState)) {
                     if (!$reason = Request::get('reason', 'text')) {
                         $res = self::getReasonForm($mvc, $action, $rec);
-                    
+                        
                         return false;
                     }
                     $rec->_reason = $reason;
@@ -277,7 +276,7 @@ class planning_plg_StateManager extends core_Plugin
                     $logAction = 'Активиране';
                 break;
             }
-        
+            
             // Ако ще активираме: запалваме събитие, че ще активираме
             $saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
             if ($action == 'activate') {
@@ -303,7 +302,7 @@ class planning_plg_StateManager extends core_Plugin
         }
     }
     
-
+    
     /**
      * Реакция в счетоводния журнал при оттегляне на счетоводен документ
      */
@@ -396,10 +395,11 @@ class planning_plg_StateManager extends core_Plugin
     /**
      * Подготовка на формата за добавяне на основание към смяната на състоянието
      *
-     * @param  core_Mvc                                       $mvc
-     * @param  enum(close,stop,activateAgain,activate,wakeup) $action
-     * @param  stdClass                                       $rec
-     * @return core_Form                                      $res
+     * @param core_Mvc                                       $mvc
+     * @param enum(close,stop,activateAgain,activate,wakeup) $action
+     * @param stdClass                                       $rec
+     *
+     * @return core_Form $res
      */
     private static function getReasonForm($mvc, $action, $rec)
     {
@@ -410,16 +410,16 @@ class planning_plg_StateManager extends core_Plugin
         $actionVerbal = strtr($action, $actionArr);
         $form->title = $actionVerbal . '|* ' . tr('на') . '|* ' . planning_Jobs::getHyperlink($rec->id, true);
         $form->input();
-            
+        
         if ($form->isSubmitted()) {
             $url = array($mvc, 'changeState', $rec->id, 'type' => $action, 'reason' => $form->rec->reason);
-        
+            
             redirect($url);
         }
-            
+        
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-            
+        
         $res = $form->renderHtml();
         $res = $mvc->renderWrapping($res);
         

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'plg_TreeObject' - плъгин за обекти със дървовидна структура
  *
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_TreeObject extends core_Plugin
 {
-    
-
     /**
      * След дефиниране на полетата на модела
      *
@@ -98,10 +97,11 @@ class plg_TreeObject extends core_Plugin
     /**
      * Търси в дърво, дали даден обект не е баща на някой от бащите на друг обект
      *
-     * @param  int   $objectId   - ид на текущия обект
-     * @param  int   $needle     - ид на обекта който търсим
-     * @param  array $notAllowed - списък със забранените обекти
-     * @param  array $path
+     * @param int   $objectId   - ид на текущия обект
+     * @param int   $needle     - ид на обекта който търсим
+     * @param array $notAllowed - списък със забранените обекти
+     * @param array $path
+     *
      * @return void
      */
     private static function traverseTree($mvc, $objectId, $needle, &$notAllowed, $path = array())
@@ -131,7 +131,8 @@ class plg_TreeObject extends core_Plugin
     /**
      * Подготвя вербалното име на опциите по нов по азбучен ред и с подробното им име
      *
-     * @param  core_Mvc $mvc
+     * @param core_Mvc $mvc
+     *
      * @return void
      */
     private static function modifySelectOptions($mvc, &$options)
@@ -180,6 +181,7 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -210,13 +212,13 @@ class plg_TreeObject extends core_Plugin
         foreach ($data->recs as $br) {
             $tree[$br->parentId][] = $br;
         }
-
+        
         // Подготвяме дървото започвайки от обектите без бащи (корените)
         $tree = self::createTree($tree, $tree[null]);
         
         // Обръщаме дървото в обикновен масив за показване
         $data->recs = self::flattenTree($tree);
-
+        
         // Клас за таблицата
         $data->listTableClass = 'treeView';
         
@@ -232,7 +234,7 @@ class plg_TreeObject extends core_Plugin
                     
                     // За всеки намираме му децата
                     $descendants = self::getDescendants($mvc, $rec1->id, $data->recs);
-                
+                    
                     // Ако има полета за сумиране
                     foreach ($fieldsToSum as $fld) {
                         $fieldType = $mvc->getFieldType($fld);
@@ -259,8 +261,9 @@ class plg_TreeObject extends core_Plugin
     /**
      * Създава дърво от записите
      *
-     * @param  array $list   - масив
-     * @param  int   $parent - ид на бащата бащата (NULL ако няма)
+     * @param array $list   - масив
+     * @param int   $parent - ид на бащата бащата (NULL ако няма)
+     *
      * @return array $tree - записите в дървовидна структура
      */
     private static function createTree(&$list, $parent, $round = -1)
@@ -288,7 +291,8 @@ class plg_TreeObject extends core_Plugin
     /**
      * Обръщане на дървовидния масив в нормален (децата стават редове след баща им)
      *
-     * @param  array $array
+     * @param array $array
+     *
      * @return array - сортираните записи
      */
     private static function flattenTree($array)
@@ -306,7 +310,7 @@ class plg_TreeObject extends core_Plugin
         
         return $return;
     }
-
+    
     
     /**
      * След подготовка на тулбара на единичен изглед
@@ -364,6 +368,7 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -377,7 +382,7 @@ class plg_TreeObject extends core_Plugin
                 $minusIcon = sbf('img/16/toggle2.png', '');
                 $plus = "<img class='toggleBtn plus' src='{$plusIcon}' alt='' width='13' height='13' title='" . tr('Показване на наследниците') . "'/>";
                 $minus = "<img class='toggleBtn minus' src='{$minusIcon}' alt='' width='13' height='13' title='" . tr('Скриване на наследниците') . "'/>";
-                    
+                
                 $row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
             }
         }
@@ -410,7 +415,8 @@ class plg_TreeObject extends core_Plugin
      * има чекнато децата му да са свойства. За да е един обект свойство трябва или да има баща
      * и децата му да са свойства или да няма баща
      *
-     * @param  string $keylist - кейлист на обекти
+     * @param string $keylist - кейлист на обекти
+     *
      * @return void
      */
     public static function on_AfterGetFeaturesArray($mvc, &$res, $keylist)
@@ -428,7 +434,7 @@ class plg_TreeObject extends core_Plugin
             
             foreach ($ids as $id) {
                 $rec = $mvc->fetch($id, "{$mvc->nameField},{$mvc->parentFieldName}");
-                    
+                
                 // Намираме името на обекта
                 $nameVerbal = type_Varchar::escape($rec->{$mvc->nameField});
                 $nameVerbal = strip_tags($nameVerbal);
@@ -440,7 +446,7 @@ class plg_TreeObject extends core_Plugin
                         $keyVerbal = $mvc->getVerbal($rec->{$mvc->parentFieldName}, $mvc->nameField);
                         $keyVerbal = strip_tags($keyVerbal);
                     } else {
-                            
+                        
                         // Ако не трябва да са наследници пропускаме
                         continue;
                     }
@@ -463,7 +469,7 @@ class plg_TreeObject extends core_Plugin
         }
     }
     
-     
+    
     /**
      * След подготовката на навигацията по сраници
      */
@@ -555,15 +561,15 @@ class plg_TreeObject extends core_Plugin
                 $descendants[$key] = $cRec;
             }
         }
-    
+        
         $res = array_merge($res, $descendants);
-    
+        
         if (count($descendants)) {
             foreach ($descendants as $dRec) {
                 self::getDescendants($mvc, $dRec->id, $allRecs, $res);
             }
         }
-    
+        
         return $res;
     }
     
@@ -627,14 +633,14 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterGetParentsArray($mvc, &$res, $keylist)
     {
         if (!$res) {
-                
+            
             // Подсигуряваме се че работим с масив
             if (!is_array($keylist)) {
                 $keylist = keylist::toArray($keylist);
             }
-                
+            
             $array = array();
-                
+            
             // За всяко от подадените ид-та
             foreach ($keylist as $id) {
                 

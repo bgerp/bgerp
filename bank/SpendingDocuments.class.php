@@ -1,22 +1,20 @@
 <?php 
 
-
-
 /**
  * Разходен банков документ
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_SpendingDocuments extends bank_Document
 {
-   
-   
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -52,7 +50,7 @@ class bank_SpendingDocuments extends bank_Document
      */
     public $singleLayoutFile = 'bank/tpl/SingleCostDocument.shtml';
     
-
+    
     /**
      * Файл с шаблон за единичен изглед в мобилен
      */

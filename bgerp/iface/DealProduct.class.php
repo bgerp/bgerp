@@ -6,19 +6,20 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_iface_DealProduct
 {
-
-    
     /**
      * Първичен ключ на продукт (в рамките на мениджъра му)
      *
      * @var int
+     *
      * @see $classId
      */
     public $productId;
@@ -36,6 +37,7 @@ class bgerp_iface_DealProduct
      * Опаковка
      *
      * @var int key(mvc=cat_Uom)
+     *
      * @see cat_UoM
      */
     public $packagingId;
@@ -44,7 +46,7 @@ class bgerp_iface_DealProduct
     /**
      * Количество
      *
-     * @var double
+     * @var float
      */
     public $quantity;
     
@@ -52,7 +54,7 @@ class bgerp_iface_DealProduct
     /**
      * Количество
      *
-     * @var double
+     * @var float
      */
     public $quantityInPack;
     
@@ -60,7 +62,7 @@ class bgerp_iface_DealProduct
     /**
      * Цена
      *
-     * @var double
+     * @var float
      */
     public $price;
     
@@ -68,7 +70,7 @@ class bgerp_iface_DealProduct
     /**
      * Отстъпка
      *
-     * @var double в интервала [0..1]
+     * @var float в интервала [0..1]
      */
     public $discount;
     
@@ -77,6 +79,7 @@ class bgerp_iface_DealProduct
      * Тегло на продукта (ако има)
      *
      * @var int
+     *
      * @see $classId
      */
     public $weight;
@@ -86,6 +89,7 @@ class bgerp_iface_DealProduct
      * Обем на продукта (ако има)
      *
      * @var int
+     *
      * @see $classId
      */
     public $volume;
@@ -95,6 +99,7 @@ class bgerp_iface_DealProduct
      * Срок на продукта
      *
      * @var time
+     *
      * @see $classId
      */
     public $term;

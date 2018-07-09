@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Клас 'status_Retrieving'
  *
  * @category  vendors
  * @package   status
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class status_Retrieving extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -85,14 +84,14 @@ class status_Retrieving extends core_Manager
     /**
      * Добавя запис за показване на съответното съобщение в даден таб
      *
-     * @param integer  $messageId
+     * @param int      $messageId
      * @param datetime $hitTime
-     * @param integer  $idleTime  - Време на бездействие на съответния таб
+     * @param int      $idleTime  - Време на бездействие на съответния таб
      * @param string   $sid
-     * @param integer  $userId
+     * @param int      $userId
      * @param string   $hitId
      *
-     * @return integer - id на записа
+     * @return int - id на записа
      */
     public static function addRetrieving($messageId, $hitTime, $idleTime, $sid = null, $userId = null, $hitId = null)
     {
@@ -123,7 +122,7 @@ class status_Retrieving extends core_Manager
     /**
      * Изтрива информацията за изтеглянията за съответното статус събщение
      *
-     * @param integer $messageId - id на съобщението
+     * @param int $messageId - id на съобщението
      */
     public static function removeRetrieving($messageId)
     {
@@ -136,14 +135,14 @@ class status_Retrieving extends core_Manager
     /**
      * Проверява дали съобщението и извлеченоо за даден потребител в съответния таб
      *
-     * @param integer  $messageId
+     * @param int      $messageId
      * @param datetime $hitTime
-     * @param integer  $idleTime  - Време на бездействие на съответния таб
+     * @param int      $idleTime  - Време на бездействие на съответния таб
      * @param string   $sid
-     * @param integer  $userId
+     * @param int      $userId
      * @param string   $hitId
      *
-     * @return boolean
+     * @return bool
      */
     public static function isRetrived($messageId, $hitTime, $idleTime, $sid = null, $userId = null, $hitId = null)
     {

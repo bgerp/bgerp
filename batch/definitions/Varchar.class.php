@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title Символи(255)
  */
 class batch_definitions_Varchar extends batch_definitions_Proto
 {
-    
-    
     /**
      * Име на полето за партида в документа
      *
@@ -45,7 +45,7 @@ class batch_definitions_Varchar extends batch_definitions_Proto
     {
         $string = !isset($this->rec->length) ? 'varchar' : "varchar({$this->rec->length})";
         $Type = core_Type::getByName($string);
-    
+        
         return $Type;
     }
     
@@ -53,17 +53,18 @@ class batch_definitions_Varchar extends batch_definitions_Proto
     /**
      * Какви са свойствата на партидата
      *
-     * @param  string $value - номер на партидара
-     * @return array  - свойства на партидата
-     *                      o name    - заглавие
-     *                      o classId - клас
-     *                      o value   - стойност
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               o name    - заглавие
+     *               o classId - клас
+     *               o value   - стойност
      */
     public function getFeatures($value)
     {
         $res = array();
         $res[] = (object) array('name' => 'Партида', 'classId' => $this->getClassId(), 'value' => $value);
-    
+        
         return $res;
     }
 }

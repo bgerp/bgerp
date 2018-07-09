@@ -75,13 +75,13 @@ defIfNot('BGERP_MANDATORY_CONTACT_FIELDS', 'company');
 defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
 
 
-
 /**
  * Колко секунди за изчака, преди да сигнализира за известия
  */
 defIfNot('BGERP_NOTIFY_ALERT', 60);
 defIfNot('BGERP_NOTIFY_WARNING', 1800);
 defIfNot('BGERP_NOTIFY_NORMAL', 86400);
+
 
 /**
  * В кой часови пояс да се блокира изпращане на сигнали за известия
@@ -116,21 +116,21 @@ Conto,Реконтиране = K
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_Setup extends core_ProtoSetup
 {
-    
-
     /**
      * Да се инициализира ли, след промяна на конфигурацията?
      */
     const INIT_AFTER_CONFIG = false;
-
-
+    
+    
     /**
      * Версия на пакета
      */
@@ -164,29 +164,29 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_COMPANY_LOGO_EN' => array('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
-                
+        
         'BGERP_SOUND_ON_NOTIFICATION' => array('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
-
+        
         'BGERP_NOTIFICATION_KEEP_DAYS' => array('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на нотификациите->Време'),
         
         'BGERP_RECENTLY_KEEP_DAYS' => array('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
-
+        
         'BGERP_START_OF_WORKING_DAY' => array('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
         
         'BGERP_CLOSE_UNDELIVERED_OVER' => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
-         
+        
         'BGERP_ACCESS_KEYS' => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
-
+        
         'BGERP_NOTIFY_ALERT' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Критични,placeholder=Неограничено, customizeBy=powerUser'),
-
+        
         'BGERP_NOTIFY_WARNING' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Спешни,placeholder=Неограничено, customizeBy=powerUser'),
-
+        
         'BGERP_NOTIFY_NORMAL' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Нормални,placeholder=Неограничено, customizeBy=powerUser'),
-
+        
         'BGERP_BLOCK_ALERT' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Критични, customizeBy=powerUser'),
-
+        
         'BGERP_BLOCK_WARNING' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Спешни, customizeBy=powerUser'),
-
+        
         'BGERP_BLOCK_NORMAL' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
         
         'BGERP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни във външната част->Поле'),
@@ -203,31 +203,31 @@ class bgerp_Setup extends core_ProtoSetup
      * Дали пакета е системен
      */
     public $isSystem = true;
-
-
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'migrate::addThreadIdToRecently',
-            'migrate::migrateBookmarks2',
-            'migrate::fixTreeObjectName',
-        );
+        'migrate::addThreadIdToRecently',
+        'migrate::migrateBookmarks2',
+        'migrate::fixTreeObjectName',
+    );
     
     
     /**
      * Настройки за Cron
      */
     public $cronSettings = array(
-            array(
-                    'systemId' => 'Hide Inaccesable',
-                    'description' => 'Скрива на недостъпните нотификации',
-                    'controller' => 'bgerp_Notifications',
-                    'action' => 'HideInaccesable',
-                    'period' => 1440,
-                    'offset' => 50,
-                    'timeLimit' => 600
-            ),
+        array(
+            'systemId' => 'Hide Inaccesable',
+            'description' => 'Скрива на недостъпните нотификации',
+            'controller' => 'bgerp_Notifications',
+            'action' => 'HideInaccesable',
+            'period' => 1440,
+            'offset' => 50,
+            'timeLimit' => 600
+        ),
     );
     
     
@@ -241,7 +241,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         // Блокираме други процеси
         core_SystemLock::block('Prepare bgERP installation...');
-
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         $html = $Plugins->repair();
@@ -265,7 +265,7 @@ class bgerp_Setup extends core_ProtoSetup
         }
         
         core_SystemLock::block('Starting bgERP installation...');
-
+        
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
         
@@ -314,25 +314,25 @@ class bgerp_Setup extends core_ProtoSetup
         $haveError = array();
         
         core_SystemLock::block('Clearing cache');
-
+        
         core_Debug::$isLogging = false;
         $Cache = cls::get('core_Cache');
         $Cache->eraseFull();
         core_Cache::$stopCaching = true;
-
+        
         do {
             $loop++;
             
             $packArr = arr::make($packs);
-
+            
             $packCnt = count($packArr);
             $i = 1;
-
+            
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach ($packArr as $p) {
                 $i++;
                 core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
-
+                
                 if (cls::load($p . '_Setup', true) && !$isSetup[$p]) {
                     try {
                         $html .= $Packs->setupPack($p);
@@ -363,7 +363,7 @@ class bgerp_Setup extends core_ProtoSetup
             
             // Втора итерация за захранване с данни
             $this->loadSetupDataProc($packs, $haveError, $html, '2');
-
+            
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
         } while (!empty($haveError) && ($loop < 5));
@@ -378,7 +378,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         
         core_SystemLock::block('Finishing bgERP Installation');
-
+        
         $html .= implode("\n", $haveError);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
@@ -405,7 +405,7 @@ class bgerp_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина за оцветяване в листови изглед на резултати от търсене
         $html .= $Plugins->installPlugin('Highlight list search', 'plg_HighlightListSearch', 'core_Manager', 'family');
-      
+        
         $Menu = cls::get('bgerp_Menu');
         
         // Да се изтрият необновените менюта
@@ -430,12 +430,12 @@ class bgerp_Setup extends core_ProtoSetup
         $rec->timeLimit = 50;
         $rec->offset = mt_rand(0, 300);
         $html .= core_Cron::addOnce($rec);
-
+        
         
         $html .= $Menu->repair();
         $html .= core_Classes::rebuild();
         $html .= core_Cron::cleanRecords();
-
+        
         // Принудително обновяване на ролите
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
@@ -443,12 +443,12 @@ class bgerp_Setup extends core_ProtoSetup
         $html .= core_Classes::add('bgerp_plg_CsvExport');
         
         $html .= parent::install();
-
+        
         core_SystemLock::remove();
-
+        
         return $html;
     }
-
+    
     
     /**
      * Захранва с начални данни посочените пакети
@@ -467,15 +467,15 @@ class bgerp_Setup extends core_ProtoSetup
         $packsInst = array();
         
         $packArr = arr::make($packs);
-
+        
         $packCnt = count($packArr);
         $i = 1;
-
+        
         // Извършваме инициализирането на всички включени в списъка пакети
         foreach ($packArr as $p) {
             $i++;
             core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
-
+            
             if (cls::load($p . '_Setup', true) && !$isLoad[$p]) {
                 $packsInst[$p] = cls::get($p . '_Setup');
                 
@@ -505,11 +505,11 @@ class bgerp_Setup extends core_ProtoSetup
                     }
                     
                     global $setupFlag;
-
+                    
                     if ($setupFlag) {
                         // Махаме <h2> тага на заглавието
                         // $res = substr($res, strpos($res, "</h2>"), strlen($res));
-
+                        
                         do {
                             $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND | LOCK_EX);
                             if ($res !== false) {
@@ -547,15 +547,15 @@ class bgerp_Setup extends core_ProtoSetup
             }
         }
     }
-
-
+    
+    
     /**
      * Миграция за подредбата на букмарките
      */
     public static function migrateBookmarks2()
     {
         $mvc = cls::get('bgerp_Bookmark');
-
+        
         $query = $mvc->getQuery();
         
         $query->orderBy('modifiedOn', 'DESC');
@@ -573,11 +573,9 @@ class bgerp_Setup extends core_ProtoSetup
             $mvc->save_($rec, 'saoOrder, saoLevel');
             $cnt++;
         }
- 
-  
+        
         return '<li>Мигрирани букмарки: ' . $cnt;
     }
-    
     
     
     public static function fixTreeObjectName()

@@ -7,16 +7,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_UserOrRole extends type_User
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -90,7 +90,7 @@ class type_UserOrRole extends type_User
             
             // Вземаме всички роли
             $rQuery = core_Roles::getQuery();
-            
+
 //             $rQuery->where("#state != 'closed'");
             
             if ($this->params['rolesType']) {
@@ -160,7 +160,6 @@ class type_UserOrRole extends type_User
     }
     
     
-    
     /**
      *
      *
@@ -211,7 +210,7 @@ class type_UserOrRole extends type_User
     /**
      * Връща ID-то за allSysTeam
      *
-     * @return integer
+     * @return int
      */
     public static function getAllSysTeamId()
     {
@@ -228,9 +227,9 @@ class type_UserOrRole extends type_User
     /**
      * Връща id за групата базирано на allSysTeam
      *
-     * @param integer $roleId
+     * @param int $roleId
      *
-     * @return integer
+     * @return int
      */
     public static function getSysRoleId($roleId)
     {
@@ -245,13 +244,14 @@ class type_UserOrRole extends type_User
     /**
      * Връща id на запис от модел core_Roles от id-то определено от getSysRoleId()
      *
-     * @param integer $sysRoleId
+     * @param int $sysRoleId
      *
      * @return int|NULL
      */
     public static function getRoleIdFromSys($sysRoleId)
     {
         if ($sysRoleId >= 0) {
+            
             return;
         }
         
@@ -266,7 +266,7 @@ class type_UserOrRole extends type_User
     /**
      * Връща ключа на опциията за тази стойност
      *
-     * @param string|integer $userOrRole
+     * @param string|int $userOrRole
      *
      * @return NULL|string
      */

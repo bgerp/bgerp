@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_SetExtensionPlg2 extends core_Plugin
 {
-    
-    
     /**
      * Подготвя името на файла
      */
@@ -34,7 +34,7 @@ class fileman_SetExtensionPlg2 extends core_Plugin
             
             return false;
         }
-
+        
         // Вземаме mime типа на данните
         $fileMimeType = fileman::getMimeTypeFromFilePath($dataRec->path);
         

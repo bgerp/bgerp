@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_DistrictCourts' -
  *
@@ -9,15 +8,15 @@
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_DistrictCourts extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */

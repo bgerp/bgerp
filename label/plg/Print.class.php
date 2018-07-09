@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин даващ възможност да се печатат етикети от обект
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_plg_Print extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -51,16 +50,17 @@ class label_plg_Print extends core_Plugin
     /**
      * Параметрите на бутона за етикетиране
      *
-     * @param  core_mvc $mvc
-     * @param  stdClass $rec
-     * @return array    $res -
-     *                      ['url'] - урл, ако има права
-     *                      ['attr] - атрибути
+     * @param core_mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return array $res -
+     *               ['url'] - урл, ако има права
+     *               ['attr] - атрибути
      */
     private static function getLabelBtnParams($mvc, $rec)
     {
         $res = array('url' => null, 'attr' => '');
-    
+        
         if ($mvc->haveRightFor('printlabel', $rec)) {
             $templates = label_Templates::getTemplatesByDocument($mvc, $rec->id, true);
             $error = (!count($templates)) ? ",error=Няма наличен шаблон за етикети от \"{$mvc->title}\"" : '';
@@ -115,9 +115,10 @@ class label_plg_Print extends core_Plugin
     /**
      * Заглавие от източника на етикета
      *
-     * @param  core_Mvc $mvc
-     * @param  string   $res
-     * @param  mixed    $id
+     * @param core_Mvc $mvc
+     * @param string   $res
+     * @param mixed    $id
+     *
      * @return void
      */
     public static function on_AfterGetLabelSourceLink($mvc, &$res, $id)

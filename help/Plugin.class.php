@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'help_Plugin'
  *
@@ -10,9 +9,11 @@
  *
  * @category  bgerp
  * @package   help
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
@@ -21,24 +22,26 @@ class help_Plugin extends core_Plugin
     public function on_afterSetCurrentTab($wrapper, $name, $url, &$hint, &$hintBtn, &$tabsTpl)
     {
         if (core_Users::haveRole('partner')) {
+            
             return;
         }
-
+        
         $ctr = Request::get('Ctr');
         
         $act = Request::get('Act');
         
         $act = strtolower($act);
+        
         // какъв е метода на показваната страница?
         if ($act == 'edit' || $act == 'add') {
             $act = 'edit';
         } elseif ($act == ' ' || $act == 'default' || $act == null) {
             $act = 'list';
         }
-       
+        
         // Текущия език на интерфейса
         $lg = core_Lg::getCurrent();
-
+        
         if (($rec = help_Info::fetch(array("#class = '[#1#]' AND #action = '[#2#]' AND #lg = '[#3#]'", $ctr, $act, $lg))) || haveRole('help')) {
             if (!$rec) {
                 $rec = new stdClass();
@@ -56,11 +59,12 @@ class help_Plugin extends core_Plugin
                     case 'none':
                     default:
                         if (!haveRole('help')) {
+                            
                             return;
                         }
                 }
             }
-
+            
             $imageUrl = sbf('img/mark.png', '');
             $img = ht::createElement('img', array('src' => $imageUrl, 'alt' => 'help'));
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);

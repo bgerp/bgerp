@@ -1,24 +1,22 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса label_SequenceIntf за класа cat_products_Packagings
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
 class cat_interface_PackLabelImpl
 {
-    
-    
     /**
      * Инстанция на класа
      */
@@ -28,7 +26,8 @@ class cat_interface_PackLabelImpl
     /**
      * Връща наименованието на етикета
      *
-     * @param  integer $id
+     * @param int $id
+     *
      * @return string
      */
     public function getLabelName($id)
@@ -93,9 +92,9 @@ class cat_interface_PackLabelImpl
     /**
      * Връща масив с всички данни за етикетите
      *
-     * @param integer $id
-     * @param integer $cnt
-     * @param boolean $onlyPreview
+     * @param int  $id
+     * @param int  $cnt
+     * @param bool $onlyPreview
      *
      * @return array - масив от масиви с ключ плейсхолдера и стойността
      */
@@ -192,7 +191,7 @@ class cat_interface_PackLabelImpl
                     $res['SERIAL'] = $Driver->generateSerial($rec->productId, 'cat_products_Packagings', $rec->id);
                 }
             }
-
+            
             if (isset($countryCode) && empty($res['OTHER'])) {
                 $res['OTHER'] = $countryCode;
             }
@@ -209,10 +208,10 @@ class cat_interface_PackLabelImpl
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
-     * @param integer $id
-     * @param string  $allowSkip
+     * @param int    $id
+     * @param string $allowSkip
      *
-     * @return integer
+     * @return int
      *
      * @see label_SequenceIntf
      */

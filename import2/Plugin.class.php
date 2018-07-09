@@ -7,21 +7,23 @@
  *
  * @category  bgerp
  * @package   import2
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Плъгин за импортиране на данни в мениджър
  */
 class import2_Plugin extends core_Plugin
 {
-    
     /**
      * Извиква се преди изпълняването на екшън
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action != 'import2' || empty($mvc->importInterface)) {
+            
             return;
         }
         
@@ -30,11 +32,11 @@ class import2_Plugin extends core_Plugin
         $form = cls::get('core_Form');
         $rec = &$form->rec;
         $form->FLD('driverClass', 'class(interface=' . $mvc->importInterface . ',select=title)', 'silent,removeAndRefreshForm,caption=Източник,mandatory');
-
+        
         if (isset($mvc->masterKey)) {
             $form->FLD($mvc->masterKey, 'int', 'silent,input=hidden');
         }
-
+        
         $form->input('', 'silent');
         
         $mvc->requireRightFor('import2', $rec);
@@ -46,7 +48,7 @@ class import2_Plugin extends core_Plugin
             $title = $mvc->title;
             $masterId = null;
         }
-
+        
         $form->title = 'Импорт на записи в|* <b>' . $title . '</b>';
         
         $opt = self::getDriverOptions($mvc, $masterId);
@@ -58,7 +60,7 @@ class import2_Plugin extends core_Plugin
         }
         
         $form->setOptions('driverClass', $opt);
-
+        
         // Ако има избран драйвер
         if (isset($rec->driverClass)) {
             $Driver = cls::getInterface('import2_DriverIntf', $rec->driverClass);
@@ -77,12 +79,13 @@ class import2_Plugin extends core_Plugin
             if ($form->isSubmitted()) {
                 $Driver->checkImportForm($mvc, $form);
             }
+            
             // Ако е събмитната формата
             if ($form->isSubmitted()) {
-                    
+                
                 // Опит за подготовка на записите за импорт
                 $status = $Driver->doImport($mvc, $rec);
-     
+                
                 if (!$form->gotErrors()) {
                     redirect(getRetUrl(), false, $status);
                 }
@@ -96,7 +99,7 @@ class import2_Plugin extends core_Plugin
         // Рендиране на формата
         $res = $mvc->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($res, $form);
-            
+        
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
         return false;
     }
@@ -128,27 +131,27 @@ class import2_Plugin extends core_Plugin
     {
         if ($action == 'import2') {
             $requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
-
+            
             if (empty($mvc->importInterface)) {
                 $requiredRoles = 'no_one';
-
+                
                 return;
             }
-
+            
             $masterId = null;
             if ($masterKey = $mvc->masterKey) {
                 $masterId = $rec->{$masterKey};
             }
-
+            
             $opt = self::getDriverOptions($mvc, $masterId, $userId);
-
+            
             if (!count($opt)) {
                 $requiredRoles = 'no_one';
             }
         }
     }
-
-
+    
+    
     /**
      * Връща опциите за драйвера
      *
@@ -165,16 +168,16 @@ class import2_Plugin extends core_Plugin
         if ($userId === null) {
             $userId = core_Users::getCurrent();
         }
-
+        
         foreach ($opt as $id => $title) {
             $Driver = cls::getInterface('import2_DriverIntf', $id);
             if (!$Driver->canSelectDriver($mvc, $masterId, $userId)) {
                 unset($opt[$id]);
             }
         }
-
+        
         reset($opt);
-
+        
         return $opt;
     }
 }

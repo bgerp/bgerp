@@ -1,21 +1,22 @@
 <?php
 
+
 /**
  * Клас 'fileman_FileSize' -
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class fileman_FileSize extends type_Bigint
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -28,19 +29,21 @@ class fileman_FileSize extends type_Bigint
     public function toVerbal_($size)
     {
         if ($size === null) {
+            
             return;
         }
         
         $space = '&nbsp;';
-
+        
         if (Mode::is(text, 'plain')) {
             $space = ' ';
         }
-
+        
         if ($size == 0) {
+            
             return($space . 'Bytes');
         }
-
+        
         return (round($size / pow(1024, ($i = floor(log($size, 1024)))), $i > 1 ? 2 : 0) . $space . $this->sizes[$i]);
     }
     
@@ -63,7 +66,7 @@ class fileman_FileSize extends type_Bigint
         Mode::push('text', 'plain');
         $value = $this->error ? $value : $this->toVerbal($value);
         Mode::pop('text');
-
+        
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
@@ -76,6 +79,7 @@ class fileman_FileSize extends type_Bigint
     public function fromVerbal_($value)
     {
         if ($value === null) {
+            
             return;
         }
         

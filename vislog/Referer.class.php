@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'vislog_Referer'
  *
@@ -10,16 +9,16 @@
  *
  * @category  bgerp
  * @package   vislog
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class vislog_Referer extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -31,11 +30,12 @@ class vislog_Referer extends core_Manager
      */
     public $oldClassName = 'vislog_Refferer';
     
-
+    
     /**
      * Кой  може да пише?
      */
     public $canWrite = 'no_one';
+    
     
     /**
      * Кой може да чете?
@@ -47,20 +47,20 @@ class vislog_Referer extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, admin, cms';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo, admin, cms';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools,plg_Created,vislog_Wrapper';
     
-
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -70,7 +70,7 @@ class vislog_Referer extends core_Manager
         $this->FLD('query', 'varchar(255)', 'caption=Query');
         $this->FLD('searchLogResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Ресурс');
         $this->FLD('ip', 'ip(15,showNames)', 'caption=Ip');
-
+        
         $this->setDbIndex('ip');
     }
     
@@ -81,7 +81,7 @@ class vislog_Referer extends core_Manager
     public function add($resource)
     {
         $rec = new stdClass();
-
+        
         $rec->referer = $_SERVER['HTTP_REFERER'];
         
         if ($rec->referer) {
@@ -122,8 +122,8 @@ class vislog_Referer extends core_Manager
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
-
-
+    
+    
     /**
      * Вербализиране на row
      * Поставя хипервръзка на ip-то
@@ -132,20 +132,20 @@ class vislog_Referer extends core_Manager
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true, true);
     }
-
-
+    
+    
     /**
      * Показва съкратена информация за реферера, ако има такъв
      */
     public static function getReferer($ip, $time)
     {
         $rec = self::fetch(array("#ip = '[#1#]' AND #createdOn = '[#2#]'", $ip, $time));
-
+        
         if ($rec) {
             $parse = @parse_url($rec->referer);
             
             $res = str_replace('www.', '', strtolower($parse['host']));
-
+            
             if ($rec->query) {
                 $res .= ': ' . self::getVerbal($rec, 'query');
             }

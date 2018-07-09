@@ -1,9 +1,11 @@
 <?php
 
+
 /**
  * Токен за работа с GitHub API
  */
 defIfNot('GIT_GITHUB_TOKEN', '');
+
 
 /**
  * Ключ за извикване от GitHub на hooks
@@ -19,15 +21,16 @@ defIfNot('GIT_GITHUB_HOOK_KEY', '');
  *
  * @category  bgerp
  * @package   git
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class git_Setup extends core_ProtoSetup
 {
-    
     /**
      * Версия на пакета
      */
@@ -39,7 +42,7 @@ class git_Setup extends core_ProtoSetup
      */
     public $info = 'Пакет за работа с git репозиторита';
     
-
+    
     /**
      * Пакет без инсталация
      */
@@ -50,8 +53,8 @@ class git_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-            'GIT_GITHUB_TOKEN' => array('password(show)', 'caption=GitHub API->Token'),
-            'GIT_GITHUB_HOOK_KEY' => array('password(show)', 'caption=GitHub API->Hook key'),
-
+        'GIT_GITHUB_TOKEN' => array('password(show)', 'caption=GitHub API->Token'),
+        'GIT_GITHUB_HOOK_KEY' => array('password(show)', 'caption=GitHub API->Hook key'),
+    
     );
 }

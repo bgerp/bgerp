@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Драйвер за IP камера HIKVISION DS-2CD2042WD-I
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cams_driver_Hikvision extends cams_driver_IpDevice
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -29,7 +28,7 @@ class cams_driver_Hikvision extends cams_driver_IpDevice
         
         setIfNot($this->user, 'admin');
         setIfNot($this->password, 'Admin555');
-                
+        
         setIfNot($this->rtspPort, 554);
         
         setIfNot($this->httpPort, 80);
@@ -56,7 +55,8 @@ class cams_driver_Hikvision extends cams_driver_IpDevice
         $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за Mpeg4 потока,input');
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
     }
-
+    
+    
     /**
      * Записва снимка от RTSP стрийма на камерата в указан файл
      * Изпълнява се в родителя - тук е само ако вадим шот-а от стрийма
@@ -76,13 +76,13 @@ class cams_driver_Hikvision extends cams_driver_IpDevice
 //     		if (is_file($url)) {
 //     			$img = imagecreatefromjpeg($url);
 //     		}
-            
+
 //     		if(!$img) {
-    
+
 //     			$img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
 //     		}
 //     	}
-    
+
 //     	return $img;
 //     }
     
@@ -101,7 +101,7 @@ class cams_driver_Hikvision extends cams_driver_IpDevice
     public function applyPtzCommands($cmdArr)
     {
     }
-
+    
     public function normalizeCameraId()
     {
         $res = str_replace('-', '', $this->cameraId);

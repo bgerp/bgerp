@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Помощен детайл подготвящ и обединяващ заедно детайлите за изпозлванията на артикула в документа
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_products_Usage extends core_Manager
 {
-    
-    
     /**
      * Колко да са на страница заданията
      */
@@ -45,14 +44,17 @@ class cat_products_Usage extends core_Manager
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
             if ($data->jobData->notManifacturable === true && !count($data->jobData->rows)) {
+                
                 return;
             }
             if (!haveRole('ceo,planning,job')) {
+                
                 return;
             }
             $data->Tab = 'top';
             $data->TabCaption = 'Задания';
             if (!$prepareTab || $prepareTab != 'Usage') {
+                
                 return;
             }
         } else {
@@ -60,6 +62,7 @@ class cat_products_Usage extends core_Manager
             $data->TabCaption = 'Документи';
             $data->Order = 2;
             if ($prepareTab && $prepareTab != 'Usage') {
+                
                 return;
             }
         }
@@ -152,13 +155,15 @@ class cat_products_Usage extends core_Manager
     /**
      * Рендира таблицата с документите
      *
-     * @param  stdClass     $data
-     * @param  boolean      $evenIfEmpty
+     * @param stdClass $data
+     * @param bool     $evenIfEmpty
+     *
      * @return void|core_ET
      */
     private function renderDocuments($data, $evenIfEmpty = false)
     {
         if (!count($data->rows) && $evenIfEmpty === false) {
+            
             return;
         }
         
@@ -190,24 +195,26 @@ class cat_products_Usage extends core_Manager
     /**
      * Рендиране на заданията към артикул
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl - шаблон на детайла
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl - шаблон на детайла
      */
     private function renderJobs($data)
     {
         if ($data->hide === true) {
+            
             return;
         }
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $title = tr('Задания за производство');
         $tpl->append($title, 'title');
-    
+        
         if (isset($data->addUrl)) {
             $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
             $tpl->append($addBtn, 'title');
         }
-    
+        
         $listFields = arr::make('title=Задание,dueDate=Падеж,saleId=Продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
         $listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'saleId');
         $data->listFields = $listFields;
@@ -215,13 +222,13 @@ class cat_products_Usage extends core_Manager
         $data->Jobs->invoke('BeforeRenderListTable', array($tpl, &$data));
         $table = cls::get('core_TableView', array('mvc' => $data->jobData->Jobs));
         $details = $table->get($data->rows, $data->listFields);
-    
+        
         // Ако артикула не е производим, показваме в детайла
         if ($data->notManifacturable === true) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
-    
+        
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
             $tpl->append($data->Pager->getHtml(), 'content');
@@ -243,7 +250,7 @@ class cat_products_Usage extends core_Manager
     {
         $masterRec = $data->masterData->rec;
         $data->rows = $data->recs = array();
-    
+        
         $fields = $data->Jobs->selectFields();
         $fields['__isDetail'] = $fields['-list'] = true;
         
@@ -264,13 +271,13 @@ class cat_products_Usage extends core_Manager
         if ($masterRec->canManifacture != 'yes') {
             $data->notManifacturable = true;
         }
-         
+        
         if (!haveRole('ceo,planning,job') || ($data->notManifacturable === true && !count($data->rows)) || $masterRec->state == 'template' || $masterRec->brState == 'template') {
             $data->hide = true;
-
+            
             return;
         }
-         
+        
         // Проверяваме можем ли да добавяме нови задания
         if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId))) {
             $data->addUrl = array('planning_Jobs', 'add', 'threadId' => $masterRec->threadId, 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);

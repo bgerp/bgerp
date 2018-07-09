@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Обединява JS и CSS файловете в един
  *
  * @category  vendors
  * @package   compactor
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class compactor_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Пътя до файла, който се използва за базов за генериране абсолютни линкове от URL-тата във файла
      */
@@ -35,8 +34,8 @@ class compactor_Plugin extends core_Plugin
         $files->css = $this->compactFiles($files->css, $conf->COMPACTOR_CSS_FILES, EF_SBF_PATH . '/css', array($this, 'changePaths'));
         $files->js = $this->compactFiles($files->js, $conf->COMPACTOR_JS_FILES, EF_SBF_PATH . '/js');
     }
-
-
+    
+    
     /**
      * Ако двата масива с файлове имат сечение, то се подготва, ако е необходимо обединение на
      * файловете от $configFilesArr и то, заедно с файловете от $filesArr, които не са в сечение с
@@ -61,7 +60,7 @@ class compactor_Plugin extends core_Plugin
         
         // Акумолатор за конкатиниране времената на последна модификация на файловете
         $times = '';
-
+        
         // Масив с пътищата до файловете за обединение
         $contentFilePathsArr = array();
         
@@ -83,12 +82,12 @@ class compactor_Plugin extends core_Plugin
                 sleep(1);
                 Debug::log('Sleep 1 sec. in ' . __CLASS__);
             }
-
+            
             if (!file_exists($sbfFilePath)) {
                 Debug::log("Skip file {$sbfFilePath} " . __CLASS__);
                 continue;
             }
-
+            
             $times .= @filemtime($sbfFilePath);
             if (isset($filesArr[$file])) {
                 unset($filesArr[$file]);
@@ -96,7 +95,7 @@ class compactor_Plugin extends core_Plugin
             $contentFilePathsArr[] = $sbfFilePath;
         }
         $sbfFilePathArr = pathinfo($sbfFilePath);
-
+        
         $compactFilePath = $baseDir . '/' . md5($times) . '.' . $sbfFilePathArr['extension'];
         
         $compactFile = str_replace(EF_SBF_PATH . '/', '', $compactFilePath);
@@ -175,7 +174,7 @@ class compactor_Plugin extends core_Plugin
             
             return $matches[0];
         }
-
+        
         // Открития файла
         $trimFile = $file = trim($matches['file'], "'\"");
         
@@ -191,7 +190,7 @@ class compactor_Plugin extends core_Plugin
             // Вземаме директорията
             $dir = dirname($dir);
         }
-         
+        
         // Ако сме достигнали до края
         if ($dir == '.') {
             $dir = '';
@@ -199,10 +198,10 @@ class compactor_Plugin extends core_Plugin
         
         // Новия път да е остатъка от директорията и остатъка от файла
         $file = ltrim($dir  . '/' .  $file, '/\\');
-
+        
         // Ако съществува такъв файл
         if (getFullPath($file)) {
-           
+            
             // Вземаме целия път
             $filePath = sbf($file, '', false);
         } else {
@@ -210,7 +209,7 @@ class compactor_Plugin extends core_Plugin
             // Ако няма файла, не се правят промени
             $filePath = $trimFile;
         }
-         
+        
         $res = str_ireplace($trimFile, $filePath, $matches[0]);
         
         return $res;

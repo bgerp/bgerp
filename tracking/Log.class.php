@@ -1,32 +1,32 @@
 <?php 
 
-
-
-
 /**
  * Съхранява хронологични данни от тракери
  *
  *
  * @category  bgerp
  * @package   tracking
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tracking_Log extends core_Master
 {
-    
     /**
      * Заглавие
      */
     public $title = 'Лог';
     
+    
     /**
      * Права
      */
     public $canList = 'tracking, admin, ceo';
-
+    
+    
     /**
      * Плъгини за зареждане
      *
@@ -34,12 +34,14 @@ class tracking_Log extends core_Master
      */
     public $loadList = 'plg_Created, plg_RowTools2, tracking_Wrapper';
     
+    
     /**
      * Полета за показване
      *
      * var string|array
      */
     public $listFields = 'id,vehicleId, driverId, text, location, fixTime, remoteIp, createdOn';
+    
     
     /**
      * Описание на модела
@@ -58,6 +60,7 @@ class tracking_Log extends core_Master
         $this->setDbIndex('vehicleId');
         $this->dbEngine = 'InnoDB';
     }
+    
     
     /**
      * Добавя форма за търсене
@@ -79,7 +82,7 @@ class tracking_Log extends core_Master
             if ($rec->vehicleId) {
                 $data->query->where("#vehicleId = {$rec->vehicleId}");
             }
-        
+            
             if ($rec->driverId) {
                 $data->query->where("#driverId = '{$rec->driverId}'");
             }
@@ -88,6 +91,7 @@ class tracking_Log extends core_Master
                 if (empty($rec->dateTo)) {
                     $rec->dateTo = date('Y-m-d');
                 }
+                
                 // Понеже fixTime съдържа времева част - кастваме до дата
                 $data->query->where("CAST(#fixTime AS DATE) BETWEEN '{$rec->dateFrom}' AND '{$rec->dateTo}'");
             }
@@ -102,11 +106,11 @@ class tracking_Log extends core_Master
         $l = cls::get('location_Type');
         $row->location = $l->toVerbal(self::DMSToDD($data['latitude']) . ',' . self::DMSToDD($data['longitude']));
     }
-        
+    
     protected function on_CalcText($mvc, $rec)
     {
         $data = self::parseTrackingData($rec->data);
-
+        
         $rec->text = 'Дата: ' . $data['fixTime'] . '<br>';
         $rec->text .= 'Статус: ' . (($data['status'] == 'A')?'Валиден':'Невалиден'). '<br>';
         $rec->text .= 'Ширина DD: ' . self::DMSToDD($data['latitude']) . '<br>';
@@ -126,16 +130,19 @@ class tracking_Log extends core_Master
     public function act_Log()
     {
         $conf = core_Packs::getConfig('tracking');
+        
         // Ако получаваме данни от неоторизирано IP ги игнорираме
         if ($_SERVER['REMOTE_ADDR'] != $conf->DATA_SENDER) {
             // file_put_contents('tracking.log', "\n неоторизирано IP. Данните идват от: {$_SERVER['REMOTE_ADDR']} а ги очакваме от: {$conf->DATA_SENDER} ". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
             shutdown();
         }
+        
         // file_put_contents('tracking.log', "\n accepted", FILE_APPEND);
         
         $trackerId = Request::get('trackerId', 'varchar');
         $trackerData = Request::get('data', 'varchar');
         $remoteIp = Request::get('remoteIp', 'varchar');
+        
         // Махаме порта от IP адреса
         $remoteIp = substr($remoteIp, 0, strpos($remoteIp, ':'));
         
@@ -193,16 +200,16 @@ class tracking_Log extends core_Master
     public function cron_DeleteOldRecords()
     {
         $conf = core_Packs::getConfig('tracking');
-    
+        
         $date = dt::addDays(-$conf->DAYS_TO_KEEP);
-    
+        
         if ($numRows = self::delete("#createdOn < '{$date}'")) {
             $this->logWrite('Изтрити изтекли записи за тракери');
             
             $info = "Изтрити са {$numRows} изтекли записи за тракери";
             $this->logInfo($info);
         }
-    
+        
         return $info;
     }
     
@@ -211,6 +218,7 @@ class tracking_Log extends core_Master
      * Връща Tracking данните
      *
      * @param string стринг с данните - GPRMC + другите от тракера
+     *
      * @return array с елементи от GPRMS
      */
     private static function parseTrackingData($data)
@@ -226,22 +234,23 @@ class tracking_Log extends core_Master
         $res['speed'] = $arrData[6];
         $res['heading'] = $arrData[7];
         $res['date'] = $arrData[8];
+        
         // Ако имаме дата и час - конструираме времето на фиксиране в mysql формат
         if (!empty($res['date']) && !empty($res['time'])) {
             $res['fixTime'] = '20' . substr($res['date'], 4, 2) . '-' . substr($res['date'], 2, 2) . '-' . substr($res['date'], 0, 2)
                 . ' ' . substr($res['time'], 0, 2) . ':' . substr($res['time'], 2, 2) . ':' . substr($res['time'], 4, 2);
         }
         
-        
         return $res;
     }
-
+    
     
     /**
      * Превръща от DMS (degrees, minutes, secondes) към DD (decimal degrees)
      *
      * @param string  - стринг с данните - в стил DMS ()
-     * @return double - decimal degrees
+     *
+     * @return float - decimal degrees
      */
     private static function DMSToDD($data)
     {
@@ -256,14 +265,16 @@ class tracking_Log extends core_Master
         } else {
             $res *= -1;
         }
-
+        
         return $res;
     }
-
+    
+    
     /**
      * Превръща от GMT Mysql време в локано
      *
      * @param string  - datetime - в UTC
+     *
      * @return string - DateTime локално време в Mysql формат
      */
     private static function GMT2Local($date)
@@ -271,10 +282,12 @@ class tracking_Log extends core_Master
         return date('Y-m-d H:i:s', strtotime($date . ' UTC'));
     }
     
+    
     /**
      * Връща Tracker данните
      *
      * @param string стринг с данните - GPRMC + другите от тракера
+     *
      * @return array с елементи данните от тракера
      */
     private function parseTrackerData($data)
@@ -287,6 +300,7 @@ class tracking_Log extends core_Master
      * Изчислява CRC
      *
      * @param string GPRMC стринг
+     *
      * @return string - CRC сумата
      */
     private function getCRC($dataTracking)
@@ -295,6 +309,7 @@ class tracking_Log extends core_Master
         $len = strlen($dataTracking);
         for ($i = 0; $i < $len; $i++) {
             $crc ^= ord($dataTracking[$i]);
+            
             //echo ("<li>$dataTracking[$i]  --  " . $crc . "  ------ " . dechex($crc));
         }
         

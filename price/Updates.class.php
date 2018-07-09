@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Правила за обновяване на себестойностите
  *
  *
  * @category  bgerp
  * @package   price
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class price_Updates extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -102,7 +101,7 @@ class price_Updates extends core_Manager
         $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
         $this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасно,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
-    
+        
         $this->setDbUnique('objectId,type');
     }
     
@@ -268,21 +267,22 @@ class price_Updates extends core_Manager
     /**
      * Намира на кои артикули да се обновят себестойностите
      *
-     * @param  stdClass $rec - записа
-     * @return array    $products - артикулите
+     * @param stdClass $rec - записа
+     *
+     * @return array $products - артикулите
      */
     private function getProductsToUpdatePrimeCost($rec)
     {
         $products = array();
-         
+        
         // Ако е избран продукт, ще обновим само неговата себестойност
         if ($rec->type == 'product') {
             $products[$rec->objectId] = $rec->objectId;
         } else {
-        
+            
             // Ако е категория, всички артикули в папката на категорията
             $folderId = cat_Categories::fetchField($rec->objectId, 'folderId');
-        
+            
             $pQuery = cat_Products::getQuery();
             $pQuery->where("#folderId = {$folderId}");
             $pQuery->show('id');
@@ -304,8 +304,9 @@ class price_Updates extends core_Manager
     /**
      * Обновява всички себестойностти според записа
      *
-     * @param  stdClass $rec             - запис
-     * @param  boolean  $saveInPriceList - искаме ли да запишем изчислената себестойност в 'Себестойности'
+     * @param stdClass $rec             - запис
+     * @param bool     $saveInPriceList - искаме ли да запишем изчислената себестойност в 'Себестойности'
+     *
      * @return void
      */
     private function savePrimeCost($rec, $saveInPriceList = true)
@@ -346,10 +347,10 @@ class price_Updates extends core_Manager
                         $rec->costValue = $primeCost;
                         self::save($rec, 'costValue');
                     }
-                     
+                    
                     // Ако е указано, обновяваме я в ценовите политики
                     if ($saveInPriceList === true) {
-                
+                        
                         // Записваме новата себестойност на продукта
                         price_ListRules::savePrimeCost($productId, $primeCost, $validFrom, $baseCurrencyCode);
                     }
@@ -362,8 +363,9 @@ class price_Updates extends core_Manager
     /**
      * От коя дата да е валиден записа
      *
-     * @param  manual|now|nextDay|nextWeek|nextMonth $updateMode
-     * @return date                                  $validFrom
+     * @param manual|now|nextDay|nextWeek|nextMonth $updateMode
+     *
+     * @return date $validFrom
      */
     private function getValidFromDate($updateMode)
     {
@@ -400,12 +402,13 @@ class price_Updates extends core_Manager
     /**
      * Намира себестойността на един артикул, според зададените приоритети
      *
-     * @param  int                                                    $productId   - ид на артикул
-     * @param  accCost|lastDelivery|activeDelivery|lastQuote|bom      $costSource1 - първи източник
-     * @param  accCost|lastDelivery|activeDelivery|lastQuote|bom|NULL $costSource2 - втори източник
-     * @param  accCost|lastDelivery|activeDelivery|lastQuote|bom|NULL $costSource3 - трети източник
-     * @param  double                                                 $costAdd     - процент надценка
-     * @return double|FALSE                                           $price - намерената себестойност или FALSE ако няма
+     * @param int                                                    $productId   - ид на артикул
+     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom      $costSource1 - първи източник
+     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom|NULL $costSource2 - втори източник
+     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom|NULL $costSource3 - трети източник
+     * @param float                                                  $costAdd     - процент надценка
+     *
+     * @return float|FALSE $price - намерената себестойност или FALSE ако няма
      */
     public static function getPrimeCost($productId, $costSource1, $costSource2 = null, $costSource3 = null, $costAdd = null)
     {
@@ -472,9 +475,10 @@ class price_Updates extends core_Manager
     /**
      * Дали времето за активиране на условието може да се изпълни
      *
-     * @param  stdClass $rec  - запис
-     * @param  datetime $date - към коя дата сме
-     * @return boolean  $res  - може или не може да се изпълни условието
+     * @param stdClass $rec  - запис
+     * @param datetime $date - към коя дата сме
+     *
+     * @return bool $res  - може или не може да се изпълни условието
      */
     private function canBeApplied($rec, $date)
     {
@@ -482,6 +486,7 @@ class price_Updates extends core_Manager
         switch ($rec->updateMode) {
             case 'manual':
             case 'now':
+                
                 // При ежечасовото условие, изпълняваме го винаги
                 $res = true;
                 break;
@@ -532,13 +537,13 @@ class price_Updates extends core_Manager
     public static function prepareUpdateData(&$data)
     {
         $data->rows = $data->recs = array();
-         
+        
         // Извличаме записа за артикула
         $query = self::getQuery();
         $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
         $query->where("#type = '{$type}'");
         $query->where("#objectId = {$data->masterId}");
-         
+        
         // За всеки запис (може да е максимум един)
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
@@ -550,7 +555,8 @@ class price_Updates extends core_Manager
     /**
      * Подготовка на себестойностите
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public function prepareUpdates(&$data)
@@ -559,7 +565,7 @@ class price_Updates extends core_Manager
         $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
         if (!$this->haveRightFor('read', (object) array('type' => $type, 'objectId' => $data->masterId))) {
             $data->hide = true;
-
+            
             return;
         }
         
@@ -588,13 +594,15 @@ class price_Updates extends core_Manager
     /**
      * Рендиране на дата за себестойностите
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderUpdates($data)
     {
         // Ако трябва не рендираме таба
         if ($data->hide === true) {
+            
             return;
         }
         
@@ -602,7 +610,7 @@ class price_Updates extends core_Manager
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $title = tr('Правило за обновяване на себестойност');
         $tpl->append($title, 'title');
-         
+        
         // Добавяме бутон ако трябва
         $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
         if ($this->haveRightFor('add', (object) array('type' => $type, 'objectId' => $data->masterId))) {
@@ -610,7 +618,7 @@ class price_Updates extends core_Manager
             $tpl->append($ht, 'title');
         }
         $tpl->append(self::renderUpdateData($data), 'content');
-         
+        
         // Връщаме шаблона
         return $tpl;
     }

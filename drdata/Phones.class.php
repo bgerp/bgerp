@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_Phones' -
  *
  *
  * @category  vendors
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_Phones extends core_Manager
 {
-    
-    
     /**
      * Кой има право да променя?
      */
@@ -115,8 +114,8 @@ class drdata_Phones extends core_Manager
         
         return $allArr;
     }
-
-
+    
+    
     /**
      * Връща наличната информация в базата за този код
      */
@@ -160,14 +159,14 @@ class drdata_Phones extends core_Manager
             // Основната идея е да направим различни разбивки на номера и да
             // проверим за всяка една от тях дали се съдържа САМО реални номера
             // Реалните номера предполагаме, че са: ... [Код на страна] [Код на регион] номер [вътрешен] ...
-             
+            
             $tel = str_replace(array('(0)', '[0]', '++'), array('', '', '+'), $tel);
             
             $tel = preg_replace("/ +\- +/", '-', $tel);
             
             $from = array(' fax', ' факс', ' f.', ' ф.', ' Fax',  ' Факс',  ' F.', ' Ф.', ' FAX', ' ФАКС',
-                          ' Mob', ' mob', ' m.', ' m ', ' моб', ' Моб', ' Тел.', ' тел.', '+');
-
+                ' Mob', ' mob', ' m.', ' m ', ' моб', ' Моб', ' Тел.', ' тел.', '+');
+            
             if ($defaultCountryCode) {
                 $from[] = ' 00' . $defaultCountryCode;
                 $from[] = ' 00 ' . $defaultCountryCode;
@@ -175,22 +174,22 @@ class drdata_Phones extends core_Manager
             if ($defaultAreaCode) {
                 $from[] = ' 0' . $defaultAreaCode;
             }
-   
+            
             $sepArr = array(';', ',', ' ', '.', '/', '\\');      // възможни сепаратори
-
+            
             foreach ($sepArr as $sep) {
                 $to = array();
                 foreach ($from as $c) {
                     $to[] = $sep . $c;
                 }
                 $tel = str_replace($from, $to, $tel);
-
+                
                 $test[] = explode($sep, $tel);
                 if ($sep != ';' && strpos($tel, ';')) {
                     $test[] = explode($sep, str_replace(';', $sep, $tel));
                 }
             }
- 
+            
             foreach ($test as $telArr) {
                 $error = false;
                 $res = array();
@@ -477,12 +476,12 @@ class drdata_Phones extends core_Manager
                     break;
                 }
             }
-
+            
             if ($useCache) {
                 drdata_PhoneCache::set($telSave, $dCCSave, $dACSave, $res);
             }
         }
-   
+        
         return $res;
     }
     

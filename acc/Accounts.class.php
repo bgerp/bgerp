@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на счетоводни сметки
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Accounts extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -119,9 +118,7 @@ class acc_Accounts extends core_Manager
     private static $cache = array();
     
     
-    
     private static $idToNumMap;
-    
     
     
     private static $numToIdMap;
@@ -268,6 +265,7 @@ class acc_Accounts extends core_Manager
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if (empty($form->rec->num)) {
+            
             return;
         }
         
@@ -305,7 +303,7 @@ class acc_Accounts extends core_Manager
             if (!empty($form->rec->type)) {
             
             // и полето "Тип" НЕ е празно
-            
+                
                 $form->setError('type', 'Разделите и Групите на Сметкоплана нямат|* <b>|Тип|*</b> | !');
             }
         }
@@ -319,7 +317,7 @@ class acc_Accounts extends core_Manager
             if (empty($form->rec->type)) {
             
             // и полето "Тип" е празно
-            
+                
                 $form->setError('type', 'Изберете|* <b>|Тип|*</b> |на сметката!');
             }
         }
@@ -483,7 +481,7 @@ class acc_Accounts extends core_Manager
     /**
      * Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
      *
-     * @param  string   $string Стринг от вида `име на номенклатура (код)`
+     * @param string $string Стринг от вида `име на номенклатура (код)`
      *
      * @return int|null id на номенклатура
      */
@@ -498,7 +496,7 @@ class acc_Accounts extends core_Manager
         }
         
         expect(
-        
+            
             preg_match('/\((\d+)\)\s*$/', $string, $matches),
             'Некоректно форматирано име на номенклатура, очаква се `Име (код)`',
             $string
@@ -536,6 +534,7 @@ class acc_Accounts extends core_Manager
         
         $query->orderBy('#num');
         
+        
         /**
          * Структура за преброяване на листата на синтетичните с/ки. Използва се за премахване
          * на синтетичните сметки, под които няма аналитични сметки.
@@ -559,6 +558,7 @@ class acc_Accounts extends core_Manager
                 }
             }
         }
+        
         
         /**
          * Окастряне на сухите клони на дървото - клоните, които нямат листа.
@@ -608,7 +608,8 @@ class acc_Accounts extends core_Manager
     /**
      * Връща номер на сметка по ид на сметка.
      *
-     * @param  int          $id ид на сметка
+     * @param int $id ид на сметка
+     *
      * @return string|FALSE номер на сметка
      */
     public static function getNumById($id)
@@ -629,7 +630,8 @@ class acc_Accounts extends core_Manager
     /**
      * Връща ид на сметка по номер на сметка
      *
-     * @param  string    $num номер на сметка
+     * @param string $num номер на сметка
+     *
      * @return int|FALSE ид на сметка
      */
     public function getIdByNum($num)
@@ -651,7 +653,7 @@ class acc_Accounts extends core_Manager
      * Factory метод - създава обект стратегия (наследник на @link acc_Strategy) според
      * стратегията на зададената сметка.
      *
-     * @param  int  $accountId ид на аналитична сметка
+     * @param int $accountId ид на аналитична сметка
      *
      * @return acc_Strategy
      */
@@ -659,7 +661,7 @@ class acc_Accounts extends core_Manager
     {
         $strategyType = $this->fetch($accountId, 'strategy');
         $strategy = false;
-                
+        
         switch ($strategyType->strategy) {
             case 'LIFO':
                 $strategy = new acc_strategy_LIFO($accountId);
@@ -679,7 +681,8 @@ class acc_Accounts extends core_Manager
     /**
      * Връща типа (активна, пасивна) на зададената сметка.
      *
-     * @param  int    $accountId ид на аналитична сметка
+     * @param int $accountId ид на аналитична сметка
+     *
      * @return string
      */
     public function getType($accountId)
@@ -738,8 +741,9 @@ class acc_Accounts extends core_Manager
      * Връща дали сметката има стратегия
      * Кешира резултатите за бързодействие
      *
-     * @param  int     $id - ид  на сметка
-     * @return boolean
+     * @param int $id - ид  на сметка
+     *
+     * @return bool
      */
     public static function hasStrategy($id)
     {
@@ -758,7 +762,8 @@ class acc_Accounts extends core_Manager
     /**
      * Връща опции за избор на сметки, чиито пера имат подадените интерфейси
      *
-     * @param  mixed $interfaces - имената на интерфейсите като масив или стринг
+     * @param mixed $interfaces - имената на интерфейсите като масив или стринг
+     *
      * @return array $options - готовите опции
      */
     public static function getOptionsByListInterfaces($interfaces)

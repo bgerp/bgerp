@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title Хендлър на документ с дата
  */
 class batch_definitions_Document extends batch_definitions_Proto
 {
-    
-    
     /**
      * Плейсхолдър на полето
      *
@@ -28,11 +28,12 @@ class batch_definitions_Document extends batch_definitions_Proto
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param  mixed     $documentClass - класа за който ще връщаме партидата
-     * @param  int       $id            - ид на документа за който ще връщаме партидата
-     * @param  int       $storeId       - склад
-     * @param  date|NULL $date          - дата
-     * @return mixed     $value        - автоматичния партиден номер, ако може да се генерира
+     * @param mixed     $documentClass - класа за който ще връщаме партидата
+     * @param int       $id            - ид на документа за който ще връщаме партидата
+     * @param int       $storeId       - склад
+     * @param date|NULL $date          - дата
+     *
+     * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
      */
     public function getAutoValue($documentClass, $id, $storeId, $date = null)
     {
@@ -53,17 +54,18 @@ class batch_definitions_Document extends batch_definitions_Proto
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param  string   $value    - стойноста, която ще проверяваме
-     * @param  quantity $quantity - количеството
-     * @param  string   &$msg     - текста на грешката ако има
-     * @return boolean  - валиден ли е кода на партидата според дефиницията или не
+     * @param string   $value    - стойноста, която ще проверяваме
+     * @param quantity $quantity - количеството
+     * @param string   &$msg     - текста на грешката ако има
+     *
+     * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
     public function isValid($value, $quantity, &$msg)
     {
         if (!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{1,3}[0-9]+/", $value, $matches)) {
             $date = str_replace('-', '', dt::today());
             $msg = "Формата трябва да е във вида на|* {$date}-SAL1";
-
+            
             return false;
         }
         
@@ -74,11 +76,12 @@ class batch_definitions_Document extends batch_definitions_Proto
     /**
      * Какви са свойствата на партидата
      *
-     * @param  string $value - номер на партидара
-     * @return array  - свойства на партидата
-     *                      o name    - заглавие
-     *                      o classId - клас
-     *                      o value   - стойност
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               o name    - заглавие
+     *               o classId - клас
+     *               o value   - стойност
      */
     public function getFeatures($value)
     {
@@ -87,7 +90,7 @@ class batch_definitions_Document extends batch_definitions_Proto
         $res = array();
         $res[] = (object) array('name' => 'Документ', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $string);
         $res[] = (object) array('name' => 'Дата', 'classId' => batch_definitions_ExpirationDate::getClassId(), 'value' => $date);
-         
+        
         return $res;
     }
     
@@ -109,7 +112,7 @@ class batch_definitions_Document extends batch_definitions_Proto
     /**
      * Може ли потребителя да сменя уникалноста на партида/артикул
      *
-     * @return boolean
+     * @return bool
      */
     public function canChangeBatchUniquePerProduct()
     {

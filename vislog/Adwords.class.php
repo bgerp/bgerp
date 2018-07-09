@@ -1,24 +1,22 @@
 <?php
 
 
-
 /**
  * Хронология на посещенията от Google Adwords
  *
  *
  * @category  bgerp
  * @package   vislog
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Последни документи и папки
  */
 class vislog_Adwords extends core_Manager
 {
-    
-    
-    
     /**
      * Време за опресняване информацията при лист на събитията
      */
@@ -56,28 +54,29 @@ class vislog_Adwords extends core_Manager
     
     
     public $listFields = 'id,ip,match,keywords,ad,createdOn,createdBy';
-     
-
+    
+    
     /**
      * По кои полета ще се търси
      */
     public $searchFields = 'ip, keywords, ad';
-
+    
+    
     /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('ip', 'ip(15,showNames)', 'caption=Ip');
-
+        
         $this->FLD('match', 'enum(b=broad,p=phrase,e=exact)', 'caption=Тип, mandatory');
         $this->FLD('keywords', 'varchar', 'caption=Ключови думи');
         $this->FLD('ad', 'varchar(20)', 'caption=Реклама');
-         
+        
         $this->setDbUnique('ip, match, keywords, ad');
     }
     
-
+    
     /**
      * Добавя в регистъра
      */
@@ -88,12 +87,12 @@ class vislog_Adwords extends core_Manager
         $rec->match = Request::get('awMatch');
         $rec->keywords = Request::get('awKeywords');
         $rec->ad = Request::get('awAd');
- 
+        
         if ($rec->match || $rec->keywords || $rec->ad) {
             self::save($rec, null, 'IGNORE');
         }
     }
-
+    
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
@@ -108,8 +107,8 @@ class vislog_Adwords extends core_Manager
         
         $data->query->orderBy('#createdOn=DESC');
     }
-
-
+    
+    
     /**
      * Преобразуване към вербален запис
      */

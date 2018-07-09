@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'page_Internal' - Шаблон за страница на приложението, видима за вътрешни потребители
  *
@@ -10,9 +9,11 @@
  *
  * @category  bgerp
  * @package   page
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Стандартна вътрешна страница
  */
@@ -32,7 +33,7 @@ class core_page_Internal extends core_page_Active
         
         // Стилове за темата
         $this->push('css/default-theme.css', 'CSS');
-
+        
         // Добавяне на стил само за дефоултния андроидски браузър
         $browserInfo = Mode::get('getUserAgent');
         if (strPos($browserInfo, 'Mozilla/5.0') !== false && strPos($browserInfo, 'Android') !== false &&
@@ -53,12 +54,12 @@ class core_page_Internal extends core_page_Active
         $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-
+        
         // Добавяне на титлата на страницата
         $conf = core_Packs::getConfig('core');
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
-
+        
         // Ако сме в широк изглед извикваме функцията за мащабиране
         if (Mode::is('screenMode', 'wide')) {
             $this->append('scaleViewport();', 'SCRIPTS');
@@ -68,12 +69,12 @@ class core_page_Internal extends core_page_Active
         
         // Опаковките и главното съдържание заемат екрана до долу
         jquery_Jquery::run($this, 'setMinHeight();');
-
+        
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
     }
-
-
+    
+    
     /**
      * Връща шаблона за страницата
      */
@@ -90,8 +91,8 @@ class core_page_Internal extends core_page_Active
             '[#core_page_Internal::getFooter#]' .
             '</div></div>');
     }
-
-
+    
+    
     /**
      * Рендира основното меню на страницата
      */
@@ -120,7 +121,7 @@ class core_page_Internal extends core_page_Active
             
             $tpl->replace($logo, 'logo');
         }
-                
+        
         self::placeMenu($tpl);
         
         // Извличаме броя на нотификациите за текущия потребител
@@ -140,8 +141,8 @@ class core_page_Internal extends core_page_Active
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Поставя елементите на менюто в шаблона
      */
@@ -153,7 +154,7 @@ class core_page_Internal extends core_page_Active
         
         // До тук имаме определени два списъка $menus (с главните менюта) и $subMenus (с под-менютата);
         list($menus, $subMenus) = bgerp_Menu::prepareMenu($menuObj, $active);
- 
+        
         if (Mode::is('screenMode', 'narrow')) {
             $conf = core_Packs::getConfig('core');
             
@@ -213,7 +214,7 @@ class core_page_Internal extends core_page_Active
             }
         }
     }
-
+    
     
     /**
      * Конструктор на шаблона
@@ -221,12 +222,12 @@ class core_page_Internal extends core_page_Active
     public static function getFooter()
     {
         $tpl = new ET();
-
+        
         $nick = Users::getCurrent('nick');
         if (EF_USSERS_EMAIL_AS_NICK) {
             list($nick, ) = explode('@', $nick);
         }
-
+        
         $isGet = strtoupper($_SERVER['REQUEST_METHOD']) == 'GET';
         
         $nick = type_Nick::normalize($nick);
@@ -235,15 +236,15 @@ class core_page_Internal extends core_page_Active
             if ($nick) {
                 $tpl->append(ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, array('title' => 'Изход на |*' . $nick)));
             }
-                        
+            
             if ($isGet) {
                 $tpl->append('&nbsp;<small>|</small>&nbsp;');
                 $tpl->append(ht::createLink(tr('Широк'), array('log_Browsers', 'setWideScreen', 'ret_url' => true), false, array('title' => ' Превключване на системата в десктоп режим')));
-
+                
                 // Добавяме превключване между езиците
                 $tpl->append(self::getLgChange());
             }
-
+            
             $tpl->append('&nbsp;<small>|</small>&nbsp;');
             $tpl->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), null, array('title' => 'Страницата е заредена на|*' . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
         } else {
@@ -258,14 +259,15 @@ class core_page_Internal extends core_page_Active
             if ($isGet) {
                 $tpl->append('&nbsp;<small>|</small>&nbsp;');
                 $tpl->append(ht::createLink(tr('Тесен'), array('log_Browsers', 'setNarrowScreen', 'ret_url' => true), false, array('title' => 'Превключване на системата в мобилен режим')));
-            
+                
                 // Добавяме превключване между езиците
                 $tpl->append(self::getLgChange());
             }
+            
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('log_Browsers');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
-
+            
             // Добавя бутон за калкулатора
             $tpl->append('&nbsp;<small>|</small>&nbsp;');
             $tpl->append(calculator_View::getBtn());
@@ -300,22 +302,22 @@ class core_page_Internal extends core_page_Active
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"));
         }
-
+        
         return $tpl;
     }
-
-
+    
+    
     /**
      * Добавя хипервръзки за превключване между езиците на интерфейса
      */
     public static function getLgChange()
     {
         $tpl = new ET();
-
+        
         $langArr = core_Lg::getLangs();
         $cl = core_Lg::getCurrent();
         unset($langArr[$cl]);
- 
+        
         if (count($langArr)) {
             foreach ($langArr as $lg => $title) {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => true));
@@ -325,11 +327,10 @@ class core_page_Internal extends core_page_Active
                 $tpl->append(ht::createElement('a', $attr, $lg));
             }
         }
-
+        
         return $tpl;
     }
-
-
+    
     
     /**
      * Прихваща изпращането към изхода, за да постави нотификации, ако има

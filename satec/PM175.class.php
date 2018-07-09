@@ -1,23 +1,24 @@
 <?php
 
 
-
 /**
  * Драйвер за електромер SATEC
  *
  *
  * @category  bgerp
  * @package   satec
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Електромер SATEC
+ *
  * @see       http://www.satec-global.com/UserFiles/satec/files/314_PM175%20Modbus.pdf
  */
 class satec_PM175 extends sens2_ProtoDriver
 {
-
     /**
      * Заглавие на драйвера
      */
@@ -37,7 +38,7 @@ class satec_PM175 extends sens2_ProtoDriver
         'kVATotal' => array('caption' => '1 сек. акт. мощност', 'uom' => 'kVA'),
         'PFTotal' => array('caption' => 'Косинус Фи', 'uom' => ''),
     );
-
+    
     
     /**
      *  Информация за входните портове на устройството
@@ -51,12 +52,11 @@ class satec_PM175 extends sens2_ProtoDriver
         foreach ($this->inputs as $name => $params) {
             $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
-
+        
         return $res;
     }
     
-
-
+    
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
@@ -91,25 +91,25 @@ class satec_PM175 extends sens2_ProtoDriver
         // Прочитаме изчерпаната до сега мощност
         $addresses = $driver->read(405073, 2);
         $res['kvahTotal'] = $addresses['405073'] + $addresses['405074'] * 65535;
-
+        
         $addresses = $driver->read(405057, 2);
         $res['kWhImport'] = $addresses['405057'] + $addresses['405058'] * 65535;
-
+        
         $addresses = $driver->read(405067, 2);
         $res['kvarhExport'] = $addresses['405067'] + $addresses['405068'] * 65535;
-
+        
         $addresses = $driver->read(414337, 2);
         $res['kWTotal'] = $addresses['414337'] + $addresses['414338'] * 65535;
-
+        
         $addresses = $driver->read(405065, 2);
         $res['kvarhImport'] = $addresses['405065'] + $addresses['405066'] * 65535;
-
+        
         $addresses = $driver->read(414339, 2);
         $res['kvarTotal'] = $addresses['414339'] - $addresses['414340'];
-
+        
         $addresses = $driver->read(414341, 2);
         $res['kVATotal'] = $addresses['414341'] + $addresses['414342'] * 65535;
-
+        
         $addresses = $driver->read(414343, 2);
         $res['PFTotal'] = round(($addresses['414343'] - $addresses['414344']) / 1000, 4);
         
@@ -117,7 +117,7 @@ class satec_PM175 extends sens2_ProtoDriver
             
             return "Грешка при четене от {$config->ip}";
         }
-                
+        
         return $res;
     }
 }

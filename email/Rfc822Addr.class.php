@@ -1,24 +1,24 @@
 <?php
 
 
-
 /**
  * RFC 822 e-mail addresses parser
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Manuel Lemos
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @(#)       $Id: rfc822_addresses.php,v 1.14 2011/03/25 04:57:38 mlemos Exp $
+ *
  * @link      http://www.ietf.org/rfc/rfc822.txt
  */
 class email_Rfc822Addr
 {
-    
-    
     /**
      * Private variables
      */
@@ -157,6 +157,7 @@ class email_Rfc822Addr
     public function SetPositionedWarning($error, $position)
     {
         if (!$this->ignore_syntax_errors) {
+            
             return($this->SetPositionedError($error, $position));
         }
         
@@ -177,6 +178,7 @@ class email_Rfc822Addr
         while ($s < $l) {
             if (GetType($q = strpos($value, '=?', $s)) != 'integer') {
                 if ($s == 0) {
+                    
                     return(1);
                 }
                 
@@ -193,6 +195,7 @@ class email_Rfc822Addr
             
             if (GetType($c = strpos($value, '?', $q)) != 'integer'
                 || $q == $c) {
+                
                 return($this->SetPositionedWarning('invalid Q-encoding character set', $p + $q));
             }
             
@@ -201,6 +204,7 @@ class email_Rfc822Addr
                 
                 if (strcmp($charset, $another_charset)
                     && strcmp($another_charset, 'ascii')) {
+                    
                     return($this->SetWarning('it is not possible to decode an encoded value using mixed character sets into a single value', $p + $q));
                 }
             } else {
@@ -214,12 +218,14 @@ class email_Rfc822Addr
             
             if (GetType($t = strpos($value, '?', $c)) != 'integer'
                 || $c == $t) {
+                
                 return($this->SetPositionedWarning('invalid Q-encoding type', $p + $c));
             }
             $type = strtolower(substr($value, $c, $t - $c));
             ++$t;
             
             if (GetType($e = strpos($value, '?=', $t)) != 'integer') {
+                
                 return($this->SetPositionedWarning('invalid Q-encoding encoded data', $p + $e));
             }
             
@@ -232,6 +238,7 @@ class email_Rfc822Addr
                                 
                                 if ($s + 3 > $e
                                     || strcmp(sprintf('%02x', $h), $hex)) {
+                                    
                                     return($this->SetPositionedWarning('invalid Q-encoding q encoded data', $p + $s));
                                 }
                                 $decoded .= chr($h);
@@ -254,6 +261,7 @@ class email_Rfc822Addr
                     if ($e <= $t
                         || strlen($binary = base64_decode($data = substr($value, $t, $e - $t))) == 0
                         || GetType($binary) != 'string') {
+                        
                         return($this->SetPositionedWarning('invalid Q-encoding b encoded data', $p + $t));
                     }
                     $decoded .= $binary;
@@ -261,6 +269,7 @@ class email_Rfc822Addr
                     break;
                 
                 default:
+                
                 return($this->SetPositionedWarning('Q-encoding ' . $type . ' is not yet supported', $p + $c));
             }
             $s += 2;
@@ -302,11 +311,13 @@ class email_Rfc822Addr
         
         if ($p > strlen($v)
             || GetType(strchr("\t\r\n \"\\\0", $c = $v[$p])) == 'string') {
+            
             return(1);
         }
         
         if (Ord($c) >= 128) {
             if (!$this->ignore_syntax_errors) {
+                
                 return(1);
             }
             $this->SetPositionedWarning('it was used an unencoded 8 bit character', $p);
@@ -348,20 +359,24 @@ class email_Rfc822Addr
         $c = $p;
         
         if (!$this->ParseQuotedPair($c, $content)) {
+            
             return(0);
         }
         
         if (!isset($content)) {
             if (!$this->ParseCText($c, $content)) {
+                
                 return(0);
             }
             
             if (!isset($content)) {
                 if (!$this->ParseComment($c, $content)) {
+                    
                     return(0);
                 }
                 
                 if (!isset($content)) {
+                    
                     return(1);
                 }
             }
@@ -389,6 +404,7 @@ class email_Rfc822Addr
                 case "\t":
                     break;
                 default:
+                
                 return(1);
             }
         }
@@ -409,16 +425,19 @@ class email_Rfc822Addr
         
         if ($c >= $l
             || strcmp($v[$c], '(')) {
+            
             return(1);
         }
         ++$c;
         
         for (; $c < $l;) {
             if (!$this->SkipWhiteSpace($c)) {
+                
                 return(0);
             }
             
             if (!$this->ParseCContent($c, $c_content)) {
+                
                 return(0);
             }
             
@@ -428,11 +447,13 @@ class email_Rfc822Addr
         }
         
         if (!$this->SkipWhiteSpace($c)) {
+            
             return(0);
         }
         
         if ($c >= $l
             || strcmp($v[$c], ')')) {
+            
             return(1);
         }
         ++$c;
@@ -462,10 +483,13 @@ class email_Rfc822Addr
                     break;
                 case '(':
                     if (!$this->ParseComment($p, $comment)) {
+                        
                         return(0);
                     }
+                    
                     // no break
                 default:
+                
                 return(1);
             }
         }
@@ -492,10 +516,13 @@ class email_Rfc822Addr
                     break;
                 case '(':
                     if (!$this->ParseComment($p, $comment)) {
+                        
                         return(0);
                     }
+                    
                     // no break
                 default:
+                
                 return(1);
             }
         }
@@ -513,15 +540,18 @@ class email_Rfc822Addr
         $q = $p;
         
         if (!$this->ParseQuotedPair($q, $content)) {
+            
             return(0);
         }
         
         if (!isset($content)) {
             if (!$this->ParseQText($q, $content)) {
+                
                 return(0);
             }
             
             if (!isset($content)) {
+                
                 return(1);
             }
         }
@@ -543,6 +573,7 @@ class email_Rfc822Addr
         $a = $p;
         
         if (!$this->SkipCommentGetWhiteSpace($a, $space)) {
+            
             return(0);
         }
         $match = '/^([-' . ($dot ? '.' : '') . 'A-Za-z0-9!#$&\'*+\\/=?^_{|}~]+)/';
@@ -553,6 +584,7 @@ class email_Rfc822Addr
             } elseif (Ord($v[$a]) < 128) {
                 break;
             } elseif (!$this->SetPositionedWarning('it was used an unencoded 8 bit character', $a)) {
+                
                 return(0);
             } else {
                 ++$a;
@@ -560,11 +592,13 @@ class email_Rfc822Addr
         }
         
         if ($s == $a) {
+            
             return(1);
         }
         $atom = $space . substr($this->v, $s, $a - $s);
         
         if (!$this->SkipCommentGetWhiteSpace($a, $space)) {
+            
             return(0);
         }
         $atom .= $space;
@@ -585,11 +619,13 @@ class email_Rfc822Addr
         $s = $p;
         
         if (!$this->SkipCommentWhiteSpace($s)) {
+            
             return(0);
         }
         
         if ($s >= $l
             || strcmp($v[$s], '"')) {
+            
             return(1);
         }
         ++$s;
@@ -598,6 +634,7 @@ class email_Rfc822Addr
             $w = $s;
             
             if (!$this->SkipWhiteSpace($s)) {
+                
                 return(0);
             }
             
@@ -606,6 +643,7 @@ class email_Rfc822Addr
             }
             
             if (!$this->ParseQContent($s, $q_content)) {
+                
                 return(0);
             }
             
@@ -617,6 +655,7 @@ class email_Rfc822Addr
         $w = $s;
         
         if (!$this->SkipWhiteSpace($s)) {
+            
             return(0);
         }
         
@@ -626,11 +665,13 @@ class email_Rfc822Addr
         
         if ($s >= $l
             || strcmp($v[$s], '"')) {
+            
             return(1);
         }
         ++$s;
         
         if (!$this->SkipCommentWhiteSpace($s)) {
+            
             return(0);
         }
         $quoted_string = $string;
@@ -648,14 +689,17 @@ class email_Rfc822Addr
         $word = null;
         
         if (!$this->ParseQuotedString($p, $word)) {
+            
             return(0);
         }
         
         if (isset($word)) {
+            
             return(1);
         }
         
         if (!$this->ParseAtom($p, $word, 0)) {
+            
             return(0);
         }
         
@@ -674,12 +718,14 @@ class email_Rfc822Addr
         $ph = $p;
         
         if (!$this->ParseWord($ph, $word)) {
+            
             return(0);
         }
         $string = $word;
         
         for (;;) {
             if (!$this->ParseWord($ph, $word)) {
+                
                 return(0);
             }
             
@@ -690,6 +736,7 @@ class email_Rfc822Addr
             $w = $ph;
             
             if (!$this->SkipCommentGetWhiteSpace($ph, $space)) {
+                
                 return(0);
             }
             
@@ -720,21 +767,25 @@ class email_Rfc822Addr
         $phrase = null;
         
         if (!$this->ParseObsPhrase($p, $phrase)) {
+            
             return(0);
         }
         
         if (isset($phrase)) {
+            
             return(1);
         }
         $ph = $p;
         
         if (!$this->ParseWord($ph, $word)) {
+            
             return(0);
         }
         $string = $word;
         
         for (;;) {
             if (!$this->ParseWord($ph, $word)) {
+                
                 return(0);
             }
             
@@ -761,11 +812,13 @@ class email_Rfc822Addr
         $a = $p;
         
         if (!$this->ParseQuotedString($a, $local_part)) {
+            
             return(0);
         }
         
         if (!isset($local_part)) {
             if (!$this->ParseAtom($a, $local_part, 1)) {
+                
                 return(0);
             }
             $local_part = trim($local_part);
@@ -773,15 +826,18 @@ class email_Rfc822Addr
         
         if ($a >= $l
             || strcmp($v[$a], '@')) {
+            
             return(1);
         }
         ++$a;
         
         if (!$this->ParseAtom($a, $domain, 1)) {
+            
             return(0);
         }
         
         if (!isset($domain)) {
+            
             return(1);
         }
         $addr_spec = $local_part . '@' . trim($domain);
@@ -802,26 +858,31 @@ class email_Rfc822Addr
         $a = $p;
         
         if (!$this->SkipCommentWhiteSpace($a)) {
+            
             return(0);
         }
         
         if ($a >= $l
             || strcmp($v[$a], '<')) {
+            
             return(1);
         }
         ++$a;
         
         if (!$this->ParseAddrSpec($a, $addr_spec)) {
+            
             return(0);
         }
         
         if ($a >= $l
             || strcmp($v[$a], '>')) {
+            
             return(1);
         }
         ++$a;
         
         if (!$this->SkipCommentWhiteSpace($a)) {
+            
             return(0);
         }
         $addr = $addr_spec;
@@ -840,11 +901,13 @@ class email_Rfc822Addr
         $a = $p;
         
         if (!$this->ParsePhrase($a, $display_name)) {
+            
             return(0);
         }
         
         if (isset($display_name)) {
             if (!$this->QDecode($p, $display_name, $encoding)) {
+                
                 return(0);
             }
             $address['name'] = trim($display_name);
@@ -868,20 +931,24 @@ class email_Rfc822Addr
         $a = $p;
         
         if (!$this->ParsePhrase($a, $display_name)) {
+            
             return(0);
         }
         
         if (!$this->ParseAngleAddr($a, $addr)) {
+            
             return(0);
         }
         
         if (!isset($addr)) {
+            
             return(1);
         }
         $address = array('address' => $addr);
         
         if (isset($display_name)) {
             if (!$this->QDecode($p, $display_name, $encoding)) {
+                
                 return(0);
             }
             $address['name'] = trim($display_name);
@@ -905,22 +972,27 @@ class email_Rfc822Addr
         $a = $p;
         
         if (!$this->ParseAddrSpec($a, $display_name)) {
+            
             return(0);
         }
         
         if (!isset($display_name)) {
+            
             return(1);
         }
         
         if (!$this->ParseAngleAddr($a, $addr)) {
+            
             return(0);
         }
         
         if (!isset($addr)) {
+            
             return(1);
         }
         
         if (!$this->QDecode($p, $display_name, $encoding)) {
+            
             return(0);
         }
         $address = array(
@@ -948,23 +1020,28 @@ class email_Rfc822Addr
             $a = $p;
             
             if (!$this->ParseAddrNameAddr($p, $address)) {
+                
                 return(0);
             }
             
             if (isset($address)) {
+                
                 return($this->SetPositionedWarning('it was specified an unquoted address as name', $a));
             }
         }
         
         if (!$this->ParseNameAddr($p, $address)) {
+            
             return(0);
         }
         
         if (isset($address)) {
+            
             return(1);
         }
         
         if (!$this->ParseAddrSpec($p, $addr_spec)) {
+            
             return(0);
         }
         
@@ -978,6 +1055,7 @@ class email_Rfc822Addr
         if ($this->ignore_syntax_errors
             && $this->ParseName($p, $address)
             && isset($address)) {
+            
             return($this->SetPositionedWarning('it was specified a name without an address', $a));
         }
         
@@ -995,10 +1073,12 @@ class email_Rfc822Addr
         $g = $p;
         
         if (!$this->ParseMailbox($g, $address)) {
+            
             return(0);
         }
         
         if (!isset($address)) {
+            
             return(1);
         }
         $addresses = array($address);
@@ -1010,10 +1090,12 @@ class email_Rfc822Addr
             ++$g;
             
             if (!$this->ParseMailbox($g, $address)) {
+                
                 return(0);
             }
             
             if (!isset($address)) {
+                
                 return(1);
             }
             $addresses[] = $address;
@@ -1036,22 +1118,26 @@ class email_Rfc822Addr
         $g = $p;
         
         if (!$this->ParsePhrase($g, $display_name)) {
+            
             return(0);
         }
         
         if (!isset($display_name)
             || $g >= $l
             || strcmp($v[$g], ':')) {
+            
             return(1);
         }
         ++$g;
         
         if (!$this->ParseMailboxGroup($g, $mailbox_group)) {
+            
             return(0);
         }
         
         if (!isset($mailbox_group)) {
             if (!$this->SkipCommentWhiteSpace($g)) {
+                
                 return(0);
             }
             $mailbox_group = array();
@@ -1059,6 +1145,7 @@ class email_Rfc822Addr
         
         if ($g >= $l
             || strcmp($v[$g], ';')) {
+            
             return(1);
         }
         $c = ++$g;
@@ -1066,10 +1153,12 @@ class email_Rfc822Addr
         if ($this->SkipCommentWhiteSpace($g)
             && $g > $c
             && !$this->SetPositionedWarning('it were used invalid comments after a group of addresses', $c)) {
+            
             return(0);
         }
         
         if (!$this->QDecode($p, $display_name, $encoding)) {
+            
             return(0);
         }
         $address = array(
@@ -1094,11 +1183,13 @@ class email_Rfc822Addr
         $address = null;
         
         if (!$this->ParseGroup($p, $address)) {
+            
             return(0);
         }
         
         if (!isset($address)) {
             if (!$this->ParseMailbox($p, $address)) {
+                
                 return(0);
             }
         }
@@ -1169,10 +1260,12 @@ class email_Rfc822Addr
         $p = 0;
         
         if (!$this->ParseAddress($p, $address)) {
+            
             return(0);
         }
         
         if (!isset($address)) {
+            
             return($this->SetPositionedError('it was not specified a valid address', $p));
         }
         $addresses[] = $address;
@@ -1180,15 +1273,18 @@ class email_Rfc822Addr
         while ($p < $l) {
             if (strcmp($v[$p], ',')
                 && !$this->SetPositionedWarning('multiple addresses must be separated by commas: ', $p)) {
+                
                 return(0);
             }
             ++$p;
             
             if (!$this->ParseAddress($p, $address)) {
+                
                 return(0);
             }
             
             if (!isset($address)) {
+                
                 return($this->SetPositionedError('it was not specified a valid address after comma', $p));
             }
             $addresses[] = $address;

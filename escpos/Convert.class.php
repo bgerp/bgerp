@@ -6,53 +6,48 @@
  *
  * @category  bgerp
  * @package   escprint
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class escpos_Convert extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Конвертор на вътрешен markup към esc/pos команди за отпечатване';
     
     
-    
     public $canAdd = 'no_one';
-    
     
     
     public $canDelete = 'no_one';
     
     
-    
     public $canEdit = 'no_one';
-    
     
     
     public $canList = 'no_one';
     
-
-
+    
     /**
      * Процесира текст от ПринтМаркъп ESC команди и ascii текст
      */
     public static function process($markup, $driver = 'escpos_driver_Html')
     {
         $driver = cls::get($driver);
-
+        
         $s = str_replace(array("\n", "\r", "\t"), array(), $markup);
-     
+        
         $elArr = explode('<', $s);
         
         $lines = array();
         $i = 0;
         $l = '';
- 
+        
         foreach ($elArr as $el) {
             $col = 0;
             $bold = false;
@@ -63,9 +58,9 @@ class escpos_Convert extends core_Manager
             
             if (strpos($el, '>') !== false) {
                 list($tag, $text) = explode('>', $el);
-
+                
                 $textLen = mb_strlen($text);
-
+                
                 if (strlen($tag)) {
                     $cmd = strtolower($tag{0});
                     $attr = substr($tag, 1);
@@ -74,22 +69,22 @@ class escpos_Convert extends core_Manager
                         if (!trim($a)) {
                             continue;
                         }
-
+                        
                         if (is_numeric($a)) {
                             $col = (int) $a;
                             continue;
                         }
-
+                        
                         if ($a == 'b' || $a == 'B') {
                             $bold = true;
                             continue;
                         }
-
+                        
                         if ($a == 'u') {
                             $underline = 1;
                             continue;
                         }
-
+                        
                         if ($a == 'U') {
                             $underline = 2;
                             continue;
@@ -100,18 +95,18 @@ class escpos_Convert extends core_Manager
                             $width = $driver->getWidth($font);
                             continue;
                         }
-
+                        
                         if ($a == '.' || $a == '_' || $a == '=' || $a == '-') {
                             $tab = $a;
                             continue;
                         }
-
+                        
                         expect(false, 'Непознат атрибут', $a, $el);
                     }
-
+                    
                     $fontTxt = $driver->getFont($font, $bold, $underline);
                     $fontPad = $driver->getFont($font, $bold, false);
-
+                    
                     $fontEnd = $driver->getFontEnd();
                     $newLine = $driver->GetNewLine();
                     
@@ -124,12 +119,14 @@ class escpos_Convert extends core_Manager
                             // Нова линия
                             case 'p':
                                 $res .= $l;
+                                
                                 // Код за преместване на хартията
                                 $l = $newLine . $fontTxt . $driver->encode($text) . $fontEnd;
                                 $lLen = mb_strlen($text);
                                 break;
                             case 'c':
                                 $res .= $l;
+                                
                                 // Код за преместване на хартията
                                 $r = (int) (($width - $textLen) / 2);
                                 
@@ -154,7 +151,7 @@ class escpos_Convert extends core_Manager
                                 $l .= $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
                                 $lLen += $r + $textLen;
                                 break;
-                                
+                            
                             case 'r':
                                 $r = $col - $lLen - $textLen;
                                 
@@ -169,7 +166,7 @@ class escpos_Convert extends core_Manager
                                 break;
                             default:
                                 expect(false, 'Непозната команда', $cmd, $el);
-                            
+                        
                         }
                     }
                 }
@@ -177,7 +174,7 @@ class escpos_Convert extends core_Manager
                 $l .= $el;
             }
         }
-
+        
         $res .= $l;
         
         $res = $driver->prepareTextSettings($res);
@@ -211,9 +208,9 @@ class escpos_Convert extends core_Manager
     
     /**
      *
-     * @param string  $text
-     * @param string  $nl
-     * @param integer $lineMaxLen
+     * @param string $text
+     * @param string $nl
+     * @param int    $lineMaxLen
      *
      * @return string
      */
@@ -319,13 +316,13 @@ class escpos_Convert extends core_Manager
         '<p><l4>2.00<l12>х 0.80<r32>= 1.60' .
         '<p><r32 =>' .
         '<p><r29 F b>Общо: 34.23 лв.';
-
+        
         if (Request::get('p')) {
             $res = self::process($test, 'escpos_driver_Ddp250');
             echo $res;
             shutdown();
         }
-
+        
         return self::process($test);
     }
 }

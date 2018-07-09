@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Документ за Разходни касови ордери
  *
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_Rko extends cash_Document
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -105,7 +104,7 @@ class cash_Rko extends cash_Document
                 $options[$sysId] = $op['title'];
             }
         }
-         
+        
         return $options;
     }
 }

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Модел Отчети
  *
  *
  * @category  bgerp
  * @package   pos
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pos_Reports extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -39,7 +38,7 @@ class pos_Reports extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
-   
+    
     
     /**
      * Наименование на единичния обект
@@ -52,7 +51,7 @@ class pos_Reports extends core_Master
      */
     public $singleIcon = 'img/16/report.png';
     
-
+    
     /**
      *  Брой елементи на страница
      */
@@ -69,7 +68,7 @@ class pos_Reports extends core_Master
      * Абревиатура
      */
     public $abbr = 'Otc';
- 
+    
     
     /**
      * Кой може да пише?
@@ -81,8 +80,8 @@ class pos_Reports extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, pos';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -229,6 +228,7 @@ class pos_Reports extends core_Master
      * Функция която обновява информацията на репорта
      * извиква се след изпращането на формата и при
      * активация на документа
+     *
      * @param stdClass $rec - запис от модела
      */
     public function extractData(&$rec)
@@ -303,7 +303,7 @@ class pos_Reports extends core_Master
         foreach ($detail->receipts as $id => $receiptRec) {
             if (!array_key_exists($receiptRec->createdBy, $data->row->statisticArr)) {
                 $data->row->statisticArr[$receiptRec->createdBy] = (object) array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
-                                                                                 'receiptTotal' => $receiptRec->total);
+                    'receiptTotal' => $receiptRec->total);
             } else {
                 $data->row->statisticArr[$receiptRec->createdBy]->receiptTotal += $receiptRec->total;
             }
@@ -317,6 +317,7 @@ class pos_Reports extends core_Master
     
     /**
      * Инстанциране на пейджъра и модификации по данните спрямо него
+     *
      * @param stdClass $detail - Масив с детайли на отчета (плащания или продажби)
      */
     public function prepareDetail(&$detail)
@@ -330,14 +331,14 @@ class pos_Reports extends core_Master
         
         // Добавяме всеки елемент отговарящ на условието на пейджъра в нов масив
         if ($detail->rows) {
-            
+             
              // Подготвяме поле по което да сортираме
             foreach ($detail->rows as $key => &$value) {
                 if ($value->action == 'sale') {
                     $value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
                 }
             }
-             
+            
             usort($detail->rows, array($this, 'sortResults'));
             
             // Обръщаме във вербален вид
@@ -350,7 +351,7 @@ class pos_Reports extends core_Master
                     $newRows[] = $this->getVerbalDetail($detail->rows[$keys[$i]]);
                 }
             }
-             
+            
             // Заместваме стария масив с новия филтриран
             $detail->rows = $newRows;
             
@@ -383,7 +384,9 @@ class pos_Reports extends core_Master
     
     /**
      * Функция обработваща детайл на репорта във вербален вид
-     * @param  stdClass $rec-> запис на продажба или плащане
+     *
+     * @param stdClass $rec-> запис на продажба или плащане
+     *
      * @return stdClass $row-> вербалния вид на записа
      */
     private function getVerbalDetail($obj)
@@ -457,7 +460,9 @@ class pos_Reports extends core_Master
      * Подготвя информацията за направените продажби и плащания
      * от всички бележки за даден период от време на даден потребител
      * на дадена точка
-     * @param  int   $pointId - Ид на точката на продажба
+     *
+     * @param int $pointId - Ид на точката на продажба
+     *
      * @return array $result - масив с резултати
      * */
     private function fetchData($pointId)
@@ -574,7 +579,7 @@ class pos_Reports extends core_Master
                 $nextState = 'waiting';
                 $msg = 'Активирани';
             }
-        
+            
             // Всяка бележка в репорта се "затваря"
             $count = 0;
             foreach ($rec->details['receipts'] as $receiptRec) {
@@ -587,7 +592,7 @@ class pos_Reports extends core_Master
                 pos_Receipts::save($receiptRec, 'state');
                 $count++;
             }
-        
+            
             if ($count) {
                 core_Statuses::newStatus("|{$msg} са|* '{$count}' |бележки за продажба|*");
             }
@@ -644,7 +649,7 @@ class pos_Reports extends core_Master
             $res = $mvc->singleIcon;
             if (log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $res);
-
+                
                 if (getFullPath($icon2)) {
                     $res = $icon2;
                 }
@@ -665,17 +670,18 @@ class pos_Reports extends core_Master
         
         if ($rec = self::fetch($objectId)) {
             $result = (object) array(
-                    'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                    'title' => static::getRecTitle($rec),
+                'num' => $objectId . ' ' . mb_strtolower($self->abbr),
+                'title' => static::getRecTitle($rec),
             );
         }
         
         return $result;
     }
-     
-     
+    
+    
     /**
      * @see acc_RegisterIntf::itemInUse()
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -689,12 +695,12 @@ class pos_Reports extends core_Master
      * 	1. Да има поне една активна (приключена) бележка за касиера и точката
      *  2. Да няма нито една започната, но неприключена бележка
      *
-     * @param  int     $pointId - ид на точка
-     * @return boolean
+     * @param int $pointId - ид на точка
+     *
+     * @return bool
      */
     public static function canMakeReport($pointId)
     {
-        
         // Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
         if (!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'waiting'")) {
             
@@ -738,6 +744,7 @@ class pos_Reports extends core_Master
     {
         // Ако няма репорти не правим нищо
         if (!pos_Reports::count()) {
+            
             return;
         }
         

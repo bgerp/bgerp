@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   zbar
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class zbar_Reader
 {
-    
-    
     /**
      * Масив със стойности, които ще се приемат за тип на баркод
      */
@@ -80,12 +80,12 @@ class zbar_Reader
                 if (!is_object($barcodesArr[$key])) {
                     $barcodesArr[$key] = new stdClass();
                 }
-                    
+                
                 if (!empty($fBarcodeStr)) {
                     $barcodeStr .= $fBarcodeStr;
                     $fBarcodeStr = '';
                 }
-                    
+                
                 // Записваме намерените резултатис
                 $barcodesArr[$key]->type = $barcodeType;
                 $barcodesArr[$key]->code = $barcodeStr;

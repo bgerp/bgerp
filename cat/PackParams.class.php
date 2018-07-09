@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър за размери на опаковките
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Размери на опаковките
  */
 class cat_PackParams extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -112,12 +111,12 @@ class cat_PackParams extends core_Manager
         
         if ($res) {
             $exRec = $res;
-
+            
             return false;
         }
-    
+        
         unset($fields);
-
+        
         return true;
     }
     
@@ -125,8 +124,9 @@ class cat_PackParams extends core_Manager
     /**
      * Какво е условието за сравнение
      *
-     * @param  stdClass $rec
-     * @return string   $where
+     * @param stdClass $rec
+     *
+     * @return string $where
      */
     private function getCompareCondition($rec)
     {
@@ -157,7 +157,8 @@ class cat_PackParams extends core_Manager
     /**
      * Връща шаблоните за дадена опаковка
      *
-     * @param  int   $packagingId - ид на опаковка
+     * @param int $packagingId - ид на опаковка
+     *
      * @return array $array    - масив с шаблони на опаковки
      */
     public static function getTemplates($packagingId)
@@ -200,11 +201,12 @@ class cat_PackParams extends core_Manager
     /**
      * Създава нова уникална група параметри
      *
-     * @param  int    $packagingId
-     * @param  double $sizeWidth
-     * @param  double $sizeHeight
-     * @param  double $sizeDepth
-     * @param  double $tareWeight
+     * @param int   $packagingId
+     * @param float $sizeWidth
+     * @param float $sizeHeight
+     * @param float $sizeDepth
+     * @param float $tareWeight
+     *
      * @return int
      */
     public static function sync($packagingId, $sizeWidth, $sizeHeight, $sizeDepth, $tareWeight)
@@ -213,7 +215,7 @@ class cat_PackParams extends core_Manager
         $self = cls::get(get_called_class());
         if ($self->isUnique($rec, $fields, $exRec)) {
             $rec->state = 'closed';
-
+            
             return $self->save($rec);
         }
         
@@ -242,7 +244,8 @@ class cat_PackParams extends core_Manager
     /**
      * Колко пъти има създадени продуктови опаковки с тези мерки
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return int
      */
     private function getUsages($rec)

@@ -1,26 +1,25 @@
 <?php 
 
-
 /**
  * Документ за Смяна на валута
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_ExchangeDocument extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_ExchangeDocument';
-   
+    
     
     /**
      * Дали сумата е във валута (различна от основната)
@@ -72,8 +71,8 @@ class cash_ExchangeDocument extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,cash';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -170,6 +169,7 @@ class cash_ExchangeDocument extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroFrom')) {
@@ -194,6 +194,7 @@ class cash_ExchangeDocument extends core_Master
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         if ($action != 'add') {
+            
             return;
         }
         
@@ -234,16 +235,16 @@ class cash_ExchangeDocument extends core_Master
             
             if (!$rec->creditQuantity || !$rec->debitQuantity) {
                 $form->setError('creditQuantity, debitQuantity', 'Трябва да са въведени и двете суми !!!');
-
+                
                 return;
             }
             
             if ($rec->creditCurrency == $rec->debitCurrency) {
                 $form->setWarning('creditCurrency, debitCurrency', 'Валутите са едни и същи, няма смяна на валута !!!');
-
+                
                 return;
             }
-                
+            
             // Изчисляваме курса на превалутирането спрямо входните данни
             $cCode = currency_Currencies::getCodeById($rec->creditCurrency);
             $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
@@ -252,7 +253,7 @@ class cash_ExchangeDocument extends core_Master
             $rec->creditPrice = $cRate;
             $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
             $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
-           
+            
             $fromCode = currency_Currencies::getCodeById($rec->creditCurrency);
             $toCode = currency_Currencies::getCodeById($rec->debitCurrency);
             
@@ -305,22 +306,24 @@ class cash_ExchangeDocument extends core_Master
                 
                 return true;
             }
-
+            
             return false;
         });
     }
+    
     
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
-     * @param  int     $threadId key(mvc=doc_Threads)
-     * @return boolean
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
      */
     public static function canAddToThread($threadId)
     {
         $threadRec = doc_Threads::fetch($threadId);
-
+        
         return self::canAddToFolder($threadRec->folderId);
     }
     

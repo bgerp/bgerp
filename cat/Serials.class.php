@@ -1,21 +1,19 @@
 <?php 
 
-
-
 /**
  * Генерирани номера на артикули
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_Serials extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -88,9 +86,10 @@ class cat_Serials extends core_Manager
     /**
      * Връща генериран номер според източника, и го регистрира в модела
      *
-     * @param  string $sourceClassId  - клас
-     * @param  string $sourceObjectId - ид на обект
-     * @return int    $serial
+     * @param string $sourceClassId  - клас
+     * @param string $sourceObjectId - ид на обект
+     *
+     * @return int $serial
      */
     public static function generateSerial($sourceClassId = null, $sourceObjectId = null)
     {
@@ -141,7 +140,8 @@ class cat_Serials extends core_Manager
     /**
      * Запис отговарящ на серийния номер
      *
-     * @param  int           $serial
+     * @param int $serial
+     *
      * @return stdClass|NULL $res
      */
     public static function getRecBySerial($serial)
@@ -162,7 +162,7 @@ class cat_Serials extends core_Manager
         $data->listFilter->setFieldTypeParams('sourceClassId', 'allowEmpty');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
-    
+        
         if ($fRec = $data->listFilter->rec) {
             if (!empty($fRec->serial)) {
                 $data->query->where(array("#serial LIKE '%[#1#]%'", $fRec->serial));
@@ -178,7 +178,8 @@ class cat_Serials extends core_Manager
     /**
      * Канонизиране на генерирания номер
      *
-     * @param  string $serial
+     * @param string $serial
+     *
      * @return string
      */
     public static function canonize($serial)
@@ -190,20 +191,21 @@ class cat_Serials extends core_Manager
     /**
      * Проверяване на серийния номер
      *
-     * @param  string $serial
+     * @param string $serial
+     *
      * @return string
      */
     public static function check($serial, &$error)
     {
         if (!type_Int::isInt($serial)) {
             $error = 'Номера трябва да съдържа само цифри';
-
+            
             return false;
         }
         
         if (strlen($serial) > 13) {
             $error = 'Надвишава максималния брой цифри|* 13';
-
+            
             return false;
         }
         

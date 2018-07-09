@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Базов драйвер за новите справки
  *
  *
  * @category  bgerp
  * @package   frame2
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class frame2_driver_Proto extends core_BaseClass
 {
-    
-    
     /**
      * Интерфейси които имплементира
      */
@@ -51,7 +50,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Връща заглавието на отчета
      *
-     * @param  stdClass    $rec - запис
+     * @param stdClass $rec - запис
+     *
      * @return string|NULL - заглавието или NULL, ако няма
      */
     public function getTitle($rec)
@@ -62,7 +62,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Подготвя данните на справката от нулата, които се записват в модела
      *
-     * @param  stdClass      $rec - запис на справката
+     * @param stdClass $rec - запис на справката
+     *
      * @return stdClass|NULL $data - подготвените данни
      */
     public function prepareData($rec)
@@ -73,8 +74,9 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Рендиране на данните на справката
      *
-     * @param  stdClass $rec - запис на справката
-     * @return core_ET  - рендирания шаблон
+     * @param stdClass $rec - запис на справката
+     *
+     * @return core_ET - рендирания шаблон
      */
     public function renderData($rec)
     {
@@ -85,8 +87,9 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
-     * @param  stdClass $rec
-     * @return boolean
+     * @param stdClass $rec
+     *
+     * @return bool
      */
     public function canSendNotificationOnRefresh($rec)
     {
@@ -97,7 +100,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Връща параметрите, които ще бъдат заместени в текста на нотификацията
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     public function getNotificationParams($rec)
@@ -136,7 +140,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Връща редовете на CSV файл-а
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     public function getCsvExportRows($rec)
@@ -148,7 +153,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Връща полетата за експортиране във csv
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     public function getCsvExportFieldset($rec)
@@ -160,7 +166,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *
-     * @param  stdClass    $rec - запис
+     * @param stdClass $rec - запис
+     *
      * @return array|FALSE - масив с три дати или FALSE ако не може да се обновява
      */
     public function getNextRefreshDates($rec)
@@ -172,7 +179,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     public function getChangeableFields($rec)

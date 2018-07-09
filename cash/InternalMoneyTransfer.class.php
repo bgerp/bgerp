@@ -1,26 +1,25 @@
 <?php 
 
-
 /**
  * Документ за Вътрешно Паричен Трансфер
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_InternalMoneyTransfer extends core_Master
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_InternalMoneyTransfer';
-   
+    
     
     /**
      * Дали сумата е във валута (различна от основната)
@@ -59,8 +58,8 @@ class cash_InternalMoneyTransfer extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,cash';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -131,8 +130,8 @@ class cash_InternalMoneyTransfer extends core_Master
      * Позволени операции
      */
     public $allowedOperations = array('case2case' => array('debit' => '501', 'credit' => '501'),
-                                      'case2bank' => array('debit' => '503', 'credit' => '501'),
-                                      'nonecash2bank' => array('debit' => '503', 'credit' => '502'),
+        'case2bank' => array('debit' => '503', 'credit' => '501'),
+        'nonecash2bank' => array('debit' => '503', 'credit' => '502'),
     );
     
     
@@ -181,6 +180,7 @@ class cash_InternalMoneyTransfer extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -218,16 +218,18 @@ class cash_InternalMoneyTransfer extends core_Master
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         if ($action != 'add') {
+            
             return;
         }
         
         if (!$mvc->haveRightFor($action)) {
+            
             return;
         }
         
         // Има ли вече зададено основание?
         if (Request::get('operationSysId', 'varchar')) {
-            
+           
            // Има основание - не правим нищо
             return;
         }
@@ -258,7 +260,7 @@ class cash_InternalMoneyTransfer extends core_Master
         if (!doc_Folders::haveRightToObject($folderId)) {
             $folderId = static::getDefaultFolder(null, false);
         }
-           
+        
         $form->setDefault('folderId', $folderId);
         
         return $form;
@@ -302,7 +304,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $form->setReadOnly('creditCase', cash_Cases::getCurrent());
     }
     
-     
+    
     /**
      * Проверка след изпращането на формата
      */
@@ -423,7 +425,7 @@ class cash_InternalMoneyTransfer extends core_Master
             
             return true;
         }
-            
+        
         return false;
     }
     

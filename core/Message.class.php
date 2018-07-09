@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_Message' - визуализиране на съобщения
  *
@@ -11,16 +10,16 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Message extends core_BaseClass
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -37,7 +36,7 @@ class core_Message extends core_BaseClass
             
             // Сетваме хедърите
             header("{$protocol} 404 Not Found");
-        
+            
             // Забранява кеширането
             header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
             header('Pragma: no-cache'); // HTTP 1.0.
@@ -89,7 +88,7 @@ class core_Message extends core_BaseClass
             $err = new core_exception_Expect('Грешка при рендиране на съобщение за грешка');
             
             $err->class = 'core_Message';
-             
+            
             throw $err;
         }
     }

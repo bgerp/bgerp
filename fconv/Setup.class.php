@@ -30,15 +30,15 @@ defIfNot('FCONV_SALT', md5(EF_SALT . '_FCONV'));
  *
  * @category  vendors
  * @package   fconv
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fconv_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -61,15 +61,15 @@ class fconv_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Конвертиране на файлове';
-        
-        
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'fconv_Processes',
-            'fconv_Remote',
-        );
+        'fconv_Processes',
+        'fconv_Remote',
+    );
     
     
     /**

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'vislog_Wrapper'
  *
@@ -10,16 +9,16 @@
  *
  * @category  vendors
  * @package   vislog
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class vislog_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
@@ -30,7 +29,7 @@ class vislog_Wrapper extends plg_ProtoWrapper
         $this->TAB('vislog_Adwords', 'Adwords', 'admin, ceo, cms');
         $this->TAB('vislog_HistoryResources', 'Ресурси', 'admin, ceo, cms');
         $this->TAB('vislog_IpNames', 'IP-та', 'admin, ceo, cms');
-
+        
         $this->title = 'История';
     }
 }

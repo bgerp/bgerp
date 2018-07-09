@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от посещения по IP
  *
  *
  * @category  bgerp
  * @package   vislog
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class vislog_reports_IpImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -27,15 +26,14 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      * Заглавие
      */
     public $title = 'Сайт » Посещения по IP';
-
+    
     
     /**
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
     
-
-
+    
     /**
      * Брой записи на страница
      */
@@ -76,7 +74,6 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, admin, cms';
-
     
     
     /**
@@ -89,8 +86,8 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         $form->FLD('from', 'date', 'caption=Начало');
         $form->FLD('to', 'date', 'caption=Край');
     }
-      
-
+    
+    
     /**
      * Подготвя формата за въвеждане на данни за вътрешния обект
      *
@@ -108,7 +105,6 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
-                 
         // Размяна, ако периодите са объркани
         if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
             $mid = $form->rec->from;
@@ -130,22 +126,22 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         $fRec = $data->fRec = $this->innerForm;
         
         $query = vislog_History::getQuery();
-
+        
         if ($fRec->from) {
             $query->where("#createdOn >= '{$fRec->from} 00:00:00'");
         }
-
+        
         if ($fRec->to) {
             $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
-
+        
         while ($rec = $query->fetch()) {
             $data->ipCnt[$rec->ip]++;
         }
-
+        
         // Сортиране на данните
         arsort($data->ipCnt);
-     
+        
         return $data;
     }
     
@@ -157,21 +153,21 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     {
         $Ip = cls::get('type_Ip');
         $Int = cls::get('type_Int');
-
+        
         foreach ($rec as $ip => $createdCnt) {
             $row = new stdClass();
-
+            
             if ($this->innerState->fRec->to) {
                 $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->to, true, true);
             } else {
                 $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->createdOn, true, true);
             }
-        
+            
             $row->cnt = $Int->toVerbal($createdCnt);
-        
+            
             $rows[] = $row;
         }
-    
+        
         return $rows;
     }
     
@@ -201,7 +197,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
                         continue;
                     }
                 }
-        
+                
                 $data->rows[$id] = $row;
             }
         }
@@ -216,6 +212,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
         
@@ -225,9 +222,9 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     		[#PAGER#]
             [#VISITS#]
     		[#PAGER#]');
-         
+        
         $explodeTitle = explode(' » ', $this->title);
-         
+        
         $title = tr("|{$explodeTitle[1]}|*");
         
         $tpl->replace($title, 'TITLE');
@@ -242,7 +239,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
         $fields = 'ip=Посещения->Ip,cnt=Посещения->Брой';
-
+        
         $tpl->append($table->get($data->rows, $fields), 'VISITS');
         
         if ($data->pager) {
@@ -251,7 +248,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         
         $embedderTpl->append($tpl, 'data');
     }
-     
+    
     
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -268,6 +265,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -277,8 +275,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         $f->FLD('ip', 'ip(15)');
         $f->FLD('cnt', 'int');
         $f->FLD('createdBy', 'varchar');
-    
-    
+        
         return $f;
     }
     
@@ -294,7 +291,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         // Кои полета ще се показват
         $fields = arr::make('ip=Посещения->Ip,
                              cnt=Посещения->Брой=Продукт', true);
-    
+        
         return $fields;
     }
     
@@ -314,9 +311,9 @@ class vislog_reports_IpImpl extends frame_BaseDriver
             $rec->ip = html_entity_decode(strip_tags($rec->ip));
             $data[$id] = $rec;
         }
-
+        
         $csv = csv_Lib::createCsv($data, $fields, $exportFields);
-         
+        
         return $csv;
     }
     

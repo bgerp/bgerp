@@ -6,18 +6,20 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Ics extends fileman_webdrv_Code
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Code::$defaultTab
      */
     public static $defaultTab = 'events';
@@ -31,6 +33,7 @@ class fileman_webdrv_Ics extends fileman_webdrv_Code
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Code::getTabs
      */
     public static function getTabs($fRec)

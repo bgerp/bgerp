@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на документи за дълготрайни активи
  *
  *
  * @category  bgerp
  * @package   accda
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     ДА Документи
  */
 class accda_Documents extends core_Master
 {
-    
-    
     /**
      * Кой линк от главното меню на страницата да бъде засветен?
      */
@@ -159,6 +158,7 @@ class accda_Documents extends core_Master
     public function getDocumentRow($id)
     {
         if (!$id) {
+            
             return;
         }
         

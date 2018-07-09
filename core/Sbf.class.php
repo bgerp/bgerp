@@ -1,16 +1,17 @@
 <?php
 
 
-
 /**
  * Клас 'core_Sbf'
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
@@ -23,8 +24,8 @@ class core_Sbf extends core_Mvc
         
         return $path;
     }
-
-
+    
+    
     /**
      * Записва посоченото съдържание на указания път
      * Връща FALSE при грешка или пълния път до новозаписания файл
@@ -37,24 +38,24 @@ class core_Sbf extends core_Mvc
         
         // Ако директорията не съществува
         if (!is_dir($dir = dirname($path))) {
-                    
+            
             // Създаваме директория
             if (!@mkdir($dir, 0777, true)) {
                 
                 return false;
             }
         }
-
+        
         if (@file_put_contents($path, $content) !== false) {
             usleep(1000);
-
+            
             return $path;
         }
-
+        
         return false;
     }
-
-
+    
+    
     /**
      * Връща съответстващия път в sbf на зададен вътрешен път
      */
@@ -63,7 +64,7 @@ class core_Sbf extends core_Mvc
         static $cache;
         
         // debug::log("getSbfFilePath {$path}");
-
+        
         if (!$cache[$path]) {
             $time = 0;
             if ($file = getFullPath($path)) {
@@ -71,11 +72,11 @@ class core_Sbf extends core_Mvc
             }
             $cache[$path] = self::getSbfPathByTime($path, $time);
         }
-
+        
         return $cache[$path];
     }
-
-
+    
+    
     /**
      * Връща съотвестващия път на файла в sbf според времето на последна модификация (като параметър)
      *
@@ -87,7 +88,7 @@ class core_Sbf extends core_Mvc
     public static function getSbfPathByTime($path, $time)
     {
         $pathArr = pathinfo($path);
-
+        
         $timeSuffix = '';
         if ($time) {
             $timeSuffix = '_' . date('mdHis', $time);
@@ -98,14 +99,14 @@ class core_Sbf extends core_Mvc
         
         return $sbfPath;
     }
-
-
+    
+    
     /**
      * Връща URL на Browser Resource File, по подразбиране, оградено с кавички
      *
-     * @param string  $rPath    Релативен път до статичния файл
-     * @param string  $qt       Символ за ограждане на резултата
-     * @param boolean $absolute Дали резултатното URL да е абсолютно или релативно
+     * @param string $rPath    Релативен път до статичния файл
+     * @param string $qt       Символ за ограждане на резултата
+     * @param bool   $absolute Дали резултатното URL да е абсолютно или релативно
      *
      * @return string
      */
@@ -118,7 +119,7 @@ class core_Sbf extends core_Mvc
                 $rPath = str_replace('img/16or32/', 'img/16/', $rPath);
             }
         }
-
+        
         // Ако файла съществува
         if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath{0} != '_') {
             
@@ -126,7 +127,7 @@ class core_Sbf extends core_Mvc
             if (!file_exists($sbfPath)) {
                 if (getFullPath($rPath)) {
                     $content = getFileContent($rPath);
-
+                    
                     if (core_Sbf::saveFile($content, $sbfPath, true)) {
                         
                         // Записваме в лога, всеки път след като създадам файл в sbf
@@ -137,7 +138,7 @@ class core_Sbf extends core_Mvc
                         $rArr = pathinfo($rPath);
                         $rPath = $rArr['dirname'] . '/'. $sbfArr['basename'];
                     }
-                        
+                    
                     // Записваме в лога
                          // self::logWarning("Файла не може да се запише в '{$sbfPath}'.");
                 } else {
@@ -159,11 +160,11 @@ class core_Sbf extends core_Mvc
         $rPath = ltrim($rPath, '/');
         
         $res = $qt . core_App::getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
-         
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Функция, която проверява и ако се изисква, сервира
      * браузърно съдържание html, css, img ...
@@ -182,7 +183,7 @@ class core_Sbf extends core_Mvc
             
             header('HTTP/1.1 404 Not Found');
         } else {
- 
+            
             // Файла съществува и трябва да бъде сервиран
             // Определяне на Content-Type на файла
             $fileExt = str::getFileExt($file);
@@ -195,12 +196,12 @@ class core_Sbf extends core_Mvc
                 'html' => 'text/html',
                 'xml' => 'text/xml',
                 'js' => 'application/javascript',
-
+                
                 // Бинарни
                 'swf' => 'application/x-shockwave-flash',
                 'jar' => 'application/x-java-applet',
                 'java' => 'application/x-java-applet',
-
+                
                 // Графични
                 'png' => 'image/png',
                 'jpe' => 'image/jpeg',
@@ -225,14 +226,14 @@ class core_Sbf extends core_Mvc
                 header('HTTP/1.1 404 Not Found');
             } else {
                 header("Content-Type: ${ctype}; charset: utf-8");
-
+                
                 // Хедъри за управлението на кеша в браузъра
                 header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3153600) . ' GMT');
                 header('Cache-Control: public, max-age=3153600');
                 
                 // Поддържа ли се gzip компресиране на съдържанието?
                 $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
-
+                
                 if ($isGzipSupported && (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript')) {
                     // Компресираме в движение и подаваме правилния хедър
                     $content = gzencode($content);
@@ -243,7 +244,7 @@ class core_Sbf extends core_Mvc
                 header('Content-Length: ' . strlen($content));
                 echo $content;
                 flush();
- 
+                
                 // Копираме файла за директно сервиране от Apache следващия път
                 // @todo: Да се минимализират .js и .css
                 if (!isDebug()) {

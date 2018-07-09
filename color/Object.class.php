@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Родител на обекти за работа с цветове
  *
  *
  * @category  vendors
  * @package   color
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class color_Object
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -51,7 +50,7 @@ class color_Object
         // 123,120,100,99  (CMYK)
         // PMS 485C
         $value = trim(strtolower($value));
-    
+        
         if (is_numeric($value) && is_numeric($g) && is_numeric($b)) {
             $this->r = $value;
             $this->g = $g;
@@ -59,13 +58,15 @@ class color_Object
             
             return;
         }
-       
+        
         if ($this->hexToRgb($value, $this->r, $this->g, $this->b)) {
+            
             return;
         }
         
         if ($hexColor = $this->getNamedColor($value)) {
             if ($this->hexToRgb($hexColor, $this->r, $this->g, $this->b)) {
+                
                 return;
             }
         }
@@ -161,28 +162,26 @@ class color_Object
         $this->g = min(round($this->g * $rate + $add), 255);
         $this->b = min(round($this->b * $rate + $add), 255);
     }
-
-
+    
     
     public function setGradient($color, $rate)
     {
         $dR = $this->r - $color->r;
         $dG = $this->g - $color->g;
         $dB = $this->b - $color->b;
-
+        
         $this->r = round($this->r - $rate * $dR);
         $this->g = round($this->g - $rate * $dG);
         $this->b = round($this->b - $rate * $dB);
     }
-
-
+    
     
     public function __toString()
     {
         return $this->getHex();
     }
     
-
+    
     /**
      * Преобразува hex цвят към RGB
      */
@@ -191,7 +190,7 @@ class color_Object
         if ($color = self::getNamedColor($hexColor)) {
             $hexColor = $color;
         }
-
+        
         if ($hexColor{0} == '#') {
             $hexColor = substr($hexColor, 1);
         }
@@ -201,34 +200,32 @@ class color_Object
                 $r = hexdec($hexColor{0} . $hexColor{0});
                 $g = hexdec($hexColor{1} . $hexColor{1});
                 $b = hexdec($hexColor{2} . $hexColor{2});
-
+                
                 return array($r, $g, $b);
             } elseif (strlen($hexColor) == 6) {
                 $r = hexdec($hexColor{0} . $hexColor{1});
                 $g = hexdec($hexColor{2} . $hexColor{3});
                 $b = hexdec($hexColor{4} . $hexColor{5});
-
+                
                 return array($r, $g, $b);
             }
-
+            
             return false;
         }
-
-        return false;
         
+        return false;
         
         return true;
     }
-
-
-
+    
+    
     /**
      * Връща hex код на цвят според HTML името му
      */
     public static function getNamedColor($color)
     {
         static $hexColors;
-
+        
         if (!$hexColors) {
             $hexColors = array('aliceblue' => 'f0f8ff', 'amethyst' => '9966cc',
                 'antiquewhite' => 'faebd7', 'aqua' => '00ffff', 'aquamarine' => '7fffd4',

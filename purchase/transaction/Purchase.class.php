@@ -6,11 +6,12 @@
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
@@ -63,9 +64,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      *
      *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      *
-     * @param  int|object            $id първичен ключ или запис на покупка
-     * @return object                NULL означава, че документа няма отношение към счетоводството, няма да генерира
-     *                                  счетоводни транзакции
+     * @param int|object $id първичен ключ или запис на покупка
+     *
+     * @return object NULL означава, че документа няма отношение към счетоводството, няма да генерира
+     *                счетоводни транзакции
+     *
      * @throws core_exception_Expect когато възникне грешка при генерирането на транзакция
      */
     public function getTransaction($id)
@@ -106,7 +109,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             'valior' => $rec->valior,
             'entries' => $entries,
         );
-       
+        
         return $transaction;
     }
     
@@ -122,7 +125,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     protected function fetchPurchaseData($id)
     {
         $rec = $this->class->fetchRec($id);
-
+        
         $rec->details = array();
         
         if (!empty($rec->id)) {
@@ -167,17 +170,17 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 $amountAllocated = $amount * $rec->currencyRate;
                 
                 $entries[] = array(
-                        'amount' => $amountAllocated,
-                        'debit' => array('60201',
-                                $dRec1->expenseItemId,
-                                array('cat_Products', $dRec1->productId),
-                                'quantity' => $dRec1->quantity),
-                        'credit' => array('401',
-                                            array($rec->contragentClassId, $rec->contragentId),
-                                            array('purchase_Purchases', $rec->id),
-                                            array('currency_Currencies', $currencyId),
-                                            'quantity' => $amount),
-                        'reason' => $dRec1->reason,
+                    'amount' => $amountAllocated,
+                    'debit' => array('60201',
+                        $dRec1->expenseItemId,
+                        array('cat_Products', $dRec1->productId),
+                        'quantity' => $dRec1->quantity),
+                    'credit' => array('401',
+                        array($rec->contragentClassId, $rec->contragentId),
+                        array('purchase_Purchases', $rec->id),
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $amount),
+                    'reason' => $dRec1->reason,
                 );
                 
                 // Корекция на стойности при нужда
@@ -195,24 +198,24 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             $vat = $this->class->_total->vat;
             $vatAmount = $this->class->_total->vat * $rec->currencyRate;
             $entries[] = array(
-                 'amount' => $vatAmount, // В основна валута
-                    
-                 'credit' => array(
-                       '401',
-                            array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                             array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
-                            array('currency_Currencies', $currencyId), // Перо 3 - Валута
-                        'quantity' => $vat, // "брой пари" във валутата на продажбата
-                    ),
-                    
-                    'debit' => array(
-                        '4530',
-                            array('purchase_Purchases', $rec->id),
-                    ),
-                    'reason' => 'ДДС за начисляване при фактуриране',
-             );
+                'amount' => $vatAmount, // В основна валута
+                
+                'credit' => array(
+                    '401',
+                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                    array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
+                    array('currency_Currencies', $currencyId), // Перо 3 - Валута
+                    'quantity' => $vat, // "брой пари" във валутата на продажбата
+                ),
+                
+                'debit' => array(
+                    '4530',
+                    array('purchase_Purchases', $rec->id),
+                ),
+                'reason' => 'ДДС за начисляване при фактуриране',
+            );
         }
-            
+        
         return $entries;
     }
     
@@ -223,7 +226,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      * Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      * Ct: 501. Каси                  	   (Каса, Валута)
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     protected function getPaymentPart($rec)
@@ -246,16 +250,16 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $quantityAmount += $amountBase;
         
         $entries[] = array('amount' => $amountBase * $rec->currencyRate,
-                           'debit' => array('401',
-                                            array($rec->contragentClassId, $rec->contragentId),
-                                            array('purchase_Purchases', $rec->id),
-                                            array('currency_Currencies', $currencyId),
-                                            'quantity' => $quantityAmount,),
-                           'credit' => array('501',
-                                            array('cash_Cases', $rec->caseId),
-                                            array('currency_Currencies', $currencyId),
-                                            'quantity' => $quantityAmount,),
-                           'reason' => 'Плащане към доставчик');
+            'debit' => array('401',
+                array($rec->contragentClassId, $rec->contragentId),
+                array('purchase_Purchases', $rec->id),
+                array('currency_Currencies', $currencyId),
+                'quantity' => $quantityAmount,),
+            'credit' => array('501',
+                array('cash_Cases', $rec->caseId),
+                array('currency_Currencies', $currencyId),
+                'quantity' => $quantityAmount,),
+            'reason' => 'Плащане към доставчик');
         
         return $entries;
     }
@@ -269,14 +273,16 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return array
      */
     protected function getDeliveryPart($rec)
     {
         $entries = array();
-            
+        
         if (empty($rec->shipmentStoreId)) {
+            
             return;
         }
         
@@ -293,24 +299,24 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 $amount = round($amount, 2);
                 
                 $debitAccId = '321';
-                    
+                
                 $debit = array(
-                      $debitAccId,
-                           array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
-                           array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
-                      'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                    $debitAccId,
+                    array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
+                    array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
+                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 );
                 
                 $entries[] = array(
-                     'amount' => $amount * $rec->currencyRate,
-                     'debit' => $debit,
-                     'credit' => array(
-                           '401',
-                           array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
-                            array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
-                           array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                    'amount' => $amount * $rec->currencyRate,
+                    'debit' => $debit,
+                    'credit' => array(
+                        '401',
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
+                        array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
+                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                         'quantity' => $amount, // "брой пари" във валутата на покупката
-                     ),
+                    ),
                     'reason' => 'Заскладени материални запаси',
                 );
             }
@@ -407,7 +413,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getShippedProducts($jRecs, $id, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true)
     {
         $res = array();
-    
+        
         // Извличаме тези, отнасящи се за експедиране
         $itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
         $from = ($onlySupplier === true) ? '401' : null;
@@ -417,7 +423,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             
             return $res;
         }
-    
+        
         foreach ($dInfo->recs as $p) {
             if ($p->creditItem2 != $itemId) {
                 continue;
@@ -426,20 +432,20 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             // Обикаляме всяко перо
             if (isset($p->debitItem2)) {
                 $itemRec = acc_Items::fetch($p->debitItem2);
-                     
+                
                 // Ако има интерфейса за артикули-пера, го добавяме
                 if (cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)) {
                     $obj = new stdClass();
                     $obj->productId = $itemRec->objectId;
-                         
+                    
                     $index = $obj->productId;
                     if (empty($res[$index])) {
                         $res[$index] = $obj;
                     }
-                         
+                    
                     $res[$index]->amount += $p->amount;
                     $res[$index]->quantity += $p->debitQuantity;
-                        
+                    
                     if ($groupByStore === true) {
                         $storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
                         

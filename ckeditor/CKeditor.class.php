@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'ckeditor_CKeditor' -
  *
  *
  * @category  vendors
  * @package   ckeditor
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class ckeditor_CKeditor extends core_BaseClass
 {
-    
-    
     /**
      * Return the HTML code required to run CKEditor
      *

@@ -6,16 +6,16 @@
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Имейли » Спам филтър
  */
 class email_reports_Spam extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -65,13 +65,12 @@ class email_reports_Spam extends frame2_driver_TableData
     }
     
     
-    
     /**
      * Помощна фунция за връщане на всички папки
      *
-     * @param string       $show
-     * @param NULL|integer $userId
-     * @param integer      $emailsLimit
+     * @param string   $show
+     * @param NULL|int $userId
+     * @param int      $emailsLimit
      *
      * @return core_Query
      */
@@ -137,13 +136,14 @@ class email_reports_Spam extends frame2_driver_TableData
             }
         }
     }
-
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -201,13 +201,14 @@ class email_reports_Spam extends frame2_driver_TableData
         
         return $resArr;
     }
-
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -217,16 +218,17 @@ class email_reports_Spam extends frame2_driver_TableData
         $fld->FLD('spamScore', 'double', 'caption = Точки, smartRound');
         $fld->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка');
         $fld->FLD('action', 'varchar', 'caption = Действие');
-
+        
         return $fld;
     }
-
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)

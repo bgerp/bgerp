@@ -1,32 +1,30 @@
 <?php
 
 
-
 /**
  * Интерфейс на пакета за персонализиране
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_SettingsIntf
 {
-    
-    
     /**
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      *
-     * @param string  $key
-     * @param integer $userOrRole
+     * @param string $key
+     * @param int    $userOrRole
      */
     public function canModifySettings($key, $userOrRole = null)
     {
         return $this->class->canModifySettings($key, $userOrRole);
     }
-    
     
     
     /**

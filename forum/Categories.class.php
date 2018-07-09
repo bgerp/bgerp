@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Категории на дъските
  *
  *
  * @category  bgerp
  * @package   forum
+ *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class forum_Categories extends core_Manager
 {
-    
-    
     /**
      * Заглавие на страницата
      */
@@ -43,8 +44,8 @@ class forum_Categories extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'forum, ceo, admin, cms';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -74,7 +75,7 @@ class forum_Categories extends core_Manager
         
         // Към кой домейн е дадената категория
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
-
+        
         // Поставяне на уникални индекси
         $this->setDbUnique('title, order');
     }
@@ -134,7 +135,9 @@ class forum_Categories extends core_Manager
     
     /**
      *  Обновяваме броя на дъските в подадената категория
+     *
      *  @param int $id
+     *
      *  @return void
      */
     public static function updateCategory($id)

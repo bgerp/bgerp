@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Articles extends core_Master
 {
-    
-    
     /**
      * Над колко записа, при създаването на обратен МО, да не попълва детайлите
      */
@@ -150,8 +150,8 @@ class acc_Articles extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
-
+    
+    
     /**
      * Поле за филтриране по дата
      */
@@ -168,7 +168,7 @@ class acc_Articles extends core_Master
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно)', 'caption=Състояние,input=none');
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
-    
+        
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
         if (haveRole('accMaster,ceo')) {
             $this->canUseClosedItems = true;
@@ -271,7 +271,8 @@ class acc_Articles extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id, $modified = true)
@@ -284,6 +285,7 @@ class acc_Articles extends core_Master
         $rec = $this->fetch($id);
         
         if (!$rec) {
+            
             return;
         }
         
@@ -418,22 +420,22 @@ class acc_Articles extends core_Master
         if (count($entries) <= static::$maxDefaultEntriesForReverseArticle) {
             foreach ($entries as $entry) {
                 $articleDetailRec = array(
-                        'articleId' => $articleId,
-                        'debitAccId' => $entry->debitAccId,
-                        'debitEnt1' => $entry->debitItem1,
-                        'debitEnt2' => $entry->debitItem2,
-                        'debitEnt3' => $entry->debitItem3,
-                        'debitQuantity' => isset($entry->debitQuantity) ? -$entry->debitQuantity : $entry->debitQuantity,
-                        'debitPrice' => $entry->debitPrice,
-                        'creditAccId' => $entry->creditAccId,
-                        'creditEnt1' => $entry->creditItem1,
-                        'creditEnt2' => $entry->creditItem2,
-                        'creditEnt3' => $entry->creditItem3,
-                        'creditQuantity' => isset($entry->creditQuantity) ? -$entry->creditQuantity : $entry->creditQuantity,
-                        'creditPrice' => $entry->creditPrice,
-                        'amount' => isset($entry->amount) ? -$entry->amount : $entry->amount,
+                    'articleId' => $articleId,
+                    'debitAccId' => $entry->debitAccId,
+                    'debitEnt1' => $entry->debitItem1,
+                    'debitEnt2' => $entry->debitItem2,
+                    'debitEnt3' => $entry->debitItem3,
+                    'debitQuantity' => isset($entry->debitQuantity) ? -$entry->debitQuantity : $entry->debitQuantity,
+                    'debitPrice' => $entry->debitPrice,
+                    'creditAccId' => $entry->creditAccId,
+                    'creditEnt1' => $entry->creditItem1,
+                    'creditEnt2' => $entry->creditItem2,
+                    'creditEnt3' => $entry->creditItem3,
+                    'creditQuantity' => isset($entry->creditQuantity) ? -$entry->creditQuantity : $entry->creditQuantity,
+                    'creditPrice' => $entry->creditPrice,
+                    'amount' => isset($entry->amount) ? -$entry->amount : $entry->amount,
                 );
-            
+                
                 if (!$bSuccess = acc_ArticleDetails::save((object) $articleDetailRec)) {
                     break;
                 }
@@ -443,7 +445,7 @@ class acc_Articles extends core_Master
                 // Възникнала е грешка - изтрива се всичко!
                 static::delete($articleId);
                 acc_ArticleDetails::delete("#articleId = {$articleId}");
-            
+                
                 return false;
             }
         }
@@ -458,7 +460,7 @@ class acc_Articles extends core_Master
     public static function on_AfterJournalUpdated($mvc, $id, $journalId)
     {
         // Ако отнякъде е променена статията на документа, обновяваме го с новата информация
-       
+        
         // Всички детайли на МО
         $rec = $mvc->fetchRec($id);
         $dQuery = acc_ArticleDetails::getQuery();
@@ -468,7 +470,7 @@ class acc_Articles extends core_Master
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalId}");
         $jRecs = $jQuery->fetchAll();
-
+        
         $count = 0;
         while ($dRec = $dQuery->fetch()) {
             $count++;
@@ -513,9 +515,10 @@ class acc_Articles extends core_Master
     /**
      * Метод за създаване на чернова МО
      *
-     * @param  int         $folderId - в коя папка
-     * @param  date|NULL   $valior   - вальор
-     * @param  string|NULL $reason   - описание
+     * @param int         $folderId - в коя папка
+     * @param date|NULL   $valior   - вальор
+     * @param string|NULL $reason   - описание
+     *
      * @return int
      */
     public static function createDraft($folderId, $valior = null, $reason = null)
@@ -543,20 +546,21 @@ class acc_Articles extends core_Master
     /**
      * Метод за добавяне на ред към чернова на МО
      *
-     * @param  int         $id        - ид на МО
-     * @param  array       $debitArr  - Дебитен масив
-     *                                [0]           - Систем ид на сметка
-     *                                [1]           - Перо на първа позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
-     *                                [2]           - Перо на втора позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
-     *                                [3]           - Перо на трета позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
-     *                                ['quantity']  - количество на дебита
-     * @param  array       $creditArr - Кредитен масив
-     *                                [0]           - Систем ид на сметка
-     *                                [1]           - Перо на първа позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
-     *                                [2]           - Перо на втора позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
-     *                                [3]           - Перо на трета позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
-     *                                ['quantity']  - количество на дебита
-     * @param  string|NULL $amount    - Сума на операцията в основна валута
+     * @param int         $id        - ид на МО
+     * @param array       $debitArr  - Дебитен масив
+     *                               [0]           - Систем ид на сметка
+     *                               [1]           - Перо на първа позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
+     *                               [2]           - Перо на втора позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
+     *                               [3]           - Перо на трета позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
+     *                               ['quantity']  - количество на дебита
+     * @param array       $creditArr - Кредитен масив
+     *                               [0]           - Систем ид на сметка
+     *                               [1]           - Перо на първа позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
+     *                               [2]           - Перо на втора позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
+     *                               [3]           - Перо на трета позиция или масив със клас и ид на запис който ще се форсира в номенклатурата при нужда
+     *                               ['quantity']  - количество на дебита
+     * @param string|NULL $amount    - Сума на операцията в основна валута
+     *
      * @return int
      */
     public static function addRow($id, $debitArr, $creditArr, $amount = null)
@@ -600,7 +604,7 @@ class acc_Articles extends core_Master
                         if (cls::haveInterface('doc_DocumentIntf', $Class)) {
                             expect($Class->fetch($item[1])->state != 'draft', 'Документа не трябва да е чернова');
                         }
-            
+                        
                         $arr[$i] = acc_Items::force($item[0], $item[1], $accRec->{"groupId{$i}"});
                     } else {
                         
@@ -613,7 +617,7 @@ class acc_Articles extends core_Master
                     // Ако няма номенклатура, не трябва да има перо
                     expect(is_null($arr[$i]), "На позиция {$i} не трябва да има перо");
                 }
-            
+                
                 expect(isset($arr['quantity']), 'Няма количество');
                 expect($arr['quantity'] = cls::get('type_Double')->fromVerbal($arr['quantity']), 'Невалидно количество');
             }
@@ -632,17 +636,17 @@ class acc_Articles extends core_Master
         
         // Подготовка на записа
         $rec = (object) array('articleId' => $masterRec->id,
-                             'debitAccId' => $debitArr[0],
-                             'debitEnt1' => $debitArr[1],
-                             'debitEnt2' => $debitArr[2],
-                             'debitEnt3' => $debitArr[3],
-                             'debitQuantity' => $debitArr['quantity'],
-                             'creditAccId' => $creditArr[0],
-                             'creditEnt1' => $creditArr[1],
-                             'creditEnt2' => $creditArr[2],
-                             'creditEnt3' => $creditArr[3],
-                             'creditQuantity' => $creditArr['quantity'],
-                             'amount' => $amount,);
+            'debitAccId' => $debitArr[0],
+            'debitEnt1' => $debitArr[1],
+            'debitEnt2' => $debitArr[2],
+            'debitEnt3' => $debitArr[3],
+            'debitQuantity' => $debitArr['quantity'],
+            'creditAccId' => $creditArr[0],
+            'creditEnt1' => $creditArr[1],
+            'creditEnt2' => $creditArr[2],
+            'creditEnt3' => $creditArr[3],
+            'creditQuantity' => $creditArr['quantity'],
+            'amount' => $amount,);
         
         // Запис
         return acc_ArticleDetails::save($rec);

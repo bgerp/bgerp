@@ -6,9 +6,11 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_ServicesDetails extends deals_DeliveryDocumentDetail
@@ -17,8 +19,8 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      * Заглавие
      */
     public $title = 'Детайли на предавателния протокол';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -68,7 +70,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount';
     
-        
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -111,8 +113,8 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         
         return $products;
     }
-
-
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *

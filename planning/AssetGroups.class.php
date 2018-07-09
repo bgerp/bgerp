@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на групите на оборудването
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_AssetGroups extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -115,8 +114,9 @@ class planning_AssetGroups extends core_Master
     /**
      * Дали оборудванията са от една и съща група
      *
-     * @param  array|string $assets - ид-та на оборудвания
-     * @return boolean
+     * @param array|string $assets - ид-та на оборудвания
+     *
+     * @return bool
      */
     public static function haveSameGroup($assets)
     {
@@ -140,7 +140,8 @@ class planning_AssetGroups extends core_Master
     /**
      * Ще има ли предупреждение при смяна на състоянието
      *
-     * @param  stdClass     $rec
+     * @param stdClass $rec
+     *
      * @return string|FALSE
      */
     public function getChangeStateWarning($rec)
@@ -173,9 +174,10 @@ class planning_AssetGroups extends core_Master
     /**
      * Каква е нормата на артикула в групата
      *
-     * @param  mixed    $assets    - списък от оборудвания
-     * @param  int|NULL $productId - ид на артикул
-     * @return array    $result      - намерените норми
+     * @param mixed    $assets    - списък от оборудвания
+     * @param int|NULL $productId - ид на артикул
+     *
+     * @return array $result      - намерените норми
      */
     public static function getNorm($assets, $productId = null)
     {

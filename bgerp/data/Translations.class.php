@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'bgerp_data_Translations'
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_data_Translations extends core_MVC
 {
-    
-    
     /**
      * Зареждане на стирнговете, които ще се превеждат
      */
@@ -32,7 +31,7 @@ class bgerp_data_Translations extends core_MVC
             2 => 'translated',
             3 => 'csv_createdBy',
         );
- 
+        
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null, $fromZero);
         
         $res = static::addForAllLg();

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин за документи, който при оттегляне/възстановяване/контиране заключва процеса
  * на изчисляването на баланса, а ако е вече заключен се показва статус с предупреждение,
@@ -11,27 +10,26 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_plg_LockBalanceRecalc extends core_Plugin
 {
-
-
-
     /**
      * Помощна ф-я проверяваща дали действието с документа може да стане
      *
-     * @param  stdClass $rec - запис на обекта
+     * @param stdClass $rec - запис на обекта
      *
-     * @return false|string  - съобщението за грешка, или FALSE ако може да се продължи
+     * @return false|string - съобщението за грешка, или FALSE ако може да се продължи
      */
     private static function stopAction($rec)
     {
         $msg = false;
-         
+        
         // Ако баланса се преизчислява в момента, забраняваме действието
         if (!core_Locks::get('RecalcBalances', 600, 1)) {
             $msg = 'Балансът се преизчислява в момента. Опитайте след малко!';
@@ -43,7 +41,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
                 $msg = 'Преди да продължите, балансът трябва да се преизчисли';
             }
         }
-         
+        
         return $msg;
     }
     
@@ -55,7 +53,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     {
         if ($msg = self::stopAction($mvc->fetchRec($id))) {
             core_Statuses::newStatus('|' . $msg, 'warning');
-    
+            
             return false;
         }
     }
@@ -68,7 +66,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     {
         if ($msg = self::stopAction($mvc->fetchRec($id))) {
             core_Statuses::newStatus('|' . $msg, 'warning');
-    
+            
             return false;
         }
     }
@@ -81,16 +79,16 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     {
         if ($msg = self::stopAction($mvc->fetchRec($id))) {
             core_Statuses::newStatus('|' . $msg, 'warning');
-    
+            
             return false;
         }
-         
+        
         $rec = $mvc->fetchRec($id);
-         
+        
         $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
         if ($jRec) {
             $jCount = acc_JournalDetails::count("#journalId = {$jRec->id}");
-    
+            
             // При оттегляне вдигаме времето за изпълнение спрямо записите в журнала
             $timeLimit = ceil($jCount / 3000) * 30;
             if ($timeLimit >= 30) {

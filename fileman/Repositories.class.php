@@ -12,21 +12,21 @@ defIfNot('EF_REPOSITORIES_PATHS', EF_UPLOADS_PATH . '/repositories');
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Repositories extends core_Master
 {
-    
-    
     /**
      * Колко секунди след последното модифициране на файла да може да се ползва
      */
     const DONT_USE_MODIFIED_SECS = 5;
     
-
+    
     /**
      *  Брой елементи в сингъл изгледа на една страница
      */
@@ -39,9 +39,7 @@ class fileman_Repositories extends core_Master
     public $title = 'Път до хранилище';
     
     
-    
     public $singleTitle = 'Хранилище';
-    
     
     
     public $singleLayoutFile = 'fileman/tpl/SingleLayoutRepositories.shtml';
@@ -51,7 +49,6 @@ class fileman_Repositories extends core_Master
      * Път към картинка 16x16
      */
     public $singleIcon = 'img/16/repository.png';
-    
     
     
     public $canSingle = 'admin';
@@ -111,7 +108,6 @@ class fileman_Repositories extends core_Master
     public $loadList = 'fileman_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
     
     
-    
     public $listFields = 'id, verbalName, fullPath, access, ignore';
     
     
@@ -135,7 +131,6 @@ class fileman_Repositories extends core_Master
         $this->FNC('fullPath', 'varchar', 'caption=Път, width=100%');
         $this->FNC('access', 'text', 'caption=Достъп, width=100%');
     }
-    
     
     
     public function on_CalcFullPath($mvc, $rec)
@@ -313,7 +308,7 @@ class fileman_Repositories extends core_Master
      *
      * @param string $path - Пътя
      *
-     * @return boolean
+     * @return bool
      */
     public static function isGoodPath($path)
     {
@@ -332,7 +327,7 @@ class fileman_Repositories extends core_Master
     /**
      * Връща пълния път до хранилището по подадено id
      *
-     * @param integer $id - id на записа
+     * @param int $id - id на записа
      *
      * @return string - Пътя до хранилището
      */
@@ -419,10 +414,10 @@ class fileman_Repositories extends core_Master
     /**
      * Абсорбира подадения файл, който се намира в съответното хранилище
      *
-     * @param integer $id      - id на хранилището
-     * @param string  $file    - Името на файла в хранилището
-     * @param string  $subPath - Подпапка в хранилището
-     * @param string  $bucket  - Кофата
+     * @param int    $id      - id на хранилището
+     * @param string $file    - Името на файла в хранилището
+     * @param string $subPath - Подпапка в хранилището
+     * @param string $bucket  - Кофата
      *
      * @return array $fh - Манипулатор на файла
      */
@@ -448,7 +443,7 @@ class fileman_Repositories extends core_Master
      * @param fileHnd $fh        - Манипулатор на файла
      * @param array   $reposArr  - Масив с хранилища
      * @param string  $subPath   - Подпапка
-     * @param boolean $forceSave - Дали да се форсира записа, ако съществува файл със същото име
+     * @param bool    $forceSave - Дали да се форсира записа, ако съществува файл със същото име
      * @param string  $fileName  - Името на файла
      *
      * @return array $resArr - Масив с резултатите за записа на файла
@@ -517,11 +512,11 @@ class fileman_Repositories extends core_Master
     /**
      * Синхронизира файловете в един от оригиналния масив с копираните масиви
      *
-     * @param string  $fileName         - Името на файла
-     * @param array   $originalReposArr - Масив с хранилища от където ще се копира файла
-     * @param array   $copyReposArr     - Масив с хранилища където ще се копира файла
-     * @param string  $subPath          - Подпапка
-     * @param boolean $forceSave        - Дали да се форсира записа, ако съществува файл със същото име
+     * @param string $fileName         - Името на файла
+     * @param array  $originalReposArr - Масив с хранилища от където ще се копира файла
+     * @param array  $copyReposArr     - Масив с хранилища където ще се копира файла
+     * @param string $subPath          - Подпапка
+     * @param bool   $forceSave        - Дали да се форсира записа, ако съществува файл със същото име
      *
      * @return array $resArr
      *
@@ -609,11 +604,11 @@ class fileman_Repositories extends core_Master
     /**
      * Преименува подадения файл във всички хранилища
      *
-     * @param string  $oldName   - Старото име на файла
-     * @param string  $newName   - Новото име на файла
-     * @param array   $reposArr  - Масив с хранилищата
-     * @param string  $subPath   - Подпапката
-     * @param boolean $forceSave - Дали да се форсира преименуването
+     * @param string $oldName   - Старото име на файла
+     * @param string $newName   - Новото име на файла
+     * @param array  $reposArr  - Масив с хранилищата
+     * @param string $subPath   - Подпапката
+     * @param bool   $forceSave - Дали да се форсира преименуването
      *
      * @return array $resArr
      *               array $resArr['existing'] - Файл с новото име съществува в хранилището
@@ -794,11 +789,11 @@ class fileman_Repositories extends core_Master
     /**
      * Връща двумерен масив с всички папки и файловете в тях
      *
-     * @param integer|stdClass $repoRec          - id|rec на хранилището
-     * @param string           $subPath          - Подпапка в хранилището
-     * @param boolean          $useFullPath      - Да се използва целия файл до папката
-     * @param integer          $depth            - Дълбочината на папката, до която ще се търси
-     * @param boolean          $useMTimeFromFile - Да се използва датата на последно модифициране на файловете
+     * @param int|stdClass $repoRec          - id|rec на хранилището
+     * @param string       $subPath          - Подпапка в хранилището
+     * @param bool         $useFullPath      - Да се използва целия файл до папката
+     * @param int          $depth            - Дълбочината на папката, до която ще се търси
+     * @param bool         $useMTimeFromFile - Да се използва датата на последно модифициране на файловете
      *
      * @return array - Двумерен масив с всички папки и файловете в тях
      *               mTime - Дата на модифициране на директорията
@@ -808,7 +803,7 @@ class fileman_Repositories extends core_Master
     {
         // Ако е обект
         if (!is_object($repoRec)) {
-
+            
             // Очакваме да е число
             expect(is_numeric($repoRec));
             
@@ -934,11 +929,11 @@ class fileman_Repositories extends core_Master
     /**
      * Проверява дали даден файл съществува в хранилището
      *
-     * @param string  $fileName - Името на файла
-     * @param integer $repoId   - id на хранилище
-     * @param string  $subPath  - Подпапка в хранилището
+     * @param string $fileName - Името на файла
+     * @param int    $repoId   - id на хранилище
+     * @param string $subPath  - Подпапка в хранилището
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkFileExistInRepo($fileName, $repoId, $subPath = '')
     {
@@ -976,7 +971,7 @@ class fileman_Repositories extends core_Master
      * @param string $ignoreStr - Стринг с файловете за игнориране
      * @param string $fileName  - Име на файл
      *
-     * @return boolean
+     * @return bool
      */
     public static function isForIgnore($ignoreStr, $fileName)
     {
@@ -1158,7 +1153,7 @@ class fileman_Repositories extends core_Master
             
             // Ако състоянието е активно
             if ($rec->state == 'active' || $rec->state == 'rejected') {
-            
+                
                 // Да не може да се изтрие
                 $requiredRoles = 'no_one';
             }
@@ -1180,9 +1175,9 @@ class fileman_Repositories extends core_Master
     /**
      * Активира състоянието на хранилището
      *
-     * @param integer $id - id на хранилище
+     * @param int $id - id на хранилище
      *
-     * @return integer - id на записа, ако се е активирал
+     * @return int - id на записа, ако се е активирал
      */
     public static function activateRepo($id)
     {
@@ -1383,7 +1378,7 @@ class fileman_Repositories extends core_Master
                         // URL за абсорбиране на файла
                         $urlPath = static::getAbsorbUrl($data->rec->id, $file, $path);
                     } else {
-                        
+                         
                          // Да няма URL за абсорбиране на файла
                         $urlPath = false;
                     }
@@ -1425,8 +1420,8 @@ class fileman_Repositories extends core_Master
     /**
      * Връща в дървовидна структура съдържанието на хранилището
      *
-     * @param integer $id      - Хранилище
-     * @param string  $subPath - Подпапка в хранилището
+     * @param int    $id      - Хранилище
+     * @param string $subPath - Подпапка в хранилището
      *
      * @return core_Et $res
      */
@@ -1492,7 +1487,7 @@ class fileman_Repositories extends core_Master
      *
      * @param timestamp $lastModified - Времето с което искаме да сравняваме
      *
-     * @return boolean
+     * @return bool
      */
     public static function checkLastModified($lastModified)
     {
@@ -1510,10 +1505,10 @@ class fileman_Repositories extends core_Master
     /**
      * Връща URL към екшъна за абсорбиране на съответния файл
      *
-     * @param integer $id       - id на хранилищетп
-     * @param string  $file     - Името на файла
-     * @param string  $subPath  - Подпапка в хранилището
-     * @param boolean $absolute - Дали линка е да абсолютен
+     * @param int    $id       - id на хранилищетп
+     * @param string $file     - Името на файла
+     * @param string $subPath  - Подпапка в хранилището
+     * @param bool   $absolute - Дали линка е да абсолютен
      *
      * @return string
      */
@@ -1613,10 +1608,10 @@ class fileman_Repositories extends core_Master
     /**
      * Проверява дали даден потребител има достъп до някое хранилище от масива
      *
-     * @param array   $reposArr - масив с id-та на хранилища
-     * @param integer $userId   - id на потребителя
+     * @param array $reposArr - масив с id-та на хранилища
+     * @param int   $userId   - id на потребителя
      *
-     * @return boolean
+     * @return bool
      */
     public static function canAccessToSomeRepo($reposArr, $userId = null)
     {
@@ -1638,8 +1633,8 @@ class fileman_Repositories extends core_Master
     /**
      * Връща масив с хранилището и вербалното му име, ако потребителя има достъп до него
      *
-     * @param array   $id     - масив с id-та на хранилища
-     * @param integer $userId - id на потребителя
+     * @param array $id     - масив с id-та на хранилища
+     * @param int   $userId - id на потребителя
      *
      * @return array $accessedReposArr - Масив с хранилища и вербалните им имена
      */
@@ -1666,7 +1661,7 @@ class fileman_Repositories extends core_Master
     /**
      * Връща вербалното име на хранилището
      *
-     * @param integer $repoId - id на хранилището
+     * @param int $repoId - id на хранилището
      *
      * @return string $name - Вербалното име на хранилището
      */
@@ -1682,14 +1677,15 @@ class fileman_Repositories extends core_Master
     /**
      * Връща линк към сингъла на документа
      *
-     * @param integer $id        - id на записа
-     * @param string  $fieldName - Името на полето, което ще се използва за линк
-     * @param boolean $absolute
-     * @param array   $attr
+     * @param int    $id        - id на записа
+     * @param string $fieldName - Името на полето, което ще се използва за линк
+     * @param bool   $absolute
+     * @param array  $attr
      *
      * @return core_Et - Линк към сингъла
      *
      * @Override
+     *
      * @see core_Master::getLinkToSingle_
      */
     public static function getLinkToSingle_($repoId, $fieldName = null, $absolute = false, $attr = array())
@@ -1741,14 +1737,14 @@ class fileman_Repositories extends core_Master
         return $reposArr;
     }
     
-        
+    
     /**
      * Създава директория в подаденото хранилище
      *
-     * @param integer $repositoryId - id на хранилището
-     * @param string  $subPath      - Подпапка в хранилището
+     * @param int    $repositoryId - id на хранилището
+     * @param string $subPath      - Подпапка в хранилището
      *
-     * @return boolean - При успех връща TRUE
+     * @return bool - При успех връща TRUE
      */
     public static function createDirInRepo($repositoryId, $dir)
     {
@@ -1947,6 +1943,7 @@ class fileman_Repositories extends core_Master
         
         // Папките да са преди файловете и подредени по имена в намаляващ ред
         uksort($foldersArr, 'static::orderDesc');
+
 //        krsort($foldersArr, SORT_STRING | SORT_FLAG_CASE);
         
         // Обхождаме всички файлове в папките
@@ -1965,6 +1962,7 @@ class fileman_Repositories extends core_Master
                     
                     // Подреждаме файлове
                     uksort($filesArr['files'], 'static::orderDesc');
+
 //                    krsort($otherArr['files'], SORT_STRING | SORT_FLAG_CASE);
                 }
                 
@@ -1973,6 +1971,7 @@ class fileman_Repositories extends core_Master
                     
                     // Подреждаме файловете
                     uksort($filesArr['files'], 'static::orderAsc');
+
 //                    ksort($otherArr['files'], SORT_STRING | SORT_FLAG_CASE);
                 }
             } elseif ($type == 'created') {
@@ -2006,7 +2005,7 @@ class fileman_Repositories extends core_Master
      * @param string $str1
      * @param string $str2
      *
-     * @return integer
+     * @return int
      */
     public static function orderDesc($str1, $str2)
     {
@@ -2038,7 +2037,7 @@ class fileman_Repositories extends core_Master
      * @param string $str1
      * @param string $str2
      *
-     * @return integer
+     * @return int
      */
     public static function orderAsc($str1, $str2)
     {

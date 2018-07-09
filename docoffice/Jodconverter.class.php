@@ -6,15 +6,16 @@
  *
  * @category  vendors
  * @package   docoffice
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class docoffice_Jodconverter extends core_Manager
 {
     public $interfaces = 'docoffice_ConverterIntf';
-    
     
     
     public $title = 'JodConverter';
@@ -68,6 +69,7 @@ class docoffice_Jodconverter extends core_Manager
 //        $lineExecStr = "java -jar [#JODPATH#] -p [#PORT#] [#INPUTF#] [#OUTPUTF#]";
         // Добавяме към изпълнимия скрипт
         $lineExecStr = 'java -jar [#JODPATH#] [#INPUTF#] [#OUTPUTF#]';
+        
         // @todo
         
         $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outFilePath);
@@ -93,9 +95,10 @@ class docoffice_Jodconverter extends core_Manager
         
         // Увеличаваме броя на направените конвертирания с единица
         docoffice_Office::increaseConvertCount();
-
+        
         // Стартираме скрипта синхронно
         $Script->setCheckProgramsArr('java');
+        
         // Стартираме скрипта асинхронно
         if ($Script->run($params['asynch']) === false) {
             if ($params['outType']) {
@@ -115,7 +118,7 @@ class docoffice_Jodconverter extends core_Manager
      *
      * @param fconv_Script $script - Парамтри
      *
-     * @return boolean
+     * @return bool
      */
     public static function afterConvertDoc($script)
     {
@@ -146,7 +149,6 @@ class docoffice_Jodconverter extends core_Manager
             return $result;
         }
     }
-
     
     
     /**

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'doc_ContragentDataIntf' - Интерфейс за данните на адресата
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за данните на адресата
  */
 class doc_ContragentDataIntf
 {
-    
-    
     /**
      * Връща данните на получателя
      * return object
@@ -52,10 +51,11 @@ class doc_ContragentDataIntf
     /**
      * Връща пълния конкатениран адрес на контрагента
      *
-     * @param  int          $id            - ид на контрагент
-     * @param  boolean      $translitarate - дали да се транслитерира адреса
-     * @param  boolean|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
-     * @return core_ET      $tpl - адреса
+     * @param int       $id            - ид на контрагент
+     * @param bool      $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     *
+     * @return core_ET $tpl - адреса
      */
     public function getFullAdress($id, $translitarate = false, $showCountry = null)
     {

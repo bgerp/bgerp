@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата
  * на справка за планиране на покупки на материали
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Gabriela Petrova <gab4eto@gmai.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_reports_MaterialsImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -46,7 +45,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
      * Работен кеш
      */
     protected $cache = array();
-
+    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -122,12 +121,12 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
             } else {
                 $date = $rec->dueDate;
             }
-                
+            
             $id = $rec->id;
             
             $productId = $rec->productId;
             $index = $productId;
-               
+            
             $productInfo = cat_Products::getProductInfo($productId);
             
             if (isset($data->rec->store)) {
@@ -146,7 +145,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         
         foreach ($mArr as $pId => $quantity) {
             $index = $pId;
-
+            
             // ако нямаме такъв запис,
             // го добавяме в масив
             if (!array_key_exists($index, $data->recs)) {
@@ -159,18 +158,18 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
                         $store[$storeRec->productId] += $storeRec->quantity;
                     }
                 }
-
+                
                 $data->recs[$index] =
                 (object) array('id' => $pId,
-                        'quantity' => $quantity,
-                        'store' => $store,);
+                    'quantity' => $quantity,
+                    'store' => $store,);
             } else {
                 $obj = &$data->recs[$index];
                 $obj->quantity += $quantity;
                 $obj->store[] = $store;
             }
         }
-
+        
         foreach ($data->recs as $id => $recs) {
             unset($data->recs[$id]->store);
             
@@ -179,14 +178,14 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
                     $recs->store = $store[$id];
                 }
             }
-
+            
             if ($recs->quantity < $recs->store) {
                 unset($data->recs[$id]);
             }
             
             $recs->res = abs($recs->store - $recs->quantity);
         }
-
+        
         return $data;
     }
     
@@ -202,7 +201,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-
+        
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
@@ -210,11 +209,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         foreach ($data->recs as $rec) {
             $recs[] = $rec;
         }
-
+        
         if (count($recs)) {
             foreach ($recs as $id => $r) {
                 $r->num = $id + 1;
-
+                
                 if (!$pager->isOnPage()) {
                     continue;
                 }
@@ -223,11 +222,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
                 $data->rows[$id] = $row;
             }
         }
-
+        
         $res = $data;
     }
     
-
+    
     /**
      * Връща шаблона на репорта
      *
@@ -249,26 +248,27 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-         
+        
         $tpl = $this->getReportLayout();
         
         $title = explode(' » ', $this->title);
         
         $tpl->replace($title[1], 'TITLE');
-    
+        
         $form = cls::get('core_Form');
-    
+        
         $this->addEmbeddedFields($form);
-    
+        
         $form->rec = $data->rec;
         $form->class = 'simpleForm';
-    
+        
         $tpl->prepend($form->renderStaticHtml(), 'FORM');
-    
+        
         $tpl->placeObject($data->rec);
-
+        
         $f = cls::get('core_FieldSet');
         
         $f->FLD('num', 'int', 'tdClass=accItemClass');
@@ -276,18 +276,18 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $f->FLD('quantity', 'double', 'tdClass=accItemClass,smartCenter');
         $f->FLD('store', 'double', 'tdClass=accItemClass,smartCenter');
         $f->FLD('res', 'double', 'tdClass=accItemClass,smartCenter');
-
+        
         $table = cls::get('core_TableView', array('mvc' => $f));
-
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-
+        
         if ($data->pager) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
-    
+        
         $embedderTpl->append($tpl, 'data');
     }
-
+    
     
     /**
      * Подготвя хедърите на заглавията на таблицата
@@ -295,15 +295,15 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         $data->listFields = array(
-                'num' => '№',
-                'id' => 'Материали (код)',
-                'quantity' => 'Необходимо к-во по задания',
-                'store' => 'Налично к-во на склад',
-                'res' => 'Необходимо к-во за закупуване',
-                );
+            'num' => '№',
+            'id' => 'Материали (код)',
+            'quantity' => 'Необходимо к-во по задания',
+            'store' => 'Налично к-во на склад',
+            'res' => 'Необходимо к-во за закупуване',
+        );
     }
-
-       
+    
+    
     /**
      * Вербалното представяне на ред от таблицата
      */
@@ -313,7 +313,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $Date = cls::get('type_Date');
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-
+        
         $row = new stdClass();
         
         $row->num = $Int->toVerbal($rec->num);
@@ -327,11 +327,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         }
         
         $row->res = $Double->toVerbal($rec->res);
-
+        
         return $row;
     }
-      
-      
+    
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -340,11 +340,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-              
+        
         unset($innerState->recs);
     }
-      
-      
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
@@ -355,25 +355,26 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         } else {
             $time = dt::timestamp2Mysql(dt::mysql2timestamp(dt::now()) + $this->innerForm->time);
         }
-
+        
         $activateOn = "{$time} 13:59:59";
-              
+        
         return $activateOn;
     }
-
+    
     
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
     {
         // Кои полета ще се показват
         $f = new core_FieldSet;
-    
+        
         $f->FLD('id', 'key(mvc=cat_Products,select=name)');
         $f->FLD('quantity', 'double');
         $f->FLD('store', 'double');
@@ -393,12 +394,12 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     {
         $exportFields = $this->innerState->listFields;
         $fields = $this->getFields();
-
+        
         $dataRecs = array();
         if (is_array($this->innerState->recs)) {
             $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
         }
-         
+        
         return $csv;
     }
 }

@@ -13,15 +13,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_plg_BusinessDoc extends core_Plugin
 {
-    
-    
     /**
      * След инициализирането на модела
      *
@@ -72,6 +72,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         // Ако няма форма - не правим нищо
         if (!$form) {
+            
             return;
         }
         
@@ -80,11 +81,11 @@ class doc_plg_BusinessDoc extends core_Plugin
         if ($form->isSubmitted()) {
             if ($p = self::getReasonParams($form)) {
                 $tpl = new Redirect(
-                
+                    
                     // Редирект към създаването на документа в ясната папка
                     toUrl(array($mvc, $action) + $p + array('ret_url' => static::getRetUrl($mvc)))
                 );
-
+                
                 return false;
             }
         }
@@ -96,7 +97,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         $form->title = 'Избор на папка';
         $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'btn-next fright'), 'ef_icon = img/16/move.png, title=Продължи нататък');
-
+        
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         
@@ -108,7 +109,8 @@ class doc_plg_BusinessDoc extends core_Plugin
     /**
      * Помощен метод за определяне на URL при успешен запис или отказ
      *
-     * @param  core_Mvc $mvc
+     * @param core_Mvc $mvc
+     *
      * @return array
      */
     protected static function getRetUrl(core_Mvc $mvc)
@@ -129,7 +131,9 @@ class doc_plg_BusinessDoc extends core_Plugin
     
     /**
      * Подготвя формата за избор на папка
-     * @param  core_Mvc  $mvc
+     *
+     * @param core_Mvc $mvc
+     *
      * @return core_Form $form
      */
     private static function prepareReasonForm(core_Mvc $mvc)
@@ -139,6 +143,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         // Ако няма корици се прескача плъгина
         if (!count($interfaces)) {
+            
             return;
         }
         
@@ -174,7 +179,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
     {
         foreach ($coversArr as $coverId) {
-             
+            
             // Подадената корица, трябва да е съществуващ
             // клас и да може да бъде корица на папка
             if (cls::load($coverId, true)) {
@@ -191,7 +196,7 @@ class doc_plg_BusinessDoc extends core_Plugin
                     $mvc->RestrictQueryOnlyFolderForDocuments($query);
                     $query->orderBy('#modifiedOn', 'DESC');
                     $newOptions = array();
-
+                    
                     while ($rec = $query->fetchAndCache()) {
                         $oRec = (object) array('folderId' => $rec->id);
                         if ($oId = Request::get('originId')) {
@@ -201,13 +206,13 @@ class doc_plg_BusinessDoc extends core_Plugin
                             $newOptions[$rec->coverId] = $rec->title;
                         }
                     }
-
+                    
                     if ($newOptions) {
                         // Ако има достъпни корици, слагат се като опции
                         $form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
                         $form->setOptions($coverName, $newOptions);
                     }
-                     
+                    
                     if (!count($newOptions)) {
                         // Ако няма нито една достъпна корица, полето става readOnly
                         $form->FNC($coverName, 'varchar', "input,caption={$Class->singleTitle},width=100%");
@@ -242,19 +247,19 @@ class doc_plg_BusinessDoc extends core_Plugin
                 }
             }
         }
-
+        
         // Ако няма избран нито един обект, се показва грешка
         if (!$selectedField) {
             $form->setError(',', 'Не е избрана папка');
-
+            
             return;
         }
-
+        
         // Ако има избран повече от един обект, се показва грешка
         if (count($errFields)) {
             array_unshift($errFields, $selectedField);
             $form->setError(implode(',', $errFields), 'Попълнете само едно от посочените полета');
-
+            
             return;
         }
         
@@ -268,7 +273,7 @@ class doc_plg_BusinessDoc extends core_Plugin
                 }
             }
         }
-   
+        
         // При избран точно един обект се форсира неговата папка и се връща
         return $params;
     }
@@ -287,7 +292,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         // ... към който е прикачен doc_DocumentPlg
         $plugins = arr::make($mvc->loadList);
-
+        
         if (isset($plugins['doc_DocumentPlg'])) {
             
             return false;

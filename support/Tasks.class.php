@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Документ с който се сигнализара някакво несъответствие
  *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class support_Tasks extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -49,7 +48,6 @@ class support_Tasks extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, admin, support';
-    
     
     
     public $loadList = 'plg_SelectPeriod, support_Wrapper, plg_Search';

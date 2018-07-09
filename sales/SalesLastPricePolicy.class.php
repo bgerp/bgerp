@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Имплементация на ценова политика "По последна продажна цена"
  * Връща последната цена на която е продаден даден артикул
@@ -10,22 +9,22 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Политика "По последна продажна цена"
  */
 class sales_SalesLastPricePolicy extends core_Mvc
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Последна цена';
-
-
+    
+    
     /**
      * Интерфейс за ценова политика
      */
@@ -45,6 +44,7 @@ class sales_SalesLastPricePolicy extends core_Mvc
         $lastPrices = sales_Sales::getLastProductPrices($customerClass, $customerId);
         
         if (!isset($lastPrices[$productId])) {
+            
             return;
         }
         
@@ -54,7 +54,7 @@ class sales_SalesLastPricePolicy extends core_Mvc
         
         $vat = cat_Products::getVat($productId);
         $packPrice = deals_Helper::getDisplayPrice($packPrice, $vat, $rate, $chargeVat);
-       
+        
         return (object) array('price' => deals_Helper::roundPrice($packPrice));
     }
 }

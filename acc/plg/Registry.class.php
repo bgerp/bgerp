@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин за Регистрите, който им добавя възможност обекти от регистрите да влизат като пера
  *
@@ -12,15 +11,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_plg_Registry extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -61,7 +60,7 @@ class acc_plg_Registry extends core_Plugin
         // Ако е зададено да се добави в номенклатура при активиране
         if (!empty($mvc->addToListOnActivation)) {
             if ($rec->state == 'active') {
-            
+                
                 // Ако документа става перо при активиране, добавяме го като перо, ако вече не е
                 if ($mvc->canAddToListOnActivation($rec)) {
                     if (!acc_Items::isItemInList($mvc, $rec->id, $mvc->addToListOnActivation)) {
@@ -103,7 +102,7 @@ class acc_plg_Registry extends core_Plugin
             $mvc->closeItems[$rec->id] = $rec;
         }
     }
-         
+    
     
     /**
      * Изчиства записите, заопашени за запис
@@ -119,7 +118,7 @@ class acc_plg_Registry extends core_Plugin
                 if ($itemRec = acc_Items::fetchItem($mvc, $rec->id)) {
                     if ($itemRec->state == 'active') {
                         acc_Lists::removeItem($mvc, $rec->id);
-                         
+                        
                         if (haveRole('debug')) {
                             core_Statuses::newStatus("|Затворено е перо|*: {$itemRec->title}");
                         }

@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Лента с топ новини
  *
  *
  * @category  bgerp
  * @package   newsbar
+ *
  * @author    Gabriela Petrova <gpetrova@experta.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class newsbar_News extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -26,7 +25,7 @@ class newsbar_News extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Новина';
-
+    
     
     /**
      * Разглеждане на листов изглед
@@ -40,13 +39,12 @@ class newsbar_News extends core_Master
     public $loadList = 'newsbar_Wrapper, plg_Created, plg_State2, plg_RowTools2, newsbar_Plugin';
     
     
-   
     /**
      * Полета за листовия изглед
      */
     public $listFields = 'news,startTime,endTime,lang,color,transparency,state';
-
-
+    
+    
     /**
      * Поле за инструментите на реда
      */
@@ -57,13 +55,13 @@ class newsbar_News extends core_Master
      * Кой има право да чете?
      */
     public $canRead = 'cms, newsbar, admin, ceo';
-        
+    
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'cms, newsbar, admin, ceo';
-
+    
     
     /**
      * Описание на модела
@@ -78,8 +76,7 @@ class newsbar_News extends core_Master
         $this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Непрозрачност');
     }
     
-
-
+    
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
@@ -89,7 +86,7 @@ class newsbar_News extends core_Master
         $data->query->where("#domainId = {$domainId}");
         $data->query->orderBy('#createdOn', 'DESC');
     }
-
+    
     
     /**
      * Създаване на лентата за новини
@@ -100,7 +97,7 @@ class newsbar_News extends core_Master
         $query = static::getQuery();
         
         $nowTime = dt::now();
-
+        
         $query->groupBy('RAND()');
         $query->limit(1);
         
@@ -110,7 +107,7 @@ class newsbar_News extends core_Master
         $query->where("#domainId = '{$domainId}'");
         
         $news = $query->fetch();
-                       
+        
         // Връщаме стринг от всички новини
         return (object) array('news' => $news->news, 'color' => $news->color, 'transparency' => $news->transparency);
     }
@@ -122,7 +119,7 @@ class newsbar_News extends core_Master
     public static function hex2rgb($hex)
     {
         $hex = str_replace('#', '', $hex);
-    
+        
         if (strlen($hex) == 3) {
             $r = hexdec(substr($hex, 0, 1).substr($hex, 0, 1));
             $g = hexdec(substr($hex, 1, 1).substr($hex, 1, 1));
@@ -133,10 +130,10 @@ class newsbar_News extends core_Master
             $b = hexdec(substr($hex, 4, 2));
         }
         $rgb = array($r, $g, $b);
-       
+        
         return $rgb;
     }
-
+    
     
     /**
      * Пренасочва URL за връщане след запис към лист изгледа
@@ -145,7 +142,7 @@ class newsbar_News extends core_Master
     {
         // Ако е субмитната формата
         if ($data->form && $data->form->isSubmitted()) {
-
+            
             // Променяма да сочи към list'a
             $data->retUrl = toUrl(array($mvc, 'list'));
         }
@@ -189,10 +186,10 @@ class newsbar_News extends core_Master
         
         $form->rec->domainId = cms_Domains::getCurrent();
         $form->setReadOnly('domainId');
-            
-
+        
+        
         $progressArr[''] = '';
-
+        
         for ($i = 0; $i <= 100; $i += 10) {
             if ($rec->transparency > ($i / 100)) {
                 continue;
@@ -205,15 +202,13 @@ class newsbar_News extends core_Master
         if (!$rec->color) {
             $form->setDefault('color', '#000000');
         }
-       
+        
         if (!$rec->transparency) {
             $form->setDefault('transparency', 0.5);
         }
     }
     
     
-        
-
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -231,7 +226,8 @@ class newsbar_News extends core_Master
      * Генериране на HTML код за лентата на нюзбара
      * ще я използваме както вътре, така и вънка
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return ET
      */
     public static function generateHTML($rec)
@@ -239,7 +235,7 @@ class newsbar_News extends core_Master
         $rgb = static::hex2rgb($rec->color);
         $hexTransparency = dechex($rec->transparency * 255);
         $forIE = '#'. $hexTransparency. str_replace('#', '', $rec->color);
-
+        
         $rt = cls::get('type_Richtext');
         
         $html = new ET("<div class=\"[#class#]\" style=\"background-color: rgb([#r#], [#g#], [#b#]); 
@@ -256,7 +252,7 @@ class newsbar_News extends core_Master
         $html->replace($rgb[2], 'b');
         $html->replace($rec->transparency, 'transparency');
         $html->replace($forIE, 'ie');
-    
+        
         return $html;
     }
 }

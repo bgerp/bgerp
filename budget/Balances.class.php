@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на баланси
  *
  *
  * @category  bgerp
  * @package   budget
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Баланси
  */
 class budget_Balances extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */

@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Драйвер за IP сензор Teracom TCW-121 - следи състоянието на цифров и аналогов вход
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Драйвер за IP сензор Teracom TCW-121
  */
 class sens_driver_TCW121 extends sens_driver_IpDevice
 {
-    
     /**
      * Заглавие на драйвера
      */
     public $title = 'TCW121';
-
+    
     
     /**
      * Параметри които чете или записва драйвера
@@ -35,6 +35,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         'InD2' => array('unit' => 'InD2', 'param' => 'Цифров вход 2', 'details' => '(ON,OFF)', 'xmlPath' => '/Entry[2]/Value[1]'),
         'InA1' => array('unit' => 'InA1', 'param' => 'Аналогов вход 1', 'details' => 'V', 'xmlPath' => '/Entry[3]/Value[1]'),
         'InA2' => array('unit' => 'InA2', 'param' => 'Аналогов вход 2', 'details' => 'V', 'xmlPath' => '/Entry[4]/Value[1]'),
+        
         // Описваме и изходите за да можем да ги следим в логовете
         'OutD1' => array('unit' => 'OutD1', 'param' => 'Цифров изход 1', 'details' => '(ON,OFF)', 'xmlPath' => '/Entry[9]/Value[1]'),
         'OutD2' => array('unit' => 'OutD2', 'param' => 'Цифров изход 2', 'details' => '(ON,OFF)', 'xmlPath' => '/Entry[10]/Value[1]')
@@ -117,17 +118,17 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         $result = array();
         
         $pRes = @simplexml_load_string($xml);
-
+        
         if (!$pRes) {
             sens_MsgLog::add($this->id, 'Грешка при парсиране!', 3);
             $this->stateArr = null;
-
+            
             return false;
         }
         
         $this->XMLToArrayFlat($pRes, $result);
         
-
+        
         foreach ($this->params as $param => $details) {
             $state[$param] = $result[$details['xmlPath']];
             
@@ -136,7 +137,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
                 $paramValue = $settingsArr["angular_{$param}"] * $state["{$param}"] + $settingsArr["linear_{$param}"];
                 $state["{$settingsArr["name_{$param}"]}"] = $paramValue;
             }
-                   
+            
             
             if ($details['details'] == '(ON,OFF)') {
                 $state[$param] = trim(strtoupper($result[$details['xmlPath']]));

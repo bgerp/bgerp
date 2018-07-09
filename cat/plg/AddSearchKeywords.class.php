@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин добавящ артикулите от главния детайл на документа към ключовите му думи
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_plg_AddSearchKeywords extends core_Plugin
 {
-    
-    
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
@@ -43,13 +42,13 @@ class cat_plg_AddSearchKeywords extends core_Plugin
                 
                 // Имената на артикулите се добавят към ключовите думи
                 $detailsKeywords .= ' ' . plg_Search::normalizeText(cat_Products::getTitleById($dRec->{$Detail->productFld}));
-            
+                
                 // Ако има забележки, и те се добавят към ключовите думи
                 if (!empty($dRec->{$Detail->notesFld})) {
                     $detailsKeywords .= ' ' . plg_Search::normalizeText($dRec->{$Detail->notesFld});
                 }
             }
-                
+            
             // Ако има нови ключови думи, добавят се
             if (!empty($detailsKeywords)) {
                 $res = ' ' . $res . ' ' . $detailsKeywords;

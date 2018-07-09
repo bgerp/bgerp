@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на камери за видео наблюдение
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cams_Cameras extends core_Master
 {
-    
-    
     /**
      * Зареждане на използваните мениджъри
      */
@@ -51,8 +50,8 @@ class cams_Cameras extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,cams';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -64,13 +63,13 @@ class cams_Cameras extends core_Master
      */
     public $canRead = 'ceo,cams, admin';
     
-
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/web_camera.png';
-
-
+    
+    
     /**
      * Описание на модела
      */
@@ -97,11 +96,11 @@ class cams_Cameras extends core_Master
         $id = Request::get('id', 'int');
         
         expect($rec = $this->fetch($id));
-        
+
 //        $this->haveRightFor('single', $rec);
         
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
-
+        
         $img = $driver->getPicture();
         
         if (!$img) {
@@ -187,12 +186,12 @@ class cams_Cameras extends core_Master
         $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET('[#1#]<br>', $row->title);
         $row->caption->append("<small><i>{$row->driver}</i></small>&nbsp;");
-
+        
         if ($mvc->haveRightFor('edit', $rec)) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Настройки', array($mvc, 'Settings', $rec->id, 'ret_url' => true), 'ef_icon=img/16/testing.png');
         }
-
+        
         if ($driver->havePtzControl()) {
             $form = cls::get('core_form');
             $form->setAction(array(cls::get(get_called_class()), 'applyPtzCmd'));
@@ -287,16 +286,16 @@ class cams_Cameras extends core_Master
         expect($id = Request::get('id', 'int'));
         
         expect($rec = $this->fetch($id));
-
+        
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
-
+        
         if (strpos($rec->params, '}')) {
             $params = json_decode($rec->params);
         } else {
             $params = arr::make($rec->params, true);
         }
         $params = $driver->getParamsFromCam($params);
-                
+        
         $retUrl = getRetUrl() ? getRetUrl() : array($this);
         
         $driver->prepareSettingsForm($form);
@@ -324,8 +323,8 @@ class cams_Cameras extends core_Master
         
         return $this->renderWrapping($tpl);
     }
-
-
+    
+    
     /**
      * Подготвя шаблона за единичния изглед
      */

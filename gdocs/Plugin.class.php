@@ -9,15 +9,15 @@
  *
  * @category  vendors
  * @package   gdocs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class gdocs_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Добавя бутон за разглеждане на документи
      */

@@ -13,15 +13,15 @@ defIfNot(JQUERYUI_VERSION, '1.11.3');
  *
  * @category  bgerp
  * @package   jqueryui
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class jqueryui_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */

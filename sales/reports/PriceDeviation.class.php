@@ -1,26 +1,26 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети за отклонения от цените
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Продажби » Отклонения от цените
  */
 class sales_reports_PriceDeviation extends frame2_driver_TableData
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,manager,store,planing,purchase,sales';
-
+    
     
     /**
      * Брой записи на страница
@@ -28,7 +28,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      * @var int
      */
     protected $listItemsPerPage = 30;
-
+    
     
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
@@ -36,19 +36,19 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      * @var string
      */
     protected $newFieldToCheck = 'conditionQuantity';
-
+    
     
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'saleId';
-
+    
     
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId';
-
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -65,7 +65,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Дилъри,placeholder=Всички,after=to');
         $fieldset->FLD('articleType', 'enum(all=Всички,yes=Стандартни,no=Нестандартни)', 'caption=Тип артикули,maxRadio=3,columns=3,removeAndRefreshForm,after=dealers');
     }
-
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -85,13 +85,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $form->setDefault('sellPriceToleranceDown', 1);
         $form->setDefault('sellPriceToleranceUp', 1);
     }
-
+    
     
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -167,10 +168,10 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             );
             
             if ((cls::get('price_ListToCustomers')->getListForCustomer(
-            
+                
                 $saleProducts->contragentClassId,
                 $saleProducts->contragentId,
-            
+                
                 $valior
             
             )) && ! empty($contragentFuturePrice)) {
@@ -247,9 +248,9 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $expQuery = store_ShipmentOrderDetails::getQuery();
         
         $expQuery->EXT(
-        
+            
             'contragentClassId',
-        
+            
             'store_ShipmentOrders',
             'externalName=contragentClassId,externalKey=shipmentId'
         
@@ -314,10 +315,10 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             );
             
             if ((cls::get('price_ListToCustomers')->getListForCustomer(
-            
+                
                 $expProducts->contragentClassId,
                 $expProducts->contragentId,
-            
+                
                 $valior
             
             )) && ! empty($contragentFuturePrice)) {
@@ -357,7 +358,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
                  (! $rec->sellPriceToleranceDown && is_numeric($rec->sellPriceToleranceDown)))) {
                 $expProductCatPriceDown = $expProductCatPrice -
                  ($expProductCatPrice * $rec->sellPriceToleranceDown) / 100;
-            
+                
                 if ($expProductCatPrice && ($expProducts->price < $expProductCatPriceDown)) {
                     $productCatPriceDownFlag = true;
                 } else {
@@ -366,11 +367,11 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             } else {
                 $expProductCatPriceDown = 'не се търси';
             }
-        
+            
             // Ако продажната цена е под себестойност(отчита се толеранса)
             if (($rec->selfPriceTolerance || (! $rec->selfPriceTolerance && is_numeric($rec->selfPriceTolerance)))) {
                 $expSelfPriceDown = $expSelfPrice - ($expSelfPrice * $rec->selfPriceTolerance) / 100;
-            
+                
                 if ($expSelfPrice && ($expProducts->price < $expSelfPriceDown)) {
                     $selfDownFlag = true;
                 } else {
@@ -379,66 +380,67 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             } else {
                 $expSelfPriceDown = 'не се търси';
             }
-        
+            
             if ($selfDownFlag || $productCatPriceDownFlag || $productCatPriceUpFlag) {
                 $expRecs[] = (object) array(
-                'saleId' => $saleId,
-                'selfPrice' => $expSelfPrice,
-                'productId' => $expProductId,
-                'measure' => cat_Products::fetchField($expProductId, 'measureId'),
-                'quantity' => $expProducts->quantity,
-                'containerId' => $expProducts->containerId,
-                'isPublic' => $isPublic,
-                'selfPriceDown' => $expSelfPriceDown,
-                'productCatPriceDown' => $expProductCatPriceDown,
-                'productCatPriceUp' => $expProductCatPriceUp,
-                'catPrice' => $expProductCatPrice,
-                'price' => $expProducts->price
-            );
+                    'saleId' => $saleId,
+                    'selfPrice' => $expSelfPrice,
+                    'productId' => $expProductId,
+                    'measure' => cat_Products::fetchField($expProductId, 'measureId'),
+                    'quantity' => $expProducts->quantity,
+                    'containerId' => $expProducts->containerId,
+                    'isPublic' => $isPublic,
+                    'selfPriceDown' => $expSelfPriceDown,
+                    'productCatPriceDown' => $expProductCatPriceDown,
+                    'productCatPriceUp' => $expProductCatPriceUp,
+                    'catPrice' => $expProductCatPrice,
+                    'price' => $expProducts->price
+                );
             }
         }
-    
+        
         foreach ($expRecs as $k => $v) {
             array_push($sallRecs, $v);
         }
-    
+        
         foreach ($sallRecs as $k => $v) {
             $flag = false;
-        
+            
             if (empty($recs)) {
                 $recs[] = $v;
-            
+                
                 continue;
             }
-        
+            
             foreach ($recs as $rv) {
                 if (($v->saleId == $rv->saleId) && ($v->productId == $rv->productId)) {
                     $flag = true;
                 }
             }
-        
+            
             if (! $flag) {
                 array_push($recs, $v);
             }
         }
-    
+        
         return $recs;
     }
-
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec
-     *                               - записа
-     * @param  boolean       $export
-     *                               - таблицата за експорт ли е
+     * @param stdClass $rec
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-    
+        
         $fld->FLD('saleId', 'varchar', 'caption=Сделка');
         if ($export === true) {
             $fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
@@ -452,17 +454,18 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         $fld->FLD('catPrice', 'double', 'caption=Цени->Политика,smartCenter');
         $fld->FLD('deviationDownSelf', 'percent', 'caption=Отклонение->Под Себест-ст,tdClass=centered');
         $fld->FLD('deviationCatPrice', 'percent', 'caption=Отклонение->Спрямо политика,tdClass=centered');
-    
+        
         return $fld;
     }
-
-
+    
+    
     /**
      * Връща разлика
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $deviationCatPrice
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $deviationCatPrice
      */
     private static function getDeviationCatPrice($dRec, $verbal = true)
     {
@@ -480,17 +483,18 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
                 $deviationCatPrice = 'няма политика';
             }
         }
-    
+        
         return $deviationCatPrice;
     }
-
-
+    
+    
     /**
      * Връща разлика
      *
-     * @param  stdClass $dRec
-     * @param  boolean  $verbal
-     * @return mixed    $deviationDownSelf
+     * @param stdClass $dRec
+     * @param bool     $verbal
+     *
+     * @return mixed $deviationDownSelf
      */
     private static function getDeviationDownSelf($dRec, $verbal = true)
     {
@@ -504,45 +508,46 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
                     $deviationDownSelf = $marker;
                 }
             }
-        
+            
             if (($dRec->selfPrice == 0)) {
                 $deviationDownSelf = 'няма политика';
             }
         }
-    
+        
         return $deviationDownSelf;
     }
-
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
-    
+        
         $row = new stdClass();
-    
+        
         $marker = '';
-    
+        
         if ($dRec->catPrice) {
             $row->deviationCatPrice = self::getDeviationCatPrice($dRec);
         }
-    
+        
         if ($dRec->selfPriceDown) {
             $row->deviationDownSelf = self::getDeviationDownSelf($dRec);
         }
-    
+        
         $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
         $handle = $Sale->getHandle();
         $folder = ((sales_Sales::fetch($dRec->saleId)->folderId));
         $folderLink = doc_Folders::recToVerbal(doc_Folders::fetch($folder))->title;
         $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
-    
+        
         if (isset($dRec->saleId)) {
             $row->saleId = "<div ><span class= 'state-{$Sale->fetchField('state')} document-handler' >" . ht::createLink(
             "#{$handle}",
@@ -552,33 +557,33 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         ) . '</span>' . ' »  ' . "<span class= 'quiet small'>" .
              $folderLink . '</span></div>';
         }
-    
+        
         $row->productId = cat_Products::getShortHyperlink($dRec->productId);
-    
+        
         if (isset($dRec->quantity)) {
             $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
         }
-    
+        
         if (isset($dRec->price)) {
             $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
         }
-    
+        
         if (isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
-    
+        
         if (isset($dRec->selfPrice)) {
             $row->selfPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->selfPrice);
         }
-    
+        
         if (isset($dRec->catPrice)) {
             $row->catPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->catPrice);
         }
-    
+        
         return $row;
     }
-
-
+    
+    
     /**
      * След подготовка на реда за експорт
      *
@@ -591,21 +596,21 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
         $res->code = cat_Products::getVerbal($dRec->productId, 'code');
-    
+        
         $saleRec = sales_Sales::fetch($dRec->saleId, 'folderId');
         $res->saleId = '#' . sales_Sales::getHandle($dRec->saleId);
         $res->folderId = $saleRec->folderId;
-    
+        
         if ($dRec->catPrice) {
             $res->deviationCatPrice = self::getDeviationCatPrice($dRec, false);
         }
-    
+        
         if ($dRec->selfPriceDown) {
             $res->deviationDownSelf = self::getDeviationDownSelf($dRec, false);
         }
     }
-
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -629,39 +634,40 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"
         )
     );
-    
+        
         if (isset($data->rec->from)) {
             $fieldTpl->append($data->rec->from, 'from');
         }
-    
+        
         if (isset($data->rec->to)) {
             $fieldTpl->append($data->rec->to, 'to');
         }
-    
+        
         if (isset($data->rec->selfPriceTolerance)) {
             $fieldTpl->append(
             core_Type::getByName('percent')->toVerbal(($data->rec->selfPriceTolerance) / 100),
             'selfPriceTolerance'
         );
         }
-    
+        
         if (isset($data->rec->sellPriceToleranceDown)) {
             $fieldTpl->append(
             core_Type::getByName('percent')->toVerbal(($data->rec->sellPriceToleranceDown) / 100),
             'sellPriceToleranceDown'
         );
         }
-    
+        
         if (isset($data->rec->sellPriceToleranceUp)) {
             $fieldTpl->append(
             core_Type::getByName('percent')->toVerbal(($data->rec->sellPriceToleranceUp) / 100),
             'sellPriceToleranceUp'
         );
         }
-    
+        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-
+    
+    
     /**
      * Кои полета да са скрити във вътрешното показване
      *
@@ -678,7 +684,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     $row
 ) {
         $res = arr::make($res);
-    
+        
         $res['external']['selfPriceTolerance'] = true;
     }
 }

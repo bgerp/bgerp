@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на отпуски
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Командировки
  */
 class hr_Trips extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -53,8 +52,8 @@ class hr_Trips extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, hrMaster, hrTrips';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -101,7 +100,7 @@ class hr_Trips extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = '5.4|Човешки ресурси';
- 
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -190,7 +189,7 @@ class hr_Trips extends core_Master
         
         $this->FLD('sharedUsers', 'userList(roles=hrTrips|ceo)', 'caption=Споделяне->Потребители');
     }
-
+    
     
     /**
      * Изчисление на title
@@ -208,7 +207,7 @@ class hr_Trips extends core_Master
     {
         $mvc->updateTripsToCalendar($rec->id);
     }
-
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -252,7 +251,7 @@ class hr_Trips extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-
+        
         // Намират се всички служители
         $employees = crm_Persons::getEmployeesOptions();
         unset($employees[$rec->personId]);
@@ -269,7 +268,7 @@ class hr_Trips extends core_Master
         if ($rec->folderId && $folderClass == 'crm_Persons') {
             $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $form->setReadonly('personId');
-
+            
             if (!haveRole('ceo,hrTrips')) {
                 $form->setField('sharedUsers', 'mandatory');
             }
@@ -337,23 +336,23 @@ class hr_Trips extends core_Master
         
         // Годината на датата от преди 30 дни е начална
         $cYear = date('Y', time() - 30 * 24 * 60 * 60);
-
+        
         // Начална дата
         $fromDate = "{$cYear}-01-01";
-
+        
         // Крайна дата
         $toDate = ($cYear + 2) . '-12-31';
         
         // Префикс на ключовете за записите в календара от тази задача
         $prefix = "TRIP-{$id}";
-
+        
         $curDate = $rec->startDate;
         
         while ($curDate < $rec->toDate) {
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
                 $calRec = new stdClass();
-                    
+                
                 // Ключ на събитието
                 $calRec->key = $prefix . "-{$curDate}";
                 
@@ -365,15 +364,16 @@ class hr_Trips extends core_Master
                 
                 // Икона на записа
                 $calRec->type = 'working-travel';
-    
+                
                 $personName = crm_Persons::fetchField($rec->personId, 'name');
+                
                 // Заглавие за записа в календара
                 $calRec->title = "Командировка: {$personName}";
-    
+                
                 $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
                 $personId = array($personProfile->userId => 0);
                 $user = keylist::fromArray($personId);
-               
+                
                 // В чии календари да влезе?
                 $calRec->users = $user;
                 
@@ -387,15 +387,16 @@ class hr_Trips extends core_Master
             }
             $curDate = dt::addDays(1, $curDate);
         }
-
+        
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
-  
-
+    
+    
     /**
      * Интерфейсен метод на doc_DocumentIntf
      *
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass $row
      */
     public function getDocumentRow($id)
@@ -420,7 +421,7 @@ class hr_Trips extends core_Master
         
         return $row;
     }
-
+    
     
     /**
      * Проверка дали нов документ може да бъде добавен в
@@ -458,7 +459,7 @@ class hr_Trips extends core_Master
         
         return true;
     }
-
+    
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -466,9 +467,9 @@ class hr_Trips extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $me = cls::get(get_called_class());
-         
+        
         $title = tr('Командировъчен лист  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
-         
+        
         return $title;
     }
 }

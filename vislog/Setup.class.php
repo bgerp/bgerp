@@ -13,16 +13,16 @@ defIfNot('VISLOG_ALLOW_SAME_IP', 5 * 60);
  *
  * @category  vendors
  * @package   vislog
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class vislog_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -51,31 +51,31 @@ class vislog_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'vislog_HistoryResources',
-            'vislog_History',
-            'vislog_Referer',
-            'vislog_IpNames',
-            'vislog_Adwords',
-        );
+        'vislog_HistoryResources',
+        'vislog_History',
+        'vislog_Referer',
+        'vislog_IpNames',
+        'vislog_Adwords',
+    );
     
-
+    
     public $configDescription = array(
-            'VISLOG_ALLOW_SAME_IP' => array('time', 'caption=Време за недопускане на запис за едни и същи ip/ресурс->Време'),
-        );
-
-         
+        'VISLOG_ALLOW_SAME_IP' => array('time', 'caption=Време за недопускане на запис за едни и същи ip/ресурс->Време'),
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     //var $roles = 'vislog';
-
-
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.53, 'Сайт', 'Лог', 'vislog_History', 'default', 'admin, ceo, cms'),
-        );
+        array(3.53, 'Сайт', 'Лог', 'vislog_History', 'default', 'admin, ceo, cms'),
+    );
     
     
     /**

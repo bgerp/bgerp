@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Модул за записване на всички номера
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_Numbers extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -77,6 +76,7 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Полето, което ще се използва за търсене по номер
+     *
      * @see callcenter_ListOperationsPlg
      */
     public $numberField = 'numberSearch';
@@ -101,7 +101,7 @@ class callcenter_Numbers extends core_Manager
         $this->FNC('contragent', 'varchar', 'caption=Контрагент');
         
         $this->setDbUnique('number, type, classId, contragentId');
-
+        
         $this->setDbIndex('number');
         $this->setDbIndex('classId, contragentId');
     }
@@ -163,8 +163,8 @@ class callcenter_Numbers extends core_Manager
     /**
      * Връща вербалното име на позвъняващия за съответния запис в модела
      *
-     * @param integer $id
-     * @param integer $userId
+     * @param int $id
+     * @param int $userId
      *
      * @return string
      */
@@ -264,16 +264,16 @@ class callcenter_Numbers extends core_Manager
                     
                     // Ако е бил записан
                     if ($numRec = $existRecsArr[$numStr]) {
-                     
+                        
                         // Обновяваме записите
                         $me->savedItems[$numRec->id] = $numRec->id;
                         
                         // Премахваме от масива
                         unset($existRecsArr[$numStr]);
                     } else {
-                     
+                        
                         // Ако е нов
-                         
+                        
                         // Ако е факс
                         if ($type == 'fax') {
                             $fType = 'fax';
@@ -306,7 +306,7 @@ class callcenter_Numbers extends core_Manager
                 }
             }
         }
-
+        
         // Ако номера е бил изтрит, премахваме
         foreach ((array) $existRecsArr as $num => $rec) {
             
@@ -374,7 +374,7 @@ class callcenter_Numbers extends core_Manager
         
         // Обхождаме номерата
         foreach ((array) $numberArr as $num) {
-                    
+            
             // Създаваме записа
             $nRec = new stdClass();
             $nRec->number = $num;
@@ -386,7 +386,6 @@ class callcenter_Numbers extends core_Manager
             static::save($nRec, null, 'IGNORE');
         }
     }
-    
     
     
     public static function on_AfterPrepareListFilter($mvc, $data)
@@ -428,13 +427,11 @@ class callcenter_Numbers extends core_Manager
     }
     
     
-    
     public function on_AfterSave($mvc, $id, $rec)
     {
         // Добавяме id' тата на записаните данни
         $mvc->savedItems[$rec->id] = $rec->id;
     }
-    
     
     
     public static function on_AfterDelete($mvc, &$res, $query)
@@ -506,9 +503,9 @@ class callcenter_Numbers extends core_Manager
     /**
      * Връща масив със записите за номерата
      *
-     * @param string  $number - Номера
-     * @param string  $type   - Типа на номера - tel, mobile, fax, internal
-     * @param boolean $all    - Дали да се върнат всичките или само последния
+     * @param string $number - Номера
+     * @param string $type   - Типа на номера - tel, mobile, fax, internal
+     * @param bool   $all    - Дали да се върнат всичките или само последния
      *
      * @return array - Масив с запсите
      */
@@ -550,7 +547,6 @@ class callcenter_Numbers extends core_Manager
     }
     
     
-    
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('add')) {
@@ -582,8 +578,8 @@ class callcenter_Numbers extends core_Manager
             $form->setDefault('userId', $userId);
         }
     }
-
-
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
@@ -668,7 +664,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Връща масив с id' та на потребители, които използват този номер
      *
-     * @param integer $num - Вътрешен номер
+     * @param int $num - Вътрешен номер
      *
      * @return array $userArr - Масив с id' та на потребители, които използват този номер
      */
@@ -707,7 +703,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Връща записа за номера
      *
-     * @param integer $num - Вътрешен номер
+     * @param int $num - Вътрешен номер
      *
      * @return FALSE|stdClass
      */
@@ -725,9 +721,9 @@ class callcenter_Numbers extends core_Manager
     /**
      * Дали може да се използва хоста за подадения номер
      *
-     * @param integer $num
+     * @param int $num
      *
-     * @return boolean
+     * @return bool
      */
     public static function canUseHostForNum($num)
     {

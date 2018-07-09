@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class Readers
  *
@@ -13,15 +12,15 @@
  *
  * @category  bgerp
  * @package   rfid
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rfid_Readers extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -38,8 +37,8 @@ class rfid_Readers extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,rfid';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */

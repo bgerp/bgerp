@@ -1,24 +1,22 @@
 <?php
 
 
-
-
 /**
  * Клас  'type_Date' - Тип за дати
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Date extends core_Type
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -45,6 +43,7 @@ class type_Date extends core_Type
         $conf = core_Packs::getConfig('core');
         
         if (empty($value)) {
+            
             return;
         }
         
@@ -57,7 +56,6 @@ class type_Date extends core_Type
         }
         
         $date = dt::mysql2verbal($value, $format);
-
         
         return $date;
     }
@@ -71,10 +69,11 @@ class type_Date extends core_Type
         if (is_array($value) && isset($value['d'])) {
             $value = $value['d'];
         }
-
+        
         $value = trim($value);
         
         if (empty($value)) {
+            
             return;
         }
         
@@ -85,7 +84,7 @@ class type_Date extends core_Type
             return $value;
         }
         $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(null, 'd-m-Y', null, false) . "</B>'";
-            
+        
         return false;
     }
     
@@ -96,17 +95,17 @@ class type_Date extends core_Type
     public function renderInput_($name, $value = '', &$attr = array())
     {
         $attr['name'] = $name;
-               
+        
         if ($value && !$this->error) {
             $value = dt::mysql2verbal($value, 'd.m.Y', null, false);
         } else {
             $value = $attr['value'];
         }
-
+        
         $attr['autocomplete'] = 'off';
         setIfNot($attr['type'], 'text');
         setIfNot($this->params['width'], 8);
-
+        
         $attr['style'] .= ';width:' . $this->params['width'] . 'em;';
         
         return $this->createInput($name, $value, $attr);

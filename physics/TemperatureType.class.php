@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Колко цифри след запетаята да се показват
  */
@@ -20,16 +19,16 @@ defIfNot('EF_DEFAULT_UNIT', '°C');
  *
  * @category  vendors
  * @package   physics
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class physics_TemperatureType extends type_Double
 {
-    
-    
     /**
      * Инициализиране на типа
      */
@@ -140,6 +139,7 @@ class physics_TemperatureType extends type_Double
     public function toVerbal($value)
     {
         if (!isset($value)) {
+            
             return;
         }
         

@@ -113,15 +113,15 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -156,30 +156,30 @@ class fileman_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-               
-       'FILEMAN_PREVIEW_WIDTH' => array('int', 'caption=Размер на изгледа в широк режим->Широчина,unit=pix'),
-           
-       'FILEMAN_PREVIEW_HEIGHT' => array('int', 'caption=Размер на изгледа в широк режим->Височина,unit=pix'),
-
-       'FILEMAN_PREVIEW_WIDTH_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Широчина,unit=pix'),
-
-       'FILEMAN_PREVIEW_HEIGHT_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Височина,unit=pix'),
-       
-       'LINK_NARROW_MIN_FILELEN_SHOW' => array('fileman_FileSize', 'caption=Показване размера на файла в мобилен режим при големина->Повече от, suggestions=50 KB|100 KB|200 KB|300 KB'),
-
-       'FILEINFO_MAX_ARCHIVE_LEN' => array('fileman_FileSize', 'caption=Максимален размер на архивите|*&comma;| за които ще се визуализира информация->Размер, suggestions=50 MB|100 MB|200 MB|300 MB'),
-
-       'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
-
-       'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
-       
-       'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
-
-       'FILEMAN_WEBDRV_ERROR_CLEAN' => array('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при индексиране на файл->Време'),
-       
-       'FILEMAN_WEBDRV_PREVIEW_MULTIPLIER' => array('int(min=0, max=10)', 'caption=Увеличаване на размера на картинката при превю->Пъти'),
-
-       'FILEMAN_OCR' => array('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
+        
+        'FILEMAN_PREVIEW_WIDTH' => array('int', 'caption=Размер на изгледа в широк режим->Широчина,unit=pix'),
+        
+        'FILEMAN_PREVIEW_HEIGHT' => array('int', 'caption=Размер на изгледа в широк режим->Височина,unit=pix'),
+        
+        'FILEMAN_PREVIEW_WIDTH_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Широчина,unit=pix'),
+        
+        'FILEMAN_PREVIEW_HEIGHT_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Височина,unit=pix'),
+        
+        'LINK_NARROW_MIN_FILELEN_SHOW' => array('fileman_FileSize', 'caption=Показване размера на файла в мобилен режим при големина->Повече от, suggestions=50 KB|100 KB|200 KB|300 KB'),
+        
+        'FILEINFO_MAX_ARCHIVE_LEN' => array('fileman_FileSize', 'caption=Максимален размер на архивите|*&comma;| за които ще се визуализира информация->Размер, suggestions=50 MB|100 MB|200 MB|300 MB'),
+        
+        'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
+        
+        'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
+        
+        'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
+        
+        'FILEMAN_WEBDRV_ERROR_CLEAN' => array('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при индексиране на файл->Време'),
+        
+        'FILEMAN_WEBDRV_PREVIEW_MULTIPLIER' => array('int(min=0, max=10)', 'caption=Увеличаване на размера на картинката при превю->Пъти'),
+        
+        'FILEMAN_OCR' => array('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
     );
     
     
@@ -187,40 +187,41 @@ class fileman_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-             // Установяваме папките;
-            'fileman_Buckets',
-    
-            // Установяваме файловете;
-            'fileman_Files',
-    
-            // Установяване на детайлите на файловете
-            'fileman_FileDetails',
-    
-            // Установяваме версиите;
-            'fileman_Versions',
-    
-            // Установяваме данните;
-            'fileman_Data',
-    
-            // Установяваме свалянията;
-            'fileman_Download',
-    
-            // Установяваме индексите на файловете
-            'fileman_Indexes',
-    
-            // Установяваме модела за хранилища
-            'fileman_Repositories',
-    
-            // Установяваме модела за последни файлове
-            'fileman_Log',
-            
-            'fileman_import_Base64',
-            
-            'migrate::addFileLen',
-            'migrate::bucketRoles',
-            'migrate::regenerateData1',
-            'migrate::regenerateBarcodes'
-        );
+        
+        // Установяваме папките;
+        'fileman_Buckets',
+        
+        // Установяваме файловете;
+        'fileman_Files',
+        
+        // Установяване на детайлите на файловете
+        'fileman_FileDetails',
+        
+        // Установяваме версиите;
+        'fileman_Versions',
+        
+        // Установяваме данните;
+        'fileman_Data',
+        
+        // Установяваме свалянията;
+        'fileman_Download',
+        
+        // Установяваме индексите на файловете
+        'fileman_Indexes',
+        
+        // Установяваме модела за хранилища
+        'fileman_Repositories',
+        
+        // Установяваме модела за последни файлове
+        'fileman_Log',
+        
+        'fileman_import_Base64',
+        
+        'migrate::addFileLen',
+        'migrate::bucketRoles',
+        'migrate::regenerateData1',
+        'migrate::regenerateBarcodes'
+    );
     
     
     /**
@@ -233,7 +234,7 @@ class fileman_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     public $systemActions = array(
-            array('title' => 'Регенериране', 'url' => array('fileman_Indexes', 'regenerate', 'ret_url' => true), 'params' => array('title' => 'Регенериране на ключови думи и индексирани записи')),
+        array('title' => 'Регенериране', 'url' => array('fileman_Indexes', 'regenerate', 'ret_url' => true), 'params' => array('title' => 'Регенериране на ключови думи и индексирани записи')),
     );
     
     
@@ -335,7 +336,7 @@ class fileman_Setup extends core_ProtoSetup
             
             // Ако версията 8.71
             if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71) || ($versionArr['version'] == 9) && ($versionArr['subVersion'] == 18)) {
-                    
+                
                 // Добавяме съобщение
                 return 'Версията на GhostScript "' . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\" e {$versionArr['version']}.{$versionArr['subVersion']}. С тази версия има проблеми. Моля да я обновите.";
             }
@@ -346,7 +347,7 @@ class fileman_Setup extends core_ProtoSetup
     /**
      * Проверява дали програмата е инсталирана в сървъра
      *
-     * @return boolean
+     * @return bool
      */
     public static function isEnabled()
     {
@@ -378,7 +379,7 @@ class fileman_Setup extends core_ProtoSetup
     {
         // Вземаме конфига
         $confWebkit = core_Packs::getConfig('fileman');
-       
+        
         // Опитваме се да вземем версията на ghostscript
         @exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . ' --version', $resArr, $erroCode);
         
@@ -426,7 +427,8 @@ class fileman_Setup extends core_ProtoSetup
             fileman_Files::save($rec, 'fileLen');
         }
     }
-
+    
+    
     /**
      * Миграция към keylist на полето за ролите
      */

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'pallet_Wrapper'
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pallet_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на групи с артикули.
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_Groups extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -213,14 +212,14 @@ class cat_Groups extends core_Manager
     {
         $file = 'cat/csv/Groups.csv';
         $fields = array(
-                0 => 'name',
-                1 => 'sysId',
-                2 => 'csv_parentId',
+            0 => 'name',
+            1 => 'sysId',
+            2 => 'csv_parentId',
         );
-    
+        
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
-    
+        
         return $res;
     }
     
@@ -228,7 +227,8 @@ class cat_Groups extends core_Manager
     /**
      * Връща кейлист от систем ид-та на групите
      *
-     * @param  mixed  $sysIds - масив със систем ид-та
+     * @param mixed $sysIds - масив със систем ид-та
+     *
      * @return string
      */
     public static function getKeylistBySysIds($sysIds)
@@ -247,14 +247,14 @@ class cat_Groups extends core_Manager
         
         return $kList;
     }
-
-
+    
+    
     /**
      * Форсира група (маркер) от каталога
      *
-     * @param string  $name     Име на групата. Съдържа целия път
-     * @param int     $parentId Id на родител
-     * @param boolean $force
+     * @param string $name     Име на групата. Съдържа целия път
+     * @param int    $parentId Id на родител
+     * @param bool   $force
      *
      * @return int|NULL id на групата
      */
@@ -263,7 +263,7 @@ class cat_Groups extends core_Manager
         static $groups = array();
         
         $parentIdNumb = (int) $parentId;
-
+        
         if (!($res = $groups[$parentIdNumb][$name])) {
             if (strpos($name, '»')) {
                 $gArr = explode('»', $name);
@@ -271,19 +271,19 @@ class cat_Groups extends core_Manager
                     $gName = trim($gName);
                     $parentId = self::forceGroup($gName, $parentId, $force);
                 }
-
+                
                 $res = $parentId;
             } else {
                 if ($parentId === null) {
                     $cond = 'AND #parentId IS NULL';
                 } else {
                     expect(is_numeric($parentId), $parentId);
-
+                    
                     $cond = "AND #parentId = {$parentId}";
                 }
                 
                 $gRec = cat_Groups::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
-
+                
                 if (isset($gRec->name)) {
                     $res = $gRec->id;
                 } else {
@@ -298,10 +298,10 @@ class cat_Groups extends core_Manager
                     }
                 }
             }
-
+            
             $groups[$parentIdNumb][$name] = $res;
         }
- 
+        
         return $res;
     }
     
@@ -309,9 +309,10 @@ class cat_Groups extends core_Manager
     /**
      * Връщане на списъка от групи като линк
      *
-     * @param  string $keylist - списък от групи
-     * @param  string $class   - клас на линковете
-     * @return array  $res     - масив от линкове
+     * @param string $keylist - списък от групи
+     * @param string $class   - клас на линковете
+     *
+     * @return array $res     - масив от линкове
      */
     public static function getLinks($keylist, $class = 'group-link')
     {
@@ -327,7 +328,7 @@ class cat_Groups extends core_Manager
             if ($makeLink === true) {
                 $listUrl = array('cat_Products', 'list', 'groupId' => $grId);
             }
-        
+            
             $classAttr = "class={$class}";
             $groupTitle = self::getVerbal($grId, 'name');
             $groupLink = ht::createLink($groupTitle, $listUrl, false, "{$classAttr},title=Филтриране на артикули по група|* '{$groupTitle}'");
@@ -341,8 +342,9 @@ class cat_Groups extends core_Manager
     /**
      * Има ли в подадените групи, такива които са наследници на друга група от списъка
      *
-     * @param  mixed   $groupList - масив или списък от групи
-     * @return boolean
+     * @param mixed $groupList - масив или списък от групи
+     *
+     * @return bool
      */
     public static function checkForNestedGroups($groupList)
     {
@@ -358,7 +360,7 @@ class cat_Groups extends core_Manager
                 
                 return true;
             }
-             
+            
             // Иначе добавяме него и наследниците му към недопустимите групи
             $descendant = cat_Groups::getDescendantArray($grId);
             $notAllowed += $descendant;

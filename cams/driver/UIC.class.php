@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Драйвер за IP камера UIC
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cams_driver_UIC extends cams_driver_IpDevice
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -50,6 +49,7 @@ class cams_driver_UIC extends cams_driver_IpDevice
         $form->FNC('width', 'int(min=176,max=704)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
         $form->FNC('height', 'int(min=120,max=576)', 'caption=Височина,hint=Вертикална резолюция,input');
         $form->FNC('FPS', 'int(min=1,max=30)', 'caption=Скорост,hint=Скорост на записа (fps),input');
+        
         // ALC-9272 codec = h264; ALC-9453 = mpeg4
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
         $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');

@@ -6,15 +6,16 @@
  *
  * @category  bgerp
  * @package   tests
+ *
  * @author    Pavlinka Dainovska <pdainovska@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class unit_MinkPColab extends core_Manager
 {
-     
     /**
      * Стартира последователно тестовете от MinkPColab
      */
@@ -22,6 +23,7 @@ class unit_MinkPColab extends core_Manager
     public function act_Run()
     {
         if (!TEST_MODE) {
+            
             return;
         }
         
@@ -35,9 +37,10 @@ class unit_MinkPColab extends core_Manager
         $res .= '  6.'.$this->act_CreateDistr();
         $res .= '  7.'.$this->act_AddDistrRights();
         $res .= '  8.'.$this->act_LogDistr();
-
+        
         return $res;
     }
+    
     
     /**
      * Логване
@@ -45,18 +48,21 @@ class unit_MinkPColab extends core_Manager
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
+        
         //$browser->start('http://localhost/');
         $host = unit_Setup::get('DEFAULT_HOST');
         $browser->start($host);
+        
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-
+        
         return $browser;
     }
-  
+    
+    
     /**
      * Избор на фирма
      */
@@ -68,9 +74,11 @@ class unit_MinkPColab extends core_Manager
         $Company = 'Фирма bgErp';
         $browser->click($Company);
         $browser->press('Папка');
-
+        
         return $browser;
     }
+    
+    
     /**
      * 1. Инсталиране на пакета colab
      */
@@ -79,14 +87,17 @@ class unit_MinkPColab extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         $browser->click('Админ');
         $browser->setValue('search', 'colab');
         $browser->press('Филтрирай');
+        
         //$browser->click('Активирай');
         $browser->open('http://localhost/core_Packs/install/?pack=colab');
+        
         //echo $browser->getHtml();
     }
+    
     
     /**
      * 2. Права на distributor за добавяне на артикули в продажба
@@ -96,16 +107,18 @@ class unit_MinkPColab extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         $browser->click('Админ');
         $browser->setValue('search', 'sales');
         $browser->press('Филтрирай');
         $browser->click('Настройки');
         $browser->setValue('distributor', true);
         $browser->press('Запис');
+        
         //echo $browser->getHtml();
     }
-     
+    
+    
     /**
      * 3. Създаване на Partner-agent и потребител към него
      */
@@ -114,33 +127,39 @@ class unit_MinkPColab extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на лице
         $browser->click('Визитник');
         $browser->click('Лица');
         $browser->press('Ново лице');
         $browser->setValue('name', 'Агент на Фирма bgErp');
         $browser->setValue('buzCompanyId', '3');
+        
         //$browser->setValue('groupListInput[9]', True);
         $browser->setValue('Потребители', true);
         $browser->press('Запис');
+        
         // Добавяне на потребител
         $browser->press('Потребител');
         $browser->setValue('nick', 'agent1');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->setValue('email', 'agent1@abv.bg');
+        
         //$browser->setValue('Headquarter', False);
         //$browser->setValue('partner', True);
         $browser->setValue('roleRank', 'partner');
         $browser->refresh('Запис');
         $browser->setValue('agent', true);
+        
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
+        
         //return $browser->getHtml();
     }
+    
     
     /**
      * 4. Даване на права до папката на фирмата и изход
@@ -159,8 +178,10 @@ class unit_MinkPColab extends core_Manager
         $browser->setValue('contractorId', 'Агент на Фирма bgErp');
         $browser->press('Запис');
         $browser->click('Изход');
+        
         //Да се затвори браузъра
     }
+    
     
     /**
      * 5. Логване на agent и запитване
@@ -171,12 +192,13 @@ class unit_MinkPColab extends core_Manager
         // Логване
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
-    
+        
         //Потребител colab1
         $browser->click('Вход');
         $browser->setValue('nick', 'agent1');
         $browser->setValue('pass', '123456');
         $browser->press('Вход');
+        
         //Запитване
         $browser->click('Теми');
         $browser->press('Запитване');
@@ -185,6 +207,8 @@ class unit_MinkPColab extends core_Manager
         $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
     }
+    
+    
     /**
      * 6. Създаване на Partner-distributor и потребител към него
      */
@@ -193,7 +217,7 @@ class unit_MinkPColab extends core_Manager
     {
         // Логване
         $browser = $this->SetUp();
-    
+        
         // Създаване на лице
         $browser->click('Визитник');
         $browser->click('Лица');
@@ -202,23 +226,26 @@ class unit_MinkPColab extends core_Manager
         $browser->setValue('buzCompanyId', '3');
         $browser->setValue('Потребители', true);
         $browser->press('Запис');
-       
+        
         // Добавяне на потребител
         $browser->press('Потребител');
         $browser->setValue('nick', 'distr1');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->setValue('email', 'distr1@abv.bg');
+        
         //$browser->setValue('Headquarter', False);
         //$browser->setValue('partner', True);
         $browser->setValue('roleRank', 'partner');
         $browser->refresh('Запис');
         $browser->setValue('distributor', true);
+        
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
         $browser->press('Запис');
     }
+    
     
     /**
      * 7. Даване на права до папката на фирмата и изход
@@ -237,8 +264,10 @@ class unit_MinkPColab extends core_Manager
         $browser->setValue('contractorId', 'Представител на Фирма bgErp');
         $browser->press('Запис');
         $browser->click('Изход');
+        
         //Да се затвори браузъра
     }
+    
     
     /**
      * 8. Логване на distr, запитване и продажба
@@ -271,6 +300,7 @@ class unit_MinkPColab extends core_Manager
         $browser->setValue('packQuantity', '100');
         $browser->press('Запис');
         $browser->press('Заявка');
+        
         //return $browser->getHtml();
     }
 }

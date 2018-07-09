@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за детайл на кошниците
  *
  *
  * @category  bgerp
  * @package   eshop
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_CartDetails extends core_Detail
 {
-    
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -119,9 +118,10 @@ class eshop_CartDetails extends core_Detail
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+            
             return;
         }
-    
+        
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
     
@@ -191,12 +191,12 @@ class eshop_CartDetails extends core_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-    
+        
         if (isset($rec->packagingId)) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-        
+            
             $settings = cms_Domains::getSettings();
             if ($price = eshop_ProductDetails::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)) {
                 $price->price = round($price->price, 2);
@@ -210,7 +210,7 @@ class eshop_CartDetails extends core_Detail
         
         if ($form->isSubmitted()) {
             $rec->eshopProductId = eshop_ProductDetails::fetchField("#productId = {$rec->productId}", 'eshopProductId');
-
+            
             // Проверка на к-то
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
@@ -242,9 +242,10 @@ class eshop_CartDetails extends core_Detail
     protected static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->finalPrice) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+            
             return;
         }
-    
+        
         $rec->amount = $rec->finalPrice * ($rec->quantity / $rec->quantityInPack);
     }
     
@@ -252,15 +253,15 @@ class eshop_CartDetails extends core_Detail
     /**
      * Добавя ред в количката
      *
-     * @param int     $cartId         - кошница
-     * @param int     $eshopProductId - артикул от е-мага
-     * @param int     $productId      - артикул от каталога
-     * @param int     $packagingId    - избрана опаковка/мярка
-     * @param double  $packQuantity   - к-во в избраната опаковка
-     * @param int     $quantityInPack - к-во в опаковка
-     * @param double  $packPrice      - ед. цена с ДДС, във валутата от настройките или NULL
-     * @param string  $currencyId     - код на валута
-     * @param boolean $hasVat         - дали сумата е с ДДС или не
+     * @param int    $cartId         - кошница
+     * @param int    $eshopProductId - артикул от е-мага
+     * @param int    $productId      - артикул от каталога
+     * @param int    $packagingId    - избрана опаковка/мярка
+     * @param float  $packQuantity   - к-во в избраната опаковка
+     * @param int    $quantityInPack - к-во в опаковка
+     * @param float  $packPrice      - ед. цена с ДДС, във валутата от настройките или NULL
+     * @param string $currencyId     - код на валута
+     * @param bool   $hasVat         - дали сумата е с ДДС или не
      */
     public static function addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack = null, $packPrice = null, $currencyId = null, $hasVat = null)
     {
@@ -280,13 +281,13 @@ class eshop_CartDetails extends core_Detail
         $currencyId = isset($currencyId) ? $currencyId : (isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode());
         
         $dRec = (object) array('cartId' => $cartId,
-                              'eshopProductId' => $eshopProductId,
-                              'productId' => $productId,
-                              'packagingId' => $packagingId,
-                              'quantityInPack' => $quantityInPack,
-                              'vat' => $vat,
-                              'quantity' => $quantity,
-                              'currencyId' => $currencyId,
+            'eshopProductId' => $eshopProductId,
+            'productId' => $productId,
+            'packagingId' => $packagingId,
+            'quantityInPack' => $quantityInPack,
+            'vat' => $vat,
+            'quantity' => $quantity,
+            'currencyId' => $currencyId,
         );
         
         if (!empty($packPrice)) {
@@ -316,6 +317,7 @@ class eshop_CartDetails extends core_Detail
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if ($rec->_updatePrice === false) {
+            
             return;
         }
         self::updatePriceInfo($rec);
@@ -326,9 +328,10 @@ class eshop_CartDetails extends core_Detail
      * Колко е максималното допустимо количество. Ако не е избран склад
      * или артикула не е складируем то няма максимално количество
      *
-     * @param  int         $productId      - ид на артикул
-     * @param  double      $quantityInPack - кво в опаковка
-     * @return NULL|double $maxQuantity - максималното к-во, NULL за без ограничение
+     * @param int   $productId      - ид на артикул
+     * @param float $quantityInPack - кво в опаковка
+     *
+     * @return NULL|float $maxQuantity - максималното к-во, NULL за без ограничение
      */
     public static function getMaxQuantity($productId, $quantityInPack)
     {
@@ -358,7 +361,6 @@ class eshop_CartDetails extends core_Detail
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
         } elseif (isset($fields['-external'])) {
-        	
             core_RowToolbar::createIfNotExists($row->_rowTools);
             if ($mvc->haveRightFor('removeexternal', $rec)) {
                 $removeUrl = toUrl(array('eshop_CartDetails', 'removeexternal', $rec->id), 'local');
@@ -371,14 +373,14 @@ class eshop_CartDetails extends core_Detail
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
-
+            
             // Колко е максималното допустимо количество
             $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack);
             
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . '</span>';
-        
+            
             self::updatePriceInfo($rec, null, true);
             
             $settings = cms_Domains::getSettings();
@@ -407,8 +409,8 @@ class eshop_CartDetails extends core_Detail
         
         // Показване на уникалните параметри под името на артикула
         $paramsText = self::getUniqueParamsAsText($rec);
-        if(!empty($paramsText)){
-        	$row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+        if (!empty($paramsText)) {
+            $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
         }
     }
     
@@ -454,7 +456,7 @@ class eshop_CartDetails extends core_Detail
         core_Lg::pop();
         
         Mode::set('currentExternalTab', 'eshop_Carts');
-
+        
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
             
@@ -468,7 +470,8 @@ class eshop_CartDetails extends core_Detail
     /**
      * Какво да се върне по AJAX
      *
-     * @param  stdClass $cartId
+     * @param stdClass $cartId
+     *
      * @return stdClass $res
      */
     private static function getUpdateCartResponse($cartId)
@@ -480,7 +483,7 @@ class eshop_CartDetails extends core_Detail
         // Ще реплейснем само бележката
         $resObj1 = new stdClass();
         $resObj1->func = 'smartCenter';
-
+        
         $resObj2 = new stdClass();
         $resObj2->func = 'html';
         $resObj2->arg = array('id' => 'cart-view-single', 'html' => eshop_Carts::renderView($cartId)->getContent(), 'replace' => true);
@@ -494,7 +497,7 @@ class eshop_CartDetails extends core_Detail
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-            
+        
         $res = array_merge(array($resObj1, $resObj2, $resObj3), (array) $statusData);
         core_Lg::pop();
         
@@ -524,7 +527,6 @@ class eshop_CartDetails extends core_Detail
             return self::getUpdateCartResponse($cartId);
         }
         
-
         return followRremoveexternaletUrl($retUrl);
     }
     
@@ -532,8 +534,9 @@ class eshop_CartDetails extends core_Detail
     /**
      * Колко ще е доставката от въведените данни
      *
-     * @param  stdClass    $masterRec
-     * @return NULL|double
+     * @param stdClass $masterRec
+     *
+     * @return NULL|float
      */
     public static function getDeliveryInfo($masterRec)
     {
@@ -543,13 +546,16 @@ class eshop_CartDetails extends core_Detail
         $query->show('productId,quantity,packagingId');
         
         if (empty($masterRec->termId)) {
+            
             return;
         }
         if (!$query->count()) {
+            
             return;
         }
         $TransCalc = cond_DeliveryTerms::getTransportCalculator($masterRec->termId);
         if (!$TransCalc) {
+            
             return;
         }
         
@@ -582,7 +588,7 @@ class eshop_CartDetails extends core_Detail
      *
      * @param stdClass $rec
      * @param int|NULL $domainId
-     * @param boolean  $save
+     * @param bool     $save
      */
     private static function updatePriceInfo(&$rec, $domainId = null, $save = false)
     {
@@ -603,12 +609,12 @@ class eshop_CartDetails extends core_Detail
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
             }
-                    
+            
             $finalPrice = $price * $rec->quantityInPack;
             if ($rec->haveVat == 'yes') {
                 $finalPrice *= 1 + $rec->vat;
             }
-        
+            
             $finalPrice = currency_CurrencyRates::convertAmount($finalPrice, null, null, $rec->currencyId);
         }
         
@@ -630,28 +636,29 @@ class eshop_CartDetails extends core_Detail
     
     /**
      * Кои са уникалните параметри на артикула като текст
-     * 
+     *
      * @param stdClass $rec
+     *
      * @return string $str
      */
     public static function getUniqueParamsAsText($rec)
     {
-    	$displayParams = eshop_Products::getParamsToDisplay($rec->eshopProductId);
-    	$commonParams = eshop_Products::getCommonParams($rec->eshopProductId);
-    	$productParams = cat_Products::getParams($rec->productId, null, true);
-    	 
-    	$productParams = array_intersect_key($productParams, $displayParams);
-    	$diff = array_diff_key($productParams, $commonParams);
-    	
-    	$arr = array();
-    	foreach ($diff as $paramId => $value){
-    		$paramRec = cat_Params::fetch($paramId);
-    		$value = (!empty($paramRec->suffix)) ? $value .  " " . tr($paramRec->suffix) : $value;
-    		$arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ": " . $value;
-    	}
-    	
-    	$str = (count($arr)) ? implode(', ', $arr) : '';
-    	
-    	return $str;
+        $displayParams = eshop_Products::getParamsToDisplay($rec->eshopProductId);
+        $commonParams = eshop_Products::getCommonParams($rec->eshopProductId);
+        $productParams = cat_Products::getParams($rec->productId, null, true);
+        
+        $productParams = array_intersect_key($productParams, $displayParams);
+        $diff = array_diff_key($productParams, $commonParams);
+        
+        $arr = array();
+        foreach ($diff as $paramId => $value) {
+            $paramRec = cat_Params::fetch($paramId);
+            $value = (!empty($paramRec->suffix)) ? $value .  ' ' . tr($paramRec->suffix) : $value;
+            $arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ': ' . $value;
+        }
+        
+        $str = (count($arr)) ? implode(', ', $arr) : '';
+        
+        return $str;
     }
 }

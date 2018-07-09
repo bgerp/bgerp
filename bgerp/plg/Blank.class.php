@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * Добавя бланка в началото на документите, които се изпращат или принтират
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_Blank extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if (Mode::is('noBlank', true)) {
+            
             return;
         }
         
@@ -73,8 +73,8 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Връща линк за показване на документа във външната част
      *
-     * @param integer $cid
-     * @param string  $mid
+     * @param int    $cid
+     * @param string $mid
      *
      * @return string
      */

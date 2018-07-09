@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Интерфейс за вид партида
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_BatchTypeIntf extends embed_DriverIntf
 {
-
-    
     /**
      * Инстанция на мениджъра имащ интерфейса
      */
@@ -42,11 +41,12 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param  mixed     $documentClass - класа за който ще връщаме партидата
-     * @param  int       $id            - ид на документа за който ще връщаме партидата
-     * @param  int       $storeId       - склад
-     * @param  date|NULL $date          - дата
-     * @return mixed     $value        - автоматичния партиден номер, ако може да се генерира
+     * @param mixed     $documentClass - класа за който ще връщаме партидата
+     * @param int       $id            - ид на документа за който ще връщаме партидата
+     * @param int       $storeId       - склад
+     * @param date|NULL $date          - дата
+     *
+     * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
      */
     public function getAutoValue($documentClass, $id, $storeId, $date = null)
     {
@@ -57,10 +57,11 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Проверява дали стойността е невалидна
      *
-     * @param  string   $value    - стойноста, която ще проверяваме
-     * @param  quantity $quantity - количеството
-     * @param  string   &$msg     -текста на грешката ако има
-     * @return boolean  - валиден ли е кода на партидата според дефиницията или не
+     * @param string   $value    - стойноста, която ще проверяваме
+     * @param quantity $quantity - количеството
+     * @param string   &$msg     -текста на грешката ако има
+     *
+     * @return bool - валиден ли е кода на партидата според дефиницията или не
      */
     public function isValid($value, $quantity, &$msg)
     {
@@ -82,7 +83,8 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      *
-     * @param  string $value
+     * @param string $value
+     *
      * @return string $value
      */
     public function normalize($value)
@@ -94,7 +96,8 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Денормализира партидата
      *
-     * @param  text $value
+     * @param text $value
+     *
      * @return text $value
      */
     public function denormalize($value)
@@ -106,8 +109,9 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Разбива партидата в масив
      *
-     * @param  string $value - партида
-     * @return array  $array - масив с партидата
+     * @param string $value - партида
+     *
+     * @return array $array - масив с партидата
      */
     public function makeArray($value)
     {
@@ -118,11 +122,12 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Какви са свойствата на партидата
      *
-     * @param  string $value - номер на партидара
-     * @return array  - свойства на партидата
-     *                      o name    - заглавие
-     *                      o classId - клас
-     *                      o value   - стойност
+     * @param string $value - номер на партидара
+     *
+     * @return array - свойства на партидата
+     *               o name    - заглавие
+     *               o classId - клас
+     *               o value   - стойност
      */
     public function getFeatures($value)
     {
@@ -145,9 +150,10 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
      *
-     * @param  core_Query $query          - заявка към batch_Items
-     * @param  string     $value          -стойност на филтъра
-     * @param  string     $featureCaption - Заглавие на колоната на филтъра
+     * @param core_Query $query          - заявка към batch_Items
+     * @param string     $value          -стойност на филтъра
+     * @param string     $featureCaption - Заглавие на колоната на филтъра
+     *
      * @return void
      */
     public function filterItemsQuery(core_Query &$query, $value, &$featureCaption)
@@ -173,11 +179,12 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Разпределя количество към наличните партиди в даден склад към дадена дата
      *
-     * @param  double $quantity - к-во
-     * @param  int    $storeId  - склад
-     * @param  string $date     - дата
-     * @return array  $batches  - от коя партида, какво количество да се изпише
-     *                         [име_на_партидата] => [к_во_за_изписване]
+     * @param float  $quantity - к-во
+     * @param int    $storeId  - склад
+     * @param string $date     - дата
+     *
+     * @return array $batches  - от коя партида, какво количество да се изпише
+     *               [име_на_партидата] => [к_во_за_изписване]
      */
     public function allocateQuantityToBatches($quantity, $storeId, $date = null)
     {
@@ -210,7 +217,7 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     /**
      * Може ли потребителя да сменя уникалноста на партида/артикул
      *
-     * @return boolean
+     * @return bool
      */
     public function canChangeBatchUniquePerProduct()
     {

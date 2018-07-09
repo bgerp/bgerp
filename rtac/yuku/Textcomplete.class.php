@@ -6,15 +6,16 @@
  *
  * @category  vendors
  * @package   rtac
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rtac_yuku_Textcomplete extends core_Manager
 {
     public $interfaces = 'rtac_AutocompleteIntf';
-    
     
     
     public $title = 'Yuku textcomplete';
@@ -24,6 +25,7 @@ class rtac_yuku_Textcomplete extends core_Manager
      * Добавя необходимите неща за да работи плъгина
      *
      * @param core_Et $tpl
+     *
      * @see rtac_AutocompleteIntf::loadPacks(&$tpl)
      */
     public static function loadPacks(&$tpl)
@@ -40,6 +42,7 @@ class rtac_yuku_Textcomplete extends core_Manager
      *
      * @param core_Et $tpl
      * @param string  $rtId
+     *
      * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
      */
     public static function runAutocompleteUsers(&$tpl, $rtId)
@@ -78,6 +81,7 @@ class rtac_yuku_Textcomplete extends core_Manager
      *
      * @param core_Et $tpl
      * @param string  $textId
+     *
      * @see rtac_AutocompleteIntf::runAutocompleteUsers(&$tpl, $rtId)
      */
     public static function runAutocompleteText(&$tpl, $textId)

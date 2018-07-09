@@ -1,11 +1,11 @@
 <?php
 
+
 /**
  * Чертае Оразмеряване на ъгъл
  */
 class cad2_MeasureAngle extends cad2_Shape
 {
-    
     /**
      * Задължителен интерфейс, който фигурите трябва да имат
      */
@@ -31,8 +31,8 @@ class cad2_MeasureAngle extends cad2_Shape
         $form->FLD('Cx', 'float', 'caption=Bx');
         $form->FLD('Cy', 'float', 'caption=By');
     }
-
-
+    
+    
     /**
      * Метод за изрисуване на фигурата
      */
@@ -41,22 +41,22 @@ class cad2_MeasureAngle extends cad2_Shape
         extract($p);
         self::draw($svg, $Ax, $Ay, $Bx, $By, $Cx, $Cy);
     }
-
-
+    
+    
     /**
      * Метод за debug на ъгъл ABC
      */
     public static function draw($svg, $Ax, $Ay, $Bx, $By, $Cx, $Cy)
     {
         $svg->openGroup();
-
+        
         $AB = new cad2_Vector($Bx - $Ax, $By - $Ay);
         $CB = new cad2_Vector($Bx - $Cx, $By - $Cy);
-
+        
         //ъгъла на линията
         $vectorAngle = abs($AB->a - $CB->a);
         $angleGrad = rad2deg($vectorAngle);
-
+        
         expect(false, $angleGrad);
     }
 }

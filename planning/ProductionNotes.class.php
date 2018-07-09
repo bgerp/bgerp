@@ -9,16 +9,16 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class planning_ProductionNotes extends planning_ProductionDocument
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -173,40 +173,44 @@ class planning_ProductionNotes extends planning_ProductionDocument
         // Ако е към задание
         $firstDocumentInThread = doc_Threads::getFirstDocument($rec->threadId);
         if (!isset($firstDocumentInThread)) {
+            
             return;
         }
         if (!$firstDocumentInThread->isInstanceOf('planning_Jobs')) {
+            
             return;
         }
-            
+        
         // Добавяме информацията за артикула от заданието
         $originRec = $firstDocumentInThread->rec();
         $productRec = cat_Products::fetch($originRec->productId);
         $toProduce = $originRec->quantity - $originRec->quantityProduced;
         if ($toProduce <= 0) {
+            
             return;
         }
-            
+        
         // Ако артикула не е производим, не го добавяме
         if ($productRec->canManifacture != 'yes') {
+            
             return;
         }
         $bomRec = cat_Products::getLastActiveBom($productRec, 'production');
         if (!$bomRec) {
             $bomRec = cat_Products::getLastActiveBom($productRec, 'sales');
         }
-            
+        
         // Ако има рецепта, добавяме артикула от заданието като първи детайл
         if ($bomRec) {
             $dRec = (object) array('noteId' => $rec->id,
-                                  'productId' => $originRec->productId,
-                                  'quantity' => $toProduce,
-                                  'jobId' => $originRec->id,
-                                  'packagingId' => $productRec->measureId,
-                                  'quantityInPack' => 1,
-                                  'bomId' => $bomRec->id,
-                );
-                    
+                'productId' => $originRec->productId,
+                'quantity' => $toProduce,
+                'jobId' => $originRec->id,
+                'packagingId' => $productRec->measureId,
+                'quantityInPack' => 1,
+                'bomId' => $bomRec->id,
+            );
+            
             // Добавяме артикула от заданието в протокола, с количеството оставащо за производство
             planning_ProductionNoteDetails::save($dRec);
         }

@@ -6,16 +6,16 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Продажби » Продажби без фактура
  */
 class sales_reports_ZDDSRep extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -26,6 +26,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField = 'containerId';
@@ -48,8 +49,8 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     {
         $fieldset->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,after=title');
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -63,16 +64,17 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         
         $prevMonth = dt::addMonths(-1, dt::today());
         $op = acc_Periods::fetchByDate($prevMonth);
-
+        
         $form->setDefault('periodId', $op->id);
     }
-
+    
     
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -80,33 +82,38 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         $recs = array();
         core_App::setTimeLimit(500);
         $Sales = cls::get('sales_Sales');
-
+        
         $period = acc_Periods::fetch($rec->periodId);
         
         // Обикаляме по бързите Продажби
         $this->prepareQuery($query, $data, $period, 'sales_Sales', 'sales_SalesDetails', 'saleId');
+        
         // Обикаляме по Експедиционните
         $this->prepareQuery($query, $data, $period, 'store_ShipmentOrders', 'store_ShipmentOrderDetails', 'shipmentId');
+        
         // Обикаляме по Складовите
         $this->prepareQuery($query, $data, $period, 'store_Receipts', 'store_ReceiptDetails', 'receiptId');
+        
         // Обикаляме по Фактурите
         $this->prepareQuery($query, $data, $period, 'sales_Invoices', 'sales_InvoiceDetails', 'invoiceId');
+        
         // Обикаляме по Предавателни
         $this->prepareQuery($query, $data, $period, 'sales_Services', 'sales_ServicesDetails', 'shipmentId');
+        
         // Обикаляме по Приемателни
         $this->prepareQuery($query, $data, $period, 'purchase_Services', 'purchase_ServicesDetails', 'shipmentId');
-
+        
         if (is_array($data->recs)) {
             foreach ($data->recs as $pRec) {
                 $quantity = 0;
                 $amount = 0;
-               
+                
                 switch (strstr($pRec->doc, '|', true)) {
                     case 'sales_Sales':
                         $quantity += $pRec->quantity;
                         $amount += $pRec->amount;
                         break;
-                        
+                    
                     case 'store_ShipmentOrders':
                         $quantity += $pRec->quantity;
                         $amount += $pRec->amount;
@@ -116,29 +123,29 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                         $quantity -= $pRec->quantity;
                         $amount -= $pRec->amount;
                         break;
-                        
+                    
                     case 'sales_Services':
                         $quantity += $pRec->quantity;
                         $amount += $pRec->amount;
                         break;
-                                
+                    
                     case 'purchase_Services':
                         $quantity -= $pRec->quantity;
                         $amount -= $pRec->amount;
                         break;
                 }
-    
+                
                 if (!array_key_exists($pRec->article, $recs)) {
                     $recs[$pRec->article] = (object) array('code' => $pRec->code,
-                                        'article' => $pRec->article,
-                                        'price' => '',
-                                        'measure' => $pRec->measure,
-                                        'quantity' => $quantity,
-                                        'amount' => $amount,
-                                        'quantityInv' => $pRec->quantityInv,
-                                        'amountInv' => $pRec->amountInv,
-                                        'amountVat' => '',
-                                        'amountVatInv' => '');
+                        'article' => $pRec->article,
+                        'price' => '',
+                        'measure' => $pRec->measure,
+                        'quantity' => $quantity,
+                        'amount' => $amount,
+                        'quantityInv' => $pRec->quantityInv,
+                        'amountInv' => $pRec->amountInv,
+                        'amountVat' => '',
+                        'amountVatInv' => '');
                 } else {
                     $obj = &$recs[$pRec->article];
                     
@@ -147,22 +154,22 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                             $obj->quantity += $pRec->quantity;
                             $obj->amount += $pRec->amount;
                             break;
-                             
+                        
                         case 'store_ShipmentOrders':
                             $obj->quantity += $pRec->quantity;
                             $obj->amount += $pRec->amount;
                             break;
-                             
+                        
                         case 'store_Receipts':
                             $obj->quantity -= $pRec->quantity;
                             $obj->amount -= $pRec->amount;
                             break;
-                            
+                        
                         case 'sales_Services':
                             $obj->quantity += $pRec->quantity;
                             $obj->amount += $pRec->amount;
                             break;
-                            
+                        
                         case 'purchase_Services':
                             $obj->quantity -= $pRec->quantity;
                             $obj->amount -= $pRec->amount;
@@ -185,12 +192,12 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                     }
                 }
             }
-    
+            
             foreach ($recs as $id => $r) {
                 $r->amount = round($r->amount, 2);
                 
                 $vat = cat_Products::getVat($r->article, $r->valior);
-        
+                
                 $r->amountVat = $r->amount + ($r->amount * $vat);
                 
                 if ($r->amount && $r->quantity > 0) {
@@ -200,7 +207,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                 if (isset($r->amountInv)) {
                     $r->amountVatInv = $r->amountInv + ($r->amountInv * $vat);
                 }
-    
+                
                 $r->priceVat = $r->price + ($r->price * $vat);
             }
         }
@@ -209,22 +216,23 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             
             return strnatcmp(mb_strtolower($a->code, 'UTF-8'), mb_strtolower($b->code, 'UTF-8'));
         });
-
+        
         return $recs;
     }
-
+    
     
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-    
+        
         $fld->FLD('code', 'varchar', 'caption=Код');
         $fld->FLD('article', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
@@ -236,7 +244,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         $fld->FLD('amountInv', 'double', 'caption=Стойност->Фактурирано');
         $fld->FLD('amountVat', 'double', 'caption=Стойност с ДДС->Доставено');
         $fld->FLD('amountVatInv', 'double', 'caption=Стойност с ДДС->Фактурирано');
-    
+        
         return $fld;
     }
     
@@ -244,15 +252,16 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-
+        
         $row = new stdClass();
         
         if (isset($dRec->code)) {
@@ -274,7 +283,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         
         return $row;
     }
-
+    
     
     /**
      * След вербализирането на данните
@@ -314,8 +323,8 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-
-
+    
+    
     /**
      * Подготвяме заявката към мастър класа и детайла
      *
@@ -339,12 +348,12 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             $fld = 'valior';
             $exp = "(#state = 'active' OR #state = 'closed')";
         }
-
+        
         $query->where("(#${fld} >= '{$period->start}' AND #${fld} <= '{$period->end}') AND ${exp}");
         
         $recs = array();
         $recsDet = array();
-       
+        
         while ($rec = $query->fetch()) {
             $detQuery = $detailClass::getQuery();
             $detQuery->where("#${masterKey} = '{$rec->id}'");
@@ -367,43 +376,47 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     private function addRecs(&$data, $rec, $recDetail, $class)
     {
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        
         //yes=Включено,no=Без,separate=Отделно,export=Експорт
         $chargeVat = $firstDoc->fetchField('chargeVat');
         
         if (!$firstDoc->instance instanceof sales_Sales) {
+            
             return;
         }
         
         if (isset($chargeVat)) {
             if ($chargeVat == 'no') {
+                
                 return;
             }
         }
-
+        
         if (isset($recDetail->discount)) {
             $amount = $recDetail->amount - ($recDetail->amount * $recDetail->discount);
         } else {
             $amount = $recDetail->amount;
         }
-
+        
         if (isset($recDetail->price)) {
             $price = $recDetail->price;
         }
-         
+        
         if (isset($recDetail->packQuantity)) {
             $quantity = $recDetail->packQuantity;
         } else {
             $quantity = $recDetail->quantity;
         }
-
+        
         if (isset($rec->currencyId)) {
             $currencyId = $rec->currencyId;
         }
-
+        
         if ($class == 'sales_Sales') {
             // гледаме дали тя е бърза
             $actions = type_Set::toArray($rec->contoActions);
             if (!isset($actions['ship'])) {
+                
                 return;
             }
         }
@@ -411,17 +424,17 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         if (isset($rec->valior)) {
             $valior = $rec->valior;
         }
-
+        
         $quantityInv = 0;
         if ($class == 'sales_Invoices') {
             $Details = cls::get('sales_InvoiceDetails');
-           
+            
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount * $recDetail->discount);
             } else {
                 $amountInv = $recDetail->amount;
             }
-        
+            
             if (isset($recDetail->packQuantity)) {
                 $quantityInv = $recDetail->packQuantity;
             } else {
@@ -430,10 +443,12 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             
             if (isset($rec->type)) {
                 $type = $rec->type;
+                
                 //обработката на записите на КИ и ДИ
                 if ($type == 'dc_note') {
                     $dealValue = $rec->dealValue;
                     $vatAmount = $rec->vatAmount;
+                    
                     // Намираме оригиналните к-ва и цени
                     $cache = $Details->Master->getInvoiceDetailedInfo($rec->originId);
                     
@@ -453,25 +468,25 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         }
         
         $id = $recDetail->productId;
-
+        
         $data->recs[] = (object) array(
-                                    'doc' => $class . '|' . $rec->id,
-                                    'docNum' => $rec->id,
-                                    'valior' => $valior,
-                                    'code' => cat_Products::fetchField($recDetail->productId, 'code'),
-                                    'article' => $recDetail->productId,
-                                    'measure' => cat_Products::getProductInfo($recDetail->productId)->productRec->measureId,
-                                    'quantity' => $quantity,
-                                    'amount' => $amount,
-                                    'price' => $price,
-                                    'quantityInv' => $quantityInv,
-                                    'amountInv' => $amountInv,
-                                    'amountVat' => '',
-                                    'amountVatInv' => '',
-                                    'type' => $type,
-                                    'dealValue' => $dealValue,
-                                    'vatAmount' => $vatAmount,
-                                    'qM' => $qM,
-                                    'qP' => $qP);
+            'doc' => $class . '|' . $rec->id,
+            'docNum' => $rec->id,
+            'valior' => $valior,
+            'code' => cat_Products::fetchField($recDetail->productId, 'code'),
+            'article' => $recDetail->productId,
+            'measure' => cat_Products::getProductInfo($recDetail->productId)->productRec->measureId,
+            'quantity' => $quantity,
+            'amount' => $amount,
+            'price' => $price,
+            'quantityInv' => $quantityInv,
+            'amountInv' => $amountInv,
+            'amountVat' => '',
+            'amountVatInv' => '',
+            'type' => $type,
+            'dealValue' => $dealValue,
+            'vatAmount' => $vatAmount,
+            'qM' => $qM,
+            'qP' => $qP);
     }
 }

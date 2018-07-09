@@ -43,15 +43,15 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -86,12 +86,12 @@ class planning_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     public $configDescription = array(
-            'PLANNING_TASK_SERIAL_COUNTER' => array('int', 'caption=Производствени операции->Стартов сериен номер'),
-            'PLANNING_TASK_LABEL_PREVIEW_WIDTH' => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
-            'PLANNING_TASK_LABEL_PREVIEW_HEIGHT' => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
-            'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
-            'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
-            'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
+        'PLANNING_TASK_SERIAL_COUNTER' => array('int', 'caption=Производствени операции->Стартов сериен номер'),
+        'PLANNING_TASK_LABEL_PREVIEW_WIDTH' => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
+        'PLANNING_TASK_LABEL_PREVIEW_HEIGHT' => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+        'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
+        'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
+        'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
     );
     
     
@@ -99,46 +99,46 @@ class planning_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'planning_Jobs',
-            'planning_ConsumptionNotes',
-            'planning_ConsumptionNoteDetails',
-            'planning_DirectProductionNote',
-            'planning_DirectProductNoteDetails',
-            'planning_ReturnNotes',
-            'planning_ReturnNoteDetails',
-            'planning_ObjectResources',
-            'planning_Tasks',
-            'planning_AssetResources',
-            'planning_AssetResourceFolders',
-            'planning_ProductionTaskDetails',
-            'planning_ProductionTaskProducts',
-            'planning_AssetGroups',
-            'planning_AssetResourcesNorms',
-            'planning_Centers',
-            'planning_Hr',
-            'planning_FoldersWithResources',
-        );
-
-        
+        'planning_Jobs',
+        'planning_ConsumptionNotes',
+        'planning_ConsumptionNoteDetails',
+        'planning_DirectProductionNote',
+        'planning_DirectProductNoteDetails',
+        'planning_ReturnNotes',
+        'planning_ReturnNoteDetails',
+        'planning_ObjectResources',
+        'planning_Tasks',
+        'planning_AssetResources',
+        'planning_AssetResourceFolders',
+        'planning_ProductionTaskDetails',
+        'planning_ProductionTaskProducts',
+        'planning_AssetGroups',
+        'planning_AssetResourcesNorms',
+        'planning_Centers',
+        'planning_Hr',
+        'planning_FoldersWithResources',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = array(
-            array('production'),
-            array('taskWorker'),
-            array('taskPlanning', 'taskWorker'),
-            array('planning', 'taskPlanning'),
-            array('planningMaster', 'planning'),
-            array('job')
+        array('production'),
+        array('taskWorker'),
+        array('taskPlanning', 'taskWorker'),
+        array('planning', 'taskPlanning'),
+        array('planningMaster', 'planning'),
+        array('job')
     );
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', 'planning, ceo, job, store, taskWorker, taskPlanning'),
-        );
+        array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', 'planning, ceo, job, store, taskWorker, taskPlanning'),
+    );
     
     
     /**

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class sms_Setup
  *
@@ -11,15 +10,15 @@
  *
  * @category  vendors
  * @package   sms
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sms_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -42,8 +41,8 @@ class sms_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Регистър на SMS-ите';
-
-
+    
+    
     /**
      * Необходими пакети
      */
@@ -54,10 +53,10 @@ class sms_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'sms_Sender'
-        );
-
-        
+        'sms_Sender'
+    );
+    
+    
     /**
      * Де-инсталиране на пакета
      */

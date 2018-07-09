@@ -1,13 +1,13 @@
 <?php
 
 
-
 /**
  * Драйвер за IP контролер Teracom TCW181B-CM
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -15,7 +15,6 @@
  */
 class teracom_TCW181BCM extends sens2_ProtoDriver
 {
-    
     /**
      * Заглавие на драйвера
      */
@@ -43,8 +42,8 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
         'OutD7' => array('caption' => 'Цифров изход 7', 'uom' => '', 'xmlPath' => '/Relay7[1]', 'cmd' => 'r7'),
         'OutD8' => array('caption' => 'Цифров изход 8', 'uom' => '', 'xmlPath' => '/Relay8[1]', 'cmd' => 'r8')
     );
-
-
+    
+    
     /**
      *  Информация за входните портове на устройството
      *
@@ -57,10 +56,10 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
         foreach ($this->inputs as $name => $params) {
             $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Информация за изходните портове на устройството
@@ -74,10 +73,10 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
         foreach ($this->outputs as $name => $params) {
             $res[$name] = array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
@@ -94,7 +93,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
         $form->FNC('password', 'password(show)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
     }
     
-
+    
     /**
      * Прочита стойностите от сензорните входове
      *
@@ -113,7 +112,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
         $url->placeArray($config);
         $url = $url->getContent();
         log_System::add(get_called_class(), 'url: ' . $url);
-
+        
         // Извличаме XML-a
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -122,27 +121,27 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         $xml = curl_exec($ch);
         curl_close($ch);
-     
+        
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
             return "Грешка при четене от {$config->ip}:{$config->port}";
         }
-   
+        
         log_System::add(get_called_class(), 'url: ' . $url);
-
+        
         log_System::add(get_called_class(), 'xml: ' . $xml);
-
+        
         // Парсираме XML-а
         $result = array();
         @core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
-
+        
         // Ако реазултата не е коректен
         if (!count($result)) {
             
             return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
         }
-
+        
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
             if ($inputs[$name]) {
@@ -174,12 +173,11 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
                 }
             }
         }
-
+        
         log_System::add(get_called_class(), 'res: ' . serialize($res));
-
+        
         return $res;
     }
-
     
     
     /**
@@ -201,7 +199,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
         
         $baseUrl->placeArray($config);
         $baseUrl = $baseUrl->getContent();
-
+        
         foreach ($this->outputs as $out => $attr) {
             if (isset($outputs[$out])) {
                 $res[$out] = $baseUrl . $attr['cmd'] . '=' . $outputs[$out];
@@ -216,7 +214,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
             $res[$out] = curl_exec($ch);
             curl_close($ch);
         }
-
+        
         return $res;
     }
 }

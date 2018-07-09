@@ -1,23 +1,27 @@
 <?php
 
+
 require_once 'aws/aws-autoloader.php';
 
 use Aws\S3\S3Client;
+
 
 /**
  * Модул backUp чрез Amazon Web Services (главно S3)
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @uses      Composer and Amazon SDK
  */
 class backup_Amazon extends core_BaseClass
 {
-
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -31,7 +35,7 @@ class backup_Amazon extends core_BaseClass
     
     private static $s3Client;
     private static $bucket;
-
+    
     public function __construct()
     {
         self::$s3Client = new S3Client([
@@ -42,11 +46,11 @@ class backup_Amazon extends core_BaseClass
                 'secret' => backup_Setup::get('AMAZON_SECRET', true),
             ],
         ]);
-
+        
         self::$bucket = backup_Setup::get('AMAZON_BUCKET', true);
     }
-
-
+    
+    
     /**
      * Копира файл съхраняван в сторидж на Amazon система в
      * посоченото в $fileName място
@@ -55,6 +59,7 @@ class backup_Amazon extends core_BaseClass
      *
      * @param $sourceFile
      * @param $destFile
+     *
      * @return bool
      *
      */
@@ -66,7 +71,7 @@ class backup_Amazon extends core_BaseClass
                     'Bucket' => self::$bucket,
                     'Key' => $sourceFile,
                     'SaveAs' => $destFile
-                    )
+                )
             );
         } catch (Exception $e) {
             $object = false;
@@ -74,29 +79,30 @@ class backup_Amazon extends core_BaseClass
         
         return $object ?  true : false;
     }
-
-
+    
+    
     /**
      * Записва файл в Amazon архива
      *
      * Част от интерфейса: backup_StorageIntf
      *
      * @param $sourceFile
-     * @param  null $subDir
+     * @param null $subDir
+     *
      * @return bool
      *
      */
     public static function putFile($sourceFile, $subDir = null)
     {
         $key = $subDir ?  $subDir . '/' . basename($sourceFile) : basename($sourceFile);
-
+        
         try {
             $result = self::$s3Client->putObject(
                 array(
                     'Bucket' => self::$bucket,
                     'Key' => $key,
                     'Body' => fopen($sourceFile, 'r+')
-                    )
+                )
             );
         } catch (Exception $e) {
             $result = false;
@@ -104,14 +110,15 @@ class backup_Amazon extends core_BaseClass
         
         return $result ? true : false;
     }
-
-
+    
+    
     /**
      * Изтрива файл в Amazon архива
      *
      * Част от интерфейса: backup_StorageIntf
      *
      * @param $sourceFile
+     *
      * @return bool
      *
      */
@@ -122,12 +129,12 @@ class backup_Amazon extends core_BaseClass
                 array(
                     'Bucket' => self::$bucket,
                     'Key' => $sourceFile,
-                    )
+                )
             );
         } catch (Exception $e) {
             $result = false;
         }
-
+        
         return $result ? true : false;
     }
 }

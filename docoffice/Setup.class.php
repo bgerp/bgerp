@@ -53,15 +53,15 @@ defIfNot('OFFICE_JODCONVERTER_VERSION', '3.0b4');
  *
  * @category  bgerp
  * @package   docoffice
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class docoffice_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * От кои други пакети зависи
      */
@@ -84,16 +84,16 @@ class docoffice_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-    
+        
         // Кой клас да се използва за конвертиране на офис документи
         'OFFICE_CONVERTER_CLASS' => array('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи->Клас'),
         
         'OFFICE_PREVIEW_WIDTH' => array('int', 'caption=Размер на изгледа в широк режим->Широчина,unit=pix'),
-           
+        
         'OFFICE_PREVIEW_HEIGHT' => array('int', 'caption=Размер на изгледа в широк режим->Височина,unit=pix'),
-
+        
         'OFFICE_PREVIEW_WIDTH_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Широчина,unit=pix'),
-
+        
         'OFFICE_PREVIEW_HEIGHT_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Височина,unit=pix'),
     );
     
@@ -102,18 +102,18 @@ class docoffice_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'docoffice_Jodconverter',
-            'docoffice_Unoconv',
-        );
-
-        
+        'docoffice_Jodconverter',
+        'docoffice_Unoconv',
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-          
+        
         // Проверяваме дали офис пакета е инсталиран и работи коректно
         if (docoffice_Office::startOffice()) {
             $html .= '<li>Офис пакета работи коректно.';

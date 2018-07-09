@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Четене и записване на локални файлове
  *
  *
  * @category  bgerp
  * @package   backup
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Архивиране
  */
 class backup_Start extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Стартира архивиране';
+    
     
     /**
      * Име на семафора за стартиран процес на бекъп
@@ -34,6 +34,7 @@ class backup_Start extends core_Manager
     private static $storage;
     private static $confFileName;
     private static $initialized = false;
+    
     
     /**
      * Инициализиране на обекта
@@ -50,6 +51,7 @@ class backup_Start extends core_Manager
     private static function initialize()
     {
         if (self::$initialized) {
+            
             return;
         }
         
@@ -82,6 +84,7 @@ class backup_Start extends core_Manager
             
             shutdown();
         }
+        
         // Заключваме цялата система
         core_SystemLock::block('Процес на архивиране на данните', $time = 1800); // 30 мин.
         
@@ -122,6 +125,7 @@ class backup_Start extends core_Manager
         
         // Добавяме нов запис за пълния бекъп
         $metaArr['backup'][][0] = self::$backupFileName;
+        
         // Махаме бинлоговете
         unset($metaArr['logNames']);
         file_put_contents(EF_TEMP_PATH . '/' . self::$metaFileName, serialize($metaArr));
@@ -178,7 +182,7 @@ class backup_Start extends core_Manager
         }
         
         $metaArr = self::getMETA();
-
+        
         if (!is_array($metaArr)) {
             self::logErr('Лоша информация в метафайла!');
             self::unLock();
@@ -200,13 +204,13 @@ class backup_Start extends core_Manager
         while ($logName = $db->fetchArray($dbRes)) {
             $resArr['logNames'][] = $logName['Log_name'];
         }
-
+        
         // Log_name e колоната с имената
         // 3. флъшваме лог-а
         $db->query('FLUSH LOGS');
-
+        
         $ungetedBinLogs = array_diff((array) $resArr['logNames'], (array) $metaArr['logNames']);
-
+        
         // 4. взимаме съдържанието на binlogo-вете в temp-a, компресираме го и го качваме в сториджа
         foreach ($ungetedBinLogs as $binLogFileName) {
             $binLogFileNameGz = self::$conf->BACKUP_PREFIX . '_' . EF_DB_NAME . '_' . $binLogFileName . '.gz';
@@ -215,7 +219,7 @@ class backup_Start extends core_Manager
                 . self::$conf->BACKUP_MYSQL_USER_NAME
                 . ' -p' . self::$conf->BACKUP_MYSQL_USER_PASS . " {$binLogFileName} -h"
                 . self::$conf->BACKUP_MYSQL_HOST . ' | gzip -1 > ' . EF_TEMP_PATH . '/' . $binLogFileNameGz;
-    
+            
             exec($cmdBinLog, $output, $returnVar);
             
             if ($returnVar !== 0) {
@@ -267,7 +271,7 @@ class backup_Start extends core_Manager
         
         // Взимаме мета данните
         $metaArr = self::getMETA();
-
+        
         if (count($metaArr['backup']) > self::$conf->BACKUP_CLEAN_KEEP) {
             // Има нужда от почистване
             $garbage = array_slice($metaArr['backup'], 0, count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
@@ -304,7 +308,7 @@ class backup_Start extends core_Manager
     /**
      * Запазва конфигурация на bgERP
      *
-     * @return boolean
+     * @return bool
      */
     private static function saveConf()
     {
@@ -344,6 +348,7 @@ class backup_Start extends core_Manager
     /**
      * Криптира зададен файл в темп директорията
      * със зададената парола и изтрива оригинала
+     *
      * @param string $fileName
      *
      * @return string - името на новия файл
@@ -376,12 +381,12 @@ class backup_Start extends core_Manager
     /**
      * Запазва файлове от fileMan-a
      *
-     * @return boolean
+     * @return bool
      */
     private static function saveFileMan()
     {
         $unArchived = fileman_Data::getUnArchived(self::$conf->BACKUP_FILEMAN_COUNT_FILES);
-
+        
         foreach ($unArchived as $fileObj) {
             if (file_exists($fileObj->path)) {
                 if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
@@ -395,12 +400,12 @@ class backup_Start extends core_Manager
         }
     }
     
-
+    
     /**
      * Вдига семафор за стартиран бекъп
      * Връща false ако семафора е вече вдигнат
      *
-     * @return boolean
+     * @return bool
      */
     private static function lock()
     {
@@ -416,18 +421,18 @@ class backup_Start extends core_Manager
     /**
      * Смъква семафора на бекъп-а
      *
-     * @return boolean
+     * @return bool
      */
     public static function unLock()
     {
         self::initialize();
         
         $res = false;
-
+        
         if (file_exists(self::$lockFileName)) {
             $res = @unlink(self::$lockFileName);
         }
-
+        
         return $res;
     }
     
@@ -435,7 +440,7 @@ class backup_Start extends core_Manager
     /**
      * Показва състоянието на семафора за бекъп
      *
-     * @return boolean
+     * @return bool
      */
     public static function isLocked()
     {
@@ -455,6 +460,7 @@ class backup_Start extends core_Manager
         self::full();
     }
     
+    
     /**
      * Прави binLog по крон
      */
@@ -463,6 +469,7 @@ class backup_Start extends core_Manager
         self::binLog();
     }
     
+    
     /**
      * Изчиства старите beckup-пи чрез крон
      */
@@ -470,6 +477,7 @@ class backup_Start extends core_Manager
     {
         self::clean();
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -492,6 +500,7 @@ class backup_Start extends core_Manager
         return $this->full();
     }
     
+    
     /**
      * Прави binLog през Web
      */
@@ -501,6 +510,7 @@ class backup_Start extends core_Manager
         
         return self::binLog();
     }
+    
     
     /**
      * Изчиства старите beckup-пи през Web
@@ -512,6 +522,7 @@ class backup_Start extends core_Manager
         return self::clean();
     }
     
+    
     /**
      * Запазва конфигурационните файлове на bgerp-a
      */
@@ -522,11 +533,12 @@ class backup_Start extends core_Manager
         return self::saveConf();
     }
     
+    
     /**
      * Връща линк към подадения обект
      * Тук нямаме обект - предефинираме я за да се излиза коректно име в лог-а на класа
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */

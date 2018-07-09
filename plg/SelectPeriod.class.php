@@ -1,16 +1,17 @@
 <?php
 
 
-
 /**
  * Клас 'plg_Select' - Добавя селектор на ред от таблица
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_SelectPeriod extends core_Plugin
@@ -19,7 +20,7 @@ class plg_SelectPeriod extends core_Plugin
     {
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
-
+        
         $form = $data->listFilter;
         
         $selectPeriod = Request::get('selectPeriod');
@@ -29,7 +30,8 @@ class plg_SelectPeriod extends core_Plugin
             Request::push(array($fF => $from, $fT => $to));
         }
     }
-
+    
+    
     /**
      * @TODO описание
      *
@@ -42,9 +44,9 @@ class plg_SelectPeriod extends core_Plugin
     {
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
-
+        
         $form = $data->listFilter;
-
+        
         $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => 'spr(this);')));
         if (strpos($form->showFields, $fF) !== false) {
             $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $form->showFields . ','), ',');
@@ -52,10 +54,10 @@ class plg_SelectPeriod extends core_Plugin
             $form->showFields .= ($form->showFields ? ',' : '') . 'selectPeriod';
         }
         
-
+        
         $form->input($data->listFilter->showFields, 'silent');
         $rec = $form->rec;
-
+        
         $keySel = null;
         if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
@@ -69,8 +71,8 @@ class plg_SelectPeriod extends core_Plugin
             Request::push(array('selectPeriod' => $keySel));
         }
     }
-
-
+    
+    
     /**
      * Подготвяме скриваме полетата
      */
@@ -79,14 +81,14 @@ class plg_SelectPeriod extends core_Plugin
         $form = $data->listFilter;
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
-
+        
         $form->setField($fF, array('rowStyle' => 'display:none'));
         $form->setField($fT, array('rowStyle' => 'display:none'));
-
+        
         $form->defOrder = true;
     }
-
-
+    
+    
     /**
      * Изчислява $from и $to
      */
@@ -99,7 +101,7 @@ class plg_SelectPeriod extends core_Plugin
         }
         
         switch ($sel) {
-
+            
             // Ден
             case 'today':
                 $from = $to = dt::today();
@@ -110,13 +112,13 @@ class plg_SelectPeriod extends core_Plugin
             case 'dby':
                 $from = $to = dt::addDays(-2, null, false);
                 break;
-
+            
             // Седмица
             case 'cur_week':
                 $from = date('Y-m-d', strtotime('monday this week', $now));
                 $to = date('Y-m-d', strtotime('sunday this week', $now));
                 break;
-
+            
             case 'last_week':
                 $from = date('Y-m-d', strtotime('monday last week', $now));
                 $to = date('Y-m-d', strtotime('sunday last week', $now));
@@ -131,7 +133,7 @@ class plg_SelectPeriod extends core_Plugin
                 $from = date('Y-m-d', strtotime('first day of last month'));
                 $to = date('Y-m-d', strtotime('last day of last month'));
                 break;
-
+            
             // Година
             case 'cur_year':
                 $from = date('Y-01-01');
@@ -159,7 +161,7 @@ class plg_SelectPeriod extends core_Plugin
                 $from = dt::addDays(-359, null, false);
                 $to = dt::addDays(0, null, false);
                 break;
-                
+            
             // За всички да е празен стринг вместо NULL
             case 'gr0':
                 $from = '';
@@ -169,13 +171,13 @@ class plg_SelectPeriod extends core_Plugin
                 if (preg_match('/^\\d{4}-\\d{2}-\\d{2}\\|\\d{4}-\\d{2}-\\d{2}$/', $sel)) {
                     list($from, $to) = explode('|', $sel);
                 }
-
+        
         }
         
         return array($from,  $to);
     }
-
-
+    
+    
     /**
      * Подготва опциите за избир на период
      */
@@ -213,10 +215,10 @@ class plg_SelectPeriod extends core_Plugin
         $opt['last14'] = '14 ' .tr('дни');
         $opt['last30'] = '30 ' .tr('дни');
         $opt['last360'] = '360 ' .tr('дни');
-
+        
         // Друг период
         $opt['gr6'] = (object) array('title' => tr('Друг период'), 'group' => true);
-
+        
         // Вкарваме периодите от сесията
         $luPeriods = Mode::get('luPeriods');
         if ($luPeriods) {
@@ -226,7 +228,7 @@ class plg_SelectPeriod extends core_Plugin
         } else {
             $luPeriods = array();
         }
-
+        
         // Добяваме вербално определение и търсим евентуално ключа отговарящ на избрания период
         foreach ($opt as $key => $val) {
             if (is_scalar($val)) {
@@ -238,7 +240,7 @@ class plg_SelectPeriod extends core_Plugin
                 if (!strpos($key, '|')) {
                     $opt[$key] .= ' (' . self::getPeriod($from, $to) . ')';
                 }
-
+                
                 if ($fromSel && $toSel) {
                     if ($fromSel == $from && $toSel == $to) {
                         $keySel = $key;
@@ -246,7 +248,7 @@ class plg_SelectPeriod extends core_Plugin
                 }
             }
         }
-
+        
         // Ако имаме входящ период, и той не е стандартен, добавяме го
         if ($fromSel && $toSel && !$keySel) {
             $keySel = $fromSel . '|' . $toSel;
@@ -256,12 +258,10 @@ class plg_SelectPeriod extends core_Plugin
         
         // Добавяме избор на производлен период
         $opt['select'] = tr('Избор');
-
+        
         return $opt;
     }
-
-
-
+    
     
     private static function getPeriod($from, $to)
     {
@@ -274,7 +274,7 @@ class plg_SelectPeriod extends core_Plugin
                 $m1 = '';
             }
         }
-
+        
         $ldm = date('t', strtotime($to));
         if ($d1 == '01' && $d2 == $ldm) {
             $d1 = $d2 = '';
@@ -282,7 +282,7 @@ class plg_SelectPeriod extends core_Plugin
                 $m1 = $m2 = '';
             }
         }
-
+        
         if ($d1 && ($d1 == $d2) && !$m1 && !$y1) {
             $d1 = '';
         }
@@ -290,9 +290,9 @@ class plg_SelectPeriod extends core_Plugin
         if ($m2 && !$y1 && $y2 == date('Y')) {
             $y2 = '';
         }
-
+        
         $v = '.';
-
+        
         if (strlen("{$d1}{$m1}{$y1}{$d2}{$m3}{$y2}") < 10) {
             if ($m1) {
                 $m1 = dt::getMonth($m1, 'FM');
@@ -302,9 +302,9 @@ class plg_SelectPeriod extends core_Plugin
             }
             $v = ' ';
         }
-
+        
         $period = trim(trim("{$d1}{$v}{$m1}{$v}{$y1}", $v) . '-' . trim("{$d2}{$v}{$m2}{$v}{$y2}", $v), '-');
-
+        
         return $period;
     }
 }

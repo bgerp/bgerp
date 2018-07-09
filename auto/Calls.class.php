@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   auto
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class auto_Calls extends core_Manager
 {
-    
-    
     /**
      * Кой има право да променя?
      */
@@ -39,7 +39,7 @@ class auto_Calls extends core_Manager
      */
     protected $canDelete = 'no_one';
     
-
+    
     /**
      * Заглавие
      */
@@ -55,7 +55,7 @@ class auto_Calls extends core_Manager
     /**
      * Да се извика ли на on_Shutdown
      *
-     * @param boolean
+     * @param bool
      */
     protected $callOnShutdown;
     
@@ -75,10 +75,10 @@ class auto_Calls extends core_Manager
     /**
      * Добавя функция, която да се изпълни след определено време
      *
-     * @param string  $event          - име на събитието
-     * @param mixed   $data           - данни за събитието
-     * @param boolean $once           - дали да се добави само веднъж
-     * @param boolean $callOnShutdown - да се изпълнили на шътдаун
+     * @param string $event          - име на събитието
+     * @param mixed  $data           - данни за събитието
+     * @param bool   $once           - дали да се добави само веднъж
+     * @param bool   $callOnShutdown - да се изпълнили на шътдаун
      */
     public static function setCall($event, $data = null, $once = false, $callOnShutdown = false)
     {
@@ -86,7 +86,7 @@ class auto_Calls extends core_Manager
         $nRec->event = $event;
         $nRec->data = $data;
         $nRec->state = 'waiting';
-
+        
         // Ако ще се изпълнява само веднъж, трябва да е уникално
         if ($once === true) {
             $hash = md5($event . ' ' . json_encode($data));
@@ -152,10 +152,10 @@ class auto_Calls extends core_Manager
     public function act_Truncate()
     {
         requireRole('admin,debug,ceo');
-            
+        
         // Изчистваме записите от моделите
         self::truncate();
-    
+        
         return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
     }
     
@@ -172,12 +172,13 @@ class auto_Calls extends core_Manager
         $lockKey = 'DoAutomations';
         if (!core_Locks::get($lockKey, 60, 1)) {
             $this->logWarning('Извършването на автоматизации е заключено от друг процес');
-
+            
             return;
         }
         
         // Ако има чакащи автоматики
         if (!self::count()) {
+            
             return;
         }
         
@@ -207,7 +208,7 @@ class auto_Calls extends core_Manager
                         if (!$Automation->canHandleEvent($rec->event)) {
                             continue;
                         }
-                
+                        
                         $Automation->doAutomation($rec->event, $rec->data);
                     }
                 }

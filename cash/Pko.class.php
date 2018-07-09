@@ -1,27 +1,26 @@
 <?php
 
 
-
 /**
  * Документ за Приходни касови ордери
  *
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_Pko extends cash_Document
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Pko, bgerp_DealIntf, email_DocumentIntf';
-   
+    
     
     /**
      * Заглавие на мениджъра
@@ -57,7 +56,7 @@ class cash_Pko extends cash_Document
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFileNarrow = 'cash/tpl/PkoNarrow.shtml';
-
+    
     
     /**
      * Групиране на документите
@@ -76,7 +75,7 @@ class cash_Pko extends cash_Document
      */
     public $details = 'cash_NonCashPaymentDetails';
     
-
+    
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
@@ -91,7 +90,7 @@ class cash_Pko extends cash_Document
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'termDate';
-
+    
     
     /**
      * Описание на модела
@@ -102,7 +101,7 @@ class cash_Pko extends cash_Document
         parent::getFields($this);
         $this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
     }
-
+    
     
     /**
      *  Обработка на формата за редакция и добавяне
@@ -140,7 +139,7 @@ class cash_Pko extends cash_Document
                 $rec->nonCashPayments[$key] = $value;
             }
         }
-            
+        
         if ($nonCashSum > $rec->amount) {
             $form->setError(implode(',', $keys), 'Общата сума на безналичните методи за плащане е над тази от ордера');
         }

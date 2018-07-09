@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'i18n_Charset' - Кункции за работа с кодови таблици за символи
  *
@@ -10,14 +9,15 @@
  *
  * @category  vendors
  * @package   i18n
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class i18n_Charset extends core_MVC
 {
-    
     /**
      *  Масив с ключове - алиас-и на чар сетове и стойности - официални имена на чар сетове
      */
@@ -106,15 +106,15 @@ class i18n_Charset extends core_MVC
         'L8' => 'ISO-8859-14',
     );
     
-
+    
     public static $topCn1 = array(
         '的', '一', '是', '不', '了', '在', '人', '有', '我', '他', '这', '个', '们', '中', '来', '上', '大', '为', '和', '国', '地',
         '到', '以', '说', '时', '要', '就', '出', '会', '可', '也', '你', '对', '生', '能', '而', '子', '那', '得', '于', '着', '下',
         '自', '之', '年', '过', '发', '后', '作', '里', '用', '道', '行', '所', '然', '家', '种', '事', '成', '方', '多', '经', '么',
         '去', '法', '学', '如', '都', '同', '现', '当', '没', '动', '面', '起', '看', '定', '天', '分', '还', '进', '好', '小', '部',
         '其', '些', '主', '样', '理', '心', '她', '本', '前', '开', '但', '因', '只', '从', '想', '实', '寄', '件',
-        );
-
+    );
+    
     public static $topCn2 = array(
         '日', '军', '者', '意', '无', '力', '它', '与', '长', '把', '机', '十', '民', '第', '公', '此', '已', '工', '使', '情', '明',
         '性', '知', '全', '三', '又', '关', '点', '正', '业', '外', '将', '两', '高', '间', '由', '问', '很', '最', '重', '并', '物',
@@ -122,23 +122,23 @@ class i18n_Charset extends core_MVC
         '身', '果', '加', '西', '斯', '月', '话', '合', '回', '特', '代', '内', '信', '表', '化', '老', '给', '世', '位', '次', '度',
         '门', '任', '常', '先', '海', '通', '教', '儿', '原', '东', '声', '提', '立', '及', '比', '员',
     );
-
+    
     public static $topCyr1 = array(
         'на', 'та', 'ни', 'ат', 'ра', 'то', 'ст', 'от', 'те', 'ре', 'во', 'ен', 'ва', 'ко', 'пр', 'по',
-        );
-
+    );
+    
     public static $topCyr2 = array(
         'ка', 'но', 'ит', 'од', 'ан', 'за', 'да', 'ед', 'ов', 'ри', 'ти', 'не', 'ет', 'се', 'ин', 'ли', 'ор',
         'ро', 'ос', 'ав', 'ја', 'ле', 'де', 'ар', 'ск', 'ма', 'до', 'он', 'ме', 'ак',
-        );
-
+    );
+    
     public static $topCyr3 = array(
         'го', 'ал', 'ве', 'ви', 'ди', 'ис', 'ел', 'ци', 'ол', 'ла', 'иј', 'ил', 'ки', 'ер', 'со', 'из', 'тр',
         'ад', 'ес', 'би', 'ек', 'ло', 'ми', 'об', 'ам', 'мо', 'ув', 'ем', 'тв', 'им', 'че', 'си', 'ом', 'ик',
         'га', 'дн', 'ог', 'ио', 'вр', 'ас', 'ив', 'ој', 'са', 'ок', 'ир', 'аз', 'ия', 'ев', 'ие', 'ње', 'ањ',
         'оп', 'гр', 'па', 'ру', 'нс', 'сл', 'бе', 'ич', 'бо', 'иц', 'вн', 'сп', 'нт', 'др',
     );
-
+    
     public static $topLatExt = array(
         'të', 'ër', 'në', 'ës', 'ın', 'pë', 'rë', 'nı', 'jë', 'ní', 'għ', 'ën', 'së', 'kë', 'ão', 'tä', 'ça',
         'rı', 'ħa', 'lı', 'în', 'më', 'që', 'ió', 'şi', 'sı', 'ţi', 'aş', 'ür', 'ıl', 'aç', 'tı', 'rá', 'ön',
@@ -180,7 +180,7 @@ class i18n_Charset extends core_MVC
         'çb', 'ħt', 'pá', 'ıt', 'šo', 'xò', 'ès', 'cħ', 'oġ', 'nš', 'zę', 'dă', 'áh', 'râ', 'cü', 'rč', 'łą',
         'eţ', 'dż', 'yš', 'mâ', 'dň', 'óc', 'dö', 'jó', 'eś', 'tã', 'ġj',
     );
-
+    
     public static $topGreek1 = array(
         'ου', 'το', 'αι', 'τη', 'ικ', 'τα', 'κα', 'πο', 'στ', 'ει', 'τι', 'να', 'αν', 'εί', 'με', 'ια', 'σε',
         'ση', 'ατ', 'ρα', 'απ', 'ρο', 'ης', 'ων', 'τε', 'ερ', 'ντ', 'ον', 'δι', 'μα', 'ρι', 'πρ', 'οι', 'υν',
@@ -200,7 +200,7 @@ class i18n_Charset extends core_MVC
         'άζ', 'θο', 'φι', 'ιλ', 'εύ', 'ύσ', 'θυ', 'γγ', 'μβ', 'ύς', 'ηκ', 'ιό', 'βά', 'σσ', 'λό', 'άμ', 'βέ',
         'νώ', 'εθ', 'τώ', 'ύτ', 'έα', 'ώρ', 'ήθ', 'ωρ', 'υκ', 'σπ', 'έμ', 'χώ', 'ήρ', 'έπ', 'ηθ', 'ίπ', 'ωπ',
         'λώ', 'αξ', 'εω', 'ώς', 'ίκ', 'μφ', 'λύ', 'σύ', 'γή', 'ιχ', 'βα', );
-
+    
     public static $topGreek2 = array(
         'γμ', 'ίς', 'άθ', 'ιώ', 'μή', 'ρή', 'φυ', 'ιπ', 'σή', 'ύμ', 'φω', 'υθ', 'κύ', 'ώτ', 'οχ', 'ύλ', 'γω',
         'κι', 'ξα', 'χω', 'ψη', 'πη', 'βρ', 'ρσ', 'τσ', 'φά', 'ωμ', 'αβ', 'έκ', 'χι', 'κδ', 'άπ', 'δί', 'ρτ',
@@ -240,8 +240,8 @@ class i18n_Charset extends core_MVC
         'وط', 'صد', 'وج', 'زر', 'أس', 'هد', 'دس', 'طل', 'نف', 'نح', 'يح', 'از', 'هي', 'اً', 'قع', 'تس', 'ده',
         'شي', 'فق', 'سن', 'غر', 'يط', 'نة', 'إس', 'صي', 'رم', 'أح', 'ره', 'نب', 'قص', 'دع', 'طن', 'سف', 'فت',
         'يش', 'تش', 'تط', 'مب', 'مف', 'ظا', 'نش', 'دن', 'نس', 'زم', 'أع',
-        );
-
+    );
+    
     public static $topArabic2 = array(
         'لط', 'بت', 'دى', 'حس', 'رت', 'يز', 'حث', 'تك', 'خر', 'يج', 'دد', 'سم', 'زو', 'نص', 'وص', 'غا', 'نق',
         'أي', 'كث', 'رص', 'بق', 'تد', 'وأ', 'جت', 'مؤ', 'بم', 'ثي', 'سع', 'صة', 'هل', 'جب', 'طة', 'جر', 'تت',
@@ -261,13 +261,13 @@ class i18n_Charset extends core_MVC
         'طع', 'شط', 'فى', 'وش', 'تئ', 'شل', 'بج', 'جع', 'دق', 'ضب', 'بث', 'ءا', 'ئة', 'إح', 'أه', 'آخ', 'قش',
         'ظم', 'إر', 'عُ', 'أَ', 'قق', 'ذه', 'َت', 'ِه', 'حى', 'نَ', 'تث', 'هه', 'شخ', 'نغ', 'شن', 'أث', 'طى',
         'ؤق', 'شأ', 'هت', 'تى', 'بض', 'ضل', 'أط', 'وخ', 'نن', 'نذ', 'غب',
-        );
-
+    );
+    
     public static $topLatinExt = array('ë', 'ı', 'ä', 'í', 'á', 'ş', 'ü', 'ç', 'ó', 'č', 'ă', 'š', 'é', 'ž', 'ö', 'ğ', 'ħ',
         'õ', 'ý', 'ų', 'ż', 'ú', 'ţ', 'ą', 'ě', 'ã', 'ė', 'î', 'ę', 'Â', 'ġ', 'ł', 'ř', 'à', 'ċ', 'ť', 'ś', 'İ', 'â',
         'ū', 'ć', 'è', 'ů', 'ľ', 'ò', 'Ú', 'į', 'Ğ', 'Ü', 'ô', 'ň', 'ñ', 'Ħ', 'Ç', 'ń', 'ê', 'Ş', 'Ö', 'Î', 'Č', 'Š');
     
-
+    
     public static $commonCharsets = array(
         'CP1251' => 'cyrillic',
         'UTF-8' => 'roman,cyrillic,chinese,japanese,arabic,hebrew,greek,armenian',
@@ -282,7 +282,7 @@ class i18n_Charset extends core_MVC
         'ISO-8859-9' => 'roman',
         'GB2312' => 'all',
     );
-
+    
     public static $rareCharsets = array(
         'ISO-8859-3' => 'roman',
         'CP1253' => 'greek',
@@ -290,10 +290,11 @@ class i18n_Charset extends core_MVC
         'CP1254' => 'roman',
         'CP1258' => 'roman', // Vietnam
         'MACROMAN' => 'roman',
-       // 'EUC-CN'        => 'all',
-       // 'BIG5'          => 'all',
-       // 'GBK'           => 'all',
-       // 'EUC-KR'        => 'all',
+        
+        // 'EUC-CN'        => 'all',
+        // 'BIG5'          => 'all',
+        // 'GBK'           => 'all',
+        // 'EUC-KR'        => 'all',
         'CP1257' => 'roman',
         'CP1256' => 'arabic',
         'JIS_C6220-1969-RO' => 'japanese',
@@ -305,58 +306,59 @@ class i18n_Charset extends core_MVC
         'ISO-8859-1_REP_UTF8' => 'all',
         'CP819|866' => 'all',
     );
-
+    
     public static $cyrillicAlphabet = 'А Б В Г Д Е Ж З И Й К Л М Н О П Р С Т У Ф Х Ц Ч Ш Щ ѝ Ъ Ю Я а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш щ ь ъ ю я';
-
+    
+    
     /**
      * Начални символи за цитати
      */
     public static $openSign2 = array('„', '–', '“', '…', '‒', '—', '•');
-
-
+    
+    
     /**
      * Крайни символи за цитати
      */
     public static $closeSign2 = array('–', '”', '…', '•', '—', '“');
-
-
+    
+    
     /**
      * UTF-8 рейнджове на различни скриптове за писане
      */
     public static $utf8ScriptRanges = array(
-            array(0x0041, 0x005A, 'latin'),
-            array(0x0061, 0x007A, 'latin'),
-            array(0x00C0, 0x00F6, 'latExt'),
-            array(0x00F7, 0x00FF, 'latExt'),
-            array(0x0100, 0x02AF, 'latExt2'),
-            array(0x0000, 0x00FF, 'sign'),
-            array(0xFF00, 0xFFEF, 'sign'),
-            array(0x200B, 0x2E80, 'sign2'),
-            array(0x0410, 0x042F, 'cyrillic'),
-            array(0x0430, 0x044F, 'cyrillic'),
-            array(0x0400, 0x04FF, 'cyrExt'),
-            array(0x4E00, 0x9FCC, 'chinese'),
-            array(0x3400, 0x4DB5, 'chinese'),
-            array(0x20000, 0x2A6DF, 'chinese'),
-            array(0x2A700, 0x2B734, 'chinese'),
-            array(0x2B740, 0x2B81D, 'chinese'),
-            array(0x3000, 0x303F, 'chinese'),
-            array(0x3040, 0x309F, 'japanese'),
-            array(0x30A0, 0x30FF, 'japanese'),
-            array(0x4E00, 0x9FBF, 'japanese'),
-            array(0x0600, 0x06FF, 'arabic'),
-            array(0x0750, 0x077F, 'arabic'),
-            array(0x08A0, 0x08FF, 'arabic'),
-            array(0xFB50, 0xFDFF, 'arabic'),
-            array(0xFE70, 0xFEFF, 'arabic'),
-            array(0x10E60, 0x10E7F, 'arabic'),
-            array(0x1EE00, 0x1EEFF, 'arabic'),
-            array(0x0590, 0x05FF, 'hebrew'),
-            array(0x0370, 0x03FF, 'greek'),
-            array(0x0530, 0x058F, 'armenian')
-        );
-
-
+        array(0x0041, 0x005A, 'latin'),
+        array(0x0061, 0x007A, 'latin'),
+        array(0x00C0, 0x00F6, 'latExt'),
+        array(0x00F7, 0x00FF, 'latExt'),
+        array(0x0100, 0x02AF, 'latExt2'),
+        array(0x0000, 0x00FF, 'sign'),
+        array(0xFF00, 0xFFEF, 'sign'),
+        array(0x200B, 0x2E80, 'sign2'),
+        array(0x0410, 0x042F, 'cyrillic'),
+        array(0x0430, 0x044F, 'cyrillic'),
+        array(0x0400, 0x04FF, 'cyrExt'),
+        array(0x4E00, 0x9FCC, 'chinese'),
+        array(0x3400, 0x4DB5, 'chinese'),
+        array(0x20000, 0x2A6DF, 'chinese'),
+        array(0x2A700, 0x2B734, 'chinese'),
+        array(0x2B740, 0x2B81D, 'chinese'),
+        array(0x3000, 0x303F, 'chinese'),
+        array(0x3040, 0x309F, 'japanese'),
+        array(0x30A0, 0x30FF, 'japanese'),
+        array(0x4E00, 0x9FBF, 'japanese'),
+        array(0x0600, 0x06FF, 'arabic'),
+        array(0x0750, 0x077F, 'arabic'),
+        array(0x08A0, 0x08FF, 'arabic'),
+        array(0xFB50, 0xFDFF, 'arabic'),
+        array(0xFE70, 0xFEFF, 'arabic'),
+        array(0x10E60, 0x10E7F, 'arabic'),
+        array(0x1EE00, 0x1EEFF, 'arabic'),
+        array(0x0590, 0x05FF, 'hebrew'),
+        array(0x0370, 0x03FF, 'greek'),
+        array(0x0530, 0x058F, 'armenian')
+    );
+    
+    
     /**
      * Намира кой е предполагаемия charset
      */
@@ -374,6 +376,7 @@ class i18n_Charset extends core_MVC
             }
         } else {
             expect(is_array($assumedCharsets), $assumedCharsets);
+            
             // Нормализираме имената на $assumedCharsets
             if (count($assumedCharsets)) {
                 foreach ($assumedCharsets as $cs => $weight) {
@@ -383,9 +386,9 @@ class i18n_Charset extends core_MVC
                 }
             }
         }
- 
+        
         $assumedCharsets = $newAssumedCharsets;
-
+        
         if ($isHtml && self::is7bit($text)) {
             $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
             if (!self::is7bit($text)) {
@@ -393,7 +396,7 @@ class i18n_Charset extends core_MVC
                 return 'HTML_ENTITIES';
             }
         }
-
+        
         // Ако е даден HTML опитваме се да извлечем charset и и след това махаме HTML елементите
         if ($isHtml) {
             $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
@@ -403,7 +406,7 @@ class i18n_Charset extends core_MVC
                     $assumedCharsets[$cs] += $step * 0.7;
                 }
             }
- 
+            
             $text = preg_replace('/<script.*<\/script>/U', ' ', $text);
             $text = preg_replace('/<style.*<\/style>/U', ' ', $text);
             $text = strip_tags($text);
@@ -411,13 +414,13 @@ class i18n_Charset extends core_MVC
             $text = preg_replace('/&#?[a-z0-9]{2,8};/i', '', $text);
         }
         
-
+        
         // Ако текста е 7-битов
         if (self::is7bit($text)) {
             if (count($assumedCharsets)) {
                 $cs = array_search(max($assumedCharsets), $assumedCharsets);
             }
-
+            
             if ($cs && (@self::iconv(self::iconv($text, $cs), 'UTF-8', $cs) != $text)) {
                 unset($cs);
             }
@@ -425,10 +428,10 @@ class i18n_Charset extends core_MVC
             if (!$cs) {
                 $cs = 'US-ASCII';
             }
- 
+            
             return $cs;
         }
-
+        
         $rates = array(0);
         
         // Намираме скриптовите рейтинги на препоръчаните кодировки
@@ -443,11 +446,11 @@ class i18n_Charset extends core_MVC
                 $debug = $sample . ' ';
                 $rates[$cs] = self::rateScript($sample, 'all', $debug);
                 $resDebug[$cs] = $debug;
-                 
+                
                 $rates[$cs] = $rates[$cs] * (1 + $weight / 100) + $weight / 1000;
             }
         }
- 
+        
         $max = max($rates);
         
         if ($max < 1.1) {
@@ -459,22 +462,22 @@ class i18n_Charset extends core_MVC
                 
                 $sample = $text;
                 $sample = self::iconv($sample, $cs, 'UTF-8//IGNORE');
-
+                
                 if (!$sample) {
                     continue;
                 }
-
+                
                 $debug = $sample . ' ';
                 $rates[$cs] = self::rateScript($sample, 'all', $debug);
-                   
+                
                 $resDebug[$cs] = $debug;
             }
         }
         
         
         $max = max($rates);
-
-
+        
+        
         // Ако нямаме максимална стойност над 1, то разглеждаме и няколко по-редки
         if ($max < 1.1) {
             foreach (static::$rareCharsets as $cs => $scripts) {
@@ -498,21 +501,22 @@ class i18n_Charset extends core_MVC
                 }
             }
         }
- 
+        
         // arsort($rates);
- 
+        
         $resArr = array_keys($rates, max($rates));
-         
+        
         $charset = $resArr[0];
+        
         // Todo: да се разгледа случая, когато имаме няколко чарсета на първо място
-
+        
         // expect($charset, $charset, $resArr, max($rates), $rates, $assumedCharsets, $oa);
-
+        
         // Ако не сме успели да установим чарсета - приемаме, че е UTF-8
         if (!$charset) {
             $charset = 'UTF-8';
         }
-
+        
         return $charset;
     }
     
@@ -522,7 +526,7 @@ class i18n_Charset extends core_MVC
      *
      * @param string $text
      *
-     * @return boolean|string
+     * @return bool|string
      */
     public static function getSampleText($text)
     {
@@ -578,7 +582,7 @@ class i18n_Charset extends core_MVC
                         $strArr[$bitStr][$k] .= $char;
                         $strCntArr[$k][$bitStr]++;
                     } else {
-                    
+                        
                         // Ако сме намерили стринга, няма нужда да ходим до края в интервала
                         // Прескачаме на следващия интервал или, ако сме в края - прекъсваме
                         // Това е за бързодействие при стрингове със съдържание на символи различни от 7 бита
@@ -630,7 +634,7 @@ class i18n_Charset extends core_MVC
      * @param array|string $scripts
      * @param string|NULL  $debug
      *
-     * @return boolean|string
+     * @return bool|string
      */
     public static function rateScript($text, $scripts, &$debug = null)
     {
@@ -653,18 +657,18 @@ class i18n_Charset extends core_MVC
             $len = mb_strlen($text);
             
             $sL = $SL = 'sign';
-    
+            
             $c = '';
-    
+            
             $i = 0;
-
+            
             while ('' != ($c = self::nextChar($text, $i))) {
                 $m = mb_strtolower($c);
                 
                 $s = self::getScript($c);
                 
                 $S = $s;
-    
+                
                 if ($s == 'cyrillic' || $s == 'cyrExt') {
                     $S = 'cyrillic';
                 } elseif ($s == 'latExt' || $s == 'latExt2' || $s == 'latin') {
@@ -672,7 +676,7 @@ class i18n_Charset extends core_MVC
                 } elseif ($s == 'sign' || $s == 'sign2') {
                     $S = 'sign';
                 }
-    
+                
                 // $debug .= "[ $s " . $S . ' ' . $c . ' ' . dechex(self::utf8Ord($c)) . "]"; // dechex(self::utf8Ord($c));
                 // Ако е валиден моно-сктипт - даваме +1
                 // Ако имаме два различни скрипта, вземаме -1
@@ -681,66 +685,78 @@ class i18n_Charset extends core_MVC
                     if ($S == $SL || $SL == 'sign') {
                         if ($scripts[$S] || $S == 'latin' || $scripts['all']) {
                             ++$total;
+                            
                             // $debug .= '+mono:' . $total . ';';
                         }
                     } else {
                         $total -= 1.5;
+                        
                         // $debug .= '-mono:' . $total . ';';
                     }
                     
                     if ($scripts[$S] || $S == 'latin' || $scripts['all']) {
                         $total += 0.05;
+                        
                         // $debug .= "+{$S}:" . $total . ';';
                     }
                 } else {
                     if ($c == $cL) {
                         if ($c == '?') {
                             $total -= 0.5;
+                        
                         // $debug .= '+??:' . $total . ';';
                         } else {
                             $total += 1.0;
+                            
                             // $debug .= '+ssign:' . $total . ';';
                         }
                     } else {
                         $total += 0.80;
+                        
                         // $debug .= '+sign:' . $total . ';';
                     }
                 }
-    
+                
                 // Ако имаме две разширени латински знака -0.2
                 if (($s == 'latExt' || $s == 'latExt2') && ($sL == 'latExt' || $sL == 'latExt2')) {
                     $total -= 0.8;
+                    
                     // $debug .= '-dle:' . $total . ';';
                 }
-    
+                
                 // Ако имаме две разширени латински знака -0.2
                 if (($s == 'latExt' || $s == 'latExt2') && ($sL == 'sign')) {
                     $total -= 0.7;
+                    
                     // $debug .= '-dle1:' . $total . ';';
                 }
-              
+                
                 // Ако имаме два разширени кирилски знака -0.4
                 if ($s == 'cyrExt' && $sL == 'cyrExt') {
                     $total -= 0.9;
+                    
                     // $debug .= '-dce:'. $total . ';';
                 }
                 
                 // Ако имаме 3 разширени латински знака -0.6
                 if (($s == 'latExt' || $s == 'latExt2') && ($sL == 'latExt' || $sL == 'latExt2') && ($sLL == 'latExt' || $sLL == 'latExt2')) {
                     $total -= 0.6;
+                    
                     // $debug .= '-tle:'. $total . ';';
                 }
                 
                 if ($S != 'sign') {
                     if (($c == $cL) && ($cL == $cLL)) {
                         $total -= 0.2;
+                        
                         // $debug .= '-3a:'. $total . ';';
                     }
                 }
-    
+                
                 // Ако имаме три разширени кирилски знака -0.4
                 if ($s == 'cyrExt' && $sL == 'cyrExt' && $sLL == 'cyrExt') {
                     $total -= 1.9;
+                    
                     // $debug .= '-tce:'. $total . ';';
                 }
                 
@@ -748,47 +764,54 @@ class i18n_Charset extends core_MVC
                 // Ако скрипт, знак, скрипт - 0.5
                 if ($S != 'sign' && $SL == 'sign' && $SLL != 'sign' && $S != $SLL) {
                     $total -= 0.2;
+                    
                     // $debug .= '-SsS:'. $total . ';';
                 }
                 
                 if ($S != 'sign' && $cL == '?' && $SLL != 'sign') {
                     --$total;
+                    
                     // $debug .= '-S?S:'. $total . ';';
                 }
-    
-    
+                
+                
                 // Правила за големи и малки букви
                 if (($S == 'cyrillic' || $S == 'latin' || $S == 'greek') && ($SL == 'cyrillic' || $SL == 'latin' || $SL == 'greek')) {
-     
+                    
                     // Ако имаме малка и голяма буква -0.5
                     if ($m != $c) {
                         if ($mL == $cL) {
                             $total -= 1.2;
+                            
                             // $debug .= '-aA:'. $total . ';';
                         }
                     }
-    
+                    
                     // Ако имаме знак, голяма буква, малка буква +0.5
                     if ($m == $c) {
                         if ($mL != $cL) {
                             if ($SLL == 'sign') {
                                 $total += 0.4;
+                                
                                 // $debug .= '+Aa:'. $total . ';';
                             }
                         }
                     }
                 }
-    
+                
                 // Ако сме с китайски скрипт и имаме топ100, даваме +0.3
                 if ($S == 'chinese') {
                     if (in_array($c, self::$topCn1)) {
                         $total += 1.2;
+                    
                     // $debug .= '+Cn1';
                     } elseif (in_array($c, self::$topCn2)) {
                         $total += 0.6;
+                    
                     // $debug .= '+Cn2';
                     } else {
                         $total -= 0.05;
+                        
                         // $debug .= '-Cn:'. $total . ';';
                     }
                 }
@@ -797,75 +820,90 @@ class i18n_Charset extends core_MVC
                 if ($S == 'arabic') {
                     if (in_array($c, self::$topArabic1)) {
                         $total += 1.8;
+                    
                     // $debug .= '+Ar1';
                     } elseif (in_array($c, self::$topArabic2)) {
                         $total += 0.8;
+                    
                     // $debug .= '+Ar2';
                     } else {
                         $total -= 0.02;
+                        
                         // $debug .= '-Ar:'. $total . ';';
                     }
                 }
-    
+                
                 // Ако сме кирилски скрипт и имаме топ1,2,3 даваме
                 if ($S == 'cyrillic' && $SL == 'cyrillic') {
                     $w2 = $mL . $m;
                     if (in_array($w2, self::$topCyr1)) {
                         $total += 1.8;
+                    
                     // $debug .= '+Cyr1:'. $total . ';';
                     } elseif (in_array($w2, self::$topCyr2)) {
                         $total += 1.2;
+                    
                     // $debug .= '+Cyr2:'. $total . ';';
                     } elseif (in_array($w2, self::$topCyr3)) {
                         $total += 0.6;
+                    
                     // $debug .= '+Cyr3:'. $total . ';';
                     } else {
                         $total -= 0.09;
+                        
                         // $debug .= '-Cyr:'. $total . ';';
                     }
                 }
-    
+                
                 // Ако сме латински скрипт и имаме топ даваме
                 if ($S == 'latin' && $SL == 'latin' && ($s != 'latin' || $sL != 'latin')) {
                     $w2 = $mL . $m;
                     if (in_array($w2, self::$topLatExt)) {
                         $total += 2.8;
+                    
                     // $debug .= '+LatTop:'. $total . ';';
                     } elseif (in_array($w2, self::$topLatExt2)) {
                         $total += 1.6;
+                    
                     // $debug .= '+LatTop:'. $total . ';';
                     } else {
                         $total -= 0.3;
+                        
                         // $debug .= '-LatTop:'. $total . ';';
                     }
                 }
-    
-    
+                
+                
                 // Ако сме гръцки скрипт и имаме топ1,2  даваме
                 if ($S == 'greek' && $SL == 'greek') {
                     $w2 = $mL . $m;
                     if (in_array($w2, self::$topGreek1)) {
                         $total += 0.8;
+                    
                     // $debug .= '+Cyr1:'. $total . ';';
                     } elseif (in_array($w2, self::$topGreek2)) {
                         $total += 0.4;
+                    
                     // $debug .= '+Cyr2:'. $total . ';';
                     } else {
                         $total -= 0.3;
+                        
                         // $debug .= '-Cyr:'. $total . ';';
                     }
                 }
-    
-    
+                
+                
                 // Ако кирилски разширен сктипт вадим
                 if ($s == 'cyrExt') {
                     $total -= 0.5;
+                    
                     // $debug .= '-CyrEx:'. $total . ';';
                 }
-    
+                
                 if ($s == 'latExt') {
                     if (!in_array($c, self::$topLatinExt)) {
                         $total -= 0.6;
+                        
                         // $debug .= '-LatEx:'. $total . ';';
                     }
                 }
@@ -875,40 +913,45 @@ class i18n_Charset extends core_MVC
                         if ($S == 'latin' || $S == 'cyrillic' || $S == 'greek') {
                             if ($SLL == 'sign') {
                                 $total += 0.4;
+                            
                             // $debug .= '+Op:'. $total . ';';
                             } elseif ($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
                                 $total -= 0.4;
+                                
                                 // $debug .= '-oP:'. $total . ';';
                             }
                         }
                     }
-    
+                    
                     if (in_array($cL, self::$closeSign2)) {
                         if ($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
                             if ($S == 'sign') {
                                 $total += 0.3;
+                            
                             // $debug .= '+Cl:'. $total . ';';
                             } elseif ($S == 'latin' || $S == 'cyrillic' || $S == 'greek') {
                                 $total -= 0.3;
+                                
                                 // $debug .= '-cL:'. $total . ';';
                             }
                         }
                     }
-    
+                    
                     if ($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
                         if ($SLL == $S) {
                             $total -= 0.9;
+                            
                             // $debug .= '-Ss2S:'. $total . ';';
                         }
                     }
                 }
-    
+                
                 // Шифтваме регистъра
                 $sLL = $sL;
                 $SLL = $SL;
                 $cLL = $cL;
                 $mLL = $mL;
-    
+                
                 $sL = $s;
                 $SL = $S;
                 $cL = $c;
@@ -940,9 +983,8 @@ class i18n_Charset extends core_MVC
         
         return dechex($o);
     }
-
- 
-
+    
+    
     /**
      * Опитва се да извлече име на позната за iconv()
      * име на кодировка на символи от зададения стринг
@@ -996,11 +1038,11 @@ class i18n_Charset extends core_MVC
     public static function iconv_($str, $fromCharset, $toCharset = 'UTF-8', $mode = '')
     {
         list($toCharset, $mode) = explode('//', $toCharset);
-
+        
         if ($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";
         }
-         
+        
         if ($fromCharset == 'ISO-8859-1|CP1251') {
             $str = iconv('UTF-8', 'ISO-8859-1' . $mode, $str);
             $str = iconv('CP1251', 'UTF-8' . $mode, $str);
@@ -1040,7 +1082,7 @@ class i18n_Charset extends core_MVC
                 $str = iconv($fromCharset, 'UTF-8' . $mode, $str);
             }
         }
-
+        
         // До тук стринга е в UTF-8
         if ($toCharset == 'ISO-8859-1|CP1251') {
             $str = iconv('UTF-8', 'CP1251' . $mode, $str);
@@ -1054,7 +1096,7 @@ class i18n_Charset extends core_MVC
         } elseif ($toCharset != 'DEFAULT' && $toCharset != 'UTF-8') {
             $str = iconv('UTF-8', $toCharset . $mode, $str);
         }
-
+        
         return $str;
     }
     
@@ -1088,7 +1130,7 @@ class i18n_Charset extends core_MVC
         if ($fromCharset) {
             $text = self::iconv($text, $fromCharset, 'UTF-8//IGNORE');
         }
-
+        
         return $text;
     }
     
@@ -1098,15 +1140,15 @@ class i18n_Charset extends core_MVC
      *
      * @param string $text - Стринга, който ще се проверява
      *
-     * @return boolean
+     * @return bool
      */
     public static function is7Bit($text)
     {
         $res = preg_match('/[^\\x00-\\x7F]/', $text);
-
+        
         return !$res;
     }
-
+    
     
     /**
      * Конвертира от МИК (българска ДОС-овска кодировка) към UTF-8
@@ -1121,12 +1163,12 @@ class i18n_Charset extends core_MVC
             }
             $out .= chr($c);
         }
-
+        
         $out = iconv('CP1251', 'UTF-8' . $mode, $out);
         
         return $out;
     }
-
+    
     
     /**
      * Конвертира от UTF-8 към МИК (българска ДОС-овска кодировка)
@@ -1134,7 +1176,7 @@ class i18n_Charset extends core_MVC
     public static function iconvUtf82Mik($str, $mode = '')
     {
         $str = iconv('UTF-8', 'CP1251' . $mode, $str);
-
+        
         $out = '';
         for ($i = 0; $i < strlen($str); $i++) {
             $c = ord($str{$i});
@@ -1143,41 +1185,38 @@ class i18n_Charset extends core_MVC
             }
             $out .= chr($c);
         }
-
+        
         return $out;
     }
     
     
-
-
-
     /**
      * Циклене по UTF-8 низове
      */
     public static function nextChar($string, &$pointer)
     {
         $c = mb_substr(substr($string, $pointer, 5), 0, 1);
-
+        
         $pointer += strlen($c);
-
+        
         return $c;
     }
-
-
+    
+    
     /**
      * UTF-8 еквивалент на ord();
      */
     public static function utf8Ord($ch)
     {
         $len = strlen($ch);
-      
+        
         if ($len <= 0) {
             
             return false;
         }
-      
+        
         $h = ord($ch{0});
-
+        
         if ($h <= 0x7F) {
             $res = $h;
         } elseif ($h < 0xC2) {
@@ -1191,7 +1230,7 @@ class i18n_Charset extends core_MVC
         } else {
             $res = false;
         }
-
+        
         return $res;
     }
 }

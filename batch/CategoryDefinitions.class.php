@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Дефиниции на партиди за категориите, всички артикули в категорията
  * ако са складируеми ще им се форсира след създаването дефиниция за партида
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_CategoryDefinitions extends embed_Manager
 {
-    
-    
     /**
      * Свойство, което указва интерфейса на вътрешните обекти
      */
@@ -108,7 +107,8 @@ class batch_CategoryDefinitions extends embed_Manager
     /**
      * Подготовка на наличните партиди за един артикул
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return void
      */
     public function prepareDefinitions(&$data)
@@ -133,7 +133,7 @@ class batch_CategoryDefinitions extends embed_Manager
             if ($this->haveRightFor('edit', $data->rec)) {
                 $data->editUrl = array($this, 'edit', $data->rec->id, 'ret_url' => true);
             }
-             
+            
             if ($this->haveRightFor('delete', $data->rec)) {
                 $data->deleteUrl = array($this, 'delete', $data->rec->id, 'ret_url' => true);
             }
@@ -144,8 +144,9 @@ class batch_CategoryDefinitions extends embed_Manager
     /**
      * Рендиране на дефинициите за партида
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderDefinitions($data)
     {

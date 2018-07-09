@@ -7,21 +7,22 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_tests_String extends unit_Class
 {
-    
-    
     /**
      * Конвертира всички европейски азбуки,
      * включително и кирилицата, но без гръцката към латиница
      *
-     * @param  string $text текст за конвертиране
+     * @param string $text текст за конвертиране
+     *
      * @return string резултат от конвертирането
      * @access public
      */

@@ -1,21 +1,21 @@
 <?php 
 
-
 /**
  * Помощен клас за парсиране на
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/115
  */
 class email_Mime extends core_BaseClass
 {
-
     /**
      * Текстоватана имейл-а
      */
@@ -44,20 +44,20 @@ class email_Mime extends core_BaseClass
      * Събджект на писмото
      */
     public $subject;
-     
-     
+    
+    
     /**
      * Имейлът от хедъра 'To'
      */
     public $toEmail;
-   
-
+    
+    
     /**
      * Името на изпращача от хедъра 'From'
      */
     public $fromName;
     
-
+    
     /**
      * Имейла на изпращача от хедъра 'From'
      */
@@ -74,8 +74,8 @@ class email_Mime extends core_BaseClass
      * Езика на имейл-а
      */
     public $lg;
-
-   
+    
+    
     /**
      * IP адреса на изпращача
      */
@@ -96,8 +96,8 @@ class email_Mime extends core_BaseClass
      * Масив със съобщения за грешки по време на парсирането
      */
     public $errors = array();
-
-
+    
+    
     /**
      * Връща събджекта на писмото
      */
@@ -107,11 +107,11 @@ class email_Mime extends core_BaseClass
             $this->subject = $this->getHeader('Subject');
             $this->subject = str_replace(array("\n\t", "\n"), array('', ''), $this->subject);
         }
-
+        
         return $this->subject;
     }
-
-
+    
+    
     /**
      * Извлича адрес към когото е насочено писмото
      */
@@ -128,7 +128,7 @@ class email_Mime extends core_BaseClass
         
         return $this->toEmail;
     }
-
+    
     
     /**
      * Връща името на изпращача
@@ -138,11 +138,11 @@ class email_Mime extends core_BaseClass
         if (!isset($this->fromName)) {
             $this->parseFromEmail();
         }
-
+        
         return $this->fromName;
     }
-
-
+    
+    
     /**
      * Връща името на изпращача
      */
@@ -151,11 +151,11 @@ class email_Mime extends core_BaseClass
         if (!isset($this->fromEmail)) {
             $this->parseFromEmail();
         }
-
+        
         return $this->fromEmail;
     }
     
-
+    
     /**
      * Извлича масив с два елемента: Името на изпращача и имейла му
      */
@@ -173,7 +173,7 @@ class email_Mime extends core_BaseClass
         } else {
             $fromEmlArr = type_Email::extractEmails($fromEmlStr);
         }
-       
+        
         $this->fromEmail = $fromEmlArr[0];
     }
     
@@ -197,11 +197,11 @@ class email_Mime extends core_BaseClass
                 $this->sendingTime = dt::timestamp2Mysql($time);
             }
         }
-
+        
         return $this->sendingTime;
     }
-
-
+    
+    
     /**
      * Връща езика на който предполага, че е написан имейла
      */
@@ -223,11 +223,11 @@ class email_Mime extends core_BaseClass
             
             $this->lg = i18n_Language::detect($this->textPart, $defLgArr);
         }
-
+        
         return $this->lg;
     }
-
-
+    
+    
     /**
      * Дали сървърът от който е изпратен имейла е публичен?
      */
@@ -236,7 +236,7 @@ class email_Mime extends core_BaseClass
         if (!isset($this->isFromPublicMailServer)) {
             $this->isFromPublicMailServer = drdata_Domains::isPublic($this->getFromEmail());
         }
-
+        
         return $this->isFromPublicMailServer;
     }
     
@@ -252,7 +252,7 @@ class email_Mime extends core_BaseClass
             if (empty($ip) || (!type_Ip::isPublic($ip))) {
                 $ip = trim($this->getHeader('X-Sender-IP', 1, -1), '[]');
             }
-         
+            
             if (empty($ip) || !type_Ip::isPublic($ip)) {
                 $regExp = '/Received:.*\[((?:\d+\.){3}\d+)\]/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
@@ -269,7 +269,7 @@ class email_Mime extends core_BaseClass
                     }
                 }
             }
-
+            
             if (empty($ip) || !type_Ip::isPublic($ip)) {
                 $regExp = '/Received:.*?((?:\d+\.){3}\d+)/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
@@ -286,14 +286,14 @@ class email_Mime extends core_BaseClass
                     }
                 }
             }
-
+            
             $this->senderIp = $ip;
         }
-         
+        
         return $this->senderIp;
     }
-
-
+    
+    
     /**
      * Изчислява коя е вероятната държава от където e изпратен имейл-а
      */
@@ -302,7 +302,7 @@ class email_Mime extends core_BaseClass
         $from = $this->getFromEmail();
         $lg = $this->getLg();
         $ip = $this->getSenderIp();
-
+        
         // Вземаме топ-левъл-домейна на имейл-а на изпращача
         $tld = strtolower(substr($from, strrpos($from, '.')));
         
@@ -317,6 +317,7 @@ class email_Mime extends core_BaseClass
                     case 'de':
                     case 'ru':
                         $rate = 20;
+                        
                         // no break
                     default:
                     $rate = 40;
@@ -336,6 +337,7 @@ class email_Mime extends core_BaseClass
                     case 'de':
                     case 'ru':
                         $rate = 40;
+                        
                         // no break
                     default:
                     $rate = 60;
@@ -345,7 +347,7 @@ class email_Mime extends core_BaseClass
                 if ($this->isFromPublicMailServer()) {
                     $rate = $rate / 1.2;
                 }
-
+                
                 $countries[$ccByIp] += $rate;
             }
         }
@@ -356,7 +358,7 @@ class email_Mime extends core_BaseClass
         if ($lg) {
             $countries[$lg] += 30;
         }
-    
+        
         // Намираме страната с най-много събрани точки
         if (count($countries)) {
             $firstCountry = strtoupper(arr::getMaxValueKey($countries));
@@ -374,8 +376,8 @@ class email_Mime extends core_BaseClass
     {
         return $this->data;
     }
-
-
+    
+    
     /**
      * Връща манипулатора на eml файл, отговарящ на писмото
      */
@@ -388,8 +390,8 @@ class email_Mime extends core_BaseClass
         
         return $fmId;
     }
-
-
+    
+    
     /**
      * Връща прикачените файлове
      *
@@ -400,11 +402,11 @@ class email_Mime extends core_BaseClass
         foreach ($this->files as  $fRec) {
             $list .= ($list ? '' : '|') . $fRec->fmId . '|';
         }
-      
+        
         return $list;
     }
-
-
+    
+    
     /**
      * Връща id на файла, в който е записана html часта
      */
@@ -413,7 +415,7 @@ class email_Mime extends core_BaseClass
         return $this->htmlFile;
     }
     
-
+    
     /**
      * Връща съдържанието на HTML часта, ако такава има
      */
@@ -421,14 +423,14 @@ class email_Mime extends core_BaseClass
     {
         if ($this->firstHtmlIndex) {
             $p = $this->parts[$this->firstHtmlIndex];
-
+            
             $html = i18n_Charset::convertToUtf8($p->data, $p->charset, true);
         }
-
+        
         return $html;
     }
-
-
+    
+    
     /**
      * Записва във fileman всички файлове, които са извлечени при парсирането
      */
@@ -452,23 +454,23 @@ class email_Mime extends core_BaseClass
                 if ($p->subType == 'HTML') {
                     $p->data = $this->placeInlineFiles($p->data);
                 }
-
+                
                 $fileName = $this->getFileName($index);
                 
                 $p->fileId = $this->addFile($p->data, $fileName, 'part', $p->subType);
-
+                
                 $FRecText = $this->files[$p->fileId];
- 
+                
                 $FRecText->fmId = $this->addFileToFileman($FRecText->data, $FRecText->name);
-
+                
                 if ($index == $this->firstHtmlIndex) {
                     $this->htmlFile = $FRecText->fmId;
                 }
             }
         }
     }
-
-
+    
+    
     /**
      * Добавя файл в списъка на прикачените файлове
      */
@@ -481,10 +483,10 @@ class email_Mime extends core_BaseClass
             'param' => $param);
         $id = count($this->files) + 1;
         $this->files[$id] = $rec;
-
+        
         return $id;
     }
-
+    
     
     /**
      * Вкарва прикрепените файлове във Fileman
@@ -513,7 +515,7 @@ class email_Mime extends core_BaseClass
                 }
                 
                 $cid = $fRec->param;
-
+                
                 $patterns = array("cid:{$cid}" => '', "\"cid:{$cid}\"" => '"', "'cid:{$cid}'" => "'");
                 
                 $Download = cls::get('fileman_Download');
@@ -527,18 +529,17 @@ class email_Mime extends core_BaseClass
                 }
             }
         }
-
+        
         return $html;
     }
-
-
-
+    
+    
     /***********************************************************************************
      *                                                                                 *
      *  ФУНКЦИИ  ЗА РАБОТА С ХЕДЪРИ                                                    *
      *                                                                                 *
      ***********************************************************************************/
-
+    
     /**
      * Връща масив с парсирани хедъри на миме-съобщение
      */
@@ -564,8 +565,8 @@ class email_Mime extends core_BaseClass
         
         return $headersArr;
     }
-
-
+    
+    
     /**
      * Връща хедърната част на писмото като текст
      */
@@ -621,10 +622,10 @@ class email_Mime extends core_BaseClass
     /**
      * Връща даден хедът от масив
      *
-     * @param array   $headersArr  - Масив с хедърите
-     * @param string  $name        - Името на хедъра
-     * @param mixed   $headerIndex - Число или * - Указва, кои да се извлекат
-     * @param boolean $decode      - Дали да се декодира хедъра
+     * @param array  $headersArr  - Масив с хедърите
+     * @param string $name        - Името на хедъра
+     * @param mixed  $headerIndex - Число или * - Указва, кои да се извлекат
+     * @param bool   $decode      - Дали да се декодира хедъра
      *
      * @retun string $res - Съдържанието на хедъра
      */
@@ -645,7 +646,7 @@ class email_Mime extends core_BaseClass
             
             $res = $headersArr[$name][$headerIndex];
         }
-
+        
         if ($decode) {
             $res = static::decodeHeader($res, $charset);
         }
@@ -684,7 +685,7 @@ class email_Mime extends core_BaseClass
         
         return $res;
     }
-
+    
     
     /**
      * Декодира хедърната част част
@@ -696,7 +697,7 @@ class email_Mime extends core_BaseClass
             $imapDecodeArr = @imap_mime_header_decode($val);
             
             $decoded = '';
-
+            
             if ($imapDecodeArr && count($imapDecodeArr) > 0) {
                 foreach ($imapDecodeArr as $id => $value) {
                     
@@ -721,6 +722,7 @@ class email_Mime extends core_BaseClass
                         } else {
                             if ($imapDecodeArr[$id + 1]->charset == 'default') {
                                 $flagAcumText = true;
+                                
                                 // TRUE
                             }
                         }
@@ -758,8 +760,8 @@ class email_Mime extends core_BaseClass
         
         return $decoded;
     }
-
-
+    
+    
     /**
      * Парсира цяло MIME съобщение
      */
@@ -780,20 +782,20 @@ class email_Mime extends core_BaseClass
                 $nl = $c;
             }
         }
-
-
+        
+        
         // Отделяме хедърите от данните
         if ($bestPos < strlen($data)) {
             do {
                 list($line, $data) = explode($nl, $data, 2);
-
+                
                 if (!trim($line)) {
                     break;
                 } elseif (substr($line, 0, 3) == '--=') {
                     $data = $line . $nl . $data;
                     break;
                 }
-
+                
                 $headerStr .= ($headerStr ? $nl : '') . $line;
             } while ($data);
         }
@@ -821,6 +823,7 @@ class email_Mime extends core_BaseClass
                 $headerStr .= $nl . ' ' . mb_strcut($data, 0, $bPos);
                 $p->headersStr = $headerStr;
                 $p->headersArr = $this->parseHeaders($headerStr);
+
 //                 $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
                 
                 $data = mb_strcut($data, $bPos);
@@ -833,7 +836,7 @@ class email_Mime extends core_BaseClass
         $p->subType = trim($p->subType);
         
         $knownTypes = array('MULTIPART', 'TEXT', 'MESSAGE', 'APPLICATION', 'AUDIO', 'IMAGE', 'VIDEO', 'MODEL', 'X-UNKNOWN');
-     
+        
         // Ако типа не е от познатите типове, търсим ги като стринг в хедър-а 'Content-Type'
         // Ако някой познат тип се среща в хедър-а, то приемаме, че той е търсения тип
         if (!in_array($p->type, $knownTypes)) {
@@ -940,6 +943,7 @@ class email_Mime extends core_BaseClass
             // евентуално записваме прикачения файл
         } else {
             $data2 = false;
+            
             // Декодиране
             switch ($p->encoding) {
                 case 'BASE64':
@@ -960,7 +964,7 @@ class email_Mime extends core_BaseClass
             if ($p->attachment != 'attachment' && $p->type == 'TEXT' && !trim($p->subType)) {
                 $p->subType = 'PLAIN';
             }
-
+            
             // Конвертиране към UTF-8
             if ($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') && ($p->attachment != 'attachment')) {
                 $text = i18n_Charset::convertToUtf8($data, $p->charset, $p->subType == 'HTML');
@@ -974,7 +978,7 @@ class email_Mime extends core_BaseClass
                 if ($p->subType == 'HTML') {
                     $text = html2text_Converter::toRichText($text);
                 }
-
+                
                 $textRate = $this->getTextRate($text);
                 
                 // Отдаваме предпочитания на плейн-частта, ако идва от bgERP
@@ -984,7 +988,7 @@ class email_Mime extends core_BaseClass
                     } else {
                         $textRate = $textRate * 0.8;
                     }
-
+                    
                     // Ако обаче, текст частта съдържа значително количество HTML елементи,
                     // ние не я предпочитаме
                     $k = (mb_strlen(strip_tags($text)) + 1) / (mb_strlen($text) + 1);
@@ -993,6 +997,7 @@ class email_Mime extends core_BaseClass
                 
                 // Ако нямаме никакъв текст или картинки в тази текстова част, не записваме данните
                 if (($textRate < 1) && (stripos($data, '<img ') === false)) {
+                    
                     return;
                 }
                 
@@ -1013,16 +1018,16 @@ class email_Mime extends core_BaseClass
                     
                     // Премахваме излишните празни линии
                     $this->textPart = type_Richtext::removeEmptyLines($this->textPart, 2);
-
+                    
                     if ($p->subType != 'HTML') {
                         $this->bestTextIndex = $index;
                     }
-
+                    
                     $this->bestTextRate = $textRate;
                     $this->charset = i18n_Charset::getCanonical($p->charset);
                     $this->detectedCharset = i18n_Charset::detect($data, $p->charset, $p->subType == 'HTML');
                 }
-               
+                
                 if ($p->subType == 'HTML' && (!$this->firstHtmlIndex) && ($textRate > 1 || (stripos($data, '<img ') === false))) {
                     $this->firstHtmlIndex = $index;
                 }
@@ -1054,11 +1059,11 @@ class email_Mime extends core_BaseClass
             $notWords = preg_replace('/(\pL{2,})/iu', '', $text);
             $textRate += mb_strlen($text) - mb_strlen($notWords);
         }
-
+        
         return $textRate;
     }
-
-
+    
+    
     /**
      * Връща най-доброто име за прикачен файл съответстващ на прикачената част
      */
@@ -1073,28 +1078,26 @@ class email_Mime extends core_BaseClass
             $partIndexName = str_replace('.', '-', $partIndex);
             $fileName = $partIndexName . '_' . substr(md5($p->data), 0, 6);
         }
-
+        
         // Ако липсва файлово разширение се опитваме да го определим от 'Content-Type'
         if (!fileman_Files::getExt($fileName)) {
             $ctParts = $this->extractHeader($partIndex, 'Content-Type');
             $mimeT = strtolower($ctParts[0]);
             $fileName = fileman_mimes::addCorrectFileExt($fileName, $mimeT);
         }
-
+        
         return $fileName;
     }
     
-
-
-
+    
     //---------------------------------------------------------------------------------------------------------------------------------------
-
+    
     
     /**
      * Взема хедърите от манипулатора на eml файл
      *
      * @param fileman_Files $emlFileHnd   - Манипулатора на eml файла
-     * @param boolean       $parseHeaders - Дали да се парсират в масив откритите хедъри
+     * @param bool          $parseHeaders - Дали да се парсират в масив откритите хедъри
      *
      * @return array $headersArr - Масив с хедърите
      *               string $headersArr['string'] - Стринг с хедърите
@@ -1110,7 +1113,7 @@ class email_Mime extends core_BaseClass
             
             // Парсираме съдържанието
             $this->parseAll($emlFileContent);
-    
+            
             // Стринг с хедърите
             $headersStr = $this->getHeadersStr();
         }
@@ -1143,8 +1146,8 @@ class email_Mime extends core_BaseClass
     /**
      * Екстрактва имейлите и връща само имейл частта на масива
      *
-     * @param string  $str  - Стринг с имейлите
-     * @param boolean $uniq - Дали да е уникален имейла
+     * @param string $str  - Стринг с имейлите
+     * @param bool   $uniq - Дали да е уникален имейла
      *
      * @return string $res - Резултата
      */
@@ -1161,7 +1164,7 @@ class email_Mime extends core_BaseClass
         
         // Обхождаме масива
         foreach ((array) $parseToArr as $key => $dummy) {
-           
+            
             // Извличаме само имейлите
             $emlArr = type_Email::extractEmails($parseToArr[$key]['address']);
             
@@ -1171,7 +1174,7 @@ class email_Mime extends core_BaseClass
             // Добавяме към полето
             $res .= ($res) ? ', '. $implode : $implode;
         }
-
+        
         // Ако имейла трябва да е уникален
         if ($uniq) {
             
@@ -1187,8 +1190,8 @@ class email_Mime extends core_BaseClass
         
         return $res;
     }
-
-
+    
+    
     /**
      * Преобразува списък от имейли, както се срещат в хедърите, във врбална стойност
      */
@@ -1222,13 +1225,13 @@ class email_Mime extends core_BaseClass
         
         return $res;
     }
-
-
+    
+    
     /**
      * Връща вербално представяне на хедърите на съобщението
      *
-     * @param boolean $decode
-     * @param boolean $escape
+     * @param bool $decode
+     * @param bool $escape
      *
      * @return string
      */

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'store_type_PalletPlace' - тип за палет място в складовете
  *
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_type_PalletPlace extends type_Varchar
 {
-    
-    
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне
      */
@@ -55,8 +54,9 @@ class store_type_PalletPlace extends type_Varchar
             
             return false;
         }
+        
         // test passed
-            
+        
         // extract pattern
         $pattern = '/^[0-9]+/';
         preg_match($pattern, $rackId, $match);
@@ -85,8 +85,9 @@ class store_type_PalletPlace extends type_Varchar
             
             return false;
         }
+        
         // test passed
-            
+        
         // extract pattern
         $pattern = '/[0-9]+$/';
         preg_match($pattern, $rackColumn, $match);

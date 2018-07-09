@@ -25,15 +25,15 @@ defIfNot('STATUS_IDLE_TIME', 3);
  *
  * @category  vendors
  * @package   status
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class status_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -62,12 +62,12 @@ class status_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-           
-       'STATUS_TIME_BEFORE' => array('time', 'caption=Колко време преди създаването'),
-       'STATUS_IDLE_TIME' => array('time', 'caption=Време на бездействие на таба за премахване на статус'),
-     );
-     
-     
+        
+        'STATUS_TIME_BEFORE' => array('time', 'caption=Колко време преди създаването'),
+        'STATUS_IDLE_TIME' => array('time', 'caption=Време на бездействие на таба за премахване на статус'),
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */

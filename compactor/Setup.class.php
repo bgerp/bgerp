@@ -18,15 +18,15 @@ defIfNot('COMPACTOR_CSS_FILES', 'css/common.css, css/Application.css, toast/[#to
  *
  * @category  compactor
  * @package   toast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class compactor_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -51,7 +51,7 @@ class compactor_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина за показване на статусите като toast съобщения
         $html .= $Plugins->installPlugin('Компактиране на файлове', 'compactor_Plugin', 'page_Html', 'private');
-
+        
         return $html;
     }
     
@@ -75,7 +75,7 @@ class compactor_Setup extends core_ProtoSetup
             $jsFile = $this->preparePacksPath('compactor', $jsFile);
             $jsFilesArr[$jsFile] = $jsFile;
         }
-    
+        
         foreach ($cssFilesArrB as $cssFile) {
             $cssFile = $this->preparePacksPath('compactor', $cssFile);
             $cssFilesArr[$cssFile] = $cssFile;

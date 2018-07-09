@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Клас за дефолт темата на форума
  *
  * @category  bgerp
  * @package   forum
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class forum_DefaultTheme extends core_Manager
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -35,6 +34,7 @@ class forum_DefaultTheme extends core_Manager
     
     /**
      * Връща изгледа на дъските
+     *
      * @return core_ET
      */
     public function getBoardsLayout()
@@ -44,13 +44,14 @@ class forum_DefaultTheme extends core_Manager
         } else {
             $tpl = 'forum/themes/default/Boards.shtml';
         }
-
+        
         return getTplFromFile($tpl);
     }
     
     
     /**
      * Връща началната страница на форума
+     *
      * @return core_ET
      */
     public function getIndexLayout()
@@ -61,6 +62,7 @@ class forum_DefaultTheme extends core_Manager
     
     /**
      * Връща изгледа за единична тема
+     *
      * @return core_ET
      */
     public function getSingleThemeLayout()
@@ -69,37 +71,40 @@ class forum_DefaultTheme extends core_Manager
             
             return getTplFromFile('forum/themes/default/SingleThemeNarrow.shtml');
         }
-
+        
         return getTplFromFile('forum/themes/default/SingleTheme.shtml');
     }
     
     
     /**
      * Променя изгледа на формата за добавяне на нов коментар
+     *
      * @return core_ET
      */
     public function getPostFormLayout()
     {
         $tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
-
+        
         return $tpl->getBlock('FORM');
     }
     
     
     /**
      * Променя изгледа полетата от формата за добавяне на нов коментар
+     *
      * @return core_ET
      */
     public function getPostFormFieldsLayout()
     {
         $tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
-
+        
         return $tpl->getBlock('FORM_FIELDS');
     }
     
     
     /**
      * Връща шаблона на коментарите
+     *
      * @return core_ET
      */
     public function getCommentsLayout()
@@ -108,13 +113,14 @@ class forum_DefaultTheme extends core_Manager
             
             return getTplFromFile('forum/themes/default/CommentsNarrow.shtml');
         }
-
+        
         return getTplFromFile('forum/themes/default/Comments.shtml');
     }
     
     
     /**
      * Връща шаблона на страницата за показване на резултати
+     *
      * @return core_ET
      */
     public function getResultsLayout()
@@ -125,6 +131,7 @@ class forum_DefaultTheme extends core_Manager
     
     /**
      * Връща шаблона на страницата за добавяне на нова тема
+     *
      * @return core_ET
      */
     public function getAddThemeLayout()
@@ -146,6 +153,7 @@ class forum_DefaultTheme extends core_Manager
     
     /**
      * Връща изгледа на темата
+     *
      * @return core_ET
      */
     public function getThemeLayout()
@@ -155,13 +163,14 @@ class forum_DefaultTheme extends core_Manager
         } else {
             $tpl = 'forum/themes/default/Themes.shtml';
         }
-
+        
         return getTplFromFile($tpl);
     }
     
     
     /**
      * Връща шаблона на браузването на една дъска
+     *
      * @return core_ET
      */
     public function getBrowseLayout()
@@ -172,6 +181,7 @@ class forum_DefaultTheme extends core_Manager
     
     /**
      * Връща шаблона на формата за търсене
+     *
      * @return core_ET
      */
     public function getSearchFormLayout()
@@ -191,6 +201,7 @@ class forum_DefaultTheme extends core_Manager
     
     /**
      * Връща картинка от темата
+     *
      * @param string $imgName - име на картинката
      * @param int    $size    - размер на картинката
      *                        Картинката трябва да е в папка 'img' на темата,
@@ -199,7 +210,7 @@ class forum_DefaultTheme extends core_Manager
     public function getImage($imgName, $size = '')
     {
         $filePath = sbf("forum/themes/default/img/{$size}/{$imgName}", '');
-
+        
         return ht::createElement('img', array('src' => $filePath, 'width' => "{$size}px"));
     }
 }

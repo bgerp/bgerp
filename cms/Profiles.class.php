@@ -7,39 +7,39 @@
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.12
  */
 class cms_Profiles extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'crm_ProfileIntf';
-
+    
     
     /**
      * Заглавие на мениджъра
      */
     public $title = 'Профили';
-
-
+    
+    
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Профил';
-
+    
     
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
     public $loadList = 'Profile=crm_Profiles,cms_ExternalWrapper';
-
-
+    
+    
     /**
      * Кой  може да пише?
      */
@@ -97,7 +97,7 @@ class cms_Profiles extends core_Master
                 }
             }
         }
-          
+        
         $this->requireRightFor('single');
         Mode::set('currentExternalTab', 'cms_Profiles');
         
@@ -106,7 +106,7 @@ class cms_Profiles extends core_Master
         $userId = core_Users::getCurrent();
         
         expect($data->rec = $this->Profile->fetch("#userId = {$userId}"));
-       
+        
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);
         
@@ -157,15 +157,16 @@ class cms_Profiles extends core_Master
     
     /**
      * Екшън за смяна на парола, използва 'act_ChangePassword' на crm_Profiles
+     *
      * @return core_ET
      */
     public function act_ChangePassword()
     {
         requireRole('partner,powerUser');
-
+        
         $form = $this->Profile->prepareChangePassword();
         $form->input();
-
+        
         if ($form->isSubmitted()) {
             $this->Profile->validateChangePasswordForm($form);
             if (!$form->gotErrors()) {
@@ -174,7 +175,7 @@ class cms_Profiles extends core_Master
                 if (core_Users::setPassword($form->rec->passNewHash)) {
                     // Правим запис в лога
                     $this->Profile->logWrite('Промяна на парола', $form->rec->id);
-                       
+                    
                     // Редиректваме към предварително установения адрес
                     return new Redirect(getRetUrl(), '|Паролата е сменена успешно');
                 }

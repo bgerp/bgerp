@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин за документи, които може да ги създават партньори
  *
  * @category  bgerp
  * @package   colab
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class colab_plg_CreateDocument extends core_Plugin
 {
-    
-    
     /**
      * Какви роли са необходими за качване или сваляне?
      */
@@ -30,8 +29,8 @@ class colab_plg_CreateDocument extends core_Plugin
                 if (keylist::isIn($mvc->getClassId(), $documents)) {
                     $addContractor = true;
                 }
-            
-            
+                
+                
                 if (isset($rec)) {
                     if ($action == 'edit') {
                         if ($rec->createdBy != $userId) {
@@ -45,7 +44,7 @@ class colab_plg_CreateDocument extends core_Plugin
                     }
                 }
             }
-
+            
             // Добавяне към правата ,че и партньор може да редактира/добавя
             if ($addContractor === true) {
                 $property = ucfirst($action);
@@ -66,6 +65,7 @@ class colab_plg_CreateDocument extends core_Plugin
     {
         // Ако не е контрактор
         if (!core_Users::haveRole('partner')) {
+            
             return;
         }
         
@@ -96,7 +96,7 @@ class colab_plg_CreateDocument extends core_Plugin
      *
      * @param core_Mvc    $mvc
      * @param string|NULL $res
-     * @param integer     $id
+     * @param int         $id
      */
     public static function on_AfterGetThreadState($mvc, &$res, $id)
     {

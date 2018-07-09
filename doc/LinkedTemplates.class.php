@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_LinkedTemplates extends core_Master
 {
-    
-    
     /**
      *
      * @var string
@@ -162,7 +162,7 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Връща дейности, които са за дадения документ
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return array
      */
@@ -203,7 +203,7 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Връща дейности, които са за дадения файл
      *
-     * @param integer $cId
+     * @param int $cId
      *
      * @return array
      */
@@ -272,7 +272,7 @@ class doc_LinkedTemplates extends core_Master
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      */
     public function prepareFormForDocument(&$form, $cId, $activity)
@@ -285,7 +285,7 @@ class doc_LinkedTemplates extends core_Master
      * Подготвяне на формата за файл
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      */
     public function prepareFormForFile(&$form, $cId, $activity)
@@ -298,7 +298,7 @@ class doc_LinkedTemplates extends core_Master
      * След субмитване на формата за документ
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      *
      * @return mixed
@@ -313,7 +313,7 @@ class doc_LinkedTemplates extends core_Master
      * След субмитване на формата за файл
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      *
      * @return mixed
@@ -327,8 +327,8 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Помощна функция за вземане на шаблоните
      *
-     * @param core_Query   $query
-     * @param NULL|integer $userId
+     * @param core_Query $query
+     * @param NULL|int   $userId
      *
      * @return array
      */
@@ -412,7 +412,7 @@ class doc_LinkedTemplates extends core_Master
      * Подготвяне на формата за документ
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      */
     protected function prepareFormFor(&$form, $cId, $activity, $type = 'doc')
@@ -457,7 +457,7 @@ class doc_LinkedTemplates extends core_Master
      * Помощна функця за след субмитване на формата
      *
      * @param core_Form $form
-     * @param integer   $cId
+     * @param int       $cId
      * @param string    $activity
      * @param string    $type
      *

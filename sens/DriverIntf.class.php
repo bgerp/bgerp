@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Интерфейс данни от за IP сензор
  *
@@ -10,16 +9,16 @@
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс на драйвер на IP сензор
  */
 class sens_DriverIntf
 {
-    
-    
     /**
      * Връща измерените параметри
      */

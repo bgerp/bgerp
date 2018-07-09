@@ -7,14 +7,15 @@
  *
  * @category  bgerp
  * @package   colab
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class colab_plg_VisibleForPartners extends core_Plugin
 {
-
     /**
      * След дефиниране на полетата на модела
      *
@@ -69,9 +70,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
                 }
             }
         }
-
+        
         $data->form->setField('visibleForPartners', 'changable=ifInput');
-
+        
         // Сетваме стойността, ако не е зададена
         if (!$rec->id && !$rec->visibleForPartners) {
             $data->form->setDefault('visibleForPartners', 'no');
@@ -87,9 +88,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
     /**
      * Връща дали документа е видим за партньори
      *
-     * @param core_Mvc         $mvc
-     * @param NULL|string      $res
-     * @param integer|stdClass $rec
+     * @param core_Mvc     $mvc
+     * @param NULL|string  $res
+     * @param int|stdClass $rec
      */
     public static function on_BeforeIsVisibleForPartners($mvc, &$res, $rec)
     {

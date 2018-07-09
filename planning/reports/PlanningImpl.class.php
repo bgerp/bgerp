@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата
  * на справка за планиране на производството
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Gabriela Petrova <gab4eto@gmai.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_reports_PlanningImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -52,7 +51,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
      * Работен кеш
      */
     protected $cache = array();
-
+    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -99,7 +98,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         $data->recs = array();
         
         $data->rec = $this->innerForm;
-       
+        
         $queryProduct = cat_Products::getQuery();
         $queryProduct->where("#canManifacture = 'yes' ");
         
@@ -122,7 +121,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         }
         
         $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
-
+        
         $dates = array();
         
         // за всеки един активен договор за продажба
@@ -131,19 +130,19 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
             //$origin = doc_Threads::getFirstDocument($rec->threadId);
             // взимаме информация за сделките
             //$dealInfo = $origin->getAggregateDealInfo();
-
+            
             if ($rec->deliveryTime) {
                 $date = $rec->deliveryTime;
             } else {
                 $date = $rec->valior;
             }
-                
+            
             if (sales_SalesDetails::fetch("#saleId = '{$rec->id}'") !== false) {
                 $p = sales_SalesDetails::fetch("#saleId = '{$rec->id}'");
                 $productId = $p->productId;
-           
+                
                 $productInfo = cat_Products::getProductInfo($productId);
-           
+                
                 if ($productInfo->meta['canManifacture'] == true) {
                     $products[] = sales_SalesDetails::fetch("#saleId = '{$rec->id}' AND #productId = '{$productId}'");
                     $dates[$productId][$rec->id] = $date;
@@ -154,7 +153,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 continue;
             }
         }
-
+        
         $dateSale = array();
         
         foreach ($dates as $prd => $sal) {
@@ -167,19 +166,19 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 }
             }
         }
-       
+        
         // за всеки един продукт
         if (is_array($products)) {
             foreach ($products as $product) {
                 // правим индекс "класа на продукта|ид на продукта"
                 $index = $product->productId;
-                        
+                
                 if ($product->deliveryTime) {
                     $date = $product->deliveryTime;
                 } else {
                     $date = $rec->valior;
                 }
-                    
+                
                 if ($product->quantityDelivered >= $product->quantity) {
                     continue;
                 }
@@ -200,16 +199,16 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                             $store[$storeRec->productId] += $storeRec->quantity;
                         }
                     }
-
+                    
                     $data->recs[$index] =
                                 (object) array('id' => $product->productId,
-                                                'quantity' => $product->quantity,
-                                                'quantityDelivered' => $product->quantityDelivered,
-                                                'quantityToDelivered' => abs($product->quantityDelivered - $product->quantity),
-                                                'dateSale' => $dateSale[$product->productId],
-                                                'sales' => array($product->saleId),
-                                                'store' => $store);
-                            
+                                    'quantity' => $product->quantity,
+                                    'quantityDelivered' => $product->quantityDelivered,
+                                    'quantityToDelivered' => abs($product->quantityDelivered - $product->quantity),
+                                    'dateSale' => $dateSale[$product->productId],
+                                    'sales' => array($product->saleId),
+                                    'store' => $store);
+                
                 // в противен случай го ъпдейтваме
                 } else {
                     $obj = &$data->recs[$index];
@@ -228,13 +227,13 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 $data->recs[$productId]->store = $quantity;
             }
         }
-
+        
         $dateJob = array();
         
         while ($recJobs = $queryJob->fetch()) {
             $indexJ = $recJobs->productId;
             $dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
-           
+            
             if ($recJobs->quantityProduced >= $recJobs->quantity) {
                 continue;
             }
@@ -255,14 +254,14 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 
                 $data->recs[$indexJ] =
                     (object) array('id' => $recJobs->productId,
-                            'quantityJob' => $recJobs->quantity,
-                            'quantityProduced' => $recJobs->quantityProduced,
-                            'quantityToProduced' => abs($recJobs->quantityProduced - $recJobs->quantity),
-                            'date' => $recJobs->dueDate,
-                            'jobs' => array($recJobs->id),
-                            'store' => array($storeJob)
-                            );
-    
+                        'quantityJob' => $recJobs->quantity,
+                        'quantityProduced' => $recJobs->quantityProduced,
+                        'quantityToProduced' => abs($recJobs->quantityProduced - $recJobs->quantity),
+                        'date' => $recJobs->dueDate,
+                        'jobs' => array($recJobs->id),
+                        'store' => array($storeJob)
+                    );
+            
             // в противен случай го ъпдейтваме
             } else {
                 $obj = &$data->recs[$indexJ];
@@ -274,13 +273,13 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 $obj->store = array($storeJob);
             }
         }
-
+        
         if (is_array($storeJob)) {
             foreach ($storeJob as $productJobId => $quantityJob) {
                 $data->recs[$productJobId]->store = $quantityJob;
             }
         }
-
+        
         foreach ($data->recs as $id => $rec) {
             if (isset($dateJob[$id])) {
                 if (count($dateJob[$id]) > 1) {
@@ -291,7 +290,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         arr::sortObjects($data->recs, 'date');
         arr::sortObjects($data->recs, 'dateSale');
         
@@ -308,7 +307,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 unset($data->recs[$id]);
             }
         }
-
+        
         return $data;
     }
     
@@ -324,10 +323,10 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         $pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-
+        
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
-       
+        
         if (count($data->recs)) {
             foreach ($data->recs as $id => $rec) {
                 if (!$pager->isOnPage()) {
@@ -335,9 +334,9 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 }
                 
                 $row = $mvc->getVerbal($rec);
-       
+                
                 $data->rows[$id] = $row;
-    
+                
                 if ($rec->sales) {
                     foreach ($rec->sales as $sale) {
                         $idS = 'sales=' . $sale;
@@ -347,7 +346,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                         $idS = 'job='. $job;
                     }
                 }
-
+                
                 $data->rows[$id]->ordered = $row->quantity . "<br><span style='color:#0066FF'>{$row->quantityJob}</span>";
                 $data->rows[$id]->delivered = $row->quantityDelivered . "<br><span style='color:#0066FF'>{$row->quantityProduced}</span>";
                 $data->rows[$id]->dt = $row->dateSale . "<br><span style='color:#0066FF'>{$row->date}</span>";
@@ -355,10 +354,10 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
                 $data->rec->id ++;
                 $unique = $data->rec->id;
-
+                
                 $arrowImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
                 $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link'), $arrowImg, true);
-   
+                
                 if (isset($data->rows[$id]->quantityToDeliver, $data->rows[$id]->quantityToProduced)) {
                     $data->rows[$id]->toDelivered = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver . "<br>{$arrow}&nbsp;<span style='color:#0066FF'>{$data->rows[$id]->quantityToProduced}</span>";
                 } elseif (isset($data->rows[$id]->quantityToDeliver)) {
@@ -368,12 +367,12 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 }
             }
         }
-
-   
+        
+        
         $res = $data;
     }
     
-
+    
     /**
      * Връща шаблона на репорта
      *
@@ -395,46 +394,47 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
-         
+        
         $tpl = $this->getReportLayout();
         
         $title = explode(' » ', $this->title);
         
         $tpl->replace($title[1], 'TITLE');
-    
+        
         $form = cls::get('core_Form');
-    
+        
         $this->addEmbeddedFields($form);
-    
+        
         $form->rec = $data->rec;
         $form->class = 'simpleForm';
-    
+        
         $tpl->prepend($form->renderStaticHtml(), 'FORM');
-    
+        
         $tpl->placeObject($data->rec);
-
+        
         $f = cls::get('core_FieldSet');
-
+        
         $f->FLD('id', 'varchar');
         $f->FLD('ordered', 'double');
         $f->FLD('delivered', 'double');
         $f->FLD('toDelivered', 'double');
         $f->FLD('dt', 'date');
         $f->FLD('inStore', 'double');
-
+        
         $table = cls::get('core_TableView', array('mvc' => $f));
-
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
         if ($data->pager) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
-    
+        
         $embedderTpl->append($tpl, 'data');
     }
-
+    
     
     /**
      * Подготвя хедърите на заглавията на таблицата
@@ -442,16 +442,16 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         $data->listFields = array(
-                'id' => 'Име (код)',
-                'ordered' => 'Продажба / Производство->|*<small>Поръчано</small>',
-                'delivered' => "Продажба / Производство->|*<small>Доставено<br><span style='color:#0066FF'>Произведено</small></span>",
-                'toDelivered' => "Продажба / Производство->|*<small>За доставяне<br><span style='color:#0066FF'>За производство</small><span>",
-                'dt' => 'Продажба / Производство->|*<small>Дата</small>',
-                'inStore' => 'На склад',
-                );
+            'id' => 'Име (код)',
+            'ordered' => 'Продажба / Производство->|*<small>Поръчано</small>',
+            'delivered' => "Продажба / Производство->|*<small>Доставено<br><span style='color:#0066FF'>Произведено</small></span>",
+            'toDelivered' => "Продажба / Производство->|*<small>За доставяне<br><span style='color:#0066FF'>За производство</small><span>",
+            'dt' => 'Продажба / Производство->|*<small>Дата</small>',
+            'inStore' => 'На склад',
+        );
     }
-
-       
+    
+    
     /**
      * Вербалното представяне на ред от таблицата
      */
@@ -460,7 +460,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         $RichtextType = cls::get('type_Richtext');
         $Date = cls::get('type_Date');
         $Int = cls::get('type_Int');
-
+        
         $row = new stdClass();
         
         $row->id = cat_Products::getShortHyperlink($rec->id);
@@ -469,31 +469,30 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         $row->quantityToDeliver = $Int->toVerbal($rec->quantityToDelivered);
         
         $row->dateSale = $Date->toVerbal($rec->dateSale);
-            
+        
         for ($i = 0; $i <= count($rec->sales) - 1; $i++) {
             $row->sales .= '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
             $row->salesCsv .= sales_Sales::getShortHyperlink($rec->sales[$i]) .',';
         }
         $row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
-            
+        
         $row->quantityJob = $Int->toVerbal($rec->quantityJob);
         $row->quantityProduced = $Int->toVerbal($rec->quantityProduced);
         $row->quantityToProduced = $Int->toVerbal($rec->quantityToProduced);
         $row->date = $Date->toVerbal($rec->date);
-            
+        
         for ($j = 0; $j <= count($rec->jobs) - 1; $j++) {
             $row->jobs .= '#'.planning_Jobs::getHandle($rec->jobs[$j]) .',';
             $row->jobsCsv .= planning_Jobs::getShortHyperlink($rec->jobs[$j]) .',';
         }
         $row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
-
-        $row->inStore = $Int->toVerbal($rec->store);
         
+        $row->inStore = $Int->toVerbal($rec->store);
         
         return $row;
     }
-      
-      
+    
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
@@ -502,11 +501,11 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-              
+        
         unset($innerState->recs);
     }
-      
-      
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
@@ -519,10 +518,10 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         }
         
         $activateOn = "{$time} 23:59:59";
-              
+        
         return $activateOn;
     }
-
+    
     
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
@@ -533,35 +532,35 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     public function exportCsv()
     {
         $exportFields = $this->getExportFields();
-
+        
         $conf = core_Packs::getConfig('core');
-
+        
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
-
+        
         $csv = '';
-
+        
         foreach ($exportFields as $caption) {
             $header .= $caption. ',';
         }
-
-         
+        
+        
         if (count($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
                 $rCsv = $this->generateCsvRows($rec);
-
+                
                 $csv .= $rCsv;
                 $csv .= "\n";
             }
-
+            
             $csv = $header . "\n" . $csv;
         }
-
+        
         return $csv;
     }
-
-
+    
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
@@ -582,7 +581,6 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         $exportFields['sales'] = 'Продажба';
         $exportFields['jobs'] = 'Производство';
         $exportFields['store'] = 'На склад';
-
         
         return $exportFields;
     }
@@ -597,7 +595,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     {
         $exportFields = $this->getExportFields();
         $rec = frame_CsvLib::prepareCsvRows($rec);
-
+        
         $res = new stdClass();
         $rCsv = '';
         foreach ($rec as $field => $value) {
@@ -615,11 +613,12 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
             $res->sales = substr(self::getVerbal($rec)->salesCsv, 0, strlen(self::getVerbal($rec)->salesCsv) - 1);
             $res->jobs = substr(self::getVerbal($rec)->jobsCsv, 0, strlen(self::getVerbal($rec)->jobsCsv) - 1);
             $res->store = $rec->store;
-    
+            
             foreach ($exportFields as $fld => $caption) {
                 if ($res->{$fld}) {
                     $value = $res->{$fld};
                     $value = html2text_Converter::toRichText($value);
+                    
                     // escape
                     if (preg_match('/\\r|\\n|,|"/', $value)) {
                         $value = '"' . str_replace('"', '""', $value) . '"';
@@ -630,7 +629,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         return $rCsv;
     }
 }

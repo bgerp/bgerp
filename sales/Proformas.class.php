@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Документ "Проформа фактура"
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_Proformas extends deals_InvoiceMaster
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -91,8 +90,8 @@ class sales_Proformas extends deals_InvoiceMaster
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,sales,acc';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -145,16 +144,16 @@ class sales_Proformas extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-            'place' => 'lastDocUser|lastDoc',
-            'responsible' => 'lastDocUser|lastDoc',
-            'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
-            'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
-            'uicNo' => 'clientData|lastDocUser|lastDoc',
-            'contragentPCode' => 'clientData|lastDocUser|lastDoc',
-            'contragentPlace' => 'clientData|lastDocUser|lastDoc',
-            'contragentAddress' => 'clientData|lastDocUser|lastDoc',
-            'accountId' => 'lastDocUser|lastDoc',
-            'template' => 'lastDocUser|lastDoc|defMethod',
+        'place' => 'lastDocUser|lastDoc',
+        'responsible' => 'lastDocUser|lastDoc',
+        'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+        'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
+        'uicNo' => 'clientData|lastDocUser|lastDoc',
+        'contragentPCode' => 'clientData|lastDocUser|lastDoc',
+        'contragentPlace' => 'clientData|lastDocUser|lastDoc',
+        'contragentAddress' => 'clientData|lastDocUser|lastDoc',
+        'accountId' => 'lastDocUser|lastDoc',
+        'template' => 'lastDocUser|lastDoc|defMethod',
     );
     
     
@@ -162,8 +161,8 @@ class sales_Proformas extends deals_InvoiceMaster
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
     public static $updateContragentdataField = array('vatId' => 'contragentVatNo',
-                                                     'uicId' => 'uicNo',
-                                                     'egn' => 'uicNo',
+        'uicId' => 'uicNo',
+        'egn' => 'uicNo',
     );
     
     
@@ -179,12 +178,12 @@ class sales_Proformas extends deals_InvoiceMaster
     public function description()
     {
         parent::setInvoiceFields($this);
-         
+        
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
-    
+        
         $this->setDbUnique('number');
     }
     
@@ -200,7 +199,7 @@ class sales_Proformas extends deals_InvoiceMaster
         
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
-    
+        
         return $res;
     }
     
@@ -221,7 +220,7 @@ class sales_Proformas extends deals_InvoiceMaster
         if (!haveRole('ceo,acc')) {
             $form->setField('number', 'input=none');
         }
-         
+        
         if ($data->aggregateInfo) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
@@ -378,7 +377,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public function prepareSingle_($data)
     {
         parent::prepareSingle_($data);
-         
+        
         $rec = &$data->rec;
         if (empty($rec->dpAmount)) {
             $total = $this->_total->amount - $this->_total->discount;
@@ -405,7 +404,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-    
+        
         if (deals_Helper::showInvoiceBtn($rec->threadId) && sales_Invoices::haveRightFor('add', (object) array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))) {
             $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => true), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png,row=2');
         }
@@ -431,8 +430,9 @@ class sales_Proformas extends deals_InvoiceMaster
      * Връща начисления аванс от последната проформа за начисляване на аванс,
      * ако има платежни документи след нея не връщаме сумата (не очакваме аванс)
      *
-     * @param  mixed       $saleId - ид или запис на продажба
-     * @return NULL|double - очаквано авансово плащане
+     * @param mixed $saleId - ид или запис на продажба
+     *
+     * @return NULL|float - очаквано авансово плащане
      */
     public static function getExpectedDownpayment($saleId)
     {

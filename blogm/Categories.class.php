@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Категории на статиите
  *
  *
  * @category  bgerp
  * @package   blogm
+ *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blogm_Categories extends core_Manager
 {
-    
-    
     /**
      * Заглавие на страницата
      */
@@ -55,8 +56,8 @@ class blogm_Categories extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, admin, cms, blog';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -71,7 +72,7 @@ class blogm_Categories extends core_Manager
         $this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
         $this->FLD('description', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Описание');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
-
+        
         $this->setDbUnique('title');
     }
     
@@ -104,14 +105,12 @@ class blogm_Categories extends core_Manager
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-
+        
         $form->rec->domainId = cms_Domains::getCurrent();
         $form->setReadonly('domainId');
     }
-
-
-
-
+    
+    
     /**
      * Връща категориите по текущия език
      */
@@ -137,11 +136,11 @@ class blogm_Categories extends core_Manager
     {
         // Шаблон, който ще представлява списъка от хиперлинкове към категориите
         $tpl = new ET();
- 
+        
         if (!$data->categories) {
             $data->categories = array();
         }
-
+        
         $Lg = cls::get('core_Lg');
         $allCaption = $Lg->translate('Всички', false, cms_Content::getLang());
         $cat = array('' => $allCaption) + $data->categories;
@@ -159,12 +158,12 @@ class blogm_Categories extends core_Manager
             
             // Див-обвивка
             $title = ht::createElement('div', $attr, $title);
-
+            
             // Създаваме шаблон, после заместваме плейсхолдъра със самия линк
             $tpl->append($title);
         }
         
- 
+        
         // Връщаме вече рендираният шаблон
         return $tpl;
     }

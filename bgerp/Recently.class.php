@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Последни документи и папки, посетени от даден потребител
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Последни документи и папки
  */
 class bgerp_Recently extends core_Manager
 {
-    
-    
     /**
      * Максимална дължина на показваните заглавия
      */
@@ -93,16 +92,17 @@ class bgerp_Recently extends core_Manager
     /**
      * Добавя известие за настъпило събитие
      *
-     * @param string       $type     - folder,document
-     * @param integer      $objectId
-     * @param integer|NULL $userId
-     * @param string       $hidden   - yes/no
-     * @param iteger|NULL  $threadId
+     * @param string      $type     - folder,document
+     * @param int         $objectId
+     * @param int|NULL    $userId
+     * @param string      $hidden   - yes/no
+     * @param iteger|NULL $threadId
      */
     public static function add($type, $objectId, $userId = null, $hidden = 'no', $threadId = null)
     {
         // Не добавяме от опресняващи ajax заявки
         if (Request::get('ajax_mode')) {
+            
             return;
         }
         
@@ -207,7 +207,7 @@ class bgerp_Recently extends core_Manager
                     $linkUrl = array($docProxy->getInstance(), 'single',
                         'id' => $docRec->id);
                 }
-
+                
                 $row->title = ht::createLink(
                     str::limitLen($docRow->title, self::maxLenTitle, 20, ' ... ', true),
                     $linkUrl,
@@ -258,8 +258,8 @@ class bgerp_Recently extends core_Manager
         
         return $objectTitle;
     }
-
-
+    
+    
     /**
      * Връща кога за последен път потребителя е виждал този документ
      *
@@ -274,24 +274,25 @@ class bgerp_Recently extends core_Manager
                 expect(is_numeric($doc));
                 $cRec = doc_Containers::fetch($doc);
             }
-
+            
             if (!$cRec->threadId) {
+                
                 return;
             }
-
+            
             $fid = doc_Threads::getFirstContainerId($cRec->threadId);
         } else {
             $fid = $doc;
         }
-
+        
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
-
+        
         if ($fid && $userId) {
             $lastTime = bgerp_Recently::fetchField("#type = 'document' AND #objectId = {$fid} AND #userId = {$userId}", 'last');
         }
-
+        
         return $lastTime;
     }
     
@@ -319,7 +320,7 @@ class bgerp_Recently extends core_Manager
         }
         
         $Recently = cls::get('bgerp_Recently');
-
+        
         // Намираме времето на последния запис
         $query = $Recently->getQuery();
         $query->where("#userId = ${userId}");
@@ -329,9 +330,9 @@ class bgerp_Recently extends core_Manager
         $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
         $now = dt::now();
         list($tpl, $createdOn) = core_Cache::get('RecentDoc', $key);
- 
+        
         if (!$tpl || $createdOn != $lastRec->last) {
- 
+            
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -366,7 +367,7 @@ class bgerp_Recently extends core_Manager
             
             // Рендираме изгледа
             $tpl = $Recently->renderPortal($data);
-
+            
             core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), doc_Setup::get('CACHE_LIFETIME'));
         }
         
@@ -422,9 +423,8 @@ class bgerp_Recently extends core_Manager
         
         return $tpl;
     }
-
-
-
+    
+    
     /**
      * Игнорираме pager-а
      *
@@ -434,17 +434,17 @@ class bgerp_Recently extends core_Manager
      */
     public static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-
         // Задаваме броя на елементите в страница
         $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-
+        
         if ($portalArrange == 'recentlyNotifyTaskCal') {
             $mvc->listItemsPerPage = 20;
         } else {
             $mvc->listItemsPerPage = 10;
         }
     }
-
+    
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -537,8 +537,8 @@ class bgerp_Recently extends core_Manager
     /**
      * Връща id-тата на последно използваните нишки
      *
-     * @param integer $count  - Броя нишки
-     * @param integer $userId - За потребителя
+     * @param int $count  - Броя нишки
+     * @param int $userId - За потребителя
      *
      * @return array
      */
@@ -595,8 +595,8 @@ class bgerp_Recently extends core_Manager
     /**
      * Връща id-тата на последно използваните папки
      *
-     * @param integer $count  - Броя папки
-     * @param integer $userId - За потребителя
+     * @param int $count  - Броя папки
+     * @param int $userId - За потребителя
      *
      * @return array
      */
@@ -665,6 +665,7 @@ class bgerp_Recently extends core_Manager
      * @param string $status
      *
      * @return string
+     *
      * @see bgerp_RefreshRowsPlg
      */
     public function getContentHash($status)
@@ -674,17 +675,17 @@ class bgerp_Recently extends core_Manager
         
         return $hash;
     }
-
-
+    
+    
     /**
      * Изтрива стари записи в bgerp_Recently
      */
     public function cron_DeleteOldRecently()
     {
         $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600));
-
+        
         // $res = self::delete("#last < '{$lastRecently}'");
-
+        
         if ($res) {
             
             return "Бяха изтрити {$res} записа от " . $this->className;

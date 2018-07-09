@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Локации на котнрагенти
  *
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class crm_Locations extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -87,7 +86,7 @@ class crm_Locations extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'title';
-
+    
     
     /**
      * Шаблон за единичния изглед
@@ -100,7 +99,7 @@ class crm_Locations extends core_Master
      */
     public $searchFields = 'title, countryId, place, address, email, tel';
     
-
+    
     /**
      * Записи за обновяване
      */
@@ -133,7 +132,7 @@ class crm_Locations extends core_Master
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
-
+        
         $this->setDbUnique('gln');
         $this->setDbIndex('contragentCls,contragentId');
     }
@@ -155,12 +154,12 @@ class crm_Locations extends core_Master
     public static function update($contragentClassId, $contragentId, $countryId, $type, $pCode, $place, $address, $locationId = null, $otherParams = array())
     {
         $newRec = (object) array('contragentCls' => $contragentClassId,
-                                'contragentId' => $contragentId,
-                                'countryId' => $countryId,
-                                'type' => $type,
-                                'pCode' => $pCode,
-                                'place' => $place,
-                                'address' => $address,
+            'contragentId' => $contragentId,
+            'countryId' => $countryId,
+            'type' => $type,
+            'pCode' => $pCode,
+            'place' => $place,
+            'address' => $address,
         );
         
         // Ако има локация, ъпдейт
@@ -205,8 +204,8 @@ class crm_Locations extends core_Master
     /**
      * Връща стринг с всички имейли за съответния обект
      *
-     * @param integer $clsId
-     * @param integer $contragentId
+     * @param int $clsId
+     * @param int $contragentId
      *
      * @return string
      */
@@ -269,7 +268,7 @@ class crm_Locations extends core_Master
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         $data->form->setSuggestions('type', self::getTypeSuggestions());
     }
-
+    
     
     /**
      * След подготовката на заглавието на формата
@@ -313,7 +312,7 @@ class crm_Locations extends core_Master
                 $lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
                 $lQuery->XPR('count', 'int', 'COUNT(#id)');
                 $count = $lQuery->fetch()->count + 1;
-                 
+                
                 $rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
             }
         }
@@ -369,7 +368,7 @@ class crm_Locations extends core_Master
         
         if (sales_Routes::fetch("#locationId = {$rec->id} AND #state != 'rejected' AND #state != 'closed'")) {
             core_Statuses::newStatus('Локацията не може да се оттегли, докато има активни търговски маршрути към нея', 'error');
-    
+            
             return false;
         }
     }
@@ -397,11 +396,12 @@ class crm_Locations extends core_Master
     public function prepareContragentLocations($data)
     {
         $data->TabCaption = 'Локации';
-
+        
         if ($data->isCurrent === false) {
+            
             return;
         }
-
+        
         expect($data->masterId);
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         
@@ -495,14 +495,15 @@ class crm_Locations extends core_Master
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * След обработка на ролите
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($requiredRoles == 'no_one') {
+            
             return;
         }
         
@@ -538,8 +539,8 @@ class crm_Locations extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Връща масив със собствените локации
      */
@@ -547,13 +548,14 @@ class crm_Locations extends core_Master
     {
         return static::getContragentOptions('crm_Companies', crm_Setup::BGERP_OWN_COMPANY_ID);
     }
-
-
+    
+    
     /**
      * Всички локации на зададен контрагент
      *
-     * @param  mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
-     * @param  int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     *
      * @return array масив от записи crm_Locations
      */
     private static function getContragentLocations($contragentClassId, $contragentId)
@@ -569,18 +571,19 @@ class crm_Locations extends core_Master
         while ($rec = $query->fetch()) {
             $recs[$rec->id] = $rec;
         }
-
+        
         return $recs;
     }
     
-
+    
     /**
      * Наименованията на всички локации на зададен контрагент
      *
-     * @param  mixed   $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
-     * @param  int     $contragentId      първичен ключ на контрагента (в мениджъра му)
-     * @param  boolean $intKeys           - дали ключовите да са инт или стринг
-     * @return array   масив от наименования на локации, ключ - ид на локации
+     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     * @param bool  $intKeys           - дали ключовите да са инт или стринг
+     *
+     * @return array масив от наименования на локации, ключ - ид на локации
      */
     public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true)
     {
@@ -589,7 +592,7 @@ class crm_Locations extends core_Master
         foreach ($locationRecs as &$rec) {
             $rec = static::getTitleById($rec->id, false);
         }
-    
+        
         if (!$intKeys && count($locationRecs)) {
             $locationRecs = array_combine($locationRecs, $locationRecs);
         }
@@ -601,8 +604,9 @@ class crm_Locations extends core_Master
     /**
      * GLN на всички локации на зададен контрагент + id-тата им
      *
-     * @param  mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
-     * @param  int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     *
      * @return array масив от GLN на локации, ключ - ид на локации
      */
     public static function getContragentGLNs($contragentClassId, $contragentId)
@@ -622,8 +626,9 @@ class crm_Locations extends core_Master
     /**
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
      *
-     * @param  int     $id
-     * @param  boolean $translitarate
+     * @param int  $id
+     * @param bool $translitarate
+     *
      * @return core_ET $tpl
      */
     public static function getAddress($id, $translitarate = false)
@@ -734,8 +739,8 @@ class crm_Locations extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -805,22 +810,22 @@ class crm_Locations extends core_Master
                     
                     // Създаваме локацията към фирмата
                     $locationId = crm_Locations::save((object) array('title' => $rec->title,
-                                                                    'countryId' => $rec->country,
-                                                                    'type' => $rec->type,
-                                                                    'place' => $rec->place,
-                                                                    'pCode' => $rec->pCode,
-                                                                    'contragentCls' => crm_Companies::getClassId(),
-                                                                    'contragentId' => $companyId,
-                                                                    'gpsCoords' => $rec->gpsCoords,
-                                                                    'image' => $rec->image,
-                                                                    'comment' => $rec->comment,
-                                                                    'address' => $rec->address));
+                        'countryId' => $rec->country,
+                        'type' => $rec->type,
+                        'place' => $rec->place,
+                        'pCode' => $rec->pCode,
+                        'contragentCls' => crm_Companies::getClassId(),
+                        'contragentId' => $companyId,
+                        'gpsCoords' => $rec->gpsCoords,
+                        'image' => $rec->image,
+                        'comment' => $rec->comment,
+                        'address' => $rec->address));
                     
                     if ($locationId) {
                         
                         // Създаваме търговския маршрут към новосъздадената локация
                         $routeId = sales_Routes::save((object) array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeat' => $rec->repeat));
-                    
+                        
                         return new Redirect(array('crm_Locations', 'single', $locationId), '|Успешно е създаден търговския обект');
                     }
                     $form->setError('name', 'Има проблем при записа на локация');
@@ -835,31 +840,31 @@ class crm_Locations extends core_Master
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Връща масив с предложения за типа на локацията
      */
     private static function getTypeSuggestions()
     {
         $suggArr = array('' => '',
-                         'За кореспонденция' => 'За кореспонденция',
-                         'Главна квартира' => 'Главна квартира',
-                         'За получаване на пратки' => 'За получаване на пратки',
-                         'Офис' => 'Офис',
-                         'Магазин' => 'Магазин',
-                         'Склад' => 'Склад',
-                         'Фабрика' => 'Фабрика',
-                         'Друг' => 'Друг');
-
+            'За кореспонденция' => 'За кореспонденция',
+            'Главна квартира' => 'Главна квартира',
+            'За получаване на пратки' => 'За получаване на пратки',
+            'Офис' => 'Офис',
+            'Магазин' => 'Магазин',
+            'Склад' => 'Склад',
+            'Фабрика' => 'Фабрика',
+            'Друг' => 'Друг');
+        
         $query = self::getQuery();
-
+        
         $query->groupBy('type');
         $query->show('type');
         while ($rec = $query->fetch()) {
             $suggArr[$rec->type] = $rec->type;
         }
-
+        
         return $suggArr;
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'prosody_Setup'
  *
@@ -8,9 +9,11 @@
  *
  * @category  bgerp
  * @package   prosody
+ *
  * @author    Dimitar Minekov <mitko@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
@@ -21,12 +24,11 @@ DEFINE('PROSODY_ADMIN_PASS', '');
 
 class prosody_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
     public $version = '0.1';
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
@@ -43,7 +45,7 @@ class prosody_Setup extends core_ProtoSetup
         'PROSODY_ADMIN_URL' => array('url', 'caption=Настройки->Административно URL,placeholder=http://jabber.server.bg:5280/admin_rest'),
         'PROSODY_ADMIN_USER' => array('email', 'caption=Настройки->Потребител,placeholder=admin@jabber.server.bg'),
         'PROSODY_ADMIN_PASS' => array('password', 'caption=Настройки->Парола,placeholder=Passw0rd!'),
-         
+    
     );
     
     
@@ -54,15 +56,15 @@ class prosody_Setup extends core_ProtoSetup
     
     
     public $defClasses = 'prosody_RemoteDriver';
-
-
+    
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-         
+        
         return $html;
     }
 }

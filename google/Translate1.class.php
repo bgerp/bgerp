@@ -8,15 +8,15 @@
  *
  * @category  vendors
  * @package   google
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class google_Translate1
 {
-    
-    
     /**
      * JavaScript фунцкията за превеждане
      */
@@ -80,7 +80,7 @@ class google_Translate1
     /**
      * Връща JAVASCRIPT функцията за превеждане
      *
-     * @param boolean $escaped - Дали да се ескейпва
+     * @param bool $escaped - Дали да се ескейпва
      *
      * @return string $initJs
      */
@@ -103,8 +103,8 @@ class google_Translate1
     /**
      * Връща линка за превеждане на текста
      *
-     * @param string  $lg      - Езика, на който да се превежда
-     * @param boolean $escaped - Дали да се ескейпва
+     * @param string $lg      - Езика, на който да се превежда
+     * @param bool   $escaped - Дали да се ескейпва
      *
      * @return string $jsUrl
      */
@@ -116,7 +116,7 @@ class google_Translate1
             // Вземаме текущия език
             $lg = core_Lg::getCurrent();
         }
-
+        
         // Вземаме URL' тп
         $jsUrl = static::$elementJsUrl;
         
@@ -137,8 +137,8 @@ class google_Translate1
     /**
      * Връща шаблона, в който ще се съдържа текста за превод
      *
-     * @param string  $text    - Текста, който ще се превежда
-     * @param boolean $escaped - Дали да се ескейпва
+     * @param string $text    - Текста, който ще се превежда
+     * @param bool   $escaped - Дали да се ескейпва
      *
      * @return string $markup
      */
@@ -165,7 +165,7 @@ class google_Translate1
     /**
      * Връща CSS' а
      *
-     * @param boolean $escaped - Дали да се ескейпва
+     * @param bool $escaped - Дали да се ескейпва
      *
      * @return string $css
      */

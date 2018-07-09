@@ -1,28 +1,26 @@
 <?php
 
 
-
-
 /**
  * Мениджър на машини за отдалечен достъп
  *
  *
  * @category  bgerp
  * @package   ssh
+ *
  * @author    Dimitar Minekov <mitko@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class ssh_Hosts extends core_Master
 {
-    
-    
     /**
      * Необходими плъгини
      */
     public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, ssh_Wrapper';
-                      
+    
     
     /**
      * Заглавие
@@ -52,13 +50,13 @@ class ssh_Hosts extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, remote, admin';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на машините?
      */
     public $canSingle = 'ceo, remote, admin';
-
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -82,7 +80,7 @@ class ssh_Hosts extends core_Master
         $this->setDbUnique('name');
     }
     
-
+    
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
@@ -90,10 +88,11 @@ class ssh_Hosts extends core_Master
     {
         if ($form->isSubmitted()) {
             $form->rec->config = array('name' => $form->rec->name, 'ip' => $form->rec->ip,
-                                      'port' => $form->rec->port, 'user' => $form->rec->user, 'pass' => $form->rec->pass);
+                'port' => $form->rec->port, 'user' => $form->rec->user, 'pass' => $form->rec->pass);
         }
     }
-
+    
+    
     /**
      * След подготвяне на формата добавяне/редактиране
      */
@@ -101,7 +100,7 @@ class ssh_Hosts extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-
+        
         if (is_array($rec->config)) {
             foreach ($rec->config as $name => $value) {
                 $form->setDefault($name, $value);
@@ -128,7 +127,8 @@ class ssh_Hosts extends core_Master
     /**
      * Връща конфигурацията на хост по id
      *
-     * @param  int   $id
+     * @param int $id
+     *
      * @return array конфигурацията
      */
     public static function fetchConfig($id)

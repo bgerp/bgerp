@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_Clone extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -89,7 +89,7 @@ class plg_Clone extends core_Plugin
             $nRec = new stdClass();
             $nRec = clone $form->rec;
             unset($nRec->id);
-         
+            
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
             
@@ -132,7 +132,7 @@ class plg_Clone extends core_Plugin
                 
                 return false;
             }
-                
+            
             // Показваме съобщение за грешка
             core_Statuses::newStatus('|Грешка при клониране на запис', 'warning');
         }
@@ -204,7 +204,7 @@ class plg_Clone extends core_Plugin
     {
         // Ако има запис и има права
         if ($rec && $requiredRoles != 'no_one') {
-        
+            
             // Ако записа е на системен потребител
             if ($rec->createdBy == core_Users::SYSTEM_USER) {
                 if ($action == 'edit') {
@@ -253,11 +253,13 @@ class plg_Clone extends core_Plugin
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
+            
             return;
         }
         
         // Ако листваме
         if (!arr::haveSection($fields, '-list')) {
+            
             return;
         }
         
@@ -338,24 +340,24 @@ class plg_Clone extends core_Plugin
         $Details = arr::make($Details, true);
         if (count($Details)) {
             $notClones = false;
-                 
+            
             // За всеки от тях
             foreach ($Details as $det) {
                 $Detail = cls::get($det);
                 if (!isset($Detail->masterKey)) {
                     continue;
                 }
-        
+                
                 if (method_exists($Detail, 'cloneDetails')) {
                     $Detail->cloneDetails($oldMasterId, $newMasterId);
                 } else {
-        
+                    
                     // Клонираме записа и го свързваме към новия запис
                     $query = $Detail->getQuery();
                     $query->where("#{$Detail->masterKey} = {$oldMasterId}");
                     $query->orderBy('id', 'ASC');
                     $dRecs = $query->fetchAll();
-
+                    
                     $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
                     
                     if (is_array($dRecs)) {
@@ -363,7 +365,7 @@ class plg_Clone extends core_Plugin
                             $oldRec = clone $dRec;
                             $dRec->{$Detail->masterKey} = $newMasterId;
                             unset($dRec->id);
-        
+                            
                             // Ако има махаме ги от $form->rec
                             if (count($dontCloneFields)) {
                                 foreach ($dontCloneFields as $unsetField) {
@@ -372,9 +374,9 @@ class plg_Clone extends core_Plugin
                             }
                             
                             $Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
-        
+                            
                             if ($Detail->isUnique($dRec, $fields)) {
-                                        
+                                
                                 // Записваме клонирания детайл
                                 $Detail->save($dRec);
                                 $Detail->invoke('AfterSaveClonedDetail', array($dRec, $oldRec));
@@ -385,7 +387,7 @@ class plg_Clone extends core_Plugin
                     }
                 }
             }
-                 
+            
             // Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
             if ($notClones) {
                 core_Statuses::newStatus('Някои от детайлите не бяха клонирани, защото са уникални', 'warning');
@@ -422,9 +424,9 @@ class plg_Clone extends core_Plugin
     /**
      * Връща id на източника, от къдете е клониран записа
      *
-     * @param core_Mvc     $mvc
-     * @param NULL|integer $res
-     * @param stdClass     $rec
+     * @param core_Mvc $mvc
+     * @param NULL|int $res
+     * @param stdClass $rec
      */
     public static function on_AfterGetClonedFromId($mvc, &$res, $rec)
     {

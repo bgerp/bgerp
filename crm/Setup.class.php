@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
@@ -26,16 +25,16 @@ defIfNot('BGERP_OWN_COMPANY_ID', 1);
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class crm_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * ID на нашата фирма
      */
@@ -84,15 +83,15 @@ class crm_Setup extends core_ProtoSetup
      * Настройки за Cron
      */
     public $cronSettings = array(
-            array(
-                    'systemId' => 'Gather_contragent_info',
-                    'description' => 'Събиране на информация за контрагентите',
-                    'controller' => 'crm_ext_ContragentInfo',
-                    'action' => 'GatherInfo',
-                    'period' => 720,
-                    'offset' => 70,
-                    'timeLimit' => 300
-            ),
+        array(
+            'systemId' => 'Gather_contragent_info',
+            'description' => 'Събиране на информация за контрагентите',
+            'controller' => 'crm_ext_ContragentInfo',
+            'action' => 'GatherInfo',
+            'period' => 720,
+            'offset' => 70,
+            'timeLimit' => 300
+        ),
     );
     
     
@@ -100,47 +99,47 @@ class crm_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'crm_Groups',
-            'crm_Persons',
-            'crm_Companies',
-            'crm_ext_IdCards',
-            'crm_Personalization',
-            'crm_ext_CourtReg',
-            'crm_Profiles',
-            'crm_Locations',
-            'crm_Formatter',
-            'crm_ext_ContragentInfo',
-            'migrate::movePersonalizationData',
-            'migrate::addCountryToCompaniesAndPersons',
-            'migrate::updateSettingsKey',
-            'migrate::updateGroupFoldersToUnsorted',
-            'migrate::updateLocationType',
-            'migrate::addCountryIn2LgPersons',
-            'migrate::addCountryIn2LgCompanies',
-        );
+        'crm_Groups',
+        'crm_Persons',
+        'crm_Companies',
+        'crm_ext_IdCards',
+        'crm_Personalization',
+        'crm_ext_CourtReg',
+        'crm_Profiles',
+        'crm_Locations',
+        'crm_Formatter',
+        'crm_ext_ContragentInfo',
+        'migrate::movePersonalizationData',
+        'migrate::addCountryToCompaniesAndPersons',
+        'migrate::updateSettingsKey',
+        'migrate::updateGroupFoldersToUnsorted',
+        'migrate::updateLocationType',
+        'migrate::addCountryIn2LgPersons',
+        'migrate::addCountryIn2LgCompanies',
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'crm';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'crm, user'),
-        );
-
-             
+        array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'crm, user'),
+    );
+    
+    
     /**
      * Скрипт за инсталиране
      */
     public function install()
     {
         $html = parent::install();
-                
+        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png', '3MB', 'user', 'every_one');
@@ -160,7 +159,7 @@ class crm_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Линкове в статусите след логване', 'crm_UsersLoginStatusPlg', 'core_Users', 'private');
         
         $html .= $Plugins->forcePlugin('Персонални настройки на системата', 'crm_PersonalConfigPlg', 'core_ObjectConfiguration', 'private');
-
+        
         // Нагласяване на Cron
         $rec = new stdClass();
         $rec->systemId = 'PersonsToCalendarEvents';
@@ -351,22 +350,22 @@ class crm_Setup extends core_ProtoSetup
             $Unsorted->save($unsortedRec, 'folderId');
         }
     }
-
-
+    
+    
     /**
      * Миграция за обновяване типа на локациите
      */
     public static function updateLocationType()
     {
         $types = array('correspondence' => 'За кореспонденция',
-                        'headquoter' => 'Главна квартира',
-                        'shipping' => 'За получаване на пратки',
-                        'office' => 'Офис',
-                        'shop' => 'Магазин',
-                        'storage' => 'Склад',
-                        'factory' => 'Фабрика',
-                        'other' => 'Друг');
-
+            'headquoter' => 'Главна квартира',
+            'shipping' => 'За получаване на пратки',
+            'office' => 'Офис',
+            'shop' => 'Магазин',
+            'storage' => 'Склад',
+            'factory' => 'Фабрика',
+            'other' => 'Друг');
+        
         $query = crm_Locations::getQuery();
         while ($rec = $query->fetch()) {
             if ($type = $types[$rec->type]) {
@@ -375,10 +374,11 @@ class crm_Setup extends core_ProtoSetup
                 $upd++;
             }
         }
-
+        
         return "Обновени са {$upd} типа на локации";
     }
-
+    
+    
     /**
      * Добавя държавата на два езика в лицата
      */
@@ -388,7 +388,7 @@ class crm_Setup extends core_ProtoSetup
         
         $mvcInst = cls::get('crm_Persons');
         $query = $mvcInst->getQuery();
-                    
+        
         Mode::push('text', 'plain');
         Mode::push('htmlEntity', 'none');
         
@@ -400,12 +400,12 @@ class crm_Setup extends core_ProtoSetup
             $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
             $mvcInst->save_($rec, 'searchKeywords');
         }
-
+        
         Mode::pop('htmlEntity');
         Mode::pop('text');
     }
-
-
+    
+    
     /**
      * Добавя държавата на два езика в лицата
      */
@@ -415,7 +415,7 @@ class crm_Setup extends core_ProtoSetup
         
         $mvcInst = cls::get('crm_Companies');
         $query = $mvcInst->getQuery();
-                    
+        
         Mode::push('text', 'plain');
         Mode::push('htmlEntity', 'none');
         
@@ -427,7 +427,7 @@ class crm_Setup extends core_ProtoSetup
             $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
             $mvcInst->save_($rec, 'searchKeywords');
         }
-
+        
         Mode::pop('htmlEntity');
         Mode::pop('text');
     }

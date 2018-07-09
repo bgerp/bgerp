@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   tcost
+ *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class tcost_Zones extends core_Detail
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -26,68 +26,68 @@ class tcost_Zones extends core_Detail
      * Заглавие
      */
     public $title = 'Транспортни зони';
-
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_SaveAndNew';
-
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'countryId, pCode, createdOn, createdBy';
-
-
+    
+    
     /**
      * Ключ към core_Master
      */
     public $masterKey = 'zoneId';
-
-
+    
+    
     /**
      * Единично заглавие
      */
     public $singleTitle = 'Зона';
-
-
+    
+    
     /**
      * Време за опресняване информацията при лист на събитията
      */
     public $refreshRowsTime = 5000;
-
-
+    
+    
     /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,tcost';
-
-
+    
+    
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,tcost';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -97,8 +97,8 @@ class tcost_Zones extends core_Detail
         $this->FLD('countryId', 'key(mvc = drdata_Countries, select = commonName)', 'caption=Държава, mandatory,smartCenter');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
     }
-
-
+    
+    
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
      *
@@ -133,25 +133,27 @@ class tcost_Zones extends core_Detail
                 }
             }
         }
-
+        
         // Ако няма зона NULL
         if (empty($bestZone)) {
+            
             return;
         }
         
         // Намиране на името на намерената зона
         $deliveryTime = tcost_FeeZones::fetchField($bestZone->zoneId, 'deliveryTime');
         $zoneName = tcost_FeeZones::getVerbal($bestZone->zoneId, 'name');
-
+        
         return array('zoneId' => $bestZone->zoneId, 'zoneName' => $zoneName, 'deliveryTime' => $deliveryTime);
     }
-
+    
     
     /**
      * Сравнява колко близо са два пощенски кода
      *
-     * @param      $pc1 Първи данни за сравнение
-     * @param      $pc2 Втори данни за сравнение
+     * @param $pc1 Първи данни за сравнение
+     * @param $pc2 Втори данни за сравнение
+     *
      * @return int Брой съвпадения
      */
     private static function strNearPCode($pc1, $pc2)
@@ -162,14 +164,14 @@ class tcost_Zones extends core_Detail
         
         // Връща стринга с най-малък код
         $cycleNumber = min(strlen($pc1), strlen($pc2));
-
+        
         for ($i = 0; $i < $cycleNumber; $i++) {
             if ($pc1{$i} != $pc2{$i}) {
                 if ($i == 0 && strlen($pc1) && strlen($pc2)) {
                     
                     return -1;
                 }
-
+                
                 return $i;
             }
         }
@@ -231,8 +233,8 @@ class tcost_Zones extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Преди извличане на записите от БД
      *

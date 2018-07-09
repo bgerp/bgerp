@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Плъгин за добавяне на полета в cat_Products за импорт/експорт от БН
  *
  *
  * @category  bgerp
  * @package   bnav
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bnav_Plugin extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      *
@@ -26,6 +25,7 @@ class bnav_Plugin extends core_Plugin
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         if (!static::checkApplicability($mvc)) {
+            
             return;
         }
         

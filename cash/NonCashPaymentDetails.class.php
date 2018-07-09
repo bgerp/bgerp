@@ -1,22 +1,20 @@
 <?php 
 
-
-
 /**
  * Детайл за безналични методи на плащане към ПКО
  *
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_NonCashPaymentDetails extends core_Manager
 {
-    
-    
     /**
      * Кой може да го разглежда?
      */
@@ -51,14 +49,14 @@ class cash_NonCashPaymentDetails extends core_Manager
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'cash_Wrapper';
-            
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Начин на плащане';
-     
-     
+    
+    
     /**
      * Описание на модела
      */
@@ -120,8 +118,9 @@ class cash_NonCashPaymentDetails extends core_Manager
     /**
      * Рендиране на детайла
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderDetail_($data)
     {
@@ -143,8 +142,9 @@ class cash_NonCashPaymentDetails extends core_Manager
     /**
      * Връща разрешените методи за плащане
      *
-     * @param  core_ObjectReference $document
-     * @return array                $res
+     * @param core_ObjectReference $document
+     *
+     * @return array $res
      */
     public static function getPaymentsArr($documentId, $documentClassId)
     {

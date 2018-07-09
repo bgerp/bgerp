@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Къде да се съхранява състоянието на експертизата?
  */
@@ -28,16 +27,16 @@ defIfNot('EXPERT_CACHE_TYPE', 'Expert');
  *
  * @category  vendors
  * @package   expert
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class expert_Expert extends core_FieldSet
 {
-    
-    
     /**
      * Персистентно състояние
      */
@@ -233,7 +232,7 @@ class expert_Expert extends core_FieldSet
         
         $this->midRes->RedirectMsgType = $type;
     }
-
+    
     
     /**
      * Връща типа на съобщението след редирект
@@ -289,7 +288,7 @@ class expert_Expert extends core_FieldSet
             
             return $this->layouts[$type];
         }
-
+        
         return $this->layouts['default'];
     }
     
@@ -402,11 +401,11 @@ class expert_Expert extends core_FieldSet
             
             return $handler;
         }
-            
+        
         $Crypt = cls::get('core_Crypt');
-            
+        
         $key = Mode::getPermanentKey();
-            
+        
         return $Crypt->encodeVar($state, $key);
     }
     
@@ -713,7 +712,7 @@ class expert_Expert extends core_FieldSet
         
         if (isDebug()) {
             $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">" . tr('Дебъг') . "</a><div id='expDebug' style='padding-left:15px; display:none;'>";
-        
+            
             if (count($this->reason)) {
                 foreach ($this->reason as $l) {
                     $debug .= "<li> ${l}</li>";
@@ -816,7 +815,7 @@ class expert_Expert extends core_FieldSet
             
             return $tpl;
         }
-
+        
         // Няма междинен резултат ...
         error('Няма междинен резултат', $this);
     }
@@ -907,7 +906,7 @@ class expert_Expert extends core_FieldSet
                                 $value = '';
                             }
                         }
-
+                        
                         if ($value !== null) {
                             $this->setValue($name, $value);
                             $this->fromDialog[$name] = true;
@@ -1018,16 +1017,19 @@ class expert_Expert extends core_FieldSet
     {
         // Ако това предупреждение вече е сработвало - нищо не правим
         if ($this->isDialogUsed($kRec->label)) {
+            
             return;
         }
         
         // Достоверно ли е условието на това предупреждение?
         if (!$this->calcExpr($kRec->cond, $res)) {
+            
             return;
         }
         
         // Истина ли е условието на предупреждението?
         if (!$res) {
+            
             return;
         }
         
@@ -1065,16 +1067,19 @@ class expert_Expert extends core_FieldSet
     {
         // Ако това предупреждение вече е сработвало - нищо не правим
         if ($this->isDialogUsed($kRec->label)) {
+            
             return;
         }
         
         // Достоверно ли е условието на това предупреждение?
         if (!$this->calcExpr($kRec->cond, $res)) {
+            
             return;
         }
         
         // Истина ли е условието на предупреждението?
         if (!$res) {
+            
             return;
         }
         
@@ -1113,16 +1118,19 @@ class expert_Expert extends core_FieldSet
     {
         // Ако това предупреждение вече е сработвало - нищо не правим
         if ($this->isDialogUsed($kRec->label)) {
+            
             return;
         }
         
         // Достоверно ли е условието на това предупреждение?
         if (!$this->calcExpr($kRec->cond, $res)) {
+            
             return;
         }
         
         // Истина ли е условието на предупреждението?
         if (!$res) {
+            
             return;
         }
         
@@ -1162,21 +1170,25 @@ class expert_Expert extends core_FieldSet
     {
         // Ако този въпрос вече е стаботвал - нищо не правим
         if ($this->isDialogUsed($kRec->label)) {
+            
             return;
         }
         
         // Ако променливите на този въпрос са достоверни - нущо не правим
         if ($this->areTrusty($kRec->vars)) {
+            
             return;
         }
         
         // Достоверно ли е условието на този въпрос?
         if (!$this->calcExpr($kRec->cond, $res)) {
+            
             return;
         }
         
         // Истина ли е условието на предупреждението?
         if (!$res) {
+            
             return;
         }
         
@@ -1198,21 +1210,25 @@ class expert_Expert extends core_FieldSet
     {
         // Ако променливата на това правило е достоверна, то не се прилага
         if ($this->isTrusty($kRec->vars)) {
+            
             return;
         }
         
         // Достоверно ли е условието на това правило?
         if (!$this->calcExpr($kRec->cond, $res)) {
+            
             return;
         }
         
         // Истина ли е условието?
         if (!$res) {
+            
             return;
         }
         
         // Достоверно ли е заключението/стойността на това правило?
         if (!$this->calcExpr($kRec->expr, $res)) {
+            
             return;
         }
         
@@ -1239,21 +1255,25 @@ class expert_Expert extends core_FieldSet
         
         // Ако променливата представляваща опциите е достоверна, то не се прилага
         if ($this->isTrusty($var)) {
+            
             return;
         }
         
         // Достоверно ли е условието на тези опции?
         if (!$this->calcExpr($kRec->cond, $res)) {
+            
             return;
         }
         
         // Истина ли е условието?
         if (!$res) {
+            
             return;
         }
         
         // Достоверно ли е заключението/стойността на това предположение?
         if (!$this->calcExpr($kRec->expr, $res)) {
+            
             return;
         }
         
@@ -1289,16 +1309,19 @@ class expert_Expert extends core_FieldSet
         
         // Ако променливата представляваща опциите е достоверна, то не се прилага
         if ($this->isTrusty($var)) {
+            
             return;
         }
         
         // Достоверно ли е условието на тези опции?
         if (!$this->calcExpr($kRec->cond, $res)) {
+            
             return;
         }
         
         // Истина ли е условието?
         if (!$res) {
+            
             return;
         }
         
@@ -1307,6 +1330,7 @@ class expert_Expert extends core_FieldSet
             
             // Достоверно ли е заключението/стойността на тези опции?
             if (!$this->calcExpr($kRec->expr, $res)) {
+                
                 return;
             }
             
@@ -1461,7 +1485,7 @@ class expert_Expert extends core_FieldSet
                     // Не може да се сметне
                     error('Не може да се сметне', $value);
                 }
-
+                
                 $value = $res;
             }
             $rec->{$key} = $value;
@@ -1616,10 +1640,11 @@ class expert_Expert extends core_FieldSet
         
         if (!@eval('return TRUE;' . $expr1)) {
             $this->log[] = 'Syntax error: ' . $expr1 ;
+            
             // Некоректен израз
             error('Некоректен израз', $expr1);
         }
-
+        
         $result = eval($expr1);
         
         return true;
@@ -1632,7 +1657,6 @@ class expert_Expert extends core_FieldSet
      */
     public function expr2php($expr, &$usedVars)
     {
-        
         // В какви части на израза може да сме?
         // Променлива - започва с # и съдържа само латински букви, цифри и _
         // Функция - започва с буква и съдържа само латински букви, цифри и _
@@ -1674,7 +1698,7 @@ class expert_Expert extends core_FieldSet
                             // Неочаквана отваряща скоба
                             error('Неочаквана отваряща скоба', $expr, $res);
                         }
-
+                        
                         $bc = false;
                     }
                     

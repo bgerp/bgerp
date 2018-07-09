@@ -1,19 +1,20 @@
 <?php
 
+
 /**
  * Клас 'fileman_view_DialogWrapper' -
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_view_DialogWrapper extends page_Html
 {
-    
-    
     /**
      * Конструктор
      */

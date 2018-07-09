@@ -1,24 +1,22 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса label_SequenceIntf за класа store_ShipmentOrders
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
 class store_iface_ShipmentLabelImpl
 {
-    
-    
     /**
      * Инстанция на класа
      */
@@ -28,13 +26,14 @@ class store_iface_ShipmentLabelImpl
     /**
      * Връща наименованието на етикета
      *
-     * @param  integer $id
+     * @param int $id
+     *
      * @return string
      */
     public function getLabelName($id)
     {
         $rec = $this->class->fetchRec($id);
-    
+        
         return '#' . $this->class->getHandle($rec);
     }
     
@@ -75,10 +74,10 @@ class store_iface_ShipmentLabelImpl
     /**
      * Броя на етикетите, които могат да се отпечатат
      *
-     * @param integer $id
-     * @param string  $allowSkip
+     * @param int    $id
+     * @param string $allowSkip
      *
-     * @return integer
+     * @return int
      *
      * @see label_SequenceIntf
      */
@@ -107,9 +106,9 @@ class store_iface_ShipmentLabelImpl
     /**
      * Връща масив с всички данни за етикетите
      *
-     * @param integer $id
-     * @param integer $cnt
-     * @param boolean $onlyPreview
+     * @param int  $id
+     * @param int  $cnt
+     * @param bool $onlyPreview
      *
      * @return array - масив от масиви с ключ плейсхолдера и стойността
      */

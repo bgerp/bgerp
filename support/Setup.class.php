@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class support_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
@@ -38,35 +38,35 @@ class support_Setup extends core_ProtoSetup
      */
     public $info = 'Поддръжка на системи: сигнали и проследяването им';
     
-        
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'support_Issues',
-            'support_Systems',
-            'support_IssueTypes',
-            'support_Corrections',
-            'support_Preventions',
-            'support_Ratings',
-            'support_Resolutions',
-            'migrate::markUsedComponents',
-            'migrate::componentsToResources'
-        );
+        'support_Issues',
+        'support_Systems',
+        'support_IssueTypes',
+        'support_Corrections',
+        'support_Preventions',
+        'support_Ratings',
+        'support_Resolutions',
+        'migrate::markUsedComponents',
+        'migrate::componentsToResources'
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'support';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.14, 'Обслужване', 'Поддръжка', 'support_Tasks', 'default', 'support, admin, ceo'),
-        );
+        array(2.14, 'Обслужване', 'Поддръжка', 'support_Tasks', 'default', 'support, admin, ceo'),
+    );
     
     
     /**

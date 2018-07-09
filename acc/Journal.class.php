@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър Журнал
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Journal extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -356,9 +355,9 @@ class acc_Journal extends core_Master
      *
      * Документът ($docClassId, $docId) ТРЯБВА да поддържа интерфейс acc_TransactionSourceIntf
      *
-     * @param mixed       $docClassId     - класа на документа
-     * @param int|object  $docId          - ид на документа
-     * @param boolean     $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
+     * @param mixed      $docClassId     - класа на документа
+     * @param int|object $docId          - ид на документа
+     * @param bool       $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
      */
     public static function saveTransaction($docClassId, $docId, $notifyDocument = true)
     {
@@ -392,11 +391,13 @@ class acc_Journal extends core_Master
         return $success;
     }
     
+    
     /**
      * Валидира един по един списък от редове на транзакция
      *
-     * @param  stdClass $transaction
-     * @return boolean
+     * @param stdClass $transaction
+     *
+     * @return bool
      */
     protected static function validateTransaction($transaction)
     {
@@ -413,9 +414,10 @@ class acc_Journal extends core_Master
      * журнала. Ако периода е приключен (т.е. затворен), то в текущия период се създава нова
      * транзакция, обратна на тази, генерирана при контирането на документа.
      *
-     * @param  int     $docClassId
-     * @param  int     $docId
-     * @return boolean
+     * @param int $docClassId
+     * @param int $docId
+     *
+     * @return bool
      */
     public static function rejectTransaction($docClassId, $docId)
     {
@@ -433,7 +435,7 @@ class acc_Journal extends core_Master
             
             return acc_Articles::createReverseArticle($rec);
         }
-
+        
         return static::deleteTransaction($docClassId, $docId);
     }
     
@@ -441,8 +443,9 @@ class acc_Journal extends core_Master
     /**
      * Връща записа в журнала породен от подадения документ
      *
-     * @param  mixed          $doc   - документа
-     * @param  int            $docId - ид на документа
+     * @param mixed $doc   - документа
+     * @param int   $docId - ид на документа
+     *
      * @return stdClass|FALSE - намерения запис
      */
     public static function fetchByDoc($doc, $docId)
@@ -512,6 +515,7 @@ class acc_Journal extends core_Master
     
     /**
      * Метод връщащ урл-то за контиране на документ
+     *
      * @param core_Manager $mvc   - мениджър
      * @param int          $recId - ид на записа, който ще се контира
      */
@@ -565,11 +569,12 @@ class acc_Journal extends core_Master
      * Връща всички записи от журнала където в поне един ред на кредита и дебита на една сметка
      * се среща зададеното перо
      *
-     * @param  mixed    $item        - масив с име на мениджър и ид на запис, или ид на перо
-     * @param  stdClass $itemRec     - върнатия запис на перото
-     * @param  boolean  $showAllRecs - дали да се връщат само записите с перата или всички записи от д-те в чиято транзакция
-     *                               участва посоченото перо
-     * @return array    $res - извлечените движения
+     * @param mixed    $item        - масив с име на мениджър и ид на запис, или ид на перо
+     * @param stdClass $itemRec     - върнатия запис на перото
+     * @param bool     $showAllRecs - дали да се връщат само записите с перата или всички записи от д-те в чиято транзакция
+     *                              участва посоченото перо
+     *
+     * @return array $res - извлечените движения
      */
     public static function getEntries($item, &$itemRec = null, $showAllRecs = false)
     {
@@ -582,6 +587,7 @@ class acc_Journal extends core_Master
             $item = acc_Items::fetchItem($Class->getClassId(), $item[1]);
             
             if (!$item) {
+                
                 return;
             }
         }
@@ -589,7 +595,7 @@ class acc_Journal extends core_Master
         // Извличаме ид-та на журналите, имащи ред с участник това перо
         expect($itemRec = acc_Items::fetchRec($item));
         $jQuery = acc_JournalDetails::getQuery();
-
+        
         acc_JournalDetails::filterQuery($jQuery, null, null, null, $itemRec->id);
         
         // Искаме вальора да е след първия ден от периода, в който е датата на създаване на перото за което търсим
@@ -651,13 +657,15 @@ class acc_Journal extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
         if (!$rec) {
+            
             return;
         }
         
@@ -687,10 +695,11 @@ class acc_Journal extends core_Master
      * Намира всички документи, които имат записи в журнала. Изтриват им се транзакциите
      * и се записват на ново
      *
-     * @param  mixed $accSysIds - списък от систем ид-та на сметки
-     * @param  date  $from      - от коя дата
-     * @param  date  $to        - до коя дата
-     * @return int   - колко документа са били реконтирани
+     * @param mixed $accSysIds - списък от систем ид-та на сметки
+     * @param date  $from      - от коя дата
+     * @param date  $to        - до коя дата
+     *
+     * @return int - колко документа са били реконтирани
      */
     private function recontoAll($accSysIds, $from = null, $to = null, $types = array())
     {
@@ -737,13 +746,13 @@ class acc_Journal extends core_Master
             cls::get('acc_Balances')->recalc();
             
             foreach ($recs as $rec) {
-                 
+                
                 // Ако е в затворен период, пропускаме го
                 $periodState = acc_Periods::fetchByDate($rec->valior)->state;
                 if ($periodState == 'closed') {
                     continue;
                 }
-                 
+                
                 // Преконтираме документа
                 acc_Journal::saveTransaction($rec->docType, $rec->docId, false);
             }
@@ -884,28 +893,30 @@ class acc_Journal extends core_Master
     /**
      * Реконтиране на документ по контейнер
      *
-     * @param  int     $containerId - ид на контейнер
-     * @return boolean $success - резултат
+     * @param int $containerId - ид на контейнер
+     *
+     * @return bool $success - резултат
      */
     public static function reconto($containerId)
     {
         // Оригиналния документ трябва да не е в затворен период
         $origin = doc_Containers::getDocument($containerId);
         if (acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) {
+            
             return;
         }
-    
+        
         // Изтриване на старата транзакция на документа
         acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
-            
+        
         // Записване на новата транзакция на документа
         $success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, false);
         expect($success, $success);
-            
+        
         // Нотифициране на потребителя
         $msg = "Реконтиране на|* #{$origin->getHandle()}";
         core_Statuses::newStatus($msg);
-    
+        
         // Инвалидиране на кеш
         doc_DocumentCache::cacheInvalidation($containerId);
         doc_DocumentCache::invalidateByOriginId($containerId);

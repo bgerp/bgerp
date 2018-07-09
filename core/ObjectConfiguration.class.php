@@ -7,26 +7,27 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_ObjectConfiguration extends core_BaseClass
 {
-    
     /**
      * Описание на конфигурацията
      */
     public $_description = array();
     
-
+    
     /**
      * Стойности на константите
      */
     public $_data = array();
     
-
+    
     /**
      * Конструктор
      */
@@ -37,11 +38,11 @@ class core_ObjectConfiguration extends core_BaseClass
         if (is_string($description)) {
             $description = unserialize($description);
         }
-
+        
         if (is_array($description)) {
             $this->_description = $description;
         }
-
+        
         if (is_string($data) && strlen($data)) {
             $data = unserialize($data);
         }
@@ -50,8 +51,8 @@ class core_ObjectConfiguration extends core_BaseClass
             $this->_data = $data;
         }
     }
-
-
+    
+    
     /**
      * 'Магически' метод, който връща стойността на константата
      */
@@ -60,12 +61,12 @@ class core_ObjectConfiguration extends core_BaseClass
         if (!Mode::get('stopInvoke')) {
             $this->invoke('BeforeGetConfConst', array(&$value, $name));
         }
-
+        
         // Търси константата в данните въведени през уеб-интерфейса
         if (!isset($value) && isset($this->_data[$name]) && !(empty($this->_data[$name]) && $this->_data[$name] !== (double) 0 && $this->_data[$name] !== (int) 0)) {
             $value = $this->_data[$name];
         }
- 
+        
         // Търси константата като глобално дефинирана
         if (!isset($value) && defined($name)) {
             $value = constant($name);
@@ -76,11 +77,11 @@ class core_ObjectConfiguration extends core_BaseClass
         } else {
             expect(isset($value), "Константата ${name} не е дефинирана", $this->_description, $this->_data);
         }
-
+        
         return $value;
     }
-
-
+    
+    
     /**
      * Връща броя на описаните константи
      */
@@ -88,8 +89,8 @@ class core_ObjectConfiguration extends core_BaseClass
     {
         return count($this->_description);
     }
-
-
+    
+    
     /**
      * Връща броя на недефинираните константи
      */
@@ -108,11 +109,11 @@ class core_ObjectConfiguration extends core_BaseClass
                 if (defined($name) && constant($name) !== '' && constant($name) !== null) {
                     continue;
                 }
-
+                
                 return true;
             }
         }
-
+        
         return false;
     }
 }

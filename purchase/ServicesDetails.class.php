@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'purchase_ServicesDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на приемателния протокол';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -67,7 +66,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount';
     
-        
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -103,7 +102,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     protected function getProducts($masterRec)
     {
         $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-         
+        
         // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
         $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
         

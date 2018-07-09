@@ -1,11 +1,11 @@
 <?php
 
+
 defIfNot('CAD2_MAX_CANVAS_SIZE', 1000);
 
 
 class cad2_PdfCanvas extends cad2_Canvas
 {
-    
     /**
      * Текуща точка
      */
@@ -13,31 +13,32 @@ class cad2_PdfCanvas extends cad2_Canvas
     public $cY;
     
     public $pageStyle = array();
- 
-
+    
+    
     /**
      * Масив с XML обекти - тагове
      */
     public $contents = array();
     
-   
+    
     //
     public $addX = 10;
     public $addY = 10;
+    
     
     /**
      * Параметри на страницата
      */
     public $width;
     public $height;
-
+    
     // Падинги на страницата
     public $paddingTop;
     public $paddingRight;
     public $paddingBottom;
     public $paddingLeft;
-
-
+    
+    
     // именовани цветове
     public $colorNames = array(
         '#0000fe' => 'MeasureLine',
@@ -50,8 +51,9 @@ class cad2_PdfCanvas extends cad2_Canvas
         '#735858' => 'PatternLineDark',
         '#cebfbe' => 'PatternLineLight',
         '#FDFED7' => 'LegendFill'
-        );
-
+    );
+    
+    
     /**
      * Текущи параметри на молива, запълването и шрифта
      * stroke, stroke-width, stroke-linecap, stroke-dasharray
@@ -61,8 +63,8 @@ class cad2_PdfCanvas extends cad2_Canvas
     public function __construct()
     {
     }
-
-
+    
+    
     /**
      * Задава размерите и падингите на хартията
      */
@@ -76,12 +78,12 @@ class cad2_PdfCanvas extends cad2_Canvas
              $this->paddingBottom,
              $this->paddingLeft,
             ) = array($width, $height, $paddingTop, $paddingRight, $paddingBottom, $paddingLeft);
-
+        
         $this->fitPoint($this->width, $this->height);
         $this->fitPoint(0, 0);
     }
-
-
+    
+    
     /**
      * Задава точка от чертежа, която трябва да се побере на хартията.
      * Тази точка евентуално може да разшири автоматично
@@ -95,7 +97,8 @@ class cad2_PdfCanvas extends cad2_Canvas
         $this->maxY = max($y, $this->maxY);
         $this->minX = min($x, $this->minX);
     }
-
+    
+    
     /**
      * Задава текуща стойност на посочения атрибит
      */
@@ -105,26 +108,26 @@ class cad2_PdfCanvas extends cad2_Canvas
             foreach ($name as $n => $v) {
                 $this->setAttr($n, $v);
             }
-
+            
             return;
         }
         expect(in_array($name, $this->alowedAttributes), $name);
-
+        
         $this->attr[$name] = $value;
     }
-
-
+    
+    
     /**
      * Връща стойността на посочения атрибут
      */
     public function getAttr($name)
     {
         expect(in_array($name, $this->alowedAttributes), $name);
-
+        
         return $this->attr[$name];
     }
-
-
+    
+    
     /**
      * Започва нов път (поредица от линии и премествания)
      */
@@ -148,8 +151,8 @@ class cad2_PdfCanvas extends cad2_Canvas
             $this->currentPath = null;
         }
     }
-
-
+    
+    
     /**
      * Премества текущата позиция на посочените координати
      * без да рисува линия
@@ -159,19 +162,19 @@ class cad2_PdfCanvas extends cad2_Canvas
         if ($this->currentPath === null) {
             $this->startPath();
         }
-
+        
         $this->toAbs($x, $y, $absolute);
         
         $path = $this->contents[$this->currentPath];
-
+        
         $path->data[] = array('M', $x, $y);
-
+        
         $this->fitPoint($x, $y);
-
+        
         $this->setCP($x, $y);
     }
-
-
+    
+    
     /**
      * Рисува линия до посочените координати
      */
@@ -180,19 +183,19 @@ class cad2_PdfCanvas extends cad2_Canvas
         if ($this->currentPath === null) {
             $this->startPath();
         }
-
+        
         $path = $this->contents[$this->currentPath];
-
+        
         $this->toAbs($x, $y, $absolute);
-
+        
         $path->data[] = array('L', $x, $y);
-
+        
         $this->fitPoint($x, $y);
-
+        
         $this->setCP($x, $y);
     }
-
-
+    
+    
     /**
      * Изчертава крива на Безие с посочените координати
      */
@@ -201,21 +204,21 @@ class cad2_PdfCanvas extends cad2_Canvas
         if ($this->currentPath === null) {
             $this->startPath();
         }
-
+        
         $path = $this->contents[$this->currentPath];
-
+        
         $this->toAbs($x, $y, $absolute);
         $this->toAbs($x1, $y1, $absolute);
         $this->toAbs($x2, $y2, $absolute);
-
+        
         $path->data[] = array('C', $x1, $y1, $x2, $y2, $x, $y);
-
+        
         $this->fitPoint($x, $y);
-
+        
         $this->setCP($x, $y);
     }
-
-
+    
+    
     /**
      * Изписва текст
      */
@@ -223,13 +226,13 @@ class cad2_PdfCanvas extends cad2_Canvas
     {
         $this->toAbs($x, $y, $absolute);
         $e = (object) array('tag' => 'text', 'x' => $x, 'y' => $y, 'rotation' => $rotation, 'text' => $text, 'attr' => $this->attr, 'link' => $link);
-
+        
         $this->fitPoint($x, $y);
-
+        
         $this->contents[] = $e;
     }
-
-
+    
+    
     /**
      * Отваря нова група
      */
@@ -240,7 +243,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         $this->contents[] = $e;
     }
     
-
+    
     /**
      * Затваряне на група
      */
@@ -250,8 +253,8 @@ class cad2_PdfCanvas extends cad2_Canvas
         $e = (object) array('tag' => 'closeGroup');
         $this->contents[] = $e;
     }
-
-
+    
+    
     /**
      * Отваря нова група
      */
@@ -262,8 +265,8 @@ class cad2_PdfCanvas extends cad2_Canvas
         $e = (object) array('tag' => 'openTransform', 'attr' => $attr);
         $this->contents[] = $e;
     }
-
-
+    
+    
     /**
      * Затваряне на група
      */
@@ -273,8 +276,8 @@ class cad2_PdfCanvas extends cad2_Canvas
         $e = (object) array('tag' => 'closeTransform');
         $this->contents[] = $e;
     }
-
-
+    
+    
     /**
      * Отваря нов слой
      */
@@ -284,8 +287,8 @@ class cad2_PdfCanvas extends cad2_Canvas
         $e = (object) array('tag' => 'openLayer', 'name' => $name);
         $this->contents[] = $e;
     }
-
-
+    
+    
     /**
      * Затваряне на слой
      */
@@ -295,6 +298,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         $e = (object) array('tag' => 'closeLayer');
         $this->contents[] = $e;
     }
+    
     
     /**
      * Отваря нова шарка
@@ -318,7 +322,7 @@ class cad2_PdfCanvas extends cad2_Canvas
     public function openDefinitions($attr = array())
     {
     }
-
+    
     
     /**
      * Затваряне на дефиниции
@@ -326,32 +330,32 @@ class cad2_PdfCanvas extends cad2_Canvas
     public function closeDefinitions()
     {
     }
-
-
+    
+    
     /**
      * Отваряне на дефиниции за линеен градиент
      */
     public function openGradient($attr = array())
     {
     }
-
-
+    
+    
     /**
      * Затваряне на дефиниции за линеен градиент
      */
     public function closeGradient()
     {
     }
-
-
+    
+    
     /**
      * Задаване на стъпка от градиента
      */
     public function addStop($attr = array())
     {
     }
-
-
+    
+    
     /**
      * Връща добавката за X и Y
      */
@@ -359,10 +363,10 @@ class cad2_PdfCanvas extends cad2_Canvas
     {
         $addX = -$this->minX + $this->paddingLeft;
         $addY = -$this->minY + $this->paddingTop;
-
+        
         return array($addX, $addY);
     }
-
+    
     
     /**
      * Връща XML текста на SVG чертежа
@@ -374,15 +378,15 @@ class cad2_PdfCanvas extends cad2_Canvas
         
         $this->addX = $this->paddingLeft - $this->minX;
         $this->addY = $this->paddingTop - $this->minY;
- 
+        
         defIfNot('PDF_FONT_NAME_MAIN', 'dejavuserifcondensed');
-
+        
         defIfNot('PDF_FONT_NAME_DATA', 'dejavuserifcondensed');
-
- 
+        
+        
         // create new PDF document
         $this->pdf = new tcpdf_Instance('', 'mm', array($width, $height), true, 'UTF-8', false);
-
+        
         // set document information
         $this->pdf->SetCreator('bgERP');
         $this->pdf->SetAuthor(core_Users::getCurrent('names'));
@@ -396,27 +400,26 @@ class cad2_PdfCanvas extends cad2_Canvas
         // set default font subsetting mode
         $this->pdf->setFontSubsetting(false);
         
-
+        
         // set font
         $this->pdf->AddFont('dejavuserifcondensed');
         $this->pdf->SetFont('dejavuserifcondensed');
- 
-
+        
+        
         $this->pdf->StartPage();
-
+        
         foreach ($this->contents as $e) {
             $func = 'do' . $e->tag;
             $this->{$func}($e);
         }
-
+        
         $res = $this->pdf->getPDFData();
         $this->pdf->endPage();
-
+        
         return $res;
     }
-
-
-
+    
+    
     /**
      * Чертае път в PDF-а, според данните в елемента
      */
@@ -424,27 +427,27 @@ class cad2_PdfCanvas extends cad2_Canvas
     {
         $this->pdf->StartTransform();
         $this->pdf->Rotate(0, 0, 0);
-
+        
         $this->pdf->SetLineStyle(array(
-                'width' => $e->attr['stroke-width'],
-                'cap' => $e->attr['stroke-linecap'],
-                'join' => 'bevel',
-                'dash' => $e->attr['stroke-dasharray'],
-                'color' => self::hexToCmyk($e->attr['stroke'], array(0, 0, 0, 100))));
-     
-
+            'width' => $e->attr['stroke-width'],
+            'cap' => $e->attr['stroke-linecap'],
+            'join' => 'bevel',
+            'dash' => $e->attr['stroke-dasharray'],
+            'color' => self::hexToCmyk($e->attr['stroke'], array(0, 0, 0, 100))));
+        
+        
         $fillColor = null;
         
         $fill = 'S';
- 
+        
         if ($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none') {
             $fill = 'FD';
- 
+            
             if (isset($e->attr['fill'])) {
                 $fillColor = self::hexToCmyk($e->attr['fill']);
             }
         }
-
+        
         if ($e->attr['fill'] == 'transparent' || $e->attr['fill'] == 'none') {
             $fillOpacity = 0;
         } elseif (isset($e->attr['fill-opacity'])) {
@@ -452,7 +455,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         } else {
             $fillOpacity = 1;
         }
-
+        
         if ($e->attr['stroke'] == 'transparent' || $e->attr['stroke'] == 'none') {
             $strokeOpacity = 0;
         } elseif (isset($e->attr['stroke-opacity'])) {
@@ -460,9 +463,9 @@ class cad2_PdfCanvas extends cad2_Canvas
         } else {
             $strokeOpacity = 1;
         }
-
+        
         $this->pdf->SetAlpha($strokeOpacity, 'Normal', $fillOpacity);
-      
+        
         foreach ($e->data as &$d) {
             $d[1] += $this->addX;
             $d[2] += $this->addY;
@@ -472,14 +475,14 @@ class cad2_PdfCanvas extends cad2_Canvas
                 $d[5] += $this->addX;
                 $d[6] += $this->addY;
             }
-
+            
             if ($d[0] == 'M' && !$start) {
                 $start = true;
                 $startX = $d[1];
                 $startY = $d[2];
             }
         }
- 
+        
         if ($e->close) {
             if ($fill == 'FD') {
                 $fill = 'fd';
@@ -492,13 +495,13 @@ class cad2_PdfCanvas extends cad2_Canvas
                 $e->data[] = array('M', $startX, $startY);
             }
         }
-
+        
         $this->pdf->drawPath($e->data, $fill, array(), $fillColor);
-
+        
         $this->pdf->StopTransform();
     }
-
-
+    
+    
     /**
      * Отваря група
      */
@@ -507,14 +510,13 @@ class cad2_PdfCanvas extends cad2_Canvas
         $this->pdf->StartTransform();
     }
     
-
     
     public function doCloseGroup($e)
     {
         $this->pdf->StopTransform();
     }
-
-
+    
+    
     /**
      * Отваря група
      */
@@ -533,7 +535,7 @@ class cad2_PdfCanvas extends cad2_Canvas
                     case 'translate':
                         $this->pdf->translate($tArr[1], $tArr[2]);
                         break;
-
+                    
                     case 'rotate':
                         if (!isset($tArr[2])) {
                             $tArr[3] = $tArr[2] = 0;
@@ -541,6 +543,7 @@ class cad2_PdfCanvas extends cad2_Canvas
                         $this->pdf->rotate(-$tArr[1], $tArr[2], $tArr[3]);
                         break;
                     default:
+                        
                         // Неподдържана трансформация
                         expect(false, $tArr[0]);
                 }
@@ -548,15 +551,14 @@ class cad2_PdfCanvas extends cad2_Canvas
             unset($e->attr['_transform']);
         }
     }
-
-
+    
     
     public function doCloseTransform($e)
     {
         $this->pdf->StopTransform();
     }
-
-
+    
+    
     /**
      * Отваря група
      */
@@ -564,45 +566,44 @@ class cad2_PdfCanvas extends cad2_Canvas
     {
         $this->pdf->startLayer($e->name);
     }
-
-
+    
     
     public function doCloseLayer($e)
     {
         $this->pdf->endLayer();
     }
-
-
+    
+    
     /**
      * Показва текста в PDF-а, както е указан в елемента
      */
     public function doText($e)
     {
         $attr = $e->attr;
-
+        
         $e->rotation = -$e->rotation;
         
         if ($e->rotation) {
             //  $e->x -= 2;
           //  $e->y += 3;
         }
-
+        
         $this->pdf->StartTransform();
         $this->pdf->Rotate(0, 0, 0);
-
+        
         if ($e->rotation) {
             $this->pdf->Rotate($e->rotation, $e->x + $this->addX, $e->y + $this->addY);
         }
         
         $size = $attr['font-size'] / 3.75;
- 
-
+        
+        
         $e->y -= 0.35 * $size;
-
+        
         list($font, ) = explode(',', $attr['font-family']);
         
         $font = trim('dejavusans');
-
+        
         $style = '';
         if ($attr['font-weight'] == 'bold') {
             $style = 'B';
@@ -610,7 +611,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         if ($attr['font-weight'] == 'italic') {
             $style = 'I';
         }
-
+        
         $this->pdf->SetFont($font, $style, $attr['font-size'] / 3.5, '', false);
         
         $opacity = $attr['text-opacity'];
@@ -618,17 +619,17 @@ class cad2_PdfCanvas extends cad2_Canvas
             $opacity = 1;
         }
         $this->pdf->SetAlpha($opacity);
-
+        
         if ($color = self::hexToCmyk($attr['text-color'], array(0, 0, 0, 100))) {
             $this->pdf->SetTextColorArray($color);
         }
-
+        
         $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text, false, false, true, 0, 0, '', false, $e->link);
-
+        
         $this->pdf->StopTransform();
     }
-
-
+    
+    
     /**
      * Връща текущата позиция
      */
@@ -636,8 +637,8 @@ class cad2_PdfCanvas extends cad2_Canvas
     {
         return array($this->cX, $this->cY);
     }
-
-
+    
+    
     /**
      * Връща текущата позиция
      */
@@ -646,8 +647,8 @@ class cad2_PdfCanvas extends cad2_Canvas
         $this->cX = $x;
         $this->cY = $y;
     }
-
-
+    
+    
     /**
      * Ако е необходимо, конвертира към абсолютни стойности дадената точка
      */
@@ -657,15 +658,12 @@ class cad2_PdfCanvas extends cad2_Canvas
             $x += $this->cX;
             $y += $this->cY;
         }
-
+        
         $x = round($x, 6);
         $y = round($y, 6);
     }
     
-
-
-
-
+    
     /**
      * Преобразува hex цвят към CMYK
      */
@@ -675,18 +673,18 @@ class cad2_PdfCanvas extends cad2_Canvas
             
             return $default;
         }
- 
+        
         $rgb = color_Object::hexToRgbArr($hexColor);
-
+        
         if (!is_array($rgb)) {
             
             return false;
         }
-
+        
         $r = $rgb[0];
         $g = $rgb[1];
         $b = $rgb[2];
-  
+        
         $cyan = 255 - $r;
         $magenta = 255 - $g;
         $yellow = 255 - $b;
@@ -694,13 +692,13 @@ class cad2_PdfCanvas extends cad2_Canvas
         $cyan = sDiv(($cyan - $black), (255 - $black)) * 255;
         $magenta = sDiv(($magenta - $black), (255 - $black)) * 255;
         $yellow = sDiv(($yellow - $black), (255 - $black)) * 255;
-      
+        
         $res = array($cyan / 2.55, $magenta / 2.55, $yellow / 2.55, $black / 2.55);
-
+        
         if ($name = $this->colorNames[$hexColor]) {
             $res[4] = $name;
         }
-
+        
         return $res;
     }
 }

@@ -1,22 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Tabs' - Изглед за табове
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Tabs extends core_BaseClass
 {
-    
     /**
      * Масив с табове
      */
@@ -86,7 +86,7 @@ class core_Tabs extends core_BaseClass
         foreach ($this->captions as $tab => $caption) {
             $sumLen += mb_strlen(strip_tags(trim($caption))) + 1;
         }
-
+        
         //      ,
         if (!$selectedTab) {
             $selectedTab = Request::get('selectedTab');
@@ -110,7 +110,7 @@ class core_Tabs extends core_BaseClass
             }
             
             $title = tr($this->captions[$tab]);
-
+            
             $tabClass = $this->classes[$tab];
             
             if ($url) {
@@ -127,7 +127,7 @@ class core_Tabs extends core_BaseClass
             
             $head .= "</div>\n";
         }
- 
+        
         $html = "<div class='tab-control {$this->htmlClass}'>\n";
         $html .= "<div class='tab-row'><div class='row-holder'>\n";
         $html .= "[#1#]\n";
@@ -148,8 +148,9 @@ class core_Tabs extends core_BaseClass
     /**
      * Дали в таба има таб с посочено име
      *
-     * @param  string  $name - име на таб, за който проверяваме
-     * @return boolean - дали е в таба или не
+     * @param string $name - име на таб, за който проверяваме
+     *
+     * @return bool - дали е в таба или не
      */
     public function hasTab($name)
     {

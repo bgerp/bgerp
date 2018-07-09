@@ -1,24 +1,24 @@
 <?php
 
 
-
 /**
  * Клас  'type_Set' - Тип за множество
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
+ *
  * @todo      да стане като keylist
  */
 class type_Set extends core_Type
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -37,6 +37,7 @@ class type_Set extends core_Type
     public function toVerbal($value)
     {
         if (!isset($value)) {
+            
             return;
         }
         
@@ -87,11 +88,11 @@ class type_Set extends core_Type
         $maxChars = $this->params['maxChars'];
         $displayHtml = $this->params['displayHtml'];
         $col = type_Keylist::getCol($this->suggestions, $maxChars);
-
+        
         if (count($this->suggestions) < 4) {
             $className .= ' shrinked';
         }
-
+        
         $tpl = new ET("\n<table class='keylist {$className}'>[#OPT#]\n</table>");
         
         $i = 0;
@@ -231,20 +232,18 @@ class type_Set extends core_Type
     }
     
     
-
-
-
     /**
      * Дали подадения ключ присъства в списъка
      *
-     * @param  mixed   $key     - ключ
-     * @param  string  $setList - списък
-     * @return boolean TRUE/FALSE - дали присъства или не
+     * @param mixed  $key     - ключ
+     * @param string $setList - списък
+     *
+     * @return bool TRUE/FALSE - дали присъства или не
      */
     public static function isIn($key, $setList)
     {
         $arr = self::toArray($setList);
-         
+        
         return array_key_exists($key, $arr);
     }
 }

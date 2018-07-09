@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Клас 'drdata_Banks - Банки'
  *
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_Banks extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -96,12 +95,15 @@ class bglocal_Banks extends core_Manager
     
     /**
      * Връща името на банката и нейния бик по зададен IBAN
-     * @param  string $iban
+     *
+     * @param string $iban
+     *
      * @return string $rec->bic or NULL
      */
     public static function getBankName($iban)
     {
         if (preg_match('/^#/', $iban)) {
+            
             return;
         }
         $parts = iban_Type::getParts($iban);
@@ -115,12 +117,15 @@ class bglocal_Banks extends core_Manager
     
     /**
      * Връща името на бика на банката  по зададен IBAN
-     * @param  string $iban
+     *
+     * @param string $iban
+     *
      * @return string $rec->bic or NULL
      */
     public static function getBankBic($iban)
     {
         if (preg_match('/^#/', $iban)) {
+            
             return;
         }
         $parts = iban_Type::getParts($iban);

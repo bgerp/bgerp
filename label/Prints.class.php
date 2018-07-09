@@ -1,25 +1,23 @@
 <?php 
 
-
 /**
  * Медии за отпечатване
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_Prints extends core_Master
 {
-    
-    
     /**
      * Заглавие на модела
      */
     public $title = 'Серии за отпечатване';
-    
     
     
     public $singleTitle = 'Отпечатък';
@@ -73,7 +71,6 @@ class label_Prints extends core_Master
     public $canDelete = 'no_one';
     
     
-    
     public $canReject = 'seeLabel, label, admin, ceo';
     
     
@@ -109,6 +106,7 @@ class label_Prints extends core_Master
     
     /**
      * Стойност по подразбиране на състоянието
+     *
      * @see plg_State
      */
     public $defaultState = 'active';
@@ -127,7 +125,6 @@ class label_Prints extends core_Master
     public $listFields = 'title, mediaId=Медия, source=Източник, templateId, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy';
     
     
-    
     public $rowToolsSingleField = 'title';
     
     
@@ -135,7 +132,6 @@ class label_Prints extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'mediaId, templateId, title, labelsCnt, classId';
-    
     
     
     public $singleLayoutFile = 'label/tpl/SingleLayoutPrints.shtml';
@@ -400,10 +396,10 @@ class label_Prints extends core_Master
     /**
      * Намира най-добрият шаблон за използване и връща id-то му
      *
-     * @param array        $optArr
-     * @param NULL|integer $classId
+     * @param array    $optArr
+     * @param NULL|int $classId
      *
-     * @return integer
+     * @return int
      */
     protected static function getDefaultTemplateId($optArr, $classId = null)
     {
@@ -600,7 +596,7 @@ class label_Prints extends core_Master
         if ($form->isSubmitted() && $form->cmd == 'view') {
             $form->cmd = 'refresh';
         }
-            
+        
         // Ако е записан или отпечатан
         if ($form->isSubmitted() && ($form->cmd == 'save' || $form->cmd == 'print')) {
             $pData = $mvc->getLabelDataFromRec($rec);
@@ -897,7 +893,7 @@ class label_Prints extends core_Master
      * Подготвя данните за етикета
      *
      * @param stdClass $rec
-     * @param boolean  $preview
+     * @param bool     $preview
      *
      * @return stdClass
      */
@@ -1099,6 +1095,7 @@ class label_Prints extends core_Master
                 $data->rows[$copyField] = $data->rows[$rowId];
                 
                 $params[$currPageCntField] = $currPageCnt;
+                
                 // При копиятата, ако сме минали на нова страница, да се увеличи брояча за всички следващи копия
                 if (($updatePageCnt) && ($perPageCnt % $itemsPerPage == 0)) {
                     $params[$currPageCntField] = $currPageCnt++;
@@ -1121,7 +1118,8 @@ class label_Prints extends core_Master
     /**
      * Рендираме етикете
      *
-     * @param  object  $data
+     * @param object $data
+     *
      * @return core_ET - Шаблона, който ще връщаме
      */
     protected function renderLabel(&$data, $labelLayout = null)

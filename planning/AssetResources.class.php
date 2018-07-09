@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на Оборудвания
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_AssetResources extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -57,7 +56,7 @@ class planning_AssetResources extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name=Оборудване,code,groupId,protocolId=ДА,quantity=К-во,createdOn,createdBy,state';
-
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -87,7 +86,6 @@ class planning_AssetResources extends core_Master
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/equipment.png';
-    
     
     
     /**
@@ -157,7 +155,7 @@ class planning_AssetResources extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид 
+     * След преобразуване на записа в четим за хора вид
      * planning_Centers::getUndefinedFolderId()
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -226,7 +224,7 @@ class planning_AssetResources extends core_Master
         $data->listFilter->showFields = 'search,groupId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    
+        
         if ($data->listFilter->rec->groupId) {
             $data->query->where("#groupId = {$data->listFilter->rec->groupId}");
         }
@@ -236,7 +234,8 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      *
-     * @param  int   $folderId - ид на папка
+     * @param int $folderId - ид на папка
+     *
      * @return array $option    - налично оборудване
      */
     public static function getByFolderId($folderId = null)
@@ -298,8 +297,9 @@ class planning_AssetResources extends core_Master
     /**
      * Рендиране на детайла
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderDetail_($data)
     {
@@ -324,8 +324,9 @@ class planning_AssetResources extends core_Master
     /**
      * Връща нормата на действието за оборудването
      *
-     * @param  int            $id        - ид на оборудване
-     * @param  int            $productId - ид на артикул
+     * @param int $id        - ид на оборудване
+     * @param int $productId - ид на артикул
+     *
      * @return stdClass|FALSE - запис на нормата или FALSE ако няма
      */
     public static function getNormRec($id, $productId)
@@ -352,12 +353,13 @@ class planning_AssetResources extends core_Master
         
         return false;
     }
-
+    
     
     /**
      * Извлича общата група на оборудванията
      *
-     * @param  mixed     $assets - списък с оборудвания
+     * @param mixed $assets - списък с оборудвания
+     *
      * @return int|FALSE $groupId - намерената група или FALSE ако са от различни групи
      */
     public static function getGroupId(&$assets)
@@ -397,8 +399,9 @@ class planning_AssetResources extends core_Master
     /**
      * Може ли в папката да се добавя оборудване
      *
-     * @param  int     $folderId
-     * @return boolean
+     * @param int $folderId
+     *
+     * @return bool
      */
     public static function canFolderHaveAsset($folderId)
     {

@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Клас 'deals_ManifactureDetail' - базов клас за детайли на производствени документи
  *
  * @category  bgerp
  * @package   mp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_ManifactureDetail extends doc_Detail
 {
-    
-    
     /**
      * Какви продукти да могат да се избират в детайла
      *
@@ -53,7 +52,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
     }
     
-
+    
     /**
      * Подготовка на филтър формата
      */
@@ -72,6 +71,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+            
             return;
         }
         
@@ -90,6 +90,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $form = &$data->form;
         setIfNot($data->defaultMeta, $mvc->defaultMeta);
         if (!$data->defaultMeta) {
+            
             return;
         }
         
@@ -162,20 +163,20 @@ abstract class deals_ManifactureDetail extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty($mvc->defaultMeta, null, 1);
-                
+            
             if (!count($products)) {
                 $error = 'error=Няма артикули, ';
             }
-    
+            
             $data->toolbar->addBtn(
-    
+                    
                     'Артикул',
-    
+                    
                     array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true),
                         "id=btnAdd,{$error} order=10,title=Добавяне на артикул",
-    
+                    
                     'ef_icon = img/16/shopping.png'
-    
+                
                 );
         }
     }

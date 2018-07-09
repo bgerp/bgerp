@@ -13,15 +13,15 @@ defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class trans_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -56,28 +56,29 @@ class trans_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'trans_Vehicles',
-            'trans_Lines',
-            'trans_Cmrs',
-            'trans_TransportModes',
-            'trans_TransportUnits',
-            'trans_LineDetails',
-        );
-
-        
+        'trans_Vehicles',
+        'trans_Lines',
+        'trans_Cmrs',
+        'trans_TransportModes',
+        'trans_TransportUnits',
+        'trans_LineDetails',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'trans';
-
+    
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', 'trans, ceo'),
-        );
-
+        array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', 'trans, ceo'),
+    );
+    
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -107,7 +108,7 @@ class trans_Setup extends core_ProtoSetup
         $so->setupMvc();
         $sod = cls::get('store_ShipmentOrderDetails');
         $sod->setupMvc();
-         
+        
         $transUnits = cls::get('trans_TransportUnits')->makeArray4Select();
         
         $save = array();
@@ -131,14 +132,14 @@ class trans_Setup extends core_ProtoSetup
             } elseif (in_array($unit, array('Carton boxes', 'Кашони', 'Кашона', 'Кашон'))) {
                 $unit = 'Кашона';
             }
-        
+            
             if (!in_array($unit, $transUnits)) {
                 $transId = trans_TransportUnits::save((object) array('name' => $unit, 'pluralName' => $unit, 'abbr' => $unit));
                 $transUnits[$transId] = $unit;
             } else {
                 $transId = array_search($unit, $transUnits);
             }
-        
+            
             if (!empty($transId)) {
                 $dRec->transUnitId = $transId;
                 $luArr = self::getLUs($dRec->info);
@@ -168,7 +169,7 @@ class trans_Setup extends core_ProtoSetup
         foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails') as $Doc => $det) {
             $Document = cls::get($Doc);
             $Document->setupMvc();
-
+            
             $Detail = cls::get($det);
             $Detail->setupMvc();
             
@@ -215,7 +216,7 @@ class trans_Setup extends core_ProtoSetup
                         $lRec->documentLu = $exRec->documentLu;
                         $lRec->readyLu = $exRec->readyLu;
                     }
-                     
+                    
                     $save[] = $lRec;
                 } catch (core_exception_Expect $e) {
                     reportException($e);
@@ -236,17 +237,17 @@ class trans_Setup extends core_ProtoSetup
     private static function getLUs($infoLU)
     {
         $res = array();
-    
+        
         $str = str_replace(array(',', '№'), array("\n", ''), $infoLU);
         $arr = explode("\n", $str);
-    
+        
         foreach ($arr as $item) {
             $item = trim($item);
-    
+            
             if (empty($item)) {
                 continue;
             }
-    
+            
             if (strpos($item, '-')) {
                 list($from, $to) = explode('-', $item);
                 $from = trim($from);
@@ -274,14 +275,14 @@ class trans_Setup extends core_ProtoSetup
                 $res[$item] = $item;
             }
         }
-    
+        
         if (trim($infoLU) && !count($res)) {
             
             return 'Грешка при парсиране на номерата на колетите';
         }
-    
+        
         asort($res);
-    
+        
         return $res;
     }
 }

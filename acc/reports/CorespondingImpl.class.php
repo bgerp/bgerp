@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на кореспонденция по сметки
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_CorespondingImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -97,7 +96,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     {
         // Поставяме удобни опции за избор на период
         $op = acc_Periods::getPeriodOptions();
-    
+        
         $form->setSuggestions('from', array('' => '') + $op->fromOptions);
         $form->setSuggestions('to', array('' => '') + $op->toOptions);
         $form->setDefault('orderBy', 'DESC');
@@ -113,7 +112,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 if (isset($baseAccInfo->{"groupId{$i}"})) {
                     $sets[$baseAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($baseAccInfo->{"groupId{$i}"}, 'name');
                 }
-                 
+                
                 if (isset($corespAccInfo->{"groupId{$i}"})) {
                     $sets[$corespAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($corespAccInfo->{"groupId{$i}"}, 'name');
                 }
@@ -136,7 +135,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 }
             }
         }
-         
+        
         // Ако е избрано подреждаме
         if (isset($form->rec->orderBy) && $form->rec->orderBy != '') {
             if (isset($form->rec->side)) {
@@ -147,17 +146,17 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 } else {
                     $options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума');
                 }
-            
+                
                 $form->setOptions('orderField', $options);
             }
         } else {
             $form->setField('orderField', 'input=none');
         }
-    
+        
         $this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
     
-
+    
     /**
      * Рендира вътрешната форма като статична форма в подадения шаблон
      *
@@ -167,11 +166,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function prependStaticForm(core_ET &$tpl, $placeholder = null)
     {
         $form = cls::get('core_Form');
-    
+        
         $this->addEmbeddedFields($form);
         $form->rec = $this->innerForm;
         $form->class = 'simpleForm';
-    
+        
         $tpl->prepend($form->renderStaticHtml(), $placeholder);
     }
     
@@ -194,7 +193,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             }
         }
     }
-        
+    
     
     /**
      * Филтрира заявката
@@ -218,19 +217,19 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $data->summary = (object) array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
         $data->summaryNew = (object) array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
         $data->summaryAll = (object) array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0,
-                                          'debitQuantityNew' => 0, 'debitAmountNew' => 0, 'creditQuantityNew' => 0, 'creditAmountNew' => 0, 'blQuantityNew' => 0, 'blAmountNew' => 0);
+            'debitQuantityNew' => 0, 'debitAmountNew' => 0, 'creditQuantityNew' => 0, 'creditAmountNew' => 0, 'blQuantityNew' => 0, 'blAmountNew' => 0);
         $data->hasSameAmounts = true;
         $data->rows = $data->recs = array();
         $data->recsNew = array();
         $data->recsAll = array();
         $form = $this->innerForm;
-
+        
         $date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare);
         $data->toOld = $date->to;
         $data->fromOld = $date->from;
         $data->contragent = $form->ent1Id;
         $data->compare = $form->compare;
-
+        
         $data->groupBy = array();
         foreach (range(1, 6) as $i) {
             if (!empty($form->{"feat{$i}"})) {
@@ -243,36 +242,36 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         unset($data->groupBy[0]);
         
         $this->prepareListFields($data);
-
+        
         if (!is_null($data->fromOld) && !is_null($data->toOld)) {
             $jQuery = acc_JournalDetails::getQuery();
             $jQueryNew = clone $jQuery;
             $newForm = clone $form;
-        
+            
             $newForm->from = $data->fromOld;
             $newForm->to = $data->toOld;
-             
+            
             // Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
             $this->prepareFilterQuery($jQueryNew, $newForm);
-        
+            
             $data->recsNew = $this->prepareData($this, $data, $jQueryNew, $newForm, $data->recsNew, 'New');
         }
-            
+        
         $jQuery = acc_JournalDetails::getQuery();
         
         // Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
         $this->prepareFilterQuery($jQuery, $form);
-            
+        
         $data->recs = $this->prepareData($this, $data, $jQuery, $form, $data->recs, '');
-    
+        
         // Обработваме обобщената информация
         $this->prepareSummary($data);
-
+        
         if (count($data->recsNew) || count($data->recs)) {
             foreach ($data->recs as $id => $r) {
                 if (!array_key_exists($id, $data->recsAll)) {
                     $data->recsAll[$id] =
-
+                        
                         (object) array(
                             'item1' => $r->item1,
                             'item2' => $r->item2,
@@ -289,7 +288,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                             'delta' => $r->delta,);
                 }
             }
-    
+            
             foreach ($data->recsNew as $idNew => $rNew) {
                 if (!array_key_exists($idNew, $data->recsAll)) {
                     $data->recsAll[$idNew] =
@@ -307,9 +306,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                             'blQuantityNew' => $rNew->blQuantity,
                             'blAmountNew' => $rNew->blAmount,
                             'deltaNew' => $rNew->delta,
-                       );
+                        );
                 } else {
                     $obj = &$data->recsAll[$idNew];
+                    
                     /*$obj->item1 = $rNew->item1;
     	            $obj->item2 = $rNew->item2;
     	            $obj->item3 = $rNew->item3;
@@ -326,7 +326,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         return $data;
     }
     
@@ -350,16 +350,16 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $allItems = array();
         
         if (is_array($recs)) {
-        
+            
             // Проверяваме имали избрано групиране по свойство, което не е името на перото
             $groupByFeatures = false;
             foreach (range(1, 3) as $i) {
                 $groupByFeatures = $groupByFeatures || !empty($form->{"feat{$i}"});
             }
-        
+            
             // Ако има
             if ($groupByFeatures === true) {
-        
+                
                 // Намираме всички пера участващи в заявката
                 foreach ($recs as $rec1) {
                     foreach (array('debit', 'credit') as $type) {
@@ -370,7 +370,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                         }
                     }
                 }
-        
+                
                 // Извличаме им свойствата
                 $features = acc_Features::getFeaturesByItems($allItems);
             } else {
@@ -381,28 +381,28 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         foreach ($recs as $jRec) {
             $mvc->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $res);
         }
-
+        
         // Ако има намерени записи
         if (count($res)) {
-        
+            
             // За всеки запис
             foreach ($res as &$rec) {
-        
+                
                 // Изчисляваме окончателния остатък (дебит - кредит)
                 $rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
                 $rec->blAmount = $rec->debitAmount - $rec->creditAmount;
-        
+                
                 foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
                     $data->{"summary{$sufix}"}->{$fld} += $rec->{$fld};
                     $data->summaryAll->{$fld.$sufix} += $rec->{$fld};
                 }
-        
+                
                 // Проверка дали сумата и к-то са еднакви
                 if ($rec->blQuantity != $rec->blAmount) {
                     $data->hasSameAmounts = false;
                 }
             }
-        
+            
             foreach ($res as &$rec1) {
                 $fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
                 if (!empty($data->{"summary{$sufix}"}->{$fld})) {
@@ -424,7 +424,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         return $res;
     }
     
@@ -435,17 +435,17 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
         $recs = array();
-
+        
         // Ако има намерени записи
         if (count($data->recs)) {
-
+            
             // Ако има избрано поле за сортиране, сортираме по него
             arr::sortObjects($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
             
             if (is_array($data->recsAll)) {
                 arr::sortObjects($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
             }
-
+            
             if ($mvc->innerForm->compare != 'no') {
                 if (count($data->recsAll)) {
                     foreach ($data->recsAll as $recsAll) {
@@ -455,7 +455,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             } else {
                 $recs = $data->recs;
             }
-
+            
             
             if (count($recs)) {
                 if (!Mode::is('printing')) {
@@ -465,6 +465,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     $data->Pager = $pager;
                     $data->Pager->itemsCount = count($recs);
                 }
+                
                 // За всеки запис
                 foreach ($recs as $id => $rec) {
                     if (is_array($rec)) {
@@ -476,20 +477,20 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                                     continue;
                                 }
                             }
-                         
+                            
                             // Вербално представяне на записа
                             $data->rows[] = $mvc->getVerbalRec($r, $data);
                         }
                     } else {
                         $rec->id = $id + 1;
-
+                        
                         if (!Mode::is('printing')) {
                             // Ако не е за текущата страница не го показваме
                             if (isset($data->Pager) && !$data->Pager->isOnPage()) {
                                 continue;
                             }
                         }
-                    
+                        
                         // Вербално представяне на записа
                         $data->rows[] = $mvc->getVerbalRec($rec, $data);
                     }
@@ -507,11 +508,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public function getReportLayout_()
     {
         $tpl = getTplFromFile('acc/tpl/CorespondingReportLayout.shtml');
-
+        
         if ($this->innerForm->compare == 'no') {
             $tpl->removeBlock('summeryNew');
         }
-
+        
         return $tpl;
     }
     
@@ -522,12 +523,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if (empty($data)) {
+            
             return;
         }
         
         $tpl = $this->getReportLayout();
         $tpl->replace($this->getReportTitle(), 'TITLE');
-
+        
         if ($this->innerForm->compare !== 'no') {
             $tpl->placeObject($data->summaryAll);
         } else {
@@ -539,7 +541,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             $tpl->replace(acc_Items::getVerbal($data->contragent, 'titleLink'), 'contragent');
         }
         $tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
-
+        
         $cntItem = array();
         for ($i = 0; $i <= count($data->rows); $i++) {
             foreach (range(1, 6) as $l) {
@@ -548,12 +550,12 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 }
             }
         }
-
-        if (count($cntItem) <= 1 && count($data->recs) >= 2) {
         
+        if (count($cntItem) <= 1 && count($data->recs) >= 2) {
+            
             // toolbar
             $btns = $this->generateBtns($data);
-    
+            
             if ($this->innerForm->compare != 'no') {
                 $tpl->replace($btns->buttonList, 'buttonList');
                 $tpl->replace($btns->buttonBar, 'buttonBar');
@@ -562,20 +564,20 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 $tpl->replace($btns->buttonPie, 'buttonPie');
             }
         }
-
+        
         $curUrl = getCurrentUrl();
         
         $pageVar = core_Pager::getPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
         
         $pagePie = $pageVar . '_pie';
         $pageBar = $pageVar . '_bar';
-
+        
         if ($curUrl[$pagePie] == $this->EmbedderRec->that) {
             $chart = $this->getChartPie($data);
             $tpl->append($chart, 'CONTENT');
         } elseif ($curUrl[$pageBar] == $this->EmbedderRec->that) {
             $chart = $this->getChartBar($data);
-    
+            
             $tpl->append($chart, 'CONTENT');
         } else {
             $f = cls::get('core_FieldSet');
@@ -587,22 +589,22 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             $f->FLD('item5', 'varchar', 'tdClass=itemClass');
             $f->FLD('item6', 'varchar', 'tdClass=itemClass');
             foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'delta',
-                           'blQuantityNew', 'blAmountNew', 'deltaNew') as $fld) {
+                'blQuantityNew', 'blAmountNew', 'deltaNew') as $fld) {
                 $f->FLD($fld, 'int', 'tdClass=accCell');
             }
-             
+            
             // Рендираме таблицата
             $table = cls::get('core_TableView', array('mvc' => $f));
-
+            
             $tableHtml = $table->get($data->rows, $data->listFields);
-             
+            
             $tpl->replace($tableHtml, 'CONTENT');
-             
+            
             // Рендираме пейджъра, ако го има
             if (isset($data->Pager)) {
                 $tpl->replace($data->Pager->getHtml(), 'PAGER');
             }
-             
+            
             // Показваме данните от формата
             $form = cls::get('core_Form');
             $this->addEmbeddedFields($form);
@@ -611,9 +613,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             $form->rec = $this->innerForm;
             $form->class = 'simpleForm';
         }
-    
+        
         $this->prependStaticForm($tpl, 'FORM');
-         
+        
         $embedderTpl->append($tpl, 'data');
     }
     
@@ -621,7 +623,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     /**
      * Вербално представяне на групираните записи
      *
-     * @param  stdClass $rec - групиран запис
+     * @param stdClass $rec - групиран запис
+     *
      * @return stdClass $row - вербален запис
      */
     protected function getVerbalRec($rec, $data)
@@ -630,11 +633,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
         $Varchar = cls::get('type_Varchar');
         $Int = cls::get('type_Int');
-
+        
         if (isset($rec->id)) {
             $row->id = $Int->toVerbal($rec->id);
         }
- 
+        
         // Вербалното представяне на перата
         foreach (range(1, 6) as $i) {
             if (!empty($rec->{"item{$i}"})) {
@@ -667,7 +670,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         if (isset($rec->measure)) {
             $row->measure = $rec->measure;
         }
-
+        
         // Връщаме подготвеното вербално рпедставяне
         return $row;
     }
@@ -681,7 +684,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     private function prepareSummary(&$data)
     {
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-
+        
         if ($this->innerForm->compare != 'no') {
             foreach ((array) $data->summaryAll as $index => $fld) {
                 $f = $data->summaryAll->{$index};
@@ -713,7 +716,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             
             return 0;
         }
-    
+        
         return (strnatcasecmp($a->sortField, $b->sortField) < 0) ? -1 : 1;
     }
     
@@ -721,14 +724,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     /**
      * Групира записите от журнала по пера
      *
-     * @param  int      $baseAccountId - Ид на основната сметка
-     * @param  stdClass $jRec          - запис от журнала
-     * @param  array    $recs          - групираните записи
+     * @param int      $baseAccountId - Ид на основната сметка
+     * @param stdClass $jRec          - запис от журнала
+     * @param array    $recs          - групираните записи
+     *
      * @return void
      */
     private function addEntry($baseAccountId, $jRec, &$data, $groupBy, $form, $features, &$recs)
     {
-        
         // Обхождаме дебитната и кредитната част, И намираме в какви номенклатури имат сметките
         foreach (array('debit', 'credit') as $type) {
             if (!isset($this->cache2[$jRec->{"{$type}AccId"}])) {
@@ -798,19 +801,19 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     {
         $form = $this->innerForm;
         $newFields = array();
-
+        
         // Кои полета ще се показват
         if ($this->innerForm->compare != 'no') {
             $fromVerbal = dt::mysql2verbal($form->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
             
             $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
-
+            
             $fields = arr::make("debitQuantity={$prefix}->Дебит->К-во,debitAmount={$prefix}->Дебит->Сума,creditQuantity={$prefix}->Кредит->К-во,creditAmount={$prefix}->Кредит->Сума,blQuantity={$prefix}->Остатък->К-во,blAmount={$prefix}->Остатък->Сума,delta={$prefix}->Дял", true);
         } else {
             $fields = arr::make('debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял', true);
         }
-
+        
         foreach (range(1, 6) as $i) {
             if (!empty($form->{"feat{$i}"})) {
                 if ($form->{"feat{$i}"} == '*') {
@@ -838,11 +841,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             if ($data->fromOld != null && $data->toOld != null) {
                 $fromOldVerbal = dt::mysql2verbal($data->fromOld, 'd.m.Y');
                 $toOldVerbal = dt::mysql2verbal($data->toOld, 'd.m.Y');
-            
-            
+                
                 
                 $prefixOld = (string) $fromOldVerbal . ' - ' . $toOldVerbal;
-
+                
                 $fieldsCompare = arr::make("debitQuantityNew={$prefixOld}->Дебит->К-во,
 	    				                    debitAmountNew={$prefixOld}->Дебит->Сума,
 	    				                    creditQuantityNew={$prefixOld}->Кредит->К-во,
@@ -850,7 +852,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    				                    blQuantityNew={$prefixOld}->Остатък->К-во,
 	    				                    blAmountNew={$prefixOld}->Остатък->Сума,
 	    				                    deltaNew={$prefixOld}->Дял", true);
-    
+                
                 
                 $fields = $fields + $fieldsCompare;
                 
@@ -863,10 +865,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 }
             }
         }
-
+        
         $data->listFields = $fields;
     }
-
+    
     
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -919,7 +921,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         arr::sortObjects($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         
         $rows = $this->prepareEmbeddedData()->rows;
-
+        
         if (count($this->innerState->recs)) {
             foreach ($this->innerState->recs as $id => $rec) {
                 $dataRecs[] = $this->getVerbalRec($rec, $data);
@@ -948,7 +950,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     }
                 }
             }
-    
+            
             foreach ($exportFields as $caption => $name) {
                 if ($caption == 'creditAmount') {
                     unset($exportFields[$caption]);
@@ -963,9 +965,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             if ($this->innerState->summary && ($this->getReportLayout()->isPlaceholderExists('ROW_AFTER') ||
                                                $this->getReportLayout()->isPlaceholderExists('ROW_BEFORE'))) {
                 $afterRow = 'ОБЩО';
-    
+                
                 $rec = $this->prepareEmbeddedData($this->innerState->recs)->summary;
-                 
+                
                 foreach ($rec as $f => $value) {
                     $rCsv = '';
                     $rec->sum = $rec->creditAmount;
@@ -992,13 +994,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             return $csv;
         }
     }
-
+    
     
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -1020,10 +1023,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $f->FLD('delta', 'varchar');
         $f->FLD('deltaNew', 'varchar');
         $f->FLD('measure', 'varchar');
-
+        
         return $f;
     }
-
+    
     
     /**
      * Връща дефолт заглавието на репорта
@@ -1036,30 +1039,31 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         
         return $title;
     }
-
+    
     
     /**
      * Генериране на бутоните за тулбара
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return StdClass
      */
     public function generateBtns($data)
     {
         $curUrl = getCurrentUrl();
-    
+        
         $pageVar = core_Pager::getPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
         
         $pagePie = $pageVar . '_pie';
         $pageBar = $pageVar . '_bar';
-       
+        
         if ($curUrl["{$pageVar}_pie"] || $curUrl["{$pageVar}_bar"]) {
             unset($curUrl["{$pageVar}_pie"]);
             unset($curUrl["{$pageVar}_bar"]);
         }
         
         $realUrl = $curUrl;
-   
+        
         // правим бутони за toolbar
         $btnList = ht::createBtn(
             'Таблица',
@@ -1073,13 +1077,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $urlPie = $curUrl;
         
         $btnPie = ht::createBtn(
-        
+            
             'Графика',
-        
+            
             $urlPie,
-        
+            
             null,
-        
+            
             null,
                 'ef_icon = img/16/chart_pie.png'
         
@@ -1089,13 +1093,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $urlBar = $realUrl;
         
         $btnBar = ht::createBtn(
-        
+            
             'Сравнение',
-        
+            
             $urlBar,
-        
+            
             null,
-        
+            
             null,
                 'ef_icon = img/16/chart_bar.png'
         
@@ -1112,7 +1116,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     /**
      * Изчертаване на графиката
      *
-     * @param  stdClass $data
+     * @param stdClass $data
+     *
      * @return core_ET
      */
     protected function generateChartData($data)
@@ -1122,7 +1127,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $value1 = array();
         $value2 = array();
         $labels = array();
-
+        
         if ($this->innerForm->compare != 'no') {
             foreach ($data->recsAll as $id => $rec) {
                 $value = abs($rec->{$this->innerForm->orderField});
@@ -1145,25 +1150,26 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         } else {
             foreach ($data->recs as $id => $rec) {
                 $value = abs($rec->{$this->innerForm->orderField});
-
+                
                 if ($rec->item1 || $rec->item2 || $rec->item3 || $rec->item4 || $rec->item5 || $rec->item6) {
                     // правим масив с всички пера и стойност
                     // сумирано полето което е избрали във формата
                     if (!array_key_exists($id, $dArr)) {
                         $dArr[$id] =
                         (object) array('item1' => $rec->item1,
-                                'item2' => $rec->item2,
-                                'item3' => $rec->item3,
-                                'item4' => $rec->item4,
-                                'item5' => $rec->item5,
-                                'item6' => $rec->item6,
-                                'value' => $value
-                    
+                            'item2' => $rec->item2,
+                            'item3' => $rec->item3,
+                            'item4' => $rec->item4,
+                            'item5' => $rec->item5,
+                            'item6' => $rec->item6,
+                            'value' => $value
+                        
                         );
+                    
                     // в противен случай го ъпдейтваме
                     } else {
                         $obj = &$dArr[$id];
-            
+                        
                         $obj->item1 = $rec->item1;
                         $obj->item2 = $rec->item2;
                         $obj->item3 = $rec->item3;
@@ -1176,28 +1182,28 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     if (!array_key_exists($id, $dArr)) {
                         $dArr[$id] =
                         (object) array('valior' => $rec->valior,
-                                'value' => $rec->sum,
-                                'valueNew' => $rec->sumNew
-                                 
+                            'value' => $rec->sum,
+                            'valueNew' => $rec->sumNew
+                        
                         );
                     } else {
                         $obj = &$dArr[$id];
-                         
+                        
                         $obj->valior = $rec->valior;
-    
+                        
                         $obj->value = $rec->sum;
                         $obj->valueNew = $rec->sumNew;
                     }
                 }
             }
         }
-
+        
         
         foreach ($dArr as $id => $rec) {
             if (isset($rec->valior)) {
                 $m = date('m', strtotime($rec->valior));
                 $y = date('Y', strtotime($rec->valior));
-
+                
                 $labels[] = dt::getMonth($m, 'F', 'bg');
                 $value1[] = $rec->value;
                 $value2[] = $rec->valueNew;
@@ -1208,9 +1214,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             
             return ($a->value > $b->value) ? -1 : 1;
         });
-
+        
         $arr = $this->preparePie($dArr, 12);
-
+        
         $title = '';
         if (is_array($arr)) {
             foreach ($arr as $id => $recSort) {
@@ -1218,13 +1224,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 $info["{$title}"] = $recSort->value;
             }
         }
-
+        
         $pie = array(
-                    'legendTitle' => $this->getReportTitle(),
-                    'suffix' => 'лв.',
-                    'info' => $info,
+            'legendTitle' => $this->getReportTitle(),
+            'suffix' => 'лв.',
+            'info' => $info,
         );
-
+        
         $yFrom = date('Y', strtotime($this->innerForm->from));
         $yTo = date('Y', strtotime($this->innerForm->to));
         
@@ -1237,20 +1243,20 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             $yPrevTo = $yTo - 1;
             $yearPrev = $yPrevFrom . '-' . $yPrevTo;
         }
-
+        
         $bar = array(
-                'legendTitle' => $this->getReportTitle(),
-                'labels' => $labels,
-                'values' => array(
-                        $yearPrev => $value2,
-                        $year => $value1
-                )
+            'legendTitle' => $this->getReportTitle(),
+            'labels' => $labels,
+            'values' => array(
+                $yearPrev => $value2,
+                $year => $value1
+            )
         );
-
+        
         $chartData = array();
         $chartData[] = (object) array('type' => 'pie', 'data' => $pie);
         $chartData[] = (object) array('type' => 'bar', 'data' => $bar);
-    
+        
         return $chartData;
     }
     
@@ -1258,13 +1264,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function getChartPie($data)
     {
         $ch = $this->generateChartData($data);
-
+        
         $coreConf = core_Packs::getConfig('doc');
         $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
         $chartHtml = cls::get($chartAdapter);
-
+        
         $chart = $chartHtml::prepare($ch[0]->data, $ch[0]->type);
-
+        
         return $chart;
     }
     
@@ -1272,13 +1278,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function getChartBar($data)
     {
         $ch = $this->generateChartData($data);
-
+        
         $coreConf = core_Packs::getConfig('doc');
         $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
         $chartHtml = cls::get($chartAdapter);
-
+        
         $chart = $chartHtml::prepare($ch[1]->data, $ch[1]->type);
-    
+        
         return $chart;
     }
     
@@ -1294,7 +1300,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public static function preparePie($data, $n, $otherName = 'Други')
     {
         $newArr = array();
-
+        
         foreach ($data as $key => $rec) {
             // Вземаме всички пера като наредени н-орки
             $title = '';
@@ -1303,25 +1309,25 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     $title .= $rec->{"item{$i}"} . '|';
                 }
             }
-
+            
             $newArr[$key] =
                     (object) array('title' => substr($title, 0, strlen($title) - 1),
-                                    'value' => $rec->value
-                
-                            );
+                        'value' => $rec->value
+                    
+                    );
         }
-
+        
         // броя на елементите в получения масив
         $cntData = count($data);
-    
+        
         // ако, числото което сме определили за новия масив
         // е по-малко от общия брой елементи
         // на подадения масив
         if ($cntData <= $n) {
-   
+            
             // връщаме направо масива
             foreach ($newArr as $id => $rec) {
-
+                
                 // Вербалното представяне на перата
                 $t = explode('|', $rec->title);
                 $titleV = '';
@@ -1329,16 +1335,16 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
                 }
                 $titleV = substr($titleV, 0, strlen($titleV) - 1);
-            
+                
                 $res[] = (object) array('key' => $k, 'title' => $titleV, 'value' => $rec->value);
             }
-    
+            
             //в противен случай
         } else {
             // взимаме първите n елемента от сортирания масив
             
             for ($k = 0; $k <= $n - 1; $k++) {
-
+                
                 // Вербалното представяне на перата
                 $t = explode('|', $newArr[$k]->title);
                 $titleV = '';
@@ -1346,26 +1352,27 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                     $titleV .= acc_Items::getVerbal($t[$i], 'title'). '|';
                 }
                 $titleV = substr($titleV, 0, strlen($titleV) - 1);
-
+                
                 $res[] = (object) array('key' => $k, 'title' => $titleV, 'value' => $newArr[$k]->value);
             }
-
+            
             // останалите елементи ги събираме
             for ($i = $n; $i <= $cntData; $i++) {
                 $sum += $newArr[$i]->value;
             }
-    
+            
             // ако имаме изрично зададено име за обобщения елемент
             if ($otherName) {
                 // използваме него и го добавяме към получения нов масив с
                 // n еленета и сумата на останалите елементи
                 $res[] = (object) array('key' => $n + 1, 'title' => $otherName, 'value' => $sum);
+            
             // ако няма, използваме default
             } else {
                 $res[] = (object) array('key' => $n + 1,'title' => 'Други', 'value' => $sum);
             }
         }
-
+        
         return $res;
     }
 }

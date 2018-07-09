@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'planning_ProductionTaskProducts'
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_ProductionTaskProducts extends core_Detail
 {
-    
-
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -83,7 +82,7 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public $canList = 'no_one';
     
-   
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -223,7 +222,7 @@ class planning_ProductionTaskProducts extends core_Detail
             
             $pInfo = cat_Products::getProductInfo($rec->productId);
             $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-        
+            
             // Проверка дали артикула може да бъде избран
             if (!self::canAddProductToTask($rec, $msg, $error)) {
                 $method = ($error === true) ? 'setError' : 'setWarning';
@@ -251,7 +250,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         $data->TabCaption = 'Артикули';
         $data->Tab = 'top';
-    
+        
         parent::prepareDetail_($data);
     }
     
@@ -302,15 +301,17 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Обновяване на изпълненото количество
      *
-     * @param  int    $taskId    - ид на задача
-     * @param  int    $productId - ид на артикул
-     * @param  string $type      - вид на действието
+     * @param int    $taskId    - ид на задача
+     * @param int    $productId - ид на артикул
+     * @param string $type      - вид на действието
+     *
      * @return void
      */
     public static function updateTotalQuantity($taskId, $productId, $type)
     {
         $rec = self::fetch("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}'");
         if (empty($rec)) {
+            
             return;
         }
         
@@ -331,8 +332,9 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Намира всички допустими артикули от дадения тип за една операция
      *
-     * @param  int                 $taskId
-     * @param  input|product|waste $type
+     * @param int                 $taskId
+     * @param input|product|waste $type
+     *
      * @return array
      */
     public static function getOptionsByType($taskId, $type)
@@ -340,7 +342,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $taskRec = planning_Tasks::fetchRec($taskId);
         $usedProducts = $options = array();
         expect(in_array($type, array('input', 'waste', 'production')));
-         
+        
         $query = self::getQuery();
         $query->where("#taskId = {$taskId}");
         $query->where("#type = '{$type}'");
@@ -349,28 +351,28 @@ class planning_ProductionTaskProducts extends core_Detail
             $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
             $usedProducts[$rec->productId] = $rec->productId;
         }
-         
+        
         if ($type == 'input') {
-    
+            
             // Всички избрани вложими артикули от задачи към същото задание
             $tQuery = planning_Tasks::getQuery();
             $tQuery->notIn('productId', array_keys($options));
             $tQuery->where("#originId = {$taskRec->originId} AND #inputInTask = {$taskRec->id} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending'");
             $tQuery->show('productId');
-    
+            
             $taskOptions = array();
             while ($tRec = $tQuery->fetch()) {
                 $taskOptions[$tRec->productId] = cat_Products::getTitleById($tRec->productId, false);
                 $usedProducts[$tRec->productId] = $tRec->productId;
             }
-    
+            
             if (count($taskOptions)) {
                 $options += array('t' => (object) array('group' => true, 'title' => tr('Задачи'))) + $taskOptions;
             }
-    
+            
             // Ако има избрано оборудване
             if (!empty($taskRec->fixedAssets)) {
-                 
+                
                 // Ако има добавят се с групата на оборудването в опциите
                 $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->fixedAssets, $usedProducts);
                 if (count($norms)) {
@@ -382,7 +384,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
             }
         }
-         
+        
         return $options;
     }
     
@@ -390,40 +392,41 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Информация за артикула в операцията
      *
-     * @param  mixed    $taskId    - ид или запис на операция
-     * @param  int      $productId - ид на артикул
-     * @param  string   $type      - вид на действието
-     * @param  int|NULL $assetId   - конкретно оборудване
+     * @param mixed    $taskId    - ид или запис на операция
+     * @param int      $productId - ид на артикул
+     * @param string   $type      - вид на действието
+     * @param int|NULL $assetId   - конкретно оборудване
+     *
      * @return stdClass
-     *                            o productId       - ид на артикула
-     *                            o packagingId     - ид на опаковката
-     *                            o quantityInPack  - к-во в опаковката
-     *                            o plannedQuantity - планирано к-во
-     *                            o totalQuantity   - изпълнено к-во
-     *                            o indTime         - норма
-     *                            o limit           - лимит, ако има
+     *                  o productId       - ид на артикула
+     *                  o packagingId     - ид на опаковката
+     *                  o quantityInPack  - к-во в опаковката
+     *                  o plannedQuantity - планирано к-во
+     *                  o totalQuantity   - изпълнено к-во
+     *                  o indTime         - норма
+     *                  o limit           - лимит, ако има
      */
     public static function getInfo($taskId, $productId, $type, $assetId = null)
     {
         expect(in_array($type, array('input', 'waste', 'production')));
-         
+        
         // Ако артикула е същия като от операцията, връща се оттам
         $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,quantityInPack,plannedQuantity');
         if ($taskRec->productId == $productId) {
             
             return $taskRec;
         }
-         
+        
         // Ако има запис в артикули за него, връща се оттам
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
         $query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity,limit');
-         
+        
         if ($rec = $query->fetch()) {
             
             return $rec;
         }
-         
+        
         // Ако е влагане и артикула в избран като вложим за тая операция, връща се оттам
         if ($type == 'input') {
             $tQuery = planning_Tasks::getQuery();
@@ -431,11 +434,11 @@ class planning_ProductionTaskProducts extends core_Detail
             $tQuery->show('productId,packagingId,quantityInPack,plannedQuantity,totalQuantity');
             if ($tRec = $tQuery->fetch()) {
                 $tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
-
+                
                 return $tRec;
             }
         }
-         
+        
         if (isset($assetId)) {
             $normRec = planning_AssetResources::getNormRec($assetId, $productId);
             if (!empty($normRec)) {
@@ -449,7 +452,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 return $norms[$productId];
             }
         }
-         
+        
         return false;
     }
     
@@ -508,11 +511,12 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Помощна ф-я проверяваща може ли артикула да бъде избран
      *
-     * @param  int          $taskId
-     * @param  int          $productId
-     * @param  string|NULL  $msg
-     * @param  boolean|NULL $error
-     * @return boolean
+     * @param int         $taskId
+     * @param int         $productId
+     * @param string|NULL $msg
+     * @param bool|NULL   $error
+     *
+     * @return bool
      */
     private static function canAddProductToTask($rec, &$msg = null, &$error = null)
     {
@@ -526,7 +530,7 @@ class planning_ProductionTaskProducts extends core_Detail
                     $indTime = core_Type::getByName('time(noSmart)')->toVerbal($norm[$rec->productId]->indTime);
                     $msg = "Нормата се различава от очакваната|* <b>{$indTime}</b>";
                     $error = 'FALSE';
-
+                    
                     return false;
                 }
             }
@@ -538,7 +542,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $inTaskId = planning_Tasks::getLink($inTaskId, 0);
             $msg = "Артикулът е избран да се влага в операцията от|* <b>{$inTaskId}</b>";
             $error = 'FALSE';
-
+            
             return false;
         }
         

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_SearchMysql' - Генератор на MySQL заявка за пълнотекстово търсене
  *
@@ -12,16 +11,16 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>, SStefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_SearchMysql extends core_BaseClass
 {
-    
-    
     /**
      * Парсираната заявка.
      *
@@ -56,6 +55,7 @@ class core_SearchMysql extends core_BaseClass
         
         // Разбиваме заявката на думи
         if (!preg_match_all("/[a-zа-я0-9]+|\"|\^[a-zа-я0-9]+/u", $str, $matches)) {
+            
             return;
         }
         
@@ -135,7 +135,8 @@ class core_SearchMysql extends core_BaseClass
     /**
      * Проверява дали думата е изцяло съставена от букви на латиница
      *
-     * @param  string $word
+     * @param string $word
+     *
      * @return bool
      */
     public function isLatin($word)
@@ -147,7 +148,8 @@ class core_SearchMysql extends core_BaseClass
     /**
      * Проверява дали думата е изцяло съставена от букви на кирилица
      *
-     * @param  string $word
+     * @param string $word
+     *
      * @return bool
      */
     public function isCyrillic($word)
@@ -205,7 +207,8 @@ class core_SearchMysql extends core_BaseClass
      * им в произволен текст от сайта) е определена емпирично и точно тези данни
      * определят какви резултати връща този метод.
      *
-     * @param  string $word
+     * @param string $word
+     *
      * @return float
      */
     public function getWordWeight($word)
@@ -249,7 +252,8 @@ class core_SearchMysql extends core_BaseClass
      * Замества всички последователности от разделители с един единствен интервал
      * и прави всички букви в долен регистър (lower case).
      *
-     * @param  string $str
+     * @param string $str
+     *
      * @return string
      */
     public static function normalizeText($str)
@@ -320,6 +324,7 @@ class core_SearchMysql extends core_BaseClass
             -1,
             PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE
         );
+        
         
         /**
          * $textChunk[$i][0] - фрагмент чист текст

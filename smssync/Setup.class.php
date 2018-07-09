@@ -19,7 +19,6 @@ defIfNot('SMSSYNC_MAX_STRING_LEN', 160);
 defIfNot('SMSSYNC_ALLOWED_USER_NAMES', '');
 
 
-
 /**
  * Защитени ключове
  */
@@ -30,7 +29,6 @@ defIfNot('SMSSYNC_SECRET_KEY', md5(EF_SALT . 'SMSSync'));
  * Разрешени IP адреси, от които да се изпраща/получава SMS
  */
 defIfNot('SMSSYNC_ALLOWED_IP_ADDRESS', '');
-
 
 
 /**
@@ -44,15 +42,15 @@ defIfNot('SMSSYNC_SMS_LIMIT', '10');
  *
  * @category  vendors
  * @package   smssync
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class smssync_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -63,7 +61,6 @@ class smssync_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Изпращане на SMS чрез SMSSync';
-    
     
     
     public $configDescription = array(
@@ -80,6 +77,6 @@ class smssync_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'smssync_SMS',
-        );
+        'smssync_SMS',
+    );
 }

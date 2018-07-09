@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на индикатори за заплати
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Индикатори
  */
 class hr_Indicators extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -58,7 +57,7 @@ class hr_Indicators extends core_Manager
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,hrMaster';
-
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -78,7 +77,7 @@ class hr_Indicators extends core_Manager
         $this->FLD('indicatorId', 'key(mvc=hr_IndicatorNames,select=name)', 'caption=Показател,smartCenter,mandatory');
         $this->FLD('sourceClass', 'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Показател->Източник,smartCenter,mandatory');
         $this->FLD('value', 'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
-
+        
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
         $this->setDbIndex('docClass,docId');
         $this->setDbIndex('date');
@@ -123,7 +122,7 @@ class hr_Indicators extends core_Manager
         self::recalc($timeline);
     }
     
-     
+    
     /**
      * Екшън за преизчисляване на индикаторите след дадена дата
      */
@@ -166,7 +165,8 @@ class hr_Indicators extends core_Manager
     /**
      * Рекалкулиране на индикаторите от определена дата
      *
-     * @param  datetime $timeline
+     * @param datetime $timeline
+     *
      * @return void
      */
     private static function recalc($timeline)
@@ -192,8 +192,9 @@ class hr_Indicators extends core_Manager
      * Събиране на информация от всички класове
      * имащи интерфейс hr_IndicatorsSourceIntf
      *
-     * @param  date  $timeline
-     * @param  array $persons  - лицата
+     * @param date  $timeline
+     * @param array $persons  - лицата
+     *
      * @return array $periods - засегнатите периоди
      */
     public static function saveIndicators($timeline, &$persons = array())
@@ -220,12 +221,12 @@ class hr_Indicators extends core_Manager
             
             // Взимаме връщания масив от интерфейсния метод
             $data = $sMvc->getIndicatorValues($timeline);
-           
+            
             if (is_array($data) && count($data)) {
-                   
+                
                 // Даваме време
                 core_App::setTimeLimit(count($data) + 10);
-
+                
                 // По id-то на служителя, намираме от договора му
                 // в кой отдел и на каква позиция работи
                 foreach ($data as $id => $rec) {
@@ -234,9 +235,9 @@ class hr_Indicators extends core_Manager
                     if (!isset($forClean[$key])) {
                         $forClean[$key] = array();
                     }
-
+                    
                     $periodRec = acc_Periods::fetchByDate($rec->date);
-                 
+                    
                     // Запомняме за кой период е документа
                     $periods[$periodRec->id] = $periodRec;
                     
@@ -246,24 +247,24 @@ class hr_Indicators extends core_Manager
                     }
                     
                     $rec->sourceClass = core_Classes::getId($class);
-
+                    
                     $exRec = self::fetch(array("#docClass = {$rec->docClass} AND #docId = {$rec->docId} 
                                                 AND #personId = {$rec->personId} 
                                                 AND #indicatorId = '{$rec->indicatorId}' AND #sourceClass = {$rec->sourceClass}
                                                 AND #date = '{$rec->date}'"));
- 
+                    
                     $persons[$rec->personId] = $rec->personId;
-                     
+                    
                     if ($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
-
+                        
                         // Ако съществува идентичен стар запис - прескачаме
                         if ($rec->value == $exRec->value) {
                             continue;
                         }
                     }
-           
+                    
                     // Ако имаме уникален запис го записваме
                     self::save($rec);
                     $forClean[$key][$rec->id] = $rec->id;
@@ -281,7 +282,7 @@ class hr_Indicators extends core_Manager
             }
             $query->delete();
         }
-
+        
         return $periods;
     }
     
@@ -299,7 +300,7 @@ class hr_Indicators extends core_Manager
         $ecQuery->orderBy('#dateId', 'DESC');
         
         $ecArr = array();
-
+        
         while ($ecRec = $ecQuery->fetch()) {
             if (!isset($ecArr[$ecRec->personId])) {
                 $ecArr[$ecRec->personId] = $ecRec;
@@ -317,7 +318,7 @@ class hr_Indicators extends core_Manager
         
         // Дали да извадим формулата от длъжността
         $replaceFormula = dt::now() < $pRec->end;
-
+        
         // Подготвяме масив с нулеви стойности
         $names = self::getIndicatorNames();
         $zeroInd = array('BaseSalary' => 0);
@@ -330,7 +331,7 @@ class hr_Indicators extends core_Manager
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
         foreach ($ecArr as $personId => $ecRec) {
             $res = (object) array('personId' => $personId,
-                                  'periodId' => $pRec->id);
+                'periodId' => $pRec->id);
             
             $sum = array();
             
@@ -351,7 +352,7 @@ class hr_Indicators extends core_Manager
             }
             
             $prlRec = hr_Payroll::fetch("#personId = {$personId} AND #periodId = {$pRec->id}");
-           
+            
             if (empty($prlRec)) {
                 $prlRec = new stdClass();
                 $prlRec->personId = $personId;
@@ -382,7 +383,7 @@ class hr_Indicators extends core_Manager
                 }
                 
                 uksort($contex, 'str::sortByLengthReverse');
-
+                
                 // Заместваме променливите и индикаторите
                 $expr = strtr($prlRec->formula, $contex);
                 
@@ -390,13 +391,13 @@ class hr_Indicators extends core_Manager
                     $prlRec->error = 'Невъзможно изчисление';
                 } else {
                     $prlRec->salary = str::calcMathExpr($expr, $success);
-
+                    
                     if ($success === false) {
                         $prlRec->error = 'Грешка в калкулацията';
                     }
                 }
             }
-
+            
             $prlRec->indicators = $sum;
             hr_Payroll::save($prlRec);
         }
@@ -410,15 +411,16 @@ class hr_Indicators extends core_Manager
     {
         // Масив за резултата
         $names = array();
-
+        
         // Намираме всички класове съдържащи интерфейса
         $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
         
         // Ако нямаме източници - нищо не правим
         if (!is_array($docArr) || !count($docArr)) {
+            
             return;
         }
-
+        
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class) {
             $sourceClass = core_Classes::getId($class);
@@ -427,7 +429,7 @@ class hr_Indicators extends core_Manager
                 $names[$sourceClass] = $sMvc->getIndicatorNames();
             }
         }
-
+        
         return $names;
     }
     
@@ -448,6 +450,7 @@ class hr_Indicators extends core_Manager
         
         $data->IData->render = false;
         if (Request::get('Tab') != 'PersonsDetails') {
+            
             return;
         }
         
@@ -470,6 +473,7 @@ class hr_Indicators extends core_Manager
         
         // Ако няма такива няма да се рендира нищо
         if ($data->IData->render === false) {
+            
             return;
         }
         
@@ -541,8 +545,9 @@ class hr_Indicators extends core_Manager
     /**
      * Рендиране на индикаторите в корицата на служителите
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderPersonIndicators($data)
     {
@@ -611,7 +616,7 @@ class hr_Indicators extends core_Manager
             $data->listFilter->showFields = 'period,document,personId,indicatorId';
             $data->listFilter->input('period,document,personId,indicatorId');
         }
-
+        
         // В хоризонтален вид
         $data->listFilter->class = 'simpleForm fleft';
         
@@ -654,7 +659,8 @@ class hr_Indicators extends core_Manager
     /**
      * Връща индикаторите, които са използвани във формула
      *
-     * @param  text  $formula
+     * @param text $formula
+     *
      * @return array $res;
      */
     public static function getIndicatorsInFormula($formula)
@@ -729,24 +735,24 @@ class hr_Indicators extends core_Manager
      * @param int      $docId
      * @param int      $docClassId
      * @param int      $indicatorId
-     * @param double   $value
-     * @param boolean  $isRejected
+     * @param float    $value
+     * @param bool     $isRejected
      */
     public static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
     {
         $key = "{$personId}|{$docClassId}|{$docId}|{$valior}|{$indicatorId}";
-    
+        
         // Ако няма данни, добавят се
         if (!array_key_exists($key, $result)) {
             $result[$key] = (object) array('date' => $valior,
-                                          'personId' => $personId,
-                                          'docId' => $docId,
-                                          'docClass' => $docClassId,
-                                          'indicatorId' => $indicatorId,
-                                          'value' => $value,
-                                          'isRejected' => $isRejected,);
+                'personId' => $personId,
+                'docId' => $docId,
+                'docClass' => $docClassId,
+                'indicatorId' => $indicatorId,
+                'value' => $value,
+                'isRejected' => $isRejected,);
         } else {
-    
+            
             // Ако има вече се сумират
             $ref = &$result[$key];
             $ref->value += $value;

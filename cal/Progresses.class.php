@@ -6,9 +6,11 @@
  *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cal_Progresses extends core_Mvc
@@ -16,9 +18,7 @@ class cal_Progresses extends core_Mvc
     public $interfaces = 'doc_ExpandCommentsIntf';
     
     
-    
     public $title = 'Прогрес';
-    
     
     
     /**
@@ -36,9 +36,9 @@ class cal_Progresses extends core_Mvc
     /**
      * Може ли вградения обект да се избере
      *
-     * @param NULL|integer $userId
+     * @param NULL|int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public function canSelectDriver($userId = null)
     {
@@ -106,7 +106,7 @@ class cal_Progresses extends core_Mvc
      *
      * @param cal_Progresses $Driver
      * @param doc_Comments   $mvc
-     * @param integer        $id
+     * @param int            $id
      * @param stdClass       $rec
      * @param NULL|array     $saveFileds
      */
@@ -261,8 +261,8 @@ class cal_Progresses extends core_Mvc
     /**
      * Обновява задачата след промяна на прогреса
      *
-     * @param stdClass     $rec
-     * @param NULL|integer $progress
+     * @param stdClass $rec
+     * @param NULL|int $progress
      */
     public static function updateTaskProgress($rec, $progress = null)
     {
@@ -317,9 +317,9 @@ class cal_Progresses extends core_Mvc
     /**
      * Връща най-новия активен прогрес
      *
-     * @param integer $originId
+     * @param int $originId
      *
-     * @return double
+     * @return float
      */
     protected static function getLastGoodProgress($originId)
     {
@@ -391,7 +391,7 @@ class cal_Progresses extends core_Mvc
      * @param cal_Progresses $Driver
      * @param doc_Comments   $mvc
      * @param string|NULL    $res
-     * @param integer        $id
+     * @param int            $id
      *
      * @return string
      */

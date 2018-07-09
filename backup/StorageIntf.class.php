@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Интерфейс за класовете обслужващи архивирането
  *
  *
  * @category  bgerp
  * @package   backup
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за архивиране
  */
 class backup_StorageIntf
 {
-    
-    
     /**
      * Връща ключ под който ще се запишат данните
      *

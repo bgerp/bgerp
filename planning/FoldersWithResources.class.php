@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на папките, които може да ползват ресурси
  *
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_FoldersWithResources extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */

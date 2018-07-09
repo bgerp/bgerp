@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Драйвер за готовност за експедиция на документи
  *
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Логистика » Готовност за експедиция
  */
 class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 {
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -68,17 +67,18 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
+     *
      * @var string
      */
     protected $hashField = 'containerId';
-
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'dealers,countries,precision,horizon,orderBy';
-
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -151,6 +151,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if (!$form->isSubmitted()) {
+            
             return;
         }
         $rec = &$form->rec;
@@ -168,8 +169,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param  stdClass $rec  - записа
-     * @param  stdClass $dRec - чистия запис
+     * @param stdClass $rec  - записа
+     * @param stdClass $dRec - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -250,13 +252,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     /**
      * Подготвя допълнителна информация за продажбата
      *
-     * @param  int         $saleId
+     * @param int $saleId
+     *
      * @return string|NULL
      */
     private function getSaleDetailTable($saleId)
     {
         $arr = array();
-            
+        
         // Под документа се показват и артикулите, които имат задания към него
         $jQuery = planning_Jobs::getQuery();
         $jQuery->where("#saleId = {$saleId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed')");
@@ -268,14 +271,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $produced = core_Type::getByName('double(smartRound)')->toVerbal($jRec->quantityProduced);
             $arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock, 'produced' => $produced);
         }
-            
+        
         if (count($arr)) {
             $tableHtml = "<table class='small no-border'>";
             foreach ($arr as $ar) {
                 $tableHtml .= "<tr><td>{$ar['job']}</td></tr><tr><td class='nowrap'><span class='quiet'>" . tr('Заскл.'). ":</span> {$ar['produced']} / <span class='quiet'>" . tr('Наличност.'). ":</span> {$ar['inStock']}</td></tr>";
             }
             $tableHtml .= '</table>';
-
+            
             return $tableHtml;
         }
     }
@@ -345,7 +348,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     /**
      * Връща нормализирано име на корицата, за по-лесно сортиране
      *
-     * @param  int    $folderId
+     * @param int $folderId
+     *
      * @return string
      */
     private static function normalizeFolderName($folderId)
@@ -361,8 +365,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     /**
      * Кои записи ще се показват в таблицата
      *
-     * @param  stdClass $rec
-     * @param  stdClass $data
+     * @param stdClass $rec
+     * @param stdClass $data
+     *
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -397,7 +402,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         // За всяка
         while ($sRec = $sQuery->fetch()) {
-                
+            
             // Ако има филтър по държава
             if ($cCount) {
                 $contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
@@ -411,7 +416,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                     }
                 }
             }
-                
+            
             // Изчислява се готовността
             $readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
             if ($readiness === false) {
@@ -453,10 +458,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if ($max === false || is_null($max)) {
                 continue;
             }
-                
+            
             if (!isset($rec->precision) || (isset($rec->precision) && $max >= $rec->precision)) {
                 $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
-                        
+                
                 $dueDates = $this->getSaleDueDates($sRec);
                 if (isset($dueDates['minDel'])) {
                     $dueDates['minDel'] = dt::verbal2mysql($dueDates['minDel'], true);
@@ -471,20 +476,20 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                         $add = false;
                     }
                 }
-                        
+                
                 if ($add === true) {
                     $dRec = (object) array('containerId' => $sRec->containerId,
-                                          'contragentName' => self::normalizeFolderName($sRec->folderId),
-                                          'contragentClassId' => $sRec->contragentClassId,
-                                          'contragentId' => $sRec->contragentId,
-                                          'deliveryTime' => $delTime,
-                                          'execDate' => $minDel,
-                                          'dueDateMin' => $dueDates['min'],
-                                          'dueDateMax' => $dueDates['max'],
-                                          'folderId' => $sRec->folderId,
-                                          'dealerId' => $dealerId,
-                                          'readiness' => $max);
-            
+                        'contragentName' => self::normalizeFolderName($sRec->folderId),
+                        'contragentClassId' => $sRec->contragentClassId,
+                        'contragentId' => $sRec->contragentId,
+                        'deliveryTime' => $delTime,
+                        'execDate' => $minDel,
+                        'dueDateMin' => $dueDates['min'],
+                        'dueDateMax' => $dueDates['max'],
+                        'folderId' => $sRec->folderId,
+                        'dealerId' => $dealerId,
+                        'readiness' => $max);
+                    
                     $recs[$sRec->containerId] = $dRec;
                 }
             }
@@ -501,10 +506,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                         
                         return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
                     }
-                        
+                    
                     return ($a->readiness < $b->readiness) ? 1 : -1;
                 }
-        
+                
                 return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
             });
         } elseif ($rec->orderBy == 'execDate') {
@@ -514,7 +519,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             arr::sortObjects($recs, 'dueDateMin', 'ASC');
             $data->groupByField = 'contragentName';
         } else {
-                
+            
             // По дефолт се сортират по готовност във низходящ ред, при равенство по нормализираното име на контрагента
             usort($recs, function ($a, $b) {
                 if ($a->readiness === $b->readiness) {
@@ -522,10 +527,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                         
                         return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
                     }
-
+                    
                     return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
                 }
-                    
+                
                 return ($a->readiness < $b->readiness) ? 1 : -1;
             });
         }
@@ -537,8 +542,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param  stdClass      $rec    - записа
-     * @param  boolean       $export - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -566,7 +572,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $fld->FLD('dueDateMin', 'date', 'caption=Падеж мин');
                 $fld->FLD('dueDateMax', 'date', 'caption=Падеж макс');
             }
-                
+            
             if ($rec->orderBy != 'dueDate') {
                 $fld->FLD('execDate', 'date', 'caption=Изпълнение');
             }
@@ -629,18 +635,21 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     /**
      * Изчислява готовността на продажбата
      *
-     * @param  stdClass    $saleRec - запис на продажба
-     * @return double|NULL - готовност между 0 и 1, или NULL ако няма готовност
+     * @param stdClass $saleRec - запис на продажба
+     *
+     * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
     private static function calcSaleReadiness($saleRec)
     {
         // На не чакащите и не активни не се изчислява готовността
         if ($saleRec->state != 'pending' && $saleRec->state != 'active') {
+            
             return;
         }
         
         // На бързите продажби също не се изчислява
         if (strpos($saleRec->contoActions, 'ship') !== false) {
+            
             return;
         }
         
@@ -655,7 +664,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         $agreedProducts = $dealInfo->get('products');
         $shippedProducts = $dealInfo->get('shippedProducts');
-            
+        
         $totalAmount = 0;
         $readyAmount = null;
         
@@ -676,7 +685,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if ($productRec->isPublic == 'no') {
                 $closedJobId = planning_Jobs::fetchField("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
                 $activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #saleId = {$saleRec->id}");
-                        
+                
                 // Се приема че е готово
                 if ($closedJobId && !$activeJobId) {
                     
@@ -716,7 +725,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $totalAmount += $quantity * $price;
             
             if (is_null($amount)) {
-                        
+                
                 // Изчислява се колко от сумата на артикула може да се изпълни
                 $quantityInStock = store_Products::getQuantity($pId, $saleRec->shipmentStoreId);
                 $quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
@@ -746,13 +755,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     /**
      * Изчислява готовността на експедиционното нареждане
      *
-     * @param  stdClass    $soRec - запис на ЕН
-     * @return double|NULL - готовност между 0 и 1, или NULL ако няма готовност
+     * @param stdClass $soRec - запис на ЕН
+     *
+     * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
     private static function calcSoReadiness($soRec)
     {
         // На не чакащите не се изчислява готовност
         if ($soRec->state != 'pending') {
+            
             return;
         }
         
@@ -772,13 +783,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
             
             $totalAmount += $pRec->quantity * $price;
-                
+            
             // Определя се каква сума може да се изпълни
             $quantityInStock = store_Products::getQuantity($pId, $soRec->storeId);
             $quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
             
             $amount = $quantityInStock * $price;
-                
+            
             if (isset($amount)) {
                 $readyAmount += $amount;
             }

@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_HistoryImpl extends frame_BaseDriver
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -96,7 +95,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         
         if (isset($form->rec->accountId)) {
             $accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
-             
+            
             foreach (range(1, 3) as $i) {
                 if (isset($accInfo->groups[$i])) {
                     $gr = $accInfo->groups[$i];
@@ -109,8 +108,8 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         
         $this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
-
-
+    
+    
     /**
      * Проверява въведените данни
      *
@@ -132,8 +131,8 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
             }
         }
     }
-
-
+    
+    
     /**
      * Подготвя вътрешното състояние, на база въведените данни
      *
@@ -146,7 +145,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         
         $data = new stdClass();
         $accNum = acc_Accounts::fetchField($filter->accountId, 'num');
-         
+        
         $data->rec = new stdClass();
         $data->rec->accountId = $filter->accountId;
         $data->rec->ent1Id = $filter->ent1Id;
@@ -155,9 +154,9 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         $data->rec->accountNum = $accNum;
         
         acc_BalanceDetails::requireRightFor('history', $data->rec);
-         
+        
         $balanceRec = $this->History->getBalanceBetween($filter->fromDate, $filter->toDate);
-         
+        
         $data->balanceRec = $balanceRec;
         $data->fromDate = $filter->fromDate;
         $data->toDate = $filter->toDate;
@@ -167,7 +166,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         $data->orderBy = $this->innerForm->orderBy;
         
         $this->History->prepareHistory($data);
-         
+        
         return $data;
     }
     
@@ -199,8 +198,8 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         
         $embedderTpl->append($tpl, 'data');
     }
-
-
+    
+    
     /**
      * Добавяме полета за търсене
      *
@@ -247,7 +246,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
     public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->toDate} 23:59:59";
-         
+        
         return $activateOn;
     }
     
@@ -257,6 +256,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
@@ -280,7 +280,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         return $f;
     }
     
-
+    
     /**
      * Ако имаме в url-то export създаваме csv файл с данните
      *
@@ -294,9 +294,9 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
         }
-
+        
         $exportFields = $this->prepareEmbeddedData()->listFields;
-       
+        
         if (!isset($exportFields)) {
             $exportFields = $this->getExportFields();
         }
@@ -304,14 +304,14 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         $fields = $this->getFields();
         
         $dataRec = array();
-
+        
         if (($this instanceof acc_reports_PeriodHistoryImpl) ||
             ($this instanceof bank_reports_AccountImpl) ||
             ($this instanceof cash_reports_CashImpl) ||
             ($this instanceof acc_reports_MovementContractors) ||
             ($this instanceof acc_reports_TakingCustomers)) {
             $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
-                
+            
             return $csv;
         }
         
@@ -320,24 +320,24 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
         
         foreach ($this->innerState->allRecs as $id => &$rec) {
             $dataRec[] = cls::get('acc_BalanceHistory')->getVerbalHistoryRow($rec);
-
+            
             foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity','date', 'valior') as $fld) {
                 if (!is_null($dataRec[$id]->{$fld})) {
                     $dataRec[$id]->{$fld} = $rec[$fld];
                 }
             }
-
+            
             if (!is_null($dataRec[$id]->docId)) {
                 $dataRec[$id]->docId = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
             }
-                 
+            
             if (!is_null($dataRec[$id]->reason)) {
                 $dataRec[$id]->reason = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
             }
         }
-
+        
         $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
-
+        
         return $csv;
     }
     

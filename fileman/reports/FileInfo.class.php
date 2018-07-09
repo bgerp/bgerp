@@ -6,15 +6,15 @@
  *
  * @category  fileman
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_reports_FileInfo extends frame_BaseDriver
 {
-
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -60,7 +60,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $form->FLD('from', 'date', 'caption=Начало');
         $form->FLD('to', 'date', 'caption=Край');
     }
-
+    
     
     /**
      * Подготвя формата за въвеждане на данни за вътрешния обект
@@ -106,7 +106,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $this->prepareListFields($data);
         
         $query = fileman_Files::getQuery();
-
+        
         $query->where("'{$fRec->usersSearch}' LIKE CONCAT('%|', #createdBy, '|%')");
         
         // Размяна, ако периодите са объркани
@@ -120,12 +120,12 @@ class fileman_reports_FileInfo extends frame_BaseDriver
             $fRec->from .= ' 00:00:00';
             $query->where("#createdOn >= '{$fRec->from}'");
         }
-
+        
         if ($fRec->to) {
             $fRec->to .= ' 23:59:59';
             $query->where("#createdOn <= '{$fRec->to}'");
         }
-
+        
         if ($fRec->bucketId) {
             $query->where("#bucketId = '{$fRec->bucketId}'");
         }
@@ -158,7 +158,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         if ($data->fRec->sorting) {
             list($column, $direction) = explode('_', $data->fRec->sorting);
         }
-       
+        
         foreach ((array) $data->files as $keyId => $fArr) {
             if ($data->fRec->sorting) {
                 switch ($column) {
@@ -175,7 +175,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                             });
                         }
                         break;
-            
+                        
                         case 'len':
                         if ($direction == 'a') {
                             usort($data->files, function ($a, $b) {
@@ -192,7 +192,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                 }
             }
         }
-
+        
         return $data;
     }
     
@@ -211,6 +211,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                 $data->Pager = $pager;
                 $data->Pager->itemsCount = count($data->files);
             }
+            
             // За всеки запис
             foreach ($data->files as $keyId => &$fArr) {
                 if (!Mode::is('printing')) {
@@ -219,11 +220,11 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                         continue;
                     }
                 }
-
+                
                 // Вербално представяне на записа
                 $data->rows[] = $mvc->getVerbal($keyId, $fArr);
             }
-        
+            
             if (strpos($data->fRec->sorting, 'group') !== false) {
                 usort($data->rows, function ($a, $b) {
                     
@@ -251,7 +252,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $FileSize = cls::get('fileman_FileSize');
         
         $row = new stdClass();
-
+        
         if ($this->innerForm->groupBy == 'files') {
             $fileRec = fileman_Files::fetch($rec['key']);
             $row->groupId = fileman::getLinkToSingle($fileRec->fileHnd);
@@ -272,7 +273,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $row->cnt = $Int->toVerbal($rec['cnt']);
         $row->len = $FileSize->toVerbal($rec['len']);
         $row->key = $rec['key'];
-
+        
         return $row;
     }
     
@@ -319,7 +320,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
             [#PAGER#]
             |*'));
         $explodeTitle = explode(' » ', $this->title);
-         
+        
         $title = tr("|{$explodeTitle[1]}|*");
         
         $tpl->replace($title, 'TITLE');
@@ -327,12 +328,12 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $this->prependStaticForm($tpl, 'FORM');
         
         $tpl->placeObject($data->row);
-
+        
         $f = $this->getFields();
-
+        
         // Рендираме таблицата
         $table = cls::get('core_TableView', array('mvc' => $f));
-
+        
         $tableHtml = $table->get($data->rows, $data->listFields);
         
         // Рендираме пейджъра, ако го има
@@ -353,16 +354,17 @@ class fileman_reports_FileInfo extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     *
      * @todo да се замести в кода по-горе
      */
     protected function getFields_()
     {
         // Кои полета ще се показват
         $f = new core_FieldSet;
-
+        
         $f->FLD('cnt', 'int');
         $f->FLD('len', 'fileman_FileSize');
-
+        
         // В зависимост от избраната група определяме типа на полето
         if ($this->innerState->fRec->groupBy == 'users') {
             $f->FLD('groupId', 'key(mvc=core_Users,select=names)');
@@ -373,10 +375,10 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         } else {
             $f->FLD('groupId', 'key(mvc=fileman_Buckets, select=name)');
         }
-
+        
         return $f;
     }
-
+    
     
     /**
      * Създаваме csv файл с данните
@@ -390,7 +392,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $fields = $this->getFields();
         
         $dataRec = array();
-
+        
         foreach ($this->innerState->files as $id => $rec) {
             $rowC = new stdClass();
             foreach (array('len','cnt','createdOn', 'createdBy') as $fld) {
@@ -401,18 +403,18 @@ class fileman_reports_FileInfo extends frame_BaseDriver
             $rowC->groupId = $rec['key'];
             $dataRec[] = $rowC;
         }
-
+        
         /* foreach($this->prepareEmbeddedData()->rows as $k=>$v) {
              $a[$k] = $this->innerState->files[$v->key];
              $a[$k]['groupId'] = $v->key;
              unset($a[$k]['key']);
          }*/
-
+        
         $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
-       
+        
         return $csv;
     }
-
+    
     
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -420,8 +422,8 @@ class fileman_reports_FileInfo extends frame_BaseDriver
     public function hidePriceFields()
     {
     }
-      
-      
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */

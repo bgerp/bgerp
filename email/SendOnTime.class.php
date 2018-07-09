@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Имейли за изпращане по време
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_SendOnTime extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -56,7 +55,7 @@ class email_SendOnTime extends core_Manager
      */
     public $canStop = 'user';
     
-     
+    
     /**
      * Плъгини за зареждане
      */
@@ -92,12 +91,12 @@ class email_SendOnTime extends core_Manager
     /**
      * Добавя запис в модела
      *
-     * @param integer  $class
-     * @param integer  $objectId
+     * @param int      $class
+     * @param int      $objectId
      * @param array    $data
      * @param datetime $delay
      *
-     * @return integer
+     * @return int
      */
     public static function add($class, $objectId, $data, $delay)
     {
@@ -115,7 +114,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Връща вербалните данни за чакащите за изпращане имейли
      *
-     * @param integer $objectId
+     * @param int $objectId
      *
      * @return array
      */

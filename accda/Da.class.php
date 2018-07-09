@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на протоколи за въвеждане в експлоатация на дълготрайни активи (ДА)
  *
  *
  * @category  bgerp
  * @package   accda
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Пускане в експлоатация на ДА
  */
 class accda_Da extends core_Master
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -83,13 +82,13 @@ class accda_Da extends core_Master
      * Кой има достъп до сингъла
      */
     public $canSingle = 'ceo,accda';
-
+    
     
     /**
      * Кой може да го активира?
      */
     public $canConto = 'ceo,accda';
-        
+    
     
     /**
      * Файл за единичен изглед
@@ -113,7 +112,7 @@ class accda_Da extends core_Master
      * Полета за показване в списъчния изглед
      */
     public $listFields = 'valior,handler=Документ,title,num,serial,location,createdOn,createdBy';
-
+    
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -134,7 +133,7 @@ class accda_Da extends core_Master
      */
     public $fieldsNotToClone = 'valior,title,num';
     
-
+    
     /**
      * Поле за филтриране по дата
      */
@@ -197,7 +196,7 @@ class accda_Da extends core_Master
             if (isset($pInfo->meta['canStore'])) {
                 $form->setField('storeId', 'input,mandatory');
                 $form->setFieldTypeParams('accountId', 'root=20');
-            
+                
                 // Ако е избран склад
                 if ($rec->storeId) {
                     $form->info = deals_Helper::checkProductQuantityInStore($rec->productId, null, 1, $rec->storeId)->formInfo;
@@ -291,7 +290,7 @@ class accda_Da extends core_Master
     {
         $result = null;
         $self = cls::get(get_called_class());
-       
+        
         if ($rec = self::fetch($objectId)) {
             $result = (object) array(
                 'num' => $rec->num . ' ' . mb_strtolower($self->abbr),
@@ -306,6 +305,7 @@ class accda_Da extends core_Master
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -320,6 +320,7 @@ class accda_Da extends core_Master
     public function getDocumentRow($id)
     {
         if (!$id) {
+            
             return;
         }
         
@@ -401,7 +402,7 @@ class accda_Da extends core_Master
     protected static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-    
+        
         // От списъка с приключените пера, премахваме това на приключения документ, така че да може
         // приключването да се оттегля/възстановява въпреки, че има в нея приключено перо
         $itemId = acc_Items::fetchItem($mvc->getClassId(), $rec->id)->id;
@@ -437,7 +438,7 @@ class accda_Da extends core_Master
         if (planning_AssetResources::haveRightFor('add', (object) array('protocolId' => $rec->id, 'folderId' => $folderId))) {
             $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'protocolId' => $rec->id, 'folderId' => $folderId), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
         }
-    
+        
         if ($hRecId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')) {
             $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'single', $hRecId, 'ret_url' => true), 'ef_icon = img/16/equipment.png,title=Към оборудването');
         }

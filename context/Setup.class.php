@@ -1,10 +1,10 @@
 <?php
 
+
 /**
  * Версията на chartjs, която се използва
  */
 defIfNot('CONTEXT_VERSION', '1.4.0');
-
 
 
 /**
@@ -13,9 +13,11 @@ defIfNot('CONTEXT_VERSION', '1.4.0');
  *
  * @category  vendors
  * @package   context
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class context_Setup extends core_ProtoSetup
@@ -24,18 +26,18 @@ class context_Setup extends core_ProtoSetup
      * контекстно меню за бутоните
      */
     public $info = 'Контекстно меню за бутоните от тулбара';
-
-
+    
+    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-
+        
         'CONTEXT_VERSION' => array('enum(1.4.0)', 'mandatory, caption=Версията на плъгина->Версия')
-
+    
     );
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */
@@ -52,7 +54,7 @@ class context_Setup extends core_ProtoSetup
     {
         return 'context/'.  context_Setup::get('VERSION') . '/contextMenu.css';
     }
-
+    
     
     /**
      * Инсталиране на пакета

@@ -6,20 +6,19 @@
  *
  * @category  bgerp
  * @package   export
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class export_Pdf extends core_Mvc
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
     public $title = 'Експортиране на документ като PDF';
-    
     
     
     public $interfaces = 'export_ExportTypeIntf';
@@ -28,10 +27,10 @@ class export_Pdf extends core_Mvc
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
-     * @return boolean
+     * @return bool
      */
     public function canUseExport($clsId, $objId)
     {
@@ -51,8 +50,8 @@ class export_Pdf extends core_Mvc
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
      * @return string
      */
@@ -65,9 +64,9 @@ class export_Pdf extends core_Mvc
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param core_Form        $form
-     * @param integer          $clsId
-     * @param integer|stdClass $objId
+     * @param core_Form    $form
+     * @param int          $clsId
+     * @param int|stdClass $objId
      *
      * @return NULL|string
      */
@@ -84,11 +83,12 @@ class export_Pdf extends core_Mvc
         } else {
             $opt->rec->__mid = doclog_Documents::saveAction(
                             array(
-                                    'action' => doclog_Documents::ACTION_PDF,
-                                    'containerId' => $cRec->containerId,
-                                    'threadId' => $cRec->threadId,
+                                'action' => doclog_Documents::ACTION_PDF,
+                                'containerId' => $cRec->containerId,
+                                'threadId' => $cRec->threadId,
                             )
                     );
+            
             // Флъшваме екшъна за да се запише в модела
             doclog_Documents::flushActions();
         }
@@ -117,9 +117,9 @@ class export_Pdf extends core_Mvc
     /**
      * Връща линк за експортиране във външната част
      *
-     * @param integer $clsId
-     * @param integer $objId
-     * @param string  $mid
+     * @param int    $clsId
+     * @param int    $objId
+     * @param string $mid
      *
      * @return core_ET|NULL
      */

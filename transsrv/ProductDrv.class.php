@@ -7,16 +7,16 @@
  *
  * @category  bgerp
  * @package   transsrv
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Транспортна услуга
  */
 class transsrv_ProductDrv extends cat_ProductDriver
 {
-    
-    
     /**
      * Интерфейси които имплементира
      */
@@ -49,7 +49,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $form->FLD('fromCompany', 'varchar', 'caption=Натоварване->Фирма');
         $form->FLD('fromPerson', 'varchar', 'caption=Натоварване->Лице');
         $form->FLD('loadingTime', 'datetime(defaultTime=09:00:00)', 'caption=Натоварване->Най-късно на');
-
+        
         // Локация за разтоварване
         $form->FLD('toCountry', 'key(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Разтоварване->Държава');
         $form->FLD('toPCode', 'varchar(16)', 'caption=Разтоварване->П. код');
@@ -58,7 +58,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $form->FLD('toCompany', 'varchar', 'caption=Разтоварване->Фирма');
         $form->FLD('toPerson', 'varchar', 'caption=Разтоварване->Лице');
         $form->FLD('deliveryTime', 'datetime(defaultTime=17:00:00)', 'caption=Разтоварване->Краен срок');
-
+        
         // Описание на товара
         $form->FLD('transUnit', 'varchar', 'caption=Информация за товара->Трансп. ед.,suggestions=Европалета|Палета|Кашона|Скари|Сандъка|Чувала|Каси|Биг Бага|20\' контейнер|40\' контейнер|20\' контейнер upgraded|40\' High cube контейнер|20\' reefer хладилен|40\' reefer хладилен|Reefer 40\' High Cube хлд|Open Top 20\'|Open Top 40\'|Flat Rack 20\'|Flat Rack 40\'|FlatRack Collapsible 20\'|FlatRack Collapsible 40\'|Platform 20\'|Platform 40\'|Хенгер|Прицеп|Мега трейлър|Гондола');
         $form->FLD('unitQty', 'int(Min=0)', 'caption=Информация за товара->Количество');
@@ -77,7 +77,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
                                         8 = Клас 8 - Корозионни вещества,
                                         9 = Клас 9 - Други опасни вещества)', 'caption=Информация за товара->Опасност');
         $form->FLD('load', 'varchar', 'caption=Информация за товара->Описание');
-
+        
         // Обща информация
         $form->FLD('conditions', 'richtext(bucket=Notes,rows=3)', 'caption=Обща информация->Условия');
         $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
@@ -85,11 +85,12 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $form->FLD('auctionId', 'varchar', 'caption=Обща информация->Търг,input=hidden');
     }
     
-
+    
     /**
      * Връща дефолтното име на артикула
      *
-     * @param  stdClass    $rec
+     * @param stdClass $rec
+     *
      * @return NULL|string
      */
     public function getProductTitle($rec)
@@ -99,27 +100,26 @@ class transsrv_ProductDrv extends cat_ProductDriver
         if (!$rec->fromCountry) {
             $rec->fromCountry = $myCompany->country;
         }
-
+        
         if (!$rec->toCountry) {
             $rec->toCountry = $myCompany->country;
         }
-
+        
         $from2let = drdata_Countries::fetch($rec->fromCountry)->letterCode2;
         $to2let = drdata_Countries::fetch($rec->toCountry)->letterCode2;
         
         $title = $from2let . '»' . $to2let;
- 
+        
         if ($rec->unitQty && $rec->transUnit) {
             $title .= ', ' . $rec->unitQty . ' ' . type_Varchar::escape($rec->transUnit);
         } elseif ($rec->transUnit) {
             $title .= ', ' . type_Varchar::escape($rec->transUnit);
         }
-
+        
         return $title . ' / ' . tr('Транспорт') . '';
     }
-
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -130,10 +130,10 @@ class transsrv_ProductDrv extends cat_ProductDriver
     public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
     {
         $form->rec->name = $Driver->getProductTitle($form->rec);
-
+        
         if ($form->isSubmitted()) {
             $fields = $form->selectFields("#input != 'none'");
-     
+            
             foreach ($fields as $name => $fld) {
                 if ($form->rec->{$name} === '' && cls::getClassName($fld->type) == 'type_Varchar') {
                     $form->rec->{$name} = null;
@@ -141,8 +141,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
             }
         }
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -159,15 +159,15 @@ class transsrv_ProductDrv extends cat_ProductDriver
         if ($data->form->getField('measureId', false)) {
             $data->form->setField('measureId', 'input=hidden');
         }
-
+        
         if ($data->form->getField('info', false)) {
             $data->form->setField('info', 'input=hidden');
         }
-
+        
         if ($data->form->getField('packQuantity', false)) {
             $data->form->setField('packQuantity', 'input=hidden');
         }
-
+        
         if ($data->form->getField('name', false)) {
             $data->form->setField('name', 'input=hidden');
         }
@@ -181,16 +181,17 @@ class transsrv_ProductDrv extends cat_ProductDriver
      * Връща стойността на параметъра с това име, или
      * всички параметри с техните стойностти
      *
-     * @param  int     $classId - ид на клас
-     * @param  string  $id      - ид на записа
-     * @param  string  $name    - име на параметъра, или NULL ако искаме всички
-     * @param  boolean $verbal  - дали да са вербални стойностите
-     * @return mixed   $params - стойност или FALSE ако няма
+     * @param int    $classId - ид на клас
+     * @param string $id      - ид на записа
+     * @param string $name    - име на параметъра, или NULL ако искаме всички
+     * @param bool   $verbal  - дали да са вербални стойностите
+     *
+     * @return mixed $params - стойност или FALSE ако няма
      */
     public function getParams($classId, $id, $name = null, $verbal = false)
     {
         $rec = cls::get($classId)->fetchField($id, 'driverRec');
-    
+        
         $params = array();
         $toleranceId = cat_Params::force('tolerance', 'Толеранс', 'cond_type_Percent', null, '%');
         $params[$toleranceId] = 0;
@@ -200,7 +201,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         } else {
             $nameId = $name;
         }
-            
+        
         if ($nameId && isset($params[$nameId])) {
             
             return $params[$nameId];
@@ -212,6 +213,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         }
         
         if (isset($name) && !isset($params[$nameId])) {
+            
             return;
         }
         
@@ -241,9 +243,10 @@ class transsrv_ProductDrv extends cat_ProductDriver
     /**
      * Връща хеша на артикула (стойност която показва дали е уникален)
      *
-     * @param  embed_Manager $Embedder - Ембедър
-     * @param  mixed         $rec      - Ид или запис на артикул
-     * @return NULL|varchar  - Допълнителните условия за дадения продукт
+     * @param embed_Manager $Embedder - Ембедър
+     * @param mixed         $rec      - Ид или запис на артикул
+     *
+     * @return NULL|varchar - Допълнителните условия за дадения продукт
      */
     public function getHash(embed_Manager $Embedder, $rec)
     {
@@ -254,7 +257,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         }
         
         $hash = md5(serialize($objectToHash));
-    
+        
         return $hash;
     }
     
@@ -279,8 +282,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
     {
         return 0;
     }
-
-
+    
+    
     /**
      * Може ли вградения обект да се избере
      */
@@ -288,13 +291,14 @@ class transsrv_ProductDrv extends cat_ProductDriver
     {
         return haveRole('powerUser', $userId) || (transsrv_Setup::get('AVIABLE_FOR_PARTNERS') == 'yes' && haveRole('partner', $userId));
     }
-
+    
     
     /**
      * Рендиране на описанието на драйвера
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderProductDescription($data)
     {

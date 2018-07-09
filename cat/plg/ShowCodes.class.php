@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин за показване на кода в бизнес документите
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_plg_ShowCodes extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -44,6 +43,7 @@ class cat_plg_ShowCodes extends core_Plugin
     public static function on_AfterPrepareListRows($mvc, $data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         $masterRec = $data->masterData->rec;

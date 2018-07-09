@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * @todo Чака за документация...
  */
@@ -12,22 +13,22 @@ defIfNot('EF_PERCENT_DECIMALS', 2);
  *
  * @category  ef
  * @package   type
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Percent extends type_Double
 {
-    
-
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
     public $tdClass = 'rightCol';
     
-
+    
     /**
      * Инициализиране на типа
      */
@@ -44,6 +45,7 @@ class type_Percent extends type_Double
     public function toVerbal($value)
     {
         if (!strlen($value)) {
+            
             return;
         }
         
@@ -69,6 +71,7 @@ class type_Percent extends type_Double
     public function fromVerbal($value)
     {
         if (!strlen($value)) {
+            
             return;
         }
         $value = str_replace('%', '', $value);
@@ -87,9 +90,9 @@ class type_Percent extends type_Double
         if (!($this->error) && isset($value)) {
             $value = (100 * $value) . ' %';
         }
-
+        
         setIfNot($attr['placeholder'], '%');
-
+        
         // Възможност за задаване на предложения
         if (!$this->suggestions) {
             if (!empty($this->params['suggestions'])) {

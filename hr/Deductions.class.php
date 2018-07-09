@@ -1,35 +1,34 @@
 <?php
 
 
-
 /**
  * Мениджър на глоби и удръжки
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Глоби
  */
 class hr_Deductions extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'hr_IndicatorsSourceIntf';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Удръжки';
     
-     
+    
     /**
      * Заглавие в единствено число
      */
@@ -59,8 +58,8 @@ class hr_Deductions extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,hrMaster';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -179,12 +178,13 @@ class hr_Deductions extends core_Master
         
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
         $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
-         
+        
         if ($rec->sum) {
             $row->sum = $Double->toVerbal($rec->sum);
             $row->sum .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
         }
     }
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -198,13 +198,13 @@ class hr_Deductions extends core_Master
         $data->listFilter->showFields = 'personId,date';
         $data->listFilter->view = 'vertical';
         $data->listFilter->input('personId, date', 'silent');
-    
+        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    
+        
         if ($data->listFilter->rec->personId) {
             $data->query->where("#personId = '{$data->listFilter->rec->personId}'");
         }
-    
+        
         if ($data->listFilter->rec->date) {
             $data->query->where("#date = '{$data->listFilter->rec->date}'");
         }
@@ -215,7 +215,8 @@ class hr_Deductions extends core_Master
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param  date  $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
      * @return array $result  - масив с обекти
      *
      * 			o date        - дата на стайноста
@@ -230,7 +231,7 @@ class hr_Deductions extends core_Master
     {
         $query = self::getQuery();
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
-    
+        
         $iRec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
         
         while ($rec = $query->fetch()) {
@@ -244,17 +245,16 @@ class hr_Deductions extends core_Master
                 'isRejected' => $rec->state == 'rejected',
             );
         }
-    
+        
         return $result;
     }
-    
-    
     
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
-     * @param  date  $date
+     * @param date $date
+     *
      * @return array $result
      */
     public static function getIndicatorNames()
@@ -276,13 +276,13 @@ class hr_Deductions extends core_Master
     public static function canAddToFolder($folderId)
     {
         $Cover = doc_Folders::getCover($folderId);
-    
+        
         // Трябва да е в папка на лице или на проект
         if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') {
             
             return false;
         }
-    
+        
         // Ако е в папка на лице, лицето трябва да е в група служители
         if ($Cover->className == 'crm_Persons') {
             $emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -292,7 +292,7 @@ class hr_Deductions extends core_Master
                 return false;
             }
         }
-    
+        
         if ($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
             if (!haveRole('ceo,hr', $cu)) {
@@ -300,7 +300,7 @@ class hr_Deductions extends core_Master
                 return false;
             }
         }
-    
+        
         return true;
     }
     
@@ -308,29 +308,30 @@ class hr_Deductions extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentIntf
      *
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass $row
      */
     public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-    
+        
         $row = new stdClass();
-    
+        
         //Заглавие
         $row->title = "Удръжка  №{$rec->id}";
-    
+        
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
-    
+        
         //Състояние
         $row->state = $rec->state;
-    
+        
         //id на създателя
         $row->authorId = $rec->createdBy;
-    
+        
         $row->recTitle = $this->getRecTitle($rec, false);
-    
+        
         return $row;
     }
     
@@ -341,9 +342,9 @@ class hr_Deductions extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $me = cls::get(get_called_class());
-         
+        
         $title = tr('Удръжка  №|*'. $rec->id . ' за|* ') . $me->getVerbal($rec, 'personId');
-         
+        
         return $title;
     }
 }

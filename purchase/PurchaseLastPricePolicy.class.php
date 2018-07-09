@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Имплементация на ценова политика "По последна покупна цена"
  * Връща последната цена на която е купен даден артикул
@@ -10,22 +9,22 @@
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Политика "По последна покупна цена"
  */
 class purchase_PurchaseLastPricePolicy extends core_Mvc
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Последна покупна цена';
-
-
+    
+    
     /**
      * Интерфейс за ценова политика
      */
@@ -34,6 +33,7 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
     
     /**
      * Връща последната цена за посочения продукт направена в покупка от контрагента
+     *
      * @return object $rec->price  - цена
      *                $rec->discount - отстъпка
      */
@@ -58,6 +58,7 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
         $lastRec = $detailQuery->fetch();
         
         if (!$lastRec) {
+            
             return;
         }
         

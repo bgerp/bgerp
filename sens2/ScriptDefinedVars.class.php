@@ -1,25 +1,29 @@
 <?php
 
+
 /**
  * Променливи в логическите блокове
  *
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_ScriptDefinedVars extends core_Detail
 {
     public $oldClassName = 'sens2_LogicDefinedVars';
     
+    
     /**
      * Необходими плъгини
      */
     public $loadList = 'plg_Created, plg_Modified,plg_RowTools, sens2_Wrapper';
-                      
+    
     
     /**
      * Заглавие
@@ -27,7 +31,8 @@ class sens2_ScriptDefinedVars extends core_Detail
     public $title = 'Редове към Логическите блокове';
     
     public $singleTitle = 'Действие';
-
+    
+    
     /**
      * Права за писане
      */
@@ -50,24 +55,24 @@ class sens2_ScriptDefinedVars extends core_Detail
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,sens';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin,sens';
     
-
+    
     /**
      * Ключ към матера
      */
     public $masterKey = 'scriptId';
     
-
+    
     public $currentTab = 'Скриптове';
-
+    
     public $listFields = '№,name,scope,value,modifiedOn=Модифициране';
-
+    
     public $rowToolsField = '№';
     
     
@@ -75,8 +80,8 @@ class sens2_ScriptDefinedVars extends core_Detail
      * Runtime съхраняване на контекстите за всеки скрипт
      */
     public static $contex = array();
-
-
+    
+    
     /**
      * Описание на модела
      */
@@ -86,11 +91,11 @@ class sens2_ScriptDefinedVars extends core_Detail
         $this->FLD('name', 'identifier(32,utf8)', 'caption=Променлива,mandatory');
         $this->FLD('scope', 'enum(local=Локална,global=Глобална)', 'caption=Видимост');
         $this->FLD('value', 'double', 'caption=Стойност,notNull');
-
+        
         $this->setDbUnique('scriptId,name');
     }
     
-
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -100,23 +105,22 @@ class sens2_ScriptDefinedVars extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
     }
-
-
+    
+    
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
     public function on_AfterInputEditForm($mvc, $form)
     {
     }
-
-
+    
     
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#name', 'ASC');
     }
-
-
+    
+    
     /**
      * Изпълнява се след подготвянето на вербалните стойности за един ред
      */
@@ -126,10 +130,10 @@ class sens2_ScriptDefinedVars extends core_Detail
             $cnt = self::count(array("#name = '[#1#]' AND #scope = 'global'", $rec->name));
             $row->scope .= " ({$cnt})";
         }
-
+        
         $row->name = '$' . $row->name;
     }
-
+    
     
     /**
      * Връща контекста от променливи за зададения скррипт
@@ -147,8 +151,8 @@ class sens2_ScriptDefinedVars extends core_Detail
         
         return self::$contex[$scriptId];
     }
-
-
+    
+    
     /**
      * Задава стойност на посочената променлива
      * Връща броя на промените записи или FALSE, ако не бъде обновено нищо
@@ -156,16 +160,16 @@ class sens2_ScriptDefinedVars extends core_Detail
     public static function setValue($scriptId, $var, $value)
     {
         $var = ltrim($var, '$');
-
+        
         $rec = self::fetch(array("#scriptId = {$scriptId} AND #name = '[#1#]'", $var));
         
         if (!$rec) {
             
             return false;
         }
-
+        
         $now = dt::verbal2mysql();
-
+        
         $me = cls::get('sens2_ScriptDefinedVars');
         
         $table = $me->dbTableName;
@@ -181,16 +185,15 @@ class sens2_ScriptDefinedVars extends core_Detail
         if (self::$contex[$scriptId]) {
             self::$contex[$scriptId][$var] = $value;
         }
-
+        
         $dbRes = $me->db->query($query);
-
+        
         $me->dbTableUpdated();
-
-
+        
         return $me->db->affectedRows($dbRes);
     }
-
-
+    
+    
     /**
      * Изпълнява се преди запис и прави синхронизация на глобалните променливи
      */

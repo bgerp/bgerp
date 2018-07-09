@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class doc_Files extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -31,7 +31,6 @@ class doc_Files extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'powerUser';
-    
     
     
     /**
@@ -54,10 +53,10 @@ class doc_Files extends core_Manager
     
     /**
      * По кое поле да се групира
+     *
      * @see plg_GroupByDate
      */
     public $groupByDateField = 'date';
-    
     
     
     public function description()
@@ -167,7 +166,7 @@ class doc_Files extends core_Manager
     /**
      * Преизчислява дали да се показват файловете или не
      *
-     * @param integer $cId
+     * @param int $cId
      */
     public static function recalcFiles($cId)
     {
@@ -262,7 +261,7 @@ class doc_Files extends core_Manager
     /**
      *
      *
-     * @param integer $cId
+     * @param int $cId
      */
     public static function deleteFilesForContainer($cId)
     {
@@ -293,7 +292,7 @@ class doc_Files extends core_Manager
         if ($rec->state == 'rejected') {
             $show = 'no';
         }
-
+        
         // Очакваме да има id
         expect($id);
         
@@ -390,10 +389,10 @@ class doc_Files extends core_Manager
      *
      * @param intger      $dataId
      * @param intger|NULL $clsId
-     * @param integer     $resLimit
-     * @param integer     $qLimit
-     * @param boolean     $restrictAccess
-     * @param boolean     $restricViewAccess
+     * @param int         $resLimit
+     * @param int         $qLimit
+     * @param bool        $restrictAccess
+     * @param bool        $restricViewAccess
      *
      * @return array
      */
@@ -493,6 +492,7 @@ class doc_Files extends core_Manager
                 // Търсене по папка
                 if (stripos($filter->range, $folderPrefix) === 0) {
                     $fSearch = substr($filter->range, strlen($folderPrefix));
+                    
                     // Търсене по всички папки
                     if ($fSearch == 'allFolders') {
                         doc_Threads::restrictAccess($data->query);
@@ -521,6 +521,7 @@ class doc_Files extends core_Manager
             
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
+                
                 // TODO - след JOIN може да се увеличи с restrictAccess
                 fileman_Files::prepareFilesQuery($data->query, $usersArr);
             }
@@ -529,7 +530,7 @@ class doc_Files extends core_Manager
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
-        
+            
             plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
         }
     }
@@ -584,13 +585,13 @@ class doc_Files extends core_Manager
         }
     }
     
-       
+    
     /**
      * Връща броя на файловете в съответната папка
      *
      * @param doc_Folders $folderId - id' то на папката, за която търсим
      *
-     * @return integer $count - Броя файловете
+     * @return int $count - Броя файловете
      */
     public static function getCountInFolder($folderId = null)
     {
@@ -608,8 +609,8 @@ class doc_Files extends core_Manager
         
         return $count;
     }
-
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -629,7 +630,7 @@ class doc_Files extends core_Manager
                 
                 // Полетата на документа във вербален вид
                 $docRow = $doc->getDocumentRow();
-            
+                
                 // Атрибутеите на линка
                 $attr = array();
                 $attr['title'] = '|*' . $docRow->title;
@@ -644,16 +645,16 @@ class doc_Files extends core_Manager
                 // id' то на контейнера на пъривя документ
                 $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
                 if ($firstContainerId != $rec->containerId) {
-            
+                    
                     // Първия документ в нишката
                     $docProxy = doc_Containers::getDocument($firstContainerId);
-            
+                    
                     // Полетата на документа във вербален вид
                     $docProxyRow = $docProxy->getDocumentRow();
-            
+                    
                     // Атрибутеите на линка
                     $attr['title'] = 'Първи документ|*: ' . $docProxyRow->title;
-            
+                    
                     // Темата да е линк към single' а на първиа документ документа
                     $firstContainerLink = $docProxy->getLink(35, $attr);
                     $row->threadId = $row->threadId . ' « ' . $firstContainerLink;
@@ -677,7 +678,7 @@ class doc_Files extends core_Manager
             
             return ;
         }
-
+        
         // Вземаем всички записи от модела от съответния контейнер
         $query = static::getQuery();
         $query->where("#containerId = '{$cRec->containerId}'");

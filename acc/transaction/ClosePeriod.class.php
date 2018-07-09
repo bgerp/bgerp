@@ -6,18 +6,17 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
 {
-    
-    
     /**
      *
      * @var acc_transaction_ClosePeriod
@@ -53,11 +52,13 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
      * Дата
      */
     private $date;
-
-
+    
+    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -69,10 +70,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $this->periodRec = acc_Periods::fetch($rec->periodId);
         
         $result = (object) array(
-                'reason' => 'Приключване на период "' . $this->class->getVerbal($rec, 'periodId') . '"',
-                'valior' => $this->periodRec->end, // Вальора е последния ден от периода
-                'totalAmount' => 0,
-                'entries' => array()
+            'reason' => 'Приключване на период "' . $this->class->getVerbal($rec, 'periodId') . '"',
+            'valior' => $this->periodRec->end, // Вальора е последния ден от периода
+            'totalAmount' => 0,
+            'entries' => array()
         );
         
         $this->date = acc_Periods::forceYearItem($result->valior);
@@ -152,6 +153,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $entries = array();
         
         $entries[] = array('amount' => $diffAmount, 'debit' => array('4535'), 'credit' => array('4532'), 'reason' => 'Начисляване на сумата от касовия апарат');
+        
         // ДДС по продажби без фактура
         $total += $diffAmount;
         
@@ -194,9 +196,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
             // ДДС за възстановяване
             $entries[] = array('amount' => abs($amount), 'debit' => array('4538'), 'credit' => array('4532'), 'reason' => 'ДДС за възстановяване');
         }
-         
+        
         $total += abs($amount);
-         
+        
         if ($amount <= 0) {
             $bQuery = acc_BalanceDetails::getQuery();
             acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4538');
@@ -252,6 +254,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     protected function transferIncome(&$total, &$incomeRes)
     {
         $entries = array();
+        
         // Приходи от продажби по артикули
         if (!count($this->balanceId)) {
             
@@ -272,7 +275,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
             $dealPosition[$accId] = acc_Lists::getPosition($systemId, 'deals_DealsAccRegIntf');
             $dealPosition[$accId] = "ent{$dealPosition[$accId]}Id";
         }
-         
+        
         if (count($balanceArr)) {
             foreach ($balanceArr as $rec) {
                 if ($accIds[$rec->accountId] != '700') {
@@ -286,7 +289,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                     
                     $arr1 = array('700', $rec->ent1Id, $rec->ent2Id);
                     $arr2 = array($accIds[$rec->accountId], $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, 'quantity' => $quantity);
-                     
+                    
                     $dealItemRec = acc_Items::fetch($rec->{$dealPosition[$rec->accountId]});
                     
                     // Пропускаме активните продажби и тези които са затворени в друг период
@@ -298,7 +301,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                     if (round($rec->blAmount, 2) == 0) {
                         continue;
                     }
-                     
+                    
                     if ($rec->blAmount > 0) {
                         $debitArr = $arr1;
                         $creditArr = $arr2;
@@ -306,10 +309,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                         $debitArr = $arr2;
                         $creditArr = $arr1;
                     }
-                     
+                    
                     $incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
                     $total += abs($rec->blAmount);
-                     
+                    
                     switch ($accIds[$rec->accountId]) {
                         case '706':
                             $reason = 'Приходи от продажба (суровини/материали)';
@@ -321,10 +324,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                             $reason = 'Приходи от продажби (Стоки и Продукти)';
                             break;
                     }
-                     
+                    
                     $entries[] = array('amount' => abs($rec->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
                 } else {
-                     
+                    
                     // Ако имаме крайно салдо по 700, само го добавяме към натрупването
                     $incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
                 }
@@ -414,13 +417,13 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 $arr1 = array('700', $ctrItem, $dealItem);
                 $arr2 = array('123', $this->date->year);
                 $total += abs($sum);
-                     
+                
                 // Дебитно салдо
                 if ($sum > 0) {
                     $debitArr = $arr2;
                     $creditArr = $arr1;
                 } else {
-                            
+                    
                     // Кредитно салдо
                     $debitArr = $arr1;
                     $creditArr = $arr2;
@@ -462,9 +465,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                     // Правим рписпадане на изнвънредните приходи/разходи по покупка
                     $min = min(array(abs($dRec2->blAmount), abs($arr7912[$index]->blAmount)));
                     $entries[] = array('amount' => abs($min),
-                                       'debit' => array('7912', $dRec2->ent1Id, $dRec2->ent2Id),
-                                       'credit' => array('6912', $dRec2->ent1Id, $dRec2->ent2Id),
-                                       'reason' => 'Приспадане на извънредни приходи/разходи по покупка');
+                        'debit' => array('7912', $dRec2->ent1Id, $dRec2->ent2Id),
+                        'credit' => array('6912', $dRec2->ent1Id, $dRec2->ent2Id),
+                        'reason' => 'Приспадане на извънредни приходи/разходи по покупка');
                     
                     // Приспадаме сумата от оригиналните записи
                     
@@ -483,9 +486,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 }
                 
                 $entries[] = array('amount' => abs($dRec3->blAmount),
-                                   'debit' => array('123', $this->date->year),
-                                   'credit' => array('6912', $dRec3->ent1Id, $dRec3->ent2Id),
-                                   'reason' => 'Извънредни разходи по покупка');
+                    'debit' => array('123', $this->date->year),
+                    'credit' => array('6912', $dRec3->ent1Id, $dRec3->ent2Id),
+                    'reason' => 'Извънредни разходи по покупка');
                 
                 $total += abs($dRec3->blAmount);
             }
@@ -499,9 +502,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 }
                 
                 $entries[] = array('amount' => abs($dRec4->blAmount),
-                                   'debit' => array('7912', $dRec4->ent1Id, $dRec4->ent2Id),
-                                   'credit' => array('123', $this->date->year),
-                                   'reason' => 'Извънредни приходи по покупка');
+                    'debit' => array('7912', $dRec4->ent1Id, $dRec4->ent2Id),
+                    'credit' => array('123', $this->date->year),
+                    'reason' => 'Извънредни приходи по покупка');
                 
                 $total += abs($dRec4->blAmount);
             }
@@ -515,10 +518,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         if ($bl699 > 0) {
             $entries[] = array('amount' => $bl699,
-                               'debit' => array('123', $this->date->year),
-                               'credit' => array('699'),
-                               'reason' => 'Отнасяне на общи извънредни разходи');
-             
+                'debit' => array('123', $this->date->year),
+                'credit' => array('699'),
+                'reason' => 'Отнасяне на общи извънредни разходи');
+            
             $total += $bl699;
         } elseif ($bl699 < 0) {
             //@TODO имали такъв случай
@@ -532,10 +535,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         if ($bl799 < 0) {
             $entries[] = array('amount' => abs($bl799),
-                    'debit' => array('799'),
-                    'credit' => array('123', $this->date->year),
-                    'reason' => 'Отнасяне на общи извънредни приходи');
-             
+                'debit' => array('799'),
+                'credit' => array('123', $this->date->year),
+                'reason' => 'Отнасяне на общи извънредни приходи');
+            
             $total += abs($bl799);
         } elseif ($bl799 > 0) {
             //@TODO имали такъв случай
@@ -543,6 +546,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         return $entries;
     }
+    
     
     /**
      * Разходи за материали
@@ -634,7 +638,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $amount61102 = $query2->fetch()->blAmount;
         
         $entries = array();
-         
+        
         // Подготвяме предварително нужните ни данни
         $baseDepartment = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
         $resource604 = $resource605 = cat_Products::fetchField("#code = 'labor'", 'id');
@@ -677,9 +681,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
             }
             
             $entries[] = array('amount' => abs($dRec->blAmount),
-                                'debit' => $accountDebit,
-                                'credit' => $creditArr,
-                                'reason' => ${"reason{$accs[$dRec->accountId]}"});
+                'debit' => $accountDebit,
+                'credit' => $creditArr,
+                'reason' => ${"reason{$accs[$dRec->accountId]}"});
             
             $total += abs($dRec->blAmount);
             $amount += abs($dRec->blAmount);
@@ -713,24 +717,24 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 
                 if ($dRec->blQuantity > 0) {
                     $entry = array('amount' => $dRec->blAmount,
-                                     'debit' => array('700', $contragentItemId, $dRec->ent1Id),
-                                     'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Разходи за услуги и консумативи (неразпределени)');
+                        'debit' => array('700', $contragentItemId, $dRec->ent1Id),
+                        'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Разходи за услуги и консумативи (неразпределени)');
                 } elseif ($dRec->blQuantity <= 0) {
                     $entry = array('amount' => abs($dRec->blAmount),
-                                     'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
-                                     'credit' => array('700', array($saleRec->contragentClassId, $saleRec->contragentId), $dRec->ent1Id), 'reason' => 'Разходи за услуги и консумативи (неразпределени)');
+                        'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
+                        'credit' => array('700', array($saleRec->contragentClassId, $saleRec->contragentId), $dRec->ent1Id), 'reason' => 'Разходи за услуги и консумативи (неразпределени)');
                 }
             } else {
                 
                 // Ако разхода не е към продажба, отива към Общите разходи
                 if ($dRec->blQuantity > 0) {
                     $entry = array('amount' => round($dRec->blAmount, 7),
-                                     'debit' => array('61102'),
-                                     'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
+                        'debit' => array('61102'),
+                        'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
                 } elseif ($dRec->blQuantity <= 0) {
                     $entry = array('amount' => round(abs($dRec->blAmount), 7),
-                            'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
-                            'credit' => array('61102'), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
+                        'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
+                        'credit' => array('61102'), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
                 }
                 
                 $amount602 += $dRec->blAmount;
@@ -760,13 +764,13 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                     if ($amount <= $rec->amountKeepBalance) {
                         continue;
                     }
-                        
+                    
                     // Иначе прихвърляме толкова, че да остане минимум зададеното салдо
                     $oldAmount = $amount;
                     $oldVar = $var;
                     $amount -= $rec->amountKeepBalance;
                     $var -= $rec->amountKeepBalance;
-                        
+                    
                     // Не се поддържат отрицателни салда
                     if ($var < 0) {
                         $amount = $oldAmount;
@@ -779,16 +783,16 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
             
             if ($var > 0) {
                 $entries[] = array('amount' => $amount,
-                                   'debit' => array('123', $this->date->year),
-                                   'credit' => $creditArr,
-                                   'reason' => ${"reason{$sysId}"});
+                    'debit' => array('123', $this->date->year),
+                    'credit' => $creditArr,
+                    'reason' => ${"reason{$sysId}"});
             } else {
                 $entries[] = array('amount' => $amount,
-                                   'debit' => $creditArr,
-                                   'credit' => array('123', $this->date->year),
-                                   'reason' => ${"reason{$sysId}"});
+                    'debit' => $creditArr,
+                    'credit' => array('123', $this->date->year),
+                    'reason' => ${"reason{$sysId}"});
             }
-             
+            
             $total += $amount;
         }
         
@@ -820,18 +824,18 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         if (round($rec604->blAmount, 2) != 0) {
             $entries[] = array('amount' => abs($rec604->blAmount),
-                    'debit' => array('61101', array('cat_Products', $resource604), 'quantity' => $rec604->blQuantity),
-                    'credit' => array('604'), 'reason' => $reason604);
-             
+                'debit' => array('61101', array('cat_Products', $resource604), 'quantity' => $rec604->blQuantity),
+                'credit' => array('604'), 'reason' => $reason604);
+            
             $total += abs($rec604->blAmount);
         }
         
         if (round($rec605->blAmount, 2) != 0) {
             $entries[] = array('amount' => abs($rec605->blAmount),
-                    'debit' => array('61101', array('cat_Products', $resource605), 'quantity' => $rec605->blQuantity),
-                    'credit' => array('605'), 'reason' => $reason605);
-             
-             
+                'debit' => array('61101', array('cat_Products', $resource605), 'quantity' => $rec605->blQuantity),
+                'credit' => array('605'), 'reason' => $reason605);
+            
+            
             $total += abs($rec605->blAmount);
         }
         
@@ -840,10 +844,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         if (round($tAmount, 2) != 0) {
             $entries[] = array('amount' => $tAmount,
-                    'debit' => array('123', $this->date->year),
-                    'credit' => array('61101', array('cat_Products', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
-                    'reason' => $reason604);
-             
+                'debit' => array('123', $this->date->year),
+                'credit' => array('61101', array('cat_Products', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
+                'reason' => $reason604);
+            
             $total += $tAmount;
         }
         
@@ -884,6 +888,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         while ($dRec = $bQuery->fetch()) {
             if (round($dRec->blAmount, 2) == 0) {
+                
                 return;
             }
             

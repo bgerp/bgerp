@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_OCRIntf extends fileman_FileActionsIntf
 {
-    
-    
     /**
      * Проверка дали може да се пуска OCR обработка
      *
@@ -35,7 +35,7 @@ class fileman_OCRIntf extends fileman_FileActionsIntf
     {
         return $this->class->getTextByOcr($fRec);
     }
-
+    
     
     /**
      * Бърза проврка дали има смисъл от OCR-ване на текста

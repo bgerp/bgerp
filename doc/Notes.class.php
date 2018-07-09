@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Бележки в системата
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Notes extends core_Master
 {
-    
-    
     /**
      * Шаблон (ET) за заглавие на перо
      */
@@ -85,12 +84,11 @@ class doc_Notes extends core_Master
      * Кой има право да изтрива?
      */
     public $canDelete = 'no_one';
-
-
+    
     
     public $canSingle = 'powerUser';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -132,8 +130,8 @@ class doc_Notes extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
-
-
+    
+    
     /**
      * Кой може да променя активирани записи
      */
@@ -177,6 +175,7 @@ class doc_Notes extends core_Master
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
+     *
      * @see doc_DocumentIntf
      */
     public function getDocumentRow($id)
@@ -200,11 +199,11 @@ class doc_Notes extends core_Master
         return $row;
     }
     
-
+    
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return NULL|string
      */
@@ -223,7 +222,7 @@ class doc_Notes extends core_Master
         
         return $res;
     }
-        
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.

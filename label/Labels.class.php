@@ -1,22 +1,20 @@
 <?php 
 
-
-
 /**
  * Модел за създаване на етикети за печатане
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class label_Labels extends core_Master
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -77,7 +75,6 @@ class label_Labels extends core_Master
     public $canDelete = 'no_one';
     
     
-    
     public $canUselabel = 'label, admin, ceo';
     
     
@@ -98,13 +95,13 @@ class label_Labels extends core_Master
      */
     public $listFields = 'title, templateId, printedCnt, Object=Обект, createdOn, createdBy, modifiedOn, modifiedBy';
     
-
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
     
-
+    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -139,11 +136,12 @@ class label_Labels extends core_Master
         return Request::forward(array('label_Prints', 'Manage'));
     }
     
+    
     /**
      * Обновява броя на отпечатванията
      *
-     * @param integer $id
-     * @param integer $printedCnt
+     * @param int $id
+     * @param int $printedCnt
      */
     public static function updatePrintCnt($id, $printedCnt)
     {
@@ -179,29 +177,29 @@ class label_Labels extends core_Master
             // id на шаблона
             $templateId = Request::get('templateId', 'int');
             $lang = label_Templates::fetchField($templateId, 'lang');
-             
+            
             // Ако не е избрано id на шаблона
             if (!$templateId) {
                 redirect(array($mvc, 'selectTemplate'));
             }
-             
+            
             // Ако се създава етикет от обект, използваме неговите данни
             Request::setProtected('classId, objId');
             $classId = Request::get('classId');
             $objId = Request::get('objId');
             if ($classId && $objId) {
                 $clsInst = cls::getInterface('label_SequenceIntf', $classId);
-                 
+                
                 core_Lg::push($lang);
                 $arr = (array) $clsInst->getLabelData($objId, 0);
                 core_Lg::pop();
-                  
+                
                 $dataArr = arr::make($arr, true);
                 $readOnlyArr = $clsInst->getReadOnlyPlaceholders($objId);
-                 
+                
                 $form->setDefault('classId', $objId);
                 $form->setDefault('objId', $classId);
-                    
+                
                 $cls = cls::get($classId);
                 if (method_exists($cls, 'getRecTitle')) {
                     $title = $cls->getRecTitle($objId);
@@ -209,7 +207,7 @@ class label_Labels extends core_Master
                     $title = $cls->getHandle($objId);
                     $title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
                 }
-                  
+                
                 $form->setDefault('title', $title);
             }
         } else {
@@ -382,7 +380,7 @@ class label_Labels extends core_Master
         
         if ($classId && $objId) {
             $form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getLabelSourceLink($objId);
-            
+
 //         	try{
             // Взимане на данни от шаблона
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
@@ -390,11 +388,12 @@ class label_Labels extends core_Master
             $readOnlyArr = $intfInst->getReadOnlyPlaceholders($objId);
             $labelDataArr = arr::make(array_keys($labelDataArr), true);
             $labelDataArr = array_diff_key($labelDataArr, $readOnlyArr);
+            
             // 			} catch (label_exception_Redirect $e){
 // 				followRetUrl(NULL, $e->getMessage(), 'error');
 // 			}
         }
-       
+        
         // Добавяме функционално поле
         $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\',allowEmpty)', 'caption=Шаблон,mandatory');
         
@@ -418,7 +417,7 @@ class label_Labels extends core_Master
                         $cnt++;
                     }
                 }
-               
+                
                 // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
                 $percent = 0;
                 $lCnt = count($templatePlaceArr);
@@ -432,14 +431,14 @@ class label_Labels extends core_Master
                 } elseif ($percent <= 10) {
                     $dataColor = '#f35c5c';
                 }
-
+                
                 $opt = new stdClass();
                 $opt->attr = array('data-color' => $dataColor);
                 $opt->title = label_Templates::getVerbal($tRec, 'title');
                 
                 $optArr[$tRec->id] = $opt;
             }
-           
+            
             // Сортиране по цвят
             uasort($optArr, function ($a, $b) {
                 
@@ -631,7 +630,7 @@ class label_Labels extends core_Master
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
                 $lang = label_Templates::fetchField($rec->templateId, 'lang');
-
+                
                 core_Mode::push('prepareLabel', true);
                 core_Lg::push($lang);
                 $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
@@ -641,7 +640,7 @@ class label_Labels extends core_Master
                 
                 foreach ($labelDataArr as $key => $val) {
                     $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
-                   
+                    
                     if (!array_key_exists($keyNormalized, $params)) {
                         $params[$keyNormalized] = $val;
                     }
@@ -705,14 +704,15 @@ class label_Labels extends core_Master
     /**
      * Рендираме етикете
      *
-     * @param  object  $data
+     * @param object $data
+     *
      * @return core_ET - Шаблона, който ще връщаме
      */
     public static function renderLabel(&$data, $labelLayout = null)
     {
         // Генерираме шаблона
         $allTpl = new core_ET();
-       
+        
         // Брой записи на страница
         setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
         
@@ -817,7 +817,7 @@ class label_Labels extends core_Master
                 // Вземаме правата за създаване на етикет
                 $requiredRoles = label_Templates::getRequiredRoles('createlabel', $templateRec);
             }
-             
+            
             // Ако редактираме
             if ($action == 'edit') {
                 
@@ -900,6 +900,7 @@ class label_Labels extends core_Master
             expect($rec->id);
             $rec = $mvc->fetch($rec->id);
         }
+        
         // Активираме шаблона
         label_Templates::activateTemplate($rec->templateId);
     }
@@ -907,6 +908,7 @@ class label_Labels extends core_Master
     
     /**
      * Премахваме някои полета преди да клонираме
+     *
      * @see plg_Clone
      *
      * @param label_Labels $mvc

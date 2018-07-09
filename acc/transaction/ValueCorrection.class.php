@@ -6,35 +6,36 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
     {
         // Извличане на мастър-записа
         expect($rec = $this->class->fetchRec($id));
-    
+        
         $result = (object) array(
-                'reason' => $rec->notes,
-                'valior' => $rec->valior,
-                'totalAmount' => 0,
-                'entries' => array()
+            'reason' => $rec->notes,
+            'valior' => $rec->valior,
+            'totalAmount' => 0,
+            'entries' => array()
         );
-    
+        
         $entries = $this->getEntries($rec, $result->totalAmount);
         if (count($entries)) {
             $result->entries = $entries;
@@ -89,9 +90,9 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         // Ако е към продажба
         if ($firstDoc->isInstanceOf('sales_Sales')) {
             $debitArr = array('411', array($contragentClassId, $contragentId),
-                                      array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
-                                      array('currency_Currencies', $currencyId),
-                                'quantity' => 0);
+                array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
+                array('currency_Currencies', $currencyId),
+                'quantity' => 0);
             
             $vatAmount = 0;
             foreach ($rec->productsData as $prod) {
@@ -102,15 +103,15 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 $debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                 
                 $entries[] = array('amount' => $sign * $prod->allocated,
-                                   'debit' => $debitArr,
-                                   'credit' => array($creditAcc,
-                                                    array($contragentClassId, $contragentId),
-                                                    array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
-                                                    array('cat_Products', $prod->productId),
-                                            'quantity' => 0),
-                                   
+                    'debit' => $debitArr,
+                    'credit' => array($creditAcc,
+                        array($contragentClassId, $contragentId),
+                        array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
+                        array('cat_Products', $prod->productId),
+                        'quantity' => 0),
+                
                 );
-                    
+                
                 $total += $sign * $prod->allocated;
                 $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
             }
@@ -120,19 +121,19 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 $debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                 
                 $entries[] = array('amount' => round($sign * $vatAmount, 2),
-                        'debit' => $debitArr,
-                        'credit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
+                    'debit' => $debitArr,
+                    'credit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
                 );
-                    
+                
                 $total += round($sign * $vatAmount, 2);
             }
             
             // Ако е към покупка
         } elseif ($firstDoc->isInstanceOf('purchase_Purchases')) {
             $creditArr = array('401', array($contragentClassId, $contragentId),
-                                      array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
-                                      array('currency_Currencies', $currencyId),
-                               'quantity' => 0);
+                array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
+                array('currency_Currencies', $currencyId),
+                'quantity' => 0);
             $vatAmount = 0;
             
             foreach ($rec->productsData as $prod) {
@@ -143,11 +144,11 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                     $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                     
                     $entries[] = array('amount' => $sign * $amount,
-                                        'debit' => array('321',
-                                                            array('store_Stores', $storeId),
-                                                            array('cat_Products', $prod->productId),
-                                                            'quantity' => 0),
-                                        'credit' => $creditArr,
+                        'debit' => array('321',
+                            array('store_Stores', $storeId),
+                            array('cat_Products', $prod->productId),
+                            'quantity' => 0),
+                        'credit' => $creditArr,
                     );
                     
                     $total += $sign * $amount;
@@ -161,10 +162,10 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                 
                 $entries[] = array('amount' => round($sign * $vatAmount, 2),
-                        'debit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
-                        'credit' => $creditArr,
+                    'debit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
+                    'credit' => $creditArr,
                 );
-                    
+                
                 $total += round($sign * $vatAmount, 2);
             }
         }
@@ -191,10 +192,10 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         $vatType = $firstDoc->fetchField('chargeVat');
         
         $creditArr = array($creditSysId,
-                array($contragentClassId, $contragentId),
-                array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
-                array('currency_Currencies', $currencyId),
-                'quantity' => 0);
+            array($contragentClassId, $contragentId),
+            array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
+            array('currency_Currencies', $currencyId),
+            'quantity' => 0);
         
         // Ако е към продажба
         if ($firstDoc->isInstanceOf('sales_Sales')) {
@@ -206,15 +207,15 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 $debitContragentId = $firstDoc->fetchField('contragentId');
                 
                 $entries[] = array('amount' => $sign * $prod->allocated,
-                                   'debit' => array($debitAcc,
-                                                    array($debitContragentClassId, $debitContragentId),
-                                                    array($firstDoc->getInstance()->getClassId(), $firstDoc->that),
-                                                    array('cat_Products', $prod->productId),
-                                            'quantity' => 0),
-                                   'credit' => $creditArr,
-                                   
+                    'debit' => array($debitAcc,
+                        array($debitContragentClassId, $debitContragentId),
+                        array($firstDoc->getInstance()->getClassId(), $firstDoc->that),
+                        array('cat_Products', $prod->productId),
+                        'quantity' => 0),
+                    'credit' => $creditArr,
+                
                 );
-                    
+                
                 $total += $sign * $prod->allocated;
             }
             
@@ -224,16 +225,16 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 foreach ($prod->inStores as $storeId => $storeQuantity) {
                     $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
                     $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
-                        
+                    
                     $entries[] = array('amount' => $sign * $amount,
-                            'debit' => array('321',
-                                    array('store_Stores', $storeId),
-                                    array('cat_Products', $prod->productId),
-                                    'quantity' => 0),
-                            'credit' => $creditArr,
-                                
+                        'debit' => array('321',
+                            array('store_Stores', $storeId),
+                            array('cat_Products', $prod->productId),
+                            'quantity' => 0),
+                        'credit' => $creditArr,
+                    
                     );
-                        
+                    
                     $total += $sign * $amount;
                 }
             }
@@ -265,12 +266,12 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 $debitContragentId = $firstDoc->fetchField('contragentId');
                 
                 $entries[] = array('amount' => $sign * $prod->allocated,
-                        'debit' => array($debitAcc,
-                                    array($debitContragentClassId, $debitContragentId),
-                                    array($firstDoc->getInstance()->getClassId(), $firstDoc->that),
-                                    array('cat_Products', $prod->productId),
-                                'quantity' => 0),
-                        'credit' => array('61102'),
+                    'debit' => array($debitAcc,
+                        array($debitContragentClassId, $debitContragentId),
+                        array($firstDoc->getInstance()->getClassId(), $firstDoc->that),
+                        array('cat_Products', $prod->productId),
+                        'quantity' => 0),
+                    'credit' => array('61102'),
                 
                 );
                 
@@ -283,16 +284,16 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 foreach ($prod->inStores as $storeId => $storeQuantity) {
                     $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
                     $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
-            
+                    
                     $entries[] = array('amount' => $sign * $amount,
-                                        'debit' => array('321',
-                                                array('store_Stores', $storeId),
-                                                array('cat_Products', $prod->productId),
-                                                'quantity' => 0),
-                                        'credit' => array('61102'),
-            
+                        'debit' => array('321',
+                            array('store_Stores', $storeId),
+                            array('cat_Products', $prod->productId),
+                            'quantity' => 0),
+                        'credit' => array('61102'),
+                    
                     );
-            
+                    
                     $total += $sign * $amount;
                 }
             }
@@ -300,7 +301,6 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         
         return $entries;
     }
-    
     
     
     /**
@@ -322,18 +322,19 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
      *  Ct: 60201. Разходи за (нескладируеми) услуги и консумативи    (Разходни обекти, Артикули)
      *
      *
-     * @param  array                        $products      - масив с информация за артикули
-     *                                                     o productId       - ид на артикул
-     *                                                     o name            - име на артикула
-     *                                                     o quantity        - к-во
-     *                                                     o value          - сума на артикула
-     *                                                     o inStores        - к-та с които артикула присъства в складовете, ако е повече от 1
-     * @param  int                          $productId     - ид на артикул
-     * @param  int                          $expenseItemId - ид на разходен обект
-     * @param  double                       $amount        - сума за разпределяне
-     * @param  quantity|value|weight|volume $allocateBy    - начин на разпределяне
-     * @param  boolean                      $reverse       - дали сумите да са отрицателни
-     * @return array                        $entries
+     * @param array                        $products      - масив с информация за артикули
+     *                                                    o productId       - ид на артикул
+     *                                                    o name            - име на артикула
+     *                                                    o quantity        - к-во
+     *                                                    o value          - сума на артикула
+     *                                                    o inStores        - к-та с които артикула присъства в складовете, ако е повече от 1
+     * @param int                          $productId     - ид на артикул
+     * @param int                          $expenseItemId - ид на разходен обект
+     * @param float                        $amount        - сума за разпределяне
+     * @param quantity|value|weight|volume $allocateBy    - начин на разпределяне
+     * @param bool                         $reverse       - дали сумите да са отрицателни
+     *
+     * @return array $entries
      */
     public static function getCorrectionEntries($products, $productId, $expenseItemId, $value, $allocateBy, $reverse = false)
     {
@@ -360,10 +361,10 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                     $q = (is_array($p2)) ? $p2['quantity'] : $p2;
                     $am = (is_array($p2)) ? $p2['amount'] : $p2;
                     $obj = (object) array('productId' => $p->productId,
-                                         'quantity' => $q,
-                                         'amount' => $am,
-                                         'transportWeight' => $p->transportWeight,
-                                         'transportVolume' => $p->transportVolume,
+                        'quantity' => $q,
+                        'amount' => $am,
+                        'transportWeight' => $p->transportWeight,
+                        'transportVolume' => $p->transportVolume,
                     );
                     
                     $storesArr[$storeId] = $obj;
@@ -385,11 +386,11 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                     $creditArr['quantity'] = $sign * $allocated;
                     
                     $entries[] = array('debit' => array('321',
-                                                    array('store_Stores', $storeId2),
-                                                    array('cat_Products', $p3->productId),
-                                                    'quantity' => 0),
-                                       'credit' => $creditArr,
-                            'reason' => 'Разпределяне на разходи');
+                        array('store_Stores', $storeId2),
+                        array('cat_Products', $p3->productId),
+                        'quantity' => 0),
+                    'credit' => $creditArr,
+                    'reason' => 'Разпределяне на разходи');
                 }
             } elseif ($isSale) {
                 $canStore = cat_Products::fetchField($p->productId, 'canStore');
@@ -398,29 +399,29 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 $creditArr['quantity'] = $sign * $p->allocated;
                 
                 $entries[] = array('debit' => array($accountSysId,
-                                array($dealRec->contragentClassId, $dealRec->contragentId),
-                                $expenseItemId, array('cat_Products', $p->productId),
-                                'quantity' => 0),
-                        'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
+                    array($dealRec->contragentClassId, $dealRec->contragentId),
+                    $expenseItemId, array('cat_Products', $p->productId),
+                    'quantity' => 0),
+                'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
             } elseif ($mPn) {
                 $canStore = cat_Products::fetchField($p->productId, 'canStore');
                 
                 if ($canStore == 'yes') {
                     $debit = array('321',
-                                    array('store_Stores', key($p->inStores)),
-                                    array('cat_Products', $p->productId),
-                                   'quantity' => 0);
+                        array('store_Stores', key($p->inStores)),
+                        array('cat_Products', $p->productId),
+                        'quantity' => 0);
                 } else {
                     $debit = array('60201',
-                            $expenseItemId,
-                            array('cat_Products', $p->productId),
-                            'quantity' => 0);
+                        $expenseItemId,
+                        array('cat_Products', $p->productId),
+                        'quantity' => 0);
                 }
                 
                 $creditArr['quantity'] = $sign * $p->allocated;
                 
                 $entries[] = array('debit' => $debit,
-                                   'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
+                    'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
             }
         }
         

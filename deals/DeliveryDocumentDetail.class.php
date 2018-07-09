@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Базов клас за наследяване на детайл на ф-ри
  *
  *
  * @category  bgerp
  * @package   deals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_DeliveryDocumentDetail extends doc_Detail
 {
-    
-    
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
@@ -79,7 +78,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-    
+        
         if ($form->rec->productId) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
             $productInfo = cat_Products::getProductInfo($rec->productId);
@@ -128,7 +127,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
                 $form->setError('packQuantity', $warning);
             }
-    
+            
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             
@@ -141,7 +140,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-    
+            
             if (!isset($rec->packPrice)) {
                 $autoPrice = true;
                 
@@ -175,7 +174,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 if (empty($policyInfo->price)) {
                     $form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (2)');
                 } else {
-                        
+                    
                     // Ако се обновява запис се взима цената от него, ако не от политиката
                     $rec->price = $policyInfo->price;
                     $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
@@ -218,8 +217,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
         }
     }
-        
-
+    
+    
     /**
      * Преди рендиране на таблицата
      */
@@ -264,11 +263,11 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         $recs = &$data->recs;
         $orderRec = $data->masterData->rec;
-    
+        
         deals_Helper::fillRecs($mvc->Master, $recs, $orderRec);
     }
-
-
+    
+    
     /**
      * След подготовка на лист тулбара
      */
@@ -281,16 +280,16 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             if (!count($products)) {
                 $error = 'error=Няма артикули, ';
             }
-    
+            
             $data->toolbar->addBtn(
-    
+                
                 'Артикул',
-    
+                
                 array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true),
                     "id=btnAdd,{$error} order=10,title=Добавяне на артикул",
-    
+                
                 'ef_icon = img/16/shopping.png'
-    
+            
             );
         }
     }
@@ -302,9 +301,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->price) || !isset($rec->quantity) || empty($rec->quantityInPack)) {
+            
             return;
         }
-    
+        
         $rec->packPrice = $rec->price * $rec->quantityInPack;
     }
     
@@ -315,9 +315,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->price) || !isset($rec->quantity) || empty($rec->quantityInPack)) {
+            
             return;
         }
-    
+        
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
     
@@ -328,9 +329,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     public static function on_CalcAmount(core_Mvc $mvc, $rec)
     {
         if (empty($rec->price) || empty($rec->quantity)) {
+            
             return;
         }
-    
+        
         $rec->amount = $rec->price * $rec->quantity;
     }
 }

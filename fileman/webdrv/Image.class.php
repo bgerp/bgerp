@@ -6,23 +6,25 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Image extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
     public static $defaultTab = 'preview';
-
-
+    
+    
     /**
      * Връща всички табове, които ги има за съответния файл
      *
@@ -31,6 +33,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      * @return array
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
     public static function getTabs($fRec)
@@ -70,6 +73,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      * @param object $fRec - Записите за файла
      *
      * @Override
+     *
      * @see fileman_webdrv_Generic::startProcessing
      */
     public static function startProcessing($fRec)
@@ -144,7 +148,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) {
             
@@ -173,7 +177,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
-
+        
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '-%d.jpg';
         
@@ -196,8 +200,9 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $Script->fName = $name;
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
-
+        
         $Script->setCheckProgramsArr('convert');
+        
         // Стартираме скрипта асинхронно
         if ($Script->run() === false) {
             fileman_Indexes::createError($params);
@@ -211,8 +216,8 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      * @param object $script     - Обект със стойности
      * @param output $fileHndArr - Масив, в който след обработката ще се запишат получените файлове
      *
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
-     *                 и записа от таблицата fconv_Process
+     * @return bool TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
+     *              и записа от таблицата fconv_Process
      *
      * @access protected
      */
@@ -253,11 +258,11 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         if (count($fileHndArr)) {
             $params['content'] = $fileHndArr;
-    
+            
             // Обновяваме данните за запис във fileman_Indexes
             $savedId = fileman_Indexes::saveContent($params);
         } else {
-        
+            
             // Проверяваме дали е имало грешка при предишното конвертиране
             $error = fileman_Indexes::haveErrors($script->outFilePath, $params);
         }
@@ -272,7 +277,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         }
         
         if ($savedId) {
-
+            
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
             return true;

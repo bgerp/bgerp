@@ -1,20 +1,20 @@
 <?php 
 
-
 /**
  * Харесвания на документите
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Likes extends core_Manager
 {
     protected static $isLikedArr = array();
-    
     
     
     protected static $likedArr = array();
@@ -78,11 +78,11 @@ class doc_Likes extends core_Manager
     /**
      * Отбелязва докумена, като харесан
      *
-     * @param integer      $cid
-     * @param NULL|integer $threadId
-     * @param NULL|integer $userId
+     * @param int      $cid
+     * @param NULL|int $threadId
+     * @param NULL|int $userId
      *
-     * @return integer
+     * @return int
      */
     public static function like($cid, $threadId = null, $userId = null)
     {
@@ -110,10 +110,10 @@ class doc_Likes extends core_Manager
     /**
      * Премахва харесването
      *
-     * @param integer      $cid
-     * @param NULL|integer $userId
+     * @param int      $cid
+     * @param NULL|int $userId
      *
-     * @return integer
+     * @return int
      */
     public static function dislike($cid, $userId = null)
     {
@@ -132,11 +132,11 @@ class doc_Likes extends core_Manager
     /**
      * Проверява дали има харесване за документа
      *
-     * @param integer $cid
-     * @param integer $threadId
-     * @param integer $userId
+     * @param int $cid
+     * @param int $threadId
+     * @param int $userId
      *
-     * @return boolean
+     * @return bool
      */
     public static function isLiked($cid, $threadId, $userId = null)
     {
@@ -167,10 +167,10 @@ class doc_Likes extends core_Manager
     /**
      * Връща броя на харесванията на документа
      *
-     * @param integer $cid
-     * @param integer $threadId
+     * @param int $cid
+     * @param int $threadId
      *
-     * @return integer
+     * @return int
      */
     public static function getLikesCnt($cid, $threadId)
     {
@@ -183,8 +183,8 @@ class doc_Likes extends core_Manager
     /**
      * Връща всички харесвания
      *
-     * @param integer $cid
-     * @param string  $order
+     * @param int    $cid
+     * @param string $order
      *
      * @return array
      */
@@ -196,9 +196,9 @@ class doc_Likes extends core_Manager
     
     /**
      *
-     * @param integer $cid
-     * @param integer $threadId
-     * @param string  $order
+     * @param int    $cid
+     * @param int    $threadId
+     * @param string $order
      *
      * @return array
      */

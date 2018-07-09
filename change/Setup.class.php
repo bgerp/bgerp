@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   chnage
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class change_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -43,10 +43,10 @@ class change_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'change_Log',
-        );
-        
-
+        'change_Log',
+    );
+    
+    
     /**
      * Де-инсталиране на пакета
      */

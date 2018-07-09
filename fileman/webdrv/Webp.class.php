@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Webp extends fileman_webdrv_ImageT
 {
-    
-    
     /**
      * Стартира конвертиране към JPG формат
      *
@@ -53,6 +53,7 @@ class fileman_webdrv_Webp extends fileman_webdrv_ImageT
         $Script->fh = $fRec->fileHnd;
         
         $Script->setCheckProgramsArr('dwebp');
+        
         // Стартираме скрипта асинхронно
         if ($Script->run() === false) {
             fileman_Indexes::createError($params);

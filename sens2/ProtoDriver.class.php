@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Прототип на драйвер за контролер
  *
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_ProtoDriver
 {
-   
     /**
      * От кой номер започва броенето на слотовете
      */
     const FIRST_SLOT_NO = 0;
-
-
+    
+    
     /**
      * Интерфейси, поддържани от всички наследници
      */
@@ -44,10 +44,10 @@ class sens2_ProtoDriver
                 $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
             }
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Информация за изходните портове на устройството
@@ -59,17 +59,17 @@ class sens2_ProtoDriver
     public function getOutputPorts()
     {
         $res = array();
-
+        
         if (is_array($this->outputs)) {
             foreach ($this->outputs as $name => $params) {
                 $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
             }
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
@@ -81,7 +81,7 @@ class sens2_ProtoDriver
     {
     }
     
-
+    
     /**
      * Проверява след  субмитване формата с настройки на контролера
      *
@@ -92,7 +92,7 @@ class sens2_ProtoDriver
     public function checkConfigForm($form)
     {
     }
-
+    
     
     /**
      * Връща масив със стойностите на изразходваната активна мощност
@@ -101,8 +101,8 @@ class sens2_ProtoDriver
     {
         return array();
     }
-
-
+    
+    
     /**
      * Сетва изходите на драйвера по зададен масив
      *
@@ -112,32 +112,33 @@ class sens2_ProtoDriver
     {
         return array();
     }
-
-
+    
+    
     /**
      * Връща снимка на контролера
      *
-     * @param  stdClass    $config конфигурацията на контролера
+     * @param stdClass $config конфигурацията на контролера
+     *
      * @return string|null
      */
     public static function getPicture($config)
     {
     }
-
-
+    
+    
     /**
      * Връща списъка с възможните слотове от посочен тип
      */
     public function getSlotOpt($type = array())
     {
         $slots = $this->getSlotCnt();
- 
+        
         $typeArr = arr::make($type, true);
-
+        
         if (!count($typeArr)) {
             $typeArr = array_keys($slots);
         }
-
+        
         $res = array();
         foreach ($typeArr as $st) {
             $cnt = (int) $slots[$st];
@@ -147,7 +148,7 @@ class sens2_ProtoDriver
                 $res[$name] = $name;
             }
         }
-
+        
         return $res;
     }
 }

@@ -6,22 +6,22 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class escpos_Helper
 {
-    
-    
     /**
      * Връща данните в XML формат, за bgERP Agent
      *
      * @param core_Manager $clsInst
-     * @param integer      $id
+     * @param int          $id
      * @param string       $drvName
-     * @param integer      $userId
+     * @param int          $userId
      *
      * @return string
      */
@@ -45,9 +45,10 @@ class escpos_Helper
     /**
      * Подготовка за печат на мобилен принтер
      *
-     * @param  core_Master $Inst
-     * @param  int         $id
-     * @param  stdClass    $data
+     * @param core_Master $Inst
+     * @param int         $id
+     * @param stdClass    $data
+     *
      * @return core_ET
      */
     private static function getShipmentPreview($Inst, $id, $data)
@@ -81,6 +82,7 @@ class escpos_Helper
             }
         }
         $row->delimiter = '|';
+        
         // Поставяне на мастър данните
         $tpl->placeObject($row);
         $count = 0;
@@ -103,9 +105,9 @@ class escpos_Helper
         $DoubleSmart = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
         $DoubleQ = core_Type::getByName('double(decimals=2)');
         $Varchar = core_Type::getByName('varchar');
-
+        
         $block = $tpl->getBlock('PRODUCT_BLOCK');
-
+        
         // За всеки
         foreach ($detailRows as $id => $dRow) {
             $dRec = $detailRecs[$id];
@@ -129,7 +131,7 @@ class escpos_Helper
                     }
                 }
             }
-        
+            
             // Ако има партиди
             if (core_Packs::isInstalled('batch')) {
                 $query = batch_BatchesInDocuments::getQuery();
@@ -183,14 +185,14 @@ class escpos_Helper
             $dRow->packPrice = str_replace('&nbsp;', ' ', $dRow->packPrice);
             $dRow->amount = strip_tags($DoubleQ->toVerbal($dRec->amount));
             $dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
-
+            
             // Поставяне в шаблона
             $b->placeObject($dRow);
             $b->removeBlocks();
             $b->removePlaces();
             $b->append2Master();
         }
-
+        
         // Ако е Авансова ф-ра има специална логика
         if ($Inst instanceof sales_Invoices) {
             $dpInfo = $data->sales_InvoiceDetails->dpInfo;
@@ -217,13 +219,13 @@ class escpos_Helper
         return $tpl;
     }
     
-
+    
     /**
      * Подготвя данните за отпечатване
      *
      * @param core_Manager $clsInst
-     * @param integer      $id
-     * @param integer|NULL $userId
+     * @param int          $id
+     * @param int|NULL     $userId
      *
      * @return string
      */
@@ -238,17 +240,18 @@ class escpos_Helper
         if (!isset($userId)) {
             $userId = $iRec->createdBy;
         }
-
+        
         $sudoUser = core_Users::sudo($userId);
         
         // Записваме, че документа е принтиран
         doclog_Documents::pushAction(
                         array(
-                                'action' => doclog_Documents::ACTION_PRINT,
-                                'containerId' => $iRec->containerId,
-                                'threadId' => $iRec->threadId
+                            'action' => doclog_Documents::ACTION_PRINT,
+                            'containerId' => $iRec->containerId,
+                            'threadId' => $iRec->threadId
                         )
         );
+        
         // Флъшваме, за да се запише веднага
         doclog_Documents::flushActions();
         
@@ -258,9 +261,9 @@ class escpos_Helper
         Mode::pop('text');
         Mode::pop('dataType');
         core_Users::exitSudo($sudoUser);
-         
+        
         expect($data);
-
+        
         $str = self::getShipmentPreview($Inst, $id, $data);
         
         return $str;

@@ -1,26 +1,24 @@
 <?php 
 
-
 /**
  * Детайл на броячите.
  * Показва кой брояч в кой етикет е използван и до кой номер е стигнал
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_CounterItems extends core_Detail
 {
-    
-    
     /**
      * Заглавие на модела
      */
     public $title = 'Запис в броячи';
-    
     
     
     public $singleTitle = 'Записи';
@@ -109,7 +107,7 @@ class label_CounterItems extends core_Detail
     /**
      * Връща най - голямата стойност за брояча
      *
-     * @param integer $counterId - id на брояча
+     * @param int $counterId - id на брояча
      */
     public static function getMax($counterId)
     {
@@ -129,11 +127,11 @@ class label_CounterItems extends core_Detail
     /**
      * Обновяваме брояча
      *
-     * @param integer $counterId - id на брояча
-     * @param integer $printId   - id на етикета
-     * @param integer $number    - Стойността на брояча
+     * @param int $counterId - id на брояча
+     * @param int $printId   - id на етикета
+     * @param int $number    - Стойността на брояча
      *
-     * @return integer - id на записа
+     * @return int - id на записа
      */
     public static function updateCounter($counterId, $printId, $number)
     {

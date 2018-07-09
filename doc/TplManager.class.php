@@ -1,6 +1,5 @@
 <?php 
 
-
 /**
  * Мениджър за шаблони, които ще се използват от документи.
  * Добавя възможността спрямо шаблона да се скриват/показват полета от мастъра
@@ -15,15 +14,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_TplManager extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -64,8 +63,8 @@ class doc_TplManager extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin';
-
-
+    
+    
     /**
      * Кой може да го изтрива?
      */
@@ -76,19 +75,19 @@ class doc_TplManager extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin';
-
+    
     
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,admin';
-
-
+    
+    
     /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'ceo,admin';
-
+    
     
     /**
      * Файл с шаблон за единичен изглед
@@ -100,10 +99,11 @@ class doc_TplManager extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, name, docClassId, createdOn, createdBy, state';
-
+    
     
     /**
      * Кеш на скриптовете
+     *
      * @var array
      */
     protected static $cacheScripts = array();
@@ -289,7 +289,9 @@ class doc_TplManager extends core_Master
     
     /**
      * Връща подадения шаблон
-     * @param  int     $id - ид на шаблон
+     *
+     * @param int $id - ид на шаблон
+     *
      * @return core_ET $tpl - шаблона
      */
     public static function getTemplate($id)
@@ -319,8 +321,9 @@ class doc_TplManager extends core_Master
     /**
      * Връща първия шаблон за документа на езика на ориджинина му, ако има
      *
-     * @param  mixed     $class    - класа
-     * @param  int       $originId - ориджина на записа
+     * @param mixed $class    - класа
+     * @param int   $originId - ориджина на записа
+     *
      * @return FALSE|int - намерения шаблон
      */
     public static function getTplByOriginLang($class, $originId)
@@ -341,7 +344,9 @@ class doc_TplManager extends core_Master
     
     /**
      * Връща всички активни шаблони за посочения мениджър
-     * @param  int   $classId - ид на клас
+     *
+     * @param int $classId - ид на клас
+     *
      * @return array $options - опции за шаблоните на документа
      */
     public static function getTemplates($classId, $lang = null)
@@ -401,7 +406,7 @@ class doc_TplManager extends core_Master
             if ($exRec) {
                 $object->id = $exRec->id;
             }
-
+            
             // Ако файла на шаблона не е променян, то записа не се обновява
             expect($object->hash = md5_file(getFullPath($object->content)));
             
@@ -423,14 +428,14 @@ class doc_TplManager extends core_Master
             $object->state = 'active';
             
             static::save($object);
-
+            
             ($object->id) ? $updated++ : $added++;
         }
         
         $class = ($added > 0 || $updated > 0) ? ' class="green"' : '';
-
+        
         $res = "<li{$class}>Добавени са {$added} шаблона за " . mb_strtolower($mvc->title) . ", обновени са {$updated}, пропуснати са {$skipped}</li>";
-
+        
         return $res;
     }
     
@@ -467,6 +472,7 @@ class doc_TplManager extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($res == 'no_one') {
+            
             return;
         }
         
@@ -488,7 +494,8 @@ class doc_TplManager extends core_Master
     /**
      * Връща скриптовия клас на шаблона (ако има)
      *
-     * @param  int   $templateId - ид на шаблона
+     * @param int $templateId - ид на шаблона
+     *
      * @return mixed $Script/False - заредения клас, или FALSE ако не може да се зареди
      */
     public static function getTplScriptClass($templateId)

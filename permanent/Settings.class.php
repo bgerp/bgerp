@@ -1,25 +1,25 @@
 <?php
 
 
-
 /**
  * Клас за перманентни данни
  *
  *
  * @category  vendors
  * @package   permanent
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Клас за перманентни данни
  */
 class permanent_Settings extends core_Manager
 {
-    
-    
     /**
      * Извлича перманентните сетинги и ги сетва на обекта.
+     *
      * @param object $object
      */
     public static function setObject($object)
@@ -34,6 +34,7 @@ class permanent_Settings extends core_Manager
     /**
      * Изтрива перманентните сетинги за обекта.
      * Извиква се при изтриване на обект ползващ permanent_Data
+     *
      * @param object $object
      */
     public static function purge($object)
@@ -47,6 +48,7 @@ class permanent_Settings extends core_Manager
      * Връща URL - входна точка за настройка на данните за този обект.
      * Ключа в URL-то да бъде декориран с кодировка така,
      * че да е валиден само за текущата сесия на потребителя.
+     *
      * @param object $object
      */
     public function getUrl($object)
@@ -57,6 +59,7 @@ class permanent_Settings extends core_Manager
     
     /**
      * Връща линк с подходяща картинка към входната точка за настройка на данните за този обект
+     *
      * @param object $object
      */
     public static function getLink($object)

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Изпращане на факсове
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_FaxSent extends core_Manager
 {
-
-    
     /**
      * Заглавие
      */
@@ -153,7 +152,7 @@ class email_FaxSent extends core_Manager
         
         // Проверка за коректност на входните данни
         $this->invoke('AfterInputSendForm', array($data->form));
-
+        
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, null, $retUrl);
         
@@ -182,11 +181,12 @@ class email_FaxSent extends core_Manager
             
             return new Redirect($data->retUrl);
         }
+        
         // Подготвяме адреса, към който трябва да редиректнем,
         // при успешно записване на данните от формата
         $this->prepareRetUrl($data);
         
-                
+        
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
         
@@ -199,7 +199,7 @@ class email_FaxSent extends core_Manager
         
         //Добавяме изгледа към главния шаблон
         $tpl->append($preview);
-
+        
         return static::renderWrapping($tpl);
     }
     
@@ -235,7 +235,7 @@ class email_FaxSent extends core_Manager
             
             //Вземаме id'тата на файловете вместо манупулатора име
             $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
-
+            
             //Записваме прикачените файлове
             $rec->attachments = keylist::fromArray($attachments);
         }
@@ -301,7 +301,7 @@ class email_FaxSent extends core_Manager
             if (count($rec->documentsFh)) {
                 //Вземаме id'тата на файловете вместо манипулаторите
                 $documents = fileman::fhKeylistToIds($rec->documentsFh);
-            
+                
                 //Записваме прикачените файлове
                 $rec->documents = keylist::fromArray($documents);
             }
@@ -324,7 +324,7 @@ class email_FaxSent extends core_Manager
                 $failure[] = $faxTo;
             }
         }
-
+        
         // Създаваме съобщение, в зависимост от състоянието на изпращане
         if (empty($failure)) {
             $msg = '|Успешно изпратено до|*: ' . implode(', ', $success);
@@ -342,7 +342,7 @@ class email_FaxSent extends core_Manager
     /**
      * Връща интерфейс, който ще се ползва за изпращане на факс
      *
-     * @return integer
+     * @return int
      */
     public static function getAutoSendIntf()
     {
@@ -381,18 +381,18 @@ class email_FaxSent extends core_Manager
         
         // Ако има права за ипзващане на имейл
         if (email_Outgoings::haveRightFor('send')) {
-
+            
             // Показваме бутона за изпращане на имейл
             $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url' => getRetUrl()), 'ef_icon = img/16/email_go.png', 'title=Обратно към имейла');
         }
         
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png', 'title=Прекратяване на изпращането');
-
+        
         $data->form->input(null, 'silent');
-
+        
         return $data;
     }
-
+    
     
     /**
      * Извиква се след подготовката на формата за изпращане
@@ -403,7 +403,7 @@ class email_FaxSent extends core_Manager
     public function on_AfterPrepareSendForm($mvc, &$data)
     {
         expect($data->rec = email_Outgoings::fetch($data->form->rec->id));
-
+        
         $Email = cls::get('email_Outgoings');
         
         // Добавяне на предложения на свързаните документи
@@ -470,7 +470,7 @@ class email_FaxSent extends core_Manager
                 $faxNums .= ($faxNums) ? ", {$faxNum}" : $faxNum;
             }
         }
-              
+        
         //Задаваме факс номера по подразбиране да се вземат от факса на контрагента
         $data->form->setDefault('faxTo', $faxNums);
     }

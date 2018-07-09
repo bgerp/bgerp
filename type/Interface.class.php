@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Ключ към запис от core_Interfaces
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       core_Interfaces
  */
 class type_Interface extends type_Key
 {
-    
-    
     /**
      * Инициализиране на обекта
      */

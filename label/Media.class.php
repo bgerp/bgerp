@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Медии за отпечатване
  *
  * @category  bgerp
  * @package   label
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class label_Media extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
@@ -56,6 +55,7 @@ class label_Media extends core_Manager
      */
     public $canList = 'labelMaster, admin, ceo';
     
+    
     /**
      * Кой има право да го изтрие?
      */
@@ -94,7 +94,7 @@ class label_Media extends core_Manager
     /**
      * Сменяме състоянието на активно
      *
-     * @param integer $id
+     * @param int $id
      */
     public static function markMediaAsUsed($id)
     {
@@ -114,9 +114,9 @@ class label_Media extends core_Manager
     /**
      * Връща броя на квадратчетата за попълване в една страница на медията
      *
-     * @param integer $id
+     * @param int $id
      *
-     * @return integer
+     * @return int
      */
     public static function getCountInPage($id)
     {
@@ -149,8 +149,8 @@ class label_Media extends core_Manager
     /**
      * Връща размера от широчината и височината
      *
-     * @param integer $width
-     * @param integer $heigh
+     * @param int $width
+     * @param int $heigh
      *
      * @return string
      */
@@ -206,7 +206,7 @@ class label_Media extends core_Manager
         
         // Ако не е сетнат
         if (!$data->pageLayout) {
-        
+            
             // Създаваме обекта
             $data->pageLayout = new stdClass();
         }
@@ -233,14 +233,14 @@ class label_Media extends core_Manager
         // Отместване на цялата страница
         $data->pageLayout->up = (double) $rec->fieldUp . 'mm';
         $data->pageLayout->left = (double) $rec->fieldLeft . 'mm';
-
+        
         // Отместване на колона
         $data->pageLayout->columnsDist = (double) $rec->columnsDist . 'mm';
         
         // Отместване на ред
         $data->pageLayout->linesDist = (double) $rec->linesDist . 'mm';
     }
-
+    
     
     /**
      * Рендираме лейаулта за съответната медия
@@ -331,27 +331,27 @@ class label_Media extends core_Manager
     {
         // Подготвяме пътя до файла с данните
         $file = 'label/csv/Media.csv';
-    
+        
         // Кои колонки ще вкарваме
         $fields = array(
-                0 => 'title',
-                1 => 'width',
-                2 => 'height',
-                3 => 'fieldUp',
-                4 => 'fieldLeft',
-                5 => 'columnsCnt',
-                6 => 'columnsDist',
-                7 => 'linesCnt',
-                8 => 'linesDist',
+            0 => 'title',
+            1 => 'width',
+            2 => 'height',
+            3 => 'fieldUp',
+            4 => 'fieldLeft',
+            5 => 'columnsCnt',
+            6 => 'columnsDist',
+            7 => 'linesCnt',
+            8 => 'linesDist',
         );
-    
+        
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
         
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
-    
+        
         return $res;
     }
 }

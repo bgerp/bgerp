@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Tree' - Изглед за дърво
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Tree extends core_BaseClass
 {
-    
-    
     /**
      * Масив в елементите на дървото
      */
@@ -45,7 +44,7 @@ class core_Tree extends core_BaseClass
         $pid = -1;
         
         $nodesCnt = count($nodes);
-
+        
         foreach ($nodes as $key => $node) {
             $currentPath .= ($currentPath ? '->' : '') . $node;
             
@@ -56,7 +55,7 @@ class core_Tree extends core_BaseClass
                 $n->pid = $pid;
                 $pid = $n->id;
                 $n->title = $node;
-
+                
                 // Ако е задедено само на последния nod да се добавя URL
                 if (!$onlyLastUrl || ($onlyLastUrl && ($key == $nodesCnt - 1))) {
                     if ($url) {
@@ -140,7 +139,7 @@ class core_Tree extends core_BaseClass
         if ($selectedId) {
             // $tpl->append("\n{$name}.openTo({$selectedId}, true);", 'treeDesciption');
         }
-
+        
         $tpl->replace($name, 'treeName');
         
         $tpl->replace($body, 'body');

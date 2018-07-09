@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'acc_Lists' - Счетоводни номенклатури
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Lists extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -117,7 +116,7 @@ class acc_Lists extends core_Manager
         
         // Списък със свойствата, които се поддържат от тази номенклатура
         $this->FLD('featureList', 'blob(serialize)', 'caption=Свойства,input=none,single=none');
-      
+        
         // Уникални индекси
         $this->setDbUnique('num');
         $this->setDbUnique('name');
@@ -172,7 +171,7 @@ class acc_Lists extends core_Manager
     public static function fetchByName($name)
     {
         $mvc = self::instance();
-
+        
         return self::fetch(array("#name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $name));
     }
     
@@ -180,7 +179,8 @@ class acc_Lists extends core_Manager
     /**
      * Извлича запис на модела acc_Lists според системен идентификатор
      *
-     * @param  string   $systemId
+     * @param string $systemId
+     *
      * @return stdClass
      */
     public static function fetchBySystemId($systemId)
@@ -213,6 +213,7 @@ class acc_Lists extends core_Manager
             
             //Позволява изтриването в дебъг режим от админ
             if (haveRole('admin') && isDebug()) {
+                
                 return;
             }
             
@@ -242,8 +243,8 @@ class acc_Lists extends core_Manager
         
         $data->form->setDefault('isDimensional', 'no');
     }
-
-
+    
+    
     /**
      * Изпълнява се след конвертирането на вербалния запис
      */
@@ -293,10 +294,11 @@ class acc_Lists extends core_Manager
     /**
      * Номенклатурите, в които е регистриран обект
      *
-     * @param  mixed $class    инстанция / име / ид (@see core_Classes::getId())
-     * @param  int   $objectId
+     * @param mixed $class    инстанция / име / ид (@see core_Classes::getId())
+     * @param int   $objectId
+     *
      * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
-     *                        стойности - наименования на номенклатурите.
+     *               стойности - наименования на номенклатурите.
      */
     public static function getItemLists($class, $objectId)
     {
@@ -320,10 +322,11 @@ class acc_Lists extends core_Manager
     /**
      * Номенклатурите, в които могат да бъдат включвани като пера обектите от този клас
      *
-     * @param  mixed $class    инстанция / име / ид (@see core_Classes::getId())
-     * @param  int   $objectId
+     * @param mixed $class    инстанция / име / ид (@see core_Classes::getId())
+     * @param int   $objectId
+     *
      * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
-     *                        стойности - наименования на номенклатурите.
+     *               стойности - наименования на номенклатурите.
      */
     public static function getPossibleLists($class)
     {
@@ -362,10 +365,11 @@ class acc_Lists extends core_Manager
      * Ако обекта не е в номенклатурата се добавя; ако е бил добавен преди - само състоянието
      * на перото става active.
      *
-     * @param  int   $listId   ид на номенклатура
-     * @param  mixed $class    инстанция / име / ид (@see core_Classes::getId())
-     * @param  int   $objectId
-     * @return int   ид на перото, съответстващо на обекта в тази номенклатура
+     * @param int   $listId   ид на номенклатура
+     * @param mixed $class    инстанция / име / ид (@see core_Classes::getId())
+     * @param int   $objectId
+     *
+     * @return int ид на перото, съответстващо на обекта в тази номенклатура
      */
     public static function addItem($listId, $class, $objectId)
     {
@@ -393,8 +397,9 @@ class acc_Lists extends core_Manager
      *  o стринг     - systemId на номенклатура
      *  o цяло число - първичен ключ на номенклатура
      *
-     * @param  array|string $lists списък от номенклатури
-     * @return array        масив от първични ключове на номенклатури (и по ключове, и по стойности)
+     * @param array|string $lists списък от номенклатури
+     *
+     * @return array масив от първични ключове на номенклатури (и по ключове, и по стойности)
      *
      */
     protected static function listsToArray($lists)
@@ -427,12 +432,13 @@ class acc_Lists extends core_Manager
      *
      * Използва се за обновяване на данните на перо след промяна на съответната обект от регистър
      *
-     * @param  mixed                $class    инстанция / име / ид (@see core_Classes::getId())
-     * @param  int                  $objectId
-     * @param  array|string|keylist $lists    списък от номенклатури, към които да се добави перото
-     * @param  boolean              $forced   дали да обновяваме списъка към които е перото
-     *                                        Ако перото липсва - създава се
-     * @return int                  ид на обновеното перо или null, ако няма такова перо
+     * @param mixed                $class    инстанция / име / ид (@see core_Classes::getId())
+     * @param int                  $objectId
+     * @param array|string|keylist $lists    списък от номенклатури, към които да се добави перото
+     * @param bool                 $forced   дали да обновяваме списъка към които е перото
+     *                                       Ако перото липсва - създава се
+     *
+     * @return int ид на обновеното перо или null, ако няма такова перо
      */
     public static function updateItem($class, $objectId, $lists = null, $forced = true)
     {
@@ -510,9 +516,10 @@ class acc_Lists extends core_Manager
      *
      * Затваря перо от регистъра, затворените и неизползваните пера се изтриват по крон
      *
-     * @param  mixed   $class    инстанция / име / ид (@see core_Classes::getId())
-     * @param  int     $objectId
-     * @return boolean true при успех, false при грешка, null при липсващо перо
+     * @param mixed $class    инстанция / име / ид (@see core_Classes::getId())
+     * @param int   $objectId
+     *
+     * @return bool true при успех, false при грешка, null при липсващо перо
      */
     public static function removeItem($class, $objectId)
     {
@@ -561,14 +568,15 @@ class acc_Lists extends core_Manager
     /**
      * Намира дали дадена номенклатура се намира в някоя от групуте на сметката
      * и на коя позиция
-     * @param  string $accSysId - systemId на сметката
-     * @param  mixed  $iface    - Име или Ид на Интефейса, който искаме да поддържа номенклатурата
-     * @return mixed  1/2/3/NULL - Позицията на която е номенклатурата или
-     *                         NULL ако не се среща
+     *
+     * @param string $accSysId - systemId на сметката
+     * @param mixed  $iface    - Име или Ид на Интефейса, който искаме да поддържа номенклатурата
+     *
+     * @return mixed 1/2/3/NULL - Позицията на която е номенклатурата или
+     *               NULL ако не се среща
      */
     public static function getPosition($accSysId, $iface)
     {
-        
         // Ако е подаден Ид на интерфейса очакваме да има такъв запис
         if (is_numeric($iface)) {
             expect($iface = core_Interfaces::fetch($iface), 'Няма такъв интерфейс');
@@ -605,8 +613,8 @@ class acc_Lists extends core_Manager
         $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $rec->regInterfaceId), 'id');
         $rec->state = 'active';
     }
-
-
+    
+    
     /**
      * Обновява списъка с възможни свойства за дадена номенклатура
      *
@@ -621,11 +629,11 @@ class acc_Lists extends core_Manager
             $features = acc_Features::getFeatureOptions(array_keys($items));
         }
         $rec->featureList = $features;
-
+        
         self::save($rec, 'featureList');
     }
-
-
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -657,8 +665,8 @@ class acc_Lists extends core_Manager
     /**
      * Връща бройката на перата в посочената номенклатура
      *
-     * @param  mixed       $listId   id или систем ид на номенклатура
-     * @param  string|bool $systemId Дали $listId е систем ид или не
+     * @param mixed       $listId   id или систем ид на номенклатура
+     * @param string|bool $systemId Дали $listId е систем ид или не
      *
      * @return int Брой пера в номенклатурата
      */

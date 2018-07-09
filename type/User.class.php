@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Keylist с избрани потребители. Могат да се избират или самостоятелни потребители или цели екипи
  *
@@ -14,16 +13,16 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       core_Users
  */
 class type_User extends type_Key
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
@@ -157,13 +156,13 @@ class type_User extends type_Key
                         if (!$this->options[$key]) {
                             $this->options[$key] = new stdClass();
                         }
-    
+                        
                         if ($part && $this->params['useSelectAsTitle']) {
                             $this->options[$key]->title = $uRec->$part;
                         } else {
                             $this->options[$key]->title = type_Nick::normalize($uRec->nick) . ' (' . $uRec->names . ')';
                         }
-    
+                        
                         $this->options[$key]->value = $uRec->id;
                         
                         $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
@@ -193,7 +192,7 @@ class type_User extends type_Key
         if (isset($this->params['filter'])) {
             call_user_func($this->params['filter'], $this);
         }
- 
+        
         return $this->options;
     }
     
@@ -227,7 +226,7 @@ class type_User extends type_Key
             $value = self::getUserFromTeams($value);
             
             $value = reset($value);
-
+            
             $this->params['reserve'] = $value;
         }
         
@@ -298,9 +297,10 @@ class type_User extends type_Key
     /**
      * Връща масив с групите със съответния потребители
      *
-     * @param integer|NULL $userId
+     * @param int|NULL $userId
      *
      * @return array
+     *
      * @see type_Users::getUserFromTeams
      */
     public static function getUserFromTeams($userId = null)
@@ -353,7 +353,7 @@ class type_User extends type_Key
     /**
      * Връща възможните стойности за ключа
      *
-     * @param integer $id
+     * @param int $id
      *
      * @return array
      */

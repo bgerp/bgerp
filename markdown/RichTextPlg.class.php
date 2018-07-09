@@ -8,15 +8,15 @@
  *
  * @category  vendors
  * @package   markdown
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class markdown_RichTextPlg extends core_Plugin
 {
-
-    
     /**
      * Добавя бутон за добавяне на markdown текст
      */
@@ -24,7 +24,6 @@ class markdown_RichTextPlg extends core_Plugin
     {
 //        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title='MD' onclick=\"s('[md]', '[/md]', document.getElementById('{$attr['id']}'))\">MD</a>", 'TBL_GROUP2');
     }
-    
     
     
     public function on_AfterCatchRichElements($mvc, &$html)
@@ -79,7 +78,6 @@ class markdown_RichTextPlg extends core_Plugin
      */
     public function _encodeSpacesInUrl($match)
     {
-        
         //Заместваме всички интервали с %20 в частта с URL
         $url = str_ireplace(' ', '%20', $match['url']);
         

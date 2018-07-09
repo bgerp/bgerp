@@ -1,18 +1,19 @@
 <?php
 
+
 /**
  * Мениджър за архивиране
  *
  *
  * @category  bgerp
  * @package   incoming
+ *
  * @author   Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-
-
 class incoming_Archiving extends core_Master
 {
     /**
@@ -80,6 +81,7 @@ class incoming_Archiving extends core_Master
      */
     public $canSingle = 'powerUser';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -105,19 +107,15 @@ class incoming_Archiving extends core_Master
     {
         $this->FLD('unitNumber', 'int', 'caption=Единица No,mandatory,input');
         $this->FLD('typeOfArhive', 'key(mvc=incoming_TypeOfArchive,select=name,allowEmpty)', 'caption=Тип на архива,mandatory');
-      
-       
+        
         
         $this->setDbUnique('unitNumber');
     }
     
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        
-   
-       
-        
     }
+    
     
     /**
      * Преди показване на листовия тулбар
@@ -130,7 +128,6 @@ class incoming_Archiving extends core_Master
         $data->toolbar->addBtn('Архивиране', array($mvc, 'Archiving'));
     }
     
-
     
     /**
      *Архивиране
@@ -139,18 +136,13 @@ class incoming_Archiving extends core_Master
      */
     public function act_Archiving()
     {
-        
         $query = incoming_Archiving::getQuery();
-        
         
         
         $form = cls::get('core_Form');
         
         // Prepare form
-        $form->title = "Архивиране";
-        
-       
-       
+        $form->title = 'Архивиране';
         
         
         $form->FNC('some', 'varchar', 'caption=Нещо си, mandatory, input');
@@ -160,45 +152,9 @@ class incoming_Archiving extends core_Master
         
         
         // END Prepare form
-      
+        
         $cRec = $form->input();
-      
+        
         return $this->renderWrapping($form->renderHtml());
     }
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

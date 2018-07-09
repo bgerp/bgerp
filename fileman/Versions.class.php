@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_Versions' -
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class fileman_Versions extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модула
      */
@@ -28,7 +27,6 @@ class fileman_Versions extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
-    
     
     
     public $canAdd = 'no_one';
@@ -157,7 +155,7 @@ class fileman_Versions extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {

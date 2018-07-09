@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Листвани артикули
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Листвани артикули
  */
 class cat_Listings extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -34,7 +33,7 @@ class cat_Listings extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_Search';
-                    
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -94,8 +93,8 @@ class cat_Listings extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'listing,ceo';
-
-
+    
+    
     /**
      * Работен кеш
      */
@@ -118,7 +117,8 @@ class cat_Listings extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders,crm_ContragentAccRegIntf';
-
+    
+    
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
@@ -133,7 +133,7 @@ class cat_Listings extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'title';
-
+    
     
     /**
      * Икона за еденичен изглед
@@ -191,13 +191,13 @@ class cat_Listings extends core_Master
         $rec = $this->fetch($id);
         $row = new stdClass();
         $title = $this->getVerbal($rec, 'title');
-         
+        
         $row->title = $title . " №{$rec->id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-    
+        
         return $row;
     }
     
@@ -237,15 +237,16 @@ class cat_Listings extends core_Master
     /**
      * Кешира и връща всички листвани артикули за клиента
      *
-     * @param  int|stdClass $listId  - ид на лист
-     * @param  int|NULL     $storeId - ид на склад
-     * @param  int|NULL     $limit   - ограничение
+     * @param int|stdClass $listId  - ид на лист
+     * @param int|NULL     $storeId - ид на склад
+     * @param int|NULL     $limit   - ограничение
+     *
      * @return array
      */
     public static function getAll($listId, $storeId = null, $limit = null)
     {
         expect($listRec = cat_Listings::fetchRec($listId));
-    
+        
         $instock = null;
         
         // Ако е зададен склад
@@ -262,7 +263,7 @@ class cat_Listings extends core_Master
         // Ако няма наличен кеш за контрагента, извлича се наново
         if (!isset(self::$cache[$listRec->id])) {
             self::$cache[$listRec->id] = array();
-                
+            
             // Кои са листваните артикули за контрагента
             $query = cat_ListingDetails::getQuery();
             $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
@@ -277,7 +278,7 @@ class cat_Listings extends core_Master
             } else {
                 $query->orderBy('id', 'ASC');
             }
-                
+            
             // Ако има зададен лимит
             if (isset($limit)) {
                 $query->limit($limit);
@@ -312,10 +313,11 @@ class cat_Listings extends core_Master
      * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
      * се връща първия намерен код
      *
-     * @param  mixed       $cClass      - ид на клас
-     * @param  int         $cId         - ид на контрагента
-     * @param  int         $productId   - ид на артикул
-     * @param  int|NULL    $packagingId - ид на опаковка, NULL ако не е известна
+     * @param mixed    $cClass      - ид на клас
+     * @param int      $cId         - ид на контрагента
+     * @param int      $productId   - ид на артикул
+     * @param int|NULL $packagingId - ид на опаковка, NULL ако не е известна
+     *
      * @return string|NULL - намерения код или NULL
      */
     public static function getReffByProductId($listId, $productId, $packagingId = null)
@@ -336,14 +338,14 @@ class cat_Listings extends core_Master
                     return true;
                 }
             }
-    
+            
             return false;
         });
-    
+        
         // Ако има намерен поне един запис се връща кода
         $firstFound = $res[key($res)];
         $reff = (is_object($firstFound)) ? (($firstFound->reff != $firstFound->code) ? $firstFound->reff : null) : null;
-    
+        
         // Връща се намерения код
         return $reff;
     }
@@ -357,7 +359,7 @@ class cat_Listings extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    
+        
         // Сортиране на записите по num
         $data->query->orderBy('id');
     }
@@ -366,13 +368,14 @@ class cat_Listings extends core_Master
     /**
      * Обновява данни в мастъра
      *
-     * @param  int $id първичен ключ на статия
+     * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-    
+        
         return $this->save($rec);
     }
     
@@ -437,6 +440,7 @@ class cat_Listings extends core_Master
         $folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
         $count = count($folders);
         if (!$count) {
+            
             return;
         }
         
@@ -467,7 +471,7 @@ class cat_Listings extends core_Master
             if (!empty($condId) && empty($autoListId)) {
                 continue;
             }
-
+            
             $res = array();
             
             // Намират се всички продавани стандартни артикули от тази папка
@@ -519,11 +523,11 @@ class cat_Listings extends core_Master
                 }
                 
                 $newDetails[$obj->productId] = (object) array('listId' => $listId,
-                                                             'productId' => $obj->productId,
-                                                             'reff' => $cache[$obj->productId]['reff'],
-                                                             'modifiedOn' => $now,
-                                                             'modifiedBy' => core_Users::SYSTEM_USER,
-                                                              'packagingId' => $obj->packagingId);
+                    'productId' => $obj->productId,
+                    'reff' => $cache[$obj->productId]['reff'],
+                    'modifiedOn' => $now,
+                    'modifiedBy' => core_Users::SYSTEM_USER,
+                    'packagingId' => $obj->packagingId);
             }
             
             $limit = cat_Setup::get('AUTO_LIST_PRODUCT_COUNT');
@@ -563,7 +567,8 @@ class cat_Listings extends core_Master
     /**
      * Форсира автоматичния лист на потребителя
      *
-     * @param  int $folderId - ид на папка
+     * @param int $folderId - ид на папка
+     *
      * @return int $listid - ид на форсирания лист
      */
     private static function forceAutoList($folderId, $Cover)

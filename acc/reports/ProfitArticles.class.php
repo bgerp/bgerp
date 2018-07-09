@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на отчети от Печалба от продажби по продукти
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
 {
-
-
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -28,13 +27,13 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      * Кой може да избира драйвъра
      */
     public $canSelectSource = 'ceo, acc';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Счетоводство » Печалба по артикули';
-
+    
     
     /**
      * Дефолт сметка
@@ -70,14 +69,13 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
      * Кореспондент сметка
      */
     public $corespondentAccountId = '700';
-
-
+    
+    
     /**
      * След подготовката на ембеднатата форма
      */
     public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
-
         // Искаме да покажим оборотната ведомост за сметката на касите
         $baseAccId = acc_Accounts::getRecBySystemId($mvc->baseAccountId)->id;
         $form->setDefault('baseAccountId', $baseAccId);
@@ -114,8 +112,8 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
             }
         }
     }
-
-
+    
+    
     /**
      * След подготовката на ембеднатата форма
      */
@@ -162,7 +160,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     protected function prepareFilterQuery(&$query, $form)
     {
         acc_JournalDetails::filterQuery($query, $form->from, $form->to);
-
+        
         $query->where("(#debitAccId = {$form->baseAccountId} OR 
 	    					#debitAccId = {$this->account703Id} OR 
 	    					#debitAccId = {$this->account704Id} OR 
@@ -171,15 +169,15 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
 	    	               )
 	    				  AND 
 	    				  #creditAccId = {$form->corespondentAccountId}");
-            
+        
         $query->orWhere("#debitAccId = {$form->corespondentAccountId} AND 
 		    	               (#creditAccId = {$this->account703Id} OR 
 						    	#creditAccId = {$this->account704Id} OR 
 						    	#creditAccId = {$this->account705Id} OR 
 						    	#creditAccId = {$this->account706Id})");
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -195,17 +193,17 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         unset($data->listFields['creditQuantityCompare']);
         unset($data->listFields['creditAmountCompare']);
         unset($data->listFields['blQuantityCompare']);
-
+        
         // Кои полета ще се показват
         if ($mvc->innerForm->compare != 'no') {
             $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
             $toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
             $prefixOld = (string) $fromVerbalOld . ' - ' . $toVerbalOld;
-        
+            
             $fromVerbal = dt::mysql2verbal($mvc->innerForm->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
             $prefix = (string) $fromVerbal . ' - ' . $toVerbal;
-
+            
             $fields = arr::make("id=№,item3=Артикули,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", true);
             $data->listFields = $fields;
         } else {
@@ -215,18 +213,18 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         }
     }
     
-
+    
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      */
     public function hidePriceFields()
     {
         $innerState = &$this->innerState;
-
+        
         unset($innerState->recs);
     }
-
-
+    
+    
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
@@ -234,7 +232,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     {
         $today = dt::today();
         $activateOn = "{$this->innerForm->to} 13:59:59";
-
+        
         return $activateOn;
     }
     
@@ -245,13 +243,13 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     public function getReportTitle()
     {
         $explodeTitle = explode(' » ', $this->title);
-         
+        
         $title = tr("|{$explodeTitle[1]}|*");
-    
+        
         return $title;
     }
-
-
+    
+    
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
@@ -263,7 +261,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         $exportFields['item3'] = 'Артикули';
         $exportFields['blAmount'] = 'Сума';
         $exportFields['delta'] = 'Дял';
-
+        
         return $exportFields;
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Плъгин който преди оттегляне/възстановяване/контиране на контиращи документи, провеврява имали в тях приключени пера
  * и ако има забранвява съответното действие, показвайки съобщение, кои пера къде са затворени.
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_plg_RejectContoDocuments extends core_Plugin
 {
-    
-    
     /**
      * Кои са затворените пера в транзакцията на документа
      */
@@ -54,6 +53,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
         try {
             $closedItems = $mvc->getClosedItemsInTransaction($id);
         } catch (acc_journal_RejectRedirect $e) {
+            
             return;
         }
         

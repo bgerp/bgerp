@@ -1,24 +1,23 @@
 <?php
 
 
-
 /**
  * Клас 'core_Manager' - Дефиниране и web-управление на таблица от db
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  *
  * @method renderWrapping(core_ET|string|null &$tpl=NULL, $data = NULL)
  */
 class core_Manager extends core_Mvc
 {
-    
-    
     /****************************************************************************************
      *                                                                                      *
      *        ОПИСАТЕЛНА ЧАСТ                                                               *
@@ -110,7 +109,7 @@ class core_Manager extends core_Mvc
     /**
      * Връща линк към подадения обект
      *
-     * @param integer $objId
+     * @param int $objId
      *
      * @return core_ET
      */
@@ -126,7 +125,7 @@ class core_Manager extends core_Mvc
         }
         
         $linkArr = array();
-
+        
         if ($inst->haveRightFor('list', $objId)) {
             $linkArr = array(get_called_class(), 'list', $objId);
         }
@@ -209,7 +208,7 @@ class core_Manager extends core_Mvc
         } else {
             $res = $this->act_List();
         }
-
+        
         return $res;
     }
     
@@ -255,14 +254,14 @@ class core_Manager extends core_Mvc
         $this->requireRightFor($data->cmd, null, null, $data->retUrl);
         
         expect(Request::isConfirmed());
-
+        
         expect(
             $data->id = Request::get('id', 'int'),
             'Липсва id на записа за изтриване'
         );
         
         expect(
-        
+            
             $data->rec = $this->fetch($data->id),
             'Некоректно id на записа за изтриване'
         
@@ -288,9 +287,9 @@ class core_Manager extends core_Mvc
         if (!$this->haveRightFor('Edit')) {
             $this->requireRightFor('Add');
         }
-
+        
         $data = new stdClass();
-
+        
         $data->action = 'manage';
         
         // Създаване и подготвяне на формата
@@ -326,10 +325,10 @@ class core_Manager extends core_Mvc
         
         // Генерираме събитие в $this, след въвеждането на формата
         $this->invoke('AfterInputEditForm', array($data->form));
-       
+        
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $rec, null, $retUrl);
-       
+        
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($data->form->isSubmitted()) {
             
@@ -343,10 +342,11 @@ class core_Manager extends core_Mvc
             // Подготвяме адреса, към който трябва да редиректнем,
             // при успешно записване на данните от формата
             $this->prepareRetUrl($data, $id);
-      
+            
             // Редиректваме към предварително установения адрес
             return new Redirect($data->retUrl);
         }
+        
         // Подготвяме адреса, към който трябва да редиректнем,
         // при успешно записване на данните от формата
         $this->prepareRetUrl($data);
@@ -383,9 +383,9 @@ class core_Manager extends core_Mvc
     /**
      * Логва действието
      *
-     * @param string                $msg
-     * @param NULL|stdClass|integer $rec
-     * @param string                $type
+     * @param string            $msg
+     * @param NULL|stdClass|int $rec
+     * @param string            $type
      */
     public function logInAct($msg, $rec = null, $type = 'write')
     {
@@ -404,6 +404,7 @@ class core_Manager extends core_Mvc
             $this->logRead($msg, $id);
         }
     }
+    
     
     /**
      * Начално установяване на мениджъра
@@ -589,7 +590,7 @@ class core_Manager extends core_Mvc
         while ($rec = $data->query->fetchAndCache()) {
             $data->recs[$rec->id] = $rec;
         }
-    
+        
         return $data;
     }
     
@@ -636,7 +637,7 @@ class core_Manager extends core_Mvc
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         $data->form->input(null, 'silent');
-
+        
         // Ако имаме
         if ($data->form->rec->id && $data->form->cmd != 'refresh') {
             
@@ -696,9 +697,9 @@ class core_Manager extends core_Mvc
                 }
             }
         }
-
+        
         $idPlaceholder = self::getUrlPlaceholder('id');
-
+        
         if (is_array($data->retUrl)) {
             foreach ($data->retUrl as $key => $value) {
                 if ($value == $idPlaceholder) {
@@ -706,11 +707,11 @@ class core_Manager extends core_Mvc
                 }
             }
         }
- 
+        
         return $data;
     }
-
-
+    
+    
     /**
      * Връща плейсхолдър за стойността на id
      */
@@ -720,7 +721,7 @@ class core_Manager extends core_Mvc
         
         return $placeholder;
     }
-      
+    
     
     /****************************************************************************************
      *                                                                                      *
@@ -795,7 +796,7 @@ class core_Manager extends core_Mvc
         if ($data->listScroll) {
             $listLayout->replace('narrow-scroll', 'NARROWSCROLL');
         }
-                
+        
         return $listLayout;
     }
     
@@ -805,7 +806,6 @@ class core_Manager extends core_Mvc
      */
     public function renderListSummary_($data)
     {
-        
         /**
          * @todo: Някакво стандартно обобщение?
          */
@@ -849,7 +849,7 @@ class core_Manager extends core_Mvc
         if ($data->action == 'list') {
             $table->tableClass = 'listTable listAction';
         }
-
+        
         // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, true);
         
@@ -889,13 +889,14 @@ class core_Manager extends core_Mvc
         if (isset($data->toolbar) && cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing') && $data->toolbar->count()) {
             $res = new ET("<div class='listToolbar'>[#1#]</div>", $data->toolbar->renderHtml());
         }
-
+        
         return $res;
     }
     
     
     /**
      * Прави стандартна 'обвивка' на изгледа
+     *
      * @todo: да се отдели като плъгин
      */
     public function renderWrapping_($tpl, $data = null)
@@ -957,7 +958,7 @@ class core_Manager extends core_Mvc
         if (!is_object($rec) && $rec > 0) {
             $rec = $self->fetch($rec);
         }
-
+        
         // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -985,7 +986,7 @@ class core_Manager extends core_Mvc
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
-
+        
         $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
         
         return Users::requireRole($requiredRoles, $retUrl, $action);
@@ -1139,13 +1140,14 @@ class core_Manager extends core_Mvc
         
         return implode(' ', get_object_vars($rec));
     }
-
+    
     
     /**
      * Валидиране на форма
      *
-     * @param  core_Form $form
-     * @return boolean
+     * @param core_Form $form
+     *
+     * @return bool
      */
     public function validate(core_Form $form)
     {

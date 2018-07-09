@@ -7,15 +7,15 @@
  *
  * @category  vendors
  * @package   fconv
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fconv_Script
 {
-    
-    
     /**
      * @param array files - Масив за входните файлове
      */
@@ -86,7 +86,7 @@ class fconv_Script
      * Масив с подадените callback функции
      */
     public $callBack = array();
-
+    
     
     /**
      * УРЛ, което ще се извика след приключване на отдалеченото конвертиране
@@ -112,13 +112,10 @@ class fconv_Script
     protected $checkProgramsArr = array();
     
     
-    
     public $tempPath;
     
     
-    
     public $id;
-    
     
     
     public $tempDir;
@@ -163,9 +160,9 @@ class fconv_Script
     /**
      * Задаване на входен файл
      *
-     * @param string  $placeHolder
-     * @param string  $file
-     * @param boolean $checkFile
+     * @param string $placeHolder
+     * @param string $file
+     * @param bool   $checkFile
      */
     public function setFile($placeHolder, $file, $checkFile = false)
     {
@@ -194,9 +191,9 @@ class fconv_Script
     /**
      * Задаване на път до изпълнима външна програма
      *
-     * @param string  $name
-     * @param string  $binPath
-     * @param boolean $escape
+     * @param string $name
+     * @param string $binPath
+     * @param bool   $escape
      */
     public function setProgram($name, $binPath, $escape = true)
     {
@@ -243,8 +240,8 @@ class fconv_Script
     /**
      * Връща линията за изпълнени
      *
-     * @param string  $cmdLine
-     * @param boolean $silent
+     * @param string $cmdLine
+     * @param bool   $silent
      *
      * @return string
      */
@@ -271,9 +268,9 @@ class fconv_Script
     /**
      * Добавя извикване на външна програма в текста на скрипта
      *
-     * @param string  $cmdLine
-     * @param array   $params
-     * @param boolean $addTimeLimit
+     * @param string $cmdLine
+     * @param array  $params
+     * @param bool   $addTimeLimit
      */
     public function lineExec($cmdLine, $params = array(), $addTimeLimit = true)
     {
@@ -398,7 +395,7 @@ class fconv_Script
         Request::setProtected('pid, func');
         
         $url = toUrl(array('fconv_Processes',
-                'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
+            'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
         
         $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
         $this->setCheckProgramsArr('wget');
@@ -429,9 +426,9 @@ class fconv_Script
     /**
      * Изпълнява скрипта, като му дава време за изпълнение
      *
-     * @param boolean $asynch
-     * @param integer $time
-     * @param string  $timeoutCallback
+     * @param bool   $asynch
+     * @param int    $time
+     * @param string $timeoutCallback
      */
     public function run($asynch = true, $time = 2, $timeoutCallback = '')
     {
@@ -447,9 +444,9 @@ class fconv_Script
                     $this->remoteAfterConvertCallback = toUrl(array('fconv_Remote', 'afterConvertCallback', 'pid' => $this->id), 'absolute');
                     
                     $script = urlencode(core_Crypt::encodeVar($this, fconv_Setup::get('SALT')));
-            
+                    
                     $url = rtrim($rRec->address, '/');
-            
+                    
                     $url .= '/fconv_Remote/convert/?script=' . $script;
                     
                     fconv_Processes::add($this->id, serialize($this), $time, $timeoutCallback);
@@ -464,7 +461,7 @@ class fconv_Script
         }
         
         $checkProgramsArr = $this->getCheckProgramsArr();
-
+        
         // Ако са зададени програми, които да се проверят преди обработка.
         $which = 'which';
         if (stristr(PHP_OS, 'WIN')) {
@@ -553,9 +550,10 @@ class fconv_Script
     /**
      * Проверява и генерира уникално име на файла
      *
-     * @param  string         $fname
-     * @param  string         $fpath
-     * @return string|boolean
+     * @param string $fname
+     * @param string $fpath
+     *
+     * @return string|bool
      */
     public function getUniqName($fname, $fpath)
     {
@@ -588,9 +586,10 @@ class fconv_Script
     /**
      * Копира избрания файл или създава софт линк под Linux
      *
-     * @param  string  $fileName
-     * @param  string  $filePath
-     * @return boolean
+     * @param string $fileName
+     * @param string $filePath
+     *
+     * @return bool
      */
     public function copy($fileName, $filePath)
     {

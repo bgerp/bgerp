@@ -6,29 +6,29 @@
  *
  * @title Отлагане на напомняне
  *
- *
  * @category  bgerp
  * @package   cal
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cal_ReminderSnoozes extends core_Detail
 {
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'remId';
-
-     
+    
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools,plg_Created,cal_Wrapper';
-
-
+    
+    
     /**
      * Заглавие
      */
@@ -51,7 +51,7 @@ class cal_ReminderSnoozes extends core_Detail
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/reminders.png.png';
-
+    
     
     /**
      * Име за единичния изглед
@@ -70,8 +70,8 @@ class cal_ReminderSnoozes extends core_Detail
      * Активен таб на менюто
      */
     public $currentTab = 'Напомняния';
-   
-         
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -82,12 +82,12 @@ class cal_ReminderSnoozes extends core_Detail
         
         // Начало на новото напомнянето
         $this->FLD('timeStart', 'time(suggestions=1 час|3 часа|5 часа|8 часа|10 часа|1 ден|2 дена|3 дена|4 дена|5 дена|6 дена|7 дена)', 'caption=Време->Начало, silent,changable');
-
+        
         // Статус съобщение
         $this->FLD('message', 'richtext(rows=5, bucket=calReminders)', 'caption=Съобщение');
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -97,7 +97,7 @@ class cal_ReminderSnoozes extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         expect($data->form->rec->remId);
-
+        
         $masterRec = cal_Reminders::fetch($data->form->rec->remId);
         
         if ($masterRec->timeStart) {
@@ -127,8 +127,8 @@ class cal_ReminderSnoozes extends core_Detail
             }
         }
     }
-
-
+    
+    
     /**
      * Изпълнява се след опаковане на детайла от мениджъра
      *
@@ -137,6 +137,7 @@ class cal_ReminderSnoozes extends core_Detail
     public function renderDetail($data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -176,6 +177,7 @@ class cal_ReminderSnoozes extends core_Detail
     public static function on_AfterRenderListTable($mvc, &$res, $data)
     {
         if (!count($data->recs)) {
+            
             return;
         }
         
@@ -207,7 +209,7 @@ class cal_ReminderSnoozes extends core_Detail
             }
         }
     }
-
+    
     
     /**
      * Извиква се след успешен запис в модела
@@ -227,7 +229,7 @@ class cal_ReminderSnoozes extends core_Detail
             $remRec->timeStart = dt::timestamp2Mysql($time);
             $remRec->state = 'active';
         }
-       
+        
         cal_Reminders::save($remRec);
     }
 }

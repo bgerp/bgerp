@@ -1,39 +1,39 @@
 <?php
 
 
-
 /**
  * Клас  'core_NT' (New Templates)
  *
  * @title     Нова система от шаблони
+ *
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_NT extends core_BaseClass
 {
-    
-    
     /**
      * Съдържание на шаблона
      */
     private $content;
     
-
+    
     /**
      * Масив с имена и хеш-стойности на блокове
      */
     private $blocks = array();
     
-
+    
     /**
      * Флаг за готовност
      */
     private $ready;
- 
+    
     
     /**
      * Конструктор на шаблона
@@ -42,7 +42,7 @@ class core_NT extends core_BaseClass
     {
         $this->content = $str;
         $this->prepareContent();
-   
+        
         // Всички следващи аргументи, ако има такива се заместват на
         // плейсхолдери с имена [#1#], [#2#] ...
         $args = func_get_args();
@@ -51,11 +51,11 @@ class core_NT extends core_BaseClass
             array_unshift($args);
             $this->render($args, null, 'replaceArray');
         }
-
+        
         $this->ready = true;
     }
-
-
+    
+    
     /**
      * Подготвя шаблона за заместване
      */
@@ -70,8 +70,8 @@ class core_NT extends core_BaseClass
             }
         }
     }
-
-
+    
+    
     /**
      * Замества данните в шаблона
      */
@@ -79,7 +79,7 @@ class core_NT extends core_BaseClass
     {
         // Само един път може да се прави заместване;
         expect($this->ready);
-
+        
         if (is_array($data) && empty($place) && $mode == 'replace') {
             foreach ($data as $placeHolder => $value) {
                 if ($value !== null) {
@@ -91,15 +91,15 @@ class core_NT extends core_BaseClass
             // Все още не е реализирано
             error('Все още не е реализирано', $this, $data, $place, $mode);
         }
-
+        
         $this->removeUnchangedBlocks();
         $this->removePlaces();
         $this->ready = false;
-
+        
         return $this->content;
     }
-
-
+    
+    
     /**
      * Връща  съдържанието на блока
      */
@@ -110,7 +110,7 @@ class core_NT extends core_BaseClass
         $startPos = strpos($this->content, $openTag) + strlen($openTag);
         expect($stopPos = strpos($this->content, $closeTag), $closeTag, $this);
         $res = substr($this->content, $startPos, $stopPos - $startPos);
-
+        
         return $res;
     }
     
@@ -159,8 +159,8 @@ class core_NT extends core_BaseClass
             }
         }
     }
-
-
+    
+    
     /**
      * Конвертира към стринг
      */
@@ -168,8 +168,8 @@ class core_NT extends core_BaseClass
     {
         return $this->content;
     }
-
-
+    
+    
     /**
      * Премахва плейсхолдерите
      */
@@ -182,8 +182,8 @@ class core_NT extends core_BaseClass
         }
         $this->content = strtr($this->content, $fromTo);
     }
-
-
+    
+    
     /**
      * Замества контролните символи в текста (начало на плейсхолдер)
      * с други символи, които не могат да се разчетат като контролни
@@ -191,15 +191,15 @@ class core_NT extends core_BaseClass
     public static function escape($str)
     {
         expect(!($str instanceof stdClass), $str);
-
+        
         return str_replace('[#', '&#91;#', $str);
     }
     
-
+    
     public static function unEscape($str)
     {
         expect(!($str instanceof stdClass), $str);
-
+        
         return str_replace('&#91;#', '[#', $str);
     }
     

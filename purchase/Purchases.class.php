@@ -1,29 +1,28 @@
 <?php
 
 
-
 /**
  * Документ 'Покупка'
  *
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Покупки
  */
 class purchase_Purchases extends deals_DealMaster
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Договори за покупка';
-
-
+    
+    
     /**
      * Поддържани интерфейси
      */
@@ -36,7 +35,6 @@ class purchase_Purchases extends deals_DealMaster
     public $loadList = 'plg_RowTools2, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys';
-    
     
     
     /**
@@ -91,14 +89,14 @@ class purchase_Purchases extends deals_DealMaster
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
-
-
+    
+    
     /**
      * Детайла, на модела
      */
     public $details = 'purchase_PurchasesDetails';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -109,8 +107,8 @@ class purchase_Purchases extends deals_DealMaster
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/cart_put.png';
-
-
+    
+    
     /**
      * Икона за единичния изглед на обединяващите договори
      */
@@ -195,20 +193,20 @@ class purchase_Purchases extends deals_DealMaster
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
-            'case2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '501'),
-            'bank2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '503'),
-            'case2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '501'),
-            'bank2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '503'),
-            'supplier2case' => array('title' => 'Прихващане на плащане', 'debit' => '501', 'credit' => '401', 'reverse' => true),
-            'supplier2bank' => array('title' => 'Прихващане на плащане', 'debit' => '503', 'credit' => '401', 'reverse' => true),
-            'supplier2caseRet' => array('title' => 'Връщане от Доставчик', 'debit' => '501', 'credit' => '401', 'reverse' => true),
-            'supplier2bankRet' => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401', 'reverse' => true),
-            'supplierAdvance2case' => array('title' => 'Прихванат аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => true),
-            'supplierAdvance2bank' => array('title' => 'Прихванат аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => true),
-            'supplierAdvance2caseRet' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => true),
-            'supplierAdvance2bankRet' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => true),
-            'debitDeals' => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401', 'reverse' => true),
-            'creditDeals' => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
+        'case2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '501'),
+        'bank2supplierAdvance' => array('title' => 'Авансово плащане към Доставчик', 'debit' => '402', 'credit' => '503'),
+        'case2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '501'),
+        'bank2supplier' => array('title' => 'Плащане към Доставчик', 'debit' => '401', 'credit' => '503'),
+        'supplier2case' => array('title' => 'Прихващане на плащане', 'debit' => '501', 'credit' => '401', 'reverse' => true),
+        'supplier2bank' => array('title' => 'Прихващане на плащане', 'debit' => '503', 'credit' => '401', 'reverse' => true),
+        'supplier2caseRet' => array('title' => 'Връщане от Доставчик', 'debit' => '501', 'credit' => '401', 'reverse' => true),
+        'supplier2bankRet' => array('title' => 'Връщане от Доставчик', 'debit' => '503', 'credit' => '401', 'reverse' => true),
+        'supplierAdvance2case' => array('title' => 'Прихванат аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => true),
+        'supplierAdvance2bank' => array('title' => 'Прихванат аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => true),
+        'supplierAdvance2caseRet' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '501', 'credit' => '402', 'reverse' => true),
+        'supplierAdvance2bankRet' => array('title' => 'Връщане на аванс от Доставчик', 'debit' => '503', 'credit' => '402', 'reverse' => true),
+        'debitDeals' => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401', 'reverse' => true),
+        'creditDeals' => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
     );
     
     
@@ -228,9 +226,9 @@ class purchase_Purchases extends deals_DealMaster
      * Позволени операции за посследващите складови документи/протоколи
      */
     public $allowedShipmentOperations = array('stowage' => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '401'),
-                                              'buyServices' => array('title' => 'Покупка на услуги', 'debit' => 'service', 'credit' => '401'),
-                                              'deliveryService' => array('title' => 'Връщане на направени услуги', 'debit' => '401', 'credit' => 'service', 'reverse' => true),
-                                              'delivery' => array('title' => 'Връщане на доставена стока', 'debit' => '401', 'credit' => 'store', 'reverse' => true),
+        'buyServices' => array('title' => 'Покупка на услуги', 'debit' => 'service', 'credit' => '401'),
+        'deliveryService' => array('title' => 'Връщане на направени услуги', 'debit' => '401', 'credit' => 'service', 'reverse' => true),
+        'delivery' => array('title' => 'Връщане на доставена стока', 'debit' => '401', 'credit' => 'store', 'reverse' => true),
     );
     
     
@@ -263,8 +261,8 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Връща заглавието на покупката със сумата за фактуриране
      *
-     * @param integer $id
-     * @param boolean $showAmount
+     * @param int  $id
+     * @param bool $showAmount
      *
      * @return string
      */
@@ -431,8 +429,10 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
-     * @param  int|object                 $id
+     * @param int|object $id
+     *
      * @return bgerp_iface_DealAggregator
+     *
      * @see bgerp_DealIntf::getDealInfo()
      */
     public function pushDealInfo($id, &$result)
@@ -472,7 +472,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
         $result->setIfNot('caseId', $rec->caseId);
         $result->setIfNot('bankAccountId', bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->bankAccountId), 'id'));
-       
+        
         purchase_transaction_Purchase::clearCache();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         
@@ -502,7 +502,7 @@ class purchase_Purchases extends deals_DealMaster
             if (empty($deliveredAmount)) {
                 $expectedPayment = $expectedPayment - $paidAmount;
             }
-             
+            
             if ($expectedPayment > 0) {
                 $result->set('expectedPayment', $expectedPayment);
             }
@@ -536,7 +536,7 @@ class purchase_Purchases extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
-           
+            
             $info = cat_Products::getProductInfo($p->productId);
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
@@ -557,20 +557,20 @@ class purchase_Purchases extends deals_DealMaster
             $push = true;
             $index = $p->productId;
             $shipped = $result->get('shippedPacks');
-                
+            
             $inPack = $p->quantityInPack;
             if ($shipped && isset($shipped[$index])) {
                 if ($shipped[$index]->inPack < $inPack) {
                     $push = false;
                 }
             }
-                
+            
             if ($push) {
                 $arr = (object) array('packagingId' => $p->packagingId, 'inPack' => $inPack);
                 $result->push('shippedPacks', $arr, $index);
             }
         }
-       
+        
         $result->set('dealProducts', $agreed);
         $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);
@@ -593,7 +593,7 @@ class purchase_Purchases extends deals_DealMaster
                 $res = 'no_one';
             }
         }
-
+        
         if ($action == 'closewith' && isset($rec)) {
             if (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")) {
                 $res = 'no_one';
@@ -620,7 +620,7 @@ class purchase_Purchases extends deals_DealMaster
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
-
+        
         // Проверка по крон дали покупката е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = 'IsPurchaseOverdue';
@@ -707,17 +707,19 @@ class purchase_Purchases extends deals_DealMaster
     
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
+     *
      * @see acc_AllowArticlesCostCorrectionDocsIntf
      *
-     * @param  mixed $id - ид или запис
+     * @param mixed $id - ид или запис
+     *
      * @return array $products        - масив с информация за артикули
-     *                  o productId       - ид на артикул
-     *                  o name            - име на артикула
-     *                  o quantity        - к-во
-     *                  o amount          - сума на артикула
-     *                  o inStores        - масив с ид-то и к-то във всеки склад в който се намира
-     *                  o transportWeight - транспортно тегло на артикула
-     *                  o transportVolume - транспортен обем на артикула
+     *               o productId       - ид на артикул
+     *               o name            - име на артикула
+     *               o quantity        - к-во
+     *               o amount          - сума на артикула
+     *               o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+     *               o transportWeight - транспортно тегло на артикула
+     *               o transportVolume - транспортен обем на артикула
      */
     public function getCorrectableProducts($id)
     {

@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_FilesPlg extends core_Plugin
 {
-    
-    
     /**
      * Променяме wrapper' а да сочи към текущата избрана папка
      */
@@ -55,7 +55,7 @@ class doc_FilesPlg extends core_Plugin
      * @param core_Mvc      $mvc   -
      * @param string        $res   - Променливата, в която се записва
      * @param fileman_Files $rec   - Записите за файла
-     * @param integer       $limit - Брой записи, които да се показват
+     * @param int           $limit - Брой записи, които да се показват
      */
     public function on_AfterGetDocumentsWithFile($mvc, &$res, $rec, $limit = false)
     {
@@ -172,7 +172,7 @@ class doc_FilesPlg extends core_Plugin
                 
                 // Линка към папката
                 $folderLink = doc_Folders::getLink($fRec->folderId, 35);
-
+                
                 // Отбелязваме, че сме отработили папката
                 $folderArr[$fRec->folderId] = $folderLink;
             } else {
@@ -265,7 +265,7 @@ class doc_FilesPlg extends core_Plugin
             
             // id' то на контейнера на пъривя документ
             $firstContainerId = doc_Threads::fetchField($fRec->threadId, 'firstContainerId');
-        
+            
             // Ако има първи контейнер и не е равен на съответния контейнер
             if (($firstContainerId) && ($firstContainerId != $fRec->containerId)) {
                 try {
@@ -285,7 +285,7 @@ class doc_FilesPlg extends core_Plugin
                 
                 // Темата да е линк към single' а на първиа документ документа
                 $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 70), array($docProxy->className, 'single', $docProxy->that), null, $attr);
-
+                
                 // Добавяме в масива линка и id' то
                 $res['firstContainer']['content'] = $threadLink;
                 $res['firstContainer']['id'] = $firstContainerId;
@@ -326,11 +326,11 @@ class doc_FilesPlg extends core_Plugin
             Request::setProtected(array('inType', 'foreignId'));
             
             $data->toolbar->addBtn('Връзка', array(
-                    'doc_Linked',
-                    'Link',
-                    'foreignId' => $data->rec->id,
-                    'inType' => 'file',
-                    'ret_url' => array($mvc, 'single', $data->rec->id)
+                'doc_Linked',
+                'Link',
+                'foreignId' => $data->rec->id,
+                'inType' => 'file',
+                'ret_url' => array($mvc, 'single', $data->rec->id)
             ), 'ef_icon = img/16/doc_tag.png, title=Връзка към документа,order=18');
         }
     }

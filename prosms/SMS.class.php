@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   prosms
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class prosms_SMS extends core_Manager
 {
-    
-    
     /**
      * Кой има право да чете?
      */
@@ -44,6 +44,7 @@ class prosms_SMS extends core_Manager
      */
     public $canList = 'no_one';
     
+    
     /**
      * Кой има право да го изтрие?
      */
@@ -54,7 +55,6 @@ class prosms_SMS extends core_Manager
      * Интерфейсния клас за изпращане на SMS
      */
     public $interfaces = 'callcenter_SentSMSIntf';
-    
     
     
     public $title = 'proSMS';
@@ -135,6 +135,7 @@ class prosms_SMS extends core_Manager
     /**
      * Инрерфейсен метод
      * Връща статуса на съобщението от съоветната услуга
+     *
      * @see callcenter_SentSMSIntf
      *
      * @param string $uid

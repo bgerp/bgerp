@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_ShipmentOrders'
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_ShipmentOrders extends store_DocumentMaster
 {
-    
-    
     /**
      * Заглавие
      *
@@ -46,12 +45,13 @@ class store_ShipmentOrders extends store_DocumentMaster
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,deals_plg_SelectInvoice,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
-
+    
     
     /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
+     *
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, store';
@@ -67,8 +67,8 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,store';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -91,8 +91,8 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store,sales,purchase';
-
-
+    
+    
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
@@ -134,7 +134,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $details = 'store_ShipmentOrderDetails,store_DocumentPackagingDetail';
     
-
+    
     /**
      * Заглавие в единствено число
      */
@@ -145,8 +145,8 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/SingleStoreDocument.shtml';
-
-   
+    
+    
     /**
      * Групиране на документите
      */
@@ -171,14 +171,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     public $showLogTimeInHead = 'Документът се връща в чернова=3';
     
     
-    
     public $printAsClientLayaoutFile = 'store/tpl/SingleLayoutPackagingListClient.shtml';
     
     
-    
     public $canAsclient = 'ceo,store,sales,purchase';
-       
-
+    
+    
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
@@ -199,7 +197,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-
+        
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryTime');
         $this->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма');
         $this->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, changable, class=contactData');
@@ -238,13 +236,13 @@ class store_ShipmentOrders extends store_DocumentMaster
         } else {
             $deliveryAddress = $data->row->contragentAddress;
         }
-
+        
         core_Lg::push($data->rec->tplLang);
         $deliveryAddress = core_Lg::transliterate($deliveryAddress);
         
         $tpl->replace($deliveryAddress, 'deliveryAddress');
         $tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
-
+        
         core_Lg::pop();
     }
     
@@ -338,9 +336,11 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
@@ -359,24 +359,24 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         $tplArr = array();
         $tplArr[] = array('name' => 'Експедиционно нареждане',
-                          'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderNarrow.shtml',
-                           'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+            'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
         $tplArr[] = array('name' => 'Експедиционно нареждане с цени',
-                           'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderPricesNarrow.shtml',
-                           'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
+            'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderPricesNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
         $tplArr[] = array('name' => 'Packing list',
-                           'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
-                          'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+            'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
         $tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
-                           'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
-                           'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+            'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
         $tplArr[] = array('name' => 'Packing list with Declaration',
-                          'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
-                           'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+            'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
         $tplArr[] = array('name' => 'Експедиционно нареждане с цени в евро',
-                           'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
-                           'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-
+            'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
@@ -384,7 +384,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Информация за логистичните данни
      *
-     * @param  mixed $rec - ид или запис на документ
+     * @param mixed $rec - ид или запис на документ
+     *
      * @return array $data - логистичните данни
      *
      *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
@@ -423,7 +424,6 @@ class store_ShipmentOrders extends store_DocumentMaster
         unset($res['deliveryTime']);
         $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
         
-        
         return $res;
     }
     
@@ -456,7 +456,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-     
+        
         if ($rec->isReverse == 'no') {
             
             // Към чернова може да се генерират проформи, а към контиран фактури
@@ -503,20 +503,21 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     /**
      * Какво да е предупреждението на бутона за контиране
-     * 
-     * @param int $id            - ид
+     *
+     * @param int    $id         - ид
      * @param string $isContable - какво е действието
-     * @return NULL|string       - текста на предупреждението или NULL ако няма
+     *
+     * @return NULL|string - текста на предупреждението или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
-    	$rec = $this->fetchRec($id);
-    	$dQuery = store_ShipmentOrderDetails::getQuery();
-    	$dQuery->where("#shipmentId = {$id}");
-    	$dQuery->show('productId, quantity');
-    	
-    	$warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
-    	
-    	return $warning;
+        $rec = $this->fetchRec($id);
+        $dQuery = store_ShipmentOrderDetails::getQuery();
+        $dQuery->where("#shipmentId = {$id}");
+        $dQuery->show('productId, quantity');
+        
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
+        
+        return $warning;
     }
 }

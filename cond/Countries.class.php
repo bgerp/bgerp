@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'cond_Countries' - Условия на доставка
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cond_Countries extends core_Manager
 {
-    
-    
     /**
      * Кой може да го разглежда?
      */
@@ -65,8 +64,8 @@ class cond_Countries extends core_Manager
      * Заглавие на единичния обект
      */
     public $singleTitle = 'Търговско условие за държава';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -120,6 +119,7 @@ class cond_Countries extends core_Manager
     
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален
+     *
      * @param: $rec stdClass записа, който ще се проверява
      * @param: $fields array|string полетата, които не уникални.
      * @return: bool
@@ -128,12 +128,12 @@ class cond_Countries extends core_Manager
     {
         $where = "#id != '{$rec->id}' AND #conditionId = {$rec->conditionId}";
         $where .= (!empty($rec->country)) ? " AND #country = {$rec->country}" : " AND (#country IS NULL OR #country = 0 OR #country = '')";
-    
+        
         $res = $this->fetch($where);
         if ($res) {
             $exRec = $res;
             $fields = array('country', 'conditionId');
-
+            
             return false;
         }
         
@@ -180,14 +180,14 @@ class cond_Countries extends core_Manager
         
         $file = 'cond/csv/Countries.csv';
         $fields = array(
-                0 => 'csv_country',
-                1 => 'paramSysId',
-                2 => 'value',
+            0 => 'csv_country',
+            1 => 'paramSysId',
+            2 => 'value',
         );
-    
+        
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
-         
+        
         return $res;
     }
     

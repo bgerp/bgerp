@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_DocumentPackagingDetail'
  *
@@ -9,15 +8,15 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_DocumentPackagingDetail extends store_InternalDocumentDetail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -182,7 +181,8 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     /**
      * Връща наличния Амбалаж за предаване
      *
-     * @param  string    $onlyCount - само бройка или не
+     * @param string $onlyCount - само бройка или не
+     *
      * @return int|array
      */
     private static function getPackagingProducts($folderId, $onlyCount = false)
@@ -214,7 +214,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     {
         // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
         $products = self::getPackagingProducts($masterRec->folderId);
-    
+        
         return $products;
     }
     
@@ -248,7 +248,8 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     /**
      * Метод по реализация на определянето на движението генерирано от реда
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return string
      */
     public function getBatchMovementDocument($rec)
@@ -280,12 +281,12 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         while ($dRec = $dQuery->fetch()) {
             $quantity = $dRec->quantityInPack * $dRec->packQuantity;
             $arr323 = array('323', array($rec->contragentClassId, $rec->contragentId),
-                                   array('cat_Products', $dRec->productId),
-                                   'quantity' => $sign * $quantity);
+                array('cat_Products', $dRec->productId),
+                'quantity' => $sign * $quantity);
             
             $arr321 = array('321', array('store_Stores', $rec->storeId),
-                                   array('cat_Products', $dRec->productId),
-                                   'quantity' => $sign * $quantity);
+                array('cat_Products', $dRec->productId),
+                'quantity' => $sign * $quantity);
             
             if ($dRec->type == 'in') {
                 $entry = array('debit' => $arr321, 'credit' => $arr323);
@@ -295,7 +296,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
             
             $entries[] = $entry;
         }
-    
+        
         return $entries;
     }
     

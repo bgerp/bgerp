@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Хранилището за перманентни данни.
  *
@@ -8,16 +9,16 @@
  *
  * @category  vendors
  * @package   permanent
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Хранилище за данни
  */
 class permanent_Data extends core_Manager
 {
-    
-    
     /**
      * Титла
      */
@@ -60,7 +61,7 @@ class permanent_Data extends core_Manager
         if (!$rec) {
             $rec = new stdClass();
         }
-
+        
         $rec->key = $key;
         
         if (is_object($data) || is_array($data)) {
@@ -102,6 +103,7 @@ class permanent_Data extends core_Manager
         $rec = permanent_Data::fetch("#key = '{$key}'");
         
         if (!$rec) {
+            
             return;
         }
         

@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_SpamRules extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -26,16 +26,14 @@ class email_SpamRules extends core_Manager
      */
     public $title = 'Потребителски правила за определяне на СПАМ рейтинг';
     
-     
+    
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Правило за рутиране по СПАМ';
     
     
-    
     public $canList = 'admin, email';
-    
     
     
     public $canEdit = 'admin, email';
@@ -63,7 +61,6 @@ class email_SpamRules extends core_Manager
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'admin';
-    
     
     
     public $listFields = 'id, email, subject, body, points, note, state, createdOn, createdBy';
@@ -99,7 +96,7 @@ class email_SpamRules extends core_Manager
      * @param NULL|email_Mime $mime
      * @param NULL|stdClass   $rec
      *
-     * @return double|NULL
+     * @return float|NULL
      */
     public static function getSpamScore($mime, $rec)
     {
@@ -196,7 +193,7 @@ class email_SpamRules extends core_Manager
      * @param stdClass      $res
      * @param stdClass      $rec
      *
-     * @return NULL|double
+     * @return NULL|float
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {

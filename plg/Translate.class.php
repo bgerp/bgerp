@@ -8,20 +8,20 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_Translate extends core_Plugin
 {
-    
-    
     /**
      * Преди вземането на вербалната стойност
      *
      * @param core_Mvc $mvc
-     * @param integer  $num
+     * @param int      $num
      * @param mixed    $rec
      * @param string   $part
      */

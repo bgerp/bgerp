@@ -1,21 +1,20 @@
 <?php 
 
-
 /**
  * Мениджира детайлите на Overviews (Details)
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens_OverviewDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -46,7 +45,7 @@ class sens_OverviewDetails extends core_Detail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'overviewId, blockTitle';
-
+    
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол..

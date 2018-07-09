@@ -10,17 +10,18 @@
  *
  * @category  vendors
  * @package   fancybox
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
+ *
  * @link      http://fancybox.net/
  */
 class fancybox_Fancybox extends core_Manager
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -56,7 +57,7 @@ class fancybox_Fancybox extends core_Manager
         } else {
             expect(false, $thumbSize);
         }
-
+        
         $thumb = new thumb_Img(array($fh, $thumbWidth, $thumbHeight, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $baseName));
         
         if ($thumbSize[0] >= $maxSize[0] && $thumbSize[1] >= $maxSize[1]) {
@@ -64,11 +65,11 @@ class fancybox_Fancybox extends core_Manager
             
             return $imgTpl;
         }
-
+        
         $attr = array('title' => 'Кликни за увеличение') + $imgAttr;
-     
+        
         $imgTpl = $thumb->createImg($attr);
-
+        
         // Създаваме хипервръзката
         if (is_int($maxSize)) {
             $bigWidth = $bigHeight = $maxSize;
@@ -78,7 +79,7 @@ class fancybox_Fancybox extends core_Manager
         } else {
             expect(false, $maxSize);
         }
-
+        
         $bigImg = new thumb_Img(array($fh, $bigWidth, $bigHeight, 'fileman', 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => $baseName));
         
         // Ако е абсолютен

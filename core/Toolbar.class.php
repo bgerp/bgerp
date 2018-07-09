@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Toolbar' - Изглед за лента с бутони
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Toolbar extends core_BaseClass
 {
-    
-    
     /**
      * Масив с бутоните на лентата с инструменти
      */
@@ -142,8 +141,9 @@ class core_Toolbar extends core_BaseClass
     /**
      * Преименува заглавието на бутона
      *
-     * @param  string $id   - ид на бутона
-     * @param  string $name - новото му име
+     * @param string $id   - ид на бутона
+     * @param string $name - новото му име
+     *
      * @return void
      */
     public function renameBtn($id, $name)
@@ -225,6 +225,7 @@ class core_Toolbar extends core_BaseClass
     public static function cmp($a, $b)
     {
         if ($a->order == $b->order) {
+            
             return 0;
         }
         
@@ -249,10 +250,12 @@ class core_Toolbar extends core_BaseClass
         $layout = new ET();
         
         if (!count($this->buttons) > 0) {
+            
             return $layout;
         }
         
         if (Mode::isReadOnly() || Mode::is('text', 'plain')) {
+            
             return $layout;
         }
         
@@ -353,8 +356,9 @@ class core_Toolbar extends core_BaseClass
     /**
      * Проверява дали даден бутон го има в тулбара
      *
-     * @param  int     $id - ид на бутон
-     * @return boolean TRUE/FALSE - имали го бутона или не
+     * @param int $id - ид на бутон
+     *
+     * @return bool TRUE/FALSE - имали го бутона или не
      */
     public function hasBtn($id)
     {

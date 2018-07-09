@@ -1,33 +1,33 @@
 <?php
 
 
-
 /**
  * Мениджър на болнични
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Болнични листи
  */
 class hr_Sickdays extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf';
     
-
+    
     /**
      * Заглавие
      */
     public $title = 'Болнични листи';
+    
     
     /**
      * Заглавие в единствено число
@@ -58,7 +58,7 @@ class hr_Sickdays extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     //public $searchFields = 'description';
-
+    
     
     /**
      * За плъгина acc_plg_DocumentSummary
@@ -79,7 +79,6 @@ class hr_Sickdays extends core_Master
     public $rowToolsSingleField = 'personId';
     
     
-    
     /**
      * Кой има право да чете?
      */
@@ -96,8 +95,8 @@ class hr_Sickdays extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, hrMaster, hrSickdays';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -108,7 +107,7 @@ class hr_Sickdays extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'powerUser';
-
+    
     
     /**
      * Кой може да го активира?
@@ -126,7 +125,6 @@ class hr_Sickdays extends core_Master
      * Кой има право да прави начисления
      */
     public $canChangerec = 'ceo, hrMaster, hrSickdays';
-
     
     
     public $canEdited = 'powerUser';
@@ -136,7 +134,7 @@ class hr_Sickdays extends core_Master
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'powerUser';
-
+    
     
     /**
      * Шаблон за единичния изглед
@@ -209,11 +207,11 @@ class hr_Sickdays extends core_Master
         $this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
         $this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
         $this->FNC('title', 'varchar', 'column=none');
-         
+        
         
         $this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo)', 'caption=Споделяне->Потребители');
     }
-
+    
     
     /**
      * Изчисление на title
@@ -243,7 +241,7 @@ class hr_Sickdays extends core_Master
             }
         }
     }
-
+    
     
     /**
      * Подготовка на формата за добавяне/редактиране
@@ -266,7 +264,7 @@ class hr_Sickdays extends core_Master
         
         $form->setDefault('reason', 3);
         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
-
+        
         if ($rec->folderId && $folderClass == 'crm_Persons') {
             $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $form->setReadonly('personId');
@@ -317,7 +315,7 @@ class hr_Sickdays extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
     }
-
+    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -326,7 +324,7 @@ class hr_Sickdays extends core_Master
     {
         $mvc->updateSickdaysToCalendar($rec->id);
     }
-            
+    
     
     /**
      * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
@@ -345,30 +343,30 @@ class hr_Sickdays extends core_Master
     public static function on_AfterAction(&$invoker, &$tpl, $act)
     {
         if (strtolower($act) == 'single' && haveRole('hrSickdays,ceo') && !Mode::is('printing')) {
-    
+            
             // Взимаме ид-то на молбата
             $id = Request::get('id', 'int');
-    
+            
             // намираме, кой е текущия потребител
             $cu = core_Users::getCurrent();
-    
+            
             // взимаме записа от модела
             $rec = self::fetch($id);
-    
+            
             // превръщаме кей листа на споделените потребители в масив
             $sharedUsers = type_Keylist::toArray($rec->sahredUsers);
-    
+            
             // добавяме текущия потребител
             $sharedUsers[$cu] = $cu;
-    
+            
             // връщаме в кей лист масива
             $rec->sharedUsers = keylist::fromArray($sharedUsers);
-    
+            
             self::save($rec, 'sharedUsers');
-    
+            
             doc_ThreadUsers::removeContainer($rec->containerId);
             doc_Threads::updateThread($rec->threadId);
-    
+            
             redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId));
         }
     }
@@ -429,23 +427,23 @@ class hr_Sickdays extends core_Master
         
         // Годината на датата от преди 30 дни е начална
         $cYear = date('Y', time() - 30 * 24 * 60 * 60);
-
+        
         // Начална дата
         $fromDate = "{$cYear}-01-01";
-
+        
         // Крайна дата
         $toDate = ($cYear + 2) . '-12-31';
         
         // Префикс на ключовете за записите в календара от тази задача
         $prefix = "Sick-{$id}";
-
+        
         $curDate = $rec->startDate;
         
         while ($curDate < $rec->toDate) {
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
                 $calRec = new stdClass();
-                    
+                
                 // Ключ на събитието
                 $calRec->key = $prefix . "-{$curDate}";
                 
@@ -457,12 +455,12 @@ class hr_Sickdays extends core_Master
                 
                 // Икона на записа
                 $calRec->type = 'sick';
-    
+                
                 $personName = crm_Persons::fetchField($rec->personId, 'name');
                 
                 // Заглавие за записа в календара
                 $calRec->title = "Болничен: {$personName}";
-    
+                
                 $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
                 $personId = array($personProfile->userId => 0);
                 $user = keylist::fromArray($personId);
@@ -480,11 +478,11 @@ class hr_Sickdays extends core_Master
             }
             $curDate = dt::addDays(1, $curDate);
         }
-
+        
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
-   
+    
     /**
      * Проверка дали нов документ може да бъде добавен в посочената папка
      *
@@ -525,7 +523,8 @@ class hr_Sickdays extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentIntf
      *
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass $row
      */
     public function getDocumentRow($id)
@@ -536,7 +535,7 @@ class hr_Sickdays extends core_Master
         
         //Заглавие
         $row->title = "Болничен лист №{$rec->id}";
-
+        
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
         
@@ -550,7 +549,7 @@ class hr_Sickdays extends core_Master
         
         return $row;
     }
-
+    
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -558,9 +557,9 @@ class hr_Sickdays extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $me = cls::get(get_called_class());
-         
+        
         $title = tr('Болничен лист №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
-         
+        
         return $title;
     }
 }

@@ -16,15 +16,15 @@ defIfNot('REMOTE_RECEIVE_NOTIFICATIONS', 'yes');
  *
  * @category  bgerp
  * @package   neswbar
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class remote_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -54,18 +54,18 @@ class remote_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'REMOTE_RECEIVE_NOTIFICATIONS' => array('enum(yes=Да,no=Не)', 'caption=Получаване на нотификации от отдалечени системи->Избор, customizeBy=powerUser'),
-        );
-
+    );
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'remote_Authorizations',
-            'remote_Tokens',
-        );
-
-        
+        'remote_Authorizations',
+        'remote_Tokens',
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
@@ -76,19 +76,19 @@ class remote_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(1.99, 'Система', 'Отдалечени', 'remote_Authorizations', 'list', 'admin'),
-        );
-
-        
+        array(1.99, 'Система', 'Отдалечени', 'remote_Authorizations', 'list', 'admin'),
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
         $html = parent::install();
-         
+        
         $html .= core_Classes::add('remote_BgerpDriver');
-
+        
         $rec = new stdClass();
         $rec->systemId = 'UpdateRemoteNotification';
         $rec->description = 'Обновяване на отдалечени нотификации';
@@ -106,7 +106,7 @@ class remote_Setup extends core_ProtoSetup
         $rec->period = 50;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
-
+        
         $rec = new stdClass();
         $rec->systemId = 'AlertForNotifications';
         $rec->description = 'Изтриване на изтеклите tokens';
@@ -115,7 +115,7 @@ class remote_Setup extends core_ProtoSetup
         $rec->period = 1;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
-
+        
         return $html;
     }
     

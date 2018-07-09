@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Мениджър на оферти за покупки
  *
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Оферти за покупки
  */
 class purchase_Offers extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -35,12 +34,13 @@ class purchase_Offers extends core_Master
      */
     public $singleTitle = 'Оферта от доставчик';
     
-     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,folderId, product, date, offer, sum, document';
-
+    
+    
     /**
      * Икона за единичния изглед
      */
@@ -58,7 +58,6 @@ class purchase_Offers extends core_Master
      */
     public $loadList = 'plg_RowTools2, plg_Rejected, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
 						purchase_Wrapper,plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
-
     
     
     /**
@@ -89,8 +88,8 @@ class purchase_Offers extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,purchase';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -114,10 +113,12 @@ class purchase_Offers extends core_Master
      */
     public $rowToolsField = 'id';
     
+    
     /**
      * Поле за търсене
      */
     public $searchFields = 'folderId, threadId, containerId';
+    
     
     /**
      * Групиране на документите
@@ -126,7 +127,7 @@ class purchase_Offers extends core_Master
     
     
     public $filterDateField = 'date';
-
+    
     
     /**
      * Полета, които при клониране да не са попълнени
@@ -151,7 +152,7 @@ class purchase_Offers extends core_Master
         $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
         $this->FLD('document', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ');
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -176,9 +177,11 @@ class purchase_Offers extends core_Master
      * Връща тялото на имейла генериран от документа
      *
      * @see email_DocumentIntf
-     * @param  int     $id      - ид на документа
-     * @param  boolean $forward
-     * @return string  - тялото на имейла
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
@@ -196,6 +199,7 @@ class purchase_Offers extends core_Master
     
     /**
      * В кои корици може да се вкарва документа
+     *
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getCoversAndInterfacesForNewDoc()
@@ -214,28 +218,30 @@ class purchase_Offers extends core_Master
     {
         // Добавяме тези документи само в персонални папки
         $threadRec = doc_Threads::fetch($threadId);
-
+        
         return self::canAddToFolder($threadRec->folderId);
     }
-
+    
     
     /**
      * Може ли документ-оферта да се добави в посочената папка?
      * Документи-оферта могат да се добавят само в папки с корица контрагент.
      *
      * @param $folderId int ид на папката
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
+        
         return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
     /**
      * @param int $id key(mvc=sales_Sales)
+     *
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)

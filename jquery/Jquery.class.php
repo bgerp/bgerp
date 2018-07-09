@@ -7,15 +7,15 @@
  *
  * @category  ef
  * @package   jquery
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class jquery_Jquery
 {
-    
-    
     /**
      * Пътя до JQuery библиотеката
      *
@@ -61,7 +61,7 @@ class jquery_Jquery
      *
      * @param core_ET $tpl
      * @param string  $code
-     * @param boolean $once
+     * @param bool    $once
      */
     public static function run(&$tpl, $code, $once = false)
     {
@@ -80,7 +80,7 @@ class jquery_Jquery
      *
      * @param core_ET $tpl
      * @param string  $func
-     * @param boolean $once
+     * @param bool    $once
      */
     public static function runAfterAjax(&$tpl, $func, $once = true)
     {

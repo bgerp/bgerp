@@ -1,15 +1,16 @@
 <?php
 
 
-
 /**
  * Смяна на езика на български
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_Bg extends core_Mvc
@@ -33,6 +34,7 @@ class bgerp_Bg extends core_Mvc
     {
     }
     
+    
     /**
      * Извиква се преди изпълняването на екшън
      *
@@ -45,12 +47,13 @@ class bgerp_Bg extends core_Mvc
         $vid = urldecode(Request::get('Act'));
         
         vislog_Adwords::add();
-
+        
         // Сменяме езика на външната част на английски
         cms_Content::setLang('bg');
-
+        
         switch ($act) {
             case 'default':
+                
                 // Редиректваме към началото
                 $res = new Redirect(array('Index', 'Default'));
                 break;
@@ -64,6 +67,7 @@ class bgerp_Bg extends core_Mvc
                     $res = Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'ShowAll', 'cMenuId' => $cMenuId));
                     break;
                 }
+                
                 // no break
             default:
             $res = Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => $vid));
@@ -71,8 +75,8 @@ class bgerp_Bg extends core_Mvc
         
         return false;
     }
-
-
+    
+    
     /**
      * Връща кратко URL към съдържание на статия
      */
@@ -85,7 +89,7 @@ class bgerp_Bg extends core_Mvc
             $url = array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => $url['Act']);
             $url = cms_Articles::getShortUrl($url);
         }
-
+        
         return $url;
     }
 }

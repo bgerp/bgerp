@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Задавания на партиди
  *
  *
  * @category  bgerp
  * @package   batch
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class batch_Defs extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -124,7 +123,7 @@ class batch_Defs extends core_Manager
         // Сортиране на записите по num
         $data->query->orderBy('id', 'DESC');
     }
-  
+    
     
     /**
      * Преди показване на форма за добавяне/промяна
@@ -187,7 +186,8 @@ class batch_Defs extends core_Manager
     /**
      * Връща дефиницията на партидата за продукта, ако има
      *
-     * @param  int                       $productId - ид на продукт
+     * @param int $productId - ид на продукт
+     *
      * @return batch_drivers_Proto|FALSE $BatchClass - инстанцията на класа или FALSE ако няма
      */
     public static function getBatchDef($productId)
@@ -209,7 +209,7 @@ class batch_Defs extends core_Manager
                 $template->productId = $productId;
                 $template->batchCaption = $rec->batchCaption;
                 $BatchClass->setRec($template);
-            
+                
                 self::$cache[$productId] = $BatchClass;
             }
         }
@@ -242,7 +242,8 @@ class batch_Defs extends core_Manager
      * 2. Ако артикула е базиран на прототип неговата партидна дефиниция
      * 3. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
      *
-     * @param  int      $productId - ид на артикул
+     * @param int $productId - ид на артикул
+     *
      * @return int|NULL $id - форсирания запис, или NULL ако няма такъв
      */
     public static function force($productId, $defaultDef = null)

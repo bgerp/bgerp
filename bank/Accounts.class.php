@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Банкови сметки
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_Accounts extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -170,7 +169,7 @@ class bank_Accounts extends core_Master
         }
     }
     
-        
+    
     /**
      * След зареждане на форма от заявката. (@see core_Form::input())
      */
@@ -220,8 +219,8 @@ class bank_Accounts extends core_Master
             }
         }
     }
- 
-
+    
+    
     /**
      * Връща иконата за сметката
      */
@@ -255,7 +254,7 @@ class bank_Accounts extends core_Master
                 $countryCode = iban_Type::getCountryPart($rec->iban);
                 if ($countryCode) {
                     $hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
-                        
+                    
                     if (isset($fields['-single'])) {
                         $row->iban = ht::createHint($row->iban, $hint);
                     } else {
@@ -274,11 +273,12 @@ class bank_Accounts extends core_Master
     public function prepareContragentBankAccounts($data)
     {
         $data->TabCaption = 'Банка';
- 
+        
         if (!$data->isCurrent) {
+            
             return;
         }
-
+        
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
         $query = $this->getQuery();
@@ -343,11 +343,11 @@ class bank_Accounts extends core_Master
                 }
                 
                 $row->title = core_ET::escape($row->title);
-               
+                
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
                 $tools = new core_ET("{$row->title} <span style='position:relative;top:4px'>[#tools#]</span>");
                 $tools->replace($row->_rowTools->renderHtml(), 'tools');
-               
+                
                 $tpl->append($tools, 'content');
                 $tpl->append('</div>', 'content');
             }
@@ -422,9 +422,10 @@ class bank_Accounts extends core_Master
     /**
      * Връща банковите сметки на даден контрагент
      *
-     * @param  int   $contragentId    - контрагент
-     * @param  mixed $contragentClass - класа на контрагента
-     * @param  int   $intKeys         - дали ключовете да са инт
+     * @param int   $contragentId    - контрагент
+     * @param mixed $contragentClass - класа на контрагента
+     * @param int   $intKeys         - дали ключовете да са инт
+     *
      * @return array $suggestions - Масив от сметките на клиента
      */
     public static function getContragentIbans($contragentId, $contragentClass, $intKeys = false)
@@ -474,11 +475,11 @@ class bank_Accounts extends core_Master
         
         if (!static::fetch(array("#iban = '[#1#]'", $iban))) {
             bank_Accounts::save((object) array('iban' => $iban,
-                    'contragentCls' => $contragentClsId,
-                    'contragentId' => $contragentId,
-                    'currencyId' => $currency,
-                    'bank' => bglocal_Banks::getBankName($iban),
-                    'bic' => bglocal_Banks::getBankBic($iban)));
+                'contragentCls' => $contragentClsId,
+                'contragentId' => $contragentId,
+                'currencyId' => $currency,
+                'bank' => bglocal_Banks::getBankName($iban),
+                'bic' => bglocal_Banks::getBankBic($iban)));
         }
     }
     

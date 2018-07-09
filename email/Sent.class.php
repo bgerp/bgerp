@@ -1,7 +1,6 @@
 <?php
 
 
-
 defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN_' . BGERP_DEFAULT_EMAIL_DOMAIN));
 
 
@@ -10,16 +9,16 @@ defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN_' . BGERP_DEFAULT_EMAI
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  * @see       https://github.com/bgerp/bgerp/issues/108
  */
 class email_Sent
 {
-    
-    
     /**
      * Масив с грешки, които ще се приемат за предупреждения
      */
@@ -74,9 +73,9 @@ class email_Sent
         );
         
         $message = (object) $messageBase;
-     
+        
         static::prepareMessage($message, $sentRec, $options['is_fax']);
-    
+        
         return static::doSend($message, $emailsTo, $emailsCc, $error);
     }
     
@@ -92,7 +91,7 @@ class email_Sent
         
         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
         $corpAccRec = email_Accounts::getCorporateAcc();
-
+        
         if ($corpAccRec->domain == $senderDomain && !$isFax) {
             $message->headers['Return-Path'] = "{$senderName}+returned={$sentRec->mid}@{$senderDomain}";
         }
@@ -131,9 +130,10 @@ class email_Sent
         expect($message->subject);
         expect($message->html || $message->text);
         
+        
         /** @var $PML PHPMailer */
         $PML = email_Accounts::getPML($message->emailFrom);
-
+        
         if ($emailsTo) {
             $toArr = type_Emails::toArray($emailsTo);
             foreach ($toArr as $to) {
@@ -284,9 +284,10 @@ class email_Sent
         //Ако сме открили съвпадение
         if (count($matches[2])) {
             $i = 0;
+            
             //Обхождаме всички открите изображения
             foreach ($matches[2] as $imgPath) {
-                                
+                
                 //Превръщаме абсолютния линк в реален, за да може да работи phpmailer' а
                 $imgFile = self::absoluteUrlToReal($imgPath);
                 
@@ -332,7 +333,7 @@ class email_Sent
     public static function absoluteUrlToReal($link)
     {
         $link = decodeUrl($link);
-
+        
         //sbf директорията
         $sbfPath = str_ireplace(EF_INDEX_PATH, '', EF_SBF_PATH);
         

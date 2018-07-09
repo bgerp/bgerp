@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   crm
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.12
  */
 class crm_ProfilesPlg extends core_Plugin
 {
-    
-    
     /**
      *
      *
@@ -26,10 +26,10 @@ class crm_ProfilesPlg extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-
         // В случаите, когато генерираме html за цел, различна от нормалното
         // показване на обектите, не правим никаква обработка
         if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            
             return;
         }
         
@@ -45,7 +45,7 @@ class crm_ProfilesPlg extends core_Plugin
                 }
                 
                 $type = $field->type;
-
+                
                 // Ако е от type_Key
                 if (cls::isSubclass($type, 'type_Key')) {
                     if (cls::isSubclass($type->params['mvc'], 'core_Users')) {

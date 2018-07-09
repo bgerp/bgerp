@@ -1,19 +1,21 @@
 <?php
 
 
-
 /**
  * Указател към обект от зададен клас, евентуално приведен (cast) към зададен интерфейс.
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  *
  * @property string valiorFld
+ *
  * @method fetch(mixed $fields = '*', boolean $cache = TRUE)
  * @method fetchField(string $field = 'id', boolean $cache = TRUE)
  * @method core_Query getQuery()
@@ -33,8 +35,6 @@
  */
 class core_ObjectReference
 {
-    
-    
     /**
      * От кой клас е обекта, към който сочи указателя
      *
@@ -142,8 +142,9 @@ class core_ObjectReference
     /**
      * Поддържа ли се зададения интерфейс от тази референция?
      *
-     * @param  string  $interface
-     * @return boolean
+     * @param string $interface
+     *
+     * @return bool
      */
     public function haveInterface($interface)
     {
@@ -154,8 +155,9 @@ class core_ObjectReference
     /**
      * Дали референцията е инстанция на подадения клас
      *
-     * @param  string  $className
-     * @return boolean
+     * @param string $className
+     *
+     * @return bool
      */
     public function isInstanceOf($className)
     {
@@ -170,7 +172,7 @@ class core_ObjectReference
             return is_subclass_of($this->getInstance(), $className);
         }
         $class = cls::get($className);
-             
+        
         return ($this->getInstance() instanceof $class->className);
     }
     

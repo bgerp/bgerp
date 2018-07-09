@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Помощен мениджър за показване на хронологията
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_BalanceHistory extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -176,7 +175,7 @@ class acc_BalanceHistory extends core_Manager
             if (!count($data->allRecs)) {
                 $data->allRecs = array();
             }
-
+            
             $data->recs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
         }
         
@@ -185,7 +184,7 @@ class acc_BalanceHistory extends core_Manager
             $data->allRecs = array();
         }
         $data->allRecs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
-       
+        
         $this->prepareMiddleBalance($data);
         
         // За всеки запис, обръщаме го във вербален вид
@@ -263,7 +262,7 @@ class acc_BalanceHistory extends core_Manager
         $daybefore = dt::mysql2verbal(dt::addDays(-2), 'd.m.Y');
         $options = array();
         
-
+        
         // Какви париоди трябва да можем да избираме:
         // Днес
         // Вчера
@@ -275,12 +274,11 @@ class acc_BalanceHistory extends core_Manager
         // От текущия месец - 6 месеца назад
         // Тази година
         // Миналата година
-
+        
         $options[$today . '|' .$today] = 'Днес';
         $options[$yesterday . '|' . $yesterday] = 'Вчера';
         $options[$daybefore . '|' . $daybefore] = 'Завчера';
         
-     
         
         while ($bRec = $balanceQuery->fetch()) {
             $bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
@@ -305,7 +303,7 @@ class acc_BalanceHistory extends core_Manager
         $filter->class = 'simpleForm';
         
         self::addPeriodFields($filter);
-
+        
         $filter->FNC('accNum', 'int', 'input=hidden');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
         $filter->showFields = 'selectPeriod,toDate,fromDate,isGrouped';
@@ -327,8 +325,8 @@ class acc_BalanceHistory extends core_Manager
         $filter->setDefault('ent1Id', $data->rec->ent1Id);
         $filter->setDefault('ent2Id', $data->rec->ent2Id);
         $filter->setDefault('ent3Id', $data->rec->ent3Id);
-                
-
+        
+        
         $filter->setDefault('fromDate', $data->fromDate);
         $filter->setDefault('toDate', $data->toDate);
         
@@ -357,7 +355,7 @@ class acc_BalanceHistory extends core_Manager
         }
     }
     
-
+    
     /**
      * Добавя към филтъра полета за избор на период
      */
@@ -370,7 +368,7 @@ class acc_BalanceHistory extends core_Manager
         $toDateField->type->setMenu(self::getBalancePeriods(), "{$fromDate}|{$toDate}");
     }
     
-
+    
     /**
      * Подготовка на историята за перара
      *
@@ -416,7 +414,7 @@ class acc_BalanceHistory extends core_Manager
         $rec->baseQuantity = $balHistory['summary']['baseQuantity'];
         $row->baseAmount = $Double->toVerbal($rec->baseAmount);
         $row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
-       
+        
         if (round($rec->baseAmount, 4) < 0) {
             $row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
         }
@@ -435,7 +433,7 @@ class acc_BalanceHistory extends core_Manager
             'blAmount' => $rec->baseAmount,
             'blQuantity' => $rec->baseQuantity,
             'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
-       
+        
         $data->allRecs = $data->recs;
         
         if ($data->orderField) {
@@ -450,14 +448,14 @@ class acc_BalanceHistory extends core_Manager
         
         // Последния ред е крайното салдо
         $lastRec = array('docId' => 'Краен баланс',
-                         'valior' => $data->toDate,
-                         'blAmount' => $rec->blAmount,
-                         'blQuantity' => $rec->blQuantity,
-                         'debitAmount' => $balHistory['summary']['debitAmount'],
-                         'debitQuantity' => $balHistory['summary']['debitQuantity'],
-                         'creditQuantity' => $balHistory['summary']['creditQuantity'],
-                         'creditAmount' => $balHistory['summary']['creditAmount'],
-                         'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
+            'valior' => $data->toDate,
+            'blAmount' => $rec->blAmount,
+            'blQuantity' => $rec->blQuantity,
+            'debitAmount' => $balHistory['summary']['debitAmount'],
+            'debitQuantity' => $balHistory['summary']['debitQuantity'],
+            'creditQuantity' => $balHistory['summary']['creditQuantity'],
+            'creditAmount' => $balHistory['summary']['creditAmount'],
+            'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
         
         $data->zeroRec = $zeroRec;
         $data->lastRec = $lastRec;
@@ -512,10 +510,11 @@ class acc_BalanceHistory extends core_Manager
     private function prepareMiddleBalance(&$data)
     {
         $recs = $data->allRecs;
-       
+        
         // Ако в формата има грешки,
         if (!empty($data->listFilter)) {
             if ($data->listFilter->gotErrors()) {
+                
                 return;
             }
         }
@@ -544,7 +543,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Нулираме му ключовете за по-лесно обхождане
         $tmpArray = array_values($tmpArray);
-       
+        
         if (count($tmpArray)) {
             
             // За всеки запис
@@ -585,8 +584,9 @@ class acc_BalanceHistory extends core_Manager
     /**
      * Рендиране на историята
      *
-     * @param  stdClass $data
-     * @return core_ET  $tpl
+     * @param stdClass $data
+     *
+     * @return core_ET $tpl
      */
     public function renderHistory(&$data)
     {
@@ -621,14 +621,14 @@ class acc_BalanceHistory extends core_Manager
         // Подготвяме таблицата с данните извлечени от журнала
         $table = cls::get('core_TableView', array('mvc' => $this->Balance));
         $data->listFields = array('valior' => 'Вальор',
-                                  'docId' => 'Документ',
-                                  'reason' => 'Забележки',
-                                  'debitQuantity' => 'Дебит->К-во',
-                                  'debitAmount' => 'Дебит->Сума',
-                                  'creditQuantity' => 'Кредит->К-во',
-                                  'creditAmount' => 'Кредит->Сума',
-                                  'blQuantity' => 'Остатък->К-во',
-                                  'blAmount' => 'Остатък->Сума',
+            'docId' => 'Документ',
+            'reason' => 'Забележки',
+            'debitQuantity' => 'Дебит->К-во',
+            'debitAmount' => 'Дебит->Сума',
+            'creditQuantity' => 'Кредит->К-во',
+            'creditAmount' => 'Кредит->Сума',
+            'blQuantity' => 'Остатък->К-во',
+            'blAmount' => 'Остатък->Сума',
         );
         
         // Ако равнят не показваме количествата

@@ -7,22 +7,22 @@
  *
  * @category  vendors
  * @package   jsgauge
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      https://canvas-gauges.com/
  */
 class canvasgauge_Gauge
 {
-    
-    
     /**
      *
      *
-     * @param NULL|integer $value
-     * @param NULL|string  $canvasId
-     * @param array        $valArr
+     * @param NULL|int    $value
+     * @param NULL|string $canvasId
+     * @param array       $valArr
      *
      * @return ET
      *
@@ -38,13 +38,14 @@ class canvasgauge_Gauge
     /**
      *
      *
-     * @param NULL|integer $value
-     * @param NULL|string  $canvasId
-     * @param array        $valArr
+     * @param NULL|int    $value
+     * @param NULL|string $canvasId
+     * @param array       $valArr
      *
      * @return ET
      *
      * Допълнителните параметри за разчертаване се добавят в $valArr
+     *
      * @see https://canvas-gauges.com/documentation/user-guide/configuration
      */
     public static function drawRadial($value = null, $canvasId = null, $valArr = array())
@@ -56,13 +57,14 @@ class canvasgauge_Gauge
     /**
      * Помощна функция за разчертване
      *
-     * @param NULL|integer $value
-     * @param NULL|string  $canvasId
-     * @param array        $valArr
+     * @param NULL|int    $value
+     * @param NULL|string $canvasId
+     * @param array       $valArr
      *
      * @return ET
      *
      * Допълнителните параметри за разчертаване се добавят в $valArr
+     *
      * @link https://canvas-gauges.com/documentation/user-guide/configuration
      */
     protected static function renderGauge($value = null, $canvasId = null, $valArr = array(), $type = 'radial')
@@ -72,7 +74,7 @@ class canvasgauge_Gauge
         
         $valArr['renderTo'] = $canvasId;
         $valArr['value'] = $value;
-     
+        
         setIfNot($valArr['height'], '200');
         setIfNot($valArr['width'], '200');
         setIfNot($valArr['units'], '°C');
@@ -98,7 +100,7 @@ class canvasgauge_Gauge
         }
         
         $str = json_encode($valArr);
- 
+        
         $jsTpl = new ET("var gauge_[#renderTo#] = new [#gaugeType#]( {$str} );
                 gauge_[#renderTo#].draw();");
         $jsTpl->placeArray($valArr);
@@ -107,7 +109,7 @@ class canvasgauge_Gauge
         $tpl->appendOnce($jsTpl, 'SCRIPTS');
         $tpl->push('canvasgauge/' . canvasgauge_Setup::get('VERSION') . '/' . 'gauge.min.js', 'JS');
         $tpl->placeArray($valArr);
-      
+        
         return $tpl;
     }
 }

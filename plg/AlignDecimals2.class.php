@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * Плъгин подравняващ броя на десетичните символи, с помоща на новите функции в core_Math
  *
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_AlignDecimals2 extends core_Plugin
 {
-    
-    
     /**
      * Метод за подравняване на десетичните числа
      *
-     * @param  core_FieldSet $mvc  - модел
-     * @param  array         $recs - записите във вътрешен вид
-     * @param  array         $rows - записите във вербален вид
+     * @param core_FieldSet $mvc  - модел
+     * @param array         $recs - записите във вътрешен вид
+     * @param array         $rows - записите във вербален вид
+     *
      * @return void
      */
     public static function alignDecimals(core_FieldSet $mvc, $recs, &$rows)
@@ -34,8 +34,9 @@ class plg_AlignDecimals2 extends core_Plugin
                 $decFields[] = $name;
             }
         }
-         
+        
         if (!arr::count($decFields) || !arr::count($recs)) {
+            
             return;
         }
         
@@ -72,6 +73,7 @@ class plg_AlignDecimals2 extends core_Plugin
         $rows = &$data->rows;
         
         if (!count($recs)) {
+            
             return;
         }
         

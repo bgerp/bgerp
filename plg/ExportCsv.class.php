@@ -1,21 +1,22 @@
 <?php
 
+
 /**
  * Клас 'plg_ExportCsv' - Дава възможност за експорт към CSV на избрани полета от модела, които имат атрибут'export=Csv'
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_ExportCsv extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди подготовката на колоните
      */
@@ -90,7 +91,7 @@ class plg_ExportCsv extends core_Plugin
         /* Ако в url-то на заявката има Export=Csv */
         if (Request::get('Export') == 'csv') {
             $mvc->requireRightFor('export');
-
+            
             $conf = core_Packs::getConfig('core');
             
             if (count($data->recs) > $conf->EF_MAX_EXPORT_CNT) {
@@ -101,30 +102,30 @@ class plg_ExportCsv extends core_Plugin
             if (count($data->recs)) {
                 $mvc->invoke('BeforeExportCsv', array($data->recs));
                 foreach ($data->recs as $rec) {
-                     
+                    
                     // Всеки нов ред ва началото е празен
                     $rCsv = '';
-                
+                    
                     /* за всяка колона */
                     foreach ($data->listFields as $field => $caption) {
                         $type = $mvc->fields[$field]->type;
-                
+                        
                         if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                             $value = $mvc->getVerbal($rec, $field);
                         } else {
                             $value = $rec->{$field};
                         }
-                
+                        
                         // escape
                         if (preg_match('/\\r|\\n|\,|"/', $value)) {
                             $value = '"' . str_replace('"', '""', $value) . '"';
                         }
-                
+                        
                         $rCsv .= ($rCsv ?  ',' : ' ') . $value;
                     }
-                
+                    
                     /* END за всяка колона */
-                
+                    
                     $csv .= $rCsv . "\n";
                 }
             }

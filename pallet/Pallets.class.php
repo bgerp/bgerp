@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Палети
  *
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pallet_Pallets extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -63,8 +62,8 @@ class pallet_Pallets extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,pallet';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -204,15 +203,15 @@ class pallet_Pallets extends core_Manager
     {
         // Дефинираме иконките, които ще използваме
         $imgUp = ht::createElement('img', array('src' => sbf('img/up.gif', ''), 'width' => '16px', 'height' => '16px',
-                'style' => 'float: right; margin-left: 5px;'));
+            'style' => 'float: right; margin-left: 5px;'));
         $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''), 'width' => '16px', 'height' => '16px',
-                'style' => 'float: right; margin-left: 5px;'));
+            'style' => 'float: right; margin-left: 5px;'));
         $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''), 'width' => '16px', 'height' => '16px',
-                'style' => 'float: right; margin-left: 5px;'));
+            'style' => 'float: right; margin-left: 5px;'));
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px',
-                'style' => 'float: right; margin-left: 5px;'));
+            'style' => 'float: right; margin-left: 5px;'));
         $imgDel = ht::createElement('img', array('src' => sbf('img/16/delete.png', ''), 'width' => '16px', 'height' => '16px',
-                'style' => 'float: right; margin-left: 5px;
+            'style' => 'float: right; margin-left: 5px;
                                                                                                                       margin-top: 2px '));
         
         // ENDOF Дефинираме иконките, които ще използваме
@@ -560,9 +559,9 @@ class pallet_Pallets extends core_Manager
             store_Products::save($recProducts);
             
             /* ENDOF Change product quantity on pallets */
-
+            
             $recMovements = new stdClass();
-                
+            
             /* Създава движение за нов палет, който е 'Автоматично' позициониран */
             if ($rec->palletPlaceHowto == 'Автоматично') {
                 // Взема селектирания склад
@@ -649,10 +648,11 @@ class pallet_Pallets extends core_Manager
     /**
      * Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
      *
-     * @param  core_Mvc      $mvc
-     * @param  int           $numRows
-     * @param  stdClass      $query
-     * @param  string        $cond
+     * @param core_Mvc $mvc
+     * @param int      $numRows
+     * @param stdClass $query
+     * @param string   $cond
+     *
      * @return core_Redirect
      */
     protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
@@ -673,7 +673,8 @@ class pallet_Pallets extends core_Manager
     /**
      * Изчислява количеството от даден продукт на палети
      *
-     * @param  int $productId
+     * @param int $productId
+     *
      * @return int $productQuantityOnPallets
      */
     public static function calcProductQuantityOnPalletes($productId)
@@ -696,7 +697,8 @@ class pallet_Pallets extends core_Manager
      *
      * @param int $selectedStoreId
      * @param $rec
-     * @return boolean
+     *
+     * @return bool
      */
     public static function checkProductQuantity($rec)
     {
@@ -712,7 +714,7 @@ class pallet_Pallets extends core_Manager
             
             return false;
         }
-
+        
         return true;
     }
     
@@ -754,7 +756,7 @@ class pallet_Pallets extends core_Manager
                 
                 $pInfo = cat_Products::getProductInfo($recProduct->productId);
                 $measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
-                        
+                
                 $title = 'Палет: ' . $recPallets->label . ', ' . $recProduct->name . ', ' . $recPallets->quantity . ' ' . $measureShortName . ', № на продукта в склада: ' . $recProduct->id;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
@@ -782,10 +784,10 @@ class pallet_Pallets extends core_Manager
                 
                 /* push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
-                                
+                
                 $pInfo = cat_Products::getProductInfo($recProduct->productId);
                 $measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
-                        
+                
                 $title = 'Палет: ' . $recPallets->label . ', ' . $recProduct->name . ', ' . $recPallets->quantity . ' ' . $measureShortName . ', № на продукта в склада: ' . $recProduct->id;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
@@ -802,8 +804,9 @@ class pallet_Pallets extends core_Manager
     /**
      * Проверява дали дадено палет място е заето или дали има наредено движение към него
      *
-     * @param  string  $position
-     * @return boolean
+     * @param string $position
+     *
+     * @return bool
      */
     public static function checkIfPalletPlaceIsFree($position)
     {
@@ -820,7 +823,7 @@ class pallet_Pallets extends core_Manager
             
             return false;
         }
-
+        
         return true;
     }
     

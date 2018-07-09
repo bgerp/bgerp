@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_ConsignmentProtocols
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -31,10 +31,10 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-                'reason' => "Протокол за отговорно пазене №{$rec->id}",
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => "Протокол за отговорно пазене №{$rec->id}",
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
         
         if ($rec->id) {
@@ -68,15 +68,15 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         while ($sendRec = $sendQuery->fetch()) {
             $quantity = $sendRec->quantityInPack * $sendRec->packQuantity;
             $entries[] = array(
-                    'debit' => array('323',
-                                        array($rec->contragentClassId, $rec->contragentId),
-                                        array('cat_Products', $sendRec->productId),
-                                    'quantity' => $quantity),
-                    'credit' => array('321',
-                                        array('store_Stores', $rec->storeId),
-                                        array('cat_Products', $sendRec->productId),
-                                    'quantity' => $quantity),
-                                    );
+                'debit' => array('323',
+                    array($rec->contragentClassId, $rec->contragentId),
+                    array('cat_Products', $sendRec->productId),
+                    'quantity' => $quantity),
+                'credit' => array('321',
+                    array('store_Stores', $rec->storeId),
+                    array('cat_Products', $sendRec->productId),
+                    'quantity' => $quantity),
+            );
         }
         
         // Намираме всички върнати артикули
@@ -85,15 +85,15 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         while ($recRec = $receivedQuery->fetch()) {
             $quantity = $recRec->quantityInPack * $recRec->packQuantity;
             $entries[] = array(
-                    'debit' => array('321',
-                                    array('store_Stores', $rec->storeId),
-                                    array('cat_Products', $recRec->productId),
-                                'quantity' => $quantity),
-                    'credit' => array('323',
-                                    array($rec->contragentClassId, $rec->contragentId),
-                                    array('cat_Products', $recRec->productId),
-                                'quantity' => $quantity),
-                    
+                'debit' => array('321',
+                    array('store_Stores', $rec->storeId),
+                    array('cat_Products', $recRec->productId),
+                    'quantity' => $quantity),
+                'credit' => array('323',
+                    array($rec->contragentClassId, $rec->contragentId),
+                    array('cat_Products', $recRec->productId),
+                    'quantity' => $quantity),
+            
             );
         }
         

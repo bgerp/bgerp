@@ -6,15 +6,15 @@
  *
  * @category  vendors
  * @package   mejs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class mejs_Adapter
 {
-    
-    
     /**
      * Създава плейър за съответното видео
      *
@@ -90,14 +90,14 @@ class mejs_Adapter
             
             // Вземаме URL' то за сваляне
             $src = fileman_Download::getDownloadUrl($src, 1, $fileType);
-
+            
             // Създваме шаблон за плейване на видеото
             $tpl = "<source src='{$src}'> \n";
             
             // Добавяме в шаблона
             $mTpl->append($tpl, 'SOURCE');
         }
-
+        
         // Заместваме плейсхолдерите
         $mTpl->replace($params['width'], 'WIDTH');
         $mTpl->replace($params['height'], 'HEIGHT');
@@ -105,10 +105,10 @@ class mejs_Adapter
         
         // Премахваме празните плейсхолдери
         $mTpl->removeBlocks();
-
+        
         // Добавяме файловете за плейване с mediaElement
         static::enableMeJs($mTpl, $type, $params);
-
+        
         return $mTpl;
     }
     

@@ -10,14 +10,15 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 abstract class deals_ClosedDeals extends core_Master
 {
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -40,6 +41,7 @@ abstract class deals_ClosedDeals extends core_Master
      * Кой има право да добавя?
      */
     protected $canAdd = 'no_one';
+    
     
     /**
      * Кой може да го разглежда?
@@ -120,7 +122,7 @@ abstract class deals_ClosedDeals extends core_Master
         
         // От кой клас наследник на deals_ClosedDeals идва записа
         $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
-
+        
         $this->setDbIndex('valior');
     }
     
@@ -183,7 +185,7 @@ abstract class deals_ClosedDeals extends core_Master
                         
                         $newEntries[] = $entry;
                     }
-                   
+                    
                     // Втори път обхождаме записите
                     foreach ($entries as &$entry2) {
                         if (isset($entry2['amount'])) {
@@ -193,7 +195,7 @@ abstract class deals_ClosedDeals extends core_Master
                         // Генерираме запис, който прави същите действия но с перо новата сделка
                         foreach (array('debit', 'credit') as $type) {
                             foreach ($entry2[$type] as $index => &$item) {
-                               
+                                
                                 // Намираме кое перо отговаря на перото на текущата сделка и го заменяме с това на новата сделка
                                 if ($index != 0) {
                                     if (is_array($item) && $item[0] == $dealItem->docClassName && $item[1] == $dealItem->objectId) {
@@ -202,7 +204,7 @@ abstract class deals_ClosedDeals extends core_Master
                                 }
                             }
                         }
-                       
+                        
                         $newEntries[] = $entry2;
                     }
                 }
@@ -217,8 +219,10 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Връща информацията 'bgerp_DealAggregatorIntf' от първия документ
      * в нишката ако го поддържа
-     * @param  mixed                      $threadId - ид на нишката или core_ObjectReference
-     *                                              към първия документ в нишката
+     *
+     * @param mixed $threadId - ид на нишката или core_ObjectReference
+     *                        към първия документ в нишката
+     *
      * @return bgerp_iface_DealAggregator - бизнес информацията от документа
      */
     public static function getDealInfo($threadId)
@@ -352,7 +356,7 @@ abstract class deals_ClosedDeals extends core_Master
                 $mvc->save($rec, 'amount');
             }
         }
-      
+        
         if (isset($oldRec->valiorStrategy)) {
             if ($oldRec->valiorStrategy == 'createdOn') {
                 $rec->valior = dt::verbal2mysql($oldRec->createdOn, false);
@@ -464,7 +468,7 @@ abstract class deals_ClosedDeals extends core_Master
             if ($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
                 $item = acc_Items::fetchItem($origin->getInstance(), $origin->that);
                 if (is_null($item->lastUseOn)) {
-                
+                    
                     // Ако перото на сделката не е използвано, не може да се приключи
                     $res = 'no_one';
                 }
@@ -555,7 +559,7 @@ abstract class deals_ClosedDeals extends core_Master
             
             return array();
         }
-       
+        
         $closedItems = null;
         
         // Намираме приключените пера от транзакцията
@@ -627,7 +631,8 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Намиране на най-големия вальор в треда на приключващия документ
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return date
      */
     public function getBiggestValiorInThread($rec)

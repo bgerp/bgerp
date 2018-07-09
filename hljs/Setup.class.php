@@ -12,27 +12,27 @@ defIfNot('HLJS_VERSION', '7.3');
  *
  * @category  vendors
  * @package   hljs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class hljs_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
     public $version = '0.1';
-        
+    
     
     /**
      * Описание на модула
      */
     public $info = 'Адаптер за highlightjs: Оцветяване на програмен код';
     
-
+    
     /**
      * Пътища до CSS файлове
      */
@@ -60,7 +60,7 @@ class hljs_Setup extends core_ProtoSetup
         
         return $html;
     }
-
+    
     
     /**
      * Де-инсталиране на пакета

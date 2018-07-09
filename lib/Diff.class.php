@@ -14,16 +14,16 @@ defIfNot('EF_LIB_DIFF_MAX_STACK_COUNT', 1150);
  *
  * @category  ef
  * @package   lib
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class lib_Diff
 {
-    
-    
     /**
      * Списък с препинателни знаци, ескейпнати за регулярен израз
      */
@@ -65,7 +65,7 @@ class lib_Diff
         }
         
         $out = $mode = $buf = '';
-
+        
         foreach ($arrDiff as $e) {
             
             // Текст
@@ -81,7 +81,7 @@ class lib_Diff
             while (count($e['d']) && count($e['i']) && (($ct = self::getCharType($e['d'])) == self::getCharType($e['i']))) {
                 $kd = key($e['d']);
                 $ki = key($e['i']);
-
+                
                 $out = new stdClass();
                 if ($ct == 'tag') {
                     $out->mode = 't';
@@ -93,17 +93,17 @@ class lib_Diff
                 }
                 $res[] = $out;
                 unset($e['d'][$kd], $e['i'][$ki]);
-
+                
                 $last = count($res) - 1;
-
+                
                 if (($last >= 2) && $res[$last]->mode == 'c' && $res[$last - 1]->mode == 't' && $res[$last - 2]->mode == 'c') {
                     $res[$last - 2]->str .= $res[$last - 1]->str . $res[$last]->str;
                     $res[$last - 2]->del .= $res[$last - 1]->str . $res[$last]->del;
                     unset($res[$last], $res[$last - 1]);
                 }
             }
-
-
+            
+            
             // Изтриване
             if (count($e['d'])) {
                 foreach ($e['d'] as $d) {
@@ -139,7 +139,7 @@ class lib_Diff
         $mode = 't';
         $out = '';
         $res[] = (object) array('str' => '', 'mode' => '');
-
+        
         foreach ($res as $s) {
             if ($mode != $s->mode) {
                 if ($mode == 'd') {
@@ -167,11 +167,11 @@ class lib_Diff
             $out .= $s->str;
             $mode = $s->mode;
         }
-
+        
         return $out;
     }
-
-
+    
+    
     /**
      * Връща типа на знака
      */
@@ -180,9 +180,9 @@ class lib_Diff
         if (is_array($c)) {
             $c = reset($c);
         }
-
+        
         $c = mb_substr($c, 0, 1);
-
+        
         if (preg_match("/[\s]+/", $c)) {
             
             return 'ws';
@@ -193,7 +193,7 @@ class lib_Diff
             
             return 'tag';
         }
-
+        
         return 'text';
     }
     
@@ -205,38 +205,37 @@ class lib_Diff
     private static function getTextFromArray($arr)
     {
         $out = '';
-
+        
         foreach ($arr as $e) {
             if ($e{0} != '<') {
                 $out .= $e;
             }
         }
-
+        
         return htmlentities($out, ENT_QUOTES, 'UTF-8');
     }
-
-
+    
+    
     /**
      * Разбива HTML на масив от думи,
      */
     private static function explodeHtml($html)
     {
         $ptr = '/(<[^>]*>|[\\s]+|[' . self::PUNCTUATION . ']+|[^\\s' . self::PUNCTUATION . '\\<]+)/';
- 
+        
         preg_match_all($ptr, $html, $matches);
- 
+        
         return $matches[0];
     }
-
-
-
+    
+    
     /**
      * Намиране на най-краткия скрипт за редактиране (SES) чрез бърз алгоритъм от книгата
      * "An O(ND) Difference Algorithm and Its Variations" by Eugene W.Myers, 1986.
      *
      *
-     * @param array          $src            Оригинален масив
-     * @param array          $dst            Нов Масив
+     * @param array $src Оригинален масив
+     * @param array $dst Нов Масив
      *
      * @return array
      */
@@ -244,25 +243,25 @@ class lib_Diff
     {
         $cx = count($src);
         $cy = count($dst);
-         
+        
         $stack = array();
         $V = array(1 => 0);
         $end_reached = false;
-         
+        
         # Find LCS length
         for ($D = 0; $D < $cx + $cy + 1 && !$end_reached; $D++) {
             for ($k = -$D; $k <= $D; $k += 2) {
                 $x = ($k == -$D || $k != $D && $V[$k - 1] < $V[$k + 1])
                     ? $V[$k + 1] : $V[$k - 1] + 1;
                 $y = $x - $k;
-                 
+                
                 while ($x < $cx && $y < $cy && $src[$x] == $dst[$y]) {
                     $x++;
                     $y++;
                 }
-                 
+                
                 $V[$k] = $x;
-                 
+                
                 if ($x == $cx && $y == $cy) {
                     $end_reached = true;
                     break;
@@ -278,43 +277,43 @@ class lib_Diff
             }
         }
         $D--;
-         
+        
         # Recover edit path
         $res = array();
         for ($D = $D; $D > 0; $D--) {
             $V = array_pop($stack);
             $cx = $x;
             $cy = $y;
-             
+            
             # Try right diagonal
             $k++;
             $x = $V[$k];
             $y = $x - $k;
             $y++;
-             
+            
             while ($x < $cx && $y < $cy
             && isset($src[$x], $dst[$y]) && $src[$x] == $dst[$y]) {
                 $x++;
                 $y++;
             }
-             
+            
             if ($x == $cx && $y == $cy) {
                 $x = $V[$k];
                 $y = $x - $k;
-                 
+                
                 $res[] = array('i',$x,$y);
                 continue;
             }
-             
+            
             # Right diagonal wasn't the solution, use left diagonal
             $k -= 2;
             $x = $V[$k];
             $y = $x - $k;
             $res[] = array('d',$x,$y);
         }
-         
+        
         $res = array_reverse($res);
- 
+        
         // Указател към не-сортирания резултат
         $p = 0;
         
@@ -330,7 +329,7 @@ class lib_Diff
             if (($o = $res[$p][0]) && ($res[$p][1] == $i)) {
                 $li = null;
                 $flag = false;
-
+                
                 while (($res[$p][1] == $i) && ($res[$p] !== null)) {
                     if (!isset($li)) {
                         $li = count($r) - 1;
@@ -339,7 +338,7 @@ class lib_Diff
                             $r[$li] = array();
                         }
                     }
-
+                    
                     if ($o == 'd') {
                         $r[$li]['d'][] = $src[$res[$p][1]];
                     } else {
@@ -350,14 +349,14 @@ class lib_Diff
                             $flag = true;
                         }
                     }
-
+                    
                     $p++;
                 }
             } else {
                 $r[] = $el;
             }
         }
-
+        
         return $r;
     }
 }

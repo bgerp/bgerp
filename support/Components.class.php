@@ -1,22 +1,20 @@
 <?php 
 
-
 /**
  * Поддържани компоненти от сигналите
  *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @deprecated
  */
 class support_Components extends core_Detail
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -27,7 +25,6 @@ class support_Components extends core_Detail
      * Заглавие на модела
      */
     public $title = 'Поддържани компоненти';
-    
     
     
     public $singleTitle = 'Компонент';
@@ -81,17 +78,14 @@ class support_Components extends core_Detail
     public $masterKey = 'systemId';
     
     
-    
     public $listItemsPerPage = 20;
-    
     
     
     public $listFields = 'id, name, description, maintainers';
     
     
-    
     public $currentTab = 'Системи';
-
+    
     
     /**
      * Описание на модела (таблицата)
@@ -103,7 +97,7 @@ class support_Components extends core_Detail
         $this->FLD('description', 'richtext(bucket=Support)', 'caption=Описание');
         $this->FLD('maintainers', 'userList(roles=support)', 'caption=Отговорници');
         $this->FLD('state', 'enum(draft=Чернова, active=Активно)', 'caption=Отговорници, input=none, notNull');
-
+        
         $this->setDbUnique('systemId, name');
     }
     
@@ -129,7 +123,7 @@ class support_Components extends core_Detail
             
             $query->orWhereArr('systemId', $allSystemsArr);
         }
-
+        
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
             
@@ -151,7 +145,7 @@ class support_Components extends core_Detail
     /**
      * Масив с id' тата на еднаквите компоненти по име
      *
-     * @param integer $id - Id на компонента
+     * @param int $id - Id на компонента
      *
      * @return array $arr - Масив, с id'тата на компонентите със същото име
      */
@@ -181,7 +175,7 @@ class support_Components extends core_Detail
     /**
      * Маркира компонента като използван
      *
-     * @param integer $id
+     * @param int $id
      */
     public static function markAsUsed($id)
     {

@@ -12,15 +12,15 @@ defIfNot(JQPLOT_VERSION, '1.0.8r1250');
  *
  * @category  bgerp
  * @package   jqplot
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class jqplot_Setup extends core_ProtoSetup
 {
-        
-    
     /**
      * Версия на пакета
      */
@@ -45,7 +45,6 @@ class jqplot_Setup extends core_ProtoSetup
      * Пакет без инсталация
      */
     public $noInstall = true;
-    
     
     
     /**

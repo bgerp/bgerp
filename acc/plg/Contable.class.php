@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Плъгин за документите източници на счетоводни транзакции
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_plg_Contable extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      *
@@ -44,7 +43,7 @@ class acc_plg_Contable extends core_Plugin
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
-       
+        
         // Ако е оказано, че при контиране/възстановяване/оттегляне да се заключва баланса зареждаме плъгина 'acc_plg_LockBalances'
         if ($mvc->lockBalances === true) {
             
@@ -97,6 +96,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if (!empty($rec->state) && $rec->state != 'draft' && $rec->state != 'pending') {
+            
             return;
         }
         
@@ -129,7 +129,7 @@ class acc_plg_Contable extends core_Plugin
         } catch (acc_journal_Exception $ex) {
             $rec->isContable = 'no';
         }
-       
+        
         if ($rec->id) {
             $mvc->save_($rec, 'isContable');
         }
@@ -154,7 +154,7 @@ class acc_plg_Contable extends core_Plugin
         if ($mvc->haveRightFor('conto', $rec)) {
             $row = 2;
             $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
-           
+            
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
@@ -184,11 +184,11 @@ class acc_plg_Contable extends core_Plugin
             // Ако потребителя може да създава коригиращ документ, слагаме бутон
             if ($mvc->haveRightFor('correction', $rec)) {
                 $correctionUrl = array(
-                        'acc_Articles',
-                        'RevertArticle',
-                        'docType' => $mvc->getClassId(),
-                        'docId' => $rec->id,
-                        'ret_url' => true
+                    'acc_Articles',
+                    'RevertArticle',
+                    'docType' => $mvc->getClassId(),
+                    'docId' => $rec->id,
+                    'ret_url' => true
                 );
                 $data->toolbar->addBtn('Корекция||Correct', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?{$error},title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
             }
@@ -215,10 +215,10 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterGetContoWarning($mvc, &$res, $id, $isContable)
     {
-    	if(empty($res)){
-    		$action = ($isContable == 'activate') ? 'активиран' : 'контиран';
-    		$res = "|Наистина ли желаете документът да бъде {$action}|*?";
-    	}
+        if (empty($res)) {
+            $action = ($isContable == 'activate') ? 'активиран' : 'контиран';
+            $res = "|Наистина ли желаете документът да бъде {$action}|*?";
+        }
     }
     
     
@@ -246,9 +246,10 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Ф-я проверяваща периода в който е датата и връща съобщение за грешка
      *
-     * @param  date    $valior - дата
-     * @param  mixed   $error  - съобщение за грешка, NULL ако няма
-     * @return boolean
+     * @param date  $valior - дата
+     * @param mixed $error  - съобщение за грешка, NULL ако няма
+     *
+     * @return bool
      */
     public static function checkPeriod($valior, &$error)
     {
@@ -381,6 +382,7 @@ class acc_plg_Contable extends core_Plugin
             
             // Трябва да има запис
             if (!$rec) {
+                
                 return;
             }
             
@@ -429,9 +431,10 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Помощен метод, енкапсулиращ условието за валидност на счетоводна транзакция
      *
-     * @param  core_Manager $mvc
-     * @param  stdClass     $rec
-     * @return boolean
+     * @param core_Manager $mvc
+     * @param stdClass     $rec
+     *
+     * @return bool
      */
     protected static function hasContableTransaction(core_Manager $mvc, $rec, &$res = null)
     {
@@ -538,7 +541,7 @@ class acc_plg_Contable extends core_Plugin
         
         if ($rec->state == 'active' || $rec->state == 'closed') {
             $rec = $mvc->fetchRec($id);
-             
+            
             try {
                 // Ре-контиране на документа след възстановяването му
                 $mvc->reConto($id);
@@ -570,7 +573,7 @@ class acc_plg_Contable extends core_Plugin
         $rec = $mvc->fetchRec($rec);
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $transaction = $transactionSource->getTransaction($rec);
-      
+        
         expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
         
         // Проверяваме валидността на транзакцията
@@ -598,7 +601,7 @@ class acc_plg_Contable extends core_Plugin
                         $hasDetail = true;
                         continue;
                     }
-                        
+                    
                     if ($rec->id) {
                         if ($Details->fetch("#{$Details->masterKey} = {$rec->id}")) {
                             $hasDetail = true;
@@ -709,7 +712,7 @@ class acc_plg_Contable extends core_Plugin
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             $valior = $mvc->getValiorValue($rec);
-        
+            
             if ($warning = acc_Periods::checkDocumentDate($valior)) {
                 $form->setWarning($mvc->valiorFld, $warning);
             }
@@ -720,8 +723,9 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Кои потребители да се нотифицират при контиране на документа
      *
-     * @param  stdClass $rec
-     * @return array    $userArr
+     * @param stdClass $rec
+     *
+     * @return array $userArr
      */
     private static function getWhichUsersToNotifyOnConto($rec)
     {
@@ -742,6 +746,7 @@ class acc_plg_Contable extends core_Plugin
     private static function notifyCreatorsForPostedDocument($userArr, $mvc, $rec)
     {
         if (!count($userArr)) {
+            
             return;
         }
         
@@ -767,7 +772,7 @@ class acc_plg_Contable extends core_Plugin
         
         $message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
         foreach ($userArr as $uId) {
-            
+
 //     	    if (!$mvc->haveRightFor('single', $rec->id, $uId)) continue;
             
             bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
@@ -785,6 +790,7 @@ class acc_plg_Contable extends core_Plugin
     private static function removeCreatorsNotificationOnReject($userArr, $mvc, $rec)
     {
         if (!count($userArr)) {
+            
             return;
         }
         
@@ -802,8 +808,9 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Има ли контиращи документи в състояние заявка в нишката
      *
-     * @param  int     $threadId
-     * @return boolean
+     * @param int $threadId
+     *
+     * @return bool
      */
     public static function havePendingDocuments($threadId)
     {

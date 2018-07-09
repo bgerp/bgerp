@@ -16,15 +16,15 @@ defIfNot('EXCHANGE_DEVIATION', '0.05');
  *
  * @category  bgerp
  * @package   currency
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class currency_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -54,41 +54,41 @@ class currency_Setup extends core_ProtoSetup
      */
     public $info = 'Валути и хронология на техните курсове';
     
-
+    
     /**
      * Описание на конфигурационните константи за този модул
      */
     public $configDescription = array(
         'EXCHANGE_DEVIATION' => array('percent', 'mandatory, caption=Толеранс за валутния курс->Процент'),
-);
+    );
     
-
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-            'currency_Currencies',
-            //'currency_CurrencyGroups',
-            'currency_CurrencyRates',
-            'currency_FinIndexes'
-        );
+        'currency_Currencies',
+        
+        //'currency_CurrencyGroups',
+        'currency_CurrencyRates',
+        'currency_FinIndexes'
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
     public $roles = 'currency';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-            array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', 'ceo,admin,cash,bank,currency,acc'),
-        );
-
- 
-
+        array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', 'ceo,admin,cash,bank,currency,acc'),
+    );
+    
+    
     /**
      * Де-инсталиране на пакета
      */

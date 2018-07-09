@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Драйвер за IP сензор Teracom TCW-121B - следи състоянието на цифрови и аналогови входове
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Тераком TCW122B
  */
 class teracom_TCW122B extends sens2_ProtoDriver
 {
-    
     /**
      * Заглавие на драйвера
      */
@@ -44,8 +44,8 @@ class teracom_TCW122B extends sens2_ProtoDriver
         'OutD1' => array('caption' => 'Цифров изход 1', 'uom' => '', 'xmlPath' => '/Relay1[1]', 'cmd' => '?r1'),
         'OutD2' => array('caption' => 'Цифров изход 2', 'uom' => '', 'xmlPath' => '/Relay2[1]', 'cmd' => '?r2')
     );
-
-
+    
+    
     /**
      *  Информация за входните портове на устройството
      *
@@ -58,10 +58,10 @@ class teracom_TCW122B extends sens2_ProtoDriver
         foreach ($this->inputs as $name => $params) {
             $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Информация за изходните портове на устройството
@@ -75,10 +75,10 @@ class teracom_TCW122B extends sens2_ProtoDriver
         foreach ($this->outputs as $name => $params) {
             $res[$name] = array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
-
+        
         return $res;
     }
-
+    
     
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
@@ -93,11 +93,11 @@ class teracom_TCW122B extends sens2_ProtoDriver
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory, value=admin, notNull');
         $form->FNC('password', 'password(show)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
-
+        
         $form->rec->port = 80;
     }
     
-
+    
     /**
      * Прочита стойностите от сензорните входове
      *
@@ -124,7 +124,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         $xml = curl_exec($ch);
         curl_close($ch);
-     
+        
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
@@ -140,7 +140,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
             
             return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
         }
-
+        
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
             if ($inputs[$name]) {
@@ -172,10 +172,9 @@ class teracom_TCW122B extends sens2_ProtoDriver
                 }
             }
         }
-
+        
         return $res;
     }
-
     
     
     /**
@@ -205,7 +204,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
             $res[$out] = curl_exec($ch);
             curl_close($ch);
         }
-
+        
         return $res;
     }
 }

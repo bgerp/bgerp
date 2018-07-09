@@ -1,27 +1,27 @@
 <?php
 
 
-
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_InventoryNotes
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -30,10 +30,10 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         expect($rec = $this->class->fetchRec($id));
         
         $result = (object) array(
-                'reason' => "Протокол за инвентаризация №{$rec->id}",
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => "Протокол за инвентаризация №{$rec->id}",
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
         
         if ($rec->id) {
@@ -79,7 +79,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         core_App::setTimeLimit(600);
         
         while ($dRec = $dQuery->fetch()) {
-        
+            
             // Ако разликата е положителна, тоест имаме излишък
             if ($dRec->delta > 0) {
                 $amount = cat_Products::getSelfValue($dRec->productId, null, $dRec->delta, $rec->valior);
@@ -101,25 +101,25 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                 $total += $amount;
                 
                 $entries[] = array(
-                        'amount' => $amount,
-                        'debit' => array('321', array('store_Stores', $rec->storeId),
-                                                array('cat_Products', $dRec->productId),
-                                                'quantity' => $dRec->delta),
-                        'credit' => array('799'),
-                        'reason' => 'Заприходени излишъци на стоково-материални запаси',
+                    'amount' => $amount,
+                    'debit' => array('321', array('store_Stores', $rec->storeId),
+                        array('cat_Products', $dRec->productId),
+                        'quantity' => $dRec->delta),
+                    'credit' => array('799'),
+                    'reason' => 'Заприходени излишъци на стоково-материални запаси',
                 );
-                
+            
             // Ако разликата е отрицателна, имаме липса
             } elseif ($dRec->delta < 0) {
                 $delta = abs($dRec->delta);
                 
                 $entries[] = array(
-                        'debit' => array('699'),
-                        'credit' => array('321', array('store_Stores', $rec->storeId),
-                                                 array('cat_Products', $dRec->productId),
-                                                'quantity' => $delta),
-                        
-                        'reason' => 'Отписани липси на стоково-материални запаси',
+                    'debit' => array('699'),
+                    'credit' => array('321', array('store_Stores', $rec->storeId),
+                        array('cat_Products', $dRec->productId),
+                        'quantity' => $delta),
+                    
+                    'reason' => 'Отписани липси на стоково-материални запаси',
                 );
             }
         }

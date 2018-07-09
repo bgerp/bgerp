@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър Журнал детайли
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_JournalDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -100,7 +99,7 @@ class acc_JournalDetails extends core_Detail
         // Обща сума на транзакцията
         $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
         $this->FLD('amount', 'double(minDecimals=2)', 'caption=Сума');
-
+        
         // Поставяне на индекси
         $this->setDbIndex('debitAccId, creditAccId');
         $this->setDbIndex('debitAccId');
@@ -179,7 +178,7 @@ class acc_JournalDetails extends core_Detail
      * @param mixed      $items1   - списък с пера, от които поне един може да е на първа позиция
      * @param mixed      $items2   - списък с пера, от които поне един може да е на втора позиция
      * @param mixed      $items3   - списък с пера, от които поне един може да е на трета позиция
-     * @param boolean    $strict   - ако перата са NULL да се търсят записи в журнала със стойност NULL,
+     * @param bool       $strict   - ако перата са NULL да се търсят записи в журнала със стойност NULL,
      *                             иначе приема, че не трябва да се търсят пера
      */
     public static function filterQuery(core_Query &$query, $from, $to, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null, $strict = false)
@@ -198,7 +197,7 @@ class acc_JournalDetails extends core_Detail
         if (isset($from) || isset($to)) {
             $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
         }
-       
+        
         // Трябва да има поне една зададена сметка
         $accounts = arr::make($accs);
         $itemsAll = arr::make($itemsAll);
@@ -316,7 +315,8 @@ class acc_JournalDetails extends core_Detail
     /**
      * Коя е основната валута за посочения период
      *
-     * @param  date $valior - вальор
+     * @param date $valior - вальор
+     *
      * @return int
      */
     public static function getBaseCurrencyItemId($valior)
@@ -341,7 +341,7 @@ class acc_JournalDetails extends core_Detail
             // Кое е перото на основната валута за периода
             $valior = ($rec->valior) ? $rec->valior : acc_Journal::fetchField($rec->journalId, 'valior');
             $baseCurrencyItemId = self::getBaseCurrencyItemId($valior);
-             
+            
             $replaceAmount = false;
             
             // Обикаляме дебита и кредита, гледа се имали перо на основната валута.
@@ -378,7 +378,7 @@ class acc_JournalDetails extends core_Detail
         
         // Викане на ф-ята за запис от бащата на класа
         $id = parent::save_($rec, $fields, $mode);
-         
+        
         // Връщане на резултата от записа
         return $id;
     }

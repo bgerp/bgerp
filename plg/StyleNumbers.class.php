@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Подравняване на десетични числа, според зададени в типа type_Double на минималния и максималния брой цифри след запетаята
  *
@@ -17,16 +16,16 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      https://github.com/bgerp/ef/issues/6
  */
 class plg_StyleNumbers extends core_Plugin
 {
-    
-    
     /**
      * Преди рендиране на таблицата
      */
@@ -35,6 +34,7 @@ class plg_StyleNumbers extends core_Plugin
         $rows = &$data->rows;
         
         if (!count($data->recs)) {
+            
             return;
         }
         

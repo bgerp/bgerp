@@ -1,17 +1,16 @@
 <?php
 
 
-
 /**
  * @todo Чака за документация...
  */
 define('MSG_LENGTH', 10);
+
 // Броя на повторените данни при което се приема, че теглото е стабилно.
 define('PRECISION', 2);
+
 // Регулярен израз който мачва при стабилно състояние на везната. Пример: 'P+02.290'
 define('STABLE_EXP', '/[pP]\+[0-9]{2}\.[0-9]{3}$/');
-
-
 
 
 /**
@@ -20,16 +19,16 @@ define('STABLE_EXP', '/[pP]\+[0-9]{2}\.[0-9]{3}$/');
  *
  * @category  vendors
  * @package   vedicom
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Vedicom
  */
 class vedicom_Weight extends core_Manager
 {
-    
-    
     /**
      * Взима теглото от VEDIA VDI везна
      */
@@ -56,14 +55,16 @@ class vedicom_Weight extends core_Manager
                     $result = true;
                 }
             }
+            
             //echo ($i++ .' - $res ->'.$res." : ". strlen($res)."<br>"); flush();
         }
+        
         // echo ($match . "<--->" . $precision);
         if ($result) {
             
             return $match;
         }
-
+        
         return false;
     }
 }

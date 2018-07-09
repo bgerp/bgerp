@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_Countries' -
  *
  *
  * @category  bgerp
  * @package   drdata
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class drdata_Countries extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -35,27 +34,27 @@ class drdata_Countries extends core_Manager
      */
     public $loadList = 'drdata_Wrapper,plg_Sorting';
     
-
+    
     /**
      * Масив за съхранение на съответствието Държава => Езици
      */
     public static $countryToLanguages = array();
-
+    
     
     /**
      * Списък с кодовете на държавите от европейския съюз
      */
     public static $euCountries = array('BE','BG','CY','CZ','DK','EE','GR','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR');
     
-
+    
     /**
      * Списък с кодовете на държавите от европейския съюз
      */
     public static $eurCountries = array('BE','BG','CY','CZ','DK','EE','GR','DE','PT','FR','FI','HU','LU','MT',
         'SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR',
         'IS', 'NO', 'CH', 'LI', 'ME', 'MK', 'AL', 'RS', 'TR', 'XK', 'BA');
-
-
+    
+    
     /**
      * Кой има право да променя?
      *
@@ -115,8 +114,10 @@ class drdata_Countries extends core_Manager
     
     /**
      * Дали държавата е в EU
-     * @param  int     $countryId - ид на държавата
-     * @return boolean TRUE/FALSE
+     *
+     * @param int $countryId - ид на държавата
+     *
+     * @return bool TRUE/FALSE
      */
     public static function isEu($countryId)
     {
@@ -125,13 +126,13 @@ class drdata_Countries extends core_Manager
         return in_array($abbr, static::$euCountries);
     }
     
-
-
+    
     /**
      * Връща държавите, с които се търгува в EUR
      *
-     * @param  int     $countryId - ид на държавата
-     * @return boolean TRUE/FALSE
+     * @param int $countryId - ид на държавата
+     *
+     * @return bool TRUE/FALSE
      */
     public static function isEUR($countryId)
     {
@@ -139,9 +140,8 @@ class drdata_Countries extends core_Manager
         
         return in_array($abbr, static::$eurCountries);
     }
-
-
-
+    
+    
     /**
      * Връща най-подходящия език от системните, за съответната страна
      */
@@ -159,11 +159,11 @@ class drdata_Countries extends core_Manager
                 return $lg;
             }
         }
-
+        
         return 'en';
     }
-
-
+    
+    
     /**
      * Попълва езиците, които се говорят в дадена страна
      */
@@ -188,10 +188,10 @@ class drdata_Countries extends core_Manager
                us=en,um=en,uy=es,uz=uz,vu=bi|en,ve=es,vn=vi,vg=en,vi=en,wf=fr,eh=ar,ye=ar,yu=mk|sl|hr,zm=en,zw=en'
             );
         }
-
+        
         $rec->languages = str_replace('|', ',', self::$countryToLanguages[strtolower($rec->letterCode2)]);
     }
-
+    
     
     /**
      * Връща id-то на държавата от която посоченото или текущото ip
@@ -199,13 +199,13 @@ class drdata_Countries extends core_Manager
     public function getByIp($ip = null)
     {
         $cCode2 = drdata_IpToCountry::get($ip);
-                
+        
         $id = self::fetchField("#letterCode2 = '{$cCode2}'", 'id');
         
         return $id;
     }
-
-
+    
+    
     /**
      * Връща името на държава на основния език
      *
@@ -221,7 +221,7 @@ class drdata_Countries extends core_Manager
         } else {
             $field = 'commonName';
         }
-
+        
         if (is_numeric($mix)) {
             $country = drdata_Countries::fetch($mix)->{$field};
         } elseif (strlen($mix) == 2) {
@@ -230,7 +230,7 @@ class drdata_Countries extends core_Manager
             expect(strlen($mix) == 3, $mix);
             $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
         }
-
+        
         return $country;
     }
     
@@ -243,8 +243,8 @@ class drdata_Countries extends core_Manager
     {
         $rec->telCode = preg_replace('/[^0-9]+/', '', $rec->telCode);
     }
-
-
+    
+    
     public static function getIdByName($country)
     {
         static $commonNamesArr, $namesArr;
@@ -253,7 +253,7 @@ class drdata_Countries extends core_Manager
             
             return $country;
         }
-
+        
         if (!$commonNamesArr) {
             $query = self::getQuery();
             while ($rec = $query->fetch()) {
@@ -263,7 +263,7 @@ class drdata_Countries extends core_Manager
                 $namesArr[strtolower(trim($rec->letterCode2))] = $rec->id;
                 $namesArr[strtolower(trim($rec->letterCode3))] = $rec->id;
             }
-
+            
             $mis = array(
                 'aequatorial guinea' => 'equatorial guinea',
                 'algerie' => 'algeria',
@@ -423,22 +423,22 @@ class drdata_Countries extends core_Manager
                 'great britan' => 'united kingdom',
                 'britan' => 'united kingdom',
             );
-
+            
             foreach ($mis as $w => $c) {
                 expect($id = $commonNamesArr[$c], $c, $commonNamesArr, $mis);
                 expect(!$commonNamesArr[$w], $w, $commonNamesArr);
                 $commonNamesArr[$w] = $id;
             }
         }
-
+        
         $country = strtolower(trim(str::utf2ascii($country)));
         $country = preg_replace('/[^a-z0-9]+/u', ' ', $country);
-
+        
         // Добавка за този начин на изписване на формалното име на страната
         if ($i = strpos($country, ', republic of')) {
             $country = 'republic of ' . trim(substr($country, 0, $i));
         }
-
+        
         $country = trim(preg_replace('/[^a-zA-Z\'\d\p{L}]/u', ' ', $country));
         
         if (!$country) {
@@ -446,7 +446,7 @@ class drdata_Countries extends core_Manager
             return false;
         }
         
-
+        
         if ($id = $namesArr[$country]) {
             
             return $id;
@@ -456,11 +456,11 @@ class drdata_Countries extends core_Manager
             
             return $id;
         }
-
+        
         $country = str_replace(',', ' , ', $country);
-
+        
         $country = " {$country} ";
-
+        
         foreach ($commonNamesArr as $c => $id) {
             if (strpos($country, " {$c} ") !== false) {
                 if (strlen($c) > 3) {
@@ -469,11 +469,11 @@ class drdata_Countries extends core_Manager
                 }
             }
         }
-
+        
         return false;
     }
-
-
+    
+    
     /**
      * Добавя към даден стринг за търсене, посоченото име на държава на езика, на който не се среща
      */
@@ -486,13 +486,13 @@ class drdata_Countries extends core_Manager
         
         $cBg = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'bg'));
         $cEn = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'en'));
-
+        
         if (strpos(' ' . $text, $cBg) === false) {
             $text .= $cBg;
         } elseif (strpos(' ' . $text, $cEn) === false) {
             $text .= $cEn;
         }
-
+        
         return $text;
     }
     
@@ -504,7 +504,7 @@ class drdata_Countries extends core_Manager
     {
         // Подготвяме пътя до файла с данните
         $file = 'drdata/data/countrylist.csv';
-
+        
         // Кои колонки ще вкарваме
         $fields = array(
             1 => 'commonName',
@@ -526,7 +526,7 @@ class drdata_Countries extends core_Manager
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
-
+        
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }

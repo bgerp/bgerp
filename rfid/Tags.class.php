@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class Tags
  *
@@ -11,15 +10,15 @@
  *
  * @category  bgerp
  * @package   rfid
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rfid_Tags extends Core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -60,8 +59,8 @@ class rfid_Tags extends Core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,rfid';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -104,6 +103,7 @@ class rfid_Tags extends Core_Manager
     
     /**
      * Конвертира тип показване 55d към 10d
+     *
      * @param string $num
      */
     public function convert55dTo10d($num)
@@ -117,6 +117,7 @@ class rfid_Tags extends Core_Manager
     
     /**
      * Конвертира тип показване 55d към 10d
+     *
      * @param int $num
      */
     public function convert10dTo55d($num)

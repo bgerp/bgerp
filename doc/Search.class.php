@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'doc_Search' - Търсене в документната система
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Search extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -51,7 +50,6 @@ class doc_Search extends core_Manager
      * @see plg_Search
      */
     public $searchInId = false;
-    
     
     
     /**
@@ -247,6 +245,7 @@ class doc_Search extends core_Manager
                 $authorArr = keylist::toArray($filterRec->author);
                 
                 $firstTime = true;
+                
                 // Обхождаме масива
                 foreach ($authorArr as $author) {
                     if ($firstTime) {
@@ -303,6 +302,7 @@ class doc_Search extends core_Manager
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');
             
+            
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
              */
@@ -320,7 +320,7 @@ class doc_Search extends core_Manager
                 if ($filterRec->author) {
                     $url2['author'] = Request::get('author');
                 }
-               
+                
                 // Ако се филтрира по текущия автор
                 if ($filterRec->author && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
                     $url['author'] = core_Users::getCurrent();
@@ -337,7 +337,7 @@ class doc_Search extends core_Manager
             // Няма условия за търсене - показваме само формата за търсене, без данни
             $data->query->where('0 = 1');
         }
-
+        
         $data->query->useCacheForPager = true;
     }
     
@@ -356,6 +356,7 @@ class doc_Search extends core_Manager
         
         // Ако няма търсене
         if (!$search) {
+            
             return;
         }
         
@@ -394,6 +395,7 @@ class doc_Search extends core_Manager
     public function on_AfterPrepareListRecs($mvc, $data)
     {
         if (count($data->recs) == 0) {
+            
             return;
         }
         
@@ -414,11 +416,13 @@ class doc_Search extends core_Manager
     public function on_AfterPrepareListRows($mvc, $data)
     {
         if (count($data->recs) == 0) {
+            
             return;
         }
         
         foreach ($data->recs as $i => &$rec) {
             $row = $data->rows[$i];
+            
             // $folderRec = doc_Folders::fetch($rec->folderId);
             // $folderRow = doc_Folders::recToVerbal($folderRec);
             // $row->folderId = $folderRow->title;
@@ -444,6 +448,7 @@ class doc_Search extends core_Manager
         }
     }
     
+    
     /**
      * След подготовка на заглавието
      */
@@ -451,8 +456,8 @@ class doc_Search extends core_Manager
     {
         $data->title = null;
     }
-
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -466,6 +471,7 @@ class doc_Search extends core_Manager
             $docProxy = doc_Containers::getDocument($rec->id);
             $docRow = $docProxy->getDocumentRow();
         } catch (core_Exception_Expect $expect) {
+            
             return;
         }
         
@@ -485,21 +491,21 @@ class doc_Search extends core_Manager
         }
         
         $row->title = ht::createLink(
-        
+            
             str::limitLen($docRow->title, doc_Threads::maxLenTitle),
             $linkUrl,
             null,
-        
+            
             $attr
         
         );
-    
+        
         if ($docRow->authorId > 0) {
             $row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
         }
-    
+        
         $row->hnd = "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
     }
     
@@ -507,8 +513,9 @@ class doc_Search extends core_Manager
     /**
      * Обновява ключовите думи на контейнери
      *
-     * @param  boolean $bEmptyOnly TRUE - само контейнерите, на които им липсват ключови думи
-     * @return int     брой на контейнерите с реално обновени ключови думи
+     * @param bool $bEmptyOnly TRUE - само контейнерите, на които им липсват ключови думи
+     *
+     * @return int брой на контейнерите с реално обновени ключови думи
      */
     public static function updateSearchKeywords($bEmptyOnly = false)
     {
@@ -531,7 +538,7 @@ class doc_Search extends core_Manager
                 $searchKeywords = $docMvc->getSearchKeywords($rec->docId);
                 if ($searchKeywords != $rec->searchKeywords) {
                     $rec->searchKeywords = $searchKeywords;
-            
+                    
                     // Записваме без да предизвикваме събитие за запис
                     if ($self->save_($rec)) {
                         $numUpdated++;

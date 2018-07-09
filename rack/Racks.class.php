@@ -1,28 +1,29 @@
 <?php
 
 
-
 /**
  * Стелажи
  *
  *
  * @category  bgerp
  * @package   pallet
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class rack_Racks extends core_Master
 {
-    
     /**
      * Заглавие
      */
     public $title = 'Стелажи';
     
     public $singleTitle = 'Стелаж';
-
+    
+    
     /**
      * Плъгини за зареждане
      */
@@ -51,8 +52,8 @@ class rack_Racks extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,rack';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -70,7 +71,7 @@ class rack_Racks extends core_Master
      */
     public $canDelete = 'ceo,rack';
     
-        
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -87,28 +88,29 @@ class rack_Racks extends core_Master
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'rack/tpl/SingleLayoutRack.shtml';
-
-
+    
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/rack.png';
     
-
+    
     public $rowToolsSingleField = 'num';
     
-
+    
     /**
      * Кои полета да се извличат при изтриване
      */
     public $fetchFieldsBeforeDelete = 'id,storeId';
-
-
+    
+    
     /**
      * Масив със стелажи за обновяване
      */
     public $updateRacks = array();
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -122,23 +124,22 @@ class rack_Racks extends core_Master
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
         $this->FLD('reserved', 'int', 'caption=Палет-места->Запазени,smartCenter,input=none');
-
+        
         $this->FLD('constrColumnsStep', 'int', 'caption=Брой палети между две колони->Палети,smartCenter');
         
         $this->setDbUnique('storeId,num');
     }
     
-
-
+    
     public function act_Show()
     {
         $storeId = store_Stores::getCurrent();
         $pos = Request::get('pos');
-
+        
         list($n, $r, $c) = explode('-', $pos);
-
+        
         $n = (int) $n;
-
+        
         if ($n) {
             $rec = rack_Racks::fetch(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $n));
             if ($rec) {
@@ -150,6 +151,7 @@ class rack_Racks extends core_Master
         return new Redirect(array($this), 'Позицията не може да бъде открита', 'error');
     }
     
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -160,7 +162,7 @@ class rack_Racks extends core_Master
     {
         $form = $data->form;
         $rec = &$form->rec;
-
+        
         if (!$rec->id) {
             $storeId = store_Stores::getCurrent();
             $query = self::getQuery();
@@ -175,9 +177,8 @@ class rack_Racks extends core_Master
             }
         }
     }
-
-
-
+    
+    
     /**
      * Добавя филтър към перата
      *
@@ -192,36 +193,36 @@ class rack_Racks extends core_Master
         
         $data->query->orderBy('#num', 'ASC');
     }
-
-
+    
+    
     /**
      * Използваемо ли е посоченото стелажно място?
      */
     public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null, &$status = null)
     {
         expect($position);
-
+        
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
-
+        
         list($num, $row, $col) = explode('-', $position);
-
+        
         expect($num && $row && $col, $num, $row, $col);
-
+        
         $rec = self::fetch("#storeId = {$storeId} AND #num = {$num}");
-
+        
         if (!$rec) {
             $error = 'Несъществуващ номер на стилаж в този склад';
             $status = 'bad_rack_num';
-
+            
             return false;
         }
-
+        
         if ($row < 'A' || $row > $rec->rows) {
             $error = 'Несъществуващ ред на стилажа';
             $status = 'bad_row';
-
+            
             return false;
         }
         
@@ -229,32 +230,32 @@ class rack_Racks extends core_Master
         if ($col < 1 || $col > $rec->columns) {
             $error = 'Несъществуваща колона на стилажа';
             $status = 'bad_column';
-
+            
             return false;
         }
-
+        
         $dRec = rack_RackDetails::fetch("#rackId = {$rec->id} && #row = '{$row}' AND #col = {$col}");
-
+        
         if ($dRec) {
             if ($dRec->status == 'unusable') {
                 $error = 'Мястото е неизползваемо';
                 $status = 'unusable';
-
+                
                 return false;
             }
-
+            
             if ($dRec->status == 'reserved' && $dRec->productId != $productId) {
                 $error = 'Мястото е запазено';
                 $status = 'reserved';
-
+                
                 return false;
             }
         }
-
+        
         return true;
     }
-
-
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -267,7 +268,7 @@ class rack_Racks extends core_Master
             $rec = $form->rec;
             
             $rec->storeId = store_Stores::getCurrent();
-
+            
             if (!rack_Pallets::isEmptyOut($rec->num, $rec->rows, $rec->columns, null, $error)) {
                 $form->setError('rows,columns', $error);
             }
@@ -277,21 +278,21 @@ class rack_Racks extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Преобразува запис от модела в обект с вербални стойности
      */
     public static function recToVerbal_($rec, &$fields = '*')
     {
         $row = parent::recToVerbal_($rec, $fields);
-
+        
         $row->num = ' №' . $row->num;
         
         return $row;
     }
-
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -307,43 +308,42 @@ class rack_Racks extends core_Master
                 tr('Двоен клик върху клетка, за да я редактирате или задръжте мишката за информация') .
                 '</div>';
         }
-
+        
         if ($rec->total) {
             $row->free = $rec->total - $rec->reserved - $rec->used;
             $row->free .= ' (' . round(100 * $row->free / $rec->total, 2) . '%)';
             $row->free = "<span style='color:green;'>" . $row->free . '</div>';
         }
     }
-
-
+    
     
     public static function renderRack($rec)
     {
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         
-
+        
         $hlFullPos = "{$rec->num}-{$hlPos}";
-
+        
         
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
         
         $hlProdId = $used[$hlFullPos];
-
-
+        
+        
         while ($row >= 'A') {
             $res .= '<tr>';
-
+            
             for ($i = 1; $i <= $rec->columns; $i++) {
                 $attr = array();
                 
                 $attr['style'] = 'color:#ccc;';
-                 
+                
                 $pos = "{$row}-{$i}";
                 $posFull = "{$rec->num}-{$row}-{$i}";
-
+                
                 $hint = '';
                 
                 $title = null;
@@ -351,7 +351,7 @@ class rack_Racks extends core_Master
                 $url = toUrl(array('rack_RackDetails', 'add', 'rackId' => $rec->id, 'row' => $row, 'col' => $i));
                 $attr['ondblclick'] = "document.location='{$url}';";
                 $pId = null;
-
+                
                 // Ако е заето с нещо
                 if (!isset($title) && ($pId = $used[$posFull])) {
                     $prodRec = rack_Products::fetch($pId);
@@ -360,23 +360,23 @@ class rack_Racks extends core_Master
                     $attrA['title'] = $prodTitle;
                     $color = self::getColor($prodTitle, 0, 110);
                     $bgColor = self::getColor($prodTitle, 130, 240);
-   
+                    
                     $attrA['style'] = "color:#{$color};background-color:#{$bgColor};";
-
+                    
                     $title = ht::createLink($pos, array('rack_Pallets', 'list', 'pos' => "{$rec->num}-{$pos}"), null, $attrA);
                 }
-
+                
                 // Ако е неизползваемо
                 if (!isset($title) && $unusable[$posFull]) {
                     $title = '&nbsp;';
                 }
-
+                
                 // Ако е резервирано за нещо
                 if (!isset($title) && ($pId = $reserved[$posFull])) {
                     $title = $pos;
                     $attr['style'] = 'color:#fbb;';
                     $hint = tr('Запазано място');
-
+                    
                     if ($pId > 0) {
                         $prodRec = rack_Products::fetch($pId);
                         $prodTitle = rack_Products::getVerbal($prodRec, 'productId');
@@ -396,12 +396,12 @@ class rack_Racks extends core_Master
                     $attr['style'] .= ';text-decoration:underline;';
                     $hint = tr('Предстои преместване');
                 }
-              
+                
                 if (!isset($title)) {
                     $title = $pos;
                     $attr['style'] = 'color:#ccc;';
                 }
-
+                
                 if ($pos == $hlPos) {
                     $attr['class'] .= ' rack-hl';
                 } elseif (isset($pId) && $hlProdId == $pId) {
@@ -416,53 +416,52 @@ class rack_Racks extends core_Master
                         $attr['style'] .= 'border-right:solid 2px #999;';
                     }
                 }
-
+                
                 $attr['nowrap'] = 'nowrap';
                 $attr['style'] .= 'font-size:0.8em;';
-
+                
                 if ($hint) {
                     $attr['title'] = "{$hint}";
                 }
-
+                
                 $res .= ht::createElement('td', $attr, $title);
             }
-
+            
             $res .= '</td>';
-
+            
             $row = chr(ord($row) - 1);
         }
-
+        
         $res = "<table class='listTable'>{$res}</table>";
-
+        
         return $res;
     }
     
-
-
     
     public static function getColor($title, $min = 0, $max = 255)
     {
         $hash = md5($title);
-
+        
         $r = hexdec(substr($hash, 0, 4));
         $g = hexdec(substr($hash, 4, 4));
         $b = hexdec(substr($hash, 8, 4));
         $m = $max - $min;
-
+        
         expect($min < $max);
-
+        
         $r = $r % $m + $min;
         $g = $g % $m + $min;
         $b = $b % $m + $min;
-
-    
+        
+        
         $r = str_pad(dechex($r), 2, '0', STR_PAD_LEFT);
         $g = str_pad(dechex($g), 2, '0', STR_PAD_LEFT);
         $b = str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
         
         return "{$r}{$g}{$b}";
     }
-
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -483,8 +482,8 @@ class rack_Racks extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Връща масив със всички възможно позиции за палети в дадения склад
      */
@@ -512,9 +511,9 @@ class rack_Racks extends core_Master
                 }
             }
         }
-
+        
         $rec = self::fetch("#storeId = {$storeId} AND #num = {$num}");
-
+        
         if ($rec) {
             $dQuery = rack_RackDetails::getQuery();
             $dQuery->where("#rackId = {$rec->id}");
@@ -528,11 +527,11 @@ class rack_Racks extends core_Master
                 }
             }
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Обновява броя на използваните места на шътдаун
      */
@@ -541,7 +540,7 @@ class rack_Racks extends core_Master
         foreach ($mvc->updateRacks as $position => $true) {
             list($storeId, $num, $row, $col) = explode('-', $position);
             if ($storeId > 0 && $num > 0) {
- 
+                
                 // Изчисляваме заетите палети
                 $pQuery = rack_Pallets::getQuery();
                 $pQuery->where("#storeId = {$storeId} AND #position LIKE '{$num}-%'");
@@ -558,7 +557,7 @@ class rack_Racks extends core_Master
         }
     }
     
-
+    
     /**
      * Извиква се след успешен запис в модела
      *
@@ -569,11 +568,11 @@ class rack_Racks extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->clearDetails($id);
-
+        
         $mvc::on_AfterUpdateMaster($mvc, $res, $id);
     }
-
-
+    
+    
     /**
      * Обновява статистиката за стелажа
      */
@@ -583,25 +582,25 @@ class rack_Racks extends core_Master
         
         if ($rec) {
             $rec->total = $rec->columns * (ord($rec->rows) - ord('A') + 1);
-
+            
             $dQuery = rack_RackDetails::getQuery();
-
+            
             $dQuery->where("#rackId = {$rec->id} && #status = 'unusable'");
-
+            
             $rec->total -= $dQuery->count();
             
             $dQuery = rack_RackDetails::getQuery();
-
+            
             $dQuery->where("#rackId = {$rec->id} && #status = 'reserved'");
-
+            
             $rec->reserved = $dQuery->count();
             
             if (!$rec->used) {
                 $rec->used = 0;
             }
-
+            
             $mvc->save_($rec, 'total,reserved,used');
-
+            
             core_Cache::remove('getUnusableAndReserved', $rec->storeId);
         }
     }
@@ -620,7 +619,7 @@ class rack_Racks extends core_Master
     public static function on_AfterDelete($mvc, $numRows, $query, $cond)
     {
         $dR = $query->getDeletedRecs();
- 
+        
         if (is_array($dR)) {
             foreach ($dR as $rec) {
                 core_Cache::remove('getUsableAndReserved', $rec->storeId);
@@ -628,15 +627,15 @@ class rack_Racks extends core_Master
             }
         }
     }
-
-
+    
+    
     /**
      * Изтрива излишните детайли, след преоразмеряване
      */
     public function clearDetails($id)
     {
         $rec = self::fetch($id);
-
+        
         if ($rec) {
             $dQuery = rack_rackDetails::getQuery();
             while ($dRec = $dQuery->fetch("#rackId = {$rec->id}")) {

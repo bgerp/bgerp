@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Клас за автоматично създаване на оферта от запитване
  *
  * @category  bgerp
  * @package   auto
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class auto_handler_CreateQuotationFromInquiry
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -50,11 +49,11 @@ class auto_handler_CreateQuotationFromInquiry
         // Проверка на корицата
         $Cover = doc_Folders::getCover($marketingRec->folderId);
         expect($Cover->haveInterface('crm_ContragentAccRegIntf'));
- 
+        
         // Ако има артикул към запитването не се прави нищо
         if (cat_Products::fetchField("#originId = {$marketingRec->containerId}")) {
             marketing_Inquiries2::logDebug('Не може да се създаде автоматично артикул към запитването защото има вече такъв', $marketingRec->id);
-
+            
             return;
         }
         
@@ -68,7 +67,7 @@ class auto_handler_CreateQuotationFromInquiry
         
         if (!$productId) {
             marketing_Inquiries2::logDebug('Проблем при опит за създаване на автоматичен артикул към запитване', $marketingRec->id);
-
+            
             return;
         }
         marketing_Inquiries2::logInfo("Успешно създаден артикул от автоматизация '{$event}'", $marketingRec->id);
@@ -113,7 +112,7 @@ class auto_handler_CreateQuotationFromInquiry
             
             if (empty($quoteId)) {
                 cat_Products::logDebug('Проблем при опит за създаване на автоматичен оферта към артикул', $productId);
-
+                
                 return;
             }
             sales_Quotations::logInfo('Успешно създаване на оферта към артикул от запитване', $quoteId);
@@ -155,13 +154,14 @@ class auto_handler_CreateQuotationFromInquiry
     {
         $Driver = $document->getDriver();
         if (!$Driver) {
+            
             return;
         }
         
         // Може ли да се намери дефолтната цена за артикула
         if ($Driver->canAutoCalcPrimeCost($marketingRec) !== true) {
             marketing_Inquiries2::logDebug('Не може да се създава артикул от запитването, защото драйвера не връща цена', $marketingRec->id);
-
+            
             return;
         }
         
@@ -170,13 +170,13 @@ class auto_handler_CreateQuotationFromInquiry
         $form->rec->innerClass = $Driver->getClassId();
         
         $iForm = marketing_Inquiries2::getForm();
-
+        
         $form->rec->originId = $marketingRec->containerId;
         $form->rec->threadId = $marketingRec->threadId;
         $form->rec->proto = $marketingRec->proto;
         $form->rec->name = $marketingRec->title;
         $form->rec->driverRec = $marketingRec->title;
-
+        
         $Driver->addFields($form);
         foreach ($form->fields as $name => $fld) {
             if (isset($marketingRec->{$name}) && !$iForm->fields[$name]) {
@@ -193,7 +193,7 @@ class auto_handler_CreateQuotationFromInquiry
                 $form->rec->measureId = $defMeasure;
             }
         }
-
+        
         $rec = $form->rec;
         $productId = $Products->save($rec);
         $Products->logWrite('Създаване от запитване', $productId);

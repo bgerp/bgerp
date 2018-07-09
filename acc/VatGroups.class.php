@@ -1,23 +1,21 @@
 <?php
 
 
-
 /**
  * Клас 'acc_VatGroups'
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_VatGroups extends core_Manager
 {
-    
-    
-    
     /**
      * Заглавие в множествено число
      *
@@ -71,7 +69,7 @@ class acc_VatGroups extends core_Manager
      */
     public $listFields = 'title,vat,createdOn,createdBy,modifiedOn,modifiedBy,state';
     
-
+    
     /**
      * Заглавие в единствено число
      *
@@ -93,7 +91,7 @@ class acc_VatGroups extends core_Manager
         // Уникален индекс
         $this->setDbUnique('title');
     }
-   
+    
     
     /**
      * Преди показване на форма за добавяне/промяна
@@ -112,21 +110,21 @@ class acc_VatGroups extends core_Manager
     {
         // Подготвяме пътя до файла с данните
         $file = 'acc/csv/VatGroups.csv';
-    
+        
         // Кои колонки ще вкарваме
         $fields = array(
-                0 => 'title',
-                1 => 'vat',
-                2 => 'sysId',
+            0 => 'title',
+            1 => 'vat',
+            2 => 'sysId',
         );
-    
+        
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
         $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
         
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res = $cntObj->html;
-    
+        
         return $res;
     }
     

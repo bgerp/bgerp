@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Входящи фактури към покупки
  *
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class purchase_Invoices extends deals_InvoiceMaster
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -71,8 +70,8 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,purchase,acc';
-
-
+    
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
@@ -129,6 +128,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     /**
      * Кой може да променя активирани записи
+     *
      * @see change_Plugin
      */
     public $canChangerec = 'acc, ceo';
@@ -146,8 +146,8 @@ class purchase_Invoices extends deals_InvoiceMaster
      * @see plg_Clone
      */
     public $cloneDetails = 'purchase_InvoiceDetails';
-
-
+    
+    
     /**
      * Поле за филтриране по дата
      */
@@ -158,16 +158,16 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-            'place' => 'lastDocUser|lastDoc',
-            'responsible' => 'lastDocUser|lastDoc',
-            'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
-            'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
-            'uicNo' => 'clientData|lastDocUser|lastDoc',
-            'contragentPCode' => 'clientData|lastDocUser|lastDoc',
-            'contragentPlace' => 'clientData|lastDocUser|lastDoc',
-            'contragentAddress' => 'clientData|lastDocUser|lastDoc',
-            'accountId' => 'lastDocUser|lastDoc',
-            'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+        'place' => 'lastDocUser|lastDoc',
+        'responsible' => 'lastDocUser|lastDoc',
+        'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+        'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
+        'uicNo' => 'clientData|lastDocUser|lastDoc',
+        'contragentPCode' => 'clientData|lastDocUser|lastDoc',
+        'contragentPlace' => 'clientData|lastDocUser|lastDoc',
+        'contragentAddress' => 'clientData|lastDocUser|lastDoc',
+        'accountId' => 'lastDocUser|lastDoc',
+        'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -269,7 +269,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         if ($clonedFh) {
             $form->setDefault('fileHnd', $clonedFh);
-        
+            
             $fRec = fileman::fetchByFh($clonedFh);
             doc_DocumentPlg::showOriginalFile($fRec, $form);
         }
@@ -291,7 +291,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             if ($origin->isInstanceOf('purchase_Purchases')) {
                 $oRec = $origin->fetch();
                 $clonedFromId = $mvc->getClonedFromId($oRec);
-            
+                
                 if ($clonedFromId) {
                     $clonedFh = Mode::get('clonedPurFh|' . $clonedFromId);
                     Mode::set('invOriginFh', $clonedFh);
@@ -338,7 +338,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                     $arr['contragentClassId'] = null;
                     $arr['contragentId'] = null;
                 }
-                 
+                
                 if (count($arr)) {
                     foreach (array('contragentName', 'contragentClassId', 'contragentId', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
                         $form->rec->{$fld} = $arr[$fld];
@@ -400,13 +400,14 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Връща запис с данните на контрагента
      *
-     * @param  stdClass $rec
+     * @param stdClass $rec
+     *
      * @return stdClass $cRec
      */
     private static function getContragentRec($rec)
     {
         $cRec = (object) array('name' => $rec->contragentName, 'country' => $rec->contragentCountryId, 'vatId' => $rec->contragentVatNo, 'uicId' => $rec->uicNo, 'pCode' => $rec->contragentPCode, 'place' => $rec->contragentPlace, 'address' => $rec->contragentAddress);
-    
+        
         return $cRec;
     }
     
@@ -419,7 +420,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Ако има фактура с този номер, не възстановяваме
         if (!$mvc->isNumberFree($id)) {
             core_Statuses::newStatus('Има вече входяща фактура с този номер, за този контрагент', 'error');
-
+            
             return false;
         }
     }
@@ -428,8 +429,9 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Проверява дали номера е свободен
      *
-     * @param  stdClass $rec
-     * @return boolean
+     * @param stdClass $rec
+     *
+     * @return bool
      */
     private function isNumberFree($rec)
     {
@@ -524,13 +526,14 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
         // Ако резултата е 'no_one' пропускане
         if ($res == 'no_one') {
+            
             return;
         }
-            
+        
         if ($action == 'add' && isset($rec->threadId)) {
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             $docState = $firstDoc->fetchField('state');
-             
+            
             if (!(($firstDoc->isInstanceOf('purchase_Purchases') || $firstDoc->isInstanceOf('findeals_AdvanceDeals')) && $docState == 'active')) {
                 $res = 'no_one';
             }
@@ -635,10 +638,10 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Преценява дали файла с посоченото име и дължина може да съдържа документ
      *
-     * @param string  $fileName
-     * @param integer $fileLen
+     * @param string $fileName
+     * @param int    $fileLen
      *
-     * @return boolean
+     * @return bool
      */
     public static function canKeepDoc($fileName, $fileLen)
     {
@@ -649,7 +652,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         $ext = fileman_Files::getExt($fileName);
-
+        
         if (($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
             
             return true;
@@ -765,9 +768,9 @@ class purchase_Invoices extends deals_InvoiceMaster
         if ($form->cmd != 'refresh') {
             if ($bestPosArr['threadId']) {
                 $fContainerId = doc_Threads::getFirstContainerId($bestPosArr['threadId']);
-        
+                
                 $doc = doc_Containers::fetch($fContainerId);
-        
+                
                 if (($doc->docClass == purchase_Purchases::getClassId()) && ($purArr[$doc->docId])) {
                     $form->setDefault('purId', $doc->docId);
                 }
@@ -809,14 +812,14 @@ class purchase_Invoices extends deals_InvoiceMaster
             }
             
             if ($pRec->threadId) {
-            
+                
                 // Ако няма създадена складова разписка - да е избрано във формата
                 $rClsId = store_Receipts::getClassId();
                 $sClsId = purchase_Services::getClassId();
                 if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $rClsId))) {
                     $aSet['store'] = 'store';
                 }
-            
+                
                 // Ако няма създаден приемателен протокол - да е избрано във формата
                 if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
                     $aSet['service'] = 'service';
@@ -830,21 +833,21 @@ class purchase_Invoices extends deals_InvoiceMaster
             $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
             while ($dRec = $dQuery->fetch()) {
                 $productName = cat_Products::getTitleById($dRec->productId);
-            
+                
                 $productName = str_replace('->', '-', $productName);
-            
+                
                 $vat = cat_Products::getVat($dRec->productId, $pRec->valior);
                 $price = deals_Helper::getDisplayPrice($dRec->price, $vat, $pRec->currencyRate, $pRec->chargeVat, 3);
-            
+                
                 $unit = $price . ' ' . $pRec->currencyId;
-            
+                
                 if ($dRec->discount) {
                     $discount = $dRec->discount * 100;
                     $unit .= ', ' . tr('ТО') . ': ' . $discount . '%';
                 }
-            
+                
                 $productName .= '->' . cat_UoM::getTitleById($dRec->packagingId);
-            
+                
                 $fncName = $detFieldPref . $dRec->id;
                 
                 $form->FNC($fncName, 'varchar', array('caption' => '|*' . $productName, 'input', 'unit' => '|*' . $unit, 'class' => 'w50'));
@@ -943,7 +946,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 Request::push($pArr);
                 $invForm->cmd = 'save';
-                 
+                
                 // Ид-то не трябва да се инпутва
                 $fields = $invForm->selectFields();
                 unset($fields['id']);
@@ -1124,7 +1127,8 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Връща сч. дата по подразбиране спрямо, датата на входящата фактура
      *
-     * @param  date $date - дата
+     * @param date $date - дата
+     *
      * @return date
      */
     public function getDefaultAccDate($date)

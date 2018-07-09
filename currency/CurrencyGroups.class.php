@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър за групи на валутите
  *
  *
  * @category  bgerp
  * @package   currency
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class currency_CurrencyGroups extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -51,7 +50,6 @@ class currency_CurrencyGroups extends core_Manager
      * Кой може да променя?
      */
     public $canEdit = 'ceo,currency,admin';
-    
     
     
     /**

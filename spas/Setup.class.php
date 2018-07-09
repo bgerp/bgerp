@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Хост
  */
@@ -27,15 +26,15 @@ defIfNot('SPAS_USER', '');
  *
  * @category  bgerp
  * @package   spas
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class spas_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
@@ -70,13 +69,13 @@ class spas_Setup extends core_ProtoSetup
         
         // Порт
         'SPAS_PORT' => array('int', 'caption=Връзка със SpamAssassin->Port'),
-
+        
         // Потребител
         'SPAS_USER' => array('varchar', 'caption=Връзка със SpamAssassin->User'),
-
-     );
-        
-        
+    
+    );
+    
+    
     /**
      * След първоначално зареждане на данните
      */

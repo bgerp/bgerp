@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Лог за използванията
  *
  * @category  bgerp
  * @package   doclog
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doclog_Used extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
@@ -85,8 +84,8 @@ class doclog_Used extends core_Manager
     /**
      * Добавя запис
      *
-     * @param integer $cid
-     * @param integer $usedCid
+     * @param int $cid
+     * @param int $usedCid
      */
     public static function add($cid, $usedCid)
     {
@@ -102,8 +101,8 @@ class doclog_Used extends core_Manager
     /**
      * Премахва запис
      *
-     * @param integer $cid
-     * @param integer $usedCid
+     * @param int $cid
+     * @param int $usedCid
      */
     public static function remove($cid, $usedCid)
     {
@@ -125,7 +124,7 @@ class doclog_Used extends core_Manager
     /**
      * Подготвя записите за показване
      *
-     * @param integer         $cid
+     * @param int             $cid
      * @param NULL|core_Pager $pager
      *
      * @return array
@@ -159,9 +158,9 @@ class doclog_Used extends core_Manager
     /**
      * Връща броя на използваните документи
      *
-     * @param integer $cid
+     * @param int $cid
      *
-     * @return integer
+     * @return int
      */
     public static function getUsedCount($cid)
     {

@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас  'type_Varchar' - Тип за символни последователности (стринг)
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class type_Varchar extends core_Type
 {
-    
-    
     /**
      * MySQL тип на полето в базата данни
      */
@@ -55,7 +54,7 @@ class type_Varchar extends core_Type
         if ($this->params['readonly']) {
             $attr['readonly'] = 'readonly';
         }
-
+        
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
@@ -83,12 +82,12 @@ class type_Varchar extends core_Type
                 $value = null;
             }
         }
-
+        
         $value = parent::fromVerbal_($value);
-
+        
         return $value;
     }
-          
+    
     
     /**
      * Този метод трябва да конвертира от вътрешно към вербално

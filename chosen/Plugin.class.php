@@ -9,9 +9,11 @@
  *
  * @category  vendors
  * @package   chosen
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class chosen_Plugin extends core_Plugin
@@ -26,7 +28,8 @@ class chosen_Plugin extends core_Plugin
             $value = $value1;
         }
     }
-
+    
+    
     /**
      * Изпълнява се след рендирането на input
      */
@@ -44,14 +47,14 @@ class chosen_Plugin extends core_Plugin
             
             return ;
         }
-
+        
         $options = new ET();
         $mustCloseGroup = false;
-
+        
         foreach ($invoker->suggestions as $key => $val) {
             $attr = array();
-                            
-
+            
+            
             if (is_object($val)) {
                 if ($val->group) {
                     if ($mustCloseGroup) {
@@ -68,7 +71,7 @@ class chosen_Plugin extends core_Plugin
             $selected = '';
             
             $newKey = "|{$key}|";
- 
+            
             if (is_array($value)) {
                 if ($value[$key]) {
                     $attr['selected'] = 'selected';
@@ -83,11 +86,11 @@ class chosen_Plugin extends core_Plugin
             
             $options->append(ht::createElement('option', $attr, $val));
         }
-
+        
         if ($mustCloseGroup) {
             $options->append("</optgroup>\n");
         }
-
+        
         $attr = array();
         
         $attr['class'] = 'keylistChosen';
@@ -100,10 +103,10 @@ class chosen_Plugin extends core_Plugin
         $tpl->append("<input type='hidden' name='{$name}[chosen]' value=1>");
         $tpl->push($conf->CHOSEN_PATH . '/chosen.css', 'CSS');
         $tpl->push($conf->CHOSEN_PATH . '/chosen.jquery.js', 'JS');
-
+        
         // custom стилове за плъгина
         $tpl->push('chosen/css/chosen-custom.css', 'CSS');
-
+        
         jquery_Jquery::run($tpl, "$('.keylistChosen').data('placeholder', 'Избери...').chosen();");
         
         return false;

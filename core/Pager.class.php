@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Клас 'core_Pager' - Отговаря за странирането на резултати от заявка
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Pager extends core_BaseClass
 {
-    
-    
     /**
      * Мениджърът, който го използва
      */
@@ -71,13 +70,13 @@ class core_Pager extends core_BaseClass
      */
     public $pagesAround;
     
-
+    
     /**
      * Брояч за текущия резултат
      */
     public $currentResult;
-
-
+    
+    
     /**
      * Инициализиране на обекта
      */
@@ -125,7 +124,7 @@ class core_Pager extends core_BaseClass
         }
         $this->rangeStart = 0;
         $this->rangeEnd = $this->itemsCount;
-      
+        
         $this->rangeStart = $this->itemsPerPage * ($this->page - 1);
         $this->rangeEnd = $this->rangeStart + $this->itemsPerPage;
         
@@ -210,14 +209,14 @@ class core_Pager extends core_BaseClass
         
         // Приоритетна заявка
         $query->highPriority = true;
-
+        
         $q = clone ($query);
         $qCnt = clone ($query);
         $qWork = clone ($query);
-
+        
         // Извличаме резултатите за посочената страница
         setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
-                    
+        
         // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
         
@@ -229,9 +228,9 @@ class core_Pager extends core_BaseClass
                 $this->itemsCount = $resCntCache;
             }
         }
- 
+        
         $this->calc();
-
+        
         // Подготовка на заявката за извличане на id
         $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);
         $query->show('id');
@@ -239,13 +238,13 @@ class core_Pager extends core_BaseClass
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
         
-
+        
         while ($rec = $query->fetch()) {
             $ids[] = $rec->id;
         }
-  
+        
         $idCnt = count($ids);
-
+        
         if ($useCache) {
             $resCnt = null;
             
@@ -292,31 +291,31 @@ class core_Pager extends core_BaseClass
         
         // До тук задължително трябва да сме изчислили колко резултата имаме
         expect(isset($resCnt));
-
+        
         $this->itemsCount = $resCnt;
         $query = $qWork;
- 
+        
         
         $exRangeStart = $this->rangeStart;
-
+        
         $this->calc();
         
         if ($exRangeStart != $this->rangeStart) {
             $rQuery->limit($this->rangeEnd - $this->rangeStart);
             $rQuery->startFrom($this->rangeStart);
             $ids = array();
-
+            
             while ($rec = $rQuery->fetch()) {
                 $ids[] = $rec->id;
             }
             $idCnt = count($ids);
         }
-
+        
         if ($idCnt) {
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
             $ids = implode(',', $ids);
             $query->where("#id IN (${ids})");
-
+            
             foreach ($query->where as $i => $cond) {
                 if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) {
                     unset($query->where[$i]);
@@ -336,28 +335,28 @@ class core_Pager extends core_BaseClass
             }
         }
     }
-
-
+    
+    
     /**
      * Връща линкове за предишна и следваща страница, спрямо текущата
      */
     public function getPrevNext($nextTitle, $prevTitle)
     {
         $link = self::getUrl();
-
+        
         $p = $this->getPage();
         $cnt = $this->getPagesCount();
-
+        
         if ($p > 1) {
             $link[$this->pageVar] = $p - 1;
             $prev = '<a href="' . toUrlEsc($link) . "\" class=\"pager\">{$prevTitle}</a>";
         }
-
+        
         if ($p < $cnt) {
             $link[$this->pageVar] = $p + 1;
             $next = '<a href="' . toUrlEsc($link) . "\" class=\"pager\">{$nextTitle}</a>";
         }
-
+        
         return "<div class=\"small\" style='margin-bottom: 10px;'><div style='float:left;'>{$next}</div><div style='float:right;'>{$prev}</div><div class='clearfix21'></div> </div>";
     }
     
@@ -426,8 +425,8 @@ class core_Pager extends core_BaseClass
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Връща текущото URL
      */
@@ -437,11 +436,11 @@ class core_Pager extends core_BaseClass
         if (is_array($this->addToUrl)) {
             $url = $url + $this->addToUrl;
         }
-
+        
         return $url;
     }
-
-
+    
+    
     /**
      * Проверява дали текущия резултат трябва да се показва
      */
@@ -450,22 +449,22 @@ class core_Pager extends core_BaseClass
         if (!$this->rangeStart) {
             $this->calc();
         }
-
+        
         if (!$this->currentResult) {
             $this->currentResult = 1;
         } else {
             $this->currentResult++;
         }
- 
+        
         if ($this->currentResult <= $this->rangeStart || $this->currentResult > $this->rangeEnd) {
             
             return false;
         }
-
+        
         return true;
     }
-
-
+    
+    
     /**
      * Задава стойността на контролната променлива за пейджъра
      */
@@ -473,15 +472,15 @@ class core_Pager extends core_BaseClass
     {
         $this->pageVar = self::getPageVar($masterClass, $id, $detailClass);
     }
-
-
+    
+    
     /**
      * Връща името на променливата използвана за отбелязване на текущата страница
      */
     public static function getPageVar($masterClass = null, $id = null, $detailClass = null)
     {
         $pageVar = 'P';
-
+        
         if ($masterClass) {
             $pageVar .= "_{$masterClass}";
         }
@@ -491,7 +490,7 @@ class core_Pager extends core_BaseClass
         if ($detailClass) {
             $pageVar .= "_{$detailClass}";
         }
-
+        
         return $pageVar;
     }
 }

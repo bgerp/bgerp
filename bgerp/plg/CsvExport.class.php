@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Драйвър за експортиране на документи в csv формат
  *
@@ -10,15 +9,15 @@
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_CsvExport extends core_BaseClass
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -115,7 +114,8 @@ class bgerp_plg_CsvExport extends core_BaseClass
     /**
      * Инпортиране на csv-файл в даден мениджър
      *
-     * @param  mixed $data - данни
+     * @param mixed $data - данни
+     *
      * @return mixed - експортираните данни
      */
     public function export($filter)
@@ -124,7 +124,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
         
         core_App::setTimeLimit(count($recs) / 100);
-
+        
         $retUrl = getRetUrl();
         
         if (empty($retUrl)) {
@@ -185,7 +185,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $params['text'] = 'plain';
         
         $this->mvc->invoke('BeforeExportCsv', array(&$recs));
-     
+        
         $content = csv_Lib::createCsv($recs, $this->mvc, $fieldsArr, $params);
         $content = iconv('utf-8', $filter->encoding . '//TRANSLIT', $content);
         
@@ -234,7 +234,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
     {
         $timestamp = time();
         $name = $this->mvc->className . "Csv{$timestamp}.csv";
-         
+        
         return $name;
     }
 }

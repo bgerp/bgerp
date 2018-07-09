@@ -6,21 +6,22 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
  *
+ * @since     v 0.1
  * @see acc_TransactionSourceIntf
  *
  */
 class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 {
-    
-    
     /**
-     * @param  int      $id
+     * @param int $id
+     *
      * @return stdClass
+     *
      * @see acc_TransactionSourceIntf::getTransaction
      */
     public function getTransaction($id)
@@ -30,10 +31,10 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-                'reason' => "Протокол за влагане в производство №{$rec->id}",
-                'valior' => $rec->valior,
-                'totalAmount' => null,
-                'entries' => array()
+            'reason' => "Протокол за влагане в производство №{$rec->id}",
+            'valior' => $rec->valior,
+            'totalAmount' => null,
+            'entries' => array()
         );
         
         if (isset($rec->id)) {
@@ -66,7 +67,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
                 
                 // Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
                 $debitArr = array('61101', array('cat_Products', $dRec->productId),
-                                  'quantity' => $dRec->quantity);
+                    'quantity' => $dRec->quantity);
                 
                 $reason = 'Влагане на материал в производството';
             }
@@ -78,11 +79,11 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
             }
             
             $entries[] = array('debit' => $debitArr,
-                               'credit' => array(321,
-                                    array('store_Stores', $rec->storeId),
-                                    array('cat_Products', $dRec->productId),
-                                    'quantity' => $dRec->quantity),
-                               'reason' => $reason);
+                'credit' => array(321,
+                    array('store_Stores', $rec->storeId),
+                    array('cat_Products', $dRec->productId),
+                    'quantity' => $dRec->quantity),
+                'reason' => $reason);
         }
         
         // Връщаме ентритата
