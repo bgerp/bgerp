@@ -463,7 +463,7 @@ class eshop_ProductDetails extends core_Detail
         $tpl->append($cartInfo, 'ROW_AFTER');
         
         if(count($commonParamRows)){
-        	$commonParamsTpl = $paramsTable->get($commonParamRows, 'caption=Общи параметри,value=|*&nbsp;');
+        	$commonParamsTpl = $paramsTable->get($commonParamRows, 'caption=Параметри,value=|*&nbsp;');
         	$commonParamsTpl->removePlaces();
         	$commonParamsTpl->removeBlocks();
         	$tpl->append($commonParamsTpl, 'ROW_AFTER');
