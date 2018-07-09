@@ -74,8 +74,8 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "Уважаеми [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n" .
-        "Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от този [#link#], който изтича след 7 дни";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "Уважаеми [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n
+       Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от този [#link#], който изтича след 7 дни";
       
     
     /**
@@ -87,8 +87,8 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "Dear [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#]," . 
-        "\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "Dear [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#],
+    \nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days";
      
     
     /**
