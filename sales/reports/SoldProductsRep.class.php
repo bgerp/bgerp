@@ -138,7 +138,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         // Last период
-        
         if (($rec->compare) == 'previous') {
             $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
             $fromPreviuos = dt::addDays(- $daysInPeriod, $rec->from, false);
@@ -188,7 +187,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         
         // Масив бързи продажби //
-        
         $sQuery = sales_Sales::getQuery();
  
         if (($rec->compare) == 'no') {
@@ -196,7 +194,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         // Last период
-        
         if (($rec->compare) == 'previous') {
             $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
         }

@@ -24,5 +24,7 @@ class incoming_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('incoming_Documents', 'Документи');
         $this->TAB('incoming_Types', 'Типове');
+        $this->TAB('incoming_TypeOfArchive', 'Типове архиви');
+        $this->TAB('incoming_Archiving', 'Архивиране');
     }
 }
