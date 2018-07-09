@@ -1051,6 +1051,7 @@ class eshop_Products extends core_Master
     	$dQuery->show('productId');
     	
     	while($dRec = $dQuery->fetch()){
+    		if (!eshop_ProductDetails::getPublicDisplayPrice($dRec->productId)) continue;
     		
     		// Какви стойности имат избраните параметри
     		$intersect = array();
