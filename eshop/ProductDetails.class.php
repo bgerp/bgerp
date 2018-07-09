@@ -79,7 +79,7 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
-        $this->FLD('title', 'varchar', 'caption=Заглавие');
+        $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         
         $this->setDbUnique('eshopProductId,title');
     }
