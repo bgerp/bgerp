@@ -710,8 +710,11 @@ class eshop_Carts extends core_Master
     public function act_View()
     {
     	$this->requireRightFor('viewexternal');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = self::fetch($id));
+    	$id = Request::get('id', 'int');
+    	if (empty($id)) redirect(array($this, 'force'));
+    	
+    	$rec = self::fetch($id);
+    	if (empty($rec)) redirect(array($this, 'force'));
     	
     	// Редирект към ешопа ако количката е активна
     	if($rec->state == 'active'){
@@ -1032,7 +1035,7 @@ class eshop_Carts extends core_Master
     	}
     	
     	if($action == 'finalize' && isset($rec)){
-    		if(empty($rec->personNames)){
+    		if(empty($rec->personNames) || empty($rec->productCount)){
     			$requiredRoles = 'no_one';
     		} elseif($rec->deliveryNoVat < 0){
     			$requiredRoles = 'no_one';
