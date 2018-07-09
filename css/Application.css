@@ -2770,6 +2770,12 @@ span.sharing-history-title {
     font-size: 1.05em;
     padding-left: 22px !important; }
 
+.paramsTable td {
+  padding: 1px 5px;
+  color: #333333;
+  font-family: sans-serif;
+  line-height: 1.4em; }
+
 .narrow .cart-view-buttons-top a {
   display: block; }
 
