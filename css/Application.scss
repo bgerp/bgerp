@@ -3330,7 +3330,7 @@ fieldset.sharing-history {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 25px;
+	width: 22px;
 	height: 25px;
 	border: 1px solid #ccc;
 	font-size: 14px;
@@ -3351,14 +3351,14 @@ fieldset.sharing-history {
 	height: 27px;
 }
 .btnUp {
-	padding-right: 3px;
+	padding-right: 2px;
 	border-bottom-right-radius: 12px;
 	border-top-right-radius: 12px;
 	border-left: none;
 }
 
 .btnDown {
-	padding-left: 3px;
+	padding-left: 2px;
 	border-bottom-left-radius: 12px;
 	border-top-left-radius: 12px;
 	border-right: none;
@@ -3404,7 +3404,7 @@ fieldset.sharing-history {
 	}
 	input {
 		text-align: right;
-		width: 60px;
+		width: 34px;
 		height: 27px;
 		padding: 2px 5px;
 		border: 1px solid #cccccc;
@@ -3421,6 +3421,9 @@ fieldset.sharing-history {
 .narrow .optionsTable {
 	min-width: 320px;
 	margin-top: 15px;
+	td {
+		padding: 4px 10px;
+	}
 }
 
 .eshop-product-navigation {

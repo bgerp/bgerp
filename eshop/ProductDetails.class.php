@@ -421,10 +421,10 @@ class eshop_ProductDetails extends core_Detail
         $count = count($data->rows);
         
         $fieldset = cls::get(get_called_class());
-        $fieldset->FNC('code', 'varchar', 'smartCenter');
+        $fieldset->FNC('code', 'varchar');
         $fieldset->FNC('catalogPrice', 'double');
         $fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
-        $fieldset->FNC('packagingId', 'varchar', 'tdClass=nowrap');
+        $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
         $fieldset->FLD('quantity', 'varchar');
         $fieldset->setField('quantity', 'tdClass=quantity-input-column');
         
