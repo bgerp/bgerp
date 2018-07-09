@@ -511,8 +511,11 @@ class eshop_Carts extends core_Master
    				$price /= 1 + $dRec->vat;
    			}
    			
+   			$paramsText = eshop_CartDetails::getUniqueParamsAsText($dRec);
+   			$notes = (!empty($paramsText)) ? $paramsText : NULL;
+   			
    			$price = currency_CurrencyRates::convertAmount($price, NULL, $dRec->currencyId);
-   			sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount);
+   			sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount, NULL, NULL, $notes);
    		}
    		
    		// Добавяне на транспорта, ако има
@@ -523,7 +526,7 @@ class eshop_Carts extends core_Master
    		
    		// Продажбата става на заявка, кошницата се активира
    		$saleRec = self::makeSalePending($saleId);
-   		self::activate($rec, $saleId);
+   		//self::activate($rec, $saleId);
    		doc_Threads::doUpdateThread($saleRec->threadId);
    		
    		// Ако е партньор и има достъп до нишката, директно се реидректва към нея
