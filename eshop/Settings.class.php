@@ -97,6 +97,19 @@ class eshop_Settings extends core_Manager
     const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "Dear [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#]";
     
     
+    
+    /**
+     * Дефолтен шаблон за текст за добавяне към количката на bg
+     */
+    const DEFAULT_ADD_TO_CART_TEXT_BG = "Вече има [#packQuantity#] [#packagingId#] от [#productName#] в количката";
+    
+    
+    /**
+     * Дефолтен шаблон за текст за добавяне към количката на en
+     */
+    const DEFAULT_ADD_TO_CART_TEXT_EN = "There are already [#packQuantity#] [#packagingId#] from [#productName#] in the cart";
+    
+    
     /**
      * Колко секунди да е живота на забравените колички от регистрирани потребители
      */
@@ -130,6 +143,7 @@ class eshop_Settings extends core_Manager
         
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
+        $this->FLD('addProductText', 'text(rows=3)', 'caption=Добавяне на артикул към количката->Текст');
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
         $this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
         $this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
@@ -233,6 +247,9 @@ class eshop_Settings extends core_Manager
         $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
         $form->setParams('emailBodyWithoutReg', array('placeholder' => $placeholderValue));
         
+        $placeholderValue = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
+        $form->setParams('addProductText', array('placeholder' => $placeholderValue));
+        
         $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
         $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
     }
@@ -296,6 +313,10 @@ class eshop_Settings extends core_Manager
         
             if (empty($settingRec->emailBodyWithoutReg)) {
                 $settingRec->emailBodyWithoutReg = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
+            }
+            
+            if (empty($settingRec->addProductText)) {
+            	$settingRec->addProductText = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
             }
             
             // Какъв е живота на количките на регистрираните потребители

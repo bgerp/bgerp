@@ -153,7 +153,8 @@ class eshop_Carts extends core_Master
     
     /**
      * Екшън за добавяне на артикул в кошницата
-     * @return multitype:
+     * 
+     * @return mixed
      */
     public function act_addToCart()
     {
@@ -196,7 +197,21 @@ class eshop_Carts extends core_Master
     			$this->requireRightFor('addtocart', $cartId);
     			eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
     			$this->updateMaster($cartId);
-    			$msg = '|Артикулът е добавен|*!';
+    			
+    			$rec = self::fetch($cartId);
+    			$exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
+    			 
+    			$packagingId = tr(cat_UoM::getShortName($packagingId));
+    			$packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($exRec->packQuantity);
+    			$productName = cat_Products::getVerbal($productId, 'name');
+    			 
+    			$settings = cms_Domains::getSettings();
+    			$addText = new core_ET($settings->addProductText);
+    			$addText->append($packagingId, 'packagingId');
+    			$addText->append($productName, 'productName');
+    			$addText->append($packQuantity, 'packQuantity');
+    			
+    			$msg = $addText->getContent();
     			$success = TRUE;
     		} catch(core_exception_Expect $e){
     			reportException($e);
@@ -204,7 +219,6 @@ class eshop_Carts extends core_Master
     		}
     	}
         
-
     	// Ако режимът е за AJAX
     	if (Request::get('ajax_mode')) {
     		
