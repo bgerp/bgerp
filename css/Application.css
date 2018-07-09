@@ -2766,7 +2766,9 @@ span.sharing-history-title {
     color: #666666; }
   .cart-view-buttons-top a {
     display: inline-block;
-    margin-bottom: 10px; }
+    margin-bottom: 10px;
+    font-size: 1.05em;
+    padding-left: 22px !important; }
 
 .narrow .cart-view-buttons-top a {
   display: block; }

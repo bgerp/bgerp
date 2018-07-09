@@ -861,7 +861,7 @@ class eshop_Carts extends core_Master
     	$rec = self::fetchRec($id);
     	$shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(NULL);
 
-		$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go.png');
+		$btn = ht::createLink(tr('Назад към магазина'), $shopUrl, NULL, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png');
 		$tpl->append($btn, 'CART_TOOLBAR_TOP');
 
 		$wideSpan = Mode::is('screenMode', 'wide') ? "<span>|</span>" : "";
