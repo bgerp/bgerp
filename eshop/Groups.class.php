@@ -133,7 +133,7 @@ class eshop_Groups extends core_Master
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню,silent,refreshForm');
         $this->FLD('name', 'varchar(64)', 'caption=Група, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
-        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри');
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри,optionsFunc=cat_Params::getPublic');
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
         $this->FLD('productCnt', 'int', 'input=none');

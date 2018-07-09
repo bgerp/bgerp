@@ -126,6 +126,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Свързване със склад->Избор');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри,optionsFunc=cat_Params::getPublic');
         
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
