@@ -284,7 +284,7 @@ class eshop_ProductDetails extends core_Detail
         	$data->paramListFields["param{$paramId}"] = cat_Params::getVerbal($paramId, 'typeExt');
         }
         
-        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=К-во,catalogPrice=Цена,btn=|*&nbsp;');
+        $data->listFields = $data->paramListFields + arr::make('code=Код,productId=Опция,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена,btn=|*&nbsp;');
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         

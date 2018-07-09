@@ -925,7 +925,7 @@ class eshop_Carts extends core_Master
     {
     	$fields = cls::get('eshop_CartDetails')->selectFields();
     	$fields['-external'] = TRUE;
-    	$data->listFields = arr::make("code=Код,productId=Артикул,quantity=К-во,finalPrice=Цена,amount=Сума");
+    	$data->listFields = arr::make("code=Код,productId=Артикул,quantity=Количество,finalPrice=Цена,amount=Сума");
     	$settings = cms_Domains::getSettings();
     	
     	$data->productRecs = $data->productRows = array();
