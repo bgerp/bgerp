@@ -2981,7 +2981,9 @@ table .eshop-btn {
   border: 1px solid #bbbbbb;
   border-radius: 3px;
   box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
-  margin: 0 10px 0 0 !important; }
+  margin: 0 10px 0 0 !important;
+  position: relative;
+  top: -1px; }
   .productBtn:hover {
     background-color: #eeeeee !important; }
 
@@ -4471,6 +4473,9 @@ div.location.public {
 
 .eshop-product-list:hover .eshop-product-labels {
   color: #444444; }
+
+.paramsTable {
+  margin-top: 20px; }
 
 .eshop-product-labels span {
   margin-right: 10px;
