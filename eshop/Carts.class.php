@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   eshop
- *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
  */
 class eshop_Carts extends core_Master
 {
+    
+    
     /**
      * Заглавие
      */
@@ -723,7 +723,7 @@ class eshop_Carts extends core_Master
             $tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
         }
         
-        $cartInfo = tr('Всички цени са ')  . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+        $cartInfo = tr('Всички цени са')  . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
         $tpl->replace($cartInfo, 'VAT_STATUS');
         
         // Ако има последно активирана кошница да се показва като съобщение
