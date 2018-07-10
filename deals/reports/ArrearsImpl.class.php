@@ -181,7 +181,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
             }
         }
         
-        arr::sortObjects($data->recs, 'amount', 'DESC');
+        arr::sortObjects($data->recs, 'amount', 'desc');
         
         foreach ($data->recs as $id => $r) {
             if ($r->amount <= $data->rec->amount || $r->amount == '') {

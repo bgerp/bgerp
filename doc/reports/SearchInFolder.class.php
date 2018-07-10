@@ -109,7 +109,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
         }
         
         // Подреждане по най-срещаните думи
-        arr::sortObjects($recs, 'count', 'DESC');
+        arr::sortObjects($recs, 'count', 'desc');
         
         return $recs;
     }
