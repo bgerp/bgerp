@@ -538,16 +538,14 @@ class unit_MinkPSales extends core_Manager
         
         // активиране на продажбата
         $browser->press('Активиране');
-        
+        $browser->press('Активиране/Контиране');
         if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
             $browser->setValue('Ignore', '1');
-            $browser->press('Активиране/Контиране');
+           
         } else {
             
             return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
         }
-        
-        //return $browser->getHtml();
         
         // Когато няма автом. избиране - ЕН
         
@@ -730,7 +728,7 @@ class unit_MinkPSales extends core_Manager
         }
         $enddate = strtotime('+2 Days');
         $browser->setValue('reff', 'MinkP');
-        $browser->setValue('bankAccountId', '');
+        $browser->setValue('bankAccountId', '#BG22UNCR70001519562302');
         $browser->setValue('note', 'MinkPSaleEURVatFree3');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
         $browser->setValue('chargeVat', 'exempt');
