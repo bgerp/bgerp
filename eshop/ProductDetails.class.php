@@ -71,6 +71,17 @@ class eshop_ProductDetails extends core_Detail
     
     
     /**
+     * Поле за артикула
+     */
+    public $productFld = 'productId';
+    
+    
+    /**
+     * Поле за забележки
+     */
+    public $notesFld = 'title';
+    
+    /**
      * Описание на модела
      */
     public function description()
