@@ -46,9 +46,9 @@ class unit_MinkPbgERP extends core_Manager
         
         $res = '';
         $res .= $this->act_Run();
-        $inst = cls::get('unit_MinkPSales');
-        $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkPPurchases');
+        $res .= $inst->act_Run();
+        $inst = cls::get('unit_MinkPSales');
         $res .= $inst->act_Run();
         $inst = cls::get('unit_MinkPPayment');
         $res .= $inst->act_Run();
@@ -1281,7 +1281,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
         $browser->press('Refresh');
-        $browser->setValue('packQuantity', '15');
+        $browser->setValue('packQuantity', '1000');
         $browser->setValue('packPrice', '1,66');
         $browser->setValue('discount', 4);
         
@@ -1304,12 +1304,12 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Грешен закупчик');
         }
-        if (strpos($browser->gettext(), 'ДДС 20%: BGN 5,92')) {
+        if (strpos($browser->gettext(), 'ДДС 20%: BGN 319,86')) {
         } else {
             
             return $this->reportErr('Грешно ДДС', 'warning');
         }
-        if (strpos($browser->gettext(), 'Тридесет и пет BGN и 0,52')) {
+        if (strpos($browser->gettext(), 'Хиляда деветстотин и деветнадесет BGN и 0,16')) {
         } else {
             
             return $this->reportErr('Грешна обща сума', 'warning');
