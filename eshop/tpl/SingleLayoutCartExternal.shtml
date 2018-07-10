@@ -126,6 +126,13 @@
          <div class="clearfix21"></div>
          <div id = 'cart-view-total' class="summary-holder">
             <table>
+               <!--ET_BEGIN deliveryAmount-->
+               <tr>
+                  <td class="aright">[#deliveryCaption#]: </td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#deliveryCurrencyId#]</span></td>
+                  <td class="aright"><b>[#deliveryAmount#]</b></td>
+               </tr>
+               <!--ET_END deliveryAmount-->
                <!--ET_BEGIN totalNoVat-->
                <tr>
                   <td class="aright">|Основа|*: </td>

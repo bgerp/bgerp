@@ -310,10 +310,7 @@ class eshop_Carts extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        if (!$rec) {
-            
-            return;
-        }
+        if (!$rec) return;
         
         $rec->productCount = $rec->total = $rec->totalNoVat = 0;
         $rec->deliveryNoVat = $rec->deliveryTime = null;
@@ -886,6 +883,17 @@ class eshop_Carts extends core_Master
             unset($row->totalNoVat);
         }
         
+        // Ако има доставка се показва и тя
+        if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
+        	$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+        	$deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+        	$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
+        	$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+        	$row->deliveryAmount = $deliveryAmount;
+        	$row->deliveryCaption = tr('Доставка||Shipping');
+        	$row->deliveryCurrencyId = $row->currencyId;
+        }
+        
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
         $tpl->placeObject($row);
         
@@ -1013,16 +1021,6 @@ class eshop_Carts extends core_Master
             $row->code = "<span title={$fullCode}>{$row->code}</span>";
             
             $data->rows[$dRec->id] = $row;
-        }
-        
-        // Ако има доставка се показва и тя
-        if (isset($data->rec->deliveryNoVat) && $data->rec->deliveryNoVat >= 0) {
-            $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-            $deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
-            $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
-            $deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-            
-            $data->rows['-1'] = (object) array('productId' => '<b>' . tr('Доставка||Shipping') . '</b>', 'amount' => '<b>' . $deliveryAmount. '</b>');
         }
     }
     
