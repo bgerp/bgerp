@@ -43,7 +43,13 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'productId,title,packagings=Опаковки/Мерки,modifiedOn,modifiedBy';
+    public $listFields = 'productId,title,packagings=Опаковки/Мерки,state=Състояние,modifiedOn,modifiedBy';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'title';
     
     
     /**
@@ -90,6 +96,7 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
+        $this->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
         
         $this->setDbUnique('eshopProductId,title');
     }
@@ -170,7 +177,7 @@ class eshop_ProductDetails extends core_Detail
     {
         $products = array();
         $pQuery = cat_Products::getQuery();
-        $pQuery->where("#state != 'closed' AND #state != 'rejected' AND #isPublic = 'yes' AND #canSell = 'yes'");
+        $pQuery->where("#state != 'closed' AND #state != 'rejected'  AND #state != 'template' AND #isPublic = 'yes' AND #canSell = 'yes'");
         
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
@@ -271,7 +278,9 @@ class eshop_ProductDetails extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
-            $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
+        	$row->ROW_ATTR['class'] = "state-{$rec->state}";
+        	
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
             if (!$price = self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
             }
@@ -302,7 +311,7 @@ class eshop_ProductDetails extends core_Detail
         
         $splitProducts = array();
         $query = self::getQuery();
-        $query->where("#eshopProductId = {$data->rec->id}");
+        $query->where("#eshopProductId = {$data->rec->id} AND #state = 'active'");
         $query->orderBy('productId');
         $data->optionsProductsCount = $query->count();
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
@@ -506,9 +515,11 @@ class eshop_ProductDetails extends core_Detail
         $groups = array_keys($groups);
         
         $query = self::getQuery();
-        $query->show('productId');
         $query->EXT('groupId', 'eshop_Products', 'externalName=groupId,externalKey=eshopProductId');
+        $query->where("#state = 'active'");
         $query->in('groupId', $groups);
+        $query->show('productId,state');
+        
         while ($rec = $query->fetch()) {
             
             // Трябва да имат цени по избраната политика
