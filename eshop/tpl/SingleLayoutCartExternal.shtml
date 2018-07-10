@@ -67,6 +67,11 @@
                      <td>|Инструкции|*: <span class="richtext-holder"> [#instruction#]</span></td>
                   </tr>
                   <!--ET_END instruction-->
+                  <!--ET_BEGIN COMMON_TEXT-->
+                  <tr>
+                     <td><span class="richtext-holder"> [#COMMON_TEXT#]</span></td>
+                  </tr>
+                  <!--ET_END COMMON_TEXT-->
                   <!--ET_END DELIVERY_BLOCK-->
                </table>
             </div>
@@ -159,9 +164,6 @@
                <!--ET_END VAT_STATUS-->
             </table>
          </div>
-         <!--ET_BEGIN COMMON_TEXT-->
-         <div id='cart-view-domain-text'>[#COMMON_TEXT#]</div>
-         <!--ET_END COMMON_TEXT-->
          <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
          <div class = 'cart-view-buttons-left'>[#CART_TOOLBAR_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_RIGHT-->
