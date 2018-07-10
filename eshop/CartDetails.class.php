@@ -269,6 +269,8 @@ class eshop_CartDetails extends core_Detail
         expect($eshopRec = eshop_Products::fetch($eshopProductId));
         expect(cat_Products::fetch($productId));
         expect($productRec = eshop_ProductDetails::fetch("#eshopProductId = '{$eshopProductId}' AND #productId = '{$productId}'"));
+        expect($productRec->state == 'active');
+        expect($eshopRec->state != 'closed');
         
         if (empty($quantityInPack)) {
             $packRec = cat_products_Packagings::getPack($productId, $packagingId);
@@ -316,10 +318,8 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->_updatePrice === false) {
-            
-            return;
-        }
+        if ($rec->_updatePrice === false) return;
+        
         self::updatePriceInfo($rec);
     }
     

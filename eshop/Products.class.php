@@ -394,7 +394,7 @@ class eshop_Products extends core_Master
                         $settings = cms_Domains::getSettings();
                         $pRow->singlePrice = $singlePrice;
                         $pRow->singleCurrencyId = $settings->currencyId;
-                        $pRow->measureId = cat_UoM::getShortName($minPackagingId);
+                        $pRow->measureId = tr(cat_UoM::getShortName($minPackagingId));
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         

@@ -318,7 +318,7 @@ class eshop_ProductDetails extends core_Detail
         
         while ($rec = $query->fetch()) {
             $newRec = (object) array('eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title);
-            if (!self::getPublicDisplayPrice($rec->productId)) {
+            if (!self::getPublicDisplayPrice($rec->productId) || $data->rec->state == 'closed' || $rec->state != 'active') {
                 continue;
             }
             $packagins = keylist::toArray($rec->packagings);
