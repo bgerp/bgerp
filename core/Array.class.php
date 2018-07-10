@@ -193,6 +193,7 @@ class core_Array
     public static function sortObjects(&$array, $field = 'order', $dir = 'asc', $mode = 'native')
     {
         $mode = strtolower($mode);
+        $dir = strtolower($dir);
         expect($dir == 'desc' || $dir == 'asc', $dir);
         
         uasort($array, function ($a, $b) use ($field, $dir, $mode) {
