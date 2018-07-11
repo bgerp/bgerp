@@ -1173,12 +1173,13 @@ class core_String
     
     /**
      * Връща количеството и думата с подходящото число за него
-     * @param double $cnt
-     * @param string $word
+     * @param double $cnt       - числото
+     * @param string $word      - думата
+     * @param boolean $onlyWord - дали да се върне само думата или числото и думата
      * 
      * @return string $res
      */
-    public static function getPlural($cnt, $word)
+    public static function getPlural($cnt, $word, $onlyWord = FALSE)
     {
     	if(!is_array($word)) {
     		$res = '';
@@ -1229,6 +1230,9 @@ class core_String
     		$word = array($word, $res);
     	}
     
-    	return $cnt . " " . $word[$cnt == 1 ? 0 : 1];
+    	$plural = $word[$cnt == 1 ? 0 : 1];
+    	$res = ($onlyWord === FALSE) ? "{$cnt} {$plural}" : $plural;
+    	
+    	return $res;
     }
 }
