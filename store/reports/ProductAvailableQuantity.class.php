@@ -318,12 +318,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                                 
                                 $form->setWarning(
-                                    
                                     'groupId',
                                     "${countUnset} артикула от група ${groupName} няма да  бъдат добавени.
             						Максимален брой артикули за еднократно добавяне - ${maxArt}.
             						Може да добавите още артикули от групата при следваща редакция."
-                                
                                 );
                             }
                         }
@@ -509,10 +507,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
-     * @param stdClass $rec
-     *                         - записа
-     * @param bool     $export
-     *                         - таблицата за експорт ли е
+     * @param stdClass $rec    - записа
+     * @param bool     $export - таблицата за експорт ли е
      *
      * @return core_FieldSet - полетата
      */
@@ -540,10 +536,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec
-     *                       - записа
-     * @param stdClass $dRec
-     *                       - чистия запис
+     * @param stdClass $rec - записа
+     * @param stdClass $dRec - чистия запис
      *
      * @return stdClass $row - вербалния запис
      */
