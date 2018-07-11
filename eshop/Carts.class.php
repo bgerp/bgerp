@@ -207,7 +207,7 @@ class eshop_Carts extends core_Master
                 $packagingName = tr(cat_UoM::getShortName($packagingId));
                 $packType = cat_UoM::fetchField($packagingId, 'type');
                	if($packType == 'packaging'){
-               		$packagingName = str::getPlural($exRec->packQuantity, $packagingName, TRUE);
+               		$packagingName = str::getPlural($exRec->packQuantity, $packagingName, true);
                	}
                 
                 $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($exRec->packQuantity);

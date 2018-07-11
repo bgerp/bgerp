@@ -1179,7 +1179,7 @@ class core_String
      * 
      * @return string $res
      */
-    public static function getPlural($cnt, $word, $onlyWord = FALSE)
+    public static function getPlural($cnt, $word, $onlyWord = false)
     {
     	if(!is_array($word)) {
     		$res = '';
@@ -1231,7 +1231,7 @@ class core_String
     	}
     
     	$plural = $word[$cnt == 1 ? 0 : 1];
-    	$res = ($onlyWord === FALSE) ? "{$cnt} {$plural}" : $plural;
+    	$res = ($onlyWord === false) ? "{$cnt} {$plural}" : $plural;
     	
     	return $res;
     }
