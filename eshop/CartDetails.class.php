@@ -400,7 +400,7 @@ class eshop_CartDetails extends core_Detail
             $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         }
-        
+    
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $row->productId .= " ({$row->packagingId})";
         
