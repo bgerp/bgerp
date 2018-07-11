@@ -204,13 +204,18 @@ class eshop_Carts extends core_Master
                 $rec = self::fetch($cartId);
                 $exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
                 
-                $packagingId = tr(cat_UoM::getShortName($packagingId));
+                $packagingName = tr(cat_UoM::getShortName($packagingId));
+                $packType = cat_UoM::fetchField($packagingId, 'type');
+               	if($packType == 'packaging'){
+               		$packagingName = str::getPlural($exRec->packQuantity, $packagingName, TRUE);
+               	}
+                
                 $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($exRec->packQuantity);
                 $productName = cat_Products::getVerbal($productId, 'name');
                 
                 $settings = cms_Domains::getSettings();
                 $addText = new core_ET($settings->addProductText);
-                $addText->append($packagingId, 'packagingId');
+                $addText->append($packagingName, 'packagingId');
                 $addText->append($productName, 'productName');
                 $addText->append($packQuantity, 'packQuantity');
                 
