@@ -58,7 +58,7 @@ class eastron_SDM120 extends sens2_ioport_Abstract
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param core_Form
      */

@@ -22,7 +22,7 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Интерфейси, поддържани от всички наследници
      */
-    public $interfaces = 'sens2_DriverIntf';
+    public $interfaces = 'sens2_ControllerIntf';
     
     
     /**
@@ -68,7 +68,7 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      *  Информация за входните портове на устройството
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @return array
      */
@@ -83,7 +83,7 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Информация за изходните портове на устройството
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @return array
      */
@@ -102,7 +102,7 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param core_Form
      */
@@ -122,7 +122,7 @@ class unipi_Neuron extends sens2_ProtoDriver
     /**
      * Проверява след  субмитване формата с настройки на контролера
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param   core_Form
      */

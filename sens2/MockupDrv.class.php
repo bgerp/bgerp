@@ -26,7 +26,7 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     /**
      * Интерфейси, поддържани от всички наследници
      */
-    public $interfaces = 'sens2_DriverIntf';
+    public $interfaces = 'sens2_ControllerIntf';
     
     
     public function getInputPorts($config = null)

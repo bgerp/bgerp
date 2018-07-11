@@ -35,7 +35,7 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param core_Form
      */
@@ -52,7 +52,7 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
     /**
      * Прочита стойностите от сензорните входове
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param array $inputs
      * @param array $config

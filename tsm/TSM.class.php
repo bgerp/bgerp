@@ -57,7 +57,7 @@ class tsm_TSM extends sens2_ProtoDriver
     /**
      * Прочита стойностите от сензорните входове
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param array $inputs
      * @param array $config

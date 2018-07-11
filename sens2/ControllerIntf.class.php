@@ -15,8 +15,11 @@
  * @since     v 0.1
  * @title     Интерфейс на драйвер на I/O контролер
  */
-class sens2_DriverIntf
+class sens2_ControllerIntf
 {
+
+    public $oldClassName = 'sens2_DriverIntf';
+
     /**
      * Информация за входните портове на устройството
      *

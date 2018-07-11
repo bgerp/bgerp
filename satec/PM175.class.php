@@ -43,7 +43,7 @@ class satec_PM175 extends sens2_ProtoDriver
     /**
      *  Информация за входните портове на устройството
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @return array
      */
@@ -60,7 +60,7 @@ class satec_PM175 extends sens2_ProtoDriver
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param core_Form
      */

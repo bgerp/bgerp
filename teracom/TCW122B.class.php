@@ -49,7 +49,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
     /**
      *  Информация за входните портове на устройството
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @return array
      */
@@ -66,7 +66,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
     /**
      * Информация за изходните портове на устройството
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @return array
      */
@@ -83,7 +83,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param core_Form
      */
@@ -101,7 +101,7 @@ class teracom_TCW122B extends sens2_ProtoDriver
     /**
      * Прочита стойностите от сензорните входове
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param array $inputs
      * @param array $config
