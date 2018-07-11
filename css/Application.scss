@@ -3385,6 +3385,11 @@ fieldset.sharing-history {
 		font-family: Verdana, Arial, Helvetica, sans-serif;
 	}
 }
+.order-info .richtext {
+	font-size: 1em;
+	color: #000;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
 
 .remove-from-cart:hover {
 	cursor: pointer;
@@ -3399,7 +3404,6 @@ fieldset.sharing-history {
 }
 
 .quantity-input-column {
-	width: 100px;
 	text-align: center;
 	span {
 		display: flex;
@@ -3408,9 +3412,8 @@ fieldset.sharing-history {
 	}
 	input {
 		text-align: right;
-		width: 34px;
 		height: 27px;
-		padding: 2px 5px;
+		padding: 2px 5px 2px 0;
 		border: 1px solid #cccccc;
 		border-radius: 3px;
 		border-radius: 0;
@@ -3419,6 +3422,7 @@ fieldset.sharing-history {
 		}
 	}
 }
+
 .narrow .quantity-input-column input {
 	height: 29px;
 }

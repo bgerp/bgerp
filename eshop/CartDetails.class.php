@@ -380,7 +380,7 @@ class eshop_CartDetails extends core_Detail
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . '</span>';
-            
+
             self::updatePriceInfo($rec, null, true);
             
             $settings = cms_Domains::getSettings();
@@ -492,13 +492,17 @@ class eshop_CartDetails extends core_Detail
         $resObj3 = new stdClass();
         $resObj3->func = 'html';
         $resObj3->arg = array('id' => 'cart-external-status', 'html' => eshop_Carts::getStatus($cartId)->getContent(), 'replace' => true);
-        
+
+        // Ще се реплейсне статуса на кошницата
+        $resObj4 = new stdClass();
+        $resObj4->func = 'changeInputWidth';
+
         // Показваме веднага и чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         
-        $res = array_merge(array($resObj1, $resObj2, $resObj3), (array) $statusData);
+        $res = array_merge(array($resObj1, $resObj2, $resObj3, $resObj4), (array) $statusData);
         core_Lg::pop();
         
         return $res;

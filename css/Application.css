@@ -2918,6 +2918,11 @@ span.sharing-history-title {
     line-height: 1em;
     font-family: Verdana, Arial, Helvetica, sans-serif; }
 
+.order-info .richtext {
+  font-size: 1em;
+  color: black;
+  font-family: Verdana, Arial, Helvetica, sans-serif; }
+
 .remove-from-cart:hover {
   cursor: pointer; }
 
@@ -2928,7 +2933,6 @@ span.sharing-history-title {
   padding: 12px 7px 0px; }
 
 .quantity-input-column {
-  width: 100px;
   text-align: center; }
   .quantity-input-column span {
     display: flex;
@@ -2936,9 +2940,8 @@ span.sharing-history-title {
     align-items: center; }
   .quantity-input-column input {
     text-align: right;
-    width: 34px;
     height: 27px;
-    padding: 2px 5px;
+    padding: 2px 5px 2px 0;
     border: 1px solid #cccccc;
     border-radius: 3px;
     border-radius: 0; }
