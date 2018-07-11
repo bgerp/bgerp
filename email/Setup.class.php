@@ -206,6 +206,24 @@ defIfNot('EMAIL_REJECT_SPAM_SCORE', 4);
 
 
 /**
+ * Дали да се показва нишката с имейлите във външната част
+ */
+defIfNot('EMAIL_SHOW_THREAD_IN_EXTERNAL', 'yes');
+
+
+/**
+ * Ограничение по дата при преглед на нишката във външната част
+ */
+defIfNot('EMAIL_SHOW_THREAD_DATE_LIMITATION', 'yes');
+
+
+/**
+ * Ограничение по имейл при преглед на нишката във външната част
+ */
+defIfNot('EMAIL_SHOW_THREAD_EMAIL_LIMITATION', 'yes');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -328,6 +346,12 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_HARD_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
         
         'EMAIL_REJECT_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
+        
+        'EMAIL_SHOW_THREAD_IN_EXTERNAL' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Показване'),
+            
+        'EMAIL_SHOW_THREAD_DATE_LIMITATION' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Ограничение по дата'),
+            
+        'EMAIL_SHOW_THREAD_EMAIL_LIMITATION' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Ограничение по имейл'),
     );
     
     
