@@ -164,6 +164,10 @@ class eshop_Carts extends core_Master
         $packagingId = Request::get('packagingId', 'int');
         $packQuantity = Request::get('packQuantity', 'double');
         
+        // Пушване на езика от публичната част
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+        
         // Данните от опаковката
         if (isset($productId)) {
             $packRec = cat_products_Packagings::getPack($productId, $packagingId);
@@ -220,11 +224,7 @@ class eshop_Carts extends core_Master
         
         // Ако режимът е за AJAX
         if (Request::get('ajax_mode')) {
-            
-            // Пушване на езика от публичната част
-            $lang = cms_Domains::getPublicDomain('lang');
-            core_Lg::push($lang);
-            
+        	
             core_Statuses::newStatus($msg, ($success === true) ? 'notice' : 'error');
             
             // Ще се реплейсне статуса на кошницата
@@ -241,6 +241,7 @@ class eshop_Carts extends core_Master
             
             return $res;
         }
+        core_Lg::pop();
         
         return followRetUrl();
     }
