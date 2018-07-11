@@ -326,9 +326,11 @@ class core_Updates extends core_Manager
         
         $res = array();
         
-        foreach ($releases as $id => $rel) {
-            if ($rel->target_commitish == $branch) {
-                $res[$id] = $rel;
+        if (is_array($releases) && !empty($releases)) {
+            foreach ($releases as $id => $rel) {
+                if ($rel->target_commitish == $branch) {
+                    $res[$id] = $rel;
+                }
             }
         }
         
