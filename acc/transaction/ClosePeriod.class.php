@@ -160,11 +160,15 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $bQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4535');
         $amount4535 = $bQuery->fetch()->blAmount;
-        
         $amount4535 += $diffAmount;
         
-        $entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year), 'reason' => 'ДДС - остатъци');
-        $total += abs($amount4535);
+        if($amount4535 > 0){
+        	$entries[] = array('amount' => abs($amount4535), 'debit' => array('123', $this->date->year), 'credit' => array('4535'), 'reason' => 'ДДС - остатъци');
+        } else {
+        	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year), 'reason' => 'ДДС - платено, но неначислено');
+        }
+        
+        $total += $amount4535;
         
         $bQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4531');

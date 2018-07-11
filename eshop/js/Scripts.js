@@ -28,8 +28,26 @@ function copyValToPlaceholder()
 	$('.updateonchange').trigger('keyup');
 }
 
+/**
+ * Динамична ширина на полето за количество
+ */
+function changeInputWidth()
+{
+	$('.option-quantity-input').each(function () {
+		$(this).attr( "size", Math.max(2,$(this).val().length));
+	});
+}
+
+
+function render_changeInputWidth()
+{
+	changeInputWidth();
+}
+
 
 function eshopActions() {
+
+	changeInputWidth();
 
 	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
@@ -91,6 +109,7 @@ function eshopActions() {
 			$(this).addClass('inputError');
 		} else {
 			$(this).removeClass('inputError');
+			changeInputWidth();
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
@@ -130,6 +149,7 @@ function eshopActions() {
 		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			$(input).val(val + step);
 			$(input).css( "color", "green");
+			changeInputWidth();
             $("#cart-view-table").css("cursor", "progress");
 			if(max && val >= max) return;
 		}

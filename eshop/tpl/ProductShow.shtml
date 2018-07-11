@@ -15,14 +15,17 @@
             <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
 			<div class="clearfix21"></div>
 		</div>
-
+		<div style="padding: 10px 0;">
 		[#info#]
+		</div>
 		<!--ET_BEGIN PRODUCT_OPT-->
-		<div class="overflow-scroll" style="margin: 15px 0;">
+		<div class="overflow-scroll" style="margin: 10px 0;">
 			[#PRODUCT_OPT#]
 		</div>
 		<!--ET_END PRODUCT_OPT-->
+		<div style="padding: 10px 0;">
 		[#longInfo#]
+		</div>
 	</div>
 	<div class="clearfix21"></div>
 </div>

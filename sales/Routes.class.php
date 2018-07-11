@@ -481,7 +481,7 @@ class sales_Routes extends core_Manager
         }
         
         // Сортираме по разликата
-        arr::sortObjects($arr, 'diff', 'ASC');
+        arr::sortObjects($arr, 'diff', 'asc');
         $first = $arr[key($arr)];
         $salesmanId = $first->salesmanId;
         

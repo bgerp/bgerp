@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   eshop
- *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
  */
 class eshop_Carts extends core_Master
 {
+    
+    
     /**
      * Заглавие
      */
@@ -164,6 +164,10 @@ class eshop_Carts extends core_Master
         $packagingId = Request::get('packagingId', 'int');
         $packQuantity = Request::get('packQuantity', 'double');
         
+        // Пушване на езика от публичната част
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+        
         // Данните от опаковката
         if (isset($productId)) {
             $packRec = cat_products_Packagings::getPack($productId, $packagingId);
@@ -200,13 +204,18 @@ class eshop_Carts extends core_Master
                 $rec = self::fetch($cartId);
                 $exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
                 
-                $packagingId = tr(cat_UoM::getShortName($packagingId));
+                $packagingName = tr(cat_UoM::getShortName($packagingId));
+                $packType = cat_UoM::fetchField($packagingId, 'type');
+               	if($packType == 'packaging'){
+               		$packagingName = str::getPlural($exRec->packQuantity, $packagingName, true);
+               	}
+                
                 $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($exRec->packQuantity);
                 $productName = cat_Products::getVerbal($productId, 'name');
                 
                 $settings = cms_Domains::getSettings();
                 $addText = new core_ET($settings->addProductText);
-                $addText->append($packagingId, 'packagingId');
+                $addText->append($packagingName, 'packagingId');
                 $addText->append($productName, 'productName');
                 $addText->append($packQuantity, 'packQuantity');
                 
@@ -220,11 +229,7 @@ class eshop_Carts extends core_Master
         
         // Ако режимът е за AJAX
         if (Request::get('ajax_mode')) {
-            
-            // Пушване на езика от публичната част
-            $lang = cms_Domains::getPublicDomain('lang');
-            core_Lg::push($lang);
-            
+        	
             core_Statuses::newStatus($msg, ($success === true) ? 'notice' : 'error');
             
             // Ще се реплейсне статуса на кошницата
@@ -241,6 +246,7 @@ class eshop_Carts extends core_Master
             
             return $res;
         }
+        core_Lg::pop();
         
         return followRetUrl();
     }
@@ -310,10 +316,7 @@ class eshop_Carts extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        if (!$rec) {
-            
-            return;
-        }
+        if (!$rec) return;
         
         $rec->productCount = $rec->total = $rec->totalNoVat = 0;
         $rec->deliveryNoVat = $rec->deliveryTime = null;
@@ -726,7 +729,7 @@ class eshop_Carts extends core_Master
             $tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
         }
         
-        $cartInfo = tr('Всички цени са ')  . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+        $cartInfo = tr('Всички цени са')  . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
         $tpl->replace($cartInfo, 'VAT_STATUS');
         
         // Ако има последно активирана кошница да се показва като съобщение
@@ -886,6 +889,17 @@ class eshop_Carts extends core_Master
             unset($row->totalNoVat);
         }
         
+        // Ако има доставка се показва и тя
+        if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
+        	$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+        	$deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+        	$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
+        	$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+        	$row->deliveryAmount = $deliveryAmount;
+        	$row->deliveryCaption = tr('Доставка||Shipping');
+        	$row->deliveryCurrencyId = $row->currencyId;
+        }
+        
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
         $tpl->placeObject($row);
         
@@ -1013,16 +1027,6 @@ class eshop_Carts extends core_Master
             $row->code = "<span title={$fullCode}>{$row->code}</span>";
             
             $data->rows[$dRec->id] = $row;
-        }
-        
-        // Ако има доставка се показва и тя
-        if (isset($data->rec->deliveryNoVat) && $data->rec->deliveryNoVat >= 0) {
-            $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-            $deliveryAmount = $data->rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
-            $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
-            $deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-            
-            $data->rows['-1'] = (object) array('productId' => '<b>' . tr('Доставка||Shipping') . '</b>', 'amount' => '<b>' . $deliveryAmount. '</b>');
         }
     }
     

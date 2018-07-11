@@ -49,7 +49,7 @@ class cad2_MeasureLine extends cad2_Shape
     /**
      * Метод за изрисуване на оразмерителна линия
      */
-    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist, $measureText = null)
+    public static function draw($svg, $Ax, $Ay, $Bx, $By, $dist, $measureText = null, $lineMultiplier = 1)
     {
         // разстояние след линията
         $offset = 2;
@@ -65,7 +65,7 @@ class cad2_MeasureLine extends cad2_Shape
         }
         
         $svg->openGroup();
-        $svg->setAttr('stroke-width', 0.2);
+        $svg->setAttr('stroke-width', 0.15 * $lineMultiplier);
         
         $A = new cad2_Vector($Ax, $Ay);
         $B = new cad2_Vector($Bx, $By);

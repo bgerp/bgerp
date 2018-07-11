@@ -98,8 +98,8 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
                         $res->propQuantity = core_Math::roundNumber($resQuantity);
                     }
                     
-                    arr::sortObjects($mapArr, 'propQuantity', 'DESC');
-                    arr::sortObjects($mapArr, 'type', 'ASC');
+                    arr::sortObjects($mapArr, 'propQuantity', 'desc');
+                    arr::sortObjects($mapArr, 'type', 'asc');
                     
                     foreach ($mapArr as $index => $res) {
                         $pQuantity = ($index == 0) ? $dRec->quantity : 0;

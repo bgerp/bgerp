@@ -658,7 +658,7 @@ class findeals_Deals extends deals_DealBase
         }
         
         // Подредба
-        arr::sortObjects($data->history, 'orderFld', 'DESC');
+        arr::sortObjects($data->history, 'orderFld', 'desc');
         
         foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld) {
             if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {

@@ -8,11 +8,11 @@
  *
  * @category  bgerp
  * @package   bgerp
- *
+ * 
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>, Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- *
+ * 
  * @since     v 0.1
  */
 class bgerp_L extends core_Manager
@@ -121,7 +121,8 @@ class bgerp_L extends core_Manager
             // Ако е изпратен
             if ($action->action == doclog_Documents::ACTION_SEND) {
                 if ($action && $action->data->to) {
-                    log_Browsers::setVars(array('email' => $action->data->to), false, false);
+                    $eArr = type_Emails::toArray($action->data->to);
+                    log_Browsers::setVars(array('email' => $eArr[0]), false, false);
                 }
                 
                 $activatedBy = $action->createdBy;
@@ -181,20 +182,20 @@ class bgerp_L extends core_Manager
             
             expect(doclog_Documents::opened($cid, $mid));
             
+            // Ако потребителя има права до треда на документа, то той му се показва
+            if ($rec && $rec->threadId) {
+                if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+                    
+                    return new Redirect(array($doc->getInstance(), 'single', $rec->id));
+                }
+            }
+            
             $options = $this->getDocOptions($cid, $mid);
             
             // Пушваме езика, на който се е рендирал документа
             if (!haveRole('user')) {
                 if ($options['lg']) {
                     core_Lg::set($options['lg']);
-                }
-            }
-            
-            // Ако потребителя има права до треда на документа, то той му се показва
-            if ($rec && $rec->threadId) {
-                if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
-                    
-                    return new Redirect(array($doc->getInstance(), 'single', $rec->id));
                 }
             }
             
@@ -227,8 +228,14 @@ class bgerp_L extends core_Manager
             $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
             
             // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
-            if ($options['to'] && !haveRole('user')) {
-                $emailsArr = type_Emails::toArray($options['to']);
+            if (($options['to'] || $options['cc']) && !haveRole('user')) {
+                
+                $emailsStr = $options['to'];
+                if ($options['cc']) {
+                    $emailsStr .= ', ' . $options['cc'];
+                }
+                $emailsStr = strtolower($emailsStr);
+                $emailsArr = type_Emails::toArray($emailsStr);
                 foreach ($emailsArr as $email) {
                     if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) {
                         continue;
@@ -236,6 +243,14 @@ class bgerp_L extends core_Manager
                     
                     $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')));
                     break;
+                }
+                
+                if (email_Setup::get('SHOW_THREAD_IN_EXTERNAL') == 'yes') {
+                    // Ако има повече от един имейл в нишката
+                    $tEmailArr = $this->getThreadEmails($cid, $mid, true);
+                    if (count($tEmailArr) > 1) {
+                        $html->append(ht::createLink(tr('Вижте цялата нишка'), array($this, 'T', $cid, 'm' => $mid, 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/page_copy.png')));
+                    }
                 }
             }
             
@@ -324,6 +339,272 @@ class bgerp_L extends core_Manager
     
     
     /**
+     * Екшъна за показване на нишката с входящи/изходящи имейли
+     */
+    public function act_T()
+    {
+        try {
+            expect(email_Setup::get('SHOW_THREAD_IN_EXTERNAL') == 'yes');
+            
+            //Вземаме номера на контейнера
+            expect($cid = Request::get('id', 'int'));
+            
+            // Вземаме документа
+            expect($doc = doc_Containers::getDocument($cid));
+            
+            // Вземаме записа за документа
+            $rec = $doc->fetch();
+            
+            // Очакваме да не е оттеглен документ
+            expect($rec->state != 'rejected', 'Липсващ документ');
+            
+            if ($rec->state == 'draft') {
+                expect($doc->canEmailDraft, 'Липсващ документ');
+            }
+            
+            // Вземаме манипулатора на записа от този модел (bgerp_L)
+            expect($mid = Request::get('m'));
+            
+            expect(doclog_Documents::opened($cid, $mid));
+            
+            // Ако потребителя има права до треда на документа, то той му се показва
+            if ($rec && $rec->threadId) {
+                if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+                    
+                    return new Redirect(array($doc->getInstance(), 'single', $rec->id));
+                }
+            }
+            
+            $options = $this->getDocOptions($cid, $mid);
+            
+            // Пушваме езика, на който се е рендирал документа
+            if (!haveRole('user')) {
+                if ($options['lg']) {
+                    core_Lg::set($options['lg']);
+                }
+            }
+            
+            // Вземаме всички имейли
+            $tEmailsDocArr = $this->getThreadEmails($cid, $mid);
+            
+            $html = '<div class="externalThread">';
+            
+            Mode::set('noBlank', true);
+            
+            foreach ($tEmailsDocArr as $containerId => $dRec) {
+                
+                $dDoc = doc_Containers::getDocument($containerId);
+                
+                $className = 'doc';
+                if ($dDoc->className == 'email_Outgoings') {
+                    $className .= 'Outgoings';
+                } elseif ($dDoc->className == 'email_Incomings') {
+                    $className .= 'Incomings';
+                }
+                
+                $options = array();
+                if ($dRec->_mid) {
+                    // Маркираме документа като отворен
+                    doclog_Documents::opened($containerId, $dRec->_mid);
+                    $options = $this->getDocOptions($containerId, $dRec->_mid);
+                }
+                
+                Mode::push('saveObjectsToCid', $containerId);
+                
+                $isSystemCanSingle = false;
+                
+                if (($dRec->__options['sendedBy'] == -1) && $dRec->__options['isSystemCanSingle']) {
+                    $isSystemCanSingle = true;
+                    Mode::set('isSystemCanSingle', true);
+                }
+                
+                // Рендираме документа
+                $html .= "<div class='{$className}'>" . $dDoc->getDocumentBody('xhtml', (object) $options) . '</div>';
+                
+                if ($isSystemCanSingle) {
+                    Mode::set('isSystemCanSingle', false);
+                    $isSystemCanSingle = false;
+                }
+                
+                Mode::pop('saveObjectsToCid');
+                
+                if ($dRec->_mid) {
+                    doclog_Documents::flushActions();
+                }
+            }
+            
+            $html .= "</div>";
+            
+            Mode::set('wrapper', 'page_External');
+            
+            $html = new core_ET($html);
+            
+            // Инструкция към ботовете за да не индексират и не проследяват линковете
+            // на тези по същество вътрешни, но достъпни без парола страници.
+            $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
+            
+            return $html;
+        } catch (core_exception_Expect $ex) {
+            requireRole('user');
+            
+            // Ако потребителя има права до треда на документа, то той му се показва
+            if ($doc) {
+                $urlArray = $doc->getSingleUrlArray();
+                
+                if (is_array($urlArray) && count($urlArray)) {
+                    
+                    return new Redirect($urlArray);
+                }
+            }
+            
+            expect(false);
+        }
+    }
+    
+    
+    /**
+     * Връща всички имейли (входящи/изходящи) от същата нишка, като документа
+     * 
+     * @param int $cid
+     * @param string $mid
+     * @param boolean $onlyCheck
+     * 
+     * @return array
+     */
+    protected function getThreadEmails($cid, $mid, $onlyCheck = false)
+    {
+        $resArr = array();
+        
+        $mRec = doclog_Documents::fetchByMid($mid);
+        
+        if (!$mRec) return $resArr;
+        
+        // Имейлите от документа източник
+        $midEmailsStr = $mRec->data->to;
+        if ($mRec->data->cc) {
+            $midEmailsStr .= ', ' . $mRec->data->cc;
+        }
+        $midEmailsStr = strtolower($midEmailsStr);
+        $midEmailsArr = type_Emails::toArray($midEmailsStr);
+        
+        if (empty($midEmailsArr)) return $resArr;
+        
+        $midEmailsArr= arr::make($midEmailsArr, true);
+        
+        $doc = doc_Containers::getDocument($cid);
+        
+        if (!$doc) return $resArr;
+        
+        // Вземаме записа за документа
+        $dRec = $doc->fetch();
+        
+        if (!$dRec || !$dRec->threadId) return $resArr;
+        
+        
+        $inClsId = email_Incomings::getClassId();
+        $outClsId = email_Outgoings::getClassId();
+        
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where(array("#threadId = '[#1#]'", $dRec->threadId));
+        $cQuery->where("#state != 'rejected'");
+        $cQuery->where("#state != 'draft'");
+        $cQuery->where(array("#docClass = '[#1#]'", $inClsId));
+        $cQuery->orWhere(array("#docClass = '[#1#]'", $outClsId));
+        
+        $cQuery->orderBy('createdOn', 'DESC');
+        $cQuery->orderBy('id', 'DESC');
+        
+        // Ограничаваме показването до дата и имейли в зависимост от настройките на системата
+        $strictDate = email_Setup::get('SHOW_THREAD_DATE_LIMITATION');
+        $strictEmail = email_Setup::get('SHOW_THREAD_EMAIL_LIMITATION');
+        
+        if ($strictDate == 'yes') {
+            $cQuery->where(array("#createdOn <= '[#1#]'", $mRec->createdOn));
+        }
+        
+        while ($cRec = $cQuery->fetch()) {
+            $continue = false;
+            
+            if (!$cRec->docId) continue;
+            
+            // Подготвяме имейлите от документа
+            $emailArr = array();
+            if ($cRec->docClass == $inClsId) {
+                $inRec = email_Incomings::fetch($cRec->docId);
+                
+                email_Incomings::calcAllToAndCc($inRec);
+                
+                $allEmailsArr = array_merge($inRec->AllTo, $inRec->AllCc);
+                foreach ($allEmailsArr as $allTo) {
+                    $email = $allTo['address'];
+                    $email = trim($email);
+                    $email = strtolower($email);
+                    $emailArr[$email] = $email;
+                }
+            } elseif ($cRec->docClass == $outClsId) {
+                $sLogArr = doclog_Documents::fetchByCid($cRec->id, doclog_Documents::ACTION_SEND);
+                
+                $emailsStr = '';
+                foreach ($sLogArr as $sLog) {
+                    if (!$cRec->_mid) {
+                        $cRec->_mid = $sLog->mid;
+                    }
+                    
+                    if (($strictDate == 'yes') && ($sLog->createdOn > $mRec->createdOn) && ($mRec->containerId != $sLog->containerId)) continue;
+                    
+                    $emailsStr .= ($emailsStr) ? ', ' : '';
+                    
+                    $emailsStr .= $sLog->data->to;
+                    
+                    if ($sLog->data->cc) {
+                        $emailsStr .= ', ' . $sLog->data->cc;
+                    }
+                }
+                $emailsStr = strtolower($emailsStr);
+                
+                $emailArr = type_Emails::toArray($emailsStr);
+                $emailArr = arr::make($emailArr, true);
+                
+                if (empty($emailArr)) continue;
+            }
+            
+            // Ако има ограничение по имейлите - когато всички получатели трябва да ги има в списъка
+            if ($strictEmail == 'yes') {
+                foreach ($midEmailsArr as $email) {
+                    if (!$emailArr[$email]) {
+                        
+                        $continue = true;
+                        
+                        break;
+                    }
+                }
+            } else {
+                $continue = true;
+                foreach ($midEmailsArr as $email) {
+                    if ($emailArr[$email]) {
+                        
+                        $continue = false;
+                        
+                        break;
+                    }
+                }
+            }
+            
+            if ($continue) continue;
+            
+            $resArr[$cRec->id] = $cRec;
+            
+            // Ако само се проверява дали има имейли
+            if ($onlyCheck) {
+                if (count($resArr) > 1) return $resArr;
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Екшън, който сваля подадения документ, като PDF
      */
     public function act_Pdf()
@@ -405,7 +686,8 @@ class bgerp_L extends core_Manager
             $action = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
             
             if ($action && $action->data->to) {
-                log_Browsers::setVars(array('email' => $action->data->to), false, false);
+                $eArr = type_Emails::toArray($action->data->to);
+                log_Browsers::setVars(array('email' => $eArr[0]), false, false);
             }
         }
         
@@ -421,8 +703,8 @@ class bgerp_L extends core_Manager
     /**
      * Връща линк към този контролер, който показава документа от посочения контейнер
      *
-     * @param int     $cid - containerId
-     * @param inreger $mid - Шаблона, който ще се замества
+     * @param int $cid - containerId
+     * @param int $mid - Шаблона, който ще се замества
      *
      * @return string $link - Линк към вювъра на документите
      */
@@ -436,7 +718,7 @@ class bgerp_L extends core_Manager
     
     
     /**
-     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - false
      */
     public function unprotectId($id)
     {

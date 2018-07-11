@@ -186,16 +186,23 @@ class core_Array
      * @param $field string  Име на полето по което се подрежда
      * @param $dir   string  Посока на подредбата ('asc' или 'desc')
      * @param $mode  string  Типа на сравнението
-     *                о   'native' - така, както се прави стравнение в PHP с <, >, и ==
-     *                o   'str'    - стрингово сравнение
-     *                о   'stri'   - стрингово сравнение без отчитане на кейса
+     *                о   'native'  - така, както се прави стравнение в PHP с <, >, и ==
+     *                o   'str'     - стрингово сравнение
+     *                о   'stri'    - стрингово сравнение без отчитане на кейса
+     *                о   'natural' - стрингово сравнение, използвайки natural sorting algorityma
+     *                
+     * @return void
      */
     public static function sortObjects(&$array, $field = 'order', $dir = 'asc', $mode = 'native')
     {
         $mode = strtolower($mode);
+        $dir = strtolower($dir);
         expect($dir == 'desc' || $dir == 'asc', $dir);
         
         uasort($array, function ($a, $b) use ($field, $dir, $mode) {
+            
+            if (is_string($a) || is_string($b)) return 0;
+            
             $a = (object) $a;
             expect(property_exists($a, $field), $a);
             
@@ -212,6 +219,8 @@ class core_Array
                 $res = ($dir == 'asc' ? 1 : -1) * strcmp($a->{$field}, $b->{$field});
             } elseif ($mode == 'stri') {
                 $res = ($dir == 'asc' ? 1 : -1) * strcasecmp($a->{$field}, $b->{$field});
+            } elseif ($mode == 'natural') {
+            	$res = ($dir == 'asc' ? 1 : -1) * strnatcasecmp($a->{$field}, $b->{$field});
             } else {
                 expect(in_array($mode, array('native', 'str', 'stri')), $mode);
             }

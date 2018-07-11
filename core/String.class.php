@@ -1169,4 +1169,70 @@ class core_String
         
         return $res;
     }
+    
+    
+    /**
+     * Връща количеството и думата с подходящото число за него
+     * @param double $cnt       - числото
+     * @param string $word      - думата
+     * @param boolean $onlyWord - дали да се върне само думата или числото и думата
+     * 
+     * @return string $res
+     */
+    public static function getPlural($cnt, $word, $onlyWord = false)
+    {
+    	if(!is_array($word)) {
+    		$res = '';
+    		if($cnt != 1) {
+    			$last2 = mb_substr($word, -2);
+    			$last1 = mb_substr($word, -1);
+    			$len   = mb_strlen($word);
+    
+    			if(!$res && ($last1 == 'о')) {
+    				$res = mb_substr($word, 0, $len-1) . 'а';
+    			}
+    			if(!$res && ($last1 == 'О')) {
+    				$res = mb_substr($word, 0, $len-1) . 'А';
+    			}
+    			if(!$res && ($last1 == 'е')) {
+    				$res = $word . 'та';
+    			}
+    
+    			if(!$res && ($last1 == 'е')) {
+    				$res = $word . 'та';
+    			}
+    			if(!$res && ($last1 == 'Е')) {
+    				$res = $word . 'ТА';
+    			}
+    
+    			if(!$res && ($last1 == 'а' || $last1 == 'я')) {
+    				$res = mb_substr($word, 0, $len-1) . 'и';
+    			}
+    			if(!$res && ($last1 == 'А' || $last1 == 'Я')) {
+    				$res = mb_substr($word, 0, $len-1) . 'И';
+    			}
+    			if(!$res && (preg_match("/[бвгдйклмнпрстфхчцшщ]/u", $last1))) {
+    				$res = $word . 'а';
+    			}
+    			if(!$res && (preg_match("/[БВГДЙКЛМНПРСТФХЧЦШЩ]/u", $last1))) {
+    				$res = $word . 'А';
+    			}
+    			if(!$res && (preg_match("/[a-z]/u", $last1))) {
+    				$res = $word . 's';
+    			}
+    			if(!$res && (preg_match("/[A-Z]/u", $last1))) {
+    				$res = $word . 'S';
+    			}
+    
+    			if(!$res) $res = $word;
+    		}
+    
+    		$word = array($word, $res);
+    	}
+    
+    	$plural = $word[$cnt == 1 ? 0 : 1];
+    	$res = ($onlyWord === false) ? "{$cnt} {$plural}" : $plural;
+    	
+    	return $res;
+    }
 }

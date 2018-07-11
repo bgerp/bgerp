@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search, plg_Sorting, plg_StructureAndOrder';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cat_plg_AddSearchKeywords, cms_VerbalIdPlg, plg_Search, plg_Sorting, plg_StructureAndOrder';
     
     
     /**
@@ -116,6 +116,12 @@ class eshop_Products extends core_Master
      * Кой може да връзка артикул към ешоп-а
      */
     public $canLinktoeshop = 'eshop,ceo';
+    
+    
+    /**
+     * Кой е главния детайл
+     */
+    public $mainDetail = 'eshop_ProductDetails';
     
     
     /**
@@ -279,7 +285,7 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if (haveRole('powerUser')) {
+    	if (haveRole('powerUser') && $data->rec->state != 'closed') {
             $data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
@@ -388,12 +394,12 @@ class eshop_Products extends core_Master
                         $settings = cms_Domains::getSettings();
                         $pRow->singlePrice = $singlePrice;
                         $pRow->singleCurrencyId = $settings->currencyId;
-                        $pRow->measureId = cat_UoM::getShortName($minPackagingId);
+                        $pRow->measureId = tr(cat_UoM::getShortName($minPackagingId));
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         
                         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-                        $pRow->addBtn = ht::createFnBtn('Купи', null, false, array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $measureId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+                        $pRow->addBtn = ht::createFnBtn('Купи', null, false, array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $minPackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
                     }
                 }
             }
@@ -415,9 +421,7 @@ class eshop_Products extends core_Master
         
         if (is_array($data->groups)) {
             foreach ($data->groups as $gData) {
-                if (!count($gData->recs)) {
-                    continue;
-                }
+                if (!count($gData->recs)) continue;
                 $layout->append('<h2>' . eshop_Groups::getVerbal($gData->groupRec, 'name') . '</h2>');
                 $layout->append(self::renderGroupList($gData));
             }
@@ -628,13 +632,9 @@ class eshop_Products extends core_Master
     {
         $rec = self::fetchRec($rec);
         $gRec = eshop_Groups::fetch($rec->groupId);
-        if (empty($gRec->menuId)) {
-            
-            return array();
-        }
+        if (empty($gRec->menuId)) return array();
         
         $mRec = cms_Content::fetch($gRec->menuId);
-        
         $lg = $mRec->lang;
         
         $lg{0} = strtoupper($lg{0});
@@ -1109,5 +1109,21 @@ class eshop_Products extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetch($id);
+    	if (empty($rec)) return;
+    	
+    	// Обновяване на модела, за да се преизчислят ключовите думи
+    	$this->save($rec);
     }
 }

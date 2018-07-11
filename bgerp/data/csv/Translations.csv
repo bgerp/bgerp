@@ -2620,9 +2620,9 @@ en,СИСТЕМНИ ДАННИ,SYSTEM DATA
 en,Сгрешено или изтекло съобщение,Wrong or expired message
 en,Статии в,Articles in
 en,Bags.BG,Extrapack OOD
-en,Отчети и доклади,за любителите на цифрите
-en,Неполучени,върнати писма
-en,Логнете се,за да видите нишката
+en,"Отчети и доклади,за любителите на цифрите","Records and reports for lovers of numbers"
+en,"Неполучени,върнати писма","Not received, returned mails"
+en,"Логнете се,за да видите нишката","Login to see the thread"
 en,"Не, благодаря","No, thanks!"
 en,Отворени сделки,Open deals
 en,Системата,The System
@@ -2739,3 +2739,6 @@ en,Наистина ли желаете да премахнете артикул
 en,"Ако имате акаунт, моля логнете се от","If you have an account, please login from"
 en,Времето за разпознаване е изтекло. Пробвайте с друг код,Recognition time has expired. Try another code
 en,прогрес,progress
+en,Продължи,Continue
+en,за,for
+en,Вижте цялата нишка,See whole thread
