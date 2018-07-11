@@ -1308,10 +1308,8 @@ class doc_Threads extends core_Manager
             // Входяща папка
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
-            
-            $Recently = cls::get('recently_Values');
-            
-            $Recently->add('MoveFolders', $folderId);
+                        
+            recently_Values::add('MoveFolders', $folderId);
             
             $message = '';
             
@@ -1417,8 +1415,7 @@ class doc_Threads extends core_Manager
             $res[$rec->id] = $rec->title;
         }
         
-        $Recently = cls::get('recently_Values');
-        $lastArr = $Recently->getSuggestions('MoveFolders');
+        $lastArr = recently_Values::fetchSuggestions('MoveFolders');
         $res1 = array();
         foreach ($lastArr as $id) {
             $res1[$id] = $res[$id];

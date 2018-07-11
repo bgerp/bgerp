@@ -57,17 +57,17 @@ class recently_Values extends core_Manager
     /**
      * Връща предложенията за посоченото поле
      */
-    public function getSuggestions($name)
+    public static function fetchSuggestions($name, $maxSuggestion = NULL, $maxKeepingDays = NULL)
     {
         $conf = core_Packs::getConfig('recently');
         
-        $query = $this->getQuery();
-        
+        setIfNot($maxSuggestion, $conf->RECENTLY_MAX_SUGGESTION);
+        setIfNot($maxKeepingDays, $conf->RECENTLY_MAX_KEEPING_DAYS);
+
+        $query = self::getQuery();
         $query->orderBy('#createdOn=DESC');
-        
-        $query->limit($conf->RECENTLY_MAX_SUGGESTION);
-        
-        $query->where(array("#createdOn > '[#1#]'", dt::addDays(-$conf->RECENTLY_MAX_KEEPING_DAYS)));
+        $query->limit($maxSuggestion);
+        $query->where(array("#createdOn > '[#1#]'", dt::addDays(-$maxKeepingDays)));
         
         $opt = array('' => '');
         
@@ -78,11 +78,10 @@ class recently_Values extends core_Manager
                 $cu
             ))) {
                 $value = $rec->value;
-                
                 $opt[$value] = $value;
             }
         }
-        
+    
         return count($opt) > 1 ? $opt : array();
     }
     
@@ -90,13 +89,13 @@ class recently_Values extends core_Manager
     /**
      * Добавя стойност към определено име и потребител
      */
-    public function add($name, $value)
+    public static function add($name, $value)
     {
         $cu = core_Users::getCurrent();
         $value = mb_substr($value, 0, 255);
         $name = str::convertToFixedKey($name, 64);
         
-        $rec = $this->fetch(array(
+        $rec = self::fetch(array(
             "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = '{$cu}'",
             $name,
             $value
@@ -104,12 +103,12 @@ class recently_Values extends core_Manager
         
         if ($rec) {
             $rec->createdOn = dt::verbal2mysql();
-            $this->save($rec, 'createdOn');
+            self::save($rec, 'createdOn');
         } else {
             $rec = new stdClass();
             $rec->name = $name;
             $rec->value = $value;
-            $this->save($rec);
+            self::save($rec);
         }
     }
     

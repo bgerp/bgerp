@@ -16,6 +16,12 @@
  */
 class plg_SelectPeriod extends core_Plugin
 {
+    /**
+     * Префикс използван в recently пакета
+     */
+    const RECENTLY_KEY = 'UNIQ.PERIOD';
+
+
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
@@ -202,7 +208,7 @@ class plg_SelectPeriod extends core_Plugin
         // Месец
         $opt['gr3'] = (object) array('title' => tr('Месец'), 'group' => true);
         $opt['cur_month'] = tr('Този месец');
-        $opt['last_month'] = tr('Миналия месец');
+        $opt['last_month'] = tr('Миналият месец');
         
         // Година
         $opt['gr4'] = (object) array('title' => tr('Година'), 'group' => true);
@@ -219,16 +225,25 @@ class plg_SelectPeriod extends core_Plugin
         // Друг период
         $opt['gr6'] = (object) array('title' => tr('Друг период'), 'group' => true);
         
-        // Вкарваме периодите от сесията
-        $luPeriods = Mode::get('luPeriods');
-        if ($luPeriods) {
-            foreach ($luPeriods as $key => $title) {
+        // Ако имаме входящ период, и той не е стандартен, добавяме го
+        if ($fromSel && $toSel && !$keySel) {
+            $keySel = $fromSel . '|' . $toSel;
+            $title = self::getPeriod($fromSel, $toSel);
+            $opt[$keySel] = $title;
+            $val = $fromSel . '|' . $toSel . '=>' . $title;
+            recently_Values::add(self::RECENTLY_KEY, $val);
+        }
+
+        // Вкарваме периодите от recently
+        $values = recently_Values::fetchSuggestions(self::RECENTLY_KEY, 5);
+        if (is_array($values)) {
+            foreach ($values as $val) {
+                if(!$val) continue;
+                list($key, $title) = explode('=>', $val);
                 $opt[$key] = $title;
             }
-        } else {
-            $luPeriods = array();
         }
-        
+
         // Добяваме вербално определение и търсим евентуално ключа отговарящ на избрания период
         foreach ($opt as $key => $val) {
             if (is_scalar($val)) {
@@ -249,15 +264,10 @@ class plg_SelectPeriod extends core_Plugin
             }
         }
         
-        // Ако имаме входящ период, и той не е стандартен, добавяме го
-        if ($fromSel && $toSel && !$keySel) {
-            $keySel = $fromSel . '|' . $toSel;
-            $luPeriods[$keySel] = $opt[$keySel] = self::getPeriod($fromSel, $toSel);
-            Mode::setPermanent('luPeriods', $luPeriods);
-        }
-        
+            
+    
         // Добавяме избор на производлен период
-        $opt['select'] = tr('Избор');
+        $opt['select'] = (object) array('title' => tr('Избор'), 'attr' => array('class' => 'out-btn multipleFiles'));
         
         return $opt;
     }

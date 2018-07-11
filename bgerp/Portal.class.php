@@ -254,9 +254,8 @@ class bgerp_Portal extends core_Manager
      */
     public static function prepareSearchDataList($mvc, &$form)
     {
-        $Recently = cls::get('recently_Values');
         $name = $form->mvc->dbTableName . '.' . $mvc->searchInputField;
-        $suggestions = $Recently->getSuggestions($name);
+        $suggestions = recently_Values::fetchSuggestions($name);
         
         $html = "<datalist id='{$mvc->className}'>\n";
         

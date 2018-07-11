@@ -23,9 +23,7 @@ class recently_Plugin extends core_Plugin
     public function on_BeforeRenderFields(&$form)
     {
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
-        
-        $Values = cls::get('recently_Values');
-        
+                
         $inputFields = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
         if (count($inputFields)) {
@@ -33,7 +31,7 @@ class recently_Plugin extends core_Plugin
                 if ($field->recently) {
                     $saveName = $prefix . '.' . $name;
                     
-                    $suggetions = $Values->getSuggestions($saveName);
+                    $suggetions = recently_Values::fetchSuggestions($saveName);
                     
                     $form->appendSuggestions($name, $suggetions);
                 }
@@ -48,9 +46,7 @@ class recently_Plugin extends core_Plugin
     public function on_AfterInput($form)
     {
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
-        
-        $Values = cls::get('recently_Values');
-        
+                
         $flds = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
         $rec = $form->rec;
@@ -62,7 +58,7 @@ class recently_Plugin extends core_Plugin
                     
                     // Запомняме само стойности, които са над 2 символа
                     if (mb_strlen(trim($rec->{$name})) > 2) {
-                        $Values->add($saveName, $rec->{$name});
+                        recently_Values::add($saveName, $rec->{$name});
                     }
                 }
             }
