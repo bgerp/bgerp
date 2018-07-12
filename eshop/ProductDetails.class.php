@@ -43,7 +43,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'productId,title,packagings=Опаковки/Мерки,state=Състояние,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,state=Състояние,modifiedOn,modifiedBy';
     
     
     /**
@@ -92,13 +92,24 @@ class eshop_ProductDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
+        $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Е-артикул,mandatory,silent');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
         
         $this->setDbUnique('eshopProductId,title');
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	if (isset($data->masterMvc)){
+    		unset($data->listFields['eshopProductId']);
+    	}
     }
     
     
@@ -279,6 +290,7 @@ class eshop_ProductDetails extends core_Detail
     {
         if (isset($fields['-list'])) {
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
+        	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             if (!$price = self::getPublicDisplayPrice($rec->productId)) {
