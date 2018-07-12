@@ -174,7 +174,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $productId = acc_Items::fetch($dRec->articulId)->objectId;
         
-        $row->articul = cat_Products::getHyperlink($productId, 'name');
+        $row->articul = cat_Products::getShortHyperlink($productId, 'name');
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
@@ -207,6 +207,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             $row->store .= ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
             
             $row->store .= store_Stores::getHyperlink($storeId) . '</br>';
+            
             $color = 'green';
             if ($val < 0) {
                 $color = 'red';
