@@ -342,7 +342,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             
             foreach ($fieldNameArr as $key => $val) {
                 
-                if ($rec->days == 365) {
+                if (dt::mysql2verbal($rec->from, 'Y') != dt::mysql2verbal($rec->to, 'Y')) {
                     
                     $periodName = (substr($val, 0, 2) . '/' . substr($val, 2, 2) . '/' . substr($val, 4, 2));
                 } else {
