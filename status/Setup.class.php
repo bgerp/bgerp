@@ -25,54 +25,54 @@ defIfNot('STATUS_IDLE_TIME', 3);
  *
  * @category  vendors
  * @package   status
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class status_Setup extends core_ProtoSetup 
+class status_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'status_Messages';
+    public $startCtr = 'status_Messages';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Извличане и показване на статус съобщенията";
+    public $info = 'Извличане и показване на статус съобщенията';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-           
-       'STATUS_TIME_BEFORE' => array ('time', 'caption=Колко време преди създаването'),
-       'STATUS_IDLE_TIME' => array ('time', 'caption=Време на бездействие на таба за премахване на статус'),
-     );
-     
-     
+    public $configDescription = array(
+        
+        'STATUS_TIME_BEFORE' => array('time', 'caption=Колко време преди създаването'),
+        'STATUS_IDLE_TIME' => array('time', 'caption=Време на бездействие на таба за премахване на статус'),
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
-    function install()
-    {   
+    public function install()
+    {
         // Инсталиране на мениджърите
         $managers = array(
             'status_Messages',
@@ -99,7 +99,7 @@ class status_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $html = bgerp_Menu::remove($this);

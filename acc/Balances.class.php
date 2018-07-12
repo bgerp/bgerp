@@ -1,21 +1,21 @@
 <?php
 
 
-
 /**
  * Мениджър на баланси
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Balances extends core_Master
 {
-    
     /**
      * Константа за начало на счетоводното време
      */
@@ -25,75 +25,75 @@ class acc_Balances extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Оборотни ведомости";
+    public $title = 'Оборотни ведомости';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, bgerp_plg_Blank';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'acc_BalanceDetails';
+    public $details = 'acc_BalanceDetails';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Оборотна ведомост';
+    public $singleTitle = 'Оборотна ведомост';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,acc';
+    public $canList = 'ceo,acc';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,acc';
+    public $canSingle = 'ceo,acc';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,acc';
+    public $canRead = 'ceo,acc';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * @var acc_Accounts
      */
-    var $Accounts;
+    public $Accounts;
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'acc/tpl/SingleLayoutBalance.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutBalance.shtml';
     
-
+    
     /**
      * Поле за единичен изглед
      */
@@ -103,37 +103,37 @@ class acc_Balances extends core_Master
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate';
+    public $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate';
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/table_sum.png';
+    public $singleIcon = 'img/16/table_sum.png';
     
     
     /**
      * Текущата сметка
      */
     public $accountRec;
-
-
+    
+    
     /**
      * Максимално допустимо време в секунди за изчисляване на баланс на период
      */
     const MAX_PERIOD_CALC_TIME = 1200;
     
-
+    
     /**
      * Ключ за заключване по време на записването
      */
     const saveLockKey = 'Save_Balance_In_Progress';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory,autoFilter');
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
@@ -149,7 +149,7 @@ class acc_Balances extends core_Master
     /**
      * Предефиниране на единичния изглед
      */
-    function act_Single()
+    public function act_Single()
     {
         if ($accountId = Request::get('accId', 'int')) {
             $this->accountRec = $this->Accounts->fetch($accountId);
@@ -162,7 +162,7 @@ class acc_Balances extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $user = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $user = null)
     {
         if ($mvc->accountRec) {
             if ($action == 'edit' || $action == 'delete') {
@@ -181,35 +181,35 @@ class acc_Balances extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(empty($rec->periodId)){
-    		$row->periodId = dt::mysql2verbal($rec->fromDate, 'd', NULL, FALSE) . "-" . dt::mysql2verbal($rec->toDate, 'd F Y', NULL, FALSE);
-    	
-    		if($fields['-list']){
-    			if($mvc->haveRightFor('single', $rec)){
-    				$row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
-    			}
-    		}
-    	}
+        if (empty($rec->periodId)) {
+            $row->periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
+            
+            if ($fields['-list']) {
+                if ($mvc->haveRightFor('single', $rec)) {
+                    $row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
+                }
+            }
+        }
         
         // Добавяме връзка към последния алтерниращ документ
-        if($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
+        if ($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
             $row->lastAlternation .= ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
         }
-
-        if($rec->lastCalculateChange == 'no') {
+        
+        if ($rec->lastCalculateChange == 'no') {
             $row->lastCalculate .= ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
         }
-    	
-    	if($rec->lastAlternation > $rec->lastCalculate){
-    		$row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
-    	}
+        
+        if ($rec->lastAlternation > $rec->lastCalculate) {
+            $row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
+        }
     }
     
     
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    static function on_AfterPrepareSingleTitle($mvc, $data)
+    public static function on_AfterPrepareSingleTitle($mvc, $data)
     {
         if ($mvc->accountRec) {
             $data->row->accountId = acc_Accounts::getRecTitle($mvc->accountRec);
@@ -218,25 +218,25 @@ class acc_Balances extends core_Master
         }
         
         // Ако показваме по сметка
-        if($accId = Request::get('accId', 'int')){
-        	$periods = array();
-        	$query = $mvc->getQuery();
-        	$query->where('#periodId IS NOT NULL');
-        	$query->orderBy('toDate', "DESC");
-        	
-        	while($bRec = $query->fetch()){
-        		$key = toUrl(array($mvc, 'single', $bRec->id));
-        		$periods[$key] = acc_Periods::fetchField($bRec->periodId, 'title');
-        	}
-        	
-        	$value = toUrl(array($mvc, 'single', $data->rec->id));
-        	$periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));
+        if ($accId = Request::get('accId', 'int')) {
+            $periods = array();
+            $query = $mvc->getQuery();
+            $query->where('#periodId IS NOT NULL');
+            $query->orderBy('toDate', 'DESC');
+            
+            while ($bRec = $query->fetch()) {
+                $key = toUrl(array($mvc, 'single', $bRec->id));
+                $periods[$key] = acc_Periods::fetchField($bRec->periodId, 'title');
+            }
+            
+            $value = toUrl(array($mvc, 'single', $data->rec->id));
+            $periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));
         } else {
-        	$periodRow = $data->row->periodId;
+            $periodRow = $data->row->periodId;
         }
         
         // Показваме за кой период е баланса, ако разглеждаме сметка периода е комбобокс и може да се сменя
-        $data->title = new ET("<span class='quiet'> " . tr('Оборотна ведомост') . "</span> " . $periodRow);
+        $data->title = new ET("<span class='quiet'> " . tr('Оборотна ведомост') . '</span> ' . $periodRow);
     }
     
     
@@ -254,12 +254,12 @@ class acc_Balances extends core_Master
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    public function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy('#toDate', 'DESC');
     }
-
-
+    
+    
     /**
      * Връща последния баланс, на който крайната дата е преди друга дата и е валиден
      */
@@ -267,34 +267,38 @@ class acc_Balances extends core_Master
     {
         $query = self::getQuery();
         $query->orderBy('#toDate', 'DESC');
-        while($rec = $query->fetch("#toDate < '{$date}'")) {
-            if(self::isValid($rec)) {
-
+        while ($rec = $query->fetch("#toDate < '{$date}'")) {
+            if (self::isValid($rec)) {
+                
                 return $rec;
             }
         }
     }
-
-
+    
+    
     /**
      * Маркира балансите, които се засягат от документ с посочения вальор
      *
-     * @param string $date дата, към която
-     * @return boolean
+     * @param string $date       Вальорът на алтерниращият документ
+     * @param int    $docClassId Класът на алтерниращият документ
+     * @param int    $docId      id на алтерниращият документ
      */
     public static function alternate($date, $docClassId, $docId)
     {
-    	static $dateArr = array();
-        if($dateArr[$date])  return;
-        $dateArr[$date] = TRUE;
+        static $dateArr = array();
+        if ($dateArr[$date]) {
+            
+            return;
+        }
+        $dateArr[$date] = true;
         
         $now = dt::now();
-
+        
         $query = self::getQuery();
         $query->where("#toDate >= '{$date}'");
         
         // Инвалидираме баланса, ако датата е по-малка от края на периода
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $rec->lastAlternation = $now;
             $rec->lastAlternationDocClass = $docClassId;
             $rec->lastAlternationDocId = $docId;
@@ -305,49 +309,48 @@ class acc_Balances extends core_Master
     
     /**
      * Ако е необходимо записва и изчислява баланса за посочения период
-     * 
+     *
      * @param stdClass Запис на баланс, с попълнени $fromDate, $toDate и $periodId
-     * @return boolean Дали е правено преизчисляване
+     *
+     * @return bool Дали е правено преизчисляване
      */
     private function forceCalc(&$rec)
     {
         // Очакваме начална и крайна дата
-        expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10,  $rec);
-
+        expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10, $rec);
+        
         // Ако записа на баланса не за записан, записваме го, за да имаме id
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
         
-        if(!$exRec) {
+        if (!$exRec) {
             self::save($rec);
-           
         } else {
             $rec = $exRec;
         }
         
-        // Ако не е валиден го преизчисляваме, като всяка от 
+        // Ако не е валиден го преизчисляваме, като всяка от
         // десетте минути след преизчисляването - пак го преизчисляваме
         $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
         
-        if(!$isValid) {
+        if (!$isValid) {
             
             // Днешна дата
             $today = dt::today();
             
             // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
-            if($rec->toDate == dt::getLastDayOfMonth()) {
-                if($prevWorkingDay = self::getPrevWorkingDay($today)) {
-                	
+            if ($rec->toDate == dt::getLastDayOfMonth()) {
+                if ($prevWorkingDay = self::getPrevWorkingDay($today)) {
                     $prevRec = clone($rec);
                     unset($prevRec->id);
                     $prevRec->toDate = $prevWorkingDay;
-                    $prevRec->periodId = NULL;
+                    $prevRec->periodId = null;
                     self::forceCalc($prevRec);
                     $fromDate = $prevRec->fromDate;
-                    $toDate   = $prevRec->toDate;
-
+                    $toDate = $prevRec->toDate;
+                    
                     // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
                     $query = self::getQuery();
-                    while($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
+                    while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
                         acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
                         self::delete($delRec->id);
                     }
@@ -356,45 +359,45 @@ class acc_Balances extends core_Master
             
             self::calc($rec);
             
-            return TRUE;
+            return true;
         }
     }
-
+    
     
     /**
      * Изчисляване на баланс
      */
-    function calc($rec)
+    public function calc($rec)
     {
         // Вземаме инстанция на детайлите на баланса
-    	$bD = cls::get('acc_BalanceDetails');
-    	    		
-    	// Зануляваме флага, за да не се преизчисли баланса отново
-    	$recalcBalance = FALSE;
-    	
-    	// Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-    	$lastRec = $this->getBalanceBefore($rec->toDate);
-    	
-    	if($lastRec) {
-    		 
-    		// Ако има зададен период не е междинен баланса, иначе е
-    		$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
-    		 
-    		// Зареждаме баланса
-    		$bD->loadBalance($lastRec->id, $isMiddleBalance);
-    		$firstDay = dt::addDays(1, $lastRec->toDate);
-    		$firstDay = dt::verbal2mysql($firstDay, FALSE);
-    	} else {
-    		$firstDay = self::TIME_BEGIN;
-    	}
-    	
-    	// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-    	$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
-    	$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
-    	
- 
+        $bD = cls::get('acc_BalanceDetails');
+        
+        // Зануляваме флага, за да не се преизчисли баланса отново
+        $recalcBalance = false;
+        
+        // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
+        $lastRec = $this->getBalanceBefore($rec->toDate);
+        
+        if ($lastRec) {
+            
+            // Ако има зададен период не е междинен баланса, иначе е
+            $isMiddleBalance = (!empty($lastRec->periodId)) ? false : true;
+            
+            // Зареждаме баланса
+            $bD->loadBalance($lastRec->id, $isMiddleBalance);
+            $firstDay = dt::addDays(1, $lastRec->toDate);
+            $firstDay = dt::verbal2mysql($firstDay, false);
+        } else {
+            $firstDay = self::TIME_BEGIN;
+        }
+        
+        // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
+        $isMiddleBalance = ($rec->periodId) ? false : true;
+        $recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
+        
+        
         // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
-        if($bD->saveBalance($rec->id)) {
+        if ($bD->saveBalance($rec->id)) {
             $rec->lastCalculateChange = 'yes';
         } else {
             $rec->lastCalculateChange = 'no';
@@ -411,28 +414,28 @@ class acc_Balances extends core_Master
      */
     public function recalc()
     {
-    	$lockKey = "RecalcBalances";
-    	 
-    	// Ако изчисляването е заключено не го изпълняваме
-    	if(!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
-    		$this->logNotice("Изчисляването на баланса е заключено от друг процес");
-    		 
-    		return;
-    	}
-    	
-    	// Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
-    	// Ако периода се нуждае от прекалкулиране - правим го
-    	// Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
-    	// до предходния работен ден и селд това до днес
-    	
-    	$pQuery = acc_Periods::getQuery();
-    	$pQuery->orderBy('#end', 'ASC');
-    	$pQuery->where("#state != 'closed'");
-    	$pQuery->where("#state != 'draft'");
+        $lockKey = 'RecalcBalances';
         
-        $rc = TRUE;
+        // Ако изчисляването е заключено не го изпълняваме
+        if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+            $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+            
+            return;
+        }
         
-        while($pRec = $pQuery->fetch()) {
+        // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
+        // Ако периода се нуждае от прекалкулиране - правим го
+        // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
+        // до предходния работен ден и селд това до днес
+        
+        $pQuery = acc_Periods::getQuery();
+        $pQuery->orderBy('#end', 'ASC');
+        $pQuery->where("#state != 'closed'");
+        $pQuery->where("#state != 'draft'");
+        
+        $rc = true;
+        
+        while ($pRec = $pQuery->fetch()) {
             $rec = new stdClass();
             $rec->fromDate = $pRec->start;
             $rec->toDate = $pRec->end;
@@ -443,42 +446,49 @@ class acc_Balances extends core_Master
             do {
                 self::forceCalc($rec);
                 self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
-            } while($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
-            $rc = FALSE;
+            } while ($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
+            $rc = false;
         }
-    	
-    	// Освобождаваме заключването на процеса
-    	core_Locks::release($lockKey);
-    	
-    	// Пораждаме събитие, че баланса е бил преизчислен
-    	$data = new stdClass();
-    	$this->invoke('AfterRecalcBalances', array($data));
+        
+        // Освобождаваме заключването на процеса
+        core_Locks::release($lockKey);
+        
+        // Пораждаме събитие, че баланса е бил преизчислен
+        $data = new stdClass();
+        $this->invoke('AfterRecalcBalances', array($data));
     }
     
     
     /**
      * Презичислява балансите за периодите, в които има промяна ежеминутно
      */
-    function cron_Recalc()
+    public function cron_Recalc()
     {
-    	$this->recalc();
+        $this->recalc();
     }
-
-
+    
+    
     /**
      * Проверка, дали записът отговаря на валиден баланс
-     * 
+     *
      * @param stdClass $rec - запис на баланса
-     * @return boolean - дали е валиден или не
+     *
+     * @return bool - дали е валиден или не
      */
     public static function isValid($rec, $calcMinutesAfter = 0)
     {
         // Ако балансът никога не е калкулиран, значи не е валиден
-        if(empty($rec->lastCalculate)) return FALSE;
+        if (empty($rec->lastCalculate)) {
+            
+            return false;
+        }
         
         // Ако нямаме никакви записи за периода, значи всичко е ОК
-         if(empty($rec->lastAlternation)) return TRUE;
-         
+        if (empty($rec->lastAlternation)) {
+            
+            return true;
+        }
+        
         // Вземаме предния баланс. Ако той е с по-ново време на изчисление, задължително изчисляваме и този
         $query = self::getQuery();
         $query->limit(1);
@@ -486,23 +496,24 @@ class acc_Balances extends core_Master
         $query->orderBy('fromDate', 'DESC');
         $lastRec = $query->fetch();
         
-        if($lastRec && ($lastRec->lastCalculate > $rec->lastCalculate)) {
-
-            return FALSE;
+        if ($lastRec && ($lastRec->lastCalculate > $rec->lastCalculate)) {
+            
+            return false;
         }
         
         // Ако последното изчисляване е $calcMinutesAfter и повече след последната промяна на журнала за периода, значи баланса е валиден
-        if(dt::secsBetween($rec->lastCalculate, $rec->lastAlternation) > $calcMinutesAfter * 60) {
-
-            return TRUE;
+        if (dt::secsBetween($rec->lastCalculate, $rec->lastAlternation) > $calcMinutesAfter * 60) {
+            
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
-
+    
     
     /**
      * Намира предходния работен ден в месеца преди посочената дата
+     *
      * @todo Да се сложи проверка от календара
      */
     private static function getPrevWorkingDay($date)
@@ -510,15 +521,14 @@ class acc_Balances extends core_Master
         // И имаме по-малък предходен работен ден
         list($y, $m, $d) = explode('-', $date);
         $d = (int) $d;
-        for($day = $d - 1; $day > 0; $day--) {
-            $wDate = sprintf('%d-%02d-%02d',$y, $m, $day);
-            if(!dt::isHoliday($wDate)) {
-
+        for ($day = $d - 1; $day > 0; $day--) {
+            $wDate = sprintf('%d-%02d-%02d', $y, $m, $day);
+            if (!dt::isHoliday($wDate)) {
+                
                 return $wDate;
             }
         }
     }
-
     
     
     /**
@@ -532,7 +542,7 @@ class acc_Balances extends core_Master
     
     /**
      * Връща последния баланс
-     * 
+     *
      * @return stdClass
      */
     public static function getLastBalance()
@@ -540,7 +550,7 @@ class acc_Balances extends core_Master
         $query = static::getQuery();
         
         // Подреждаме ги по последно калкулиране и по начална дата в обратен ред
-        $query->where("#periodId IS NOT NULL");
+        $query->where('#periodId IS NOT NULL');
         $query->orderBy('#toDate', 'DESC');
         
         $today = dt::today();
@@ -558,15 +568,19 @@ class acc_Balances extends core_Master
      * @param mixed $items1   - списък с пера, от които поне един може да е на първа позиция
      * @param mixed $items2   - списък с пера, от които поне един може да е на втора позиция
      * @param mixed $items3   - списък с пера, от които поне един може да е на трета позиция
-     * @return array          - масив със всички извлечени записи
+     *
+     * @return array - масив със всички извлечени записи
      */
-    public static function fetchCurrent($accs, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+    public static function fetchCurrent($accs, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null)
     {
         // Кой е последния баланс
         $balanceRec = static::getLastBalance();
         
         // Ако няма запис на последния баланс не се връща нищо
-        if(empty($balanceRec)) return FALSE;
+        if (empty($balanceRec)) {
+            
+            return false;
+        }
         
         // Извличане на данните от баланса в които участват зададените сметки
         $dQuery = acc_BalanceDetails::getQuery();
@@ -582,155 +596,25 @@ class acc_Balances extends core_Master
     /**
      * Връща масив с количествата групирани по размерната номенклатура на сметките
      *
-     * @param array $jRecs - масив с данни от журнала
-     * @param string $accs - Масив от сметки на които ще се изчислява крайното салдо
-     * @param string|NULL $type - кредното, дебитното или крайното салдо
-     * @param string $accFrom - сметки с които може да кореспондира
+     * @param array       $jRecs   - масив с данни от журнала
+     * @param string      $accs    - Масив от сметки на които ще се изчислява крайното салдо
+     * @param string|NULL $type    - кредното, дебитното или крайното салдо
+     * @param string      $accFrom - сметки с които може да кореспондира
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      *
      * @return stdClass $res - К-та групирани по размерната номенклатура
      */
-    public static function getBlQuantities($jRecs, $accs, $type = NULL, $accFrom = NULL, $items = array())
+    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array())
     {
-    	$res = array();
-    	
-    	// Ако няма записи, връщаме празен масив
-    	if(!count($jRecs)) return $res;
-    	
-    	if($type){
-    		expect(in_array($type, array('debit', 'credit')));
-    	}
-    	
-    	$newAccArr = $corespondingAccArr = array();
-    	$accArr = arr::make($accs);
-    	$fromArr = arr::make($accFrom);
-    	expect(count($accArr));
-    	
-    	// Намираме ид-та на сметките
-    	foreach ($accArr as $accSysId){
-    		expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
-    		$newAccArr[] = $accId;
-    	}
-    	
-    	foreach ($fromArr as $accSysId1){
-    		expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
-    		$corespondingAccArr[] = $accId;
-    	}
-    	
-    	// За всеки запис
-    	foreach ($jRecs as $rec){
-    		
-    		// Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
-    		if(count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) continue;
-    	
-    		// Ако има посочени задължителни пера
-    		if(count($items) > 0){
-    			$skip = FALSE;
-    			 
-    			// За всяко
-    			foreach (range(0, 2) as $i){
-    		
-    				// Ако е сетнато
-    				if(!empty($items[$i])){
-    					$j = $i + 1;
-    					 
-    					// И дебитната сметка е от търсените
-    					if(in_array($rec->debitAccId, $newAccArr)){
-    		
-    						// И съответното перо не е като търсеното
-    						if($rec->{"debitItem{$j}"} != $items[$i]) {
-    							 
-    							// Ще се пропуска записа
-    							$skip = TRUE;
-    							break;
-    						}
-    		
-    						// И кредитната сметка е от търсените
-    					} elseif(in_array($rec->creditAccId, $newAccArr)){
-    		
-    						// И съответното перо не е като търсеното
-    						if($rec->{"creditItem{$j}"} != $items[$i]){
-    							 
-    							// Ще се пропуска записа
-    							$skip = TRUE;
-    							break;
-    						}
-    					}
-    				}
-    			}
-    			 
-    			// Ако ще се пропуска, записа не участва в събирането
-    			if($skip === TRUE) continue;
-    		}
-    		
-    		// Изчисляваме крайното салдо
-    		if(in_array($rec->debitAccId, $newAccArr)) {
-    			if($type === NULL || $type == 'debit'){
-    				$index = NULL;
-    				foreach (range(3, 1) as $i){
-    					if(isset($rec->{"debitItem{$i}"})){
-    						$index = $rec->{"debitItem{$i}"};
-    						break;
-    					}
-    				}
-    				if(!array_key_exists($index, $res)){
-    					$res[$index] = (object)array('quantity' => 0, 'amount' => 0);
-    				}
-    				
-    				$res[$index]->quantity += $rec->debitQuantity;
-    				$res[$index]->amount += $rec->amount;
-    			}
-    		}
-    	
-    		if(in_array($rec->creditAccId, $newAccArr)) {
-    			$sign = ($type === NULL) ? -1 : 1;
-    			
-    			if($type === NULL || $type == 'credit'){
-    				$index = NULL;
-    				foreach (range(3, 1) as $i){
-    					if(isset($rec->{"creditItem{$i}"})){
-    						$index = $rec->{"creditItem{$i}"};
-    						break;
-    					}
-    				}
-    				
-    				if(!array_key_exists($index, $res)){
-    					$res[$index] = (object)array('quantity' => 0, 'amount' => 0);
-    				}
-    				
-    				$res[$index]->quantity += $sign * $rec->creditQuantity;
-    				$res[$index]->amount += $sign * $rec->amount;
-    			}
-    		}
-    	}
-    	
-    	// Връщане на резултата
-    	return $res;
-    }
-    
-    
-    /**
-     * Връща крайното салдо на дадена сметка, според подадени записи
-     *
-     * @param array $jRecs - масив с данни от журнала
-     * @param string $accs - Масив от сметки на които ще се изчислява крайното салдо
-     * @param string|NULL $type - кредното, дебитното или крайното салдо
-     * @param string $accFrom - сметки с които може да кореспондира
-     * @params array $items - масив с пера, които трябва да са на посочените позиции
-     *
-     * @return stdClass $res - обект със следната структура:
-     * ->amount - крайното салдо на сметката, ако няма записи е 0
-     * ->recs   - тази част от подадените записи, участвали в образуването на салдото
-     */
-    public static function getBlAmounts($jRecs, $accs, $type = NULL, $accFrom = NULL, $items = array())
-    {
-        $res = new stdClass();
-        $res->amount = 0;
+        $res = array();
         
         // Ако няма записи, връщаме празен масив
-        if(!count($jRecs)) return $res;
+        if (!count($jRecs)) {
+            
+            return $res;
+        }
         
-        if($type){
+        if ($type) {
             expect(in_array($type, array('debit', 'credit')));
         }
         
@@ -740,90 +624,233 @@ class acc_Balances extends core_Master
         expect(count($accArr));
         
         // Намираме ид-та на сметките
-        foreach ($accArr as $accSysId){
+        foreach ($accArr as $accSysId) {
             expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
             $newAccArr[] = $accId;
         }
         
-    	foreach ($fromArr as $accSysId1){
-    		expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
-    		$corespondingAccArr[] = $accId;
-    	}
-    	
-    	
+        foreach ($fromArr as $accSysId1) {
+            expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
+            $corespondingAccArr[] = $accId;
+        }
+        
         // За всеки запис
-        foreach ($jRecs as $rec){
-            $add = FALSE;
+        foreach ($jRecs as $rec) {
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
-            if(count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) continue;
-           
+            if (count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
+                continue;
+            }
+            
             // Ако има посочени задължителни пера
-            if(count($items) > 0){
-            	$skipDebit = $skipCredit = FALSE;
-            	
-            	// За всяко
-            	foreach (range(0, 2) as $i){
-            		
-            		// Ако е сетнато
-            		if(!empty($items[$i])){
-            			$j = $i + 1;
-            			
-            			// И дебитната сметка е от търсените
-            			if(in_array($rec->debitAccId, $newAccArr)){
-            				
-            				// И съответното перо не е като търсеното
-            				if($rec->{"debitItem{$j}"} != $items[$i]) {
-            					
-            					// Ще се пропуска записа
-            					$skipDebit = TRUE;
-            					break;
-            				}
-            				
-            			}
-            			
-            			// И кредитната сметка е от търсените
-            			if(in_array($rec->creditAccId, $newAccArr)){
-            				
-            				// И съответното перо не е като търсеното
-            				if($rec->{"creditItem{$j}"} != $items[$i]){
-            					
-            					// Ще се пропуска записа
-            					$skipCredit = TRUE;
-            					break;
-            				}
-            			}
-            		}
-            	}
-            	
-            	// Ако ще се пропуска, записа не участва в събирането
-            	if($skipDebit === TRUE && $skipCredit === TRUE) continue;
+            if (count($items) > 0) {
+                $skip = false;
+                
+                // За всяко
+                foreach (range(0, 2) as $i) {
+                    
+                    // Ако е сетнато
+                    if (!empty($items[$i])) {
+                        $j = $i + 1;
+                        
+                        // И дебитната сметка е от търсените
+                        if (in_array($rec->debitAccId, $newAccArr)) {
+                            
+                            // И съответното перо не е като търсеното
+                            if ($rec->{"debitItem{$j}"} != $items[$i]) {
+                                
+                                // Ще се пропуска записа
+                                $skip = true;
+                                break;
+                            }
+                            
+                            // И кредитната сметка е от търсените
+                        } elseif (in_array($rec->creditAccId, $newAccArr)) {
+                            
+                            // И съответното перо не е като търсеното
+                            if ($rec->{"creditItem{$j}"} != $items[$i]) {
+                                
+                                // Ще се пропуска записа
+                                $skip = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Ако ще се пропуска, записа не участва в събирането
+                if ($skip === true) {
+                    continue;
+                }
             }
             
             // Изчисляваме крайното салдо
-            if(in_array($rec->debitAccId, $newAccArr)) {
-            	if($skipDebit !== TRUE){
-            		if($type === NULL || $type == 'debit'){
-            			$res->amount += $rec->amount;
-            			$add = TRUE;
-            		}
-            	}
+            if (in_array($rec->debitAccId, $newAccArr)) {
+                if ($type === null || $type == 'debit') {
+                    $index = null;
+                    foreach (range(3, 1) as $i) {
+                        if (isset($rec->{"debitItem{$i}"})) {
+                            $index = $rec->{"debitItem{$i}"};
+                            break;
+                        }
+                    }
+                    if (!array_key_exists($index, $res)) {
+                        $res[$index] = (object) array('quantity' => 0, 'amount' => 0);
+                    }
+                    
+                    $res[$index]->quantity += $rec->debitQuantity;
+                    $res[$index]->amount += $rec->amount;
+                }
             }
             
-            if(in_array($rec->creditAccId, $newAccArr)) {
-            	if($skipCredit !== TRUE){
-            		$sign = ($type === NULL) ? -1 : 1;
-            		
-            		if($type === NULL || $type == 'credit'){
-            			$res->amount += $sign * $rec->amount;
-            		}
-            		
-            		$add = TRUE;
-            	}
+            if (in_array($rec->creditAccId, $newAccArr)) {
+                $sign = ($type === null) ? -1 : 1;
+                
+                if ($type === null || $type == 'credit') {
+                    $index = null;
+                    foreach (range(3, 1) as $i) {
+                        if (isset($rec->{"creditItem{$i}"})) {
+                            $index = $rec->{"creditItem{$i}"};
+                            break;
+                        }
+                    }
+                    
+                    if (!array_key_exists($index, $res)) {
+                        $res[$index] = (object) array('quantity' => 0, 'amount' => 0);
+                    }
+                    
+                    $res[$index]->quantity += $sign * $rec->creditQuantity;
+                    $res[$index]->amount += $sign * $rec->amount;
+                }
+            }
+        }
+        
+        // Връщане на резултата
+        return $res;
+    }
+    
+    
+    /**
+     * Връща крайното салдо на дадена сметка, според подадени записи
+     *
+     * @param array       $jRecs   - масив с данни от журнала
+     * @param string      $accs    - Масив от сметки на които ще се изчислява крайното салдо
+     * @param string|NULL $type    - кредното, дебитното или крайното салдо
+     * @param string      $accFrom - сметки с които може да кореспондира
+     * @params array $items - масив с пера, които трябва да са на посочените позиции
+     *
+     * @return stdClass $res - обект със следната структура:
+     *                  ->amount - крайното салдо на сметката, ако няма записи е 0
+     *                  ->recs   - тази част от подадените записи, участвали в образуването на салдото
+     */
+    public static function getBlAmounts($jRecs, $accs, $type = null, $accFrom = null, $items = array())
+    {
+        $res = new stdClass();
+        $res->amount = 0;
+        
+        // Ако няма записи, връщаме празен масив
+        if (!count($jRecs)) {
+            
+            return $res;
+        }
+        
+        if ($type) {
+            expect(in_array($type, array('debit', 'credit')));
+        }
+        
+        $newAccArr = $corespondingAccArr = array();
+        $accArr = arr::make($accs);
+        $fromArr = arr::make($accFrom);
+        expect(count($accArr));
+        
+        // Намираме ид-та на сметките
+        foreach ($accArr as $accSysId) {
+            expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
+            $newAccArr[] = $accId;
+        }
+        
+        foreach ($fromArr as $accSysId1) {
+            expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
+            $corespondingAccArr[] = $accId;
+        }
+        
+        
+        // За всеки запис
+        foreach ($jRecs as $rec) {
+            $add = false;
+            
+            // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
+            if (count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
+                continue;
+            }
+            
+            // Ако има посочени задължителни пера
+            if (count($items) > 0) {
+                $skipDebit = $skipCredit = false;
+                
+                // За всяко
+                foreach (range(0, 2) as $i) {
+                    
+                    // Ако е сетнато
+                    if (!empty($items[$i])) {
+                        $j = $i + 1;
+                        
+                        // И дебитната сметка е от търсените
+                        if (in_array($rec->debitAccId, $newAccArr)) {
+                            
+                            // И съответното перо не е като търсеното
+                            if ($rec->{"debitItem{$j}"} != $items[$i]) {
+                                
+                                // Ще се пропуска записа
+                                $skipDebit = true;
+                                break;
+                            }
+                        }
+                        
+                        // И кредитната сметка е от търсените
+                        if (in_array($rec->creditAccId, $newAccArr)) {
+                            
+                            // И съответното перо не е като търсеното
+                            if ($rec->{"creditItem{$j}"} != $items[$i]) {
+                                
+                                // Ще се пропуска записа
+                                $skipCredit = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Ако ще се пропуска, записа не участва в събирането
+                if ($skipDebit === true && $skipCredit === true) {
+                    continue;
+                }
+            }
+            
+            // Изчисляваме крайното салдо
+            if (in_array($rec->debitAccId, $newAccArr)) {
+                if ($skipDebit !== true) {
+                    if ($type === null || $type == 'debit') {
+                        $res->amount += $rec->amount;
+                        $add = true;
+                    }
+                }
+            }
+            
+            if (in_array($rec->creditAccId, $newAccArr)) {
+                if ($skipCredit !== true) {
+                    $sign = ($type === null) ? -1 : 1;
+                    
+                    if ($type === null || $type == 'credit') {
+                        $res->amount += $sign * $rec->amount;
+                    }
+                    
+                    $add = true;
+                }
             }
             
             // Добавяме записа, участвал в образуването на крайното салдо
-            if($add){
+            if ($add) {
                 $res->recs[$rec->id] = $rec;
             }
             
@@ -845,41 +872,57 @@ class acc_Balances extends core_Master
      *
      * @return html $title - името на сметката като линк (ако имаме права)
      */
-    public static function getAccountLink($accountId, $rec = NULL, $showNum = TRUE, $showIcon = FALSE)
+    public static function getAccountLink($accountId, $rec = null, $showNum = true, $showIcon = false)
     {
         expect($accountRec = acc_Accounts::fetchRec($accountId));
         $title = acc_Accounts::getVerbal($accountRec, 'title');
         $num = acc_Accounts::getVerbal($accountRec, 'num');
         
         // Ако трябва да се показва num-а го показваме до името на сметката
-        if($showNum){
-            $title = $num . ". " . $title;
+        if ($showNum) {
+            $title = $num . '. ' . $title;
         }
         
         // Ако не е подаден баланс, взимаме последния
-        if(!$rec){
+        if (!$rec) {
             $rec = static::getLastBalance();
         } else {
-        	$rec = static::fetchRec($rec);
+            $rec = static::fetchRec($rec);
         }
         
         if ($accountRec->id && strlen($num) >= 3) {
-            if(acc_Balances::haveRightFor('read', $rec) && !Mode::isReadOnly()){
+            if (acc_Balances::haveRightFor('read', $rec) && !Mode::isReadOnly()) {
                 
                 // Ако има номенклатури, правим линк към обобщението на сметката
                 if ($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) {
-                    $balImg = ($showIcon) ? 'ef_icon=img/16/filter.png' : NULL;
+                    $balImg = ($showIcon) ? 'ef_icon=img/16/filter.png' : null;
                     
-                    $title = ht::createLink($title,
-                        array('acc_Balances', 'single', $rec->id, 'accId' => $accountRec->id), NULL, $balImg);
-                } else{
+                    $title = ht::createLink(
+                        
+                        $title,
+                        array('acc_Balances', 'single', $rec->id, 'accId' => $accountRec->id),
+                        
+                        null,
+                        
+                        $balImg
+                    
+                    );
+                } else {
                     
                     // Ако няма номенклатури, линка е към хронологията на сметката
-                    if(acc_BalanceDetails::haveRightFor('history', (object)array())){
-                        $balImg = ($showIcon) ? 'ef_icon=img/16/clock_history.png' : NULL;
+                    if (acc_BalanceDetails::haveRightFor('history', (object) array())) {
+                        $balImg = ($showIcon) ? 'ef_icon=img/16/clock_history.png' : null;
                         
-                        $title = ht::createLink($title,
-                            array('acc_BalanceHistory', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num), NULL, $balImg);
+                        $title = ht::createLink(
+                            
+                            $title,
+                            array('acc_BalanceHistory', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num),
+                            
+                            null,
+                            
+                            $balImg
+                        
+                        );
                     }
                 }
             }
@@ -895,11 +938,11 @@ class acc_Balances extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if(haveRole('ceo,admin,debug')){
-    		$rec = core_Cron::getRecForSystemId('RecalcBalances');
-    		$url = array('core_Cron', 'ProcessRun', str::addHash($rec->id), 'forced' => 'yes');
-    		
-    		$data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
-    	}
+        if (haveRole('ceo,admin,debug')) {
+            $rec = core_Cron::getRecForSystemId('RecalcBalances');
+            $url = array('core_Cron', 'ProcessRun', str::addHash($rec->id), 'forced' => 'yes');
+            
+            $data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
+        }
     }
 }

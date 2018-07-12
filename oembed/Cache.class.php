@@ -1,8 +1,6 @@
 <?php
 class oembed_Cache extends core_Manager
 {
-    
-    
     /**
      * Дължина на полето URL в модела
      */
@@ -12,72 +10,72 @@ class oembed_Cache extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_RowTools';
+    public $loadList = 'plg_Created,plg_RowTools';
     
     
     /**
      * Заглавие
      */
-    var $title = "Oembed кеш";
+    public $title = 'Oembed кеш';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,url,createdOn,expires';
+    public $listFields = 'id,url,createdOn,expires';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'admin';
+    public $canWrite = 'admin';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin';
+    public $canReject = 'admin';
     
     
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFields = 'url';
+    public $searchFields = 'url';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Кеш';
+    public $singleTitle = 'Кеш';
     
     
-    const DEFAULT_CACHE_AGE = 2592000; // 30 дни в секунди 
+    const DEFAULT_CACHE_AGE = 2592000; // 30 дни в секунди
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-        $this->FLD('url' , 'varchar(' . self::URL_MAX_LEN . ')', 'caption=URL');
-        $this->FLD('html' , 'text', 'caption=HTML за вграждане');
-        $this->FLD('provider' , 'varchar(255)', 'caption=Източник');
+        $this->FLD('url', 'varchar(' . self::URL_MAX_LEN . ')', 'caption=URL');
+        $this->FLD('html', 'text', 'caption=HTML за вграждане');
+        $this->FLD('provider', 'varchar(255)', 'caption=Източник');
         
         // Брой секунди, през които този запис е валиден
-        $this->FLD('expires' , 'int', 'caption=Валидност');
-    
+        $this->FLD('expires', 'int', 'caption=Валидност');
+        
         $this->setDbUnique('url');
     }
     
@@ -90,7 +88,7 @@ class oembed_Cache extends core_Manager
         
         if ($rec) {
             $createdStamp = strtotime($rec->createdOn);
-            $nowStamp     = time();
+            $nowStamp = time();
             
             if ($createdStamp + $rec->expires < $nowStamp) {
                 // Този кеширан запис е изтекъл, изтриваме го
@@ -100,9 +98,10 @@ class oembed_Cache extends core_Manager
         }
         
         if (!empty($rec->html)) {
+            
             return $rec->html;
         }
         
-        return FALSE;
+        return false;
     }
 }

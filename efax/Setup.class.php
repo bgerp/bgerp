@@ -19,6 +19,7 @@ defIfNot('MAX_ALLOWED_ATTACHMENTS_IN_FAX', 10);
  *
  * @category   vendors
  * @package    efax
+ *
  * @author     Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 3
@@ -28,32 +29,32 @@ class efax_Setup extends core_ProtoSetup
     /**
      *  Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
-  
-   /**
+    
+    /**
      * Описание на модула
      */
-    var $info = "Изпращане на факс, чрез eFax";
+    public $info = 'Изпращане на факс, чрез eFax';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-        'EFAX_SENDER_BOX' => array ('key(mvc=email_Inboxes,select=email)', 'caption=Имейл за изпращане на факсове->Имейл'),
-        );
-
+    public $configDescription = array(
+        'EFAX_SENDER_BOX' => array('key(mvc=email_Inboxes,select=email)', 'caption=Имейл за изпращане на факсове->Имейл'),
+    );
+    
     
     /**
      *  Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         $html = core_Classes::add('efax_Sender');
-                
+        
         return $html;
     }
     
@@ -61,7 +62,7 @@ class efax_Setup extends core_ProtoSetup
     /**
      *  Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

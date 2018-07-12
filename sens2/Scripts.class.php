@@ -7,17 +7,17 @@
  *
  * @category  bgerp
  * @package   sens2
+ *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens2_Scripts extends core_Master
 {
-
+    const CALC_ERROR = 'Грешка при изчисляване';
     
-    const CALC_ERROR = "Грешка при изчисляване";
-
     
     public $oldClassName = 'sens2_Logics';
     
@@ -25,123 +25,123 @@ class sens2_Scripts extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
-                      
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
+    
     
     /**
      * Заглавие
      */
-    var $title = 'Скриптове';
+    public $title = 'Скриптове';
     
     
     /**
      * Права за писане
      */
-    var $canWrite = 'ceo,sens,admin';
+    public $canWrite = 'ceo,sens,admin';
     
     
     /**
      * Права за запис
      */
-    var $canRead = 'ceo, sens, admin';
+    public $canRead = 'ceo, sens, admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'debug';
+    public $canDelete = 'debug';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,sens';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,sens';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,sens';
     
-
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,sens';
+    
+    
     /**
      * Детайли на блока
      */
-    var $details = 'sens2_ScriptDefinedVars,sens2_ScriptActions';
-
+    public $details = 'sens2_ScriptDefinedVars,sens2_ScriptActions';
+    
     
     /**
      * Полето "Наименование" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'name';
-
-
+    public $rowToolsSingleField = 'name';
+    
+    
     /**
      * Заглавие в единичния изглед
      */
-    var $singleTitle = 'Скрипт';
-
-
+    public $singleTitle = 'Скрипт';
+    
+    
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/script.png';
-
+    public $singleIcon = 'img/16/script.png';
+    
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'order,name,state,lastRun';
-
-
+    public $listFields = 'order,name,state,lastRun';
+    
+    
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('order', 'int', 'caption=№');
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('lastRun', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние, input=none,notConfig');
-
+        
         $this->setDbUnique('name');
     }
     
-
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
-    static function on_AfterPrepareEditform($mvc, &$data)
+    public static function on_AfterPrepareEditform($mvc, &$data)
     {
     }
-
-
+    
+    
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    public function on_AfterInputEditForm($mvc, $form)
     {
-        if(!$form->rec->order) {
+        if (!$form->rec->order) {
             $query = $mvc->getQuery();
             $query->orderBy('#order', 'DESC');
             $query->limit(1);
             $maxOrder = (int) $query->fetch()->order;
-            $form->setDefault('order', round(($maxOrder+1)/10)*10 + 10);
+            $form->setDefault('order', round(($maxOrder + 1) / 10) * 10 + 10);
         }
     }
-
-
+    
+    
     /**
      * Стартира всички скриптове
      */
-    function cron_RunAll()
-    {   
+    public function cron_RunAll()
+    {
         $query = self::getQuery();
-        $query->orderBy("#order");
-        while($rec = $query->fetch("#state = 'active'")) {
+        $query->orderBy('#order');
+        while ($rec = $query->fetch("#state = 'active'")) {
             sens2_ScriptActions::runScript($rec->id);
             $rec->lastRun = dt::verbal2mysql();
             self::save($rec);
@@ -157,80 +157,77 @@ class sens2_Scripts extends core_Master
         // Намираме и сортираме контекста
         $contex = sens2_Indicators::getContex();
         $contex += sens2_ScriptDefinedVars::getContex($scriptId);
-        uksort($contex, "str::sortByLengthReverse");
-
-        // Заместваме променливите и индикаторите
-        $expr  = strtr($expr, $contex);
+        uksort($contex, 'str::sortByLengthReverse');
         
-        if(str::prepareMathExpr($expr) === FALSE) {
+        // Заместваме променливите и индикаторите
+        $expr = strtr($expr, $contex);
+        
+        if (str::prepareMathExpr($expr) === false) {
             $res = self::CALC_ERROR;
         } else {
             $res = str::calcMathExpr($expr, $success);
-
-            if($success === FALSE) {
+            
+            if ($success === false) {
                 $res = self::CALC_ERROR;
             }
         }
-
+        
         // Конвертираме булевите стойности, към числа
-        if($value === FALSE) {
+        if ($value === false) {
             $value = 0;
-        } elseif($value === TRUE) {
+        } elseif ($value === true) {
             $value = 1;
         }
-
-        return $res; 
+        
+        return $res;
     }
-
-
+    
+    
     /**
      * Проверява за коректност израз и го форматира.
      */
     public static function highliteExpr($expr, $scriptId)
     {
         static $opts = array();
-
-        if(!$opts[$scriptId]) {
+        
+        if (!$opts[$scriptId]) {
             $opts = array();
             $inds = sens2_Indicators::getContex();
             
-            foreach($inds as $name => $value) {
+            foreach ($inds as $name => $value) {
                 $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
             }
             $vars = sens2_ScriptDefinedVars::getContex($scriptId);
-            foreach($vars as $name => $value) {
+            foreach ($vars as $name => $value) {
                 $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
             }
         }
-  
-        $value = self::calcExpr($expr, $scriptId );
-
-        if($value === self::CALC_ERROR) {
+        
+        $value = self::calcExpr($expr, $scriptId);
+        
+        if ($value === self::CALC_ERROR) {
             $style = 'border-bottom:dashed 1px red;';
         } else {
             $style = 'border-bottom:solid 1px transparent;';
         }
-
+        
         $expr = strtr($expr, $opts[$scriptId]);
-
+        
         $expr = "<span style='{$style}' title='{$value}'>{$expr}</span>";
-
+        
         return $expr;
     }
-
-
+    
+    
     /**
-	 * За да не могат да се изтриват активните скриптове
-	 */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-	{  
-   		if($action == 'delete') {
-	    	if($rec->state != 'closed'){
-	    		$res = 'no_one';
-	    	}
-   		}
-   		
-	}
-
-
+     * За да не могат да се изтриват активните скриптове
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'delete') {
+            if ($rec->state != 'closed') {
+                $res = 'no_one';
+            }
+        }
+    }
 }

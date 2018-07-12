@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Колко голям да бъде максималния обект, който се съхранява
  * в кеша не-компресиран?
@@ -33,16 +32,16 @@ defIfNot('CORE_CACHE_PREFIX_SALT', md5(EF_SALT . '_CORE_CACHE'));
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Cache extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -52,49 +51,40 @@ class core_Cache extends core_Manager
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Кеширан обект";
+    public $singleTitle = 'Кеширан обект';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'admin';
-	
-	
-	/**
-	 * 
-	 */
-	public $canAdd = 'no_one';
-	
-	
-	/**
-	 * 
-	 */
-	public $canEdit = 'no_one';
-	
-	
-	/**
-	 * 
-	 */
-	public $canDelete = 'no_one';
-	
-
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+    
+    
+    public $canAdd = 'no_one';
+    
+    
+    public $canEdit = 'no_one';
+    
+    
+    public $canDelete = 'no_one';
+    
+    
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id,key';
     
-
+    
     /**
      * Дали да се използва кеширане в хита
      */
-    static $stopCaching = FALSE;
-
-
+    public static $stopCaching = false;
+    
+    
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
         $this->FLD('data', 'blob(16777215,serialize,compress)', 'caption=Данни');
@@ -110,47 +100,47 @@ class core_Cache extends core_Manager
     /**
      * Връща съдържанието на кеша за посочения обект
      */
-    static function get($type, $handler, $keepMinutes = NULL, $depends = array())
+    public static function get($type, $handler, $keepMinutes = null, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
         $key = $Cache->getKey($type, $handler);
         
-        if($data = $Cache->getData($key, $keepMinutes)) {
-            if($dHash = $Cache->getDependsHash($depends)) {
+        if ($data = $Cache->getData($key, $keepMinutes)) {
+            if ($dHash = $Cache->getDependsHash($depends)) {
                 
-                // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
+                // Ако хешовете на кешираните данни и изчисления хеш не съвпадат -
                 // изтриваме кеша и връщаме NULL
-                if($data->dHash != $dHash) {
+                if ($data->dHash != $dHash) {
                     $Cache->deleteData($key);
                     
-                    Debug::log("Cache::get $type, $handler - other models are changed, no success");
+                    Debug::log("Cache::get ${type}, ${handler} - other models are changed, no success");
                     
-                    return FALSE;
+                    return false;
                 }
             }
             
             // Увеличаваме времето на валидността на данните ????
             
-            Debug::log("Cache::get $type, $handler - success");
+            Debug::log("Cache::get ${type}, ${handler} - success");
             
             return $data->value;
         }
         
-        Debug::log("Cache::get $type, $handler - no exists");
+        Debug::log("Cache::get ${type}, ${handler} - no exists");
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Записва обект в кеша
      */
-    static function set($type, $handler, $value, $keepMinutes = 1, $depends = array())
-    {   
+    public static function set($type, $handler, $value, $keepMinutes = 1, $depends = array())
+    {
         $Cache = cls::get('core_Cache');
         
-        Debug::log("Cache::set $type, $handler");
+        Debug::log("Cache::set ${type}, ${handler}");
         
         if (!$handler) {
             $handler = md5(json_encode($value));
@@ -174,13 +164,13 @@ class core_Cache extends core_Manager
     /**
      * Изтрива всички обекти от указания тип
      */
-    static function removeByType($type)
+    public static function removeByType($type)
     {
-    	$Cache = cls::get('core_Cache');
-    	$handler = NULL;
-    	$key = $Cache->getKey($type, $handler);
+        $Cache = cls::get('core_Cache');
+        $handler = null;
+        $key = $Cache->getKey($type, $handler);
         $query = self::getQuery();
-        while($rec = $query->fetch(array("#key LIKE '%[#1#]'", "{$key}"))) {
+        while ($rec = $query->fetch(array("#key LIKE '%[#1#]'", "{$key}"))) {
             $Cache->deleteData($rec->key);
         }
     }
@@ -189,18 +179,17 @@ class core_Cache extends core_Manager
     /**
      * Изтрива обектите от указания тип(ове) (и манипулатор)
      */
-    static function remove($type, $handler = NULL)
+    public static function remove($type, $handler = null)
     {
         $Cache = cls::get('core_Cache');
         
-        if ($handler === NULL) {
-            
+        if ($handler === null) {
             $type = arr::make($type);
             
             foreach ($type as $t) {
                 $key = $Cache->getKey($t, $handler);
                 $query = self::getQuery();
-                while($rec = $query->fetch(array("#key = '[#1#]'", "{$key}"))) {
+                while ($rec = $query->fetch(array("#key = '[#1#]'", "{$key}"))) {
                     $Cache->deleteData($rec->key);
                 }
             }
@@ -214,20 +203,20 @@ class core_Cache extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Изтриване на изтеклите записи', array(
-                $mvc,
-                'DeleteExpiredData',
-                'ret_url' => TRUE
-            ));
+            $mvc,
+            'DeleteExpiredData',
+            'ret_url' => true
+        ));
         
         $data->toolbar->addBtn('Изтриване на всички записи', array(
-                $mvc,
-                'DeleteExpiredData',
-                'all' => TRUE,
-                'ret_url' => TRUE
-            ));
+            $mvc,
+            'DeleteExpiredData',
+            'all' => true,
+            'ret_url' => true
+        ));
         
         $data->toolbar->removeBtn('btnAdd');
         
@@ -238,51 +227,50 @@ class core_Cache extends core_Manager
     /**
      * 'Ръчно' почистване на кеша
      */
-    function act_DeleteExpiredData()
+    public function act_DeleteExpiredData()
     {
         requireRole('admin');
         
         return new Redirect(array('core_Cache'), $this->cron_DeleteExpiredData(Request::get('all')));
     }
-
-
+    
+    
     /**
      * След изтриване на записи на модела
      *
-     * @param core_Mvc $mvc
-     * @param mixed $res
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
      * @param core_Query $query
      */
-    static function on_AfterDelete($mvc, &$res, $query)
+    public static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
-            $mvc->deleteData($rec->key, TRUE);
+            $mvc->deleteData($rec->key, true);
         }
     }
-
     
     
     /**
      * Почистване на обектите с изтекъл срок
      */
-    function cron_DeleteExpiredData($all = FALSE)
+    public function cron_DeleteExpiredData($all = false)
     {
         $query = $this->getQuery();
         
-        if($all) {
+        if ($all) {
             $query->where('1 = 1');
         } else {
-            $query->where("#lifetime < " . time());
+            $query->where('#lifetime < ' . time());
         }
         
         $deletedRecs = 0;
         
-        while($rec = $query->fetch()) {
-            $this->deleteData($rec->key, TRUE);
+        while ($rec = $query->fetch()) {
+            $this->deleteData($rec->key, true);
             $deletedRecs += $this->delete($rec->id);
         }
         
-        if($all) {
+        if ($all) {
             $msg = "Лог: Всички <b style='color:blue;'>{$deletedRecs}</b> кеширани записа бяха изтрити";
         } else {
             $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> записа с изтекъл срок бяха изтрити";
@@ -291,7 +279,7 @@ class core_Cache extends core_Manager
         return $msg;
     }
     
-
+    
     /**
      * Изтрива целия кеш
      */
@@ -299,19 +287,19 @@ class core_Cache extends core_Manager
     {
         // Почистване на всичкия изтекъл Кеш
         $cache = cls::get('core_Cache');
-        $cache->cron_DeleteExpiredData(TRUE);
+        $cache->cron_DeleteExpiredData(true);
         if (function_exists('apcu_clear_cache')) {
             apcu_clear_cache();
-        } elseif(function_exists('apc_clear_cache')) {
+        } elseif (function_exists('apc_clear_cache')) {
             apc_clear_cache();
         }
     }
     
-
+    
     /**
      * Подреждане - най-отгоре са последните записи
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
@@ -320,10 +308,10 @@ class core_Cache extends core_Manager
     /**
      * Подготвя ключовете
      */
-    function getKey(&$type, &$handler)
+    public function getKey(&$type, &$handler)
     {
-        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE-4, 12);
-        $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE-3, 8);
+        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE - 4, 12);
+        $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE - 3, 8);
         
         $prefix = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT);
         $prefix = substr($prefix, 0, 6);
@@ -338,13 +326,13 @@ class core_Cache extends core_Manager
      * Подготвя хеш, който съответства на моментите на последното обновяване
      * на посочените в аргумента модели
      */
-    function getDependsHash($depends)
+    public function getDependsHash($depends)
     {
         $depends = arr::make($depends);
         
-        if(count($depends)) {
-            foreach($depends as $id => $cls) {
-                if(is_object($cls) || !strpos($cls, '::')) {
+        if (count($depends)) {
+            foreach ($depends as $id => $cls) {
+                if (is_object($cls) || !strpos($cls, '::')) {
                     $obj[$id] = cls::get($cls);
                     $hash .= $obj[$id]->getDbTableUpdateTime();
                 } else {
@@ -362,32 +350,30 @@ class core_Cache extends core_Manager
     /**
      * Връща съдържанието записано на дадения ключ
      */
-    function getData($key, $keepMinutes = NULL)
+    public function getData($key, $keepMinutes = null)
     {
-
-        if(function_exists('apcu_fetch')) {
+        if (function_exists('apcu_fetch')) {
             $res = @apcu_fetch($key);
-        } elseif(function_exists('apc_fetch')) {
+        } elseif (function_exists('apc_fetch')) {
             $res = @apc_fetch($key);
         } elseif (function_exists('xcache_get')) {
             $res = @xcache_get($key);
-            if($res) {
+            if ($res) {
                 $res = unserialize($res);
             }
         }
-
-        if($res) {
-
+        
+        if ($res) {
+            
             return $res;
         }
- 
-        if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key), NULL, FALSE)) {
-
-            if($keepMinutes) {
+        
+        if ($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key), null, false)) {
+            if ($keepMinutes) {
                 $rec->lifetime = time() + $keepMinutes * 60;
-                $this->save($rec,  'lifetime');
+                $this->save($rec, 'lifetime');
             }
-                        
+            
             $data = $rec->data;
             if (!is_object($rec->data)) {
                 if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
@@ -405,18 +391,21 @@ class core_Cache extends core_Manager
     /**
      * Изтрива съдържанието на дадения ключ
      */
-    function deleteData($key, $onlyInMemory = FALSE)
+    public function deleteData($key, $onlyInMemory = false)
     {
-        if(function_exists('apcu_delete')) {
+        if (function_exists('apcu_delete')) {
             @apcu_delete($key);
-        } elseif(function_exists('apc_delete')) {
+        } elseif (function_exists('apc_delete')) {
             @apc_delete($key);
         } elseif (function_exists('xcache_unset')) {
             @xcache_unset($key);
         }
-
-        if($onlyInMemory) return;
-
+        
+        if ($onlyInMemory) {
+            
+            return;
+        }
+        
         return $this->delete(array("#key = '[#1#]'", $key));
     }
     
@@ -424,19 +413,22 @@ class core_Cache extends core_Manager
     /**
      * Задава съдържанието на посочения ключ
      */
-    function setData($key, $data, $keepMinutes)
+    public function setData($key, $data, $keepMinutes)
     {
-        if(self::$stopCaching) return FALSE;
-
-        $saved = FALSE;
+        if (self::$stopCaching) {
+            
+            return false;
+        }
+        
+        $saved = false;
         $keepSeconds = $keepMinutes * 60;
-
-        if(function_exists('apcu_store')) {
+        
+        if (function_exists('apcu_store')) {
             $saved = @apcu_store($key, $data, $keepSeconds);
             if (!$saved) {
                 self::logNotice('Грешка при записване в APCU_STORE');
             }
-        } elseif(function_exists('apc_store')) {
+        } elseif (function_exists('apc_store')) {
             $saved = @apc_store($key, $data, $keepSeconds);
             if (!$saved) {
                 self::logNotice('Грешка при записване в APC_STORE');
@@ -447,14 +439,14 @@ class core_Cache extends core_Manager
                 self::logNotice('Грешка при записване в XCACHE');
             }
         }
-
+        
         $rec = new stdClass();
         
         // Задаваме ключа
         $rec->key = $key;
         
-        if(!$saved) {
-
+        if (!$saved) {
+            
             // Сериализираме обекта
             $rec->data = serialize($data);
             
@@ -467,35 +459,35 @@ class core_Cache extends core_Manager
         // Задаваме крайното време за живот на данните
         $rec->lifetime = time() + $keepSeconds;
         
-        $this->save($rec, NULL, 'REPLACE');
+        $this->save($rec, null, 'REPLACE');
     }
-
-
+    
+    
     /**
      * Метоз за кратковременно кеширане с аргумент
      * - фукция, която извлича резултата
      */
     public static function getOrCalc($name, $param, $fn)
-    {   
-        if(is_scalar($param)) {
+    {
+        if (is_scalar($param)) {
             $key = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . "{$name}{$param}");
         } else {
             $key = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . $name . '|' . json_encode($param));
         }
-
+        
         $Cache = cls::get('core_Cache');
-
-        if($resObj = $Cache->getData($key)) {
+        
+        if ($resObj = $Cache->getData($key)) {
             $res = $resObj->res;
         } else {
             $res = $fn($param);
-
+            
             $resObj = new stdClass();
             $resObj->res = $res;
             
             $Cache->setData($key, $resObj, 120);
         }
- 
+        
         return $res;
     }
 }

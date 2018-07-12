@@ -1,31 +1,31 @@
 <?php
 
 
-
 /**
  * Клас 'type_IP' - тип за съхранение и обработка на IP v4 адрес
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class type_IP extends type_Varchar {
-    
-    
+class type_IP extends type_Varchar
+{
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = 15;
+    public $dbFieldLen = 15;
     
     
     /**
      * Инициализиране на типа
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $params['params']['size'] = 15;
         
@@ -36,16 +36,19 @@ class type_IP extends type_Varchar {
     /**
      * Приема вербална стойност
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
         $value = trim($value);
         
-        if(empty($value)) return NULL;
+        if (empty($value)) {
+            
+            return;
+        }
         
-        if(!filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        if (!filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $this->error = 'Некоректен IP адрес';
             
-            return FALSE;
+            return false;
         }
         
         return $value;
@@ -55,9 +58,12 @@ class type_IP extends type_Varchar {
     /**
      * Преобразува имейл-а в човешки вид
      */
-    function toVerbal_($value)
+    public function toVerbal_($value)
     {
-        if(empty($value)) return NULL;
+        if (empty($value)) {
+            
+            return;
+        }
         
         $time = $this->params['time'];
         
@@ -69,12 +75,12 @@ class type_IP extends type_Varchar {
     
     /**
      * Декорира ip адреса
-     * 
-     * @param IP $ip
-     * @param time $time
+     *
+     * @param IP    $ip
+     * @param time  $time
      * @param array $attr
      */
-    static function decorateIp($ip, $time = NULL, $coloring = FALSE, $showNames = FALSE)
+    public static function decorateIp($ip, $time = null, $coloring = false, $showNames = false)
     {
         $res = $ip;
         
@@ -89,44 +95,61 @@ class type_IP extends type_Varchar {
     /**
      * Връща последното публично IP намерено в даден стринг
      */
-    function getLastIp($str)
+    public function getLastIp($str)
     {
         preg_match_all('/((?:\d{1,3}\.){3})\d{1,3}/', $str, $matches);
         
-        for ($ipCount = count($matches[0])-1; $ipCount >= 0; $ipCount--) {
-            
+        for ($ipCount = count($matches[0]) - 1; $ipCount >= 0; $ipCount--) {
             $ip = $matches[0][$ipCount];
             
-            if (type_Ip::isPublic($ip)) return $ip;
+            if (type_Ip::isPublic($ip)) {
+                
+                return $ip;
+            }
         }
     }
     
     
     /**
      * Дали посоченото IP е частно (запазено за частна употреба от организации)?
-     * 
+     *
      * @param string $ip
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function isPrivate($ip)
     {
-        if(strpos($ip, '10.') === 0) return TRUE;
-        
-        if(strpos($ip, '127.0.0.') === 0) return TRUE;
- 
-        if($ip == '::1') return TRUE;
-
-        if(strpos($ip, '192.168.') === 0) return TRUE;
-        
-        for($i = 16; $i < 32; $i++) {
-            if(strpos($ip, "172.{$i}.") === 0) return TRUE;
+        if (strpos($ip, '10.') === 0) {
+            
+            return true;
         }
         
-        return FALSE;
+        if (strpos($ip, '127.0.0.') === 0) {
+            
+            return true;
+        }
+        
+        if ($ip == '::1') {
+            
+            return true;
+        }
+        
+        if (strpos($ip, '192.168.') === 0) {
+            
+            return true;
+        }
+        
+        for ($i = 16; $i < 32; $i++) {
+            if (strpos($ip, "172.{$i}.") === 0) {
+                
+                return true;
+            }
+        }
+        
+        return false;
     }
-
-
+    
+    
     /**
      * Връща TRUE, ако IP-то на потребителя е от локалния компютър
      */
@@ -146,14 +169,14 @@ class type_IP extends type_Varchar {
     {
         return !type_Ip::isPrivate($ip);
         
-        if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE)) {
-            
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE)) {
             expect(!type_Ip::isPrivate($ip), $ip);     // @todo: да се махне
-            return TRUE;
-        } else {
             
-            expect(type_Ip::isPrivate($ip));     // @todo: да се махне
-            return FALSE;
+            return true;
         }
+        
+        expect(type_Ip::isPrivate($ip));     // @todo: да се махне
+        
+        return false;
     }
 }

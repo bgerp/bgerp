@@ -1,5 +1,6 @@
 <?php
 
+
 require_once 'aws/aws-autoloader.php';
 
 use Aws\S3\S3Client;
@@ -10,15 +11,17 @@ use Aws\S3\S3Client;
  *
  * @category  bgerp
  * @package   cond
+ *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
+ *
  * @uses      Composer and Amazon SDK
  */
 class backup_Amazon extends core_BaseClass
 {
-
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -32,22 +35,22 @@ class backup_Amazon extends core_BaseClass
     
     private static $s3Client;
     private static $bucket;
-
-    function __construct()
+    
+    public function __construct()
     {
         self::$s3Client = new S3Client([
-            'version'     => 'latest',
-            'region'      => 'eu-west-1',
+            'version' => 'latest',
+            'region' => 'eu-west-1',
             'credentials' => [
-                'key'    => backup_Setup::get('AMAZON_KEY',true),
+                'key' => backup_Setup::get('AMAZON_KEY', true),
                 'secret' => backup_Setup::get('AMAZON_SECRET', true),
             ],
         ]);
-
-        self::$bucket = backup_Setup::get('AMAZON_BUCKET',true);
+        
+        self::$bucket = backup_Setup::get('AMAZON_BUCKET', true);
     }
-
-
+    
+    
     /**
      * Копира файл съхраняван в сторидж на Amazon система в
      * посоченото в $fileName място
@@ -56,28 +59,28 @@ class backup_Amazon extends core_BaseClass
      *
      * @param $sourceFile
      * @param $destFile
+     *
      * @return bool
      *
      */
-    static function getFile($sourceFile, $destFile)
+    public static function getFile($sourceFile, $destFile)
     {
-
         try {
             $object = self::$s3Client->getObject(
-                array (
+                array(
                     'Bucket' => self::$bucket,
-                    'Key'    => $sourceFile,
+                    'Key' => $sourceFile,
                     'SaveAs' => $destFile
-                    )
+                )
             );
-        } catch(Exception $e) {
-            $object = FALSE;
+        } catch (Exception $e) {
+            $object = false;
         }
         
-        return $object ?  TRUE : FALSE;
+        return $object ?  true : false;
     }
-
-
+    
+    
     /**
      * Записва файл в Amazon архива
      *
@@ -85,53 +88,53 @@ class backup_Amazon extends core_BaseClass
      *
      * @param $sourceFile
      * @param null $subDir
+     *
      * @return bool
      *
      */
-    static function putFile($sourceFile, $subDir = NULL)
+    public static function putFile($sourceFile, $subDir = null)
     {
         $key = $subDir ?  $subDir . '/' . basename($sourceFile) : basename($sourceFile);
-
+        
         try {
             $result = self::$s3Client->putObject(
-                array (
+                array(
                     'Bucket' => self::$bucket,
-                    'Key'    => $key,
-                    'Body'   => fopen( $sourceFile, 'r+')
-                    )
+                    'Key' => $key,
+                    'Body' => fopen($sourceFile, 'r+')
+                )
             );
-        } catch(Exception $e) {
-            $result = FALSE;
+        } catch (Exception $e) {
+            $result = false;
         }
         
-        return $result ? TRUE : FALSE;
+        return $result ? true : false;
     }
-
-
+    
+    
     /**
      * Изтрива файл в Amazon архива
      *
      * Част от интерфейса: backup_StorageIntf
      *
      * @param $sourceFile
+     *
      * @return bool
      *
      */
-    static function removeFile($sourceFile)
+    public static function removeFile($sourceFile)
     {
-
         try {
             $result = self::$s3Client->deleteObject(
-                array (
+                array(
                     'Bucket' => self::$bucket,
                     'Key' => $sourceFile,
-                    )
+                )
             );
-        } catch(Exception $e) {
-            $result = FALSE;
+        } catch (Exception $e) {
+            $result = false;
         }
-
-        return $result ? TRUE : FALSE;
+        
+        return $result ? true : false;
     }
-
 }

@@ -1,80 +1,79 @@
 <?php
 
 
-
 /**
  * Мениджър на камери за видео наблюдение
  *
  *
  * @category  bgerp
  * @package   cams
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cams_Cameras extends core_Master
 {
-    
-    
     /**
      * Зареждане на използваните мениджъри
      */
-    var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools2, cams_Wrapper, plg_State2';
+    public $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools2, cams_Wrapper, plg_State2';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Камери за видео наблюдение';
+    public $title = 'Камери за видео наблюдение';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'thumb=Изглед, caption=Камера, state';
+    public $listFields = 'thumb=Изглед, caption=Камера, state';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $singleFields = 'id, liveImg, title';
+    public $singleFields = 'id, liveImg, title';
     
     
     /**
      * Права за писане
      */
-    var $canWrite = 'ceo,cams, admin';
+    public $canWrite = 'ceo,cams, admin';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,admin,cams';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,admin,cams';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,admin,cams';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,admin,cams';
     
     
     /**
      * Права за четене
      */
-    var $canRead = 'ceo,cams, admin';
+    public $canRead = 'ceo,cams, admin';
     
-
+    
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/web_camera.png';
-
-
+    
+    
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Име, mandatory');
         $this->FLD('params', 'text', 'caption=Параметри,input=none');
@@ -90,37 +89,37 @@ class cams_Cameras extends core_Master
      * maxWidth - максимална широчина на снимката
      * maxHeight - максимална височина на снимката
      */
-    function act_ShowImage()
+    public function act_ShowImage()
     {
 //    	$this->haveRightFor('single');
         
-    	$id = Request::get('id', 'int');
+        $id = Request::get('id', 'int');
         
         expect($rec = $this->fetch($id));
-        
+
 //        $this->haveRightFor('single', $rec);
         
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
-
+        
         $img = $driver->getPicture();
         
-        if(!$img) {
+        if (!$img) {
             $img = imagecreatefromjpeg(dirname(__FILE__) . '/img/novideo.jpg');
         }
         
-        if(Request::get('thumb')) {
-            $imgInst = new thumb_Img(array($img, 64, 64, 'gdRes', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+        if (Request::get('thumb')) {
+            $imgInst = new thumb_Img(array($img, 64, 64, 'gdRes', 'isAbsolute' => false, 'mode' => 'small-no-change'));
             $img = $imgInst->getScaledGdRes();
         }
         
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
         
         // Долния ред предизвиква memory-leaks на Google Chrome
         //header("Cache-Control: no-store, no-cache, must-revalidate");
         
-        header("Cache-Control: post-check=0, pre-check=0", FALSE);
-        header("Pragma: no-cache");
+        header('Cache-Control: post-check=0, pre-check=0', false);
+        header('Pragma: no-cache');
         
         // Set the content type header - in this case image/jpeg
         header('Content-type: image/jpeg');
@@ -135,16 +134,16 @@ class cams_Cameras extends core_Master
     /**
      * Изпълнява се след преобразуването към вербален ред
      */
-    static function on_AfterRecToVerbal($mvc, &$row, &$rec, $fields)
+    public static function on_AfterRecToVerbal($mvc, &$row, &$rec, $fields)
     {
         $row->driver = $mvc->getVerbal($rec, 'driver');
         $row->title = $mvc->getVerbal($rec, 'title');
         
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
         
-        if(isset($fields['thumb'])) {
+        if (isset($fields['thumb'])) {
             $attr = array();
-            if($driver->isActive()) {
+            if ($driver->isActive()) {
                 $attr['src'] = toUrl(array($this, 'ShowImage', $rec->id, 'thumb' => 'yes'));
                 $attr['class'] = 'camera-tumb';
                 $row->thumb = ht::createLink(ht::createElement('img', $attr), array($this, 'Single', $rec->id));
@@ -182,18 +181,18 @@ class cams_Cameras extends core_Master
                   }
                   ", 'SCRIPTS');
         
-       	jquery_Jquery::run($row->liveImg, "setTimeout('reloadImage(\'{$url}\')', 2000);", TRUE);
+        jquery_Jquery::run($row->liveImg, "setTimeout('reloadImage(\'{$url}\')', 2000);", true);
         
         $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET('[#1#]<br>', $row->title);
         $row->caption->append("<small><i>{$row->driver}</i></small>&nbsp;");
-
-        if($mvc->haveRightFor('edit', $rec)) {
+        
+        if ($mvc->haveRightFor('edit', $rec)) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
-            $row->_rowTools->addLink('Настройки', array($mvc, 'Settings', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/testing.png');
+            $row->_rowTools->addLink('Настройки', array($mvc, 'Settings', $rec->id, 'ret_url' => true), 'ef_icon=img/16/testing.png');
         }
-
-        if($driver->havePtzControl()) {
+        
+        if ($driver->havePtzControl()) {
             $form = cls::get('core_form');
             $form->setAction(array(cls::get(get_called_class()), 'applyPtzCmd'));
             $form->setHidden('id', $rec->id);
@@ -209,7 +208,7 @@ class cams_Cameras extends core_Master
     /**
      * Изпълнява се преди подготовката на титлата за единичния изглед
      */
-    static function on_AfterPrepareSingleTitle($mvc, $data)
+    public static function on_AfterPrepareSingleTitle($mvc, $data)
     {
         Mode::setPermanent('monLastUsedCameraId', $data->rec->id);
     }
@@ -218,14 +217,18 @@ class cams_Cameras extends core_Master
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        if($mvc->haveRightFor('edit', $data->rec)) {
-            $data->toolbar->addBtn('Настройки', array(
+        if ($mvc->haveRightFor('edit', $data->rec)) {
+            $data->toolbar->addBtn(
+                'Настройки',
+                array(
                     $mvc, 'Settings',
                     $data->rec->id,
-                    'ret_url' => TRUE),
-                'settings', array('class' => 'btn-settings'));
+                    'ret_url' => true),
+                'settings',
+                array('class' => 'btn-settings')
+            );
         }
     }
     
@@ -233,13 +236,19 @@ class cams_Cameras extends core_Master
     /**
      * Този екшън изпълнява командата, зададена чрез RemoteControl формата
      */
-    function act_ApplyPtzCmd()
+    public function act_ApplyPtzCmd()
     {
-        if(!($id = Request::get('id', 'int'))) return new Redirect(array($this));
+        if (!($id = Request::get('id', 'int'))) {
+            
+            return new Redirect(array($this));
+        }
         
-        if(!($rec = $this->fetch($id))) return new Redirect(array($this));
+        if (!($rec = $this->fetch($id))) {
+            
+            return new Redirect(array($this));
+        }
         
-        $driver = cls::get($rec->driver, $rec->params); 
+        $driver = cls::get($rec->driver, $rec->params);
         
         expect($driver->havePtzControl());
         
@@ -257,9 +266,8 @@ class cams_Cameras extends core_Master
     /**
      * Подготвя титлата в единичния изглед
      */
-    function prepareSingleTitle_($data)
+    public function prepareSingleTitle_($data)
     {
-        
         $data->title = ht::createLink($data->row->title, array($this, 'Single', $data->rec->id));
         
         return $data;
@@ -269,7 +277,7 @@ class cams_Cameras extends core_Master
     /**
      * Промяна параметрите на камера
      */
-    function act_Settings()
+    public function act_Settings()
     {
         requireRole('ceo,admin');
         
@@ -278,16 +286,16 @@ class cams_Cameras extends core_Master
         expect($id = Request::get('id', 'int'));
         
         expect($rec = $this->fetch($id));
-
-        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);        
-
-        if(strpos($rec->params, '}')) {
+        
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+        
+        if (strpos($rec->params, '}')) {
             $params = json_decode($rec->params);
         } else {
-            $params = arr::make($rec->params, TRUE);
+            $params = arr::make($rec->params, true);
         }
         $params = $driver->getParamsFromCam($params);
-                
+        
         $retUrl = getRetUrl() ? getRetUrl() : array($this);
         
         $driver->prepareSettingsForm($form);
@@ -297,11 +305,10 @@ class cams_Cameras extends core_Master
         
         $form->input();
         
-        if($form->isSubmitted()) {
-            
+        if ($form->isSubmitted()) {
             $driver->validateSettingsForm($form);
             
-            if(!$form->gotErrors()) {
+            if (!$form->gotErrors()) {
                 $rec->params = json_encode((array) $form->rec);
                 $this->save($rec, 'params');
                 
@@ -309,21 +316,20 @@ class cams_Cameras extends core_Master
             }
         }
         
-        $form->title = "Настройка на камера|* \"" . $this->getVerbal($rec, 'title') . "\"";
+        $form->title = 'Настройка на камера|* "' . $this->getVerbal($rec, 'title') . '"';
         $form->setDefaults($params);
         
         $tpl = $form->renderHtml();
         
         return $this->renderWrapping($tpl);
     }
-
-
+    
+    
     /**
      * Подготвя шаблона за единичния изглед
      */
-    function renderSingleLayout_(&$data)
+    public function renderSingleLayout_(&$data)
     {
-        
         return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#remoteControl#]<div class='clearfix'></div>[#liveImg#]");
     }
 }

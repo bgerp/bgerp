@@ -1,16 +1,17 @@
 <?php
 
 
-
 /**
  * Мениджира периодите в счетоводната система
  *
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  *
  * Текущ период = период в който попада днешната дата
@@ -21,12 +22,10 @@
  */
 class acc_Periods extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
-    public $title = "Счетоводни периоди";
+    public $title = 'Счетоводни периоди';
     
     
     /**
@@ -44,7 +43,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, close=Приключване";
+    public $listFields = 'id, title, start=Начало, end, vatRate, baseCurrencyId, state, close=Приключване';
     
     
     /**
@@ -92,7 +91,7 @@ class acc_Periods extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('end', 'date(format=d.m.Y)', 'caption=Край,mandatory');
         $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен,pending=Чакащ)', 'caption=Състояние,input=none');
@@ -117,7 +116,7 @@ class acc_Periods extends core_Manager
      */
     protected static function on_CalcTitle($mvc, $rec)
     {
-        $rec->title = dt::mysql2verbal($rec->end, "F Y", NULL, FALSE);
+        $rec->title = dt::mysql2verbal($rec->end, 'F Y', null, false);
     }
     
     
@@ -141,44 +140,44 @@ class acc_Periods extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Дали може да затворим периода
-    	if($mvc->haveRightFor('close', $rec)) {
-    		
-    		// Проверяваме имали записи в баланса за този период
-        	if($accId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
-        		if(acc_BalanceDetails::fetchField("#balanceId = {$accId}")){
-        		
-        			// Проверяваме имали контиран приключващ документ за периода
-        			if(acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")){
-        				 
-        				// Ако има, периода може да се приключи
-        				$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
-        			} else {
-        				 
-        				// Ако няма не може докато не бъде контиран такъв
-        				$row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
-        			}
-        		} else {
-        		
-        			// Ако няма записи, то периода може спокойно да се приключи
-        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
-        		}
-        	}
+        if ($mvc->haveRightFor('close', $rec)) {
+            
+            // Проверяваме имали записи в баланса за този период
+            if ($accId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')) {
+                if (acc_BalanceDetails::fetchField("#balanceId = {$accId}")) {
+                    
+                    // Проверяваме имали контиран приключващ документ за периода
+                    if (acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")) {
+                        
+                        // Ако има, периода може да се приключи
+                        $row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => true), 'Наистина ли желаете да приключите периода?', null, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+                    } else {
+                        
+                        // Ако няма не може докато не бъде контиран такъв
+                        $row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
+                    }
+                } else {
+                    
+                    // Ако няма записи, то периода може спокойно да се приключи
+                    $row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => true), 'Наистина ли желаете да приключите периода?', null, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+                }
+            }
         }
         
-        if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
-            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->title}");
+        if ($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')) {
+            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->title}");
         }
         
         $curPerEnd = static::getPeriodEnd();
         
-        if($rec->end == $curPerEnd){
+        if ($rec->end == $curPerEnd) {
             $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px', 'title' => 'Текущ период')) . $row->id;
         }
         
-        if($rec->state == 'closed'){
-        	if($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')){
-        		$row->close = acc_ClosePeriods::getLink($docId, 0);
-        	}
+        if ($rec->state == 'closed') {
+            if ($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')) {
+                $row->close = acc_ClosePeriods::getLink($docId, 0);
+            }
         }
     }
     
@@ -189,13 +188,13 @@ class acc_Periods extends core_Manager
      *
      * @return stdClass $rec
      */
-    public static function fetchByDate($date = NULL)
+    public static function fetchByDate($date = null)
     {
         static $periods = array();
-
+        
         $lastDayOfMonth = dt::getLastdayOfMonth($date);
-
-        if(!$periods[$lastDayOfMonth]) {
+        
+        if (!$periods[$lastDayOfMonth]) {
             $periods[$lastDayOfMonth] = self::fetch("#end = '{$lastDayOfMonth}'");
         }
         
@@ -217,6 +216,7 @@ class acc_Periods extends core_Manager
      * Форсира пера за месеца и годината на дадена дата
      *
      * @param datetime $date - дата
+     *
      * @return stdClass -> year - ид на перото на годината
      */
     public static function forceYearItem($date)
@@ -228,39 +228,45 @@ class acc_Periods extends core_Manager
         $yearItem = acc_Items::forceSystemItem($year, $year, 'year');
         
         // Връщаме ид-то на перата на годината и месеца
-        return (object)array('year' => $yearItem->id);
+        return (object) array('year' => $yearItem->id);
     }
     
-        
     
     /**
      * Проверява датата в указаното поле на формата дали е в отворен период
      * и записва във формата съобщение за грешка или предупреждение
      * грешка или предупреждение няма, ако датата е от началото на активния,
      * до края на насотящия период
-     * 
+     *
      * @param date $dateToCheck - Дата която да се сравни
-     * @param string|FALSE - грешката или FALSE ако няма
+     *
+     * @return string|FALSE - грешката или FALSE ако няма
      */
     public static function checkDocumentDate($dateToCheck)
     {
-    	if(!$dateToCheck) return;
-    	
-    	$rec = self::forceActive();
-    	if($rec->start > $dateToCheck) {
-    		
-    		return "Датата е преди активния счетоводен период|* <b>{$rec->title}</b>";
-    	}
-    	
-    	$rec = self::fetchByDate($dateToCheck);
-    	if(!$rec) return "Датата е в несъществуващ счетоводен период";
-        
-        if($dateToCheck > dt::getLastDayOfMonth()) {
+        if (!$dateToCheck) {
             
-        	return "Датата е в бъдещ счетоводен период";
+            return;
         }
         
-        return FALSE;
+        $rec = self::forceActive();
+        if ($rec->start > $dateToCheck) {
+            
+            return "Датата е преди активния счетоводен период|* <b>{$rec->title}</b>";
+        }
+        
+        $rec = self::fetchByDate($dateToCheck);
+        if (!$rec) {
+            
+            return 'Датата е в несъществуващ счетоводен период';
+        }
+        
+        if ($dateToCheck > dt::getLastDayOfMonth()) {
+            
+            return 'Датата е в бъдещ счетоводен период';
+        }
+        
+        return false;
     }
     
     
@@ -273,7 +279,10 @@ class acc_Periods extends core_Manager
         
         $rec = self::fetch("#end = '{$end}'");
         
-        if($rec) return $rec;
+        if ($rec) {
+            
+            return $rec;
+        }
         
         // Определяме, кога е последният ден на началния период
         $query = self::getQuery();
@@ -281,30 +290,30 @@ class acc_Periods extends core_Manager
         $query->limit(1);
         $firstRec = $query->fetch();
         
-        if(!$firstRec) {
+        if (!$firstRec) {
             $firstRec = new stdClass();
             
-            if(defined('ACC_FIRST_PERIOD_START') && ACC_FIRST_PERIOD_START){
+            if (defined('ACC_FIRST_PERIOD_START') && ACC_FIRST_PERIOD_START) {
                 
                 // Проверяваме дали ACC_FIRST_PERIOD_START е във валиден формат за дата
                 $dateArr = date_parse(ACC_FIRST_PERIOD_START);
                 
-                if(checkdate($dateArr["month"], $dateArr["day"], $dateArr["year"])){
+                if (checkdate($dateArr['month'], $dateArr['day'], $dateArr['year'])) {
                     
                     // Ако е валидна дата, за първи запис е посочения месец
                     $firstRec->end = dt::getLastDayOfMonth(dt::verbal2mysql(ACC_FIRST_PERIOD_START));
                 } else {
                     
                     // При грешна дата се създава предходния месец на текущия
-                    $firstRec->end = dt::getLastDayOfMonth(NULL, -1);
+                    $firstRec->end = dt::getLastDayOfMonth(null, -1);
                 }
             } else {
-                $firstRec->end = dt::getLastDayOfMonth(NULL, -1);
+                $firstRec->end = dt::getLastDayOfMonth(null, -1);
             }
         }
         
         // Ако датата е преди началния период, връщаме началния
-        if($end < $firstRec->end) {
+        if ($end < $firstRec->end) {
             
             return self::forcePeriod($firstRec->end);
         }
@@ -316,13 +325,13 @@ class acc_Periods extends core_Manager
         $me = cls::get('acc_Periods');
         
         // Ако датата е точно началния период, създаваме го, ако липсва и го връщаме
-        if($end == $firstRec->end) {
-            if(!$firstRec->id) {
+        if ($end == $firstRec->end) {
+            if (!$firstRec->id) {
                 $firstRec->vatRate = $conf->ACC_DEFAULT_VAT_RATE;
                 $firstRec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
                 self::save($firstRec);
                 $firstRec = self::fetch($firstRec->id);  // За титлата
-                $me->actLog .= "<li style='color:green;'>Създаден е начален период $firstRec->title</li>";
+                $me->actLog .= "<li style='color:green;'>Създаден е начален период {$firstRec->title}</li>";
             }
             
             return $firstRec;
@@ -341,7 +350,7 @@ class acc_Periods extends core_Manager
         // Периодите се създават в състояние драфт
         $curPerEnd = static::getPeriodEnd();
         
-        if($rec->end > $curPerEnd){
+        if ($rec->end > $curPerEnd) {
             $rec->state = 'draft';
         } else {
             $rec->state = 'pending';
@@ -350,7 +359,7 @@ class acc_Periods extends core_Manager
         // Вземаме последните
         setIfnot($rec->vatRate, $prevRec->vatRate, ACC_DEFAULT_VAT_RATE);
         
-        if($prevRec->baseCurrencyId) {
+        if ($prevRec->baseCurrencyId) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {
             $rec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
@@ -360,7 +369,7 @@ class acc_Periods extends core_Manager
         
         $rec = self::fetch($rec->id);
         
-        $me->actLog .= "<li style='color:green;'>Създаден е период $rec->title</li>";
+        $me->actLog .= "<li style='color:green;'>Създаден е период {$rec->title}</li>";
         
         return $rec;
     }
@@ -371,8 +380,7 @@ class acc_Periods extends core_Manager
      */
     public static function forceActive()
     {
-        if(!($rec = self::fetch("#state = 'active'"))) {
-            
+        if (!($rec = self::fetch("#state = 'active'"))) {
             $me = cls::get('acc_Periods');
             
             $query = self::getQuery();
@@ -391,7 +399,7 @@ class acc_Periods extends core_Manager
         
         return $rec;
     }
-        
+    
     
     /**
      * @param core_Mvc $mvc
@@ -410,15 +418,16 @@ class acc_Periods extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      * Ако state = 'closed' премахва възможността да се редактира записа.
      *
-     * @param acc_Periods $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param acc_Periods   $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
      * @param stdClass|NULL $rec
-     * @param int|NULL $userId
+     * @param int|NULL      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(!$rec) {
+        if (!$rec) {
+            
             return;
         }
         
@@ -426,24 +435,24 @@ class acc_Periods extends core_Manager
         $curPerEnd = static::getPeriodEnd();
         
         // Забраняваме всички модификации за всички минали периоди
-        if ($action == 'edit'){
-            if($rec->end <= $curPerEnd) {
-                $requiredRoles = "no_one";
+        if ($action == 'edit') {
+            if ($rec->end <= $curPerEnd) {
+                $requiredRoles = 'no_one';
             }
         }
         
         // Период може да се затваря само ако е изтекъл
-        if($action == 'close' && $rec->id) {
+        if ($action == 'close' && $rec->id) {
             $rec = self::fetch($rec->id);
             
-            if($rec->end >= $curPerEnd || $rec->state != 'active') {
-                $requiredRoles = "no_one";
+            if ($rec->end >= $curPerEnd || $rec->state != 'active') {
+                $requiredRoles = 'no_one';
             }
             
             // Никой не може да затваря невалиден баланс
             $balRec = acc_Balances::fetch("#periodId = {$rec->id}");
-            if(!acc_Balances::isValid($balRec)) {
-                $requiredRoles = "no_one";
+            if (!acc_Balances::isValid($balRec)) {
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -468,7 +477,7 @@ class acc_Periods extends core_Manager
         $this->requireRightFor('close', $rec);
         
         // Новото състояние е 'Затворен';
-        $rec->state = "closed";
+        $rec->state = 'closed';
         
         $this->save($rec);
         
@@ -482,9 +491,9 @@ class acc_Periods extends core_Manager
         $res .= "<br>|Активен е период|* <span style=\"color:red;\">{$activeRec->title}</span>";
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite("Затваряне на период", $id);
+        $this->logWrite('Затваряне на период', $id);
         
-        return followRetUrl(NULL, $res);
+        return followRetUrl(null, $res);
     }
     
     
@@ -514,38 +523,36 @@ class acc_Periods extends core_Manager
         
         $query = $this->getQuery();
         $query->where("#end > '{$activeRec->end}' AND #end <= '{$curPerEnd}'");
-       
+        
         // Ако сме достигнали указания ден за активиране на следващия бъдещ период
         $daysBefore = acc_Setup::get('DAYS_BEFORE_MAKE_PERIOD_PENDING');
         
-        if($daysBefore){
-
-        	if(dt::now() >= dt::addSecs(-1 * $daysBefore, $curPerEnd)){
-        		 
-        		// Опитваме се да намерим пърия бъдещ период с начало, ден след края на предходния
-        		$nQuery = acc_Periods::getQuery();
-        		$nQuery->where("#state = 'draft'");
-        		$nQuery->orderBy('id', 'ASC');
-        		 
-        		$nextDay = dt::addDays(1, $curPerEnd);
-        		$nextDay = dt::verbal2mysql($nextDay, FALSE);
-        		$draftId = NULL;
-        		while($draftRec = $nQuery->fetch()){
-        	
-        			if($draftRec->start == $nextDay){
-        				$draftId = $draftRec->id;
-        				break;
-        			}
-        		}
-        		 
-        		// Ако е намерен такъв период, добавяме го в заявката, така че да стане чакащ
-        		if(isset($draftId)){
-        			$query->orWhere("#id = {$draftId}");
-        		}
-        	}
+        if ($daysBefore) {
+            if (dt::now() >= dt::addSecs(-1 * $daysBefore, $curPerEnd)) {
+                
+                // Опитваме се да намерим пърия бъдещ период с начало, ден след края на предходния
+                $nQuery = acc_Periods::getQuery();
+                $nQuery->where("#state = 'draft'");
+                $nQuery->orderBy('id', 'ASC');
+                
+                $nextDay = dt::addDays(1, $curPerEnd);
+                $nextDay = dt::verbal2mysql($nextDay, false);
+                $draftId = null;
+                while ($draftRec = $nQuery->fetch()) {
+                    if ($draftRec->start == $nextDay) {
+                        $draftId = $draftRec->id;
+                        break;
+                    }
+                }
+                
+                // Ако е намерен такъв период, добавяме го в заявката, така че да стане чакащ
+                if (isset($draftId)) {
+                    $query->orWhere("#id = {$draftId}");
+                }
+            }
         }
         
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $rec->state = 'pending';
             $this->save($rec);
         }
@@ -557,7 +564,7 @@ class acc_Periods extends core_Manager
      */
     public function cron_CreateFuturePeriods()
     {
-        $this->forcePeriod(dt::getLastDayOfMonth(NULL, 3));
+        $this->forcePeriod(dt::getLastDayOfMonth(null, 3));
         $this->updateExistingPeriodsState();
     }
     
@@ -569,11 +576,11 @@ class acc_Periods extends core_Manager
      *
      * @return int key(mvc=currency_Currencies)
      */
-    public static function getBaseCurrencyId($date = NULL)
+    public static function getBaseCurrencyId($date = null)
     {
         $periodRec = static::fetchByDate($date);
         
-        if(!($baseCurrencyId = $periodRec->baseCurrencyId)) {
+        if (!($baseCurrencyId = $periodRec->baseCurrencyId)) {
             $conf = core_Packs::getConfig('acc');
             $baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
         }
@@ -586,9 +593,10 @@ class acc_Periods extends core_Manager
      * Връща кода на базовата валута към определена дата
      *
      * @param string $date Ако е NULL - текущата дата
+     *
      * @return string трибуквен ISO код на валута
      */
-    public static function getBaseCurrencyCode($date = NULL)
+    public static function getBaseCurrencyCode($date = null)
     {
         return currency_Currencies::getCodeById(static::getBaseCurrencyId($date));
     }
@@ -596,15 +604,17 @@ class acc_Periods extends core_Manager
     
     /**
      * Връща края на даден период
+     *
      * @param date $date - дата от период, NULL  ако е текущия
+     *
      * @return date - крайната дата на периода (ако съществува)
      */
-    public static function getPeriodEnd($date = NULL)
+    public static function getPeriodEnd($date = null)
     {
         return acc_Periods::fetchByDate($date)->end;
     }
     
-
+    
     /**
      * Връща записа на последния затворен период
      *
@@ -612,177 +622,177 @@ class acc_Periods extends core_Manager
      */
     public static function getLastClosedPeriod()
     {
-    	$query = static::getQuery();
-    	$query->where("#state = 'closed'");
-    	$query->orderBy("#id", 'DESC');
-    	 
-    	return $query->fetch();
+        $query = static::getQuery();
+        $query->where("#state = 'closed'");
+        $query->orderBy('#id', 'DESC');
+        
+        return $query->fetch();
     }
     
     
     /**
      * Помощна функция подготвяща опции за начало и край на период със всички периоди в системата
      * както и вербални опции като : Днес, Вчера, Завчера
-     * 
+     *
      * @return stdClass $res
-     * 					$res->fromOptions - опции за начало
-     * 					$res->toOptions - опции за край на период
+     *                  $res->fromOptions - опции за начало
+     *                  $res->toOptions - опции за край на период
      */
     public static function getPeriodOptions()
     {
-    	// За начална и крайна дата, слагаме по подразбиране, датите на периодите
-    	// за които има изчислени оборотни ведомости
-    	$balanceQuery = acc_Balances::getQuery();
-    	$balanceQuery->where("#periodId IS NOT NULL");
-    	$balanceQuery->orderBy("#fromDate", "DESC");
-    
-    	$yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-    	$daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
-    	$optionsFrom = $optionsTo = array();
-    	$optionsFrom[dt::today()] = 'Днес';
-    	$optionsFrom[$yesterday] = 'Вчера';
-    	$optionsFrom[$daybefore] = 'Завчера';
-    	$optionsTo[dt::today()] = 'Днес';
-    	$optionsTo[$yesterday] = 'Вчера';
-    	$optionsTo[$daybefore] = 'Завчера';
-    
-    	while($bRec = $balanceQuery->fetch()){
-    		$bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
-    		$optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
-    		$optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
-    	}
-    
-    	return (object)array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
+        // За начална и крайна дата, слагаме по подразбиране, датите на периодите
+        // за които има изчислени оборотни ведомости
+        $balanceQuery = acc_Balances::getQuery();
+        $balanceQuery->where('#periodId IS NOT NULL');
+        $balanceQuery->orderBy('#fromDate', 'DESC');
+        
+        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), false);
+        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), false);
+        $optionsFrom = $optionsTo = array();
+        $optionsFrom[dt::today()] = 'Днес';
+        $optionsFrom[$yesterday] = 'Вчера';
+        $optionsFrom[$daybefore] = 'Завчера';
+        $optionsTo[dt::today()] = 'Днес';
+        $optionsTo[$yesterday] = 'Вчера';
+        $optionsTo[$daybefore] = 'Завчера';
+        
+        while ($bRec = $balanceQuery->fetch()) {
+            $bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
+            $optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
+            $optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
+        }
+        
+        return (object) array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
     }
-
+    
     
     /**
      * Помощна функция подготвяща датите за сравняване
      *
-     * @param string $from 
-     * @param string $to 
-     * @param string $displacement със стойности "months|year" 
+     * @param string $from
+     * @param string $to
+     * @param string $displacement със стойности "months|year"
+     *
      * @return stdClass $res
-     * 					$res->from - начало на сравнявания период
-     * 					$res->to - край на сравнявания период
+     *                  $res->from - начало на сравнявания период
+     *                  $res->to - край на сравнявания период
      */
-    public static function comparePeriod($from, $to, $displacement = NULL)
+    public static function comparePeriod($from, $to, $displacement = null)
     {
         switch ($displacement) {
-        
-            case "months":
-
+            
+            case 'months':
+                
                 $dFrom = date('d', dt::mysql2timestamp($from));
-                $date1 = new DateTime(dt::addDays(1,$to));
+                $date1 = new DateTime(dt::addDays(1, $to));
                 $date2 = new DateTime($from);
                 $interval = date_diff($date1, $date2);
                 $months = $interval->m;
                 $days = $interval->days;
-
+                
                 if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to) && $interval->y == 0) {
+                    $toCompare = dt::getLastDayOfMonth($from, -1);
                     
-                    $toCompare = dt::getLastDayOfMonth($from,-1);
-            
                     $first = date('Y-m-01', dt::mysql2timestamp($toCompare));
                     $dToCompare = date('d', dt::mysql2timestamp($toCompare));
-                    $mToCompare= date('m', dt::mysql2timestamp($toCompare));
-
-                    if($months == 1) {
+                    $mToCompare = date('m', dt::mysql2timestamp($toCompare));
+                    
+                    if ($months == 1) {
                         if ($interval->d == 0 || $interval->d == 1) {
                             $fromCompare1 = $first;
                         } elseif ($interval->d == 2) {
-                            $fromCompare1 = dt::addMonths(-$months+1,$first);
+                            $fromCompare1 = dt::addMonths(-$months + 1, $first);
                         } else {
-                            $fromCompare1 = dt::addMonths(-$months,$first);
+                            $fromCompare1 = dt::addMonths(-$months, $first);
                         }
                     } else {
-                        $fromCompare1 = dt::addMonths(-$months+1,$first);
+                        $fromCompare1 = dt::addMonths(-$months + 1, $first);
                     }
-                   
-                    if ($dToCompare == '28' && $mToCompare == '02') { 
-                        $fromCompare1 = dt::addMonths(-$months+1,$toCompare);
-                    } 
-
-                    $fromCompare = date('Y-m-01', dt::mysql2timestamp($fromCompare1));
                     
+                    if ($dToCompare == '28' && $mToCompare == '02') {
+                        $fromCompare1 = dt::addMonths(-$months + 1, $toCompare);
+                    }
+                    
+                    $fromCompare = date('Y-m-01', dt::mysql2timestamp($fromCompare1));
                 } else {
-
-                    $toCompare = strstr(dt::addDays(-1,$from), " ", TRUE);
-                    $fromCompare = strstr(dt::addDays(-($days-1),$toCompare), " ", TRUE);
+                    $toCompare = strstr(dt::addDays(-1, $from), ' ', true);
+                    $fromCompare = strstr(dt::addDays(-($days - 1), $toCompare), ' ', true);
                 }
-          
-                break;
-                
-            case "year":
-                
-                $toCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($to)));
-                $fromCompare = date('Y-m-d', strtotime("-12 months", dt::mysql2timestamp($from)));
                 
                 break;
+            
+            case 'year':
                 
+                $toCompare = date('Y-m-d', strtotime('-12 months', dt::mysql2timestamp($to)));
+                $fromCompare = date('Y-m-d', strtotime('-12 months', dt::mysql2timestamp($from)));
+                
+                break;
+            
             default:
                 
                 $fromCompare = $from;
                 $toCompare = $to;
         }
         
-        return (object) array('from'=> $fromCompare , 'to'=> $toCompare);
+        return (object) array('from' => $fromCompare, 'to' => $toCompare);
     }
     
     
     /**
      * Дали датата е в затворен счетоводен период
-     * 
+     *
      * @param date $date - дата
-     * @return boolean - Затворен ли е периода в който е датата
+     *
+     * @return bool - Затворен ли е периода в който е датата
      */
     public static function isClosed($date)
     {
-    	// В кой период е датата
-    	$period = self::fetchByDate($date);
-    	
-    	// Проверка дали периода е затворен
-    	return $period->state == 'closed';
+        // В кой период е датата
+        $period = self::fetchByDate($date);
+        
+        // Проверка дали периода е затворен
+        return $period->state == 'closed';
     }
     
     
     /**
      * Връща всички периоди, с изчислен баланс
-     * 
-     * @param boolean $descending - възходящ или низходящ ред
-     * @param int|NULL $limit     - лимит
+     *
+     * @param bool     $descending - възходящ или низходящ ред
+     * @param int|NULL $limit      - лимит
+     *
      * @return array $periods     - периодите с баланс
      */
-    public static function getCalcedPeriods($descending = FALSE, $limit = NULL)
+    public static function getCalcedPeriods($descending = false, $limit = null)
     {
-    	$periods = array();
-    	$bQuery = acc_Balances::getQuery();
-    	$bQuery->where("#periodId IS NOT NULL");
-    	
-    	$orderBy = ($descending === TRUE) ? 'DESC' : "ASC";
-    	$bQuery->orderBy("#fromDate", $orderBy);
-    	$bQuery->show('periodId');
-    	$bQuery->groupBy('periodId');
-    	if(isset($limit)){
-    		$bQuery->limit($limit);
-    	}
-    	
-    	while ($bRec = $bQuery->fetch()) {
-    		$b = acc_Balances::recToVerbal($bRec, 'periodId');
-    		$periods[$bRec->periodId] = $b->periodId;
-    	}
-    	
-    	return $periods;
+        $periods = array();
+        $bQuery = acc_Balances::getQuery();
+        $bQuery->where('#periodId IS NOT NULL');
+        
+        $orderBy = ($descending === true) ? 'DESC' : 'ASC';
+        $bQuery->orderBy('#fromDate', $orderBy);
+        $bQuery->show('periodId');
+        $bQuery->groupBy('periodId');
+        if (isset($limit)) {
+            $bQuery->limit($limit);
+        }
+        
+        while ($bRec = $bQuery->fetch()) {
+            $b = acc_Balances::recToVerbal($bRec, 'periodId');
+            $periods[$bRec->periodId] = $b->periodId;
+        }
+        
+        return $periods;
     }
     
     
     /**
      * Премахва от резултатите скритите от менютата за избор
      */
-    protected static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id')
+    protected static function on_AfterMakeArray4Select($mvc, &$res, $fields = null, &$where = '', $index = 'id')
     {
-    	if(is_array($res)){
-    		krsort($res);
-    	}
+        if (is_array($res)) {
+            krsort($res);
+        }
     }
 }

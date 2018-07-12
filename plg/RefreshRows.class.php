@@ -3,18 +3,18 @@
 
 /**
  * Клас 'plg_RefreshRows' - Ajax обновяване на табличен изглед
- * 
+ *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_RefreshRows extends core_Plugin
 {
-    
-    
     /**
      * Колко дни да стои в лога
      */
@@ -28,7 +28,7 @@ class plg_RefreshRows extends core_Plugin
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    public function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         // Ако не се тегли по AJAX
         if (!Request::get('ajax_mode')) {
@@ -49,7 +49,7 @@ class plg_RefreshRows extends core_Plugin
             
             // Добавяме текста в див с уникално id
             $tpl->prepend("<div id='{$attr['id']}'>");
-            $tpl->append("</div>");
+            $tpl->append('</div>');
             
             // URL, което ще се вика по AJAX
             $url = array($mvc, 'ajaxRefreshRows', 'divId' => $attr['id'], 'refreshUrl' => $refreshUrlLocal);
@@ -66,7 +66,7 @@ class plg_RefreshRows extends core_Plugin
                 if (!$hitId) {
                     $hitId = str::getRand('######');
                 }
-                jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');", TRUE);
+                jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');", true);
             }
             
             // Абонираме URL-то
@@ -97,22 +97,28 @@ class plg_RefreshRows extends core_Plugin
     
     /**
      * Извиква се преди изпълняването на екшън
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $action
+     * @param mixed    $res
+     * @param string   $action
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         // Ако екшъна не е за обновяване на редовете, да не се изпълнява
-        if ($action != 'ajaxrefreshrows') return ;
+        if ($action != 'ajaxrefreshrows') {
+            
+            return ;
+        }
         
         $res = array();
         
         $ajaxMode = Request::get('ajax_mode');
         
         // Ако заявката не е по ajax
-        if (!$ajaxMode) return FALSE;
+        if (!$ajaxMode) {
+            
+            return false;
+        }
         
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
@@ -126,21 +132,21 @@ class plg_RefreshRows extends core_Plugin
         // Парсираме URL-то
         $refreshUrlOrig = $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
         
-        if ($refreshUrl['Ctr']) {            
+        if ($refreshUrl['Ctr']) {
             if ($refreshUrl['Ctr']::checkTimeForRefresh($hitTime, $refreshUrl)) {
                 
-                return FALSE;
+                return false;
             }
         }
         
         $manualNameHash = static::getManualNameHash($nameHash);
         
         // Ако ще се обновява ръчно и вече е обновен n пъти
-        $stopRefresh = $mvc->stopМanualRefresh($manualNameHash);
+        $stopRefresh = $mvc->stopManualRefresh($manualNameHash);
         
-        if ($stopRefresh === TRUE) {
-        
-            return FALSE;
+        if ($stopRefresh === true) {
+            
+            return false;
         }
         
         // Добавяме флага
@@ -150,7 +156,10 @@ class plg_RefreshRows extends core_Plugin
         $tpl = Request::forward($refreshUrl);
         
         // Ако липсва шаблона, да не се изпълнява
-        if (!$tpl) return FALSE;
+        if (!$tpl) {
+            
+            return false;
+        }
         
         // Вземаме съдържанието на шаблона
         $status = static::getContent($tpl->getBlock('ListTable'));
@@ -161,15 +170,16 @@ class plg_RefreshRows extends core_Plugin
         // Вземаме съдържанието от предишния запис
         $savedHash = Mode::get($nameHash);
         
-        if(empty($savedHash)) $savedHash = md5($savedHash);
+        if (empty($savedHash)) {
+            $savedHash = md5($savedHash);
+        }
         
         // Ако има промяна
-        if($statusHash != $savedHash) {
+        if ($statusHash != $savedHash) {
             
             // Ако ще се обновява ръчно
             if ($mvc->manualRefreshCnt) {
-                
-                $refeshCnt = (int)Mode::get($manualNameHash);
+                $refeshCnt = (int) Mode::get($manualNameHash);
                 $refeshCnt++;
                 
                 $type = 'notice';
@@ -181,7 +191,7 @@ class plg_RefreshRows extends core_Plugin
                 
                 Mode::setPermanent($manualNameHash, $refeshCnt);
                 
-                return FALSE;
+                return false;
             }
             
             // Записваме новата стойност, за да не се извлича следващия път за този таб
@@ -191,7 +201,7 @@ class plg_RefreshRows extends core_Plugin
             
             // Масив с добавения CSS
             $cssArr = array();
-            $allCssArr = (array)$tpl->getArray('CSS');
+            $allCssArr = (array) $tpl->getArray('CSS');
             $allCssArr = array_unique($allCssArr);
             foreach ($allCssArr as $css) {
                 $cssArr[] = page_Html::getFileForAppend($css);
@@ -199,7 +209,7 @@ class plg_RefreshRows extends core_Plugin
             
             // Масив с добавения JS
             $jsArr = array();
-            $allJsArr = (array)$tpl->getArray('JS');
+            $allJsArr = (array) $tpl->getArray('JS');
             $allJsArr = array_unique($allJsArr);
             foreach ($allJsArr as $js) {
                 $jsArr[] = page_Html::getFileForAppend($js);
@@ -208,7 +218,7 @@ class plg_RefreshRows extends core_Plugin
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE, 'css' => $cssArr, 'js' => $jsArr);
+            $resObj->arg = array('id' => $divId, 'html' => $status, 'replace' => true, 'css' => $cssArr, 'js' => $jsArr);
             
             $res = array($resObj);
             
@@ -225,34 +235,37 @@ class plg_RefreshRows extends core_Plugin
             
             // Добавя всички функции в масива, които ще се виката
             if (!empty($runAfterAjaxArr)) {
-            
+                
                 // Да няма повтарящи се функции
                 $runAfterAjaxArr = array_unique($runAfterAjaxArr);
-            
-                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                
+                foreach ((array) $runAfterAjaxArr as $runAfterAjax) {
                     $jqResObj = new stdClass();
                     $jqResObj->func = $runAfterAjax;
-            
+                    
                     $res[] = $jqResObj;
                 }
             }
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща съдържанието на шаблона
-     * 
+     *
      * @param core_ET $tpl
-     * 
+     *
      * @return string
      */
-    static function getContent($tpl)
+    public static function getContent($tpl)
     {
         // Ако не е обект или няма съдържание
-        if (!$tpl) return ;
+        if (!$tpl) {
+            
+            return ;
+        }
         
         // Ако не е шаблон
         if (!$tpl instanceof core_ET) {
@@ -281,46 +294,49 @@ class plg_RefreshRows extends core_Plugin
     
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
-     * 
+     *
      * @param array $refreshUrl
-     * @param integer $hitTime
-     * 
+     * @param int   $hitTime
+     *
      * @return string
      */
-    static function getNameHash($refreshUrl, $hitTime)
+    public static function getNameHash($refreshUrl, $hitTime)
     {
         // От URL-то и hitTime генерираме хеша за името
         $nameHash = md5(toUrl($refreshUrl) . $hitTime);
         
         // Името на хеша, с който е записан в сесията
-        $nameHash = "REFRESH_ROWS_" . $nameHash;
+        $nameHash = 'REFRESH_ROWS_' . $nameHash;
         
         return $nameHash;
     }
     
     
     /**
-     * 
-     * @param core_Mvc $mvc
-     * @param boolean|NULL $res
+     *
+     * @param core_Mvc  $mvc
+     * @param bool|NULL $res
      */
-    public static function on_AfterStopМanualRefresh($mvc, &$res, $nameHash)
+    public static function on_AfterStopManualRefresh($mvc, &$res, $nameHash)
     {
-        if (!$mvc->manualRefreshCnt) return ;
+        if (!$mvc->manualRefreshCnt) {
+            
+            return ;
+        }
         
         $maxRefreshTimes = $mvc->manualRefreshCnt;
         
-        $res = FALSE;
+        $res = false;
         
-        if ((int)Mode::get($nameHash) >= $maxRefreshTimes) {
-            $res = TRUE;
+        if ((int) Mode::get($nameHash) >= $maxRefreshTimes) {
+            $res = true;
         }
     }
     
     
     /**
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc   $mvc
      * @param array|NULL $res
      */
     public static function on_AfterManualRefreshRes($mvc, &$res, $refreshUrl, $type)
@@ -329,21 +345,21 @@ class plg_RefreshRows extends core_Plugin
             $res = array();
         }
         
-        core_Statuses::newStatus('|Има промени в страницата|* - '. ht::createLink('опресняване', $refreshUrl), $type, NULL, 300, Request::get('hitId'));
+        core_Statuses::newStatus('|Има промени в страницата|* - '. ht::createLink('опресняване', $refreshUrl), $type, null, 300, Request::get('hitId'));
     }
     
     
     /**
      * Връща хеша от URL-то и времето на извикване на страницата
-     * 
+     *
      * @param string `fileman_data`.`file_len`
-     * 
+     *
      * @return string
      */
-    static function getManualNameHash($nameHash)
+    public static function getManualNameHash($nameHash)
     {
         // Името на хеша, с който е записан в сесията
-        $nameHash = "MANUAL_" . $nameHash;
+        $nameHash = 'MANUAL_' . $nameHash;
         
         return $nameHash;
     }
@@ -351,13 +367,13 @@ class plg_RefreshRows extends core_Plugin
     
     /**
      * Функция по подразбиране, за връщане на хеша на резултата
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param string $res
-     * @param string $status
-     * @param object $data
+     * @param string   $res
+     * @param string   $status
+     * @param object   $data
      */
-    function on_AfterGetContentHash($mvc, &$res, &$status)
+    public function on_AfterGetContentHash($mvc, &$res, &$status)
     {
         $res = md5(trim($status));
     }
@@ -365,12 +381,12 @@ class plg_RefreshRows extends core_Plugin
     
     /**
      * Подготвя URL-то, което ще се вика по AJAX
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc     $mvc
      * @param unknown_type $res
      * @param unknown_type $url
      */
-    function on_AfterPrepareRefreshRowsUrl($mvc, &$res, $url)
+    public function on_AfterPrepareRefreshRowsUrl($mvc, &$res, $url)
     {
         $res = $url;
     }
@@ -378,12 +394,12 @@ class plg_RefreshRows extends core_Plugin
     
     /**
      * Преди рендиране на листовия изглед
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_ET $tpl
-     * @param object $data
+     * @param core_ET  $tpl
+     * @param object   $data
      */
-    function on_BeforeRenderList($mvc, &$tpl, $data)
+    public function on_BeforeRenderList($mvc, &$tpl, $data)
     {
         // Ако се вика по AJAX, викаме само функциите, които ни трябват
         // и спираме по нататъшното извикване на другите функции
@@ -397,26 +413,25 @@ class plg_RefreshRows extends core_Plugin
             // Попълваме таблицата с редовете
             $tpl->append($mvc->renderListTable($data), 'ListTable');
             
-            return FALSE;
+            return false;
         }
     }
     
     
     /**
      * Преди рендиране на врапера
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_ET $res
-     * @param core_ET $tpl
+     * @param core_ET  $res
+     * @param core_ET  $tpl
      */
-    function on_BeforeRenderWrapping($mvc, &$res, $tpl)
+    public function on_BeforeRenderWrapping($mvc, &$res, $tpl)
     {
         // Ако се вика по AJAX, да не се рендира
         if (Request::get('ajax_mode')) {
-            
             $res = $tpl;
             
-            return FALSE;
+            return false;
         }
     }
     
@@ -424,41 +439,47 @@ class plg_RefreshRows extends core_Plugin
     /**
      * Метод по подразбиране за проверка на времето за обновяване
      *
-     * @param core_Mvc $mvc
-     * @param boolean|NULL $res
-     * @param integer $hitTime
-     * @param array $refreshUrl
+     * @param core_Mvc  $mvc
+     * @param bool|NULL $res
+     * @param int       $hitTime
+     * @param array     $refreshUrl
      */
     public static function on_AfterCheckTimeForRefresh($mvc, &$res, $hitTime, $refreshUrl)
     {
         // Ако е зададено поле
-        if (!$mvc->refreshRowsCheckField) return ;
+        if (!$mvc->refreshRowsCheckField) {
+            
+            return ;
+        }
         
-        if ($res === TRUE) return ;
+        if ($res === true) {
+            
+            return ;
+        }
         
-        $res = TRUE;
+        $res = true;
         
         $query = $mvc->getQuery();
         $query->XPR('maxDate', 'datetime', "MAX(#{$mvc->refreshRowsCheckField})");
         $maxDate = $query->fetch()->maxDate;
-    	
+        
         if ($maxDate) {
             $lastChanges = dt::mysql2timestamp($maxDate);
         }
-    	
+        
         $modeName = $mvc->className . '_last_' . $hitTime;
-    	
+        
         $modeLastTime = Mode::get($modeName);
-    	
+        
         $nt = dt::mysql2timestamp();
-    	
+        
         $maxTime = max(array($hitTime, $modeLastTime, $lastChanges, $nt));
-    	
+        
         Mode::setPermanent($modeName, $maxTime);
         
         // Отбелязваме че има промяна
         if (($lastChanges > $hitTime) && (!$modeLastTime || ($lastChanges > $modeLastTime))) {
-            $res = FALSE;
+            $res = false;
         }
     }
 }

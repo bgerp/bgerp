@@ -2,19 +2,19 @@
 
 
 /**
- * 
+ *
  *
  * @category  vendors
  * @package   escpos
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class escpos_PrintPlg extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      *
@@ -27,27 +27,31 @@ class escpos_PrintPlg extends core_Plugin
     
     
     /**
-     * 
+     *
      * @param core_Manager $mvc
-     * @param stdClass $res
-     * @param stdClass $data
+     * @param stdClass     $res
+     * @param stdClass     $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         // Добавяме бутон за тестово отпечатване в bluetooth принтер
         if (isset($data->rec->id) && $mvc->haveRightFor('Agentprint', $data->rec)) {
-        	$data->toolbar->addBtn('MP', $mvc->prepareLinkForAgent($data->rec->id),
-        			"id=escpos_{$data->rec->containerId},class=fright,row=2, order=38,title=" . "Печат чрез bgERP Agent",  'ef_icon = img/16/print_go.png');
+            $data->toolbar->addBtn(
+                'MP',
+                $mvc->prepareLinkForAgent($data->rec->id),
+                    "id=escpos_{$data->rec->containerId},class=fright,row=2, order=38,title=" . 'Печат чрез bgERP Agent',
+                'ef_icon = img/16/print_go.png'
+            );
         }
     }
     
     
     /**
      * Поготвя URL за печатане с bgERP агент
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc    $mvc
      * @param NULL|string $res
-     * @param int $id
+     * @param int         $id
      */
     protected static function on_AfterPrepareLinkForAgent($mvc, &$res, $id)
     {
@@ -59,12 +63,12 @@ class escpos_PrintPlg extends core_Plugin
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'agentprint') {
             if (!$requiredRoles != 'no_one' && $rec) {

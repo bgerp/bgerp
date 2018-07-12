@@ -1,25 +1,24 @@
 <?php
 
 
-
 /**
  * Регистър за свойства на счетоводните пера. Записите в него се синхронизират с перото след негова промяна
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class acc_Features extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Свойства";
+    public $title = 'Свойства';
     
     
     /**
@@ -44,7 +43,7 @@ class acc_Features extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "id, itemId, feature, value, state";
+    public $listFields = 'id, itemId, feature, value, state';
     
     
     /**
@@ -100,46 +99,46 @@ class acc_Features extends core_Manager
      */
     public $listItemsPerPage = 40;
     
-
+    
     /**
      * Масив в който се записват перата, които имат променени свойства по времето на хита
      */
     private $updatedFeaturesOnItem = array();
-
-
+    
+    
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('itemId', 'key(mvc=acc_Items, select=titleLink)', 'caption=Перо,mandatory');
         $this->FLD('featureTitleId', 'key(mvc=acc_FeatureTitles, select=title)', 'caption=СвойствоИд,input=none,column=none,mandatory');
-
+        
         $this->FNC('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
         $this->FLD('value', 'varchar(80)', 'caption=Стойност,mandatory');
         
         $this->setDbUnique('itemId,featureTitleId');
     }
-
-
+    
+    
     /**
      * Извлича наименованието на признака от отделен модел
      */
-    static function on_CalcFeature($mvc, $rec)
+    public static function on_CalcFeature($mvc, $rec)
     {
-        if($rec->featureTitleId) {
+        if ($rec->featureTitleId) {
             $rec->feature = acc_FeatureTitles::fetchField($rec->featureTitleId, 'title');
         }
     }
-
-
+    
+    
     /**
      * Изпълнява се преди записа
      * Ако липсва - записваме id-то на връзката към титлата
      */
-    static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if($rec->feature && !isset($rec->featureTitleId)) {
+        if ($rec->feature && !isset($rec->featureTitleId)) {
             $rec->featureTitleId = acc_FeatureTitles::fetchIdByTitle($rec->feature);
         }
     }
@@ -165,15 +164,21 @@ class acc_Features extends core_Manager
     public static function syncItem($itemId)
     {
         $self = cls::get(get_called_class());
-
+        
         $itemRec = acc_Items::fetch($itemId);
         
-        if(empty($itemRec)) return;
+        if (empty($itemRec)) {
+            
+            return;
+        }
         
         $ItemClass = cls::get($itemRec->classId);
         
         // Класа трябва да поддържа 'acc_RegisterIntf'
-        if(!cls::haveInterface('acc_RegisterIntf', $ItemClass)) return;
+        if (!cls::haveInterface('acc_RegisterIntf', $ItemClass)) {
+            
+            return;
+        }
         
         core_Lg::push(EF_DEFAULT_LANGUAGE);
         $itemRec = $ItemClass->getItemRec($itemRec->objectId);
@@ -183,43 +188,47 @@ class acc_Features extends core_Manager
         $features = $itemRec->features;
         
         // Ако свойствата не са масив ги пропускаме
-        if(!is_array($features)) return;
+        if (!is_array($features)) {
+            
+            return;
+        }
         
         $updated = array();
         $now = dt::now();
         
         // За всяко свойство
-        if(count($features)){
-            
+        if (count($features)) {
             $fields = array();
             
-            foreach ($features as $feat => $value){
+            foreach ($features as $feat => $value) {
                 
                 // Ако няма стойност пропускаме
-                if(empty($value) || empty($feat)) continue;
+                if (empty($value) || empty($feat)) {
+                    continue;
+                }
                 
                 $value = str_replace('&nbsp;', ' ', $value);
-                $update = TRUE;
+                $update = true;
                 
                 $featId = acc_FeatureTitles::fetchIdByTitle($feat);
-
+                
                 // Подготвяме записа за добавяне/обновяване
-                $rec = (object)array('itemId' => $itemId, 'featureTitleId' => $featId, 'value' => $value, 'state' => 'active', 'lastUpdated' => $now);
-              
+                $rec = (object) array('itemId' => $itemId, 'featureTitleId' => $featId, 'value' => $value, 'state' => 'active', 'lastUpdated' => $now);
+                
                 // Ако не е уникален, значи ъпдейтваме свойство
-                if(!$self->isUnique($rec, $fields, $exRec)){
+                if (!$self->isUnique($rec, $fields, $exRec)) {
                     $rec->id = $exRec->id;
                     
                     // Ако има такъв запис и той е със същата стойност не обновяваме
-                    if($value == $exRec->value){
-                    	$update = FALSE;
-                        $self->updatedFeaturesOnItem[$itemId] = TRUE;
+                    if ($value == $exRec->value) {
+                        $update = false;
+                        $self->updatedFeaturesOnItem[$itemId] = true;
                     }
                 }
                 
                 // Обновяване при нужда
-                if($update){
-                	$self->save($rec, NULL, 'REPLACE');
+                if ($update) {
+                    $self->save($rec, null, 'REPLACE');
                 }
                 
                 // Запомняме всички обновени свойства
@@ -235,7 +244,7 @@ class acc_Features extends core_Manager
     /**
      * Всички не ъпдейтнати свойства на перото стават в състояние затворено
      *
-     * @param int $itemId - ид на перо
+     * @param int   $itemId  - ид на перо
      * @param array $updated - масив с ъпдейтнати пера, ако е празен затваря всички свойства
      */
     private function closeStates($itemId, $updated = array())
@@ -243,16 +252,16 @@ class acc_Features extends core_Manager
         $query = $this->getQuery();
         $query->where("#itemId = {$itemId}");
         
-        if(count($updated)){
+        if (count($updated)) {
             $query->notIn('id', $updated);
         }
         
         $query->show('id,state');
         
-        while($rec = $query->fetch("#state != 'closed'")){
+        while ($rec = $query->fetch("#state != 'closed'")) {
             $rec->state = 'closed';
             $this->save($rec);
-            $this->updatedFeaturesOnItem[$itemId] = TRUE;
+            $this->updatedFeaturesOnItem[$itemId] = true;
         }
     }
     
@@ -264,7 +273,7 @@ class acc_Features extends core_Manager
     {
         $itemId = acc_Items::fetchItem($classId, $objectId)->id;
         
-        if($itemId){
+        if ($itemId) {
             acc_Features::syncItem($itemId);
         }
     }
@@ -274,6 +283,7 @@ class acc_Features extends core_Manager
      * Връща всички свойства на зададените пера, ако не са зададени пера, връща всички
      *
      * @param array $array - масив с ид-та на пера
+     *
      * @return array $options - опции със свойства
      */
     public static function getFeatureOptions($array)
@@ -283,25 +293,26 @@ class acc_Features extends core_Manager
         $query = static::getQuery();
         $query->where("#state = 'active'");
         
-        if(count($array)){
+        if (count($array)) {
             $query->in('itemId', $array);
         }
         
-        $query->groupBy("featureTitleId");
+        $query->groupBy('featureTitleId');
         
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $options[$rec->feature] = $rec->feature;
         }
         
         return $options;
     }
     
-
+    
     /**
      * Връща всички стойности свойства на зададените пера, ако не са зададени пера, връща всички
      *
-     * @param  int      $featureTitleId     id на feature
-     * @return array    $options            опции със стойности
+     * @param int $featureTitleId id на feature
+     *
+     * @return array $options            опции със стойности
      */
     public static function getFeatureValueOptions($featureTitleId)
     {
@@ -311,21 +322,22 @@ class acc_Features extends core_Manager
         $query->where("#state = 'active'");
         
         $query->where("#featureTitleId = {$featureTitleId}");
-          
-        $query->groupBy("value");
         
-        while($rec = $query->fetch()){
+        $query->groupBy('value');
+        
+        while ($rec = $query->fetch()) {
             $options[$rec->id] = $rec->value;
         }
         
         return $options;
     }
-
+    
     
     /**
      * Връща масив с перата и свойствата, които имат
      *
      * @param array $itemsArr - списък с пера
+     *
      * @return array $res - всички с-ва които имат перата
      */
     public static function getFeaturesByItems($itemsArr = array())
@@ -335,11 +347,11 @@ class acc_Features extends core_Manager
         $query = self::getQuery();
         $query->where("#state = 'active'");
         
-        if(count($itemsArr)){
+        if (count($itemsArr)) {
             $query->in('itemId', $itemsArr);
         }
         
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $res[$rec->itemId][$rec->feature] = $rec->value;
         }
         
@@ -352,9 +364,9 @@ class acc_Features extends core_Manager
      */
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('sync')){
-    		$data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => TRUE), NULL, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
-    	}
+        if ($mvc->haveRightFor('sync')) {
+            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
+        }
     }
     
     
@@ -366,24 +378,24 @@ class acc_Features extends core_Manager
     public static function on_Shutdown($mvc)
     {
         $lists = array();
-        foreach($mvc->updatedFeaturesOnItem as $itemId => $true) {
+        foreach ($mvc->updatedFeaturesOnItem as $itemId => $true) {
             $iRec = acc_Items::fetch($itemId);
             $lists = arr::combine($lists, keylist::toArray($iRec->lists));
         }
-
-        foreach($lists as $listId) {
+        
+        foreach ($lists as $listId) {
             acc_Lists::updateFeatureList($listId);
         }
     }
-
+    
     
     /**
      * Синхронизиране на таблицата със свойствата по крон
      */
     public function cron_SyncFeatures()
     {
-    	// Синхронизира всички свойства на перата
-    	$this->syncAllItems();
+        // Синхронизира всички свойства на перата
+        $this->syncAllItems();
     }
     
     
@@ -392,29 +404,29 @@ class acc_Features extends core_Manager
      */
     private function syncAllItems()
     {
-    	$items = array();
-    	 
-    	core_Debug::$isLogging = FALSE;
-    	
-    	// Свойствата на кои пера са записани в таблицата
-    	$query = $this->getQuery();
-    	$query->show("itemId");
-    	$query->groupBy('itemId');
-    	$query->where("#state != 'closed'");
-    	while($rec = $query->fetch()){
-    		$items[$rec->itemId] = $rec->itemId;
-    	}
-    	
-    	// Ако има пера
-    	if(count($items)){
-    		foreach ($items as $itemId){
-    			
-    			// За всяко перо синхронизираме свойствата му
-    			self::syncItem($itemId);
-    		}
-    	}
-    	
-    	core_Debug::$isLogging = TRUE;
+        $items = array();
+        
+        core_Debug::$isLogging = false;
+        
+        // Свойствата на кои пера са записани в таблицата
+        $query = $this->getQuery();
+        $query->show('itemId');
+        $query->groupBy('itemId');
+        $query->where("#state != 'closed'");
+        while ($rec = $query->fetch()) {
+            $items[$rec->itemId] = $rec->itemId;
+        }
+        
+        // Ако има пера
+        if (count($items)) {
+            foreach ($items as $itemId) {
+                
+                // За всяко перо синхронизираме свойствата му
+                self::syncItem($itemId);
+            }
+        }
+        
+        core_Debug::$isLogging = true;
     }
     
     
@@ -423,15 +435,15 @@ class acc_Features extends core_Manager
      */
     public function act_Sync()
     {
-    	$this->requireRightFor('sync');
-    	
-    	// Синхронизира всички свойства на перата
-    	$this->syncAllItems();
-    	
-    	// Записваме, че потребителя е разглеждал този списък
-    	$this->logWrite("Синхронизиране на счетоводните свойства");
-    	
-    	// Редирект към списъка на свойствата
-    	return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
+        $this->requireRightFor('sync');
+        
+        // Синхронизира всички свойства на перата
+        $this->syncAllItems();
+        
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logWrite('Синхронизиране на счетоводните свойства');
+        
+        // Редирект към списъка на свойствата
+        return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
     }
 }

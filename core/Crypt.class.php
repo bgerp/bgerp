@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Ключа с който ще се криптира, ако не бъде зададен експлицитно
  */
@@ -14,20 +13,20 @@ defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Crypt extends core_BaseClass
 {
-    
-    
     /**
      * Кодиране чрез размяна
      */
-    static function enChange(&$pack, $md5)
+    public static function enChange(&$pack, $md5)
     {
         for ($i = 0; $i < 32; $i += 2) {
             $a = hexdec($md5{$i});
@@ -42,7 +41,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодиране на 'размяна'
      */
-    static function deChange(&$pack, $md5)
+    public static function deChange(&$pack, $md5)
     {
         for ($i = 30; $i >= 0; $i -= 2) {
             $a = hexdec($md5{$i});
@@ -57,7 +56,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодиране чрез 'добавяне'
      */
-    static function enAdd(&$pack, $md5)
+    public static function enAdd(&$pack, $md5)
     {
         for ($i = 0; $i < 32; $i += 2) {
             $a = hexdec(substr($md5, $i, 2));
@@ -70,7 +69,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодиране на 'добавяне'
      */
-    static function deAdd(&$pack, $md5)
+    public static function deAdd(&$pack, $md5)
     {
         for ($i = 30; $i >= 0; $i -= 2) {
             $a = hexdec(substr($md5, $i, 2));
@@ -83,7 +82,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодиране на 16 знаков пакет
      */
-    static function encode16(&$pack, $md5, $len = 6)
+    public static function encode16(&$pack, $md5, $len = 6)
     {
         $k = $md5;
         
@@ -103,7 +102,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодиране на 16 знаков пакет
      */
-    static function decode16(&$pack, $md5, $len = 6)
+    public static function decode16(&$pack, $md5, $len = 6)
     {
         $k = $md5;
         
@@ -127,10 +126,10 @@ class core_Crypt extends core_BaseClass
     /**
      * Обработка на събитие за бинарно кодиране
      */
-    static function encode(&$res, $str, $key, $minRand)
+    public static function encode(&$res, $str, $key, $minRand)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
-
+        
         // Установяваме стринга-разделител
         $div = self::getDivStr($key);
         
@@ -165,12 +164,11 @@ class core_Crypt extends core_BaseClass
     /**
      * Обработка на събитие за бинарно декодиране
      */
-    static function decode(&$res, $str, $key)
+    public static function decode(&$res, $str, $key)
     {
-        
         // Ако дължината не е кратна на 16 връщаме грешка
         if (strlen($str) % 16) {
-            $res = FALSE;
+            $res = false;
             
             return;
         }
@@ -191,16 +189,16 @@ class core_Crypt extends core_BaseClass
         $divPos = strpos($res, $div);
         
         // Ако нямаме разделител - връщаме грешка
-        if ($divPos === FALSE) {
+        if ($divPos === false) {
             
             // Установяваме стринга-разделител
             // За стари криптирания в 32 битови ОС
-            $div = self::getDivStr($key, FALSE);
+            $div = self::getDivStr($key, false);
             $divPos = strpos($res, $div);
             
-            if ($divPos === FALSE) {
-                $res = FALSE;
-            
+            if ($divPos === false) {
+                $res = false;
+                
                 return;
             }
         }
@@ -213,13 +211,13 @@ class core_Crypt extends core_BaseClass
     /**
      * Определя разделителя между хедър-а на кодираната част и данните
      */
-    static function getDivStr($key, $sprint = TRUE)
+    public static function getDivStr($key, $sprint = true)
     {
         $crc32 = crc32($key);
         
         if ($sprint) {
             // Фикс - за да са еднакви в 32 и 64 битови ОС-та
-            $crc32 = sprintf("%u", $crc32);
+            $crc32 = sprintf('%u', $crc32);
         }
         
         $div = chr($crc32 % 256);
@@ -237,7 +235,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира стринг
      */
-    static function encodeStr($str, $key, $minRand = 8)
+    public static function encodeStr($str, $key, $minRand = 8)
     {
         self::encode($res, $str, $key, $minRand);
         
@@ -248,7 +246,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодира стринг
      */
-    static function decodeStr($str, $key)
+    public static function decodeStr($str, $key)
     {
         self::decode($res, $str, $key);
         
@@ -259,14 +257,14 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира променливи, масиви и обекти
      */
-    static function encodeVar($var, $key = EF_CRYPT_CODE, $flat = 'serialize')
+    public static function encodeVar($var, $key = EF_CRYPT_CODE, $flat = 'serialize')
     {
-        if($flat == 'json') {
+        if ($flat == 'json') {
             $var = json_encode($var);
         } else {
             $var = serialize($var);
         }
-
+        
         $var = gzcompress($var);
         $var = self::encodeStr($var, $key . 'encodeVar');
         $var = base64_encode($var);
@@ -278,29 +276,34 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодира променливи, масиви и обекти
      */
-    static function decodeVar($var, $key = EF_CRYPT_CODE, $flat = 'serialize')
+    public static function decodeVar($var, $key = EF_CRYPT_CODE, $flat = 'serialize')
     {
         $var = base64_decode($var);
         
-        if (!$var)
-        return FALSE;
+        if (!$var) {
+            
+            return false;
+        }
         
         $var = self::decodeStr($var, $key . 'encodeVar');
         
-        if (!$var)
-        return FALSE;
+        if (!$var) {
+            
+            return false;
+        }
         
         $var = gzuncompress($var);
         
-        if (!$var)
-        return FALSE;
+        if (!$var) {
+            
+            return false;
+        }
         
-        if($flat == 'json') {
-            $var = json_decode($var, TRUE);
+        if ($flat == 'json') {
+            $var = json_decode($var, true);
         } else {
             $var = unserialize($var);
         }
-
         
         return $var;
     }

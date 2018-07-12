@@ -3,23 +3,23 @@
 
 /**
  * Експортиране на документи
- * 
+ *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class bgerp_E extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
-    public $title = "Експортиране на документ";
+    public $title = 'Експортиране на документ';
     
     
     /**
@@ -61,13 +61,10 @@ class bgerp_E extends core_Manager
     /**
      * Да не се кодират id-тата
      */
-    var $protectId = FALSE;
+    public $protectId = false;
     
     
-    /**
-     * 
-     */
-    function description()
+    public function description()
     {
         $this->FLD('format', 'varchar(16, ci)', 'caption=Формат, mandatory');
         $this->FLD('validity', 'time(suggestions=1 ден|1 седмица|1 месец|1 година)', 'caption=Валидност, mandatory, notNull');
@@ -80,7 +77,7 @@ class bgerp_E extends core_Manager
     /**
      * Екшън за експортиране
      */
-    function act_Export()
+    public function act_Export()
     {
         Request::setProtected(array('classId', 'docId'));
         
@@ -98,7 +95,7 @@ class bgerp_E extends core_Manager
         
         $form = $this->getForm();
         
-        $form->title = "Генериране на линк за сваляне";
+        $form->title = 'Генериране на линк за сваляне';
         
         $retUrl = getRetUrl();
         
@@ -124,14 +121,12 @@ class bgerp_E extends core_Manager
         
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {
-            
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
             
-            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . "</div>";
+            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . '</div>';
         }
         
         if ($form->isSubmitted()) {
-            
             $rec = $form->rec;
             $rec->key = str::getRand('*********');
             
@@ -165,13 +160,13 @@ class bgerp_E extends core_Manager
             $inst->logWrite('Генериране на линк за сваляне', $dRec->id);
             
             if ($format == 'pdf') {
-                Mode::push('pdf', TRUE);
+                Mode::push('pdf', true);
             }
             
             if ($format == 'pdf' || $format == 'html') {
                 $html = $inst->getDocumentBody($dRec->id, 'xhtml', $opt);
             } else {
-                expect(FALSE, $format);
+                expect(false, $format);
             }
             
             $fileName = $inst->getHandle($dRec->id) . 'Export.' . $format;
@@ -186,7 +181,7 @@ class bgerp_E extends core_Manager
                 // Вкарваме CSS-а инлайн
                 $css = doc_PdfCreator::getCssStr($html);
                 $html = doc_PdfCreator::removeFormAttr($html);
-                $html = "<div class='wide'><div class='external'>" . $html . "</div></div>";
+                $html = "<div class='wide'><div class='external'>" . $html . '</div></div>';
                 $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
                 $html = $CssToInlineInst->convert($html, $css);
                 
@@ -196,14 +191,14 @@ class bgerp_E extends core_Manager
             self::save($rec);
             
             $downloadUrl = self::getUrlForDownload($rec->key);
-            $form->info .= "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
+            $form->info .= '<b>' . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
             
             $form->setField('format, validity', 'input=none');
-			
+            
             $form->toolbar->addBtn('Сваляне', $downloadUrl, "ef_icon = fileman/icons/16/{$format}.png, title=Сваляне на документа");
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към документа') . ', class=fright');
             
-            $form->title = "Линк за сваляне";
+            $form->title = 'Линк за сваляне';
         } else {
             $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
             $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title= ' . tr('Прекратяване на действията'));
@@ -212,21 +207,20 @@ class bgerp_E extends core_Manager
         $tpl = $form->renderHtml();
         
         // Ако е колаборатор, рендираме неговия врапер
-        $isContractor = FALSE;
-        if (core_Packs::isInstalled('colab')){
-    		if (core_Users::haveRole('partner')) {
-    		    
-    			$inst->currentTab = 'Нишка';
-    			plg_ProtoWrapper::changeWrapper($inst, 'cms_ExternalWrapper');
-    			$tpl = $inst->renderWrapping($tpl);
-    			
-    			$isContractor = TRUE;
-    		}
-    	}
-    	
-    	if (!$isContractor) {
-    	    $tpl = $inst->renderWrapping($tpl);
-    	}
+        $isContractor = false;
+        if (core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('partner')) {
+                $inst->currentTab = 'Нишка';
+                plg_ProtoWrapper::changeWrapper($inst, 'cms_ExternalWrapper');
+                $tpl = $inst->renderWrapping($tpl);
+                
+                $isContractor = true;
+            }
+        }
+        
+        if (!$isContractor) {
+            $tpl = $inst->renderWrapping($tpl);
+        }
         
         return $tpl;
     }
@@ -246,7 +240,7 @@ class bgerp_E extends core_Manager
         $expire = dt::subtractSecs($rec->validity);
         
         if ($expire > $rec->createdOn) {
-            redirect(array('Index'), FALSE, '|Изтекла или липсваща връзка', 'error');
+            redirect(array('Index'), false, '|Изтекла или липсваща връзка', 'error');
         }
         
         // Ако се сваля от потребител различен от създателя
@@ -259,15 +253,15 @@ class bgerp_E extends core_Manager
         
         self::logRead('Сваляне на документа', $rec->id);
         
-        $res = Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => TRUE));
+        $res = Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => true));
     }
     
     
     /**
      * Връща линк за показване на документа във външната част
-     * 
+     *
      * @param string $key
-     * 
+     *
      * @return string
      */
     protected static function getUrlForDownload($key)

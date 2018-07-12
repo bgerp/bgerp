@@ -1,59 +1,67 @@
 <?php 
 
-
 /**
  * Списък с имейли, до които няма да се праща информационни (бласт) съобщения
  *
  *
  * @category  bgerp
  * @package   blast
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class blast_BlockedEmails extends core_Manager
 {
-    
     /**
      * Заглавие
      */
-    public $title = "Адреси, на които не се изпращат циркулярни имейли";
+    public $title = 'Адреси, на които не се изпращат циркулярни имейли';
+    
     
     /**
      * Кой има право да чете?
      */
     protected $canRead = 'ceo, blast, admin';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'ceo, blast, admin';
+    
     
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'ceo, blast, admin';
     
+    
     /**
      * Кой може да го види?
      */
     protected $canView = 'ceo, blast, admin';
+    
     
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'ceo, blast, admin';
     
+    
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'ceo, blast, admin';
     
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
+    
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -77,32 +85,35 @@ class blast_BlockedEmails extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param blast_BlockedEmails $mvc
-     * @param array $fields
-     * 
+     * @param array               $fields
+     *
      * @see bgerp_plg_Import
      */
-    function on_AfterPrepareImportFields($mvc, &$fields)
+    public function on_AfterPrepareImportFields($mvc, &$fields)
     {
         $fields['state'] = array('caption' => 'Състояние', 'mandatory' => 'mandatory');
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param blast_BlockedEmails $mvc
-     * @param stdClass $rec
-     * 
-     * @return boolean
-     * 
+     * @param stdClass            $rec
+     *
+     * @return bool
+     *
      * @see bgerp_plg_Import
      */
-    function on_BeforeImportRec($mvc, &$rec)
+    public function on_BeforeImportRec($mvc, &$rec)
     {
-        if (!trim($rec->email)) return FALSE;
+        if (!trim($rec->email)) {
+            
+            return false;
+        }
         
         if (!$rec->state) {
             $rec->state = 'ok';
@@ -124,7 +135,10 @@ class blast_BlockedEmails extends core_Manager
             }
         }
         
-        if (!$rec->state) return FALSE;
+        if (!$rec->state) {
+            
+            return false;
+        }
     }
     
     
@@ -133,18 +147,21 @@ class blast_BlockedEmails extends core_Manager
      *
      * @param string $email
      *
-     * @return boolean
+     * @return bool
      */
     public static function isBlocked($email)
     {
-        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint = 0))", $email))) return TRUE;
+        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint = 0))", $email))) {
+            
+            return true;
+        }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
-     * Добавя имейлa в блокирани
+     * Добавя имейла в блокирани
      *
      * @param string $email
      *
@@ -170,7 +187,7 @@ class blast_BlockedEmails extends core_Manager
      *
      * @param string $email
      *
-     * @return integer
+     * @return int
      */
     public static function unBlockEmail($email)
     {
@@ -181,7 +198,7 @@ class blast_BlockedEmails extends core_Manager
             $rec->email = 'email';
         }
         
-        $rec->state = NULL;
+        $rec->state = null;
         
         return self::save($rec);
     }
@@ -189,23 +206,26 @@ class blast_BlockedEmails extends core_Manager
     
     /**
      * Добавя подадения имейл в списъка
-     * 
-     * @param string $email
-     * @param boolean|string $update 
-     * @param string $state- ok, blocked, error
-     * 
-     * @return integer|NULL
+     *
+     * @param string      $email
+     * @param bool|string $update
+     * @param string      $state- ok, blocked, error
+     *
+     * @return int|NULL
      */
-    public static function addEmail($email, $update = TRUE, $state = 'ok')
+    public static function addEmail($email, $update = true, $state = 'ok')
     {
         $rec = self::fetch(array("#email = '[#1#]'", $email));
         
-        if (!$update && $rec) return ;
+        if (!$update && $rec) {
+            
+            return ;
+        }
         
         if (!$rec) {
             $rec = new stdClass();
             $rec->state = $state;
-            $saveFields = NULL;
+            $saveFields = null;
         } else {
             $saveFields = array();
             $saveFields['email'] = 'email';
@@ -228,17 +248,20 @@ class blast_BlockedEmails extends core_Manager
     
     /**
      * Добавя имейла в списъка, като го извлича от текстовата част
-     * 
-     * @param string $mid
+     *
+     * @param string     $mid
      * @param email_Mime $mime
-     * @param string $state
+     * @param string     $state
      */
     public static function addSentEmailFromText($mid, $mime, $state = 'ok')
     {
         $text = $mime->textPart;
         $fromEml = $mime->getFromEmail();
         
-        if (!$mid || (!$text && !$fromEml)) return ;
+        if (!$mid || (!$text && !$fromEml)) {
+            
+            return ;
+        }
         
         $tSoup = $text . ' ' . $fromEml;
         
@@ -252,19 +275,20 @@ class blast_BlockedEmails extends core_Manager
             if ($sRec) {
                 $sentEArr = type_Emails::toArray(strtolower($sRec->data->to));
                 
-                $sentEArr = arr::make($sentEArr, TRUE);
+                $sentEArr = arr::make($sentEArr, true);
                 
                 if (!empty($sentEArr)) {
                     foreach ($eArr as $email) {
                         $email = strtolower($email);
                         
-                        if ($hArr[$email]) continue;
+                        if ($hArr[$email]) {
+                            continue;
+                        }
                         
                         $hArr[$email] = $email;
                         
                         if ($sentEArr[$email]) {
-                            
-                            self::addEmail($email, TRUE, $state);
+                            self::addEmail($email, true, $state);
                             
                             break;
                         }
@@ -277,16 +301,19 @@ class blast_BlockedEmails extends core_Manager
     
     /**
      * Връща състоянието на имейла
-     * 
+     *
      * @param string $email
-     * 
+     *
      * @return NULL|string
      */
     public static function getState($email)
     {
         $rec = self::fetch(array("#email = '[#1#]'", $email));
         
-        if (!$rec) return;
+        if (!$rec) {
+            
+            return;
+        }
         
         return $rec->state;
     }
@@ -294,10 +321,10 @@ class blast_BlockedEmails extends core_Manager
     
     /**
      * Проверява дали имейла е валиден
-     * 
+     *
      * @param string $email
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function validateEmail_($email)
     {
@@ -305,28 +332,42 @@ class blast_BlockedEmails extends core_Manager
         
         static $validatedDomainsArr = array();
         
-        if (!trim($email)) return ;
+        if (!trim($email)) {
+            
+            return ;
+        }
         
-        if (!type_Email::isValidEmail($email)) return ;
+        if (!type_Email::isValidEmail($email)) {
+            
+            return ;
+        }
         
         list(, $domain) = explode('@', $email);
         
-        if (!trim($domain)) return ;
+        if (!trim($domain)) {
+            
+            return ;
+        }
         
         $domain = mb_strtolower($domain);
         
         if (!isset($validatedDomainsArr[$domain])) {
-            
             $DrData = cls::get('drdata_Emails');
             
             $validatedDomainsArr[$domain] = drdata_Emails::mxAndARecordsValidate($domain);
         }
         
-        if ($validatedDomainsArr[$domain] === FALSE) return FALSE;
+        if ($validatedDomainsArr[$domain] === false) {
+            
+            return false;
+        }
         
-        if (!$validatedDomainsArr[$domain]) return ;
+        if (!$validatedDomainsArr[$domain]) {
+            
+            return ;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -334,8 +375,8 @@ class blast_BlockedEmails extends core_Manager
      * Преди запис в модела
      *
      * @param blast_BlockedEmails $mvc
-     * @param NULL|integer $rec
-     * @param stdClass $rec
+     * @param NULL|int            $rec
+     * @param stdClass            $rec
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
@@ -349,7 +390,6 @@ class blast_BlockedEmails extends core_Manager
             if ($rec->checkPoint < 0 || !(isset($rec->checkPoint))) {
                 $rec->checkPoint = 0;
             }
-            
         } elseif ($rec->state == 'ok') {
             $rec->checkPoint++;
             
@@ -363,7 +403,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Подготовка на филтър формата
      */
-    static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('lastSent', 'DESC');
     }
@@ -372,7 +412,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Функция, която се изпълнява от крона и проверява за валидност на имейлите
      */
-    function cron_CheckEmails()
+    public function cron_CheckEmails()
     {
         $conf = core_Packs::getConfig('blast');
         $query = self::getQuery();
@@ -382,13 +422,13 @@ class blast_BlockedEmails extends core_Manager
         $query->where("#lastSent >= '{$stopCheckingPeriod}'");
         
         $query->where("#state != 'blocked'");
-        $query->orWhere("#state IS NULL");
+        $query->orWhere('#state IS NULL');
         
         // Ако е проверяван скоро, да не се проверява повторно
-        $recheckAfter = dt::subtractSecs((int)$conf->BLAST_RECHECK_EMAILS_AFTER);
+        $recheckAfter = dt::subtractSecs((int) $conf->BLAST_RECHECK_EMAILS_AFTER);
         $query->where("#lastChecked <= '{$recheckAfter}'");
-        $query->orWhere("#lastChecked IS NULL");
-        $query->limit((int)$conf->BLAST_RECHECK_EMAILS_LIMIT);
+        $query->orWhere('#lastChecked IS NULL');
+        $query->limit((int) $conf->BLAST_RECHECK_EMAILS_LIMIT);
         
         $query->orderBy('lastChecked', 'ASC');
         
@@ -407,7 +447,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Изпълнява се след създаването на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Данни за работата на cron
         $rec = new stdClass();

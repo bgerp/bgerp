@@ -3,37 +3,40 @@
 
 /**
  * Драйвер за работа с .tnef файлове.
- * 
+ *
  * @category  bgerp
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Tnef extends fileman_webdrv_Generic
 {
-    
-    
     /**
      * Кой таб да е избран по подразбиране
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::$defaultTab
      */
-    static $defaultTab = 'content';
+    public static $defaultTab = 'content';
     
     
     /**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
@@ -42,13 +45,13 @@ class fileman_webdrv_Tnef extends fileman_webdrv_Generic
         $contentStr = static::getFileContent($fRec);
         
         // Таб за съдържанието
-		$tabsArr['content'] = (object) 
-			array(
-				'title'   => 'Съдържание',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Съдържание") . "</div>{$contentStr}</div></div>",
-				'order' => 7,
-				'tpl' => $contentStr,
-			);
+        $tabsArr['content'] = (object)
+            array(
+                'title' => 'Съдържание',
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Съдържание') . "</div>{$contentStr}</div></div>",
+                'order' => 7,
+                'tpl' => $contentStr,
+            );
         
         return $tabsArr;
     }
@@ -56,10 +59,10 @@ class fileman_webdrv_Tnef extends fileman_webdrv_Generic
     
     /**
      * Връща съдържанието на архива в дървовидна структура
-     * 
+     *
      * @param object $fRec - Записите за файла
      */
-    static function getFileContent($fRec) 
+    public static function getFileContent($fRec)
     {
         // Това е необходимо за да сработят плъгините, които са закачени към fileman_webdrv_Tnef
         $inst = cls::get('fileman_webdrv_Tnef');
@@ -70,7 +73,9 @@ class fileman_webdrv_Tnef extends fileman_webdrv_Generic
         foreach ($filesArr as $fileHnd) {
             $link = fileman_Files::getLink($fileHnd);
             
-            if (!$link) continue;
+            if (!$link) {
+                continue;
+            }
             
             $content .= ($content) ? '<br>' . $link : $link;
         }
@@ -80,13 +85,12 @@ class fileman_webdrv_Tnef extends fileman_webdrv_Generic
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $fileHnd
      */
     protected static function getFiles_($fileHnd)
     {
-        
         return array();
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Keylist с избрани потребители
  *
@@ -14,26 +13,23 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see       core_Users
  */
 class type_UserList extends type_Keylist
 {
-    
-    
-    /**
-     * 
-     */
     protected $keySep = '_';
     
     
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         setIfNot($params['params']['mvc'], 'core_Users');
         setIfNot($params['params']['select'], 'nick');
@@ -42,10 +38,10 @@ class type_UserList extends type_Keylist
         parent::init($params);
         
         setIfNot($this->params['roles'], 'executive,officer,manager,ceo');
-        $this->params['roles'] = str_replace("|", ",", $this->params['roles']);
-       
+        $this->params['roles'] = str_replace('|', ',', $this->params['roles']);
+        
         setIfNot($this->params['rolesForAll'], 'user');
-        $this->params['rolesForAll'] = str_replace("|", ",", $this->params['rolesForAll']);
+        $this->params['rolesForAll'] = str_replace('|', ',', $this->params['rolesForAll']);
     }
     
     
@@ -53,21 +49,21 @@ class type_UserList extends type_Keylist
      * Подготвя опциите според зададените параметри.
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
-     * 
+     *
      * @return array
      */
-    public function prepareSuggestions($ids = NULL)
+    public function prepareSuggestions($ids = null)
     {
         // Ако не е зададен параметъра
-        if(!isset($this->params['maxOptForOpenGroups'])) {
+        if (!isset($this->params['maxOptForOpenGroups'])) {
             $conf = core_Setup::getConfig();
             $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
-            if(!isset($maxOpt)) {
+            if (!isset($maxOpt)) {
                 $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
-            } 
+            }
             setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
         }
-
+        
         $mvc = cls::get($this->params['mvc']);
         
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
@@ -76,32 +72,32 @@ class type_UserList extends type_Keylist
             
             return $this->suggestions;
         }
-
+        
         // извличане на потребителите с информация
         $pQuery = crm_Profiles::getQuery();
-        $pQuery->show("id");
-        while($rec = $pQuery->fetch("#stateInfo IS NOT NULL")) {
-            $dayBefore = strstr(dt::addDays(1,$rec->sateDateFrom), " ", TRUE);
-            if($dayBefore == strstr(dt::now(), " ", TRUE)){
+        $pQuery->show('id');
+        while ($rec = $pQuery->fetch('#stateInfo IS NOT NULL')) {
+            $dayBefore = strstr(dt::addDays(1, $rec->sateDateFrom), ' ', true);
+            if ($dayBefore == strstr(dt::now(), ' ', true)) {
                 $iUsers[$rec->id] = $rec->id;
             }
         }
         $this->info = $iUsers;
-
+        
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип
-        if(!haveRole($this->params['rolesForAll'])) {
+        if (!haveRole($this->params['rolesForAll'])) {
             $ownRoles = core_Users::getCurrent('roles');
-            $ownRoles = self::toArray($ownRoles); 
+            $ownRoles = self::toArray($ownRoles);
         }
         
-        $removeClosedGroups = TRUE;
+        $removeClosedGroups = true;
         if ($this->params['showClosedGroups']) {
-            $removeClosedGroups = FALSE;
+            $removeClosedGroups = false;
         }
         
         $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
         $teams = self::toArray($teams);
-
+        
         $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
         
         // id на текущия потребител
@@ -118,77 +114,82 @@ class type_UserList extends type_Keylist
         
         // Броя на групите
         $cnt = $uQueryAll->count();
-      
+        
         // Ако броя е под максимално допустимите или са избрани всичките
         if ((trim($this->params['autoOpenGroups']) == '*') || ($cnt < $this->params['maxOptForOpenGroups'])) {
             
             // Отваряме всички групи
-            $openAllGroups = TRUE;
+            $openAllGroups = true;
         }
- 
+        
         $userArr = core_Users::getRolesWithUsers();
-    
+        
         $rolesArr = type_Keylist::toArray($roles);
         
-        foreach($teams as $t) {  
-            if(count($ownRoles) && !$ownRoles[$t]) continue;
+        foreach ($teams as $t) {
+            if (count($ownRoles) && !$ownRoles[$t]) {
+                continue;
+            }
             $group = new stdClass();
             $tRole = core_Roles::getVerbal($t, 'role');
-            $group->title = tr('Екип') . " \"" . $tRole . "\"";
+            $group->title = tr('Екип') . ' "' . $tRole . '"';
             $group->attr = array('class' => 'team');
-            $group->group = TRUE;
-
+            $group->group = true;
+            
             $this->suggestions[$t . ' team'] = $group;
             
             $teamMembers = 0;
             
-            foreach((array)$userArr[$t] as $uId) {
-                    
+            foreach ((array) $userArr[$t] as $uId) {
                 $uRec = $userArr['r'][$uId];
-                if ($uRec->state == 'rejected' || $uRec->state == 'draft') continue;
+                if ($uRec->state == 'rejected' || $uRec->state == 'draft') {
+                    continue;
+                }
                 
                 if (!empty($rolesArr)) {
-                    if (!type_Keylist::isIn($rolesArr, $uRec->roles)) continue;
+                    if (!type_Keylist::isIn($rolesArr, $uRec->roles)) {
+                        continue;
+                    }
                 }
                 
                 $uRec->id = $uId;
-
+                
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
                 if ($openAllGroups) {
                     
                     // Вдигам флага да се отвори групата
-                    $group->autoOpen = TRUE;
+                    $group->autoOpen = true;
                     
                     // Отбелязваме, че поне една група е отворена
-                    $haveOpenedGroup=TRUE;
+                    $haveOpenedGroup = true;
                 }
                 
                 $key = $this->getKey($t, $uId);
-                if(!isset($this->suggestions[$key])) {
+                if (!isset($this->suggestions[$key])) {
                     $teamMembers++;
-                    $this->suggestions[$key] =  html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
-                    if(EF_USSERS_EMAIL_AS_NICK) {
-                        $this->suggestions[$key] =  html_entity_decode($this->suggestions[$key]);
+                    $this->suggestions[$key] = html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
+                    if (EF_USSERS_EMAIL_AS_NICK) {
+                        $this->suggestions[$key] = html_entity_decode($this->suggestions[$key]);
                     }
                 }
-
-                if($uId == core_Users::getCurrent() && !$ids) {
-                    $group->autoOpen = TRUE;
-                    $haveOpenedGroup = TRUE;
+                
+                if ($uId == core_Users::getCurrent() && !$ids) {
+                    $group->autoOpen = true;
+                    $haveOpenedGroup = true;
                 }
             }
-
-            if(!$teamMembers) {
+            
+            if (!$teamMembers) {
                 unset($this->suggestions[$t . ' team']);
             }
         }
         
-        if(!$this->suggestions) {
+        if (!$this->suggestions) {
             $group = new stdClass();
-            $group->title = tr("Липсват потребители за избор");
+            $group->title = tr('Липсват потребители за избор');
             $group->attr = array('class' => 'team');
-            $group->group = TRUE;
-            $this->suggestions[] = $group; 
+            $group->group = true;
+            $this->suggestions[] = $group;
         }
         
         // Ако не е отворена нито една група
@@ -201,7 +202,7 @@ class type_UserList extends type_Keylist
             if ($firstGroup && is_object($this->suggestions[$firstGroup]) && !$ids) {
                 
                 // Вдигама флаг да се отвори
-                $this->suggestions[$firstGroup]->autoOpen = TRUE;
+                $this->suggestions[$firstGroup]->autoOpen = true;
             }
         }
         
@@ -211,17 +212,16 @@ class type_UserList extends type_Keylist
     
     /**
      * @param mixed $value
-     * 
+     *
      * @see type_Keylist::fromVerbal_()
-     * 
+     *
      * @return mixed
      */
-    function fromVerbal_($value)
+    public function fromVerbal_($value)
     {
         if (is_array($value)) {
             $nValArr = array();
             foreach ($value as $v) {
-                
                 $userId = $this->getUserIdFromKey($v);
                 
                 $nValArr[$userId] = $userId;
@@ -232,55 +232,51 @@ class type_UserList extends type_Keylist
         
         return parent::fromVerbal_($value);
     }
-
-
-	/**
+    
+    
+    /**
      * Форматира числото в удобна за четене форма
      */
-    function toVerbal_($value)
+    public function toVerbal_($value)
     {
-    	$ids = keylist::toArray($value);
+        $ids = keylist::toArray($value);
         
         $uar = core_Users::getRolesWithUsers();
         
         $res = '';
-
-        foreach($ids as $id) {
-
-            if(!($nick = $uar['r'][$id]->nick)) {
- 
+        
+        foreach ($ids as $id) {
+            if (!($nick = $uar['r'][$id]->nick)) {
                 $res = parent::toVerbal_($value);
                 break;
             }
-
+            
             $res .= ($res ? ', ' : '') . $nick;
         }
- 
+        
         return $res;
     }
-
     
     
     /**
      * Рендира HTML инпут поле
-     * 
-     * @param string $name
-     * @param string $value
+     *
+     * @param string     $name
+     * @param string     $value
      * @param array|NULL $attr
-     * 
+     *
      * @see type_Keylist::renderInput_()
-     * 
+     *
      * @return core_ET
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $this->prepareSuggestions($value);
         
         if ($value) {
-            
             $teams = core_Roles::getRolesByType('team');
             
-            if(is_array($value)) {
+            if (is_array($value)) {
                 $value = $this->fromArray($value);
             }
             
@@ -304,7 +300,7 @@ class type_UserList extends type_Keylist
             
             $value = $nValArr;
         }
-    
+        
         $res = parent::renderInput_($name, $value, $attr);
         
         return $res;
@@ -313,45 +309,46 @@ class type_UserList extends type_Keylist
     
     /**
      * Преобразува от масив с индекси ключовете към keylist
-     * 
+     *
      * @param array $value
-     * 
+     *
      * @see type_Keylist::fromArray()
-     * 
+     *
      * @return string
      */
-    static function fromArray($value)
+    public static function fromArray($value)
     {
         $res = '';
         
         if (is_array($value) && !empty($value)) {
-
+            
             // Сортираме ключовете на масива, за да има
             // стринга винаги нормализиран вид - от по-малките към по-големите
             ksort($value);
-
-            foreach ($value as $id => $val)
-            {
-                if (empty($id) && empty($val)) continue;
+            
+            foreach ($value as $id => $val) {
+                if (empty($id) && empty($val)) {
+                    continue;
+                }
                 
-                $res .= "|" . $id;
+                $res .= '|' . $id;
             }
             
-            $res = $res . "|";
+            $res = $res . '|';
         }
         
         return $res;
     }
     
     
-	/**
+    /**
      * Проверява дали подадения ключ го има в опциите и ако го няма връща първия възможен
-     * 
+     *
      * @param string $key - Ключа от опциите
-     * 
+     *
      * @return string - Стринг, с възможните стойности
      */
-    function fitInDomain($key)
+    public function fitInDomain($key)
     {
         // Подготвяме опциите
         $this->prepareSuggestions();
@@ -387,7 +384,7 @@ class type_UserList extends type_Keylist
                     // Добавяме масива
                     $retTypeArr[$t] = $t;
                 }
-            }    
+            }
         }
         
         // Връщаме keylist
@@ -400,17 +397,16 @@ class type_UserList extends type_Keylist
      */
     public function getRoles()
     {
-        
-    	return $this->params['roles'];
+        return $this->params['roles'];
     }
     
     
     /**
      * Връща ключа от ид на ролята и потребителя
-     * 
-     * @param integer $roleId
-     * @param integer $uId
-     * 
+     *
+     * @param int $roleId
+     * @param int $uId
+     *
      * @return string
      */
     protected function getKey($roleId, $uId)
@@ -423,10 +419,10 @@ class type_UserList extends type_Keylist
     
     /**
      * Връща id на потребителя, от подадения стринг
-     * 
+     *
      * @param string $key
-     * 
-     * @return integer
+     *
+     * @return int
      */
     protected function getUserIdFromKey($key)
     {

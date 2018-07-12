@@ -1,119 +1,118 @@
 <?php
 
 
-
 /**
- * Драйвер за IP сензор Teracom TCW-121B - следи състоянието на цифров и аналогов входowe
- *
+ * Драйвер за IP сензор Teracom TCW-121B - следи състоянието на цифрови и аналогови входове
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Тераком TCW122B
  */
-class teracom_TCW122B  extends sens2_ProtoDriver
+class teracom_TCW122B extends sens2_ProtoDriver
 {
-    
     /**
      * Заглавие на драйвера
      */
-    var $title = 'TCW122B';
+    public $title = 'TCW122B';
     
     
     /**
      * Описание на входовете на драйвера
      */
-    var $inputs = array(
-        'T1'   => array('caption'=>'Температура 1', 'uom'=>'ºC', 'xmlPath'=>'/Temperature1[1]'),
-        'T2'   => array('caption'=>'Температура 2', 'uom'=>'ºC', 'xmlPath'=>'/Temperature2[1]'),
-        'Hr1'  => array('caption'=>'Влажност 1', 'uom'=>'%', 'xmlPath'=>'/Humidity1[1]'),
-        'Hr2'  => array('caption'=>'Влажност 2', 'uom'=>'%', 'xmlPath'=>'/Humidity2[1]'),
-    	'InD1' => array('caption'=>'Цифров вход 1', 'uom' => '', 'xmlPath'=>'/DigitalInput1[1]'),
-        'InD2' => array('caption'=>'Цифров вход 2', 'uom' => '', 'xmlPath'=>'/DigitalInput2[1]'),
-        'InA1' => array('caption'=>'Аналогов вход 1', 'uom' => 'V', 'xmlPath'=>'/AnalogInput1[1]'),
-        'InA2' => array('caption'=>'Аналогов вход 2', 'uom' => 'V', 'xmlPath'=>'/AnalogInput2[1]')
+    public $inputs = array(
+        'T1' => array('caption' => 'Температура 1', 'uom' => 'ºC', 'xmlPath' => '/Temperature1[1]'),
+        'T2' => array('caption' => 'Температура 2', 'uom' => 'ºC', 'xmlPath' => '/Temperature2[1]'),
+        'Hr1' => array('caption' => 'Влажност 1', 'uom' => '%', 'xmlPath' => '/Humidity1[1]'),
+        'Hr2' => array('caption' => 'Влажност 2', 'uom' => '%', 'xmlPath' => '/Humidity2[1]'),
+        'InD1' => array('caption' => 'Цифров вход 1', 'uom' => '', 'xmlPath' => '/DigitalInput1[1]'),
+        'InD2' => array('caption' => 'Цифров вход 2', 'uom' => '', 'xmlPath' => '/DigitalInput2[1]'),
+        'InA1' => array('caption' => 'Аналогов вход 1', 'uom' => 'V', 'xmlPath' => '/AnalogInput1[1]'),
+        'InA2' => array('caption' => 'Аналогов вход 2', 'uom' => 'V', 'xmlPath' => '/AnalogInput2[1]')
     );
     
     
     /**
      * Описание на изходите на драйвера
      */
-    var $outputs = array(
-        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'?r1'),
-        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'?r2')
+    public $outputs = array(
+        'OutD1' => array('caption' => 'Цифров изход 1', 'uom' => '', 'xmlPath' => '/Relay1[1]', 'cmd' => '?r1'),
+        'OutD2' => array('caption' => 'Цифров изход 2', 'uom' => '', 'xmlPath' => '/Relay2[1]', 'cmd' => '?r2')
     );
-
-
+    
+    
     /**
      *  Информация за входните портове на устройството
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
-     * @return  array
+     * @return array
      */
-    function getInputPorts($config = NULL)
+    public function getInputPorts($config = null)
     {
-        foreach($this->inputs as $name => $params) {
+        foreach ($this->inputs as $name => $params) {
             $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
-
-        return $res; ;
+        
+        return $res;
     }
-
+    
     
     /**
      * Информация за изходните портове на устройството
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
-     * @return  array
+     * @return array
      */
-    function getOutputPorts()
+    public function getOutputPorts()
     {
-        foreach($this->outputs as $name => $params) {
+        foreach ($this->outputs as $name => $params) {
             $res[$name] = array('caption' => $params['caption'], 'uom' => $params['uom']);
         }
-
-        return $res; ;
+        
+        return $res;
     }
-
+    
     
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
      * @param core_Form
      */
-    function prepareConfigForm($form)
+    public function prepareConfigForm($form)
     {
         $form->FNC('ip', 'ip', 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory, value=admin, notNull');
         $form->FNC('password', 'password(show)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
-
+        
         $form->rec->port = 80;
     }
     
-
+    
     /**
      * Прочита стойностите от сензорните входове
      *
-     * @see  sens2_DriverIntf
+     * @see  sens2_ControllerIntf
      *
-     * @param   array   $inputs
-     * @param   array   $config
-     * @param   array   $persistentState
-     * 
-     * @return  mixed
+     * @param array $inputs
+     * @param array $config
+     * @param array $persistentState
+     *
+     * @return mixed
      */
-    function readInputs($inputs, $config, &$persistentState)
-    {   
+    public function readInputs($inputs, $config, &$persistentState)
+    {
         // Подготвяме URL-то
-        $url = new ET("http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml");
+        $url = new ET('http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml');
         $url->placeArray($config);
         $url = $url->getContent();
         
@@ -122,10 +121,10 @@ class teracom_TCW122B  extends sens2_ProtoDriver
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         $xml = curl_exec($ch);
         curl_close($ch);
-     
+        
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
@@ -141,27 +140,27 @@ class teracom_TCW122B  extends sens2_ProtoDriver
             
             return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
         }
-
+        
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
-            if($inputs[$name]) {
+            if ($inputs[$name]) {
                 $res[$name] = $result[$details['xmlPath']];
             }
         }
         
         // Извличаме състоянията на изходите от парсирания XML
         foreach ($this->outputs as $name => $details) {
-            if($inputs[$name]) {
+            if ($inputs[$name]) {
                 $res[$name] = $result[$details['xmlPath']];
             }
         }
         
         // Цифровизираме стойностите
-        foreach($res as $name => $value) {
-            if($value) {
+        foreach ($res as $name => $value) {
+            if ($value) {
                 switch (strtoupper($value)) {
                     case 'ON':
-					case 'OPEN' :
+                    case 'OPEN':
                         $res[$name] = 1;
                         break;
                     case 'OFF':
@@ -173,41 +172,39 @@ class teracom_TCW122B  extends sens2_ProtoDriver
                 }
             }
         }
-
+        
         return $res;
     }
-
     
     
     /**
      * Записва стойностите на изходите на контролера
      *
-     * @param   array   $outputs            масив със системните имена на изходите и стойностите, които трябва да бъдат записани
-     * @param   array   $config             конфигурациони параметри
-     * @param   array   $persistentState    персистентно състояние на контролера от базата данни
+     * @param array $outputs         масив със системните имена на изходите и стойностите, които трябва да бъдат записани
+     * @param array $config          конфигурациони параметри
+     * @param array $persistentState персистентно състояние на контролера от базата данни
      *
-     * @return  array                       Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     * @return array Масив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
      */
-    function writeOutputs($outputs, $config, &$persistentState)
+    public function writeOutputs($outputs, $config, &$persistentState)
     {
         $baseUrl = "http://{$config->user}:{$config->password}@{$config->ip}:{$config->port}/status.xml";
         
         foreach ($this->outputs as $out => $attr) {
-            if(isset($outputs[$out])) {
-                $res[$out] = $baseUrl . $attr['cmd'] . "=" . $outputs[$out];
+            if (isset($outputs[$out])) {
+                $res[$out] = $baseUrl . $attr['cmd'] . '=' . $outputs[$out];
             }
         }
         
         // Превключваме релетата
         foreach ($res as $out => $cmd) {
-            $ch = curl_init("$cmd");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 3); 
+            $ch = curl_init("${cmd}");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
             $res[$out] = curl_exec($ch);
             curl_close($ch);
         }
-
+        
         return $res;
     }
-    
 }

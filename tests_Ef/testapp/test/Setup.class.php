@@ -13,6 +13,6 @@ class test_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        return $html;        
+        return $html;
     }
 }

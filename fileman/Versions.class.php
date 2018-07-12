@@ -1,64 +1,61 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_Versions' -
  *
  *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_Versions extends core_Manager {
-    
-    
+class fileman_Versions extends core_Manager
+{
     /**
      * Заглавие на модула
      */
-    var $title = 'Версии';
+    public $title = 'Версии';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'debug';
-	
-	
-	/**
-	 * 
-	 */
-	var $canAdd = 'no_one';
-	
-	
+     * Кой може да го разглежда?
+     */
+    public $canList = 'debug';
+    
+    
+    public $canAdd = 'no_one';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         cls::get('fileman_Files');
         
         // Файлов манипулатор - уникален 8 символен низ от малки лат. букви и цифри
         // Генериран случайно, поради което е труден за налучкване
-        $this->FLD("fileHnd", 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')', array('notNull' => TRUE, 'caption' => 'Манипулатор'));
+        $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')', array('notNull' => true, 'caption' => 'Манипулатор'));
         
         // Версия на данните на файла
-        $this->FLD("dataId", "key(mvc=fileman_Data, select=id)", array('caption' => 'Данни Id'));
+        $this->FLD('dataId', 'key(mvc=fileman_Data, select=id)', array('caption' => 'Данни Id'));
         
         // От кога са били валидни тези данни
-        $this->FLD("from", "datetime(format=smartTime)", array('caption' => 'Валидност->от'));
+        $this->FLD('from', 'datetime(format=smartTime)', array('caption' => 'Валидност->от'));
         
         // До кога са били валидни тези данни
-        $this->FLD("to", "datetime(format=smartTime)", array('caption' => 'Валидност->до'));
+        $this->FLD('to', 'datetime(format=smartTime)', array('caption' => 'Валидност->до'));
         
         // Състояние на файла
-        $this->FLD("state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)", array('caption' => 'Състояние'));
+        $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Оттеглен)', array('caption' => 'Състояние'));
         
-        $this->FLD("name", 'varchar(collate=ascii_bin)', 'caption=Име на файла, notNull');
+        $this->FLD('name', 'varchar(collate=ascii_bin)', 'caption=Име на файла, notNull');
         
         $this->FLD('versionName', 'varchar', 'caption=Версия');
         
@@ -72,13 +69,13 @@ class fileman_Versions extends core_Manager {
     
     /**
      * Създава нова версия на файла
-     * 
+     *
      * @param string $fileHnd - Манипулатора на файла
      * @param fileman_Data - id на данните
-     * 
+     *
      * @return fileman_Versions $id - id' то на записа
      */
-    public static function createNew($fileHnd, $newDataId, $versionName = NULL)
+    public static function createNew($fileHnd, $newDataId, $versionName = null)
     {
         $query = self::getQuery();
         $query->where(array("#fileHnd = '[#1#]'", $fileHnd));
@@ -90,7 +87,7 @@ class fileman_Versions extends core_Manager {
         // Определяме името на версията
         if (!$versionName) {
             if ($rec && $rec->versionName) {
-                list($version,$subVersion) = explode('.', $rec->versionName);
+                list($version, $subVersion) = explode('.', $rec->versionName);
                 if ($subVersion && is_numeric($subVersion)) {
                     $nVersion = $version . '.' . ++$subVersion;
                 } else {
@@ -135,7 +132,6 @@ class fileman_Versions extends core_Manager {
             
             // Нотифицираме създателя на документа за промянатата
             if ($fRec->createdOn > 0 && ($fRec->createdOn != core_Users::getCurrent())) {
-                
                 $currUserNick = core_Users::getNick($fRec->createdBy);
                 $currUserNick = type_Nick::normalize($currUserNick);
                 
@@ -159,7 +155,7 @@ class fileman_Versions extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      *
-     * @return boolean
+     * @return bool
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {

@@ -1,82 +1,81 @@
 <?php
 
 
-
 /**
  * Мениджър на баланси
  *
  *
  * @category  bgerp
  * @package   budget
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Баланси
  */
 class budget_Balances extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
-    var $title = 'Баланси';
+    public $title = 'Баланси';
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Баланс";
+    public $singleTitle = 'Баланс';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew, 
                     budget_Wrapper';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,budget';
+    public $canRead = 'ceo,budget';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,budget';
+    public $canEdit = 'ceo,budget';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'budget,ceo';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'budget,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,budget';
+    public $canAdd = 'ceo,budget';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,budget';
+    public $canView = 'ceo,budget';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,budget';
+    public $canDelete = 'ceo,budget';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'fromDate, toDate, state, accountId,
+    public $listFields = 'fromDate, toDate, state, accountId,
                        baseQuantity, baseAmount, debitQuantity, debitAmount, creditQuantity, 
                        creditAmount, blQuantity, blAmount';
     
@@ -84,15 +83,14 @@ class budget_Balances extends core_Manager
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-    	
         $this->FLD('fromDate', 'date', 'caption=Период->от');
         $this->FLD('toDate', 'date', 'caption=Период->до');
         $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип');
@@ -106,5 +104,4 @@ class budget_Balances extends core_Manager
         $this->FLD('blQuantity', 'double', 'caption=Салдо->К-во');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума');
     }
- 
 }

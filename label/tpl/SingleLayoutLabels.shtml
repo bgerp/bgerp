@@ -18,5 +18,5 @@
     <!--ET_END Object-->
     
     <div style='margin-bottom: 5px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
-    <div><span class="quiet">|Модифициранe|*: </span> |от|* [#modifiedBy#] |на|* [#modifiedOn#]</div>
+    <div><span class="quiet">|Модифициране|*: </span> |от|* [#modifiedBy#] |на|* [#modifiedOn#]</div>
 </div>

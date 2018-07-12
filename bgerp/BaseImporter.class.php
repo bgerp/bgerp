@@ -1,28 +1,28 @@
 <?php
 
 
-
 /**
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class bgerp_BaseImporter extends core_Manager {
-    
-    
+class bgerp_BaseImporter extends core_Manager
+{
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'bgerp_ImportIntf';
+    public $interfaces = 'bgerp_ImportIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = "CSV импорт";
+    public $title = 'CSV импорт';
     
     /*
      * Имплементация на bgerp_ImportIntf
@@ -32,7 +32,7 @@ class bgerp_BaseImporter extends core_Manager {
     /**
      * Инициализиране драйвъра
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $this->mvc = $params['mvc'];
     }
@@ -48,10 +48,10 @@ class bgerp_BaseImporter extends core_Manager {
         $fields = array();
         $Dfields = $this->mvc->selectFields();
         
-        foreach($Dfields as $name => $fld){
-            if($fld->input != 'none' && $fld->input != 'hidden' &&
+        foreach ($Dfields as $name => $fld) {
+            if ($fld->input != 'none' && $fld->input != 'hidden' &&
                 $fld->kind != 'FNC' && !($fld->type instanceof type_Enum) &&
-                !($fld->type instanceof type_Key) && !($fld->type instanceof type_Key2) && !($fld->type instanceof type_KeyList)){
+                !($fld->type instanceof type_Key) && !($fld->type instanceof type_Key2) && !($fld->type instanceof type_KeyList)) {
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
         }
@@ -64,9 +64,11 @@ class bgerp_BaseImporter extends core_Manager {
     
     /**
      * Инпортиране на csv-файл в даден мениджър
-     * @param array $rows - масив с обработени csv данни, получен от Експерта в bgerp_Import
+     *
+     * @param array $rows   - масив с обработени csv данни, получен от Експерта в bgerp_Import
      * @param array $fields - масив с съответстията на колоните от csv-то и
-     * полетата от модела array[{поле_oт_модела}] = {колона_от_csv}
+     *                      полетата от модела array[{поле_от_модела}] = {колона_от_csv}
+     *
      * @return string $html - съобщение с резултата
      */
     public function import($rows, $fields)
@@ -88,11 +90,11 @@ class bgerp_BaseImporter extends core_Manager {
         
         $errArr = array();
         
-        foreach ($rows as $row){
+        foreach ($rows as $row) {
             $rec = new stdClass();
             
-            foreach ($fields as $name => $position){
-                if ($position != -1){
+            foreach ($fields as $name => $position) {
+                if ($position != -1) {
                     $value = $row[$position];
                     if (isset($oFields[$name]['notColumn'])) {
                         $value = $position;
@@ -104,7 +106,7 @@ class bgerp_BaseImporter extends core_Manager {
                     if (isset($rec->{$name})) {
                         if ($this->mvc->getFieldType($name) instanceof fileman_FileType) {
                             $bucketId = fileman_Buckets::fetchByName('import');
-                            $rec->{$name} = fileman_Get::getFile((object)array('url' => $rec->{$name}, 'bucketId' => $bucketId));
+                            $rec->{$name} = fileman_Get::getFile((object) array('url' => $rec->{$name}, 'bucketId' => $bucketId));
                         }
                     }
                 }
@@ -113,13 +115,13 @@ class bgerp_BaseImporter extends core_Manager {
             // Ако записа е уникален, създаваме нов, ако не е обновяваме стария
             $fieldsUn = array();
             
-            if ($this->mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) {
+            if ($this->mvc->invoke('BeforeImportRec', array(&$rec)) === false) {
                 $errArr[] = $row;
                 
                 continue ;
             }
             
-            if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
+            if (!$this->mvc->isUnique($rec, $fieldsUn, $exRec)) {
                 $rec->id = $exRec->id;
             }
             
@@ -152,9 +154,9 @@ class bgerp_BaseImporter extends core_Manager {
             
             $errCnt = count($errArr);
             if ($errCnt == 1) {
-                $errCntW  = "1 |запис|. |Записан е в|*: ";
+                $errCntW = '1 |запис|. |Записан е в|*: ';
             } else {
-                $errCntW  = $errCnt . " |записa|. |Записани са в|*: ";
+                $errCntW = $errCnt . ' |записа|. |Записани са в|*: ';
             }
             status_Messages::newStatus('|Грешка в|* ' . $errCntW . fileman::getLinkToSingle($fh));
         }
@@ -174,7 +176,7 @@ class bgerp_BaseImporter extends core_Manager {
         
         if (isDebug()) {
             $html .= ($html) ? '<br />' : '';
-            $html .= "|Общо време|*: " . round(core_Debug::$timers['import']->workingTime, 2);
+            $html .= '|Общо време|*: ' . round(core_Debug::$timers['import']->workingTime, 2);
         }
         
         return $html;
@@ -186,6 +188,6 @@ class bgerp_BaseImporter extends core_Manager {
      */
     public function isApplicable($className)
     {
-        return TRUE;
+        return true;
     }
 }

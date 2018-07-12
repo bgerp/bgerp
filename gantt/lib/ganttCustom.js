@@ -159,7 +159,7 @@ function ganttRender(elem,ganttData) {
 		//височината на TH-тата + разстоянието, което искаме да има от началото на клетката
 		var headerHeight = 2 * thHeight + marginFromCell;
 		
-		//височината на TД-тата
+		//височината на ТД-тата
 		var tdHeight = currentGraphChart.find('tbody tr:last td:last').outerHeight() ;
 		
 		//начало и край на таблицата в секунди

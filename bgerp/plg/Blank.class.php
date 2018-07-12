@@ -1,28 +1,30 @@
 <?php
 
 
-
 /**
  * Добавя бланка в началото на документите, които се изпращат или принтират
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_Blank extends core_Plugin
 {
-    
-    
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if (Mode::is('noBlank', TRUE)) return;
+        if (Mode::is('noBlank', true)) {
+            
+            return;
+        }
         
         //Ако принтираме или пращаме документа
         if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {
@@ -48,7 +50,7 @@ class bgerp_plg_Blank extends core_Plugin
             }
             
             // URL за за src="..." атрибута, на <img> тага на QR баркода
-            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
+            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $mid), 'absolute', true, array('m'));
             
             // Създаваме <img> елемент за QR баркода
             $qrImg = ht::createElement('img', array('alt' => 'View doc', 'width' => 87, 'height' => 87, 'src' => $qrImgSrc));
@@ -70,15 +72,15 @@ class bgerp_plg_Blank extends core_Plugin
     
     /**
      * Връща линк за показване на документа във външната част
-     * 
-     * @param integer $cid
+     *
+     * @param int    $cid
      * @param string $mid
-     * 
+     *
      * @return string
      */
     public static function getUrlForShow($cid, $mid)
     {
-        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', TRUE, array('m'));
+        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute', true, array('m'));
         
         return $url;
     }
@@ -87,7 +89,7 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Връща логото на нашата компания
      */
-    static function getCompanyLogoUrl()
+    public static function getCompanyLogoUrl()
     {
         // Езика на писмото
         $lg = core_Lg::getCurrent();
@@ -130,7 +132,7 @@ class bgerp_plg_Blank extends core_Plugin
             }
         }
         
-        $isAbsolute = (boolean)Mode::is('text', 'xhtml');
+        $isAbsolute = (boolean) Mode::is('text', 'xhtml');
         
         // Създаваме thumbnail с определени размери
         $thumb = new thumb_Img(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => 'companyLog'));

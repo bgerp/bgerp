@@ -7,49 +7,46 @@
  *
  * @category  bgerp
  * @package   log
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doclog_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'doclog_Documents';
+    public $startCtr = 'doclog_Documents';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Хронология на действията с документите";
+    public $info = 'Хронология на действията с документите';
     
     
-    /**
-     * 
-     */
     public $managers = array(
-            'doclog_Documents',
-            'doclog_Files',
-            'doclog_Used',
-            'migrate::moveUsed'
-        );
-
+        'doclog_Documents',
+        'doclog_Files',
+        'doclog_Used',
+        'migrate::moveUsed'
+    );
+    
     
     /**
      * Миграция за преместване на използваният на документите в отделен модел
@@ -65,15 +62,21 @@ class doclog_Setup extends core_ProtoSetup
             $nRec->usedContainerId = $rec->containerId;
             
             try {
-                foreach ((array)$rec->data->{$act} as $key => $vRec) {
-                    if (!$vRec->id) continue;
+                foreach ((array) $rec->data->{$act} as $key => $vRec) {
+                    if (!$vRec->id) {
+                        continue;
+                    }
                     
-                    if (!cls::load($vRec->class, TRUE)) continue;
+                    if (!cls::load($vRec->class, true)) {
+                        continue;
+                    }
                     
                     $inst = cls::get($vRec->class);
                     $usedCid = $inst->fetchField($vRec->id, 'containerId');
                     
-                    if (!$usedCid) continue;
+                    if (!$usedCid) {
+                        continue;
+                    }
                     
                     $nRec->containerId = $usedCid;
                     
@@ -83,7 +86,7 @@ class doclog_Setup extends core_ProtoSetup
                         $nRec->createdBy = core_Users::fetchField(array("#nick = '[#1#]'", $vRec->author));
                     }
                     
-                    doclog_Used::save($nRec, NULL, 'IGNORE');
+                    doclog_Used::save($nRec, null, 'IGNORE');
                     unset($rec->data->{$act}[$key]);
                 }
                 
@@ -101,7 +104,6 @@ class doclog_Setup extends core_ProtoSetup
                 $threadId = doc_Containers::fetchField($nRec->usedContainerId, 'threadId');
                 doclog_Documents::removeHistoryFromCache($threadId);
             } catch (ErrorException $e) {
-                
                 reportException($e);
                 
                 continue;

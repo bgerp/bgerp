@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Задаване на локация
  */
@@ -20,79 +21,81 @@ defIfNot('WUND_API_KEY', '');
  *
  * @category  bgerp
  * @package   wund
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class wund_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'wund_Forecasts';
+    public $startCtr = 'wund_Forecasts';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Прогнози за времето от Wunderground.com";
+    public $info = 'Прогнози за времето от Wunderground.com';
+    
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-            
-    // Api key за Wunderground.com
-            'WUND_API_KEY' => array ('varchar', 'mandatory, caption=Ключ от http://www.wunderground.com/weather/api/->Ключ за '),
-            
-            // Задаване на мястото по подразбиране
-            'WUND_DEFAULT_LOCATION' => array ('varchar', 'caption=Задаване на локация->Държава/Град, suggestions=Bulgaria/Sofia|Bulgaria/Veliko Tarnovo|Bulgaria/Varna|Bulgaria/Burgas|Bulgaria/Plovdiv|Bulgaria/Pleven|Bulgaria/Stara Zagora'),
-       
-        );
-    
+    public $configDescription = array(
         
+        // Api key за Wunderground.com
+        'WUND_API_KEY' => array('varchar', 'mandatory, caption=Ключ от http://www.wunderground.com/weather/api/->Ключ за '),
+        
+        // Задаване на мястото по подразбиране
+        'WUND_DEFAULT_LOCATION' => array('varchar', 'caption=Задаване на локация->Държава/Град, suggestions=Bulgaria/Sofia|Bulgaria/Veliko Tarnovo|Bulgaria/Varna|Bulgaria/Burgas|Bulgaria/Plovdiv|Bulgaria/Pleven|Bulgaria/Stara Zagora'),
+    
+    );
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-            'wund_Forecasts',
-        );
+    public $managers = array(
+        'wund_Forecasts',
+    );
+    
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-       	$res = parent::install();
-       	
+        $res = parent::install();
+        
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'Get weather Forecasts';
         $rec->description = 'Извличане на прогнози за времето';
         $rec->controller = 'wund_Forecasts';
         $rec->action = 'Update';
-        $rec->period = 3*60;
+        $rec->period = 3 * 60;
         $rec->offset = rand(2, 150);
         $rec->delay = 0;
         $rec->timeLimit = 50;
@@ -101,7 +104,7 @@ class wund_Setup extends core_ProtoSetup
         // Инсталираме wund_Plugin
         $Plugins = cls::get('core_Plugins');
         $res .= $Plugins->installPlugin('Weather Forecast', 'wund_Plugin', 'cal_Calendar', 'private');
-         
+        
         return $res;
     }
     
@@ -109,11 +112,11 @@ class wund_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-       // Изтриване на пакета от менюто
-       $res .= bgerp_Menu::remove($this);
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
         
-       return $res;
+        return $res;
     }
 }

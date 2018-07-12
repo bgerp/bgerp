@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_Cls' ['cls'] - Функции за работа с класове
  *
@@ -14,19 +13,20 @@
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Cls
 {
-    
     /**
      * Масив в който се съхраняват всички инстанси на сингълтон обекти
      */
-    static $singletons = array();
+    public static $singletons = array();
     
     
     /**
@@ -37,21 +37,21 @@ class core_Cls
      * - главна буква преди собственото име на класа
      *
      * @param mixed $class
-     * @param boolean $save
+     * @param bool  $save
+     *
      * @return string
      */
-    static function getClassName($className)
+    public static function getClassName($className)
     {
-        if(is_object($className)) {
-            if(isset($className->className)) {
-
+        if (is_object($className)) {
+            if (isset($className->className)) {
+                
                 return $className->className;
-            } else {
-
-                return get_class($className);
             }
+            
+            return get_class($className);
         }
-
+        
         static $classNames = array();
         
         if (!stripos($className, '_')) {
@@ -59,30 +59,33 @@ class core_Cls
         }
         
         $cln = $className;
-
-        if(!isset($classNames[$cln])) {
         
+        if (!isset($classNames[$cln])) {
+            
             // Ако името е число, тогава го вземаме от coreClass
-            if(is_numeric($className)) {
+            if (is_numeric($className)) {
                 $className = core_Classes::getName($className);
                 
-                if(!$className) return FALSE;
+                if (!$className) {
+                    
+                    return false;
+                }
             }
             
             // Ако се използва съкратено име, то името на приложението
             // се прибавя като приставка и долна черта отпред
-            if (($last = strrpos($className, '_')) === FALSE) {
+            if (($last = strrpos($className, '_')) === false) {
                 $className = EF_APP_CODE_NAME . '_' . $className;
-            } elseif($last > 0) {
+            } elseif ($last > 0) {
                 // Капитализираме буквата след последната черта
                 if ($last < strlen($className)) {
                     $className{$last + 1} = strtoupper($className{$last + 1});
                 } else {
                     // Некоректно има на клас
-                    error("@Некоректно има на клас", $className);
+                    error('@Некоректно има на клас', $className);
                 }
             }
-
+            
             $classNames[$cln] = $className;
         }
         
@@ -99,36 +102,35 @@ class core_Cls
      * @param string $class
      * @param string $patch
      * @param string $suffix
+     *
      * @return mixed
      */
-    static function load($className, $silent = FALSE, $suffix = ".class.php")
+    public static function load($className, $silent = false, $suffix = '.class.php')
     {
         $fullClassName = cls::getClassName($className);
         
-        if($fullClassName === FALSE) {
-            
+        if ($fullClassName === false) {
             if (!$silent) {
                 // Няма такъв клас
                 error('Няма такъв клас', $className);
             }
             
-            return FALSE;
+            return false;
         }
         
         // Проверяваме дали класа вече не съществува, и ако е така не правим нищо
-        if (class_exists($fullClassName, FALSE)) {
+        if (class_exists($fullClassName, false)) {
             
-            return TRUE;
+            return true;
         }
         
         // Проверяваме дали името на класа съдържа само допустими символи
-        if (!preg_match("/^[a-z0-9_]+$/i", $fullClassName)) {
-            
+        if (!preg_match('/^[a-z0-9_]+$/i', $fullClassName)) {
             if (!$silent) {
-                error("@Некоректно име на клас", "'{$className}'");
+                error('@Некоректно име на клас', "'{$className}'");
             }
             
-            return FALSE;
+            return false;
         }
         
         // Определяме името на файла, в който трябва да се намира класа
@@ -139,30 +141,28 @@ class core_Cls
         
         // Връщаме грешка, ако файлът не съществува или не може да се чете
         if (!$filePath) {
-            
             if (!$silent) {
-                error("@Файлът с кода на класа не съществува или не е четим", "'{$fileName}'");
+                error('@Файлът с кода на класа не съществува или не е четим', "'{$fileName}'");
             }
             
-            return FALSE;
+            return false;
         }
         
         // Включваме файла
-        if(!include_once($filePath)) {
-            error("@Не може да бъде парсиран файла", "'{$className}'", "'{$fileName}'");
+        if (!include_once($filePath)) {
+            error('@Не може да бъде парсиран файла', "'{$className}'", "'{$fileName}'");
         }
         
         // Проверяваме дали включения файл съдържа търсения клас
-        if (!class_exists($fullClassName, FALSE)) {
-            
+        if (!class_exists($fullClassName, false)) {
             if (!$silent) {
-                error("@Не може да се намери класа в посочения файл", "'{$className}'", "'{$fileName}'");
+                error('@Не може да се намери класа в посочения файл', "'{$className}'", "'{$fileName}'");
             }
             
-            return FALSE;
+            return false;
         }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -173,9 +173,10 @@ class core_Cls
      *
      * @param string $class
      * @param array  $initArr
+     *
      * @return object
      */
-    static function &get($class, $initArr = NULL)
+    public static function &get($class, $initArr = null)
     {
         $class = cls::getClassName($class);
         
@@ -187,8 +188,8 @@ class core_Cls
                 core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
                 
                 // Ако класа е наследник на core_BaseClass предизвикваме събитие, че е бил инстанциран
-                if(core_Cls::$singletons[$class] instanceof core_BaseClass){
-                	core_Cls::$singletons[$class]->invoke('AfterInstance');
+                if (core_Cls::$singletons[$class] instanceof core_BaseClass) {
+                    core_Cls::$singletons[$class]->invoke('AfterInstance');
                 }
             }
             
@@ -196,9 +197,9 @@ class core_Cls
         } else {
             $obj = &cls::createObject($class, $initArr);
         }
-
-        if(isset($obj->newClassName)) {
-
+        
+        if (isset($obj->newClassName)) {
+            
             return self::get($obj->newClassName, $initArr);
         }
         
@@ -213,9 +214,10 @@ class core_Cls
      *
      * @param string $class
      * @param array  $initArr
+     *
      * @return object
      */
-    static function &createObject($class, &$initArr = NULL)
+    public static function &createObject($class, &$initArr = null)
     {
         $obj = new $class;
         
@@ -224,19 +226,19 @@ class core_Cls
         
         if (is_a($Plugins, 'core_Plugins')) {
             try {
-            	$Plugins->attach($obj);
-            } catch (core_exception_Expect $e) {}
+                $Plugins->attach($obj);
+            } catch (core_exception_Expect $e) {
+            }
         }
         
         // Ако има допълнителни параметри - използва ги за инициализиране
         if (is_callable(array($obj, 'init'))) {
-            
             $res = call_user_func(array(&$obj, 'init'), $initArr);
             
-            // Ако в резултат на инициализацията е върнат 
+            // Ако в резултат на инициализацията е върнат
             // обект, то той се връща като резултат
             if (is_object($res)) {
-            	
+                
                 return $res;
             }
         }
@@ -250,9 +252,10 @@ class core_Cls
      *
      * @param string $class
      * @param string $interface
-     * @return boolean
+     *
+     * @return bool
      */
-    static function isSingleton($class)
+    public static function isSingleton($class)
     {
         return is_callable(array($class, '_Singleton'));
     }
@@ -265,9 +268,10 @@ class core_Cls
      *
      * @param mixed  $class
      * @param string $parrentClass
-     * @return boolean
+     *
+     * @return bool
      */
-    static function isSubclass($class, $parrentClass)
+    public static function isSubclass($class, $parrentClass)
     {
         if (is_object($class)) {
             $className = strtolower(get_class($class));
@@ -279,12 +283,13 @@ class core_Cls
         $parrentClassLw = strtolower($parrentClass);
         
         do {
-            if ($parrentClassLw === $className)
-            
-            return TRUE;
-        } while (FALSE != ($className = strtolower(get_parent_class($className))));
+            if ($parrentClassLw === $className) {
+                
+                return true;
+            }
+        } while (false != ($className = strtolower(get_parent_class($className))));
         
-        return FALSE;
+        return false;
     }
     
     
@@ -293,14 +298,14 @@ class core_Cls
      * Формат1 за името на функцията: име_на_клас->име_на_метод
      * Формат2 за името на функцията: име_на_клас::име_на_статичен_метод
      */
-    static function callFunctArr($name, $arr)
+    public static function callFunctArr($name, $arr)
     {
-        $call = explode("->", $name);
+        $call = explode('->', $name);
         
         if (count($call) == 2) {
             $call[0] = cls::get($call[0]);
         } else {
-            $call = explode("::", $name);
+            $call = explode('::', $name);
             
             $call = $name;
         }
@@ -312,9 +317,9 @@ class core_Cls
     /**
      * Връща обект - адаптер за интерфейса към посочения клас
      */
-    static function getInterface($interface, $class, $params = NULL, $silent = FALSE)
+    public static function getInterface($interface, $class, $params = null, $silent = false)
     {
-        if(is_scalar($class)) {
+        if (is_scalar($class)) {
             $classObj = cls::get($class, $params);
         } else {
             $classObj = $class;
@@ -322,43 +327,44 @@ class core_Cls
         
         self::prepareInterfaces($classObj);
         
-        if(isset($classObj->interfaces[$interface])) {
+        if (isset($classObj->interfaces[$interface])) {
             $interfaceObj = cls::get($classObj->interfaces[$interface]);
-        } elseif(!$silent) {
-            expect(FALSE, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class));
+        } elseif (!$silent) {
+            expect(false, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class));
         } else {
-            return FALSE;
+            
+            return false;
         }
         
         $interfaceObj->class = $classObj;
         
         return $interfaceObj;
     }
-
-
+    
+    
     /**
      * Подготвя и връща списъка с интерфейси за дадения клас
      * Включват се и родитекските интерфейси
      *
-     * @param   object  $classObj   Обект за който ще бъдат изчислени интерфейсите
+     * @param object $classObj Обект за който ще бъдат изчислени интерфейсите
      *
-     * @return  array               Масив с интерфейсите intfName => intfName
+     * @return array Масив с интерфейсите intfName => intfName
      */
     public static function prepareInterfaces($classObj)
     {
         // Очакваме, че $classObj е обект
         expect(is_object($classObj), $classObj);
         
-        $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
-
+        $classObj->interfaces = arr::make($classObj->interfaces, true);
+        
         // Добавяме интерфейсите на парентите
-        foreach($classObj->interfaces as $intf => $impl) {
-            while($pIntf = get_parent_class($intf)) {
+        foreach ($classObj->interfaces as $intf => $impl) {
+            while ($pIntf = get_parent_class($intf)) {
                 $classObj->interfaces[$pIntf] = $pIntf;
                 $intf = $pIntf;
             }
         }
-
+        
         return $classObj->interfaces;
     }
     
@@ -366,17 +372,17 @@ class core_Cls
     /**
      * Проверява дали посочения клас има дадения интерфейс
      */
-    static function haveInterface($interface, $class)
+    public static function haveInterface($interface, $class)
     {
-        if(is_numeric($interface)){
-    		
-    		// Ако е подадено ид, намираме името на интерфейса с това ид
-    		$interface = core_Interfaces::fetchField($interface, 'name');
-    	}
-    	
-    	/* @var $classObj core_BaseClass */
-    	
-        if(is_scalar($class)) {
+        if (is_numeric($interface)) {
+            
+            // Ако е подадено ид, намираме името на интерфейса с това ид
+            $interface = core_Interfaces::fetchField($interface, 'name');
+        }
+        
+        /* @var $classObj core_BaseClass */
+        
+        if (is_scalar($class)) {
             $classObj = cls::get($class);
         } else {
             $classObj = $class;
@@ -392,9 +398,8 @@ class core_Cls
     /**
      * Връща заглавието на класа от JavaDoc коментар или от свойството $title
      */
-    static function getTitle($class)
+    public static function getTitle($class)
     {
-        
         $rfl = new ReflectionClass($class);
         
         $comment = $rfl->getDocComment();
@@ -403,23 +408,29 @@ class core_Cls
         
         $lines = explode("\n", $comment);
         
-        foreach($lines as $l) {
+        foreach ($lines as $l) {
             $l = ltrim($l, "\n* \r\t");
             
-            if(!isset($firstLine) && $l) {
+            if (!isset($firstLine) && $l) {
                 $firstLine = $l;
             }
             
-            if(strpos($l, '@title') === 0) {
+            if (strpos($l, '@title') === 0) {
                 $titleLine = trim(ltrim(substr($l, 6), ':'));
             }
         }
         
-        if(isset($titleLine)) return $titleLine;
+        if (isset($titleLine)) {
+            
+            return $titleLine;
+        }
         
         $obj = cls::get($class);
         
-        if($obj->title) return $obj->title;
+        if ($obj->title) {
+            
+            return $obj->title;
+        }
         
         return $firstLine;
     }
@@ -428,11 +439,11 @@ class core_Cls
     /**
      * Генерира последователно 'shutdown' събития във всички singleton класове
      */
-    static function shutdown()
+    public static function shutdown()
     {
-        if(count(core_Cls::$singletons)) {
-            foreach(core_Cls::$singletons as $name => $instance) {
-                if($instance instanceof core_BaseClass) {
+        if (count(core_Cls::$singletons)) {
+            foreach (core_Cls::$singletons as $name => $instance) {
+                if ($instance instanceof core_BaseClass) {
                     $instance->invoke('shutdown');
                 }
             }
@@ -447,14 +458,15 @@ class core_Cls
      * 2. дефолт метод с име 'on_After<$methodName>'
      * 3. проверява във всеки плъгин закачен към класа дали
      * има метод 'on_After<$methodName>'
-     * 
-     * @param mixed $class - име на клас или негова инстанция
+     *
+     * @param mixed  $class      - име на клас или негова инстанция
      * @param string $methodName - име на метода
-     * @return boolean TRUE/FALSE - дали дадения метод е имплементиран
+     *
+     * @return bool TRUE/FALSE - дали дадения метод е имплементиран
      */
     public static function existsMethod($class, $methodName)
     {
-    	if(is_scalar($class)) {
+        if (is_scalar($class)) {
             $classObj = cls::get($class);
         } else {
             $classObj = $class;
@@ -464,30 +476,31 @@ class core_Cls
         expect(is_object($classObj), $class);
         
         // Ако има такъв метод в класа или неговото име с долна черта
-        if(method_exists($classObj, $methodName) || method_exists($classObj, "{$methodName}_")){
-        	
-            return TRUE;
+        if (method_exists($classObj, $methodName) || method_exists($classObj, "{$methodName}_")) {
+            
+            return true;
         }
         
         // Ако има on_After метод по подразбиране
-        if(method_exists($classObj, "on_After{$methodName}")){
-        	
-            return TRUE;
+        if (method_exists($classObj, "on_After{$methodName}")) {
+            
+            return true;
         }
         
-        if(is_a($classObj, 'core_BaseClass')) {
+        if (is_a($classObj, 'core_BaseClass')) {
             $plugins = $classObj->getPlugins();
             
-            if(count($plugins)){
-                foreach ($plugins as $name){
-                    if(method_exists($name, "on_After{$methodName}")){
-                        return TRUE;
+            if (count($plugins)) {
+                foreach ($plugins as $name) {
+                    if (method_exists($name, "on_After{$methodName}")) {
+                        
+                        return true;
                     }
                 }
             }
         }
         
-        return FALSE;
+        return false;
     }
     
     
@@ -495,50 +508,51 @@ class core_Cls
      * Връща всички методи, които могат да се извикат от даден клас.
      * Връща неговите методи, наследените методи и методите от
      * неговите плъгини
-     * @param mixed $class - име или инстанция на клас
-     * @param boolean $onlyStatic
-     * 
+     *
+     * @param mixed $class      - име или инстанция на клас
+     * @param bool  $onlyStatic
+     *
      * @return param $array - всички достъпни методи за класа
      */
-    public static function getAccessibleMethods($class, $onlyStatic = FALSE)
+    public static function getAccessibleMethods($class, $onlyStatic = false)
     {
-    	expect($Class = static::get($class));
-    	$accessibleMethods = array();
-    	$Ref = new ReflectionClass($class);
-    	
-    	$refMet = ReflectionMethod::IS_ABSTRACT | ReflectionMethod::IS_FINAL | ReflectionMethod::IS_PRIVATE | ReflectionMethod::IS_PROTECTED | ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC;
-    	
-    	if ($onlyStatic) {
-    	    $refMet = ReflectionMethod::IS_STATIC;
-    	}
-    	
-    	$methodsArr = $Ref->getMethods($refMet);
-    	
-    	// Нормализиране на името на методите
-    	if(count($methodsArr)){
-	    	foreach ($methodsArr as $m){
-	    		$name = str_replace("on_Before", "", $m->name);
-	    		$name = str_replace("on_After", "", $name);
-	    		$name = rtrim($name, '_');
-	    		$name = lcfirst($name);
-	    		$accessibleMethods[$name] = $name;
-	    	}
-    	}
-    	
-    	// За всеки закачен плъгин (ако има) рекурсивно се извиква ф-ята
-    	if(method_exists($Class, 'getPlugins')){
-	    	$plugins = $Class->getPlugins();
-	    	if(count($plugins)){
-	    		foreach ($plugins as $name => $Plugin){
-	    			$plgMethodsArr = static::getAccessibleMethods($Plugin, $onlyStatic);
-	    			
-	    			// Мърджване на методите на плъгина с тези на класа
-	    			$accessibleMethods = array_merge($accessibleMethods, $plgMethodsArr);
-	    		}
-	    	}
-    	}
-    	
-    	return  $accessibleMethods;
+        expect($Class = static::get($class));
+        $accessibleMethods = array();
+        $Ref = new ReflectionClass($class);
+        
+        $refMet = ReflectionMethod::IS_ABSTRACT | ReflectionMethod::IS_FINAL | ReflectionMethod::IS_PRIVATE | ReflectionMethod::IS_PROTECTED | ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC;
+        
+        if ($onlyStatic) {
+            $refMet = ReflectionMethod::IS_STATIC;
+        }
+        
+        $methodsArr = $Ref->getMethods($refMet);
+        
+        // Нормализиране на името на методите
+        if (count($methodsArr)) {
+            foreach ($methodsArr as $m) {
+                $name = str_replace('on_Before', '', $m->name);
+                $name = str_replace('on_After', '', $name);
+                $name = rtrim($name, '_');
+                $name = lcfirst($name);
+                $accessibleMethods[$name] = $name;
+            }
+        }
+        
+        // За всеки закачен плъгин (ако има) рекурсивно се извиква ф-ята
+        if (method_exists($Class, 'getPlugins')) {
+            $plugins = $Class->getPlugins();
+            if (count($plugins)) {
+                foreach ($plugins as $name => $Plugin) {
+                    $plgMethodsArr = static::getAccessibleMethods($Plugin, $onlyStatic);
+                    
+                    // Мърджване на методите на плъгина с тези на класа
+                    $accessibleMethods = array_merge($accessibleMethods, $plgMethodsArr);
+                }
+            }
+        }
+        
+        return  $accessibleMethods;
     }
     
     
@@ -547,7 +561,7 @@ class core_Cls
      */
     public static function getSingletons()
     {
-    	return count(self::$singletons) ? self::$singletons : NULL;
+        return count(self::$singletons) ? self::$singletons : null;
     }
 }
 

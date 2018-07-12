@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * История на файловете
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_F extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
@@ -25,41 +24,26 @@ class bgerp_F extends core_Manager
     /**
      * Да не се кодират id-тата
      */
-    public $protectId = FALSE;
+    public $protectId = false;
     
     
-    /**
-     * 
-     */
     public $loadList = 'plg_Created';
     
     
-    /**
-     * 
-     */
     public $canAdd = 'no_one';
     
     
-    /**
-     * 
-     */
     public $canDelete = 'no_one';
     
     
-    /**
-     * 
-     */
     public $canEdit = 'no_one';
     
     
-    /**
-     * 
-     */
     public function description()
     {
         cls::get('fileman_Files');
         
-        $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')','notNull, caption=Манипулатор, input=none');
+        $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')', 'notNull, caption=Манипулатор, input=none');
         $this->FLD('key', 'varchar(8)', 'notNull, caption=Ключ, input=none');
         $this->FLD('validity', 'time(suggestions=1 ден|1 седмица|1 месец|1 година)', 'notNull, caption=Валидност, mandatory');
     }
@@ -68,7 +52,7 @@ class bgerp_F extends core_Manager
     /**
      * Екшън за показване на файловете, на нерегистрираните потребители
      */
-    function act_S()
+    public function act_S()
     {
         // MID' а на документа
         $mid = Request::get('id');
@@ -82,7 +66,7 @@ class bgerp_F extends core_Manager
         $name = mb_strtolower($name);
         
         // Очакваме да има изпратен документ с mid' а
-        expect(($actRec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($actRec->containerId), 'Няма информация.');
+        expect(($actRec = doclog_Documents::getActionRecForMid($mid, false)) && ($actRec->containerId), 'Няма информация.');
         
         // Записваме, ако не е записоно, че файла е отворено от ip
         doclog_Documents::opened($actRec->containerId, $mid);
@@ -100,7 +84,7 @@ class bgerp_F extends core_Manager
         }
         
         if ($actRec && $actRec->data->to) {
-            log_Browsers::setVars(array('email' => $actRec->data->to), FALSE, FALSE);
+            log_Browsers::setVars(array('email' => $actRec->data->to), false, false);
         }
         
         // Записа на файла
@@ -110,7 +94,6 @@ class bgerp_F extends core_Manager
         
         // Ако докъмента е отхвърлен, да не се показва на нерегистрирани потребители
         if ($docRec->state == 'rejected') {
-            
             requireRole('powerUser');
         }
         
@@ -123,11 +106,10 @@ class bgerp_F extends core_Manager
         
         $resFileHnd = '';
         
-        foreach ((array)$linkedFiles as $fh => $fName) {
+        foreach ((array) $linkedFiles as $fh => $fName) {
             $fName = mb_strtolower($fName);
             
             if ($name == $fName) {
-                
                 $fRec = fileman_Files::fetchByFh($fh);
                 
                 // TODO - remove !isset($bucketId)
@@ -140,16 +122,16 @@ class bgerp_F extends core_Manager
         }
         
         // Ако файлът липсва в подадения масив
-        // Проверяваме записите 
+        // Проверяваме записите
         if (!$resFileHnd) {
-            foreach ((array)$linkedFiles as $fh => $fName) {
+            foreach ((array) $linkedFiles as $fh => $fName) {
                 $fRec = fileman_Files::fetchByFh($fh);
                 
                 if (mb_strtolower($fRec->name) == $name) {
                     // TODO - remove !isset($bucketId)
                     if (!isset($bucketId) || $fRec->bucketId == $bucketId) {
                         $resFileHnd = $fh;
-                
+                        
                         break;
                     }
                 }
@@ -159,7 +141,7 @@ class bgerp_F extends core_Manager
         expect($resFileHnd, 'Няма такъв файл');
         
         // В зависимост от това дали има права за разгреждане - линк към сингъла или за сваляне
-        $url = fileman_Files::generateUrl_($resFileHnd, TRUE);
+        $url = fileman_Files::generateUrl_($resFileHnd, true);
         
         // Записваме в лога за файлове, информация за свалянето
         doclog_Documents::downloaded($mid, $resFileHnd);
@@ -172,7 +154,7 @@ class bgerp_F extends core_Manager
     /**
      * Екшън за показване на картинки на нерегистрирани потребители
      */
-    function act_T()
+    public function act_T()
     {
         // MID на изпратената картинка
         $mid = Request::get('id');
@@ -187,14 +169,14 @@ class bgerp_F extends core_Manager
         } else {
             
             // Опитваме се да определим изпращенето от MID'a
-            expect(($actRec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($actRec->containerId), 'Няма информация.');
+            expect(($actRec = doclog_Documents::getActionRecForMid($mid, false)) && ($actRec->containerId), 'Няма информация.');
             
             // Записваме, ако не е записоно, че файла е отворено от ip
             doclog_Documents::opened($actRec->containerId, $mid);
             
             // Вземаме документа
             $doc = doc_Containers::getDocument($actRec->containerId);
-        
+            
             // Ако екшъна не е за изпращане вземаме него
             if ($actRec->action != doclog_Documents::ACTION_SEND) {
                 $actRecSend = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
@@ -205,7 +187,7 @@ class bgerp_F extends core_Manager
             }
             
             if ($actRec && $actRec->data->to) {
-                log_Browsers::setVars(array('email' => $actRec->data->to), FALSE, FALSE);
+                log_Browsers::setVars(array('email' => $actRec->data->to), false, false);
             }
             
             // Запис за документа
@@ -238,9 +220,9 @@ class bgerp_F extends core_Manager
         $height = ($groupRec->height) ? $groupRec->height : 900;
         
         if ($mid) {
-            $isAbsolute = FALSE;
+            $isAbsolute = false;
         } else {
-            $isAbsolute = TRUE;
+            $isAbsolute = true;
         }
         
         // Генерираме thumbnail
@@ -259,7 +241,7 @@ class bgerp_F extends core_Manager
                 return new Redirect($url);
             }
             
-            expect(FALSE);
+            expect(false);
         }
     }
     
@@ -267,7 +249,7 @@ class bgerp_F extends core_Manager
     /**
      * Сваля подадения файл
      */
-    function act_D()
+    public function act_D()
     {
         $fileHnd = Request::get('id');
         
@@ -275,37 +257,37 @@ class bgerp_F extends core_Manager
         
         header("Content-Disposition: attachment; filename={$fName}");
         
-        return Request::forward(array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE));
+        return Request::forward(array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true));
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $key
      * @param string $name
-     * 
+     *
      * @return string
      */
     public static function getShortLink($key, $name)
     {
-        
-        return toUrl(array('F', 'G', $key, 'n' => $name), 'absolute', TRUE, array('n'));
+        return toUrl(array('F', 'G', $key, 'n' => $name), 'absolute', true, array('n'));
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param string $fileHnd
      * @param string $expireOn
-     * 
+     *
      * @return NULL|string
      */
     public static function getLink($fileHnd, &$expireOn = '')
     {
         $query = self::getQuery();
         $query->where(array("#fileHnd = '[#1#]'", $fileHnd));
+
 //         $query->where(array("#createdBy = '[#1#]'", core_Users::getCurrent()));
         $query->XPR('expireOn', 'datetime', 'DATE_ADD(#createdOn, INTERVAL #validity SECOND)');
         
@@ -315,7 +297,10 @@ class bgerp_F extends core_Manager
         
         $rec = $query->fetch();
         
-        if (!$rec) return ;
+        if (!$rec) {
+            
+            return ;
+        }
         
         $expireOn = $rec->expireOn;
         
@@ -328,7 +313,7 @@ class bgerp_F extends core_Manager
     /**
      * Екшън за генериране на линк за сваляне на файл с валидност
      */
-    function act_GetLink()
+    public function act_GetLink()
     {
         $fh = Request::get('fileHnd');
         
@@ -354,10 +339,9 @@ class bgerp_F extends core_Manager
         
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {
-        
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
-        
-            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . "</div>";
+            
+            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . '</div>';
         }
         
         if ($form->isSubmitted()) {
@@ -371,13 +355,13 @@ class bgerp_F extends core_Manager
             
             self::logWrite('Генериран линк', $rec->id);
             
-            $form->info .= "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . self::getShortLink($rec->key, $fRec->name) . '</span>';
+            $form->info .= '<b>' . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . self::getShortLink($rec->key, $fRec->name) . '</span>';
             
             $form->setField('validity', 'input=none');
-            	
+            
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към файла') . ', class=fright');
             
-            $form->title = "Линк за сваляне активен|* " . $this->getVerbal($rec, 'validity');
+            $form->title = 'Линк за сваляне активен|* ' . $this->getVerbal($rec, 'validity');
             
             fileman::updateLastUse($fRec, dt::addSecs($form->rec->validity));
         } else {
@@ -413,14 +397,14 @@ class bgerp_F extends core_Manager
         $fName = fileman_Files::fetchByFh($rec->fileHnd, 'name');
         header("Content-Disposition: attachment; filename={$fName}");
         
-        return Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => TRUE));
+        return Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => true));
     }
     
     
     /**
      * Извиква се от крона. Премахва изтеклите връзки
      */
-    function cron_removeOldDownloadLinks()
+    public function cron_removeOldDownloadLinks()
     {
         // Текущото време
         $now = dt::verbal2mysql();
@@ -432,10 +416,10 @@ class bgerp_F extends core_Manager
     }
     
     
-	/**
+    /**
      * Изпълнява се след създаването на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         // Данни за работата на cron
         $rec = new stdClass();

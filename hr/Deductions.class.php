@@ -1,39 +1,38 @@
 <?php
 
 
-
 /**
  * Мениджър на глоби и удръжки
  *
  *
  * @category  bgerp
  * @package   hr
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Глоби
  */
 class hr_Deductions extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'hr_IndicatorsSourceIntf';
-
-
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Удръжки';
     
-     
+    
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Удръжка";
+    public $singleTitle = 'Удръжка';
     
     
     /**
@@ -56,15 +55,15 @@ class hr_Deductions extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo,hrMaster';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo,hrMaster';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,hrMaster';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
@@ -100,7 +99,7 @@ class hr_Deductions extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "5.5|Човешки ресурси"; 
+    public $newBtnGroup = '5.5|Човешки ресурси';
     
     
     /**
@@ -145,11 +144,11 @@ class hr_Deductions extends core_Master
      */
     public function description()
     {
-    	$this->FLD('date', 'date',     'caption=Дата,oldFieldName=periodId');
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
-    	$this->FLD('type', 'richtext(bucket=Notes)',     'caption=Произход на удръжката');
-    	$this->FLD('sum', 'double',     'caption=Сума,mandatory');
-    	$this->FNC('title', 'varchar', 'column=none');
+        $this->FLD('date', 'date', 'caption=Дата,oldFieldName=periodId');
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
+        $this->FLD('type', 'richtext(bucket=Notes)', 'caption=Произход на удръжката');
+        $this->FLD('sum', 'double', 'caption=Сума,mandatory');
+        $this->FNC('title', 'varchar', 'column=none');
     }
     
     
@@ -171,20 +170,21 @@ class hr_Deductions extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	// Ако имаме права да видим визитката
-    	if(crm_Persons::haveRightFor('single', $rec->personId)){
-    		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
-    		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
-    	}
-    	
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-    	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
-    	 
-    	if($rec->sum) {
-    	    $row->sum = $Double->toVerbal($rec->sum);
-    	    $row->sum .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
-    	}
+        // Ако имаме права да видим визитката
+        if (crm_Persons::haveRightFor('single', $rec->personId)) {
+            $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+            $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
+        }
+        
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
+        
+        if ($rec->sum) {
+            $row->sum = $Double->toVerbal($rec->sum);
+            $row->sum .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        }
     }
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -198,73 +198,72 @@ class hr_Deductions extends core_Master
         $data->listFilter->showFields = 'personId,date';
         $data->listFilter->view = 'vertical';
         $data->listFilter->input('personId, date', 'silent');
-    
+        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    
-        if($data->listFilter->rec->personId) {
+        
+        if ($data->listFilter->rec->personId) {
             $data->query->where("#personId = '{$data->listFilter->rec->personId}'");
         }
-    
-        if($data->listFilter->rec->date) {
+        
+        if ($data->listFilter->rec->date) {
             $data->query->where("#date = '{$data->listFilter->rec->date}'");
         }
     }
     
     
     /**
-	 * Метод за вземане на резултатност на хората. За определена дата се изчислява
-     * успеваемостта на човека спрямо ресурса, които е изпозлвал 
-	 *
-	 * @param date $timeline  - Времето, след което да се вземат всички модифицирани/създадени записи
-	 * @return array $result  - масив с обекти
-	 *
-	 * 			o date        - дата на стайноста
-	 * 		    o personId    - ид на лицето
-	 *          o docId       - ид на документа
-	 *          o docClass    - клас ид на документа
-	 *          o indicatorId - ид на индикатора
-	 *          o value       - стойноста на индикатора
-	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
-	 */
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на индикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
     public static function getIndicatorValues($timeline)
     {
         $query = self::getQuery();
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
-    
+        
         $iRec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
         
-        while($rec = $query->fetch()){
-    
-            $result[] = (object)array(
+        while ($rec = $query->fetch()) {
+            $result[] = (object) array(
                 'date' => $rec->date,
                 'personId' => $rec->personId,
-                'docId'  => $rec->id,
+                'docId' => $rec->id,
                 'docClass' => core_Classes::getId('hr_Deductions'),
                 'indicatorId' => $iRec->id,
                 'value' => $rec->sum,
                 'isRejected' => $rec->state == 'rejected',
             );
         }
-    
+        
         return $result;
     }
-    
-    
     
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
      * @param date $date
+     *
      * @return array $result
      */
     public static function getIndicatorNames()
     {
-    	$result = array();
-    	$rec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
-    	$result[$rec->id] = $rec->name;
-    	
-    	return $result;
+        $result = array();
+        $rec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
+        $result[$rec->id] = $rec->name;
+        
+        return $result;
     }
     
     
@@ -277,23 +276,32 @@ class hr_Deductions extends core_Master
     public static function canAddToFolder($folderId)
     {
         $Cover = doc_Folders::getCover($folderId);
-    
+        
         // Трябва да е в папка на лице или на проект
-        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') return FALSE;
-    
+        if ($Cover->className != 'crm_Persons' && $Cover->className != 'doc_UnsortedFolders') {
+            
+            return false;
+        }
+        
         // Ако е в папка на лице, лицето трябва да е в група служители
-        if($Cover->className == 'crm_Persons'){
+        if ($Cover->className == 'crm_Persons') {
             $emplGroupId = crm_Groups::getIdFromSysId('employees');
             $personGroups = $Cover->fetchField('groupList');
-            if(!keylist::isIn($emplGroupId, $personGroups)) return FALSE;
+            if (!keylist::isIn($emplGroupId, $personGroups)) {
+                
+                return false;
+            }
         }
-    
-        if($Cover->className == 'doc_UnsortedFolders') {
+        
+        if ($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
-            if(!haveRole('ceo,hr', $cu)) return FALSE;
+            if (!haveRole('ceo,hr', $cu)) {
+                
+                return false;
+            }
         }
-    
-        return TRUE;
+        
+        return true;
     }
     
     
@@ -301,28 +309,29 @@ class hr_Deductions extends core_Master
      * Интерфейсен метод на doc_DocumentIntf
      *
      * @param int $id
+     *
      * @return stdClass $row
      */
     public function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-    
+        
         $row = new stdClass();
-    
+        
         //Заглавие
         $row->title = "Удръжка  №{$rec->id}";
-    
+        
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
-    
+        
         //Състояние
         $row->state = $rec->state;
-    
+        
         //id на създателя
         $row->authorId = $rec->createdBy;
-    
-        $row->recTitle = $this->getRecTitle($rec, FALSE);
-    
+        
+        $row->recTitle = $this->getRecTitle($rec, false);
+        
         return $row;
     }
     
@@ -330,12 +339,12 @@ class hr_Deductions extends core_Master
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    public static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = true)
     {
         $me = cls::get(get_called_class());
-         
+        
         $title = tr('Удръжка  №|*'. $rec->id . ' за|* ') . $me->getVerbal($rec, 'personId');
-         
+        
         return $title;
     }
 }

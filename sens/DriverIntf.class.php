@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Интерфейс данни от за IP сензор
  *
@@ -10,20 +9,20 @@
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс на драйвер на IP сензор
  */
 class sens_DriverIntf
 {
-    
-    
     /**
      * Връща измерените параметри
      */
-    function loadState()
+    public function loadState()
     {
         return $this->class->loadState();
     }
@@ -35,7 +34,7 @@ class sens_DriverIntf
      * Този html може да използва красиво визуално оформление,
      * използвайки vendors/jsgauge
      */
-    function getBlock()
+    public function getBlock()
     {
         return $this->class->getBlock();
     }
@@ -44,7 +43,7 @@ class sens_DriverIntf
     /**
      * По подадени параметри връща HTML блок, показващ вербално състоянието на сензора
      */
-    function renderHtml($params = NULL)
+    public function renderHtml($params = null)
     {
         return $this->class->renderHtml($params);
     }

@@ -17,7 +17,7 @@ en,"Класове, имащи _436a",Classes with interfaces
 en,"Логнете се, за да видите нишката",Login to see the thread
 en,"Свали като PDF",Download as PDF
 en,"Свали като",Download as
-en,"Можете да нaтиснете","You can click"
+en,"Можете да натиснете","You can click"
 en,"Моля, въведете _c6b3",Please enter the contact details of the company
 en,"Моля, въведете _dfd8",Please enter the contact details of the person
 en,"Моля, изберете _8a6d","Please, choose a folder"
@@ -56,8 +56,8 @@ en,Contact card,Contact card
 en,CRM Файлове,CRM files
 en,CSV за импорт,CSV for import
 en,CSV контактни данни,CSV contact data
-en,cмяна),change)
-en,cмяна,change
+en,смяна),change)
+en,смяна,change
 en,fromTo,fromTo
 en,g/cm3,g/cm3
 en,GLN код,GLN code
@@ -77,15 +77,15 @@ en,K,K
 en,kg/L,kg/l
 en,kg/m3,kg/m3
 en,kWh,kWh
-en,Kлючовото поле _0236,The key field for the list
-en,Kп,Cp
+en,Ключовото поле _0236,The key field for the list
+en,Кп,Cc
 en,last,last
 en,MD5,MD5
 en,MKB код,ICD code
 en,normal,normal
 en,on time,on time
-en,Oператори,Operators
-en,Oписание,Description
+en,Оператори,Operators
+en,Описание,Description
 en,PDF файлове,PDF files
 en,PDF-и на документи,PDFs of documents
 en,Pixlr,Pixlr
@@ -95,9 +95,9 @@ en,SMS-и,SMS
 en,SMTP сървър,SMTP server
 en,SNM « Сайт,SNM « Site
 en,title,title
-en,Tаблица,Table
-en,Tел. код,Tel. code
-en,Tърсене на доку_d783,Document search
+en,Таблица,Table
+en,Тел. код,Tel. code
+en,Търсене на доку_d783,Document search
 en,URL адрес,URL address
 en,URL на услугата,Service URL
 en,VAT,VAT
@@ -508,6 +508,8 @@ en,Добавяне на за_4524f,"Add an entry in ""Catering Companies"""
 en,Добавяне на запис,Add a new record
 en,Добавяне на картинка,Add a picture
 en,Добавяне на ко_1ce3b,Add a comment to document
+en,Добавяне на прогрес към задачата,Add a progress to the task
+en,Добавяне на прогрес към задача,Add a progress to task
 en,Добавяне на но_877ab,Adding new document to this thread
 en,Добавяне на но_972cc,Add a new location
 en,Добавяне на но_a245f,Add new Reminder
@@ -609,7 +611,7 @@ en,Забранени,Prohibited
 en,Заглавие,Title
 en,Заглавия,Headings
 en,Заготовки,Preformed
-en,Заданиe,Assignment
+en,Задание,Assignment
 en,Задания за про_80703,Assignments for production
 en,Задания,Assignments
 en,Задача за прои_b5dd5,Manufacturing task
@@ -1062,7 +1064,7 @@ en,Назад,Back
 en,Назначени,Hired
 en,Назначения,Hires
 en,Наименование,Name
-en,НаименованиеBG,NameBG
+en,Наименование BG,NameBG
 en,Наистина ли же_0a920,Do you really like to delete the document?
 en,Наистина ли же_250da,Do you really want to remove all records?
 en,Наистина ли же_2a886,Do you really want the document to be accounted?
@@ -1223,7 +1225,7 @@ en,Общ брой палети,Total number of pallets
 en,Общ обем,Total volume
 en,Обем,Volume
 en,Общ,Shared
-en,Общa сума,Total
+en,Обща сума,Total
 en,Общи,General
 en,Общо тегло,Total weight
 en,Общо,Total
@@ -1481,7 +1483,7 @@ en,Последни 3 мец.,Last 3 months
 en,Последни файлове,Latest Files
 en,Последни,Last
 en,Последно добав_b214,Last added
-en,Последно добавенo,Last added
+en,Последно добавено,Last added
 en,Последно изпол_e4e1,Last use
 en,Последно изчис_7770,Last calculated
 en,Последно логване,Last login
@@ -1548,7 +1550,7 @@ en,Препратки,References
 en,Препращане на _8c56a,Forwarding email
 en,Препращане,Forward
 en,Препращания,Forwardings
-en,Пресроченo,Overdue
+en,Пресрочено,Overdue
 en,Претенции за р_46c2e,Claims for reclamation
 en,Префикс,Prefix
 en,Прехвърляне на салдо,Balance Transfers
@@ -1720,7 +1722,7 @@ en,Разходни докум_4dc4,Expenditure documents
 en,Разходни касов_8e6a,Debit cash orders
 en,Разширения,File extensions
 en,Разширено,Extensively
-en,Ранг,Рank
+en,Ранг,Rank
 en,Рег. номер,Reg. number
 en,Регион,Region
 en,Регистрация,Registration
@@ -2306,9 +2308,9 @@ en,март,March
 en,мг,mg
 en,мес.,month
 en,месец,month
-en,месецa,months
-en,месецa-ден от н_9f9b7,month-day from the beginning of the month
-en,месецa-ден от н_d94c7,month-day from the beginning of the week
+en,месеца,months
+en,месеца-ден от н_9f9b7,month-day from the beginning of the month
+en,месеца-ден от н_d94c7,month-day from the beginning of the week
 en,месеца,months
 en,метър,meter
 en,мил.амп,mA
@@ -2618,9 +2620,9 @@ en,СИСТЕМНИ ДАННИ,SYSTEM DATA
 en,Сгрешено или изтекло съобщение,Wrong or expired message
 en,Статии в,Articles in
 en,Bags.BG,Extrapack OOD
-en,Отчети и доклади,за любителите на цифрите
-en,Неполучени,върнати писма
-en,Логнете се,за да видите нишката
+en,"Отчети и доклади,за любителите на цифрите","Records and reports for lovers of numbers"
+en,"Неполучени,върнати писма","Not received, returned mails"
+en,"Логнете се,за да видите нишката","Login to see the thread"
 en,"Не, благодаря","No, thanks!"
 en,Отворени сделки,Open deals
 en,Системата,The System
@@ -2736,3 +2738,7 @@ en,Назад към магазина,Return to store
 en,Наистина ли желаете да премахнете артикула?,Do you really like to remove this product?
 en,"Ако имате акаунт, моля логнете се от","If you have an account, please login from"
 en,Времето за разпознаване е изтекло. Пробвайте с друг код,Recognition time has expired. Try another code
+en,прогрес,progress
+en,Продължи,Continue
+en,за,for
+en,Вижте цялата нишка,See whole thread

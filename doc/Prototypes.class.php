@@ -1,44 +1,43 @@
 <?php
 
 
-
 /**
  * Клас 'doc_Prototypes' - Модел за шаблонни документи
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Prototypes extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2,plg_Created,plg_Modified,doc_Wrapper,plg_Rejected';
-
-
+    
+    
     /**
      * Заглавие
      */
-    public $title = "Шаблонни документи";
+    public $title = 'Шаблонни документи';
     
     
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Шаблонен документ";
+    public $singleTitle = 'Шаблонен документ';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,sharedFolders,state,modifiedOn,modifiedBy";
+    public $listFields = 'docId,title,sharedWithRoles,sharedWithUsers,sharedFolders,state,modifiedOn,modifiedBy';
     
     
     /**
@@ -58,13 +57,13 @@ class doc_Prototypes extends core_Manager
     /**
      * Кой може да добавя
      */
-    public $canAdd  = 'officer';
+    public $canAdd = 'officer';
     
     
     /**
      * Кой може да редактира
      */
-    public $canEdit  = 'officer';
+    public $canEdit = 'officer';
     
     
     /**
@@ -76,93 +75,93 @@ class doc_Prototypes extends core_Manager
     /**
      * Кой може да редактира
      */
-    public $canDelete  = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой може да оттегля
      */
-    public $canReject  = 'no_one';
+    public $canReject = 'no_one';
     
     
     /**
      * Кой може да възстановява
      */
-    public $canRestore  = 'no_one';
-
-
+    public $canRestore = 'no_one';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
-    	$this->FLD('originId', 'key(mvc=doc_Containers)', 'caption=Документ,mandatory,input=hidden,silent');
-    	$this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
-    	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
-    	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
-    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
-    	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
-    	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
-    	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
-    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
-    	
-    	$this->setDbUnique('classId,title');
-    	$this->setDbUnique('originId');
-    	$this->setDbUnique('classId,docId');
-    	$this->setDbIndex('classId,docId,driverClassId');
+        $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
+        $this->FLD('originId', 'key(mvc=doc_Containers)', 'caption=Документ,mandatory,input=hidden,silent');
+        $this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
+        $this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
+        $this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
+        $this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
+        $this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
+        $this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
+        $this->FLD('fields', 'blob(serialize, compress)', 'input=none');
+        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,column=none,input=none,notNull,value=active');
+        
+        $this->setDbUnique('classId,title');
+        $this->setDbUnique('originId');
+        $this->setDbUnique('classId,docId');
+        $this->setDbIndex('classId,docId,driverClassId');
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	// Кога може да се добавя
-    	if($action == 'add' && isset($rec)){
-    		if(isset($rec->originId)){
-    			$doc = doc_Containers::getDocument($rec->originId);
-    			
-    			// Документа трябва да има нужния интерфейс
-    			if(!$doc->haveInterface('doc_PrototypeSourceIntf')){
-    				$requiredRoles = 'no_one';
-    			} else {
-    				
-    				// Да няма шаблон и да не е направил запис в журнала
-    				if($mvc->fetch("#originId = {$rec->originId}")){
-    					$requiredRoles = 'no_one';
-    				} elseif(acc_Journal::fetchByDoc($doc->getClassId(), $doc->that)){
-    					$requiredRoles = 'no_one';
-    				} elseif(!$doc->canBeTemplate()){
-    					$requiredRoles = 'no_one';
-    				} elseif(acc_Items::fetchItem($doc->getInstance(), $doc->that)){
-    					$requiredRoles = 'no_one';
-    				}
-    			}
-    		} else {
-    			
-    			// Ако няма ориджин не може
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
-    	// Кога може да се добавя и редактира
-    	if(($action == 'add' || $action == 'edit') && isset($rec->originId)){
-    		if($requiredRoles != 'no_one'){
-    			$doc = doc_Containers::getDocument($rec->originId);
-    			$state = $doc->fetchField('state');
-    			
-    			// Трябва потребителя да има достъп до документа
-    			if(!$doc->haveRightFor('single')){
-    				$requiredRoles = 'no_one';
-    				
-    				// И документа да не е оттеглен
-    			} elseif($state == 'rejected' || $state == 'closed'){
-    				$requiredRoles = 'no_one';
-    			}
-    		}
-    	}
+        // Кога може да се добавя
+        if ($action == 'add' && isset($rec)) {
+            if (isset($rec->originId)) {
+                $doc = doc_Containers::getDocument($rec->originId);
+                
+                // Документа трябва да има нужния интерфейс
+                if (!$doc->haveInterface('doc_PrototypeSourceIntf')) {
+                    $requiredRoles = 'no_one';
+                } else {
+                    
+                    // Да няма шаблон и да не е направил запис в журнала
+                    if ($mvc->fetch("#originId = {$rec->originId}")) {
+                        $requiredRoles = 'no_one';
+                    } elseif (acc_Journal::fetchByDoc($doc->getClassId(), $doc->that)) {
+                        $requiredRoles = 'no_one';
+                    } elseif (!$doc->canBeTemplate()) {
+                        $requiredRoles = 'no_one';
+                    } elseif (acc_Items::fetchItem($doc->getInstance(), $doc->that)) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            } else {
+                
+                // Ако няма ориджин не може
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Кога може да се добавя и редактира
+        if (($action == 'add' || $action == 'edit') && isset($rec->originId)) {
+            if ($requiredRoles != 'no_one') {
+                $doc = doc_Containers::getDocument($rec->originId);
+                $state = $doc->fetchField('state');
+                
+                // Трябва потребителя да има достъп до документа
+                if (!$doc->haveRightFor('single')) {
+                    $requiredRoles = 'no_one';
+                
+                // И документа да не е оттеглен
+                } elseif ($state == 'rejected' || $state == 'closed') {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -171,7 +170,7 @@ class doc_Prototypes extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-    	$data->query->orderBy('createdOn', "DESC");
+        $data->query->orderBy('createdOn', 'DESC');
     }
     
     
@@ -180,9 +179,9 @@ class doc_Prototypes extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
+        if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $data->toolbar->removeBtn('btnAdd');
+        }
     }
     
     
@@ -191,41 +190,41 @@ class doc_Prototypes extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$form = $data->form;
-    	expect($origin = doc_Containers::getDocument($form->rec->originId));
-    	$templateTitle = doc_Prototypes::getTemplateTitle($origin->getInstance(), $origin->that);
-    	
-    	$form->setDefault('title', $templateTitle);
-    	$form->setDefault('classId', $origin->getClassId());
-    	$form->setDefault('docId', $origin->that);
-    	
-    	// Попълване на полето за драйвер за по-бързо търсене
-    	if($origin->getInstance() instanceof embed_Manager){
-    		$form->setDefault('driverClassId', $origin->fetchField($origin->driverClassField));
-    	} elseif($origin->getInstance() instanceof core_Embedder){
-    		$form->setDefault('driverClassId', $origin->fetchField($origin->innerClassField));
-    	}
+        $form = $data->form;
+        expect($origin = doc_Containers::getDocument($form->rec->originId));
+        $templateTitle = doc_Prototypes::getTemplateTitle($origin->getInstance(), $origin->that);
+        
+        $form->setDefault('title', $templateTitle);
+        $form->setDefault('classId', $origin->getClassId());
+        $form->setDefault('docId', $origin->that);
+        
+        // Попълване на полето за драйвер за по-бързо търсене
+        if ($origin->getInstance() instanceof embed_Manager) {
+            $form->setDefault('driverClassId', $origin->fetchField($origin->driverClassField));
+        } elseif ($origin->getInstance() instanceof core_Embedder) {
+            $form->setDefault('driverClassId', $origin->fetchField($origin->innerClassField));
+        }
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$rec = &$form->rec;
-    	
-    	if($form->isSubmitted()){
-    		if(isset($rec->sharedFolders)){
-    			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!$origin->getInstance()->canAddToFolder($rec->sharedFolders)){
-    				$form->setError('sharedFolders', "Документа не може да бъде създаден в избраната папка");
-    			}
-    		}
-    	}
+        $rec = &$form->rec;
+        
+        if ($form->isSubmitted()) {
+            if (isset($rec->sharedFolders)) {
+                $origin = doc_Containers::getDocument($rec->originId);
+                if (!$origin->getInstance()->canAddToFolder($rec->sharedFolders)) {
+                    $form->setError('sharedFolders', 'Документа не може да бъде създаден в избраната папка');
+                }
+            }
+        }
     }
     
     
@@ -234,9 +233,9 @@ class doc_Prototypes extends core_Manager
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-    	// След като се създаде шаблон, оригиналния документ минава в състояние шаблон
-    	$nRec = (object)array('id' => $rec->docId, 'state' => 'template');
-    	cls::get($rec->classId)->save_($nRec, 'state');
+        // След като се създаде шаблон, оригиналния документ минава в състояние шаблон
+        $nRec = (object) array('id' => $rec->docId, 'state' => 'template');
+        cls::get($rec->classId)->save_($nRec, 'state');
     }
     
     
@@ -245,107 +244,114 @@ class doc_Prototypes extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(isset($fields['-list'])){
-    		$row->docId = doc_Containers::getDocument($rec->originId)->getLink(0);
-    		$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	}
+        if (isset($fields['-list'])) {
+            $row->docId = doc_Containers::getDocument($rec->originId)->getLink(0);
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        }
     }
     
     
     /**
      * Синхронизиране на шаблона с оригиналния документ
-     * 
+     *
      * @param int $containerId - ид на контейнер
      */
     public static function sync($containerId)
     {
-    	if(!$rec = self::fetch(array("#originId = [#1#]", $containerId))) return;
-    	
-    	$origin = doc_Containers::getDocument($containerId);
-    	
-    	// Ако оригиналния документ се оттегли, оттегля се и шаблона
-    	$state = $origin->fetchField('state');
-    	$newState = ($state == 'rejected') ? 'rejected' : (($state == 'closed') ? 'closed' : 'active');
-    	self::save((object)array('id' => $rec->id, 'state' => $newState), 'state');
+        if (!$rec = self::fetch(array('#originId = [#1#]', $containerId))) {
+            
+            return;
+        }
+        
+        $origin = doc_Containers::getDocument($containerId);
+        
+        // Ако оригиналния документ се оттегли, оттегля се и шаблона
+        $state = $origin->fetchField('state');
+        $newState = ($state == 'rejected') ? 'rejected' : (($state == 'closed') ? 'closed' : 'active');
+        self::save((object) array('id' => $rec->id, 'state' => $newState), 'state');
     }
     
     
     /**
      * Намира наличните шаблони за документа
-     * 
+     *
      * @param mixed $class  - документ
      * @param mixed $driver - драйвер, ако има
+     *
      * @return array $arr   - намерените шаблони
      */
-    public static function getPrototypes($class, $driver = NULL, $folderId = NULL)
+    public static function getPrototypes($class, $driver = null, $folderId = null)
     {
-    	$arr = array();
-    	$Class = cls::get($class);
-    	
-    	// Намират се всички активни шаблони за този клас/драйвер
-    	$query = self::getQuery();
-    	$condition = "#classId = {$Class->getClassId()} AND #state = 'active'";
-    	if(isset($driver) && cls::load($driver, TRUE)){
-    		$Driver = cls::get($driver);
-    		$condition .= " AND #driverClassId = '{$Driver->getClassId()}'";
-    	}
-    	
-    	// Ако е подадена и папка се взимат всички които са до тази папка или са до всички папки
-    	if(isset($folderId)){
-    		$condition .= " AND (#sharedFolders IS NULL OR #sharedFolders = {$folderId})";
-    	}
-    	
-    	$query->where($condition);
-    	$cu = core_Users::getCurrent();
-    	
-    	// Ако потребителя не е 'ceo'
-    	if(!haveRole('ceo', $cu)){
-    		
-    		// Търсят се само шаблоните, които не са споделени с никой
-    		$where = "(#sharedWithRoles IS NULL AND #sharedWithUsers IS NULL)";
-    		
-    		// или са споделени с текущия потребител
-    		$where .= " OR LOCATE('|{$cu}|', #sharedWithUsers)";
-    		
-    		// или са споделени с някоя от ролите му
-    		$userRoles = core_Users::fetchField($cu, 'roles');
-    		$userRoles = keylist::toArray($userRoles);
-    		foreach ($userRoles as $roleId){
-    			$where .= " OR LOCATE('|{$roleId}|', #sharedWithRoles)";
-    		}
-    		
-    		// Добавяне на ограниченията към заявката
-    		$query->where($where);
-    	}
-    	
-    	// Ако има записи, се връщат ид-та на документите
-    	while($rec = $query->fetch()){
-    		$title = (strpos($rec->title, '||') !== FALSE) ? tr($rec->title) : $rec->title;
-    		$arr[$rec->docId] = trim($title);
-    	}
-    	
+        $arr = array();
+        $Class = cls::get($class);
+        
+        // Намират се всички активни шаблони за този клас/драйвер
+        $query = self::getQuery();
+        $condition = "#classId = {$Class->getClassId()} AND #state = 'active'";
+        if (isset($driver) && cls::load($driver, true)) {
+            $Driver = cls::get($driver);
+            $condition .= " AND #driverClassId = '{$Driver->getClassId()}'";
+        }
+        
+        // Ако е подадена и папка се взимат всички които са до тази папка или са до всички папки
+        if (isset($folderId)) {
+            $condition .= " AND (#sharedFolders IS NULL OR #sharedFolders = {$folderId})";
+        }
+        
+        $query->where($condition);
+        $cu = core_Users::getCurrent();
+        
+        // Ако потребителя не е 'ceo'
+        if (!haveRole('ceo', $cu)) {
+            
+            // Търсят се само шаблоните, които не са споделени с никой
+            $where = '(#sharedWithRoles IS NULL AND #sharedWithUsers IS NULL)';
+            
+            // или са споделени с текущия потребител
+            $where .= " OR LOCATE('|{$cu}|', #sharedWithUsers)";
+            
+            // или са споделени с някоя от ролите му
+            $userRoles = core_Users::fetchField($cu, 'roles');
+            $userRoles = keylist::toArray($userRoles);
+            foreach ($userRoles as $roleId) {
+                $where .= " OR LOCATE('|{$roleId}|', #sharedWithRoles)";
+            }
+            
+            // Добавяне на ограниченията към заявката
+            $query->where($where);
+        }
+        
+        // Ако има записи, се връщат ид-та на документите
+        while ($rec = $query->fetch()) {
+            $title = (strpos($rec->title, '||') !== false) ? tr($rec->title) : $rec->title;
+            $arr[$rec->docId] = trim($title);
+        }
+        
         asort($arr);
-
-    	// Връщане на намерените шаблони
-    	return $arr;
+        
+        // Връщане на намерените шаблони
+        return $arr;
     }
     
     
     /**
-     * 
-     * 
-     * @param mixed $class
-     * @param integer $docId
+     *
+     *
+     * @param mixed       $class
+     * @param int         $docId
      * @param string|NULL $field
-     * 
+     *
      * @return stdClass|string
      */
-    public static function getProtoRec($class, $docId, $field = NULL)
+    public static function getProtoRec($class, $docId, $field = null)
     {
         $Class = cls::get($class);
         $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
         
-        if(!empty($field)) return self::fetchField($cond, $field);
+        if (!empty($field)) {
+            
+            return self::fetchField($cond, $field);
+        }
         
         return self::fetch($cond);
     }
@@ -353,55 +359,56 @@ class doc_Prototypes extends core_Manager
     
     /**
      * Създаване на шаблон + смяна на състоянието на документа в 'шаблон'
-     * 
-     * @param string $title                 - име на шаблона
-     * @param mixed $class                  - клас на документа
-     * @param int $docId                    - ид на документа
-     * @param int|NULL $driverClassId       - ид на класа на драйвера
-     * @param string|NULL $sharedWithRoles  - споделени роли
-     * @param string|NULL $sharedWithUsers  - споделени потребители
+     *
+     * @param string      $title           - име на шаблона
+     * @param mixed       $class           - клас на документа
+     * @param int         $docId           - ид на документа
+     * @param int|NULL    $driverClassId   - ид на класа на драйвера
+     * @param string|NULL $sharedWithRoles - споделени роли
+     * @param string|NULL $sharedWithUsers - споделени потребители
      */
-    public static function add($title, $class, $docId, $driverClassId = NULL, $sharedWithRoles = NULL, $sharedWithUsers = NULL)
+    public static function add($title, $class, $docId, $driverClassId = null, $sharedWithRoles = null, $sharedWithUsers = null)
     {
-    	$Class = cls::get($class);
-    	
-    	$rec = (object)array('title'           => $title,
-    						 'originId'        => $Class->fetchField($docId, 'containerId'),
-    						 'classId'         => $Class->getClassId(),
-    			             'docId'           => $docId,
-    			             'driverClassId'   => $driverClassId,
-    						 'sharedWithRoles' => $sharedWithRoles,
-    						 'sharedWithUsers' => $sharedWithUsers,
-    			             'state'           => 'active',
-    	);
-    	
-    	cls::get(get_called_class())->isUnique($rec, $fields, $exRec);
-    	if($exRec){
-    		$rec->id = $rec->id;
-    	}
-    	
-    	doc_Prototypes::save($rec);
+        $Class = cls::get($class);
+        
+        $rec = (object) array('title' => $title,
+            'originId' => $Class->fetchField($docId, 'containerId'),
+            'classId' => $Class->getClassId(),
+            'docId' => $docId,
+            'driverClassId' => $driverClassId,
+            'sharedWithRoles' => $sharedWithRoles,
+            'sharedWithUsers' => $sharedWithUsers,
+            'state' => 'active',
+        );
+        
+        cls::get(get_called_class())->isUnique($rec, $fields, $exRec);
+        if ($exRec) {
+            $rec->id = $rec->id;
+        }
+        
+        doc_Prototypes::save($rec);
     }
     
     
     /**
      * Връща дефолтното име на шаблона
-     * 
+     *
      * @param mixed $classId
-     * @param int $docId
+     * @param int   $docId
+     *
      * @return string
      */
     public static function getTemplateTitle($classId, $docId)
     {
-    	$Class = cls::get($classId);
-    	if($Class->getField('title', FALSE)){
-    		$title = $Class->fetchField($docId, 'title');
-    	} elseif($Class->getField('name', FALSE)){
-    		$title = $Class->fetchField($docId, 'name');
-    	} else {
-    		$title = $Class->getTitleById($docId);
-    	}
-    	
-    	return $title;
+        $Class = cls::get($classId);
+        if ($Class->getField('title', false)) {
+            $title = $Class->fetchField($docId, 'title');
+        } elseif ($Class->getField('name', false)) {
+            $title = $Class->fetchField($docId, 'name');
+        } else {
+            $title = $Class->getTitleById($docId);
+        }
+        
+        return $title;
     }
 }

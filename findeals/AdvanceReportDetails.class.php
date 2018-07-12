@@ -8,21 +8,21 @@
  *
  * @category  bgerp
  * @package   findeals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
 {
-    
-    
     /**
      * Заглавие
      */
     public $title = 'Детайли на авансовия отчет';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -77,7 +77,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount';
     
     
-	/**
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'price,amount,discount,packPrice';
@@ -88,9 +88,9 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
      */
     public function description()
     {
-    	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
-    	parent::setDocumentFields($this);
-    	$this->setFieldTypeParams('packQuantity', "Min=0");
+        $this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
+        parent::setDocumentFields($this);
+        $this->setFieldTypeParams('packQuantity', 'Min=0');
     }
     
     
@@ -99,23 +99,23 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
-    	$form = &$data->form;
-    	$rec = &$form->rec;
-    	
-    	$form->setField('packPrice', 'mandatory');
-    	$form->setField('discount', 'input=none');
+        $form = &$data->form;
+        $rec = &$form->rec;
+        
+        $form->setField('packPrice', 'mandatory');
+        $form->setField('discount', 'input=none');
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Mvc $mvc
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	parent::inputDocForm($mvc, $form);
+        parent::inputDocForm($mvc, $form);
     }
     
     
@@ -124,12 +124,12 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
      */
     protected function getProducts($masterRec)
     {
-    	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
-    
-    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
-    	 
-    	return $products;
+        $property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
+        
+        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
+        
+        return $products;
     }
     
     
@@ -138,12 +138,12 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$masterRec = findeals_AdvanceReports::fetch($rec->reportId);
-    	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
-    	$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
-    			
-    	if($rec->notes){
-    		$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
-    	}
+        $masterRec = findeals_AdvanceReports::fetch($rec->reportId);
+        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
+        $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
+        
+        if ($rec->notes) {
+            $row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+        }
     }
 }

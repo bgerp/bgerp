@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'drdata_EgnType' -
  *
@@ -9,53 +8,57 @@
  *
  * @category  bgerp
  * @package   bglocal
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bglocal_EgnType extends type_Varchar
 {
-    
-    
     /**
      * Колко символа е дълго полето в базата
      */
-    var $dbFieldLen = 10;
+    public $dbFieldLen = 10;
     
     
     /**
      * Параметър определящ максималната широчина на полето
      */
-    var $maxFieldSize = 10;
+    public $maxFieldSize = 10;
     
     
     /**
      * Performs the parity check - we expect a 10-digit number!
      *
      * @param string $egn_string
-     * @return boolean
+     *
+     * @return bool
      */
-    function isValid($value)
+    public function isValid($value)
     {
-        if(!$value) return NULL;
+        if (!$value) {
+            
+            return;
+        }
         
         $value = trim($value);
         
         try {
             $Egn = new bglocal_BulgarianEGN($value);
-        } catch(bglocal_exception_EGN $e) {
+        } catch (bglocal_exception_EGN $e) {
             $err = $e->getMessage();
         }
         
         $res = array();
         $res['value'] = $value;
         
-        if($err) {
+        if ($err) {
             $res['error'] = $err;
             $Lnc = new bglocal_BulgarianLNC();
             
-            if ($Lnc->isLnc($value) === TRUE) {
+            if ($Lnc->isLnc($value) === true) {
                 unset($res['error']);
             } else {
                 $res['error'] .= $Lnc->isLnc($value);
@@ -69,17 +72,20 @@ class bglocal_EgnType extends type_Varchar
     /**
      * Представя ЕГН-то в разбираем за потребителя вид
      */
-    function toVerbal($value)
+    public function toVerbal($value)
     {
-        if(!$value) return NULL;
+        if (!$value) {
+            
+            return;
+        }
         
         try {
             $Egn = new bglocal_BulgarianEGN($value);
-        } catch(bglocal_exception_EGN $e) {
+        } catch (bglocal_exception_EGN $e) {
             $err = $e->getMessage();
         }
         
-        if($err) {
+        if ($err) {
             $color = 'green';
             $type = 'ЛНЧ';
         } else {

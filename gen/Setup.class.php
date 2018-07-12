@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'gen_Setup' -
  *
@@ -10,46 +9,46 @@
  *
  * @category  vendors
  * @package   gen
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class gen_Setup extends core_ProtoSetup 
+class gen_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Изграждане на родословно дърво с лицата от визитника";
+    public $info = 'Изграждане на родословно дърво с лицата от визитника';
     
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -63,7 +62,7 @@ class gen_Setup extends core_ProtoSetup
         
         $html .= $Persons->setupMVC();
         
-        $html .= "<li>Могат да се добавят родители на хората от визитника";
+        $html .= '<li>Могат да се добавят родители на хората от визитника';
         
         return $html;
     }
@@ -72,16 +71,16 @@ class gen_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
         $Plugins->deinstallPlugin('gen_Plugin');
-        $html .= "<li>Родословното дърво е премахнато";
+        $html .= '<li>Родословното дърво е премахнато';
         
         return $html;
     }

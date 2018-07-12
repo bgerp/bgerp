@@ -1,84 +1,77 @@
 <?php 
 
-
 /**
  * Мениджър за записване на изпратените факсове
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_Fax extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
-    var $title = 'Изпратени факсове';
+    public $title = 'Изпратени факсове';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    public $canList = 'powerUser';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_Created, callcenter_ListOperationsPlg';
+    public $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_RefreshRows, plg_Created, callcenter_ListOperationsPlg';
+    
+    
+    public $refreshRowsTime = 15000;
+    
+    
+    public $listFields = 'faxNumData, faxNum, cid, createdOn=Изпратен->На, createdBy=Изпратен->От';
     
     
     /**
-     * 
-     */
-    var $refreshRowsTime = 15000;
-    
-    
-    /**
-     * 
-     */
-    var $listFields = 'faxNumData, faxNum, cid, createdOn=Изпратен->На, createdBy=Изпратен->От';
-    
-    
-	/**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Получател->Номер');
         $this->FLD('faxNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получател->Контакт');
@@ -88,11 +81,11 @@ class callcenter_Fax extends core_Manager
     
     /**
      * Записва изпращането на факса
-     * 
-     * @param integer $faxNum - Факс номера, до който се праща
-     * @param integer $cid - id на документа
+     *
+     * @param int $faxNum - Факс номера, до който се праща
+     * @param int $cid    - id на документа
      */
-    static function saveSend($faxNum, $cid)
+    public static function saveSend($faxNum, $cid)
     {
         // Вземаме целия номер
         $faxNum = drdata_PhoneType::getNumberStr($faxNum, 0);
@@ -109,22 +102,22 @@ class callcenter_Fax extends core_Manager
         static::save($rec);
     }
     
-
-	/**
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        // Добавяме стил за телефони        
-        $row->faxNum = "<div class='fax crm-icon'>" . $row->faxNum . "</div>";
+        // Добавяме стил за телефони
+        $row->faxNum = "<div class='fax crm-icon'>" . $row->faxNum . '</div>';
         
         // Ако има данни за търсещия
         if ($rec->faxNumData) {
-         
+            
             // Вземаме записа
             $numRec = callcenter_Numbers::fetch($rec->faxNumData);
             
@@ -135,26 +128,25 @@ class callcenter_Fax extends core_Manager
             if ($externalNumRow->contragent) {
                 
                 // Флаг, за да отбележим, че има данни
-                $haveExternalData = TRUE;
+                $haveExternalData = true;
                 
                 // Добавяме данните
                 $row->faxNumData = $externalNumRow->contragent;
             }
-        } 
+        }
         
         // Ако флага не е дигнат
         if (!$haveExternalData) {
             
             // Ако има номер
             if ($rec->faxNum) {
-                
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 
                 // Уникално id
                 $uniqId = $rec->id . 'faxTo';
                 
                 // Добавяме линка
-                callcenter_Talks::getTemplateForAddNum($row->_rowTools, $rec->faxNum, $uniqId, FALSE, 'fax');
+                callcenter_Talks::getTemplateForAddNum($row->_rowTools, $rec->faxNum, $uniqId, false, 'fax');
             }
         }
         
@@ -167,15 +159,15 @@ class callcenter_Fax extends core_Manager
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-                
+            
             // Дива за разстояние
             $div = "<div style='margin-top:5px;'>";
             
             // Добавяме данните към номерата
-            $row->faxNum .=  $div. $row->faxNumData . "</div>";
+            $row->faxNum .= $div. $row->faxNumData . '</div>';
             
             // Обединяваме създадено на и от
-            $row->created = $row->createdBy . $div . dt::mysql2verbal($rec->createdOn, 'smartTime') . "</div>";
+            $row->created = $row->createdBy . $div . dt::mysql2verbal($rec->createdOn, 'smartTime') . '</div>';
         }
         
         // Ако има id на документ
@@ -188,12 +180,13 @@ class callcenter_Fax extends core_Manager
     
     
     /**
-     * 
+     *
      * Enter description here ...
+     *
      * @param unknown_type $mvc
      * @param unknown_type $data
      */
-    static function on_AfterPrepareListFields($mvc, $data)
+    public static function on_AfterPrepareListFields($mvc, $data)
     {
         // Ако сме в тесен режим
         if (mode::is('screenMode', 'narrow')) {
@@ -204,10 +197,7 @@ class callcenter_Fax extends core_Manager
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Поле за търсене по номера
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
@@ -221,14 +211,14 @@ class callcenter_Fax extends core_Manager
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'number,usersSearch';
         
         $data->listFilter->input('number,usersSearch', 'silent');
         
-    	// Ако не е избран потребител по подразбиране
-        if(!$data->listFilter->rec->usersSearch) {
+        // Ако не е избран потребител по подразбиране
+        if (!$data->listFilter->rec->usersSearch) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
@@ -238,7 +228,7 @@ class callcenter_Fax extends core_Manager
         $data->query->orderBy('createdOn', 'DESC');
         
         // Ако има филтър
-        if($filter = $data->listFilter->rec) {
+        if ($filter = $data->listFilter->rec) {
             
             // Ако се търси по номера
             if ($number = $filter->number) {
@@ -251,31 +241,31 @@ class callcenter_Fax extends core_Manager
             }
             
             // Ако филтъра е по потребители
-            if($filter->usersSearch) {
+            if ($filter->usersSearch) {
                 
                 // Масив с потребителите
                 $userSearchArr = type_Keylist::toArray($filter->usersSearch);
                 
                 // Показваме само на съответните потребители потребителя
-    			$data->query->orWhereArr('createdBy', $userSearchArr);
-    			
-  			    // Ако се търси по всички и има права admin или ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo, admin'))) {
-    			    
-    			    // Показваме и празните резултати 
-                    $data->query->orWhere("#createdBy IS NULL");
+                $data->query->orWhereArr('createdBy', $userSearchArr);
+                
+                // Ако се търси по всички и има права admin или ceo
+                if ((strpos($filter->usersSearch, '|-1|') !== false) && (haveRole('ceo, admin'))) {
+                    
+                    // Показваме и празните резултати
+                    $data->query->orWhere('#createdBy IS NULL');
                 }
-    		}
+            }
         }
     }
     
     
-	/**
+    /**
      * Обновява записите за съответния номер
-     * 
+     *
      * @param string $numStr - Номера
      */
-    static function updateRecsForNum($numStr)
+    public static function updateRecsForNum($numStr)
     {
         // Вземаме последния запис за съответния номер
         $nRecArr = callcenter_Numbers::getRecForNum($numStr);
@@ -286,7 +276,6 @@ class callcenter_Fax extends core_Manager
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
-            
             $rec->faxNumData = $nRecArr[0]->id;
             
             // Записваме

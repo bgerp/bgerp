@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Ips extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -24,7 +23,7 @@ class log_Ips extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "IP-та";
+    public $title = 'IP-та';
     
     
     /**
@@ -62,16 +61,13 @@ class log_Ips extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_SystemWrapper, log_Wrapper';
     
     
-    /**
-     * 
-     */
     public static $ipsArr = array();
     
     
@@ -80,26 +76,26 @@ class log_Ips extends core_Manager
      */
     public function description()
     {
-         $this->FLD('ip', 'ip', 'caption=IP');
-         $this->FLD('country2', 'varchar(2)', 'caption=Код на държавата');
-         
-         $this->setDbUnique('ip');
+        $this->FLD('ip', 'ip', 'caption=IP');
+        $this->FLD('country2', 'varchar(2)', 'caption=Код на държавата');
+        
+        $this->setDbUnique('ip');
     }
     
     
     /**
      * Връща id за съответния запис на IP
-     * 
+     *
      * @param IP $ip
-     * 
-     * @return integer
+     *
+     * @return int
      */
-    public static function getIpId($ip = NULL)
+    public static function getIpId($ip = null)
     {
-        $haveSession = FALSE;
+        $haveSession = false;
         $Session = cls::get('core_Session');
         if ($Session->isStarted()) {
-            $haveSession = TRUE;
+            $haveSession = true;
         }
         
         if (!$ip) {
@@ -117,12 +113,11 @@ class log_Ips extends core_Manager
         // Ако в сесията нямада id-то на IP-то, определяме го, записваме в модела и в сесията
         if (!isset(self::$ipsArr[$ip])) {
             if (!($id = self::fetchField(array("#ip = '[#1#]'", $ip), 'id'))) {
-                
                 $rec = new stdClass();
                 $rec->ip = $ip;
                 $rec->country2 = drdata_IpToCountry::get($ip); // TODO така ли трябва да е?
                 
-                $id = self::save($rec, NULL, 'IGNORE');
+                $id = self::save($rec, null, 'IGNORE');
             }
             
             if ($id) {

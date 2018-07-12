@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'trans_vehicles'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   trans
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class trans_Vehicles extends core_Master
 {
-
-	
-	/**
+    /**
      * Заглавие
      */
     public $title = 'Транспортни средства';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -89,24 +88,24 @@ class trans_Vehicles extends core_Master
      */
     public function description()
     {
-    	$this->FLD('name', 'varchar(120)', 'caption=Име,mandatory');
-    	$this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
-    	$this->FLD('load', 'double', 'caption=Товароносимост');
-    	$this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
-    	$this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
-    	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-    	
-    	$this->setdbUnique('name');
+        $this->FLD('name', 'varchar(120)', 'caption=Име,mandatory');
+        $this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
+        $this->FLD('load', 'double', 'caption=Товароносимост');
+        $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
+        $this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+        
+        $this->setdbUnique('name');
     }
     
     
-	/**
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-    	if($action == 'delete' && isset($rec->lastUsedOn)){
-    		$res = 'no_one';
-    	}
+        if ($action == 'delete' && isset($rec->lastUsedOn)) {
+            $res = 'no_one';
+        }
     }
 }

@@ -4,52 +4,52 @@
 /**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с продуктите
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   spcheck
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class spcheck_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'spcheck_Dictionary';
+    public $startCtr = 'spcheck_Dictionary';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Проверка на правопис";
+    public $info = 'Проверка на правопис';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
         'spcheck_Dictionary',
         'migrate::addLg',
         'migrate::removeBadRecs'
     );
-        
+    
     
     /**
      * Инсталиране на пакета
@@ -70,7 +70,7 @@ class spcheck_Setup extends core_ProtoSetup
     /**
      * Скрипт за инсталиране
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
         
@@ -90,7 +90,7 @@ class spcheck_Setup extends core_ProtoSetup
     {
         $Dictionary = cls::get('spcheck_Dictionary');
         $lQuery = $Dictionary->getQuery();
-        $lQuery->where("#lg IS NULL");
+        $lQuery->where('#lg IS NULL');
         
         $defLg = core_Lg::getDefaultLang();
         
@@ -109,7 +109,7 @@ class spcheck_Setup extends core_ProtoSetup
     {
         $delCnt = spcheck_Dictionary::delete("#isCorrect != 'yes' AND #modifiedBy <= 0 AND #createdBy <= 0");
         
-        $msg = "Изтрити записи: " . $delCnt;
+        $msg = 'Изтрити записи: ' . $delCnt;
         
         spcheck_Dictionary::logDebug($msg);
         

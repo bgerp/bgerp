@@ -7,25 +7,22 @@
  *
  * @category  vendors
  * @package   fconv
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fconv_Processes extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модула
      */
-    var $title = "Стартирани процеси";
+    public $title = 'Стартирани процеси';
     
     
-    /**
-     * 
-     */
-    var $loadList = 'fconv_Wrapper, plg_Created';
+    public $loadList = 'fconv_Wrapper, plg_Created';
     
     
     /**
@@ -37,16 +34,19 @@ class fconv_Processes extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD("processId", "varchar(" . static::FCONV_HANDLER_LEN . ")",
-            array('notNull' => TRUE, 'caption' => 'Манипулатор'));
+        $this->FLD(
+            'processId',
+            'varchar(' . static::FCONV_HANDLER_LEN . ')',
+            array('notNull' => true, 'caption' => 'Манипулатор')
+        );
         
-        $this->FLD("script", "blob(70000)", 'caption=Скрипт');
+        $this->FLD('script', 'blob(70000)', 'caption=Скрипт');
         
-        $this->FLD("timeOut", "int", array('notNull' => TRUE, 'caption' => 'Продължителност'));
+        $this->FLD('timeOut', 'int', array('notNull' => true, 'caption' => 'Продължителност'));
         
-        $this->FLD("callBack", "varchar(128)", array('caption' => 'Функция'));
+        $this->FLD('callBack', 'varchar(128)', array('caption' => 'Функция'));
         
         $this->dbEngine = 'InnoDB';
     }
@@ -54,10 +54,10 @@ class fconv_Processes extends core_Manager
     
     /**
      * Добавя запис в модела с подадените данни, които после ще послужат за callBack
-     * 
+     *
      * @param string $processId
      * @param string $script
-     * @param number $time
+     * @param float  $time
      * @param string $timeoutCallback
      */
     public static function add($processId, $script, $time = 2, $timeoutCallback = '')
@@ -74,11 +74,11 @@ class fconv_Processes extends core_Manager
     
     /**
      * Извиква подадената callBack функция
-     * 
+     *
      * @param string $pid
      * @param string $func
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function runCallbackFunc($pid, $func)
     {
@@ -97,8 +97,8 @@ class fconv_Processes extends core_Manager
         if ($result) {
             if (core_Os::deleteDir($script->tempDir)) {
                 fconv_Processes::delete(array("#processId = '[#1#]'", $pid));
-        
-                return TRUE;
+                
+                return true;
             }
         }
     }
@@ -106,7 +106,7 @@ class fconv_Processes extends core_Manager
     
     /**
      * Връща уникален идентификатор на процеса
-     * 
+     *
      * @return string - Уникален `processId`
      */
     public static function getProcessId()
@@ -129,7 +129,7 @@ class fconv_Processes extends core_Manager
      * Ако е TRUE тогава изтрива записите от таблицата за текущото конвертиране и
      * съответната директория.
      */
-    function act_CallBack()
+    public function act_CallBack()
     {
         Request::setProtected('pid, func');
         
@@ -146,8 +146,8 @@ class fconv_Processes extends core_Manager
      * Подготовка на филтър формата
      *
      * @param fconv_Processes $mvc
-     * @param StdClass $res
-     * @param StdClass $data
+     * @param StdClass        $res
+     * @param StdClass        $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $res, $data)
     {

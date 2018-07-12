@@ -1,6 +1,5 @@
 <?php 
 
-
 /**
  * "Подправка" за кодиране на BRID
  */
@@ -8,28 +7,22 @@ defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
 
 
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Browsers extends core_Master
 {
-    
-    
-    /**
-     * 
-     */
     const HASH_LENGTH = 6;
     
     
-    /**
-     * 
-     */
     const BRID_NAME = 'brid';
     
     
@@ -42,7 +35,7 @@ class log_Browsers extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Браузъри";
+    public $title = 'Браузъри';
     
     
     /**
@@ -92,7 +85,7 @@ class log_Browsers extends core_Master
      */
     public $canSingle = 'admin';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -126,7 +119,7 @@ class log_Browsers extends core_Master
     /**
      * Дали да се спре логването
      */
-    protected static $stopGenerating = FALSE;
+    protected static $stopGenerating = false;
     
     
     /**
@@ -145,20 +138,26 @@ class log_Browsers extends core_Master
     
     /**
      * Връща bridId на brid
-     * 
+     *
      * @generate boolean
-     * 
-     * @return integer|NULL
+     *
+     * @return int|NULL
      */
-    public static function getBridId($generate = TRUE)
+    public static function getBridId($generate = true)
     {
         $Session = cls::get('core_Session');
-        if (!$Session->isStarted()) return ;
+        if (!$Session->isStarted()) {
+            
+            return ;
+        }
         
         if (!($bridId = Mode::get('bridId'))) {
             $brid = self::getBrid($generate);
             
-            if (!$brid) return ;
+            if (!$brid) {
+                
+                return ;
+            }
             
             $bridRec = self::getRecFromBrid($brid);
             
@@ -177,13 +176,13 @@ class log_Browsers extends core_Master
      * След преобразуването към вербални стойности, проказваме OS и Browser, като
      * скриваме USER_AGENT стринга зад отварящ се блок
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    public function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        if($row->userAgent) {
+        if ($row->userAgent) {
             $os = self::getUserAgentOsName($rec->userAgent);
             $browser = self::getUserAgentBrowserName($rec->userAgent);
             $row->userAgent = str_replace('[', '&#91;', $row->userAgent);
-
+            
             $rt = core_Type::getByName('richtext');
             $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");
         }
@@ -200,23 +199,26 @@ class log_Browsers extends core_Master
         $row->userData = $userDataType->escape($row->userData);
     }
     
-
+    
     /**
      * Връща уникален BRID
      * 1. Търси в сесията
      * 2. Търси в кукутата
      * 3. Ако няма открит BRID, и флага е вдигнат генерира и записва BRID
-     * 
-     * @param boolean $generate
-     * 
+     *
+     * @param bool $generate
+     *
      * @return string
      */
-    static function getBrid($generate = TRUE)
-    {   
+    public static function getBrid($generate = true)
+    {
         // brid от сесията
         $brid = Mode::get(self::BRID_NAME);
         
-        if ($brid) return $brid;
+        if ($brid) {
+            
+            return $brid;
+        }
         
         // brid от кукитата
         if ($bridC = $_COOKIE[self::BRID_NAME]) {
@@ -236,13 +238,12 @@ class log_Browsers extends core_Master
                 self::add($brid);
                 
                 return $brid;
-            } else {
-                
-                // Ако не отговаря на хеша
-                self::logNotice("Грешен хеш за BRID: {$bridC}");
-                
-//                return FALSE;
             }
+            
+            // Ако не отговаря на хеша
+            self::logNotice("Грешен хеш за BRID: {$bridC}");
+
+//                return FALSE;
         }
         
         // Ако е зададено да се генерира brid
@@ -270,33 +271,39 @@ class log_Browsers extends core_Master
      */
     public static function stopGenerating()
     {
-        self::$stopGenerating = TRUE;
+        self::$stopGenerating = true;
     }
     
     
     /**
      * Връща записа за съответния `brid`
-     * 
+     *
      * @param string $brid
-     * 
+     *
      * @return FALSE|object
      */
     public static function getRecFromBrid($brid)
     {
-        if (!$brid) return FALSE;
+        if (!$brid) {
+            
+            return false;
+        }
         
         $rec = self::fetch(array("#brid = '[#1#]'", $brid));
         
         return $rec;
     }
-
-
+    
+    
     /**
      * Връща заглавието на User Agent, по възможност като линк
      */
     public static function getLink($brid)
     {
-        if(!$brid) return "";
+        if (!$brid) {
+            
+            return '';
+        }
         
         if (is_object($brid)) {
             $rec = $brid;
@@ -304,13 +311,16 @@ class log_Browsers extends core_Master
             $rec = self::fetch(array("#brid = '[#1#]'", $brid));
         }
         
-        if(!$rec->userAgent) return "";
-
+        if (!$rec->userAgent) {
+            
+            return '';
+        }
+        
         $title = substr(self::getUserAgentBrowserName($rec->userAgent), 0, 3);
-
-        if($title == 'Unk') {
+        
+        if ($title == 'Unk') {
             $title = self::detectBot($rec->userAgent);
-            if(!$title) {
+            if (!$title) {
                 $title = 'Unknown';
             }
         } else {
@@ -318,12 +328,11 @@ class log_Browsers extends core_Master
         }
         
         if (!Mode::is('text', 'plain')) {
-
             if (self::haveRightFor('single', $rec)) {
                 $title = ht::createLink($title, array('log_Browsers', 'single', $rec->id));
             }
         }
-
+        
         return $title;
     }
     
@@ -333,7 +342,10 @@ class log_Browsers extends core_Master
      */
     public static function getLinkFromId($id)
     {
-        if (!$id) return ;
+        if (!$id) {
+            
+            return ;
+        }
         
         if (is_object($id)) {
             $rec = $id;
@@ -347,17 +359,20 @@ class log_Browsers extends core_Master
     
     /**
      * Записва подадените стойности в userData
-     * 
+     *
      * @param array $varsArr
-     * @param boolean $addOnExist
-     * @param boolean $addForLogged
-     * 
-     * @return integer|NULL
+     * @param bool  $addOnExist
+     * @param bool  $addForLogged
+     *
+     * @return int|NULL
      */
-    public static function setVars($varsArr, $addOnExist = TRUE, $addForLogged = TRUE)
+    public static function setVars($varsArr, $addOnExist = true, $addForLogged = true)
     {
         // Ако няма да се добавя за регистрирани потребители
-        if (!$addForLogged && core_Users::getCurrent() > 0) return ;
+        if (!$addForLogged && core_Users::getCurrent() > 0) {
+            
+            return ;
+        }
         
         $brid = self::getBrid();
         
@@ -377,7 +392,10 @@ class log_Browsers extends core_Master
         if ($rec->userData) {
             
             // Ако няма да се обновяват предишните данни
-            if (!$addOnExist) return ;
+            if (!$addOnExist) {
+                
+                return ;
+            }
             
             $userData = $rec->userData;
             $userData = array($now => $varsArr) + $userData;
@@ -386,7 +404,6 @@ class log_Browsers extends core_Master
             $userData = array_slice($userData, 0, self::MAX_BRID_VARS_CNT);
         } else {
             $userData = array($now => $varsArr);
-            
         }
         
         $nRec->userData = $userData;
@@ -399,9 +416,9 @@ class log_Browsers extends core_Master
     
     /**
      * Връща най-новите стойности за параметрите от userData
-     * 
+     *
      * @param array $pArr
-     * 
+     *
      * @return array
      */
     public static function getVars($pArr)
@@ -412,21 +429,24 @@ class log_Browsers extends core_Master
         
         $resArr = array();
         
-        foreach ((array)$userData as $dataArr) {
-            $break = TRUE;
-            foreach ((array)$pArr as $param) {
-                
-                if (isset($resArr[$param])) continue;
+        foreach ((array) $userData as $dataArr) {
+            $break = true;
+            foreach ((array) $pArr as $param) {
+                if (isset($resArr[$param])) {
+                    continue;
+                }
                 
                 if (isset($dataArr[$param])) {
                     $resArr[$param] = $dataArr[$param];
                 }
                 
-                $break = FALSE;
+                $break = false;
             }
             
             // Ако сме открили всички данни, които търсим прекъсваме функцията
-            if ($break) break;
+            if ($break) {
+                break;
+            }
         }
         
         return $resArr;
@@ -435,10 +455,10 @@ class log_Browsers extends core_Master
     
     /**
      * Добавя BRID, OS и браузъра в модела
-     * 
+     *
      * @param string $brid
      */
-    static function add($brid)
+    public static function add($brid)
     {
         if (!$rec = self::fetch(array("#brid = '[#1#]'", $brid))) {
             $rec = new stdClass();
@@ -448,17 +468,17 @@ class log_Browsers extends core_Master
         $rec->userAgent = self::getUserAgent();
         $rec->acceptLangs = self::getAcceptLangs();
         
-        self::save($rec, NULL, 'REPLACE');
+        self::save($rec, null, 'REPLACE');
     }
     
     
     /**
      * Записва куки за brid с определено време на живот
-     * 
+     *
      * @param string $brid
      * @param string $bridSalt
      */
-    static function setBridCookie($brid)
+    public static function setBridCookie($brid)
     {
         $conf = core_Packs::getConfig('core');
         
@@ -474,11 +494,14 @@ class log_Browsers extends core_Master
     /**
      * Обновява времето до когато ще е активен brid
      */
-    static function updateBridCookieLifetime()
+    public static function updateBridCookieLifetime()
     {
-        $brid = self::getBrid(FALSE);
+        $brid = self::getBrid(false);
         
-        if (!$brid) return FALSE;
+        if (!$brid) {
+            
+            return false;
+        }
         
         self::setBridCookie($brid);
     }
@@ -486,10 +509,10 @@ class log_Browsers extends core_Master
     
     /**
      * Допълнителна сол за brid
-     * 
+     *
      * @return string
      */
-    static function getBridSalt_()
+    public static function getBridSalt_()
     {
         $os = self::getUserAgentOsName();
         $browser = self::getUserAgentBrowserName();
@@ -497,14 +520,14 @@ class log_Browsers extends core_Master
         
         return $bridSalt;
     }
-
+    
     
     /**
      * Допълнителна сол за brid
-     * 
+     *
      * @return string
      */
-    static function getBrowserType($userAgent = NULL)
+    public static function getBrowserType($userAgent = null)
     {
         $os = self::getUserAgentOsName($userAgent);
         $browser = self::getUserAgentBrowserName($userAgent);
@@ -513,18 +536,19 @@ class log_Browsers extends core_Master
         return $browserType;
     }
     
+    
     /**
      * Генерира brid
-     * 
+     *
      * @return string
      */
-    static function generateBrid()
-    {   
-        $s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public static function generateBrid()
+    {
+        $s = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         
         $str = '';
         
-        if($bot = self::detectBot()) {
+        if ($bot = self::detectBot()) {
             $str = md5($bot . BRID_SALT);
         } else {
             $userAgent = self::getUserAgent();
@@ -532,7 +556,7 @@ class log_Browsers extends core_Master
             $browserName = self::getUserAgentBrowserName($userAgent);
             $osName = self::getUserAgentOsName($userAgent);
             
-            if (($browserName == "Unknown Browser") || ($osName == "Unknown OS") || !self::getAcceptLangs()) {
+            if (($browserName == 'Unknown Browser') || ($osName == 'Unknown OS') || !self::getAcceptLangs()) {
                 $str = md5($userAgent . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
             }
         }
@@ -550,160 +574,156 @@ class log_Browsers extends core_Master
     
     /**
      * Връща името на браузъра от HTTP_USER_AGENT
-     * 
+     *
      * @return string
      */
-    static function getUserAgentBrowserName($userAgent = NULL)
+    public static function getUserAgentBrowserName($userAgent = null)
     {
-        if(!$userAgent) {
+        if (!$userAgent) {
             // Вземаме ОС от HTTP_USER_AGENT
             $userAgent = self::getUserAgent();
         }
-
-        $browser = "Unknown Browser";
+        
+        $browser = 'Unknown Browser';
         
         $browserArray = array(
-                                '/edge/i' => 'Edge',
-                                '/mobile/i' => 'Mobile Browser',
-                                '/opera mobi/i' => 'Opera Mobi',
-                                '/opera mini/i' => 'Opera Mini',
-                                '/opera/i' => 'Opera',
-                                '/OPR/' => 'Opera',
-                                '/msie|trident/i' => 'Internet Explorer',
-                                '/firefox/i' => 'Firefox',
-                                '/chrome/i' => 'Chrome',
-                                '/safari/i' => 'Safari',
-                                '/netscape/i' => 'Netscape',
-                                '/maxthon/i' => 'Maxthon',
-                                '/konqueror/i' => 'Konqueror',
-               
-                            );
-    
-        foreach ($browserArray as $regex => $value) { 
+            '/edge/i' => 'Edge',
+            '/mobile/i' => 'Mobile Browser',
+            '/opera mobi/i' => 'Opera Mobi',
+            '/opera mini/i' => 'Opera Mini',
+            '/opera/i' => 'Opera',
+            '/OPR/' => 'Opera',
+            '/msie|trident/i' => 'Internet Explorer',
+            '/firefox/i' => 'Firefox',
+            '/chrome/i' => 'Chrome',
+            '/safari/i' => 'Safari',
+            '/netscape/i' => 'Netscape',
+            '/maxthon/i' => 'Maxthon',
+            '/konqueror/i' => 'Konqueror',
+        
+        );
+        
+        foreach ($browserArray as $regex => $value) {
             if (preg_match($regex, $userAgent)) {
                 $browser = $value;
                 break;
             }
         }
-    
+        
         return $browser;
     }
     
- 
-     
+    
     /**
      * Връща името на ОС от HTTP_USER_AGENT
-     * 
+     *
      * @return string
      */
-    static function getUserAgentOsName($userAgent = NULL)
+    public static function getUserAgentOsName($userAgent = null)
     {
-        if(!$userAgent) {
+        if (!$userAgent) {
             // Вземаме ОС от HTTP_USER_AGENT
             $userAgent = self::getUserAgent();
         }
         
-        $osPlatform = "Unknown OS";
+        $osPlatform = 'Unknown OS';
         
         $osArray = array(
-                            '/iphone/i'             =>  'iPhone',
-                            '/ipod/i'               =>  'iPod',
-                            '/ipad/i'               =>  'iPad',
-                            '/android/i'            =>  'Android',
-                            '/blackberry/i'         =>  'BlackBerry',
-                            '/webos/i'              =>  'Mobile',
-                            '/windows nt 6.3/i'     =>  'Windows 8.1',
-                            '/windows nt 6.2/i'     =>  'Windows 8',
-                            '/windows nt 6.1/i'     =>  'Windows 7',
-                            '/windows nt 6.0/i'     =>  'Windows Vista',
-                            '/windows nt 5.2/i'     =>  'Windows Server 2003/XP x64',
-                            '/windows nt 5.1/i'     =>  'Windows XP',
-                            '/windows xp/i'         =>  'Windows XP',
-                            '/windows nt 5.0/i'     =>  'Windows 2000',
-                            '/windows me/i'         =>  'Windows ME',
-                            '/win[a-z_ ]{0,6}98/i'  =>  'Windows 98',
-                            '/win[a-z_ ]{0,6}95/i'  =>  'Windows 95',
-                            '/win16/i'              =>  'Windows 3.11',
-                            '/windows/i'            =>  'Windows',
-                            '/macintosh|mac os x/i' =>  'Mac OS X',
-                            '/mac_powerpc/i'        =>  'Mac OS 9',
-                            '/ubuntu/i'             =>  'Ubuntu',
-                            '/linux/i'              =>  'Linux',
-                        );
+            '/iphone/i' => 'iPhone',
+            '/ipod/i' => 'iPod',
+            '/ipad/i' => 'iPad',
+            '/android/i' => 'Android',
+            '/blackberry/i' => 'BlackBerry',
+            '/webos/i' => 'Mobile',
+            '/windows nt 6.3/i' => 'Windows 8.1',
+            '/windows nt 6.2/i' => 'Windows 8',
+            '/windows nt 6.1/i' => 'Windows 7',
+            '/windows nt 6.0/i' => 'Windows Vista',
+            '/windows nt 5.2/i' => 'Windows Server 2003/XP x64',
+            '/windows nt 5.1/i' => 'Windows XP',
+            '/windows xp/i' => 'Windows XP',
+            '/windows nt 5.0/i' => 'Windows 2000',
+            '/windows me/i' => 'Windows ME',
+            '/win[a-z_ ]{0,6}98/i' => 'Windows 98',
+            '/win[a-z_ ]{0,6}95/i' => 'Windows 95',
+            '/win16/i' => 'Windows 3.11',
+            '/windows/i' => 'Windows',
+            '/macintosh|mac os x/i' => 'Mac OS X',
+            '/mac_powerpc/i' => 'Mac OS 9',
+            '/ubuntu/i' => 'Ubuntu',
+            '/linux/i' => 'Linux',
+        );
         
         // Проверяваме регулярните изрази
-        foreach ($osArray as $regex => $value) { 
-    
+        foreach ($osArray as $regex => $value) {
             if (preg_match($regex, $userAgent)) {
                 $osPlatform = $value;
                 break;
             }
         }
-
+        
         return $osPlatform;
     }
     
-
+    
     /**
      * Намира името на бота, ако той е клиента
      */
-    static function detectBot($userAgent = NULL)
+    public static function detectBot($userAgent = null)
     {
-        if(!$userAgent) {
+        if (!$userAgent) {
             $userAgent = $_SERVER['HTTP_USER_AGENT'];
         }
         
         $bots = 'GoogleBot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
-            'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
+            'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' .
             'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|majestic12|augurfind|Java';
-
-        $crawlers = explode("|", $bots);
- 
-        foreach ($crawlers as $botName)
-        {
-            if (stristr($userAgent, $botName) !== FALSE) {
-            
+        
+        $crawlers = explode('|', $bots);
+        
+        foreach ($crawlers as $botName) {
+            if (stristr($userAgent, $botName) !== false) {
+                
                 return $botName;
             }
         }
-
-        if(preg_match("/\b([a-z\w\-]+(bot|crawler)[\w\-]*)\b/i", $userAgent, $matches)) {
-
+        
+        if (preg_match("/\b([a-z\w\-]+(bot|crawler)[\w\-]*)\b/i", $userAgent, $matches)) {
             $botName = $matches[1];
-
+            
             return $botName;
         }
-
-        if(preg_match("/https?\:\/\/([a-z0-9\-\.]+)[^a-z0-9\-\.]*/i", $userAgent, $matches)) {
         
+        if (preg_match("/https?\:\/\/([a-z0-9\-\.]+)[^a-z0-9\-\.]*/i", $userAgent, $matches)) {
             $botName = str_ireplace('www.', '', $matches[1]);
-
+            
             return $botName;
         }
         
-        if(self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
-
-            return FALSE;
+        if (self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
+            
+            return false;
         }
         
-        if(preg_match("/([a-z]+\.com)\b/i", $userAgent, $matches)) {
-        
+        if (preg_match("/([a-z]+\.com)\b/i", $userAgent, $matches)) {
+            
             return $matches[1];
         }
-
-        return FALSE;
+        
+        return false;
     }
-
+    
+    
     /**
      * Тестваме какъв е UA
      */
-    function act_Test()
+    public function act_Test()
     {
         $res = self::getBrowserType(Request::get('ua'));
-        if($res == 'Unknown Browser / Unknown OS') {
+        if ($res == 'Unknown Browser / Unknown OS') {
             $res = self::detectBot(Request::get('ua'));
         }
-
+        
         return $res;
     }
     
@@ -711,7 +731,7 @@ class log_Browsers extends core_Master
     /**
      * Връща $_SERVER['HTTP_USER_AGENT']
      */
-    static function getUserAgent()
+    public static function getUserAgent()
     {
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
         
@@ -722,7 +742,7 @@ class log_Browsers extends core_Master
     /**
      * Връща $_SERVER['HTTP_ACCEPT_LANGUAGE']
      */
-    static function getAcceptLangs()
+    public static function getAcceptLangs()
     {
         $acceptLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
         
@@ -734,9 +754,9 @@ class log_Browsers extends core_Master
      * Връща резултатата от get_browser();
      * Трябва да е зададен пътя до browscap.ini файла в php.ini
      */
-    static function getBrowserCap()
+    public static function getBrowserCap()
     {
-        static $browser='';
+        static $browser = '';
         
         if (!$browser) {
             
@@ -745,29 +765,29 @@ class log_Browsers extends core_Master
                 $browser = get_browser();
             }
         }
- 
+        
         return $browser;
     }
     
-
+    
     /**
      * Рвъща TRUE, ако браузърът има висока резолюция на дисплея
      */
     public static function isRetina()
     {
-        if( (Mode::get('devicePixelRatio') > 1.5) ||
-             (Mode::get('devicePixelRatio') === NULL && Mode::is('screenMode', 'narrow')) ) {
-
-            return TRUE;
+        if ((Mode::get('devicePixelRatio') > 1.5) ||
+             (Mode::get('devicePixelRatio') === null && Mode::is('screenMode', 'narrow'))) {
+            
+            return true;
         }
     }
-
+    
     
     /**
      * Стандартния page_Footer извиква този екшън,
      * ако браузърът поддържа JS
      */
-    function act_JS()
+    public function act_JS()
     {
         Mode::setPermanent('javascript', 'yes');
         Mode::setPermanent('screenWidth', Request::get('w', 'int'));
@@ -776,20 +796,20 @@ class log_Browsers extends core_Master
         Mode::setPermanent('windowHeight', Request::get('winH', 'int'));
         Mode::setPermanent('getUserAgent', Request::get('browserCheck'));
         Mode::setPermanent('devicePixelRatio', Request::get('dpr'));
-
+        
         $timezoneOffset = Request::get('timezoneInfo');
         $timezoneOffset *= 60;
         $timezoneDiff = $timezoneOffset + date('Z');
         Mode::setPermanent('timezoneDiff', $timezoneDiff);
         
-        if($w > 1000 && !Mode::is("ScreenModeFromScreenSize")) {
+        if ($w > 1000 && !Mode::is('ScreenModeFromScreenSize')) {
             Mode::setPermanent('screenMode', 'wide');
-            Mode::setPermanent("ScreenModeFromScreenSize");
+            Mode::setPermanent('ScreenModeFromScreenSize');
         }
-
+        
         $this->render1x1gif();
         
-        core_App::shutdown(FALSE);
+        core_App::shutdown(false);
     }
     
     
@@ -797,32 +817,32 @@ class log_Browsers extends core_Master
      * Стандартния page_Footer извиква този екшън,
      * ако браузърът не поддържа JS
      */
-    function act_NoJS()
+    public function act_NoJS()
     {
         Mode::setPermanent('javascript', 'no');
-
+        
         $this->render1x1gif();
         
-        core_App::shutdown(FALSE);
+        core_App::shutdown(false);
     }
     
     
     /**
      * Предизвиква затваряне на браузъра
      */
-    function act_Close()
+    public function act_Close()
     {
-        return "<script> opener.focus(); self.close (); </script>";
+        return '<script> opener.focus(); self.close (); </script>';
     }
     
     
     /**
      * Задава широк режим на екрана
      */
-    function act_SetWideScreen()
+    public function act_SetWideScreen()
     {
         Mode::setPermanent('screenMode', 'wide');
-
+        
         followRetUrl();
     }
     
@@ -830,10 +850,10 @@ class log_Browsers extends core_Master
     /**
      * Задава тесен режим на екрана
      */
-    function act_SetNarrowScreen()
+    public function act_SetNarrowScreen()
     {
         Mode::setPermanent('screenMode', 'narrow');
-
+        
         followRetUrl();
     }
     
@@ -842,26 +862,26 @@ class log_Browsers extends core_Master
      * Връща HTML кода за разпознаване параметрите на браузъра
      * В частност се разпознава дали браузърът поддържа Javascript
      */
-    function renderBrowserDetectingCode_()
+    public function renderBrowserDetectingCode_()
     {
         $code = '';
-
-        if(!self::detectBot()) {
+        
+        if (!self::detectBot()) {
             if (!Mode::is('javascript', 'no')) {
                 $url = toUrl(array(
-                        $this,
-                        'noJs',
-                        rand(1, 1000000000)
-                    ));
+                    $this,
+                    'noJs',
+                    rand(1, 1000000000)
+                ));
                 $code .= '<noscript><span class="checkBrowser"><img src="' . $url . '" width="1" height="1" alt="cb"></span></noscript>';
             }
             
             if (!Mode::is('javascript', 'yes')) {
                 $url = toUrl(array(
-                        $this,
-                        'js',
-                        rand(1, 1000000000)
-                    ));
+                    $this,
+                    'js',
+                    rand(1, 1000000000)
+                ));
                 $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1" alt=""></span><script type="text/javascript"><!-- 
                 var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
                 winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement && 
@@ -880,18 +900,61 @@ class log_Browsers extends core_Master
     /**
      * Изпраща към клиента едно пикселен gif
      */
-    function render1x1gif()
-    {   
-        header("X-Robots-Tag: noindex", TRUE);
-        header("Content-Type:  image/gif");
-        header("Expires: Wed, 11 Nov 1998 11:11:11 GMT");
-        header("Cache-Control: no-cache");
-        header("Cache-Control: must-revalidate");
+    public function render1x1gif()
+    {
+        header('X-Robots-Tag: noindex', true);
+        header('Content-Type:  image/gif');
+        header('Expires: Wed, 11 Nov 1998 11:11:11 GMT');
+        header('Cache-Control: no-cache');
+        header('Cache-Control: must-revalidate');
         
         // Отпечатва бинарен код, със съдържание едно пикселен gif
-        printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
-            71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 255, 0, 192, 192, 192, 0, 0, 0, 33, 249, 4, 1,
-            0, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59);
+        printf(
+            '%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c',
+            71,
+            73,
+            70,
+            56,
+            57,
+            97,
+            1,
+            0,
+            1,
+            0,
+            128,
+            255,
+            0,
+            192,
+            192,
+            192,
+            0,
+            0,
+            0,
+            33,
+            249,
+            4,
+            1,
+            0,
+            0,
+            0,
+            0,
+            44,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            2,
+            2,
+            68,
+            1,
+            0,
+            59
+        );
     }
     
     
@@ -899,26 +962,25 @@ class log_Browsers extends core_Master
      * Проверява дали браузъра е мобилен
      * Базирано на: http://detectmobilebrowsers.com/
      */
-    static function detectMobile()
+    public static function detectMobile()
     {
         $useragent = $_SERVER['HTTP_USER_AGENT'];
-
-        if(preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i',$useragent)||preg_match('/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i',substr($useragent,0,4))){
-
-            return TRUE;
+        
+        if (preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i', $useragent) || preg_match('/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i', substr($useragent, 0, 4))) {
+            
+            return true;
         }
     }
- 
     
     
     /**
-     * 
+     *
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
@@ -933,7 +995,7 @@ class log_Browsers extends core_Master
         $data->listFilter->input('brid', 'silent');
         
         // Ако има филтър
-        if($filter = $data->listFilter->rec) {
+        if ($filter = $data->listFilter->rec) {
             if ($filter->brid) {
                 $data->query->where(array("#brid = '[#1#]'", $filter->brid));
             }

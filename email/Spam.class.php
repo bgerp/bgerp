@@ -1,52 +1,50 @@
 <?php 
 
-
 /**
  * Клас 'email_Spam' - регистър на квалифицираните като твърд спам писма
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Milen Georgiev <milen2experta.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Spam extends email_ServiceEmails
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
-    var $title = "Твърд спам";
+    public $title = 'Твърд спам';
     
-
-
+    
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->addFields();  
+        $this->addFields();
     }
-
-     
-
+    
+    
     /**
      * Проверява дали в $mime се съдържа спам писмо и ако е
      * така - съхранява го за определено време в този модел
      */
-    static function process_($mime, $accId, $uid)
+    public static function process_($mime, $accId, $uid)
     {
-        if(self::detectSpam($mime, $accId, $uid)) {      
+        if (self::detectSpam($mime, $accId, $uid)) {
             $rec = new stdClass();
+            
             // Само първите 100К от писмото
             $rec->data = substr($mime->getData(), 0, 100000);
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
-
+            
             self::save($rec);
             
             self::logNotice('Маркиран имейл като спам', $rec->id);
@@ -54,14 +52,14 @@ class email_Spam extends email_ServiceEmails
             return $rec->id;
         }
     }
-
+    
     
     /**
      * Дали писмото е SPAM?
      */
-    static function detectSpam($mime, $accId, $uid)
-    {   
-        $isSpam = FALSE;
+    public static function detectSpam($mime, $accId, $uid)
+    {
+        $isSpam = false;
         
         // Ако е отговор на наш имейл да не се приема като спам
         $subject = $mime->getHeader('subject');
@@ -81,8 +79,8 @@ class email_Spam extends email_ServiceEmails
         }
         
         // Ако няма адрес на изпращача, писмото го обявяваме за спам
-        if(!($fromEmail = $mime->getFromEmail())) {
-            $isSpam = TRUE;
+        if (!($fromEmail = $mime->getFromEmail())) {
+            $isSpam = true;
             
             return $isSpam;
         }
@@ -94,9 +92,9 @@ class email_Spam extends email_ServiceEmails
         // TODO
         
         // Гледаме спам рейтинга
-        $score = self::getSpamScore($mime->parts[1]->headersArr, TRUE, $mime, $rec);
+        $score = self::getSpamScore($mime->parts[1]->headersArr, true, $mime, $rec);
         if (isset($score) && ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
-            $isSpam = TRUE;
+            $isSpam = true;
         }
         
         return $isSpam;
@@ -106,12 +104,12 @@ class email_Spam extends email_ServiceEmails
     /**
      * Връща спам рейтинга от хедърите
      *
-     * @param array $headerArr
-     * @param boolean $notNull
+     * @param array           $headerArr
+     * @param bool            $notNull
      * @param NULL|email_Mime $mime
-     * @param NULL|stdClass $rec
+     * @param NULL|stdClass   $rec
      */
-    public static function getSpamScore($headerArr, $notNull = TRUE, $mime = NULL, $rec = NULL)
+    public static function getSpamScore($headerArr, $notNull = true, $mime = null, $rec = null)
     {
         $headersNames = email_Setup::get('CHECK_SPAM_SCORE_HEADERS');
         
@@ -122,32 +120,33 @@ class email_Spam extends email_ServiceEmails
         $hash = md5(serialize($headerArr));
         
         if (!$scoreArr[$hash]) {
-            
-            $score = NULL;
+            $score = null;
             
             // Проверяваме рейтинга във всички зададени хедъри
             if ($headersNamesArr) {
-                
                 foreach ($headersNamesArr as $header) {
-                    
                     $header = trim($header);
                     
-                    if (!$header) continue;
+                    if (!$header) {
+                        continue;
+                    }
                     
                     $score = email_Mime::getHeadersFromArr($headerArr, $header);
                     
                     if (!is_numeric($score)) {
-                        if(preg_match('/score\s*=\s*([0-9\.]+)(\s|$|[^0-9])/i', $score, $matches)) {
+                        if (preg_match('/score\s*=\s*([0-9\.]+)(\s|$|[^0-9])/i', $score, $matches)) {
                             $score = $matches[1];
                         }
                     }
                     
-                    if (isset($score) && is_numeric($score)) break;
+                    if (isset($score) && is_numeric($score)) {
+                        break;
+                    }
                 }
             }
             
             if (!is_numeric($score)) {
-                $score = NULL;
+                $score = null;
             }
             
             $scoreArr[$hash]['score'] = $score;

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'acc_Wrapper'
  *
@@ -10,20 +9,20 @@
  *
  * @category  bgerp
  * @package   acc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class acc_WrapperSettings extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('acc_Periods', 'Периоди', 'ceo,acc');
         $this->TAB('acc_Lists', 'Номенклатури', 'ceo,acc');

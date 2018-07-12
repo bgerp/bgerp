@@ -36,6 +36,7 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_TO', '3600');
  */
 defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC', 2678400);
 
+
 /**
  * Колко папки от последно отворените да се показват при търсене
  */
@@ -124,7 +125,7 @@ defIfNot('DOC_HIDE_TEXT_AFTER_LENGTH', 20000);
 /**
  * Колко секунди в кеша максимално да живеят документите
  */
-defIfNot('DOC_CACHE_LIFETIME', 5*60);
+defIfNot('DOC_CACHE_LIFETIME', 5 * 60);
 
 
 /**
@@ -153,83 +154,83 @@ defIfNot('DOC_DELETE_REJECTED_THREADS_PERIOD', core_DateTime::SECONDS_IN_MONTH);
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'doc_Folders';
+    public $startCtr = 'doc_Folders';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Документи и папки";
+    public $info = 'Документи и папки';
     
     
     /**
      * Описание на системните действия
      */
-    var $systemActions = array(
-        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Ре-индексиране на документите')),
-        array('title' => 'Поправки', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на развалени документи'))
+    public $systemActions = array(
+        array('title' => 'Ключови думи', 'url' => array('doc_Containers', 'repairKeywords', 'ret_url' => true), 'params' => array('title' => 'Ре-индексиране на документите')),
+        array('title' => 'Поправки', 'url' => array('doc_Containers', 'repair', 'ret_url' => true), 'params' => array('title' => 'Поправка на развалени документи'))
     );
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-    
-        // Кой пакет да използваме за генериране на PDF от HTML ?
-        'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да се използва за генериране на PDF?->Пакет'),
-        'DOC_CHART_ADAPTER' => array ('class(interface=doc_chartAdapterIntf,select=title, allowEmpty)', 'caption=Кой пакет да се използва за показване на графики?->Пакет, placeholder=Автоматично'),
-        'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
-        'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
-    	'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array ('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
-    	
-        'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
-        'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
-        'DOC_SEARCH_LIMIT' => array ('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
-
-        'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
-        'DOC_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
-        'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
-        'DOC_NOTIFY_FOR_CONTO' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при контиране->Избор, customizeBy=powerUser'),
-        'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
-        'DOC_NOTIFY_PENDING_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
+    public $configDescription = array(
         
-        'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
-        'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
-        'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
-        'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
-        'DOC_CACHE_LIFETIME' => array("time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)", "caption=Кеширане на документите->Време"),
-        'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array("userList", "caption=Известяване за отворени теми в папки на оттеглени потребители->Потребители"),
-        'DOC_DELETE_REJECTED_THREADS_PERIOD'  => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
+        // Кой пакет да използваме за генериране на PDF от HTML ?
+        'BGERP_PDF_GENERATOR' => array('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да се използва за генериране на PDF?->Пакет'),
+        'DOC_CHART_ADAPTER' => array('class(interface=doc_chartAdapterIntf,select=title, allowEmpty)', 'caption=Кой пакет да се използва за показване на графики?->Пакет, placeholder=Автоматично'),
+        'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
+        'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
+        'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
+        
+        'DOC_REPAIR_ALL' => array('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
+        'DOC_SEARCH_FOLDER_CNT' => array('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
+        'DOC_SEARCH_LIMIT' => array('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
+        
+        'DOC_NOTIFY_FOR_NEW_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
+        'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
+        'DOC_NOTIFY_FOR_CONTO' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при контиране->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_PENDING_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
+        
+        'DOC_SHOW_DOCUMENTS_BEGIN' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
+        'DOC_SHOW_DOCUMENTS_END' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
+        'DOC_SHOW_DOCUMENTS_LAST_ON' => array('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
+        'DOC_HIDE_TEXT_AFTER_LENGTH' => array('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
+        'DOC_CACHE_LIFETIME' => array('time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)', 'caption=Кеширане на документите->Време'),
+        'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array('userList', 'caption=Известяване за отворени теми в папки на оттеглени потребители->Потребители'),
+        'DOC_DELETE_REJECTED_THREADS_PERIOD' => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
     );
-
+    
     
     // Инсталиране на мениджърите
-    var $managers = array(
+    public $managers = array(
         'migrate::addPartnerRole1',
         'doc_UnsortedFolders',
         'doc_Folders',
@@ -241,21 +242,21 @@ class doc_Setup extends core_ProtoSetup
         'doc_PdfCreator',
         'doc_ThreadUsers',
         'doc_Files',
-    	'doc_TplManager',
-    	'doc_HiddenContainers',
-    	'doc_DocumentCache',
-    	'doc_Likes',
-    	'doc_ExpensesSummary',
-    	'doc_Prototypes',
-    	'doc_UsedInDocs',
-    	'doc_View',
-    	'doc_Linked',
-    	'doc_LinkedTemplates',
-    	'doc_FolderResources',
+        'doc_TplManager',
+        'doc_HiddenContainers',
+        'doc_DocumentCache',
+        'doc_Likes',
+        'doc_ExpensesSummary',
+        'doc_Prototypes',
+        'doc_UsedInDocs',
+        'doc_View',
+        'doc_Linked',
+        'doc_LinkedTemplates',
+        'doc_FolderResources',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
-    	'migrate::migratePending1',
+        'migrate::migratePending1',
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
@@ -265,104 +266,103 @@ class doc_Setup extends core_ProtoSetup
         'migrate::autoCloseToAllFolder',
         'migrate::setActivatedBy'
     );
-	
+    
     
     /**
      * Нагласяне на крон
      */
-    var $cronSettings = array(
-            array(
-                    'systemId' => doc_Threads::DELETE_SYSTEM_ID,
-                    'description' => 'Изтриване на оттеглени и документи нишки',
-                    'controller' => 'doc_Threads',
-                    'action' => 'DeleteThread',
-                    'period' => 5,
-                    'timeLimit' => 200,
-            ),
-            array(
-                    'systemId' => 'deleteOldObject',
-                    'description' => 'Изтриване на остарялите информации за обектите в документ',
-                    'controller' => 'doc_UsedInDocs',
-                    'action' => 'deleteOldObject',
-                    'period' => 1440,
-                    'offset' => 66,
-                    'timeLimit' => 120,
-            ),
-            array(
-                    'systemId' => "AutoClose",
-                    'description' => "Автоматично затваряне на папки",
-                    'controller' => "doc_Folders",
-                    'action' => "autoClose",
-                    'period' =>1440,
-                    'offset' => 111,
-                    'timeLimit' => 400
-            )
+    public $cronSettings = array(
+        array(
+            'systemId' => doc_Threads::DELETE_SYSTEM_ID,
+            'description' => 'Изтриване на оттеглени и документи нишки',
+            'controller' => 'doc_Threads',
+            'action' => 'DeleteThread',
+            'period' => 5,
+            'timeLimit' => 200,
+        ),
+        array(
+            'systemId' => 'deleteOldObject',
+            'description' => 'Изтриване на остарялите информации за обектите в документ',
+            'controller' => 'doc_UsedInDocs',
+            'action' => 'deleteOldObject',
+            'period' => 1440,
+            'offset' => 66,
+            'timeLimit' => 120,
+        ),
+        array(
+            'systemId' => 'AutoClose',
+            'description' => 'Автоматично затваряне на папки',
+            'controller' => 'doc_Folders',
+            'action' => 'autoClose',
+            'period' => 1440,
+            'offset' => 111,
+            'timeLimit' => 400
+        )
     );
-	
+    
     
     /**
      * Дефинирани класове, които имат интерфейси
-    */
-    var $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments';
-        
+     */
+    public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols, doc_ExpandComments';
+    
     
     /**
      * Инсталиране на пакета
      */
-    function install()
-    {   
-        $html .= core_Roles::addOnce('powerUser', NULL, 'system');
-
+    public function install()
+    {
+        $html .= core_Roles::addOnce('powerUser', null, 'system');
+        
         // Добавяне на ролите за Ранг
         $rangRoles = array(
-                        
+            
             // Изпълнителен член на екип. Достъпни са му само папките,
             // които са споделени или на които е собственик
-            'executive',  
+            'executive',
             
-            // Старши член на екип. Достъпни са му всички общи и всички екипни папки, 
+            // Старши член на екип. Достъпни са му всички общи и всички екипни папки,
             // в допълнение към тези, на които е собственик или са му споделени
             'officer',
             
             // Ръководител на екип. Достъп до всички папки на екипа, без тези на 'ceo'
-            'manager',   
+            'manager',
             
-            // Pъководител на организацията. Достъпни са му всички папки и документите в тях
-            'ceo',       
+            // Ръководител на организацията. Достъпни са му всички папки и документите в тях
+            'ceo',
         );
         
-        foreach($rangRoles as $role) {
+        foreach ($rangRoles as $role) {
             $inherit = trim('powerUser,' . $lastRole, ',');
             $lastRole = $role;
             $html .= core_Roles::addOnce($role, $inherit, 'rang');
         }
         
-        // Роля за външен член на екип. Достъпни са му само папките, 
+        // Роля за външен член на екип. Достъпни са му само папките,
         // които са споделени или на които е собственик
-        $html .= core_Roles::addOnce('partner', NULL, 'rang');
+        $html .= core_Roles::addOnce('partner', null, 'rang');
         
         $html = parent::install();
-
-        // Ако няма нито една роля за екип, добавяме екип за главна квартира
-        $newTeam = FALSE;
         
-        if(!core_Roles::fetch("#type = 'team'")) {
-            $html .= core_Roles::addOnce(BGERP_ROLE_HEADQUARTER, NULL, 'team');
-            $newTeam = TRUE;
+        // Ако няма нито една роля за екип, добавяме екип за главна квартира
+        $newTeam = false;
+        
+        if (!core_Roles::fetch("#type = 'team'")) {
+            $html .= core_Roles::addOnce(BGERP_ROLE_HEADQUARTER, null, 'team');
+            $newTeam = true;
         }
         
         // Ако няма потребител с роля 'ceo', добавяме я към всички администратори
-        if(!count(core_Users::getByRole('ceo'))) {
-            
+        if (!count(core_Users::getByRole('ceo'))) {
             $admins = core_Users::getByRole('admin');
             
-            if(count($admins)) {
-                foreach($admins as $userId) {
+            if (count($admins)) {
+                foreach ($admins as $userId) {
                     $uTitle = core_Users::getTitleById($userId);
                     core_Users::addRole($userId, 'ceo');
                     $html .= "<li style='color:green'>На потребителя <b>{$uTitle}</b> e добавен ранг <b>ceo</b></li>";
                     
-                    if($newTeam) {
+                    if ($newTeam) {
                         core_Users::addRole($userId, BGERP_ROLE_HEADQUARTER);
                         $html .= "<li class=\"green\">Потребителя <b>{$uTitle}</b> e добавен в екипа <b>Headquarter</b></li>";
                     }
@@ -393,21 +393,22 @@ class doc_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
         
         // Добавяме елемент в менюто
-        $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', "user");
+        $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', 'user');
         
         return $html;
     }
     
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'currency';
-              
-        
+    public $roles = 'currency';
+    
+    
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);
@@ -417,23 +418,22 @@ class doc_Setup extends core_ProtoSetup
     
     
     /**
-     * 
+     *
      * @param type_Keylist $type
-     * @param array $otherParams
-     * 
+     * @param array        $otherParams
+     *
      * @return array
      */
     public static function getAllDocClassOptions($type, $otherParams = array())
     {
-        
         return core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     }
     
     
     /**
      * Поправка на развалените folderId в doc_Containers
-     * 
-     * @return integer
+     *
+     * @return int
      */
     public static function repairBrokenFolderId()
     {
@@ -442,14 +442,16 @@ class doc_Setup extends core_ProtoSetup
         $tQuery->EXT('cFolderId', 'doc_Containers', 'externalName=folderId');
         $tQuery->EXT('cThreadId', 'doc_Containers', 'externalName=threadId, externalKey=firstContainerId');
         
-        $tQuery->where("#cFolderId != #folderId");
+        $tQuery->where('#cFolderId != #folderId');
         
         $cnt = 0;
         
         while ($tRec = $tQuery->fetch()) {
             $cQuery = doc_Containers::getQuery();
             
-            if (!$tRec->id || !$tRec->cFolderId) continue;
+            if (!$tRec->id || !$tRec->cFolderId) {
+                continue;
+            }
             
             $cQuery->where("#threadId = '{$tRec->id}'");
             $cQuery->where("#folderId = '{$tRec->cFolderId}'");
@@ -483,7 +485,6 @@ class doc_Setup extends core_ProtoSetup
                 
                 doc_Likes::save($rec, 'threadId');
             } catch (ErrorException $e) {
-                
                 continue;
             }
         }
@@ -501,7 +502,6 @@ class doc_Setup extends core_ProtoSetup
             try {
                 doc_Folders::save($rec, 'searchKeywords');
             } catch (ErrorException $e) {
-                
                 continue;
             }
         }
@@ -513,45 +513,48 @@ class doc_Setup extends core_ProtoSetup
      */
     public function migratePending1()
     {
-    	$arr = array('email_Outgoings', 'email_SendOnTime', 'blast_Emails', 'blast_EmailSend', 'cal_Tasks', 'planning_Tasks', 'pos_Receipts');
-    	if(core_Packs::isInstalled('pallet')){
-    		$arr[] = 'pallet_Movements';
-    		$arr[] = 'pallet_Pallets';
-    	}
-    	
-    	try{
-    		foreach ($arr as $Cls){
-    			$Cls = cls::get($Cls);
-    			
-    			$db = new core_Db();
-    			if(!$db->tableExists($Cls->dbTableName)) return;
-    			$Cls->setupMvc();
-    
-    			$query = $Cls->getQuery();
-    			$query->where("#state = 'pending'");
-    			$query->show('state');
-    			while($rec = $query->fetch()){
-    				$rec->state = 'waiting';
-    				$Cls->save_($rec, 'state');
-    			}
-    		}
-    	} catch(core_exception_Expect $e){
-    		reportException($e);
-    	}
+        $arr = array('email_Outgoings', 'email_SendOnTime', 'blast_Emails', 'blast_EmailSend', 'cal_Tasks', 'planning_Tasks', 'pos_Receipts');
+        if (core_Packs::isInstalled('pallet')) {
+            $arr[] = 'pallet_Movements';
+            $arr[] = 'pallet_Pallets';
+        }
+        
+        try {
+            foreach ($arr as $Cls) {
+                $Cls = cls::get($Cls);
+                
+                $db = new core_Db();
+                if (!$db->tableExists($Cls->dbTableName)) {
+                    
+                    return;
+                }
+                $Cls->setupMvc();
+                
+                $query = $Cls->getQuery();
+                $query->where("#state = 'pending'");
+                $query->show('state');
+                while ($rec = $query->fetch()) {
+                    $rec->state = 'waiting';
+                    $Cls->save_($rec, 'state');
+                }
+            }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        }
     }
-
-
+    
+    
     public function addPartnerRole1()
     {
         // Определяме най-високата роля за ранг и изтриваме другите
         // Ако потребителя има contractor, buyer или collabolator - задаваме му роля `partner`
         // Почистваме несъществуващите роли и експандваме за полето `roles`
         // Записваме двете полета за роли
-
+        
         // Изтриваме ролите contractor, buyer и collabolator
-
+        
         $uQuery = core_Users::getQuery();
-
+        
         $rangs = array();
         $rangs[] = core_Roles::fetchByName('ceo');
         $rangs[] = core_Roles::fetchByName('manager');
@@ -560,71 +563,71 @@ class doc_Setup extends core_ProtoSetup
         $rangs[] = $contractorR = core_Roles::fetchByName('contractor');
         $rangs[] = $buyerR = core_Roles::fetchByName('buyer');
         $rangs[] = $collaboratorR = core_Roles::fetchByName('collaborator');
-      
+        
         $roleTypes = core_Roles::getGroupedOptions();
         $allowedRolesForPartners = $roleTypes['rang'] + $roleTypes['external'];
-        $allowedRolesForInsiders = $roleTypes['rang'] + $roleTypes['job'] + $roleTypes['team'] + $roleTypes['system'] + $roleTypes['position']; 
-
-        if(!$contractorR) {
-
-            return "<li>Миграцията addPartnerRole не е необходима</li>";
+        $allowedRolesForInsiders = $roleTypes['rang'] + $roleTypes['job'] + $roleTypes['team'] + $roleTypes['system'] + $roleTypes['position'];
+        
+        if (!$contractorR) {
+            
+            return '<li>Миграцията addPartnerRole не е необходима</li>';
         }
-
+        
         $partnerR = core_Roles::fetchByName('partner');
         
         expect($partnerR);
-
+        
         $uMvc = cls::get('core_Users');
-
+        
         // Минаваме по всички съществуващи потребители
-        while($uRec = $uQuery->fetch()) {
+        while ($uRec = $uQuery->fetch()) {
             
             // Определяме най-голямата рола за партньор
             $kRoles = keylist::toArray($uRec->rolesInput);
-            $rang = NULL;
-            foreach($rangs as $r) {
-                if(isset($kRoles[$r]) && !$rang) {
+            $rang = null;
+            foreach ($rangs as $r) {
+                if (isset($kRoles[$r]) && !$rang) {
                     $rang = $r;
                 }
                 unset($kRoles[$r]);
             }
-
+            
             // Конвертираме потребителите сбез роля за ранг или със стара роля за парньор към новата роля `partner`
-            if(!$rang || ($rang == $contractorR) || ($rang == $buyerR) || ($rang == $collaboratorR)) {
+            if (!$rang || ($rang == $contractorR) || ($rang == $buyerR) || ($rang == $collaboratorR)) {
                 $rang = $partnerR;
             }
-
+            
             // Задаваме най-голямата определена роля за ранг
             $kRoles[$rang] = $rang;
-
+            
             // Премахваме несъществуващите роли
-            foreach($kRoles as $roleId) {
-                if(!core_Roles::fetchById($roleId)) {
+            foreach ($kRoles as $roleId) {
+                if (!core_Roles::fetchById($roleId)) {
                     unset($kRoles[$roleId]);
                 }
             }
-
+            
             // Филтрираме допустимите роли според ранга
-            if($rang == $partnerR) {
+            if ($rang == $partnerR) {
                 $allowed = $allowedRolesForPartners;
             } else {
                 $allowed = $allowedRolesForInsiders;
             }
             
-
+            
             // филтрираме само позволените роли за съответния ранг
-            foreach($kRoles as $r) {
-                if(!isset($allowed[$r])) {
+            foreach ($kRoles as $r) {
+                if (!isset($allowed[$r])) {
                     unset($kRoles[$r]);
                 }
             }
-
+            
             $uRec->rolesInput = keylist::fromArray($kRoles);
             $uRec->roles = keylist::fromArray(core_Roles::expand($kRoles));
-
+            
             $uMvc->save_($uRec, 'rolesInput,roles');
         }
-
+        
         // Премахваме стартите роли за контрактор
         core_Roles::removeRoles(array($contractorR, $buyerR, $collaboratorR));
     }
@@ -636,7 +639,7 @@ class doc_Setup extends core_ProtoSetup
     public function showFiles()
     {
         $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
+        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', null, $callOn);
     }
     
     
@@ -647,8 +650,8 @@ class doc_Setup extends core_ProtoSetup
     {
         core_App::setTimeLimit(100);
         $query = doc_Files::getQuery();
-        $query->where("#show IS NULL");
-        $query->where("#containerId IS NOT NULL");
+        $query->where('#show IS NULL');
+        $query->where('#containerId IS NOT NULL');
         $query->where("#containerId != ''");
         
         $query->orderBy('id', 'DESC');
@@ -656,27 +659,27 @@ class doc_Setup extends core_ProtoSetup
         $cnt = $query->count();
         
         $query->limit(100);
-        $query->groupBy("containerId");
+        $query->groupBy('containerId');
         $query->show('containerId');
         
-        if ($cnt && !core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'migrateShowFiles' AND #state = 'draft'", '*', FALSE)) {
+        if ($cnt && !core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'migrateShowFiles' AND #state = 'draft'", '*', false)) {
             $callOn = dt::addSecs(120);
-            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', NULL, $callOn);
+            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles', null, $callOn);
         } elseif (!$cnt) {
-            doc_Files::logDebug("Няма повече файлове за миграция в документите");
+            doc_Files::logDebug('Няма повече файлове за миграция в документите');
             
             return ;
         }
         
-        doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
+        doc_Files::logDebug('Файлове за миграция в документите - ' . $cnt);
         
         while ($rec = $query->fetch()) {
             doc_Files::recalcFiles($rec->containerId);
         }
     }
-
-
-	/**
+    
+    
+    /**
      * Добавя държавата на два езика в папките
      */
     public static function addCountryIn2LgFolders2()
@@ -688,18 +691,21 @@ class doc_Setup extends core_ProtoSetup
             
             return ;
         }
-
+        
         $mvcInst = cls::get('doc_Folders');
         $query = $mvcInst->getQuery();
-                    
+        
         Mode::push('text', 'plain');
         Mode::push('htmlEntity', 'none');
         
-        while($rec = $query->fetchAndCache()) {
+        while ($rec = $query->fetchAndCache()) {
+            if ($rec->coverClass != $companiesId && $rec->coverClass != $personsId) {
+                continue;
+            }
             
-            if ($rec->coverClass != $companiesId && $rec->coverClass != $personsId)  continue;
-            
-            if (strpos($rec->searchKeywords, 'bulgaria')) continue;
+            if (strpos($rec->searchKeywords, 'bulgaria')) {
+                continue;
+            }
             
             $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
             $mvcInst->save_($rec, 'searchKeywords');
@@ -717,8 +723,8 @@ class doc_Setup extends core_ProtoSetup
     {
         $Threads = cls::get('doc_Threads');
         $query = $Threads->getQuery();
-        $query->where("#firstDocClass IS NULL");
-        $query->orWhere("#firstDocId IS NULL");
+        $query->where('#firstDocClass IS NULL');
+        $query->orWhere('#firstDocId IS NULL');
         
         $query->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
         $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
@@ -726,7 +732,9 @@ class doc_Setup extends core_ProtoSetup
         $query->orderBy('id', 'DESC');
         
         while ($rec = $query->fetch()) {
-            if (!$rec->firstContainerId) continue;
+            if (!$rec->firstContainerId) {
+                continue;
+            }
             
             $rec->firstDocClass = $rec->docClass;
             $rec->firstDocId = $rec->docId;
@@ -739,7 +747,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Миграция за попълване на началните настройки за опциите за нотифициране
      * за "Известяване при нов документ"
-     * 
+     *
      * Задължително - Изходящ имейл
      * Никога - Напомняне
      */
@@ -811,7 +819,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Зареждане на данни
      */
-    function loadSetupData($itr = '')
+    public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
         
@@ -832,7 +840,7 @@ class doc_Setup extends core_ProtoSetup
     {
         $uInst = cls::get('doc_UnsortedFolders');
         $uQuery = $uInst->getQuery();
-        $uQuery->where("#receiveEmail IS NULL");
+        $uQuery->where('#receiveEmail IS NULL');
         $uQuery->orWhere("#receiveEmail = 'no'");
         
         $namePattern = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), '');
@@ -841,9 +849,8 @@ class doc_Setup extends core_ProtoSetup
         $emailOutClsId = email_Outgoings::getClassId();
         
         while ($uRec = $uQuery->fetch()) {
-            
             if (!$uRec->receiveEmail) {
-                if (stripos($uRec->name, $namePattern) === FALSE) {
+                if (stripos($uRec->name, $namePattern) === false) {
                     $uRec->receiveEmail = 'no';
                 } else {
                     $uRec->receiveEmail = 'yes';
@@ -867,7 +874,7 @@ class doc_Setup extends core_ProtoSetup
     public static function regenerateSearchKeywords()
     {
         $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
+        core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', null, $callOn);
     }
     
     
@@ -883,21 +890,20 @@ class doc_Setup extends core_ProtoSetup
         if (!$from) {
             $from = dt::addDays(-100);
             
-            doc_Containers::logDebug("Стартиране на регенериране на ключовите думи от " . $from);
+            doc_Containers::logDebug('Стартиране на регенериране на ключовите думи от ' . $from);
         }
         
         $to = dt::addSecs(7200, $from);
         
         if ($from > dt::now()) {
-            
-            doc_Containers::logDebug("Регенерирането на ключовите думи приключи");
+            doc_Containers::logDebug('Регенерирането на ключовите думи приключи');
             
             return;
         }
         
-        if (!core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'regenerateSearchKeywords' AND #state = 'draft'", '*', FALSE)) {
+        if (!core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'regenerateSearchKeywords' AND #state = 'draft'", '*', false)) {
             $callOn = dt::addSecs(55);
-            core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
+            core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', null, $callOn);
             core_Permanent::set($permanentKey, $to, 100000);
         }
         
@@ -906,7 +912,7 @@ class doc_Setup extends core_ProtoSetup
         $cQuery->where(array("#modifiedOn <= '[#1#]'", $to));
         $cQuery->orderBy('modifiedOn', 'ASC');
         
-        $rArr = doc_Containers::regenerateSerchKeywords(FALSE, $cQuery, TRUE);
+        $rArr = doc_Containers::regenerateSerchKeywords(false, $cQuery, true);
         
         if ($rArr) {
             doc_Containers::logDebug("Регенерирани ключови думи на {$rArr[0]} документа от {$from} до {$to}");
@@ -920,23 +926,34 @@ class doc_Setup extends core_ProtoSetup
     public static function taskDocumentsToLinked()
     {
         // Ако класа не съществува
-        if (!cls::load('cal_TaskDocuments', TRUE)) return ;
+        if (!cls::load('cal_TaskDocuments', true)) {
+            
+            return ;
+        }
         $tDocuments = cls::get('cal_TaskDocuments');
         
         // Ако таблицата не е създадена
-        if (!$tDocuments->db->tableExists($tDocuments->dbTableName)) return ;
+        if (!$tDocuments->db->tableExists($tDocuments->dbTableName)) {
+            
+            return ;
+        }
         
         $tQuery = $tDocuments->getQuery();
         
         $tQuery->orderBy('createdOn', 'DESC');
         
         while ($dRec = $tQuery->fetch()) {
+            if (!$dRec->containerId) {
+                continue;
+            }
             
-            if (!$dRec->containerId) continue;
+            if (!$tRec = cal_Tasks::fetch($dRec->taskId)) {
+                continue;
+            }
             
-            if (!$tRec = cal_Tasks::fetch($dRec->taskId)) continue;
-            
-            if (!$tRec->containerId) continue;
+            if (!$tRec->containerId) {
+                continue;
+            }
             
             $nRec = new stdClass();
             $nRec->outType = 'doc';
@@ -952,7 +969,7 @@ class doc_Setup extends core_ProtoSetup
                 $nRec->state = 'rejected';
             }
             
-            doc_Linked::save($nRec, NULL, 'IGNORE');
+            doc_Linked::save($nRec, null, 'IGNORE');
         }
     }
     
@@ -985,7 +1002,6 @@ class doc_Setup extends core_ProtoSetup
         $uQuery->show('showDocumentsAsButtons');
         
         while ($rec = $uQuery->fetch()) {
-            
             foreach ($kArr as $kId) {
                 $rec->showDocumentsAsButtons = type_Keylist::removeKey($rec->showDocumentsAsButtons, $kId);
             }
@@ -1005,21 +1021,28 @@ class doc_Setup extends core_ProtoSetup
     public function repairAssignField()
     {
         foreach (array('cal_Tasks', 'support_Issues') as $clsName) {
-            if (!cls::load($clsName, TRUE)) continue;
+            if (!cls::load($clsName, true)) {
+                continue;
+            }
             
             $clsInst = cls::get($clsName);
             
-            if (!$clsInst->db->tableExists($clsInst->dbTableName)) continue;
+            if (!$clsInst->db->tableExists($clsInst->dbTableName)) {
+                continue;
+            }
             
-            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('assign'))) continue ;
+            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('assign'))) {
+                continue ;
+            }
             
             $query = $clsInst->getQuery();
-            $query->where("#assign IS NOT NULL");
+            $query->where('#assign IS NOT NULL');
             $query->where("#assign != ''");
             
             while ($rec = $query->fetch()) {
-                
-                if (type_keylist::isKeylist($rec->assign)) continue;
+                if (type_keylist::isKeylist($rec->assign)) {
+                    continue;
+                }
                 
                 $rec->assign = type_Keylist::fromArray(array($rec->assign => $rec->assign));
                 
@@ -1030,17 +1053,20 @@ class doc_Setup extends core_ProtoSetup
                 }
             }
             
-            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('sharedUsers'))) continue ;
+            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('sharedUsers'))) {
+                continue ;
+            }
             
             // Добавяме споделените потребители, към възложените
             $query2 = $clsInst->getQuery();
-            $query2->where("#sharedUsers IS NOT NULL");
+            $query2->where('#sharedUsers IS NOT NULL');
             $query2->where("#sharedUsers != ''");
             while ($rec = $query2->fetch()) {
-                
                 $saveField = 'assign';
                 
-                if ($rec->assign == $rec->sharedUsers) continue;
+                if ($rec->assign == $rec->sharedUsers) {
+                    continue;
+                }
                 
                 $rec->assign = type_Keylist::merge($rec->assign, $rec->sharedUsers);
                 
@@ -1081,26 +1107,30 @@ class doc_Setup extends core_ProtoSetup
         
         $closeTime = str::phpToMysqlName('closeTime');
         
-        if (!$Unsorted->db->isFieldExists($Unsorted->dbTableName, $closeTime)) return ;
+        if (!$Unsorted->db->isFieldExists($Unsorted->dbTableName, $closeTime)) {
+            
+            return ;
+        }
         
-        $Unsorted->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
+        $Unsorted->FLD('closeTime', 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
         
         $query = $Unsorted->getQuery();
         
-        $query->where("#closeTime IS NOT NULL");
+        $query->where('#closeTime IS NOT NULL');
         
         $allSysTeamId = type_UserOrRole::getAllSysTeamId();
         
         while ($rec = $query->fetch()) {
-            
-            if (!$rec->folderId) continue ;
+            if (!$rec->folderId) {
+                continue ;
+            }
             
             $fKey = doc_Folders::getSettingsKey($rec->folderId);
             
             $valArr = array();
             $valArr['closeTime'] = $rec->closeTime;
             
-            core_Settings::setValues($fKey, $valArr, $allSysTeamId, TRUE);
+            core_Settings::setValues($fKey, $valArr, $allSysTeamId, true);
         }
     }
     
@@ -1115,7 +1145,7 @@ class doc_Setup extends core_ProtoSetup
         $query = $Containers->getQuery();
         $query->where("#state != 'rejected'");
         $query->where("#state != 'draft'");
-        $query->where("#activatedBy IS NULL");
+        $query->where('#activatedBy IS NULL');
         
         while ($rec = $query->fetch()) {
             $rec->activatedBy = 0;

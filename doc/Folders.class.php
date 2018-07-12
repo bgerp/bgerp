@@ -1,23 +1,23 @@
 <?php
 
 
-
 /**
  * Клас 'doc_Folders' - Папки с нишки от документи
  *
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class doc_Folders extends core_Master
 {
-    
     /**
-     * Максимална дължина на показваните заглавия 
+     * Максимална дължина на показваните заглавия
      */
     const maxLenTitle = 48;
     
@@ -25,20 +25,20 @@ class doc_Folders extends core_Master
     /**
      * Интерфейси
      */
-    var $interfaces = 'core_SettingsIntf';
+    public $interfaces = 'core_SettingsIntf';
     
     
     /**
      * 10 секунди време за опресняване на нишката
-     * 
+     *
      * @see plg_RefreshRows
      */
     public $refreshRowsTime = 10000;
     
-
+    
     /**
      * Кое поле да се гледа за промяна и да се пуска обновяването
-     * 
+     *
      * @see plg_RefreshRows
      */
     public $refreshRowsCheckField = 'last';
@@ -47,122 +47,119 @@ class doc_Folders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting, plg_RefreshRows';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf, plg_Sorting, plg_RefreshRows';
     
     
     /**
      * Заглавие
      */
-    var $title = "Папки с нишки от документи";
+    public $title = 'Папки с нишки от документи';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
+    public $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
     
     
     /**
      * Кой може да вижда единичния изглед
      */
-    var $canSingle = 'powerUser';
-
+    public $canSingle = 'powerUser';
+    
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'no_one';
-
+    public $canAdd = 'no_one';
+    
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'powerUser';
+    public $canReject = 'powerUser';
+    
+    
+    public $canNewdoc = 'powerUser';
     
     
     /**
-     * 
+     * Кой може да го разглежда?
      */
-    var $canNewdoc = 'powerUser';
-    
-    
-    /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'powerUser';
+    public $canList = 'powerUser';
     
     
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFields = 'title';
+    public $searchFields = 'title';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Папка';
+    public $singleTitle = 'Папка';
     
-
+    
     /**
      * Масив в id-та на папки, които трябва да се обновят на Shutdown
      */
-    var $updateByContentOnShutdown = array();
+    public $updateByContentOnShutdown = array();
     
     
     /**
      * Масив с id-та, за които не трябва да се праща нотификация
      */
-    var $preventNotification = array();
-
-
+    public $preventNotification = array();
+    
+    
     /**
      * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
      */
-    public $highPriority = TRUE;
-
-
+    public $highPriority = true;
+    
+    
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         // Определящ обект за папката
-        $this->FLD('coverClass' , 'class(interface=doc_FolderIntf)', 'caption=Корица->Клас');
-        $this->FLD('coverId' , 'int', 'caption=Корица->Обект');
+        $this->FLD('coverClass', 'class(interface=doc_FolderIntf)', 'caption=Корица->Клас');
+        $this->FLD('coverId', 'int', 'caption=Корица->Обект');
         
         // Информация за папката
-        $this->FLD('title' , 'varchar(255,ci)', 'caption=Заглавие, tdClass=folderListTitle');
-        $this->FLD('status' , 'varchar(128)', 'caption=Статус');
-        $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние');
+        $this->FLD('title', 'varchar(255,ci)', 'caption=Заглавие, tdClass=folderListTitle');
+        $this->FLD('status', 'varchar(128)', 'caption=Статус');
+        $this->FLD('state', 'enum(active=Активно,opened=Отворено,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
-        $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
+        $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
     }
-
-
+    
+    
     /**
      * Редиректва към съдържанието на папката
      */
     public function act_Single()
     {
         expect($id = Request::get('id', 'int'));
-
+        
         return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
     }
     
@@ -170,7 +167,7 @@ class doc_Folders extends core_Master
     /**
      * Връща линк към документа
      */
-    static function getLink($id, $maxLength = FALSE, $attr = array())
+    public static function getLink($id, $maxLength = false, $attr = array())
     {
         $rec = static::fetch($id);
         $haveRight = static::haveRightFor('single', $rec);
@@ -180,8 +177,8 @@ class doc_Folders extends core_Master
         
         $title = static::getVerbal($rec, 'title');
         
-        if(!static::haveRightFor('single', $id)) {
-            $url =  array();
+        if (!static::haveRightFor('single', $id)) {
+            $url = array();
         }
         
         $attr['class'] .= ' linkWithIcon';
@@ -190,8 +187,8 @@ class doc_Folders extends core_Master
         if ($rec->state == 'rejected') {
             $attr['class'] .= ' state-rejected';
         }
-
-        $link = ht::createLink($title, $url, NULL, $attr);
+        
+        $link = ht::createLink($title, $url, null, $attr);
         
         return $link;
     }
@@ -199,14 +196,14 @@ class doc_Folders extends core_Master
     
     /**
      * Добавя info запис в log_Data
-     * 
+     *
      * @param string $action
-     * @param integer $objectId
-     * @param integer $lifeDays
-     * 
+     * @param int    $objectId
+     * @param int    $lifeDays
+     *
      * @see core_Mvc::logRead($action, $objectId, $lifeDays)
      */
-    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
+    public static function logRead($action, $objectId = null, $lifeDays = 180)
     {
         if (!self::logToFolder('read', $action, $objectId, $lifeDays)) {
             
@@ -217,14 +214,14 @@ class doc_Folders extends core_Master
     
     /**
      * Добавя info запис в log_Data
-     * 
+     *
      * @param string $action
-     * @param integer $objectId
-     * @param integer $lifeDays
-     * 
+     * @param int    $objectId
+     * @param int    $lifeDays
+     *
      * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
      */
-    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    public static function logWrite($action, $objectId = null, $lifeDays = 360)
     {
         if (!self::logToFolder('write', $action, $objectId, $lifeDays)) {
             
@@ -234,16 +231,19 @@ class doc_Folders extends core_Master
     
     
     /**
-     * 
-     * 
-     * @param string $type
-     * @param string $action
-     * @param integer|NULL $objectId
-     * @param integer|NULL $lifeDays
+     *
+     *
+     * @param string   $type
+     * @param string   $action
+     * @param int|NULL $objectId
+     * @param int|NULL $lifeDays
      */
     protected static function logToFolder($type, $action, $objectId, $lifeDays)
     {
-        if (!$objectId) return ;
+        if (!$objectId) {
+            
+            return ;
+        }
         
         $allowedType = array('read', 'write');
         
@@ -259,15 +259,17 @@ class doc_Folders extends core_Master
             $type = ucfirst($type);
             $fncName = 'log' . $type;
             
-            if (!cls::load($rec->coverClass, TRUE)) return ;
+            if (!cls::load($rec->coverClass, true)) {
+                
+                return ;
+            }
             
             $inst = cls::get($rec->coverClass);
             
             $inst->$fncName($action, $rec->coverId, $lifeDays);
             
-            return TRUE;
+            return true;
         } catch (core_exception_Expect $e) {
-            
             reportException($e);
         }
     }
@@ -280,168 +282,193 @@ class doc_Folders extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
-     	// Добавяме поле във формата за търсене
-		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
-		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,autoFilter');
-		$data->listFilter->view = 'horizontal';
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		// Показваме само това поле. Иначе и другите полета
-		// на модела ще се появят
-		$data->listFilter->showFields = 'search,users,order';
-		$data->listFilter->input('search,users,order', 'silent');
-		
-		if(!$data->listFilter->rec->users) {
-			$data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
-		}
-		
-		if(!$data->listFilter->rec->search) {
-			$data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-			$data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
-			$data->title = 'Папките на |*<span class="green">' .
-			$data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</span>';
-		} else {
-			$data->title = 'Търсене на папки отговарящи на |*<span class="green">"' .
-			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
-		}
-		
-		switch($data->listFilter->rec->order) {
-			case 'last' :
-				$data->query->orderBy('#last', 'DESC');
-			case 'pending' :
-		default :
-		        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'opened' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
-				$data->query->orderBy('#orderByState=ASC,#last=DESC');
-		}
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,autoFilter');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета
+        // на модела ще се появят
+        $data->listFilter->showFields = 'search,users,order';
+        $data->listFilter->input('search,users,order', 'silent');
+        
+        if (!$data->listFilter->rec->users) {
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
+        
+        if (!$data->listFilter->rec->search) {
+            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
+            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+            $data->title = 'Папките на |*<span class="green">' .
+            $data->listFilter->getFieldType('users')->toVerbal($data->listFilter->rec->users) . '</span>';
+        } else {
+            $data->title = 'Търсене на папки отговарящи на |*<span class="green">"' .
+            $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
+        }
+        
+        switch ($data->listFilter->rec->order) {
+            case 'last':
+                $data->query->orderBy('#last', 'DESC');
+                
+                // no break
+            case 'pending':
+        default:
+                $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'opened' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
+                $data->query->orderBy('#orderByState=ASC,#last=DESC');
+        }
     }
     
     
     /**
      * Връща информация дали потребителя има достъп до посочената папка
      */
-    static function haveRightToFolder($folderId, $userId = NULL)
+    public static function haveRightToFolder($folderId, $userId = null)
     {
-        if(!($folderId > 0)) return FALSE;
-
+        if (!($folderId > 0)) {
+            
+            return false;
+        }
+        
         $rec = doc_Folders::fetch($folderId);
         
         return doc_Folders::haveRightToObject($rec, $userId);
     }
     
-
+    
     /**
      * Дали посоченият (или текущият ако не е посочен) потребител има право на достъп до този обект
      * Обекта трябва да има полета inCharge, access и shared
      */
-    static function haveRightToObject($rec, $userId = NULL)
+    public static function haveRightToObject($rec, $userId = null)
     {
-        if(!$userId) {
+        if (!$userId) {
             $userId = core_Users::getCurrent();
         }
         
         // Всеки има право на достъп до папката за която отговаря
-        if ($rec->inCharge && ($rec->inCharge == $userId)) return TRUE;
+        if ($rec->inCharge && ($rec->inCharge == $userId)) {
+            
+            return true;
+        }
         
         // Всеки има право на достъп до папките, които са му споделени
-        if(strpos($rec->shared, '|' . $userId . '|') !== FALSE) return TRUE;
+        if (strpos($rec->shared, '|' . $userId . '|') !== false) {
+            
+            return true;
+        }
         
         // Всеки има право на достъп до общите папки
-        if (($rec->access == 'public') && !core_Users::isContractor()) return TRUE;
+        if (($rec->access == 'public') && !core_Users::isContractor()) {
+            
+            return true;
+        }
         
         // 'ceo' има достъп до всяка папка
         if (core_Users::haveRole('ceo', $userId)) {
             
             // с изключение на личните и секретните на други CEO
             if (core_Users::haveRole('ceo', $rec->inCharge) && (($rec->access == 'private') || ($rec->access == 'secret'))) {
-                return FALSE;
-            } else {
-                return TRUE;
+                
+                return false;
             }
+            
+            return true;
         }
         
         // Вземаме членовете на екипа на потребителя
         $teamMembers = core_Users::getTeammates($userId);
         
         // Дали обекта има отговорник - съекипник
-        $fromTeam = strpos($teamMembers, '|' . $rec->inCharge . '|') !== FALSE;
+        $fromTeam = strpos($teamMembers, '|' . $rec->inCharge . '|') !== false;
         
         // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer или executive - има достъп
-        if($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) return TRUE;
+        if ($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) {
+            
+            return true;
+        }
         
         // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
-        if(core_Users::haveRole('manager,ceo', $rec->inCharge)) return FALSE;
+        if (core_Users::haveRole('manager,ceo', $rec->inCharge)) {
+            
+            return false;
+        }
         
         // Ако папката е лична на член от екипа, и потребителя има права 'manager' - има достъп
-        if($rec->access == 'private' && $fromTeam && core_Users::haveRole('manager', $userId)) return TRUE;
+        if ($rec->access == 'private' && $fromTeam && core_Users::haveRole('manager', $userId)) {
+            
+            return true;
+        }
         
         // Ако никое от горните не е изпълнено - отказваме достъпа
-        return FALSE;
+        return false;
     }
     
     
     /**
      * След преобразуване към вербални данни на записа
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
-        if($rec->openThreadsCnt) {
-            $row->threads = "<span style='float-right; color:#5a6;'>$openThreads</span>";
+        if ($rec->openThreadsCnt) {
+            $row->threads = "<span style='float-right; color:#5a6;'>${openThreads}</span>";
         }
         
-        $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
+        $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . '</span>';
         
         $row->title = self::getFolderTitle($rec, $row->title);
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-
-		if(cls::load($rec->coverClass, TRUE)){
-			$typeMvc = cls::get($rec->coverClass);
-			$signleIcon = $typeMvc->getSingleIcon($rec->coverId);
-			$attr['style'] = 'background-image:url(' . sbf($signleIcon) . ');';
-			
-			$singleTitle = $typeMvc->getSingleTitle($rec->coverId);
-			if($typeMvc->haveRightFor('single', $rec->coverId)) {
-				$row->type = ht::createLink($singleTitle, array($typeMvc, 'single', $rec->coverId), NULL, $attr);
-			} else {
-				$attr['style'] .= 'color:#777;';
-				$row->type = ht::createElement('span', $attr, $singleTitle);
-			}
-		} else {
-			$row->type = "<span class='red'>" . tr('Проблем при показването') . "</span>";
-		}
+        
+        if (cls::load($rec->coverClass, true)) {
+            $typeMvc = cls::get($rec->coverClass);
+            $signleIcon = $typeMvc->getSingleIcon($rec->coverId);
+            $attr['style'] = 'background-image:url(' . sbf($signleIcon) . ');';
+            
+            $singleTitle = $typeMvc->getSingleTitle($rec->coverId);
+            if ($typeMvc->haveRightFor('single', $rec->coverId)) {
+                $row->type = ht::createLink($singleTitle, array($typeMvc, 'single', $rec->coverId), null, $attr);
+            } else {
+                $attr['style'] .= 'color:#777;';
+                $row->type = ht::createElement('span', $attr, $singleTitle);
+            }
+        } else {
+            $row->type = "<span class='red'>" . tr('Проблем при показването') . '</span>';
+        }
     }
-
-
+    
+    
     /**
      * Връща линк към папката
      */
-    public static function getFolderTitle($rec, $title = NULL)
+    public static function getFolderTitle($rec, $title = null)
     {
         $mvc = cls::get('doc_Folders');
-
-        if(is_numeric($rec)) {
+        
+        if (is_numeric($rec)) {
             $rec = $mvc->fetch($rec);
         }
-
+        
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         
-        if($title === NULL) {
+        if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
-
-        if(mb_strlen($rec->title) > self::maxLenTitle) {
+        
+        if (mb_strlen($rec->title) > self::maxLenTitle) {
             $attr['title'] = $title;
             $title = str::limitLen($rec->title, self::maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
         
-        if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
-        	$haveRight = colab_Folders::haveRightFor('single', $rec);
+        if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
+            $haveRight = colab_Folders::haveRightFor('single', $rec);
             $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
         } else {
             $haveRight = $mvc->haveRightFor('single', $rec);
@@ -453,14 +480,14 @@ class doc_Folders extends core_Master
         
         // Ако състоянието е оттеглено
         if ($rec->state == 'rejected') {
-            
+           
            // Добавяме към класа да е оттеглено
             $attr['class'] .= ' state-rejected';
         }
-
-        if($haveRight) {
+        
+        if ($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-
+            
             // Ако е оттеглен
             if ($rec->state == 'rejected') {
                 
@@ -468,61 +495,61 @@ class doc_Folders extends core_Master
                 $link['Rejected'] = 1;
             }
             
-            if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
-            	$link = array();
+            if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+                $link = array();
             }
             
-            $title = ht::createLink($title, $link, NULL, $attr);
+            $title = ht::createLink($title, $link, null, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $title = ht::createElement('span', $attr, $title);
         }
-
+        
         return $title;
     }
     
-
+    
     /**
      * Добавя бутони за нова фирма, лице и проект
      */
-    static function on_AfterPrepareListToolbar($mvc, $data)
+    public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-    	if(crm_Companies::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
-    	}
-       
-    	if(crm_Persons::haveRightFor('add')){
-    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
-    	}
-       
-    	if(doc_UnsortedFolders::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
-    	}
+        if (crm_Companies::haveRightFor('add')) {
+            $data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => true), 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
+        }
+        
+        if (crm_Persons::haveRightFor('add')) {
+            $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => true), 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
+        }
+        
+        if (doc_UnsortedFolders::haveRightFor('add')) {
+            $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => true), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
+        }
     }
     
     
-    static function updateFolderByContent($id)
+    public static function updateFolderByContent($id)
     {
         $mvc = cls::get('doc_Folders');
         $mvc->updateByContentOnShutdown[$id] = $id;
     }
-
+    
     
     /**
      * Обновява информацията за съдържанието на дадена папка
      */
-    static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Първо изпълняваме shutdown процедурата на doc_Threads, тъй-като кода по-долу зависи
         // от нейното действие, а не е гарантирано, че doc_Threads::on_Shutdown() е вече
         // изпълнен.
         doc_Threads::doUpdateThread();
         
-        if(count($mvc->updateByContentOnShutdown)) {
-            foreach($mvc->updateByContentOnShutdown as $id) {
+        if (count($mvc->updateByContentOnShutdown)) {
+            foreach ($mvc->updateByContentOnShutdown as $id) {
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
-
+                
                 if (!$rec) {
                     wp($id);
                     
@@ -536,8 +563,10 @@ class doc_Folders extends core_Master
                 
                 $newStatisticArr = $mvc->updateStatistic($rec->id);
                 
-                foreach ((array)$newStatisticArr['_all'] as $key => $cntArr) {
-                    if (($key != '_notRejected') && ($key != 'opened')) continue;
+                foreach ((array) $newStatisticArr['_all'] as $key => $cntArr) {
+                    if (($key != '_notRejected') && ($key != 'opened')) {
+                        continue;
+                    }
                     foreach ($cntArr as $cnt) {
                         if ($key == 'opened') {
                             $openThreadCnt += $cnt;
@@ -553,16 +582,16 @@ class doc_Folders extends core_Master
                 // Възстановяване на корицата, ако е оттеглена.
                 self::getCover($rec)->restore();
                 
-                if($rec->openThreadsCnt) {
+                if ($rec->openThreadsCnt) {
                     $rec->state = 'opened';
                 } else {
-                	if($rec->state != 'closed'){
-                		$rec->state = 'active';
-                	}
+                    if ($rec->state != 'closed') {
+                        $rec->state = 'active';
+                    }
                 }
                 
                 $thQuery = doc_Threads::getQuery();
-                $thQuery->orderBy("#last", 'DESC');
+                $thQuery->orderBy('#last', 'DESC');
                 $thQuery->limit(1);
                 $lastThRec = $thQuery->fetch("#folderId = {$id} AND #state != 'rejected'");
                 
@@ -573,14 +602,13 @@ class doc_Folders extends core_Master
                 if (!$mvc->preventNotification[$id]) {
                     // Генерираме нотификация за потребителите, споделили папката
                     // ако имаме повече отворени теми от преди
-                    if($exOpenThreadsCnt < $rec->openThreadsCnt) {
-                        
+                    if ($exOpenThreadsCnt < $rec->openThreadsCnt) {
                         $userId = $rec->inCharge;
                         
-                        $msg = '|Отворени теми в|*' . " \"$rec->title\"";
+                        $msg = '|Отворени теми в|*' . " \"{$rec->title}\"";
                         
                         $url = array('doc_Threads', 'list', 'folderId' => $id);
-                            
+                        
                         $priority = 'normal';
                         
                         $notifyArr = $mvc->getUsersArrForNotify($rec);
@@ -588,7 +616,6 @@ class doc_Folders extends core_Master
                         // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
                         $isRejected = core_Users::checkUsersIsRejected($notifyArr);
                         if ($isRejected) {
-                            
                             $otherNotifyArr = array();
                             if ($defNotify = doc_Setup::get('NOTIFY_FOR_OPEN_IN_REJECTED_USERS')) {
                                 $otherNotifyArr = type_Keylist::toArray($defNotify);
@@ -609,13 +636,14 @@ class doc_Folders extends core_Master
                         }
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
-                        foreach((array)$notifyArr as $nUserId) {
-                            
-                            if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
+                        foreach ((array) $notifyArr as $nUserId) {
+                            if (!doc_Folders::haveRightFor('single', $id, $nUserId)) {
+                                continue;
+                            }
                             
                             bgerp_Notifications::add($msg, $url, $nUserId, $priority);
                         }
-                    } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
+                    } elseif ($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
                         // Изчистване на нотификации за отворени теми в тази папка
                         $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
                         bgerp_Notifications::clear($url, '*');
@@ -628,33 +656,35 @@ class doc_Folders extends core_Master
     
     /**
      * Връща статистиката за документите в папката
-     * 
+     *
      * @param int $folderId
-     * 
+     *
      * @return array
      */
     public static function getStatistic($folderId)
     {
-        
-        return self::updateStatistic($folderId, FALSE);
+        return self::updateStatistic($folderId, false);
     }
     
     
     /**
      * Обновява и връща статистиката за документите в папката
-     * 
-     * @param int $folderId
-     * @param boolean $forced
-     * 
+     *
+     * @param int  $folderId
+     * @param bool $forced
+     *
      * @return array
      */
-    public static function updateStatistic($folderId, $forced = TRUE)
+    public static function updateStatistic($folderId, $forced = true)
     {
         $fRec = self::fetch($folderId);
         
         // Ако не е форсирано, при наличие на запис да не се обновява
         if (!$forced) {
-            if (isset($fRec->statistic)) return $fRec->statistic;
+            if (isset($fRec->statistic)) {
+                
+                return $fRec->statistic;
+            }
         }
         
         $tQuery = doc_Threads::getQuery();
@@ -690,16 +720,18 @@ class doc_Folders extends core_Master
     
     /**
      * Връща масив с потребители, които ще се нотифицират за действия в папката
-     * 
+     *
      * @param stdClass $rec
-     * 
+     *
      * @return array
      */
     public static function getUsersArrForNotify($rec)
     {
         static $resArr = array();
         
-        if ($resArr[$rec->id]) $resArr[$rec->id];
+        if ($resArr[$rec->id]) {
+            $resArr[$rec->id];
+        }
         
         $notifyArr = array();
         $notifyArr[$rec->inCharge] = $rec->inCharge;
@@ -738,11 +770,10 @@ class doc_Folders extends core_Master
         $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
         
         // В зависимост от избраната персонална настройка добавяме/премахваме от масива
-        foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
-            
+        foreach ((array) $folOpeningNotifications as $userId => $folOpening) {
             if ($folOpening['folOpenings'] == 'no') {
                 unset($notifyArr[$userId]);
-            } else if ($folOpening['folOpenings'] == 'yes') {
+            } elseif ($folOpening['folOpenings'] == 'yes') {
                 
                 // Може да е абониран, но да няма права
                 if (doc_Folders::haveRightFor('single', $rec->folderId, $userId)) {
@@ -752,6 +783,7 @@ class doc_Folders extends core_Master
         }
         
         $currUserId = core_Users::getCurrent();
+        
         // Премахваме анонимния, системния и текущия потребител
         unset($notifyArr[0]);
         unset($notifyArr[-1]);
@@ -773,24 +805,27 @@ class doc_Folders extends core_Master
     /**
      * Обновява информацията за корицата на посочената папка
      */
-    static function updateByCover($id)
+    public static function updateByCover($id)
     {
         $rec = doc_Folders::fetch($id);
         
-        if(!$rec) return;
+        if (!$rec) {
+            
+            return;
+        }
         
         $coverMvc = cls::get($rec->coverClass);
         
-        if(!$rec->coverId) {
+        if (!$rec->coverId) {
             expect($coverRec = $coverMvc->fetch("#folderId = {$id}"));
             $rec->coverId = $coverRec->id;
-            $mustSave = TRUE;
+            $mustSave = true;
         } else {
             expect($coverRec = $coverMvc->fetch($rec->coverId));
         }
         
-        $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, FALSE);
-
+        $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, false);
+        
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
         $isClosed = ($rec->state != 'closed' && $coverRec->state == 'closed');
@@ -798,44 +833,44 @@ class doc_Folders extends core_Master
         
         $fields = 'title,inCharge,access,shared';
         
-        foreach(arr::make($fields) as $field) {
-            if($rec->{$field} != $coverRec->{$field}) {
+        foreach (arr::make($fields) as $field) {
+            if ($rec->{$field} != $coverRec->{$field}) {
                 $rec->{$field} = $coverRec->{$field};
-                $mustSave = TRUE;
+                $mustSave = true;
             }
         }
-
-    	if($isReject) {
-			$rec->state = 'rejected';
-			$mustSave = TRUE;
-		}
-
-		if($isRevert) {
-			$rec->state = $coverRec->state;
-			$mustSave = TRUE;
-		}
-
-		if($isClosed){
-			$rec->state = 'closed';
-			$mustSave = TRUE;
-		}
-		
-		if($isActivated){
-			$rec->state = 'active';
-			$mustSave = TRUE;
-		}
-		
-        if($mustSave) {
-            if($isRevert || !$rec->state) {
-            	if($rec->state != 'closed'){
-            		$rec->state = 'open';
-            	}
+        
+        if ($isReject) {
+            $rec->state = 'rejected';
+            $mustSave = true;
+        }
+        
+        if ($isRevert) {
+            $rec->state = $coverRec->state;
+            $mustSave = true;
+        }
+        
+        if ($isClosed) {
+            $rec->state = 'closed';
+            $mustSave = true;
+        }
+        
+        if ($isActivated) {
+            $rec->state = 'active';
+            $mustSave = true;
+        }
+        
+        if ($mustSave) {
+            if ($isRevert || !$rec->state) {
+                if ($rec->state != 'closed') {
+                    $rec->state = 'open';
+                }
             }
-
+            
             static::save($rec);
-           
+            
             // Ако сега сме направили операцията възстановяване
-            if($isRevert || !$rec->state) {
+            if ($isRevert || !$rec->state) {
                 self::updateFolderByContent($rec->id);
             }
             
@@ -866,14 +901,14 @@ class doc_Folders extends core_Master
      * Създава празна папка за посочения тип корица
      * и връща нейното $rec->id
      */
-    static function createNew($coverMvc)
+    public static function createNew($coverMvc)
     {
         $rec = new stdClass();
         $rec->coverClass = core_Classes::getId($coverMvc);
         
         expect($rec->coverClass);
         
-        // Задаваме няколко параметъра по подразбиране за 
+        // Задаваме няколко параметъра по подразбиране за
         $rec->status = '';
         $rec->allThreadsCnt = 0;
         $rec->openThreadsCnt = 0;
@@ -887,17 +922,18 @@ class doc_Folders extends core_Master
     
     /**
      * Изпълнява се след начално установяване(настройка) на doc_Folders
+     *
      * @todo Да се махне
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         $query = $mvc->getQuery();
         
-        while($rec = $query->fetch()) {
-            if(($rec->state != 'active') && ($rec->state != 'rejected') && ($rec->state != 'opened') && ($rec->state != 'closed')) {
+        while ($rec = $query->fetch()) {
+            if (($rec->state != 'active') && ($rec->state != 'rejected') && ($rec->state != 'opened') && ($rec->state != 'closed')) {
                 $rec->state = 'active';
                 $mvc->save($rec, 'state');
-                $res .= "<li style='color:red'> $rec->title - active";
+                $res .= "<li style='color:red'> {$rec->title} - active";
             }
         }
     }
@@ -906,7 +942,7 @@ class doc_Folders extends core_Master
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
      */
-    static function getContragentData($id)
+    public static function getContragentData($id)
     {
         //Вземаме данните за ковъра от папката
         $folder = doc_Folders::fetch($id, 'coverClass, coverId');
@@ -914,7 +950,7 @@ class doc_Folders extends core_Master
         //id' то на класа, който е ковър на папката
         $coverClass = $folder->coverClass;
         
-        //Ако класа поддържа интерфейса doc_ContragentDataIntf 
+        //Ако класа поддържа интерфейса doc_ContragentDataIntf
         if (cls::haveInterface('doc_ContragentDataIntf', $coverClass)) {
             //Името на класа
             $className = Cls::get($coverClass);
@@ -932,10 +968,10 @@ class doc_Folders extends core_Master
      * даден потребител.
      *
      * @param core_Query $query
-     * @param int $userId key(mvc=core_Users)
-     * @param boolean $viewAccess - Възможно най - много права за папката
+     * @param int        $userId     key(mvc=core_Users)
+     * @param bool       $viewAccess - Възможно най - много права за папката
      */
-    static function restrictAccess_(&$query, $userId = NULL, $viewAccess = TRUE)
+    public static function restrictAccess_(&$query, $userId = null, $viewAccess = true)
     {
         if ($query->mvc->className != 'doc_Folders') {
             // Добавя необходимите полета от модела doc_Folders
@@ -956,17 +992,20 @@ class doc_Folders extends core_Master
     
     /**
      * Връща езика на папката от държавата на визитката
-     * 
+     *
      * Първо проверява в обръщенията, после в папката
      *
      * @param int $id - id' то на папката
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
-    static function getLanguage($id)
+    public static function getLanguage($id)
     {
         // Ако няма стойност, връщаме
-        if (!$id) return ;
+        if (!$id) {
+            
+            return ;
+        }
         
         // id' то на класа, който е корица
         $coverClassId = doc_Folders::fetchField($id, 'coverClass');
@@ -975,48 +1014,59 @@ class doc_Folders extends core_Master
         $coverClass = cls::getClassName($coverClassId);
         
         // Ако корицата не е Лице или Фирма
-        if (($coverClass != 'crm_Persons') && ($coverClass != 'crm_Companies')) return ;
+        if (($coverClass != 'crm_Persons') && ($coverClass != 'crm_Companies')) {
             
+            return ;
+        }
+        
         // Вземаме държавата
         $classRec = $coverClass::fetch("#folderId = '{$id}'", 'country');
         
         // Ако няма въведена държава
-        if (!$classRec->country) return ;
+        if (!$classRec->country) {
             
+            return ;
+        }
+        
         // Вземаме стринга с официалните езици
         $lgStr = drdata_Countries::fetchField($classRec->country, 'languages');
         
         // Ако няма нищо
-        if (!$lgStr) return ;
+        if (!$lgStr) {
+            
+            return ;
+        }
         
         // Превръщаме в масив
         $lgArr = explode(',', $lgStr);
         
         // Обхождаме масива
-        foreach ((array)$lgArr as $lg) {
+        foreach ((array) $lgArr as $lg) {
             
             // Ако няам език прескачаме
-            if (!$lg) continue;
+            if (!$lg) {
+                continue;
+            }
             
             // Първия добър език
             return strtolower($lg);
         }
     }
-
-
+    
+    
     /**
      * Връща папката по подразбиране за текущия потребител
      * Ако има дефинирана 'корпоративна' сметка за имейли, то папката е корпоративната имейл-кутия на потребителя
      * В противен случай, се връща куп със заглавие 'Документите на {Names}'
      */
-    static function getDefaultFolder($userId = NULL)
-    {   
-        if(!$userId) {
+    public static function getDefaultFolder($userId = null)
+    {
+        if (!$userId) {
             $names = core_Users::getCurrent('names');
-            $nick  = core_Users::getCurrent('nick');
+            $nick = core_Users::getCurrent('nick');
         } else {
             $names = core_Users::fetchField($userId, 'names');
-            $nick  = core_Users::fetchField($userId, 'nick');
+            $nick = core_Users::fetchField($userId, 'nick');
         }
         
         $rec = new stdClass();
@@ -1026,7 +1076,7 @@ class doc_Folders extends core_Master
         $conf = core_Packs::getConfig('email');
         $defaultSentBox = $conf->EMAIL_DEFAULT_SENT_INBOX;
         
-        if ($defaultSentBox && ($inboxId = email_Outgoings::getDefaultInboxId(NULL, $userId))) {
+        if ($defaultSentBox && ($inboxId = email_Outgoings::getDefaultInboxId(null, $userId))) {
             $inboxRec = email_Inboxes::fetch($inboxId);
             
             $rec->email = $inboxRec->email;
@@ -1041,7 +1091,7 @@ class doc_Folders extends core_Master
                 $corpAccRec = email_Accounts::getCorporateAcc();
             }
             
-            if($corpAccRec) {
+            if ($corpAccRec) {
                 $rec->email = "{$nick}@{$corpAccRec->domain}";
                 $rec->accountId = $corpAccRec->id;
                 $folderId = email_Inboxes::forceCoverAndFolder($rec);
@@ -1049,30 +1099,33 @@ class doc_Folders extends core_Master
                 $rec->name = "Документите на {$nick}";
                 $folderId = doc_UnsortedFolders::forceCoverAndFolder($rec);
             }
-        } 
-
+        }
+        
         return $folderId;
     }
     
     
     /**
      * Връща линка на папката във вербален вид
-     * 
+     *
      * @param array $params - Масив с частите на линка
      * @param $params['Ctr'] - Контролера
      * @param $params['Act'] - Действието
      * @param $params['folderId'] - id' то на папката
-     * 
+     *
      * @return core_ET|FALSE - Линк
      */
-    static function getVerbalLink($params)
+    public static function getVerbalLink($params)
     {
         // Проверяваме дали е число
-        if (!is_numeric($params['folderId'])) return FALSE;
+        if (!is_numeric($params['folderId'])) {
+            
+            return false;
+        }
         
         // Записите за папката
         $rec = static::fetch($params['folderId']);
-            
+        
         $haveRight = static::haveRightFor('single', $rec);
         
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
@@ -1082,8 +1135,11 @@ class doc_Folders extends core_Master
         }
         
         // Ако няма права и е със секретен достъп
-        if (!$rec || (!($haveRight) && $rec->access == 'secret')) return FALSE;
-
+        if (!$rec || (!($haveRight) && $rec->access == 'secret')) {
+            
+            return false;
+        }
+        
         // Заглавието на файла във вербален вид
         $title = static::getVerbal($rec, 'title');
         
@@ -1091,29 +1147,28 @@ class doc_Folders extends core_Master
         $sbfIcon = static::getIconImg($rec, $haveRight);
         
         if (Mode::is('text', 'plain')) {
-
+            
             // Ескейпваме плейсхолдърите и връщаме титлата
             $res = core_ET::escape($title);
         } elseif (Mode::is('text', 'xhtml') || !$haveRight) {
-            
             $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
         } else {
-
+            
             // Дали линка да е абсолютен
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
             $params['Ctr'] = 'doc_Threads';
             $link = toUrl($params, $isAbsolute);
-
+            
             // Атрибути на линка
             $attr = array();
             $attr['class'] = 'linkWithIcon';
-            $attr['style'] = "background-image:url({$sbfIcon});";    
-            $attr['target'] = '_blank'; 
-
+            $attr['style'] = "background-image:url({$sbfIcon});";
+            $attr['target'] = '_blank';
+            
             // Създаваме линк
-            $res = ht::createLink($title, $link, NULL, $attr); 
+            $res = ht::createLink($title, $link, null, $attr);
         }
         
         return $res;
@@ -1128,8 +1183,9 @@ class doc_Folders extends core_Master
     
     /**
      * Името на класа на корицата на папка
-     * 
+     *
      * @param int $id key(mvc=doc_Folders)
+     *
      * @return string име на PHP клас-наследник на core_Mvc
      */
     public static function fetchCoverClassName($id)
@@ -1149,16 +1205,17 @@ class doc_Folders extends core_Master
     
     /**
      * Инстанция на корицата.
-     * 
+     *
      * Резултата има всички методи, налични в мениджъра на корицата
-     * 
+     *
      * @param int|stdClass $id идентификатор или запис на папка
+     *
      * @return core_ObjectReference
      */
     public static function getCover($id)
     {
         expect($rec = static::fetchRec($id));
-
+        
         $cover = new core_ObjectReference($rec->coverClass, $rec->coverId);
         
         return $cover;
@@ -1167,17 +1224,16 @@ class doc_Folders extends core_Master
     
     /**
      * Добавя ограничение за дати на създаване/модифициране в заявката
-     * 
-     * @param core_Query $query
+     *
+     * @param core_Query    $query
      * @param datetime|NULL $from
      * @param datetime|NULL $to
-     * @param integer $delay
-     * @param string $dateField
+     * @param int           $delay
+     * @param string        $dateField
      */
     public static function prepareRepairDateQuery(&$query, $from, $to, $delay, $dateField = 'modifiedOn')
     {
         if (isset($from)) {
-            
             if (isset($delay)) {
                 $from = dt::subtractSecs($delay, $from);
             }
@@ -1199,18 +1255,18 @@ class doc_Folders extends core_Master
     
     /**
      * Поправка на структурата на папките
-     * 
+     *
      * @param datetime $from
      * @param datetime $to
-     * @param integer $delay
-     * 
+     * @param int      $delay
+     *
      * @return array
      */
-    public static function repair($from = NULL, $to = NULL, $delay = 10)
+    public static function repair($from = null, $to = null, $delay = 10)
     {
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
-        core_Debug::$isLogging = FALSE;
+        core_Debug::$isLogging = false;
         
         $resArr = array();
         
@@ -1229,22 +1285,22 @@ class doc_Folders extends core_Master
         self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
         
         // Търсим документи с развалени стойности
-        $query->where("#inCharge IS NULL");
-        $query->orWhere("#inCharge <= 0");
-        $query->orWhere("#coverClass IS NULL");
-        $query->orWhere("#coverId IS NULL");
-        $query->orWhere("#title IS NULL");
+        $query->where('#inCharge IS NULL');
+        $query->orWhere('#inCharge <= 0');
+        $query->orWhere('#coverClass IS NULL');
+        $query->orWhere('#coverId IS NULL');
+        $query->orWhere('#title IS NULL');
         
         $query->limit(500);
         
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             try {
                 // Ако има папка без собственик
-                if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
+                if (!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
                     $resArr['inCharge']++;
                     $rec->inCharge = $currUser;
                     self::save($rec, 'inCharge');
-                    self::logNotice("Добавен е собственик на папката", $rec->id);
+                    self::logNotice('Добавен е собственик на папката', $rec->id);
                 }
                 
                 // Ако липсва coverClass, да е на несортираните
@@ -1261,12 +1317,12 @@ class doc_Folders extends core_Master
                 if (!isset($rec->title)) {
                     $resArr['title']++;
                     $coverMvc = cls::get($rec->coverClass);
-                    $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
+                    $rec->title = $coverMvc->getFolderTitle($rec->coverId, false);
                     self::save($rec, 'title');
                     self::logNotice("Добавено заглавие на корица {$rec->coverId}");
                 }
                 
-                self::logNotice("Папката е обновена, защото има развалени данни", $rec->id);
+                self::logNotice('Папката е обновена, защото има развалени данни', $rec->id);
                 
                 // Обновяваме папката
                 self::updateFolderByContent($rec->id);
@@ -1285,39 +1341,37 @@ class doc_Folders extends core_Master
         
         return $resArr;
     }
-
-
-
+    
+    
     /**
      * Проверка и поправка на всички записи
      *
      * @param datetime $from
      * @param datetime $to
-     * @param integer $delay
+     * @param int      $delay
      *
      * @return array
      */
-    public static function repairAll($from = NULL, $to = NULL, $delay = 10)
+    public static function repairAll($from = null, $to = null, $delay = 10)
     {
         $resArr = array();
         $query = self::getQuery();
-    
+        
         self::prepareRepairDateQuery($query, $from, $to, $delay, 'createdOn');
         
         while ($rec = $query->fetch()) {
-            
-            $mustRepair = FALSE;
+            $mustRepair = false;
             
             try {
                 // Поправяме документите, които няма инстанция или липсва запис за тях
-                if (cls::load($rec->coverClass, TRUE)) {
+                if (cls::load($rec->coverClass, true)) {
                     $inst = cls::get($rec->coverClass);
                     
-                    if (!$inst->fetch($rec->coverId, '*', FALSE)) {
-                        $mustRepair = TRUE;
+                    if (!$inst->fetch($rec->coverId, '*', false)) {
+                        $mustRepair = true;
                     }
                 } else {
-                    $mustRepair = TRUE;
+                    $mustRepair = true;
                 }
             } catch (ErrorException $e) {
                 reportException($e);
@@ -1330,7 +1384,7 @@ class doc_Folders extends core_Master
                     $resArr += self::moveToUnsorted($rec);
                 } catch (ErrorException $e) {
                     reportException($e);
-                
+                    
                     continue;
                 }
             }
@@ -1342,20 +1396,20 @@ class doc_Folders extends core_Master
     
     /**
      * Поправка на структурата на кориците
-     * 
+     *
      * @param datetime $from
      * @param datetime $to
-     * @param integer $delay
-     * 
+     * @param int      $delay
+     *
      * @return array
      */
-    public static function repairCover($from = NULL, $to = NULL, $delay = 10)
+    public static function repairCover($from = null, $to = null, $delay = 10)
     {
         $resArr = array();
         
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
-        core_Debug::$isLogging = FALSE;
+        core_Debug::$isLogging = false;
         
         // Всички документи, които имат интерфейса
         $clsArr = core_Classes::getOptionsByInterface('doc_FolderIntf', 'name');
@@ -1363,10 +1417,13 @@ class doc_Folders extends core_Master
         $fArr = array();
         
         foreach ($clsArr as $clsId => $clsName) {
+            if ($clsName == 'doc_Folders') {
+                continue;
+            }
             
-            if ($clsName == 'doc_Folders') continue;
-            
-            if (!cls::load($clsName, TRUE)) continue ;
+            if (!cls::load($clsName, true)) {
+                continue ;
+            }
             
             $coverInst = cls::get($clsName);
             $coverId = core_Classes::getId($coverInst);
@@ -1379,8 +1436,9 @@ class doc_Folders extends core_Master
             $cQuery->where("#folderId IS NOT NULL AND #folderId != ''");
             
             while ($cRec = $cQuery->fetch()) {
-                
-                if (!$cRec->folderId) continue;
+                if (!$cRec->folderId) {
+                    continue;
+                }
                 
                 // Премахва повтарящите се folderId
                 if ($fArr[$cRec->folderId]) {
@@ -1398,15 +1456,15 @@ class doc_Folders extends core_Master
                     try {
                         // Нулираме folderId на записа с по-малко точки
                         if ($aPoints > $cPoints) {
-                            $cRec->folderId = NULL;
+                            $cRec->folderId = null;
                             $coverInst->save($cRec, 'folderId');
                             $coverInst->logNotice('Нулирано повтарящо се "folderId"', $cRec->id);
                         } else {
                             $sInst = cls::get($fArr[$cRec->folderId]['cls']);
-                            $fArr[$cRec->folderId]['rec']->folderId = NULL;
+                            $fArr[$cRec->folderId]['rec']->folderId = null;
                             $sInst->logNotice('Нулирано повтарящо се "folderId"', $fArr[$cRec->folderId]['rec']->id);
                             $sInst->save($fArr[$cRec->folderId]['rec'], 'folderId');
-                        
+                            
                             // Добавяме новите стойности в масива
                             $fArr[$cRec->folderId]['cls'] = $clsName;
                             $fArr[$cRec->folderId]['rec'] = $cRec;
@@ -1422,16 +1480,15 @@ class doc_Folders extends core_Master
                 
                 // Ако ще се проверяват всички записи
                 if (doc_Setup::get('REPAIR_ALL') == 'yes') {
-                    
-                    $fRec = FALSE;
+                    $fRec = false;
                     if ($cRec->folderId) {
-                        $fRec = doc_Folders::fetch($cRec->folderId, '*', FALSE);
+                        $fRec = doc_Folders::fetch($cRec->folderId, '*', false);
                     }
                     
                     // Ако няма такава папка
                     if (!$fRec) {
                         try {
-                            $cRec->folderId = NULL;
+                            $cRec->folderId = null;
                             $coverInst->save($cRec, 'folderId');
                             $coverInst->logNotice('Нулирано грешно "folderId"', $cRec->id);
                             $resArr['folderId']++;
@@ -1442,8 +1499,7 @@ class doc_Folders extends core_Master
                         
                         // Ако корицата не отговаря с данните на папката
                         if ($fRec->coverClass != $coverId || $fRec->coverId != $cRec->id) {
-                            
-                            $newFolderId = doc_Folders::fetchField(array("#coverClass = '[#1#]' AND #coverId = '[#2#]'", $coverId, $cRec->id), 'id', FALSE);
+                            $newFolderId = doc_Folders::fetchField(array("#coverClass = '[#1#]' AND #coverId = '[#2#]'", $coverId, $cRec->id), 'id', false);
                             
                             try {
                                 if ($newFolderId) {
@@ -1473,10 +1529,10 @@ class doc_Folders extends core_Master
     
     /**
      * Опитва се да извлече точки за записа
-     * 
+     *
      * @param stdClass $rec
-     * 
-     * @return number
+     *
+     * @return float
      */
     protected static function getPointsForRec($rec)
     {
@@ -1498,13 +1554,13 @@ class doc_Folders extends core_Master
     
     /**
      * Прави миграция на папките към несортирани. Използва се при поправка на документите.
-     * 
+     *
      * @param stdClass $rec
-     * @param NULL|integer $currUser
-     * 
+     * @param NULL|int $currUser
+     *
      * @return array
      */
-    protected static function moveToUnsorted($rec, $currUser = NULL)
+    protected static function moveToUnsorted($rec, $currUser = null)
     {
         $resArr = array();
         $unsortedFolders = 'doc_UnsortedFolders';
@@ -1519,12 +1575,11 @@ class doc_Folders extends core_Master
         }
         
         if (isset($rec->coverClass) || ($rec->coverClass != $unsortedFolderId)) {
-            
             self::logNotice("Променен клас на корица от {$rec->coverClass} на {$unsortedFolderId}");
             
             $resArr['coverClass']++;
             $rec->coverClass = $unsortedFolderId;
-            $rec->coverId = NULL;
+            $rec->coverId = null;
             self::save($rec, 'coverClass, coverId');
         }
         
@@ -1534,7 +1589,7 @@ class doc_Folders extends core_Master
         
         // Създаваме документ и използваме id-то за coverId
         $unRec = new stdClass();
-        $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
+        $unRec->name = 'LaF ' . $rec->title . ' ' . $unsortedFolders::count();
         $unRec->inCharge = $currUser;
         $unRec->folderId = $rec->id;
         $rec->coverId = $unsortedFolders::save($unRec);
@@ -1550,12 +1605,12 @@ class doc_Folders extends core_Master
     /**
      * Екшън за поправка на структурите в документната система
      */
-    function act_Repair()
+    public function act_Repair()
     {
         requireRole('admin');
-
-        core_Debug::$isLogging = FALSE;
-
+        
+        core_Debug::$isLogging = false;
+        
         $Folders = cls::get('doc_Folders');
         set_time_limit($Folders->count());
         $html .= $Folders->repair();
@@ -1563,76 +1618,78 @@ class doc_Folders extends core_Master
         $Containers = cls::get('doc_Containers');
         set_time_limit($Containers->count());
         $html .= $Containers->repair();
-
+        
         $Router = cls::get('email_Router');
         set_time_limit($Router->count());
         $html .= $Router->repair();
-
+        
         return new Redirect(array('core_Packs'), $html);
     }
     
-
+    
     /**
      * Връща иконата на папката според достъпа
-     * 
+     *
      * @params object $rec - Данните за записа
-     * @param boolean $haveRight - Дали има права за single
-     * 
+     *
+     * @param bool $haveRight - Дали има права за single
+     *
      * @return string $sbfImg - Иконата
      */
-    static function getIconImg($rec, $haveRight = FALSE)
+    public static function getIconImg($rec, $haveRight = false)
     {
-        switch($rec->access) {
-            case 'secret' :
+        switch ($rec->access) {
+            case 'secret':
                 $img = 'folder_key.png';
             break;
             
-            case 'private' :
+            case 'private':
                 if ($haveRight) {
-                    $img = 'folder_user.png';    
+                    $img = 'folder_user.png';
                 } else {
                     $img = 'lock.png';
                 }
-                
+            
             break;
             
-            case 'team' :
-            case 'public' :
-            default :
+            case 'team':
+            case 'public':
+            default:
                 $img = 'folder-icon.png';
             break;
         }
         
         // Дали линка да е абсолютен
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-
-
+        
+        
         // Връщаме sbf линка до иконата
         $imgSrc = 'img/16/' . $img;
-
-        if(log_Browsers::isRetina()) {
+        
+        if (log_Browsers::isRetina()) {
             $tempIcon = 'img/32/' . $img;
-            if(getFullPath($tempIcon)) {
+            if (getFullPath($tempIcon)) {
                 $imgSrc = $tempIcon;
             }
         }
-
+        
         $sbfImg = sbf($imgSrc, '"', $isAbsolute);
-
+        
         return $sbfImg;
     }
-
+    
+    
     /**
      * Връща масив с всички активни потребители, които имат достъп до дадена папка
-     * 
-     * @param doc_Folders $folderId - id на папката
-     * @param boolean $removeCurrent - Дали да се премахне текущия потребител от резултатите
-     * 
+     *
+     * @param doc_Folders $folderId      - id на папката
+     * @param bool        $removeCurrent - Дали да се премахне текущия потребител от резултатите
+     *
      * @return array $sharedUsersArr - Масив с всички споделени потребители
-     * 
+     *
      * @deprecated
      */
-    static function getSharedUsersArr($folderId, $removeCurrent=FALSE)
+    public static function getSharedUsersArr($folderId, $removeCurrent = false)
     {
         // Масив с потребителите, които имат права за папката
         $sharedUsersArr = array();
@@ -1663,14 +1720,17 @@ class doc_Folders extends core_Master
     
     /**
      * Добавя типа на папката към полетата за търсене
-     * 
+     *
      * @param doc_Folders $mvc
-     * @param string $searchKeywords
-     * @param object $rec
+     * @param string      $searchKeywords
+     * @param object      $rec
      */
-    static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
-        if (!$rec->coverClass) return ;
+        if (!$rec->coverClass) {
+            
+            return ;
+        }
         $class = cls::get($rec->coverClass);
         $title = $class->getTitle();
         
@@ -1681,26 +1741,26 @@ class doc_Folders extends core_Master
             }
         }
         
-        $searchKeywords .= " " . plg_Search::normalizeText($title);
+        $searchKeywords .= ' ' . plg_Search::normalizeText($title);
         
         // Добавя ключовии думи за държавата и на bg и на en
-        if(($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && $rec->coverId) {
+        if (($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && $rec->coverId) {
             $countryId = $class->fetchField($rec->coverId, 'country');
-            if($countryId) {
+            if ($countryId) {
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
             }
-        } 
+        }
     }
     
     
     /**
      * Връща ключа за персонална настройка
-     * 
-     * @param integer $id
-     * 
+     *
+     * @param int $id
+     *
      * @return string
      */
-    static function getSettingsKey($id)
+    public static function getSettingsKey($id)
     {
         $key = 'doc_Folders::' . $id;
         
@@ -1710,15 +1770,15 @@ class doc_Folders extends core_Master
     
     /**
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
-     * 
-     * @param string $key
-     * @param integer|NULL $userOrRole
-     * 
+     *
+     * @param string   $key
+     * @param int|NULL $userOrRole
+     *
      * @see core_SettingsIntf
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    static function canModifySettings($key, $userOrRole=NULL)
+    public static function canModifySettings($key, $userOrRole = null)
     {
         // За да може да промени трябва да има достъп до сингъла на папката
         // Да променя собствените си настройки или да е admin|ceo
@@ -1727,32 +1787,38 @@ class doc_Folders extends core_Master
         
         $currUser = core_Users::getCurrent();
         
-        if (!doc_Folders::haveRightFor('single', $id, $currUser)) return FALSE;
+        if (!doc_Folders::haveRightFor('single', $id, $currUser)) {
+            
+            return false;
+        }
         
-        if (!$userOrRole) return TRUE;
+        if (!$userOrRole) {
+            
+            return true;
+        }
         
         if ($currUser == $userOrRole) {
             
-            return TRUE;
+            return true;
         }
         
         if (haveRole('admin, ceo', $currUser)) {
             
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
-    
     
     
     /**
      * Подготвя формата за настройки
-     * 
+     *
      * @param core_Form $form
+     *
      * @see core_SettingsIntf
      */
-    function prepareSettingsForm(&$form)
+    public function prepareSettingsForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
@@ -1775,23 +1841,23 @@ class doc_Folders extends core_Master
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Отворени теми, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Личен имейл, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
-
+        
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
-
+        
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         
-		// Показва се само когато се настройват всички потребители
-        $form->FNC('closeTime' , 'time(suggestions=1 ден|3 дни|7 дни)', "caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input, settingForAll={$rec->inCharge}");
+        // Показва се само когато се настройват всички потребители
+        $form->FNC('closeTime', 'time(suggestions=1 ден|3 дни|7 дни)', "caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input, settingForAll={$rec->inCharge}");
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {
-            $userId = NULL;
+            $userId = null;
             if ($form->rec->_userOrRole > 0) {
                 $userId = $form->rec->_userOrRole;
             }
             
             // Личните имейли на текущия потребител
-            $fromEmailOptions = email_Inboxes::getFromEmailOptions($folderId, $userId, FALSE);
+            $fromEmailOptions = email_Inboxes::getFromEmailOptions($folderId, $userId, false);
         } catch (core_exception_Expect $e) {
             $fromEmailOptions = array('');
         }
@@ -1821,20 +1887,20 @@ class doc_Folders extends core_Master
     
     /**
      * Проверява формата за настройки
-     * 
+     *
      * @param core_Form $form
+     *
      * @see core_SettingsIntf
      */
-    function checkSettingsForm(&$form)
+    public function checkSettingsForm(&$form)
     {
-        return ;
     }
     
     
     /**
      * Затваряне на нишки в папки
      */
-    static function cron_AutoClose()
+    public static function cron_AutoClose()
     {
         $allSysTeamId = type_UserOrRole::getAllSysTeamId();
         
@@ -1847,20 +1913,30 @@ class doc_Folders extends core_Master
         $fKeyArr = array();
         
         while ($sRec = $sQuery->fetch()) {
-            if (!$sRec->data) continue;
+            if (!$sRec->data) {
+                continue;
+            }
             
-            if (!isset($sRec->data['closeTime'])) continue ;
+            if (!isset($sRec->data['closeTime'])) {
+                continue ;
+            }
             
             $folderId = $sRec->objectId;
             
-            if (!$folderId) continue ;
+            if (!$folderId) {
+                continue ;
+            }
             
             $fRec = doc_Folders::fetch($folderId);
             
-            if ($fRec->state == 'rejected') continue ;
+            if ($fRec->state == 'rejected') {
+                continue ;
+            }
             
             // Ако няма отворение нишки в статистиката
-            if (!$fRec->statistic['_all']['opened'] || empty($fRec->statistic['_all']['opened'])) continue ;
+            if (!$fRec->statistic['_all']['opened'] || empty($fRec->statistic['_all']['opened'])) {
+                continue ;
+            }
             
             $closeTime = dt::subtractSecs($sRec->data['closeTime']);
             
@@ -1883,38 +1959,39 @@ class doc_Folders extends core_Master
     /**
      * Връща опции за избор на папки, чиито корици имат определен интерфейс
      *
-     * @param string $interface - име на интерфейс
-     * @param array $ignoreFolders - масив с ид-та на папки за игнориране
+     * @param string $interface     - име на интерфейс
+     * @param array  $ignoreFolders - масив с ид-та на папки за игнориране
+     *
      * @return array $options - масив с опции
      */
     public static function getOptionsByCoverInterface($interface, $ignoreFolders = array())
     {
-    	$options = array();
-    
-    	$query = doc_Folders::getQuery();
-    	$contragents = core_Classes::getOptionsByInterface($interface, 'title');
-    	$contragents = array_keys($contragents);
-    	$query->in('coverClass', $contragents);
-    	$query->where("#state != 'rejected'");
-    	doc_Folders::restrictAccess($query);
-    	
-    	if($ignoreFolders){
-    		$query->notIn('id', $ignoreFolders);
-    	}
-    	
-    	$query->show('title');
-    	while($rec = $query->fetch()){
-    		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
-    	}
-    
-    	return $options;
+        $options = array();
+        
+        $query = doc_Folders::getQuery();
+        $contragents = core_Classes::getOptionsByInterface($interface, 'title');
+        $contragents = array_keys($contragents);
+        $query->in('coverClass', $contragents);
+        $query->where("#state != 'rejected'");
+        doc_Folders::restrictAccess($query);
+        
+        if ($ignoreFolders) {
+            $query->notIn('id', $ignoreFolders);
+        }
+        
+        $query->show('title');
+        while ($rec = $query->fetch()) {
+            $options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
+        }
+        
+        return $options;
     }
-
-
+    
+    
     /**
      * Подготовка на опции за key2
      */
-    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $query = self::getQuery();
         
@@ -1922,59 +1999,60 @@ class doc_Folders extends core_Master
             $query->notIn('id', $params['excludeArr']);
         }
         
-	    $query->orderBy("last=DESC");
-
-	    // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
-	    if(isset($params['coverInterface'])){
-	    	$coverClasses = core_Classes::getOptionsByInterface($params['coverInterface'], 'title');
-	    	$coverClasses = array_keys($coverClasses);
-	    	$query->in('coverClass', $coverClasses);
-	    }
-
-	    // Ако изрично са посочени класовете на кориците които да извлечем
-	    if(isset($params['coverClasses'])){
-	    	$skipCoverClasses = array();
-	    	$exceptCoverClasses = explode('|', $params['coverClasses']);
-	    	if(is_array($exceptCoverClasses)){
-	    		foreach ($exceptCoverClasses as $cName){
-	    			$skipCoverClasses[] = $cName::getClassId();
-	    		}
-	    	}
-	    	
-	    	$query->in('coverClass', $skipCoverClasses);
-	    }
-	    
-        $viewAccess = TRUE;
-	    if ($params['restrictViewAccess'] == 'yes') {
-	        $viewAccess = FALSE;
-	    }
-
+        $query->orderBy('last=DESC');
+        
+        // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
+        if (isset($params['coverInterface'])) {
+            $coverClasses = core_Classes::getOptionsByInterface($params['coverInterface'], 'title');
+            $coverClasses = array_keys($coverClasses);
+            $query->in('coverClass', $coverClasses);
+        }
+        
+        // Ако изрично са посочени класовете на кориците които да извлечем
+        if (isset($params['coverClasses'])) {
+            $skipCoverClasses = array();
+            $exceptCoverClasses = explode('|', $params['coverClasses']);
+            if (is_array($exceptCoverClasses)) {
+                foreach ($exceptCoverClasses as $cName) {
+                    $skipCoverClasses[] = $cName::getClassId();
+                }
+            }
+            
+            $query->in('coverClass', $skipCoverClasses);
+        }
+        
+        $viewAccess = true;
+        if ($params['restrictViewAccess'] == 'yes') {
+            $viewAccess = false;
+        }
+        
         $me = cls::get(get_called_class());
-	       
-	    $me->restrictAccess($query, NULL, $viewAccess);
-	    
-        if(!$includeHiddens) {
+        
+        $me->restrictAccess($query, null, $viewAccess);
+        
+        if (!$includeHiddens) {
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
-
-        if($params['where']) {
+        
+        if ($params['where']) {
             $query->where($params['where']);
         }
-	       
-        if(is_array($onlyIds)) {
-            if(!count($onlyIds)) {
+        
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
                 return array();
             }
-
+            
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-
-            $query->where("#id IN ($ids)");
-        } elseif(ctype_digit("{$onlyIds}")) {
-            $query->where("#id = $onlyIds");
+            
+            $query->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = ${onlyIds}");
         }
-
-        if($threadId = $params['moveThread']) {
+        
+        if ($threadId = $params['moveThread']) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
             $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query, $viewAccess);
@@ -1983,48 +2061,51 @@ class doc_Folders extends core_Master
         $titleFld = $params['titleFld'];
         $query->EXT('class', 'core_Classes', 'externalKey=coverClass,externalName=title');
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
-       
-        if($q) {
-            if($q{0} == '"') $strict = TRUE;
-
+        
+        if ($q) {
+            if ($q{0} == '"') {
+                $strict = true;
+            }
+            
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
             $q = mb_strtolower($q);
             
-            if($strict) {
+            if ($strict) {
                 $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
             
             $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach($qArr as $w) {
+            foreach ($qArr as $w) {
                 $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
- 
-        if($limit) {
+        
+        if ($limit) {
             $query->limit($limit);
         }
-
+        
         $query->show("id,searchFieldXpr,class, {$titleFld}");
         
         $res = array();
         
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
         }
- 
+        
         return $res;
     }
     
-
+    
     /**
      * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
      *
      * @param string $status
      *
      * @return string
+     *
      * @see plg_RefreshRows
      */
     public static function getContentHash_(&$status)
@@ -2036,33 +2117,34 @@ class doc_Folders extends core_Master
     
     /**
      * Прави подробни линкове към папките
-     * 
-     * @param mixed $folderArr - списък с папки
-     * @param string $inline   - на един ред разделени с `,` или да се върнат като масив
-     * @return array|string    - линковете към папките
+     *
+     * @param mixed  $folderArr - списък с папки
+     * @param string $inline    - на един ред разделени с `,` или да се върнат като масив
+     *
+     * @return array|string - линковете към папките
      */
-    public static function getVerbalLinks($folderArr, $inline = FALSE)
+    public static function getVerbalLinks($folderArr, $inline = false)
     {
-    	$res = array();
-    	$folderArr = (is_array($folderArr)) ? $folderArr : keylist::toArray($folderArr);
-    	
-    	foreach ($folderArr  as $folderId){
-    		$res[$folderId] = doc_Folders::recToVerbal(doc_Folders::fetch($folderId))->title;
-    	}
-    	
-    	$res = ($inline === TRUE) ? implode(', ', $res) : $res;
-    	
-    	return $res;
+        $res = array();
+        $folderArr = (is_array($folderArr)) ? $folderArr : keylist::toArray($folderArr);
+        
+        foreach ($folderArr  as $folderId) {
+            $res[$folderId] = doc_Folders::recToVerbal(doc_Folders::fetch($folderId))->title;
+        }
+        
+        $res = ($inline === true) ? implode(', ', $res) : $res;
+        
+        return $res;
     }
-
-
+    
+    
     /**
      * Връща id на папка от класа и id-то на корицата й
      *
-     * @param   string|int  $coverClass
-     * @param   int         $coverId
+     * @param string|int $coverClass
+     * @param int        $coverId
      *
-     * @return  int
+     * @return int
      */
     public static function getIdByCover($coverClass, $coverId)
     {
@@ -2071,5 +2153,4 @@ class doc_Folders extends core_Master
         
         return $rec->folderId;
     }
-
 }
