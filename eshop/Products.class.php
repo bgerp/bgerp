@@ -274,6 +274,15 @@ class eshop_Products extends core_Master
             $params = self::getParamsToDisplay($rec);
             $row->showParams = $mvc->getFieldType('showParams')->toVerbal(keylist::fromArray($params));
         }
+        
+        if (isset($fields['-list'])){
+        	if (haveRole('powerUser') && $rec->state != 'closed') {
+        		core_RowToolbar::createIfNotExists($row->_rowTools);
+        		$row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
+        	}
+        }
+        
+        $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
     }
     
     
