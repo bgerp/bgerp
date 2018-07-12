@@ -1,36 +1,35 @@
 <?php 
 
-
 /**
  * Добавяне на документи към ричтекст
- * 
+ *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Log extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_DialogWrapper';
+    public $loadList = 'doc_DialogWrapper';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Избор на документ';
+    public $title = 'Избор на документ';
     
     
     /**
      * Екшън за добавяне на документ от диалогов прозорец
      */
-    function act_AddDocDialog()
+    public function act_AddDocDialog()
     {
         // Очакваме да е логнат потребител
         requireRole('user');
@@ -58,12 +57,12 @@ class doc_Log extends core_Manager
     }
     
     
-	/**
-	 * Подготвя навигацията по страници
-	 * 
-	 * @param object $data
-	 */
-    function prepareAddDocDialogPager(&$data)
+    /**
+     * Подготвя навигацията по страници
+     *
+     * @param object $data
+     */
+    public function prepareAddDocDialogPager(&$data)
     {
         // Ако е сетнат
         if ($perPage = $data->PerPage) {
@@ -84,7 +83,7 @@ class doc_Log extends core_Manager
         }
         
         // Ако има зададен брой
-        if($perPage) {
+        if ($perPage) {
             
             // Ако все още не е сетнат
             if (!$data->dialogPager) {
@@ -92,6 +91,7 @@ class doc_Log extends core_Manager
                 // Сетваме пейджъра
                 $data->dialogPager = & cls::get('core_Pager', array('pageVar' => 'P_' . get_called_class()));
             }
+            
             // Добавяме страниците към пейджъра
             $data->dialogPager->itemsPerPage = $perPage;
         }
@@ -100,16 +100,16 @@ class doc_Log extends core_Manager
     
     /**
      * Подготвя необходимите данни
-     * 
+     *
      * @param object $data
      */
-	function prepareAddDocDialog(&$data)
-	{
-	    // Вземаме документите от последните 3 нишки за съответния потребител
-	    $threadsArr = bgerp_Recently::getLastThreadsId(3);
-	    
-	    // Вземаме всички документи от нишката, до които потебителя има достъп
-        $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
+    public function prepareAddDocDialog(&$data)
+    {
+        // Вземаме документите от последните 3 нишки за съответния потребител
+        $threadsArr = bgerp_Recently::getLastThreadsId(3);
+        
+        // Вземаме всички документи от нишката, до които потебителя има достъп
+        $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, null, 'DESC');
         
         // Масив с документите
         $docIdsArr = array();
@@ -118,11 +118,11 @@ class doc_Log extends core_Manager
         foreach ($threadsArr as $threadId => $dummy) {
             
             // Добавяме към документите
-            $docIdsArr += (array)$docThreadIdsArr[$threadId];
+            $docIdsArr += (array) $docThreadIdsArr[$threadId];
         }
         
         // Задаваме броя на документите
-        $data->itemsCnt = count((array)$docIdsArr);
+        $data->itemsCnt = count((array) $docIdsArr);
         
         // Зададаваме лимита за странициране
         $this->setLimitAddDocDialogPager($data);
@@ -134,7 +134,7 @@ class doc_Log extends core_Manager
         $resArr = array();
         
         // Обхождаме документите
-        foreach ((array)$docIdsArr as $docId => $docRec) {
+        foreach ((array) $docIdsArr as $docId => $docRec) {
             
             // Ако сме в границита на брояча
             if (($c >= $data->dialogPager->rangeStart) && ($c < $data->dialogPager->rangeEnd)) {
@@ -147,7 +147,9 @@ class doc_Log extends core_Manager
                 $c++;
                 
                 // Ако сме достигнали горната граница, да се прекъсне
-                if ($data->dialogPager->rangeEnd < $c) break;
+                if ($data->dialogPager->rangeEnd < $c) {
+                    break;
+                }
                 
                 // Прескачаме
                 continue;
@@ -180,7 +182,7 @@ class doc_Log extends core_Manager
                 ht::setUniqId($attrId);
                 
                 // id на реда
-                $resArr[$docId]['ROW_ATTR']['id'] = $attrId['id']; 
+                $resArr[$docId]['ROW_ATTR']['id'] = $attrId['id'];
                 
                 // Заглавие на документа
                 $resArr[$docId]['title'] = str::limitLen($docRow->title, 55);
@@ -189,13 +191,13 @@ class doc_Log extends core_Manager
                 $resArr[$docId]['createdOn'] = doc_Containers::getVerbal($docRec, 'createdOn');
                 $resArr[$docId]['createdBy'] = doc_Containers::getVerbal($docRec, 'createdBy');
                 $resArr[$docId]['created'] = $resArr[$docId]['createdOn'] . "\n" . $resArr[$docId]['createdBy'];
-                $resArr[$docId]['created'] = "<div class='upload-doc-created'>" . $resArr[$docId]['created'] . "</div>";
+                $resArr[$docId]['created'] = "<div class='upload-doc-created'>" . $resArr[$docId]['created'] . '</div>';
                 
                 // Атрибутите на линковете
-                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$data->callback}('{$handle}') != true) self.close(); else self.focus();", "class" => "file-log-link");
+                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$data->callback}('{$handle}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
                 
                 // Името на документа да се добави към текста, при натискане на линка
-                $resArr[$docId]['handle'] = ht::createLink($handle, '#', NULL, $attr);
+                $resArr[$docId]['handle'] = ht::createLink($handle, '#', null, $attr);
                 
                 // Документа
                 $resArr[$docId]['document'] = $resArr[$docId]['handle'] . "\n<div class='addDocSubTitle'>{$resArr[$docId]['title']}</div>";
@@ -206,15 +208,15 @@ class doc_Log extends core_Manager
         
         // Добавяме резултатите
         $data->docIdsArr = $resArr;
-	}
+    }
     
     
-	/**
-	 * Задаваме броя на всички елементи
-     * 
-	 * @param oject $data
-	 */
-    function setLimitAddDocDialogPager(&$data)
+    /**
+     * Задаваме броя на всички елементи
+     *
+     * @param oject $data
+     */
+    public function setLimitAddDocDialogPager(&$data)
     {
         // Задаваме броя на страниците
         $data->dialogPager->itemsCount = $data->itemsCnt;
@@ -222,17 +224,17 @@ class doc_Log extends core_Manager
         // Изчисляваме
         $data->dialogPager->calc();
     }
-	
-	
+    
+    
     /**
      * Извиква се след рендиране на диалоговия прозорец
-     * 
+     *
      * @param object $data
-     * 
+     *
      * @retun core_Et
      */
-	function renderAddDocDialog($data)
-	{
+    public function renderAddDocDialog($data)
+    {
         // Вземаме шаблона
         $tpl = getTplFromFile('doc/tpl/DialogAddDoc.shtml');
         
@@ -253,22 +255,22 @@ class doc_Log extends core_Manager
         
         // Заместваме страницирането
         $tpl->append($this->RenderDialogAddDocPager($data), 'pager');
-       	
+        
         // Добавяме клас към бодито
         $tpl->append('dialog-window', 'BODY_CLASS_NAME');
         
-       	return $tpl;
-	}
+        return $tpl;
+    }
     
     
-	/**
-	 * Рендира  навигация по страници
-	 * 
-	 * @param object $data
-	 * 
-	 * @return core_ET
-	 */
-    function renderDialogAddDocPager($data)
+    /**
+     * Рендира  навигация по страници
+     *
+     * @param object $data
+     *
+     * @return core_ET
+     */
+    public function renderDialogAddDocPager($data)
     {
         // Ако има странициране
         if ($data->dialogPager) {

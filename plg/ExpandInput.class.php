@@ -6,20 +6,20 @@
  *
  * @category  bgerp
  * @package   plg
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class plg_ExpandInput extends core_Plugin
 {
-    
-    
-	/**
+    /**
      * Извиква се след описанието на модела
      *
-	 * @param core_Manager $mvc
-	 */
+     * @param core_Manager $mvc
+     */
     public static function on_AfterDescription(&$mvc)
     {
         // Име на полето, в което ще се записват всички
@@ -36,7 +36,7 @@ class plg_ExpandInput extends core_Plugin
         $mvc->setParams($mvc->expandFieldName, array('input' => 'none'));
         
         // Създаваме ново инпут поле
-        if (!$mvc->getField($mvc->expandInputFieldName, FALSE)) {
+        if (!$mvc->getField($mvc->expandInputFieldName, false)) {
             $pMvc = $expandField->type->params['mvc'];
             $select = $expandField->type->params['select'];
             $caption = 'caption=' . $expandField->caption;
@@ -63,18 +63,18 @@ class plg_ExpandInput extends core_Plugin
     
     /**
      * Изпълнява се преди запис на ред в таблицата
-     * 
+     *
      * @param core_Manager $mvc
-     * @param NULL|integer $id
-     * @param stdClass $rec
-     * @param string|NULL $fields
+     * @param NULL|int     $id
+     * @param stdClass     $rec
+     * @param string|NULL  $fields
      */
-    static function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)
+    public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
         // Ако е подадено да се записва само едното поле, записваме и двете
         if (isset($fields)) {
-            $fieldsArr = arr::make($fields, TRUE);
-        
+            $fieldsArr = arr::make($fields, true);
+            
             if ($fieldsArr[$mvc->expandFieldName] || $fieldsArr[$mvc->expandInputFieldName]) {
                 $fieldsArr[$mvc->expandFieldName] = $mvc->expandFieldName;
                 $fieldsArr[$mvc->expandInputFieldName] = $mvc->expandInputFieldName;
@@ -96,10 +96,10 @@ class plg_ExpandInput extends core_Plugin
     
     /**
      * Намира бащата на подадените стойности
-     * 
+     *
      * @param core_Manager $mvc
-     * @param array|NULL $res
-     * @param array $inputArr
+     * @param array|NULL   $res
+     * @param array        $inputArr
      */
     public static function on_AfterExpandInput($mvc, &$res, $inputArr)
     {
@@ -126,9 +126,11 @@ class plg_ExpandInput extends core_Plugin
                 $select = $inputInst->type->params['select'];
                 $rec = $inputInst->fetch(array("#role = '[#1#]'", $select));
             }
-    
+            
             // Прескачаме несъсществуващите записи
-            if(!$rec) continue;
+            if (!$rec) {
+                continue;
+            }
             
             if ($rec && !isset($res[$rec->id])) {
                 $res[$rec->id] = $rec->id;
@@ -138,10 +140,10 @@ class plg_ExpandInput extends core_Plugin
     }
     
     
-	/**
+    /**
      * Изпълнява се след създаването на модела
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         $query = $mvc->getQuery();
         $query->where(array("#{$mvc->expandFieldName} IS NOT NULL"));
@@ -152,7 +154,6 @@ class plg_ExpandInput extends core_Plugin
         
         $cnt = 0;
         while ($rec = $query->fetch()) {
-            
             $rec->{$mvc->expandInputFieldName} = $rec->{$mvc->expandFieldName};
             
             try {
@@ -164,7 +165,7 @@ class plg_ExpandInput extends core_Plugin
         }
         
         if ($cnt) {
-            $res .= "<li>Мигрирани данни: " . $cnt;
+            $res .= '<li>Мигрирани данни: ' . $cnt;
         }
     }
 }

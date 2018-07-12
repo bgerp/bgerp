@@ -1,47 +1,47 @@
 <?php
 
 
-
 /**
  * Драйвер за електромер SATEC
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Драйвер за електромер SATEC
  */
 class sens_driver_SATEC extends sens_driver_IpDevice
 {
-
     /**
      * Заглавие на драйвера
      */
-    var $title = 'SATEC';
-
+    public $title = 'SATEC';
+    
     
     /**
      * Параметри които чете или записва драйвера
      */
-    var $params = array(
-        'kvahTotal' => array('unit'=>'kvahTotal', 'param'=>'Обща енергия', 'details'=>'kvah'),
-        'kWhImport' => array('unit'=>'kWhImport', 'param'=>'Входяща енергия', 'details'=>'kWh'),
-        'kvarhExport' => array('unit'=>'kvarhExport', 'param'=>'Изходяща енергия/глоба/', 'details'=>'kvarh'),
-        'kvarhImport' => array('unit'=>'kvarhImport', 'param'=>'Входяща реактивна енергия', 'details'=>'kvarh'),
-        'kWTotal' => array('unit'=>'kWTotal', 'param'=>'1 секунди мощност', 'details'=>'kW'),
-        'kvarTotal' => array('unit'=>'kvarTotal', 'param'=>'1 секунди реактивна мощност', 'details'=>'kvar'),
-        'kVATotal' => array('unit'=>'kVATotal', 'param'=>'1 секунди активна мощност', 'details'=>'kVA'),
-        'PFTotal' => array('unit'=>'PFTotal', 'param'=>'Косинус Фи', 'details'=>'')
+    public $params = array(
+        'kvahTotal' => array('unit' => 'kvahTotal', 'param' => 'Обща енергия', 'details' => 'kvah'),
+        'kWhImport' => array('unit' => 'kWhImport', 'param' => 'Входяща енергия', 'details' => 'kWh'),
+        'kvarhExport' => array('unit' => 'kvarhExport', 'param' => 'Изходяща енергия/глоба/', 'details' => 'kvarh'),
+        'kvarhImport' => array('unit' => 'kvarhImport', 'param' => 'Входяща реактивна енергия', 'details' => 'kvarh'),
+        'kWTotal' => array('unit' => 'kWTotal', 'param' => '1 секунди мощност', 'details' => 'kW'),
+        'kvarTotal' => array('unit' => 'kvarTotal', 'param' => '1 секунди реактивна мощност', 'details' => 'kvar'),
+        'kVATotal' => array('unit' => 'kVATotal', 'param' => '1 секунди активна мощност', 'details' => 'kVA'),
+        'PFTotal' => array('unit' => 'PFTotal', 'param' => 'Косинус Фи', 'details' => '')
     );
     
     
     /**
      * Колко аларми/контроли да има?
      */
-    var $alarmCnt = 3;
+    public $alarmCnt = 3;
     
     
     /**
@@ -54,9 +54,8 @@ class sens_driver_SATEC extends sens_driver_IpDevice
      *
      * @param object $form
      */
-    function setSettingsFromForm($form)
+    public function setSettingsFromForm($form)
     {
-    
     }
     
     
@@ -64,9 +63,8 @@ class sens_driver_SATEC extends sens_driver_IpDevice
      * Подготвя формата за настройки на сензора
      * и алармите в зависимост от параметрите му
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
-        
         $form->FNC('ip', new type_Ip(), 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         $form->FNC('unit', 'int(5)', 'caption=Unit,hint=Unit, input, mandatory,value=1');
@@ -79,7 +77,7 @@ class sens_driver_SATEC extends sens_driver_IpDevice
     /**
      * Връща масив със стойностите на изразходваната активна мощност
      */
-    function updateState()
+    public function updateState()
     {
         $driver = new modbus_Driver((array) $rec);
         
@@ -108,13 +106,13 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         $state['PFTotal'] = round(($addresses['414343'] - $addresses['414344']) / 1000, 4);
         
         if (empty($addresses)) {
-            $this->stateArr = NULL;
+            $this->stateArr = null;
             
-            return FALSE;
+            return false;
         }
         
         $this->stateArr = $state;
         
-        return TRUE;
+        return true;
     }
 }

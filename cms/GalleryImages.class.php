@@ -7,92 +7,93 @@
  *
  * @category  bgerp
  * @package   cms
+ *
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cms_GalleryImages extends core_Manager
 {
-    
-    
     /**
      * Кой може да чете
      */
-    var $canRead = 'user';
+    public $canRead = 'user';
     
     
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'user';
+    public $canWrite = 'user';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'user';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'user';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Картинки в Галерията';
+    public $title = 'Картинки в Галерията';
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Картинка от галерията";
+    public $singleTitle = 'Картинка от галерията';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools2,cms_Wrapper,plg_Created, cms_GalleryTitlePlg, plg_Search, cms_GalleryDialogWrapper";
+    public $loadList = 'plg_RowTools2,cms_Wrapper,plg_Created, cms_GalleryTitlePlg, plg_Search, cms_GalleryDialogWrapper';
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'fileman_GalleryImages';
+    public $oldClassName = 'fileman_GalleryImages';
     
     
     /**
      * Полета за изглед
      */
-    var $listFields = "id,title=Код,src,groupId,createdOn,createdBy";
+    public $listFields = 'id,title=Код,src,groupId,createdOn,createdBy';
     
     
     /**
      * Името на полето, което ще се използва от плъгина
+     *
      * @see cms_GalleryTitlePlg
      */
-    var $galleryTitleFieldName = 'title';
+    public $galleryTitleFieldName = 'title';
     
     
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 20;
+    public $listItemsPerPage = 20;
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, src';
+    public $searchFields = 'title, src';
     
     
     /**
      * Брой елементи при показване на страница в диалогов прозорец
      */
-    var $galleryListItemsPerPage = 5;
+    public $galleryListItemsPerPage = 5;
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение,mandatory, width=100%');
         $this->FLD('groupId', 'key(mvc=cms_GalleryGroups,select=title)', 'caption=Група,mandatory, width=100%');
@@ -105,7 +106,7 @@ class cms_GalleryImages extends core_Manager
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -124,28 +125,28 @@ class cms_GalleryImages extends core_Manager
     /**
      * допълнение към подготовката на вербално представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
         $tArr = array(128, 128);
         $mArr = array(600, 450);
-            
+        
         $Fancybox = cls::get('fancybox_Fancybox');
         
-        if($rec->src) {
+        if ($rec->src) {
             $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr, $rec->title);
         }
         
-        $row->{$mvc->galleryTitleFieldName} = "[img=#" . $rec->{$mvc->galleryTitleFieldName} . "]";
+        $row->{$mvc->galleryTitleFieldName} = '[img=#' . $rec->{$mvc->galleryTitleFieldName} . ']';
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param unknown_type $mvc
      * @param unknown_type $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('groupSearch', 'key(mvc=cms_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent,autoFilter');
@@ -157,31 +158,31 @@ class cms_GalleryImages extends core_Manager
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'search, usersSearch, groupSearch';
         
         $data->listFilter->input('groupSearch, usersSearch', 'silent');
         
         // По - новите добавени да са по - напред
-        $data->query->orderBy("#createdOn", "DESC");
+        $data->query->orderBy('#createdOn', 'DESC');
         
         // Ако не е избран потребител по подразбиране
-        if(!$data->listFilter->rec->usersSearch) {
+        if (!$data->listFilter->rec->usersSearch) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
         }
         
         // Ако има филтър
-        if($filter = $data->listFilter->rec) {
+        if ($filter = $data->listFilter->rec) {
             
             // Ако филтъра е по потребители
-            if($filter->usersSearch) {
+            if ($filter->usersSearch) {
                 
-    			// Ако се търси по всички и има права ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
-    			    // Търсим всичко
+                // Ако се търси по всички и има права ceo
+                if ((strpos($filter->usersSearch, '|-1|') !== false) && (haveRole('ceo'))) {
+                    // Търсим всичко
                 } else {
                     
                     // Масив с потребителите
@@ -190,24 +191,24 @@ class cms_GalleryImages extends core_Manager
                     // Търсим по създатели
                     $data->query->orWhereArr('createdBy', $usersArr);
                 }
-    		}
-    		
-    		// Ако се търси по група
-    		if ($filter->groupSearch) {
-    		    
-    		    // Търсим групата
-    		    $data->query->where(array("#groupId = '[#1#]'", $filter->groupSearch));
-    		}
+            }
+            
+            // Ако се търси по група
+            if ($filter->groupSearch) {
+                
+                // Търсим групата
+                $data->query->where(array("#groupId = '[#1#]'", $filter->groupSearch));
+            }
         }
         
-        $orToPrevious = FALSE;
+        $orToPrevious = false;
         
         // Да се показват групите, които са споделени до някоя от групите на потребителя
         if (cms_GalleryGroups::restrictRoles($data->query, $orToPrevious, 'groupRoles')) {
             
             // Външно поле за ролите към групата
             $data->query->EXT('groupRoles', 'cms_GalleryGroups', 'externalName=roles,externalKey=groupId');
-            $orToPrevious = TRUE;
+            $orToPrevious = true;
         }
         
         // Или до потребителя
@@ -215,7 +216,7 @@ class cms_GalleryImages extends core_Manager
             
             // Външно поле за споределените потребителие към групата
             $data->query->EXT('groupSharedTo', 'cms_GalleryGroups', 'externalName=sharedTo,externalKey=groupId');
-            $orToPrevious = TRUE;
+            $orToPrevious = true;
         }
         
         // Или са създадени от потребителя
@@ -231,12 +232,12 @@ class cms_GalleryImages extends core_Manager
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако има запис и потребител
         if ($rec->id && $userId) {
@@ -246,10 +247,9 @@ class cms_GalleryImages extends core_Manager
                 
                 // Ако не е 'ceo', трябва да има достъп до групата, за да редактира картина от нея
                 if (!haveRole('ceo')) {
-                    
                     if ($rec->groupId && !cms_GalleryGroups::haveRightFor('usegroup', $rec->groupId)) {
                         $requiredRoles = 'no_one';
-                    } else if ($action == 'delete') {
+                    } elseif ($action == 'delete') {
                         
                         // Всеки потребител може да изтрива само създадените от него
                         if ($rec->createdBy != $userId) {
@@ -262,14 +262,14 @@ class cms_GalleryImages extends core_Manager
     }
     
     
-	/**
+    /**
      * Връща URL за добавяне на документи
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_Et $res
-     * @param string $callback
+     * @param core_Et  $res
+     * @param string   $callback
      */
-    static function getUrLForAddImg($callback)
+    public static function getUrLForAddImg($callback)
     {
         // Защитаваме променливите
         Request::setProtected('callback');
@@ -282,7 +282,7 @@ class cms_GalleryImages extends core_Manager
     /**
      * Екшън за редирект към необходимия екшън за добавяне на изображение в ричтекст поле
      */
-    function act_AddImg()
+    public function act_AddImg()
     {
         // Избрания текст
         $selText = Request::get('selText');
@@ -302,7 +302,7 @@ class cms_GalleryImages extends core_Manager
             preg_match($pattern, $selText, $match);
             
             // Ако има окрит вид на галерията
-            if($match['text']) {
+            if ($match['text']) {
                 
                 // Текста за търсене
                 $searchText = $match['text'];
@@ -315,7 +315,7 @@ class cms_GalleryImages extends core_Manager
             
             // Опитваме се да вземем id на записа от вида
             $id = $this->fetchField(array("#{$this->galleryTitleFieldName} = '[#1#]'", $searchText));
-        } 
+        }
         
         // Ако има id и имаме права за редакция
         if ($id && $this->haveRightFor('edit', $id)) {
@@ -341,7 +341,7 @@ class cms_GalleryImages extends core_Manager
     /**
      * Екшън за добавяне на изображение в ричтекст поле
      */
-    function act_AddImgDialog()
+    public function act_AddImgDialog()
     {
         // Очакваме да е има права за добавяне
         $this->requireRightFor('add');
@@ -375,7 +375,7 @@ class cms_GalleryImages extends core_Manager
         $form = $this->getForm();
         
         // Добавяме нужните полета
-        $form->FNC('imgFile', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Изображение, mandatory");
+        $form->FNC('imgFile', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение, mandatory');
         $form->FNC('imgGroupId', 'key(mvc=cms_GalleryGroups,select=title)', 'caption=Група, mandatory');
         $form->FNC('imgTitle', 'varchar(128)', 'caption=Заглавие');
         
@@ -385,7 +385,7 @@ class cms_GalleryImages extends core_Manager
             // Сетваме стойностите на променливите
             $form->setDefault('imgFile', $rec->src);
             $form->setDefault('imgGroupId', $rec->groupId);
-            $form->setDefault('imgTitle', $rec->title); 
+            $form->setDefault('imgTitle', $rec->title);
         } else {
             
             // По подразбиране да е избрана id на група
@@ -394,23 +394,21 @@ class cms_GalleryImages extends core_Manager
         }
         
         // Въвеждаме полето
-        $form->input('imgFile, imgGroupId, imgTitle, id', TRUE);
+        $form->input('imgFile, imgGroupId, imgTitle, id', true);
         
         // Ако формата е изпратена без грешки
-        if($form->isSubmitted()) {
+        if ($form->isSubmitted()) {
             
             // Манипулатор на файла
             $fileHnd = $form->rec->imgFile;
             
             // Ако няма запис
             if (!$rec) {
-                
                 $rec = new stdClass();
-            } else if ($rec->id) {
+            } elseif ($rec->id) {
                 
                 // Ако сме променили нещо при редактирането
                 if (($rec->title != $form->rec->imgTitle) || ($rec->groupId != $form->rec->imgGroupId) || ($rec->src != $form->rec->imgFile)) {
-                    
                     $rec = new stdClass();
                 }
             }
@@ -439,7 +437,7 @@ class cms_GalleryImages extends core_Manager
         }
         
         // Заглавие на шаблона
-        $form->title = "Добавяне на картинка";
+        $form->title = 'Добавяне на картинка';
         
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = 'imgFile, imgGroupId, imgTitle';
@@ -476,7 +474,7 @@ class cms_GalleryImages extends core_Manager
     /**
      * Екшън за показване на диалогов прозорец за с изображенията в галерията
      */
-    function act_GalleryDialog()
+    public function act_GalleryDialog()
     {
         // Очакваме да е има права за добавяне
         $this->requireRightFor('add');
@@ -491,7 +489,7 @@ class cms_GalleryImages extends core_Manager
         $this->prepareListFilter($data);
         
         // По - новите добавени да са по - напред
-        $data->query->orderBy("#createdOn", "DESC");
+        $data->query->orderBy('#createdOn', 'DESC');
         
         // Функцията, която ще се извика
         $data->callback = $this->callback = Request::get('callback', 'identifier');
@@ -529,22 +527,23 @@ class cms_GalleryImages extends core_Manager
     
     /**
      * Подготвя вербалните стойности на записите, които ще се показват в диалоговия прозорец на галерията
-     * 
+     *
      * @param stdClass $data
      */
-    function prepareGalleryDialogListRows($data)
-    {   
+    public function prepareGalleryDialogListRows($data)
+    {
         // Защитаваме променливите
         Request::setProtected('callback');
         
         // Ако има записи
-        if($data->recs && count($data->recs)) {
+        if ($data->recs && count($data->recs)) {
             
             // Обхождаме записите
-            foreach($data->recs as $id => $rec) {
+            foreach ($data->recs as $id => $rec) {
                 
                 // Добавяме вербалните представяния
                 $data->rows[$id] = $this->recToVerbal($rec, 'src, groupId');
+                
                 // Защитаваме променливите
                 
                 // Ако има права за редактиране
@@ -554,7 +553,7 @@ class cms_GalleryImages extends core_Manager
                     $img = ht::createElement('img', array('src' => sbf('img/16/edit-icon.png', '')));
                     
                     // Линк, който сочи към добавяне на изображения в диалов прозрец, с данните на това изображение
-                    $data->rows[$id]->tools = ht::createLink($img, array($this, 'addImgDialog', $id, 'callback' => $data->callback, 'ret_url' => TRUE));
+                    $data->rows[$id]->tools = ht::createLink($img, array($this, 'addImgDialog', $id, 'callback' => $data->callback, 'ret_url' => true));
                 }
                 
                 if ($data->recs[$id]->{$this->galleryTitleFieldName}) {
@@ -564,13 +563,13 @@ class cms_GalleryImages extends core_Manager
                     $data->rows[$id]->ROW_ATTR['id'] = $idRow;
                     
                     // Атрибутите на линковете
-                    $attr = array('onclick' => "flashDocInterpolation('{$idRow}'); if(window.opener.{$data->callback}('{$data->recs[$id]->{$this->galleryTitleFieldName}}') != true) self.close(); else self.focus();", "class" => "file-log-link");
+                    $attr = array('onclick' => "flashDocInterpolation('{$idRow}'); if(window.opener.{$data->callback}('{$data->recs[$id]->{$this->galleryTitleFieldName}}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
                     
                     // Изображение за добавяне
                     $imgAdd = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', '')));
                     
                     // Линк, който добавя изображението в рич едита
-                    $data->rows[$id]->tools .= ht::createLink($imgAdd, '#', NULL, $attr);
+                    $data->rows[$id]->tools .= ht::createLink($imgAdd, '#', null, $attr);
                 }
             }
         }
@@ -582,7 +581,7 @@ class cms_GalleryImages extends core_Manager
     /**
      * Рендираме общия изглед за 'List'
      */
-    function renderGalleryDialogList($data)
+    public function renderGalleryDialogList($data)
     {
         // Рендираме общия лейаут
         $tpl = new ET("
@@ -613,16 +612,16 @@ class cms_GalleryImages extends core_Manager
     
     /**
      * Рендира таблицата за показване в диалоговия прозорец на галерията
-     * 
+     *
      * @param stdClass $data
      */
-    function renderGalleryDialogListTable($data)
+    public function renderGalleryDialogListTable($data)
     {
         // Инстанция на класа
         $table = cls::get('core_TableView', array('mvc' => $this));
         
         // Полетата, които ще се показва
-        $listFields = array('tools' => '✍', 'src' => 'Картинка', 'groupId' => 'Група');    
+        $listFields = array('tools' => '✍', 'src' => 'Картинка', 'groupId' => 'Група');
         
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $listFields);
@@ -633,11 +632,12 @@ class cms_GalleryImages extends core_Manager
     
     /**
      * Подготвя полето за заглавие
-     * 
+     *
      * @param object $rec
+     *
      * @see cms_GalleryTitlePlg
      */
-    function prepareRecTitle(&$rec)
+    public function prepareRecTitle(&$rec)
     {
         // Името на полето
         $titleField = $this->galleryTitleFieldName;

@@ -10,27 +10,32 @@ defIfNot('USERREG_CACHE_TYPE', 'UserReg');
 /**
  * Съобщение, което получава потребителя след регистрация
  */
-defIfNot('USERREG_THANK_FOR_REG_MSG',
-    "Благодарим Ви за регистрацията|*!" .
-    "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Активиране на акаунт\"|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* [#EF_APP_TITLE#] ." .
-    "<br><br>|Поздрави от екипа!");
+defIfNot(
+    'USERREG_THANK_FOR_REG_MSG',
+    'Благодарим Ви за регистрацията|*!' .
+    '<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие "Активиране на акаунт"|*.' .
+    '<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* [#EF_APP_TITLE#] .' .
+    '<br><br>|Поздрави от екипа!'
+);
 
 
 /**
  * Съобщение, което получава потребителя след заявка за смяна на паролата
  */
-defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
-    "Заявката за смяната на паролата е приета|*!" .
+defIfNot(
+    'USERREG_THANK_FOR_RESET_PASS_MSG',
+    'Заявката за смяната на паролата е приета|*!' .
     "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие 'Промяна на парола'|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* [#EF_APP_TITLE#] ." .
-    "<br><br>|Поздрави от екипа!");
+    '<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* [#EF_APP_TITLE#] .' .
+    '<br><br>|Поздрави от екипа!'
+);
 
 
 /**
  * Писмо до потребителя за активация
  */
-defIfNot('USERREG_ACTIVATION_EMAIL',
+defIfNot(
+    'USERREG_ACTIVATION_EMAIL',
     "\n|Уважаеми|* [#names#]|," .
     "\n" .
     "\n|Благодарим за регистрацията Ви|*." .
@@ -42,13 +47,15 @@ defIfNot('USERREG_ACTIVATION_EMAIL',
     "\n|Линка ще изтече на|* [#regLifetime#]." .
     "\n" .
     "\n|Поздрави|*," .
-    "\n[#senderName#]");
+    "\n[#senderName#]"
+);
 
 
 /**
  * Писмо до потребителя за смяна на паролата
  */
-defIfNot('USERREG_RESET_PASS_EMAIL',
+defIfNot(
+    'USERREG_RESET_PASS_EMAIL',
     "\n|Уважаеми|* [#names#]," .
     "\n" .
     "\n|Получихме заявка за промяна на паролата Ви|*." .
@@ -60,7 +67,8 @@ defIfNot('USERREG_RESET_PASS_EMAIL',
     "\n|Линка ще изтече в|* [#regLifetime#]." .
     "\n" .
     "\n|Поздрави|*," .
-    "\n[#senderName#]");
+    "\n[#senderName#]"
+);
 
 
 /**
@@ -69,36 +77,34 @@ defIfNot('USERREG_RESET_PASS_EMAIL',
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_UserReg extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след изпълняването на екшън
      */
-    function on_AfterAction(&$invoker, &$tpl, $act)
+    public function on_AfterAction(&$invoker, &$tpl, $act)
     {
         if (strtolower($act) == 'login' && !Request::get('popup')) {
-            
-            $className = "class=login-links";
+            $className = 'class=login-links';
             
             if ($invoker->haveRightFor('resetpassout')) {
-                
                 $tpl->append("<p>&nbsp;<A HREF='" .
                     toUrl(array($invoker, 'resetPassForm')) .
-                    "' {$className} rel='nofollow'>»&nbsp;" . tr('Забравена парола||Forgot Password') . "?</A>", 'FORM');
+                    "' {$className} rel='nofollow'>»&nbsp;" . tr('Забравена парола||Forgot Password') . '?</A>', 'FORM');
             }
             
             if ($invoker->haveRightFor('registernewuserout')) {
                 $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($invoker, 'registerNewUser')) .
-                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . "</A>", 'FORM');
+                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . '</A>', 'FORM');
             }
         }
     }
@@ -107,7 +113,7 @@ class plg_UserReg extends core_Plugin
     /**
      * Изпълнява се след получаването на необходимите роли
      */
-    public static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         $conf = core_Packs::getConfig('core');
         
@@ -132,48 +138,47 @@ class plg_UserReg extends core_Plugin
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction($mvc, &$content, &$act)
+    public function on_BeforeAction($mvc, &$content, &$act)
     {
-    	$conf = core_Packs::getConfig('core');
-    	
-    	if ($act == 'activate' || $act == 'changepass' || ($act == 'unblock')) {
-    	    expect($id = Request::get('id', 'identifier'));
-    	    
-    	    $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
-    	    
-    	    if (!$userId || (!($rec = $mvc->fetch(array("#id = [#1#] AND (#state = 'active' OR #state = 'blocked')", $userId))))) {
-    	        redirect(array('Index'), FALSE, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
-    	    }
-    	    
-    	    // Проверка дали състоянието съответства на действието
-    	    if ($rec->state != 'draft' && $act == 'activate') {
-    	        redirect(array('Index'), FALSE, '|Този акаунт е вече активиран.', 'error');
-    	    }
-    	    
-    	    if ($rec->state == 'draft' && $act == 'changePass') {
-    	        redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран.', 'error');
-    	    }
-    	    
-    	    if ($rec->state != 'blocked' && $act == 'unblock') {
-                redirect(array('Index'), FALSE, '|Този акаунт вече е бил отблокиран.', 'error');
-    	    }
-    	}
-    	
-        if ($act == 'registernewuser') {
+        $conf = core_Packs::getConfig('core');
+        
+        if ($act == 'activate' || $act == 'changepass' || ($act == 'unblock')) {
+            expect($id = Request::get('id', 'identifier'));
             
+            $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
+            
+            if (!$userId || (!($rec = $mvc->fetch(array("#id = [#1#] AND (#state = 'active' OR #state = 'blocked')", $userId))))) {
+                redirect(array('Index'), false, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
+            }
+            
+            // Проверка дали състоянието съответства на действието
+            if ($rec->state != 'draft' && $act == 'activate') {
+                redirect(array('Index'), false, '|Този акаунт е вече активиран.', 'error');
+            }
+            
+            if ($rec->state == 'draft' && $act == 'changePass') {
+                redirect(array('Index'), false, '|Този акаунт все още не е активиран.', 'error');
+            }
+            
+            if ($rec->state != 'blocked' && $act == 'unblock') {
+                redirect(array('Index'), false, '|Този акаунт вече е бил отблокиран.', 'error');
+            }
+        }
+        
+        if ($act == 'registernewuser') {
             $mvc->requireRightFor('registernewuserout');
             
             $form = $mvc->getForm();
             
-            $form->setField('email', "valid=drdata_Emails->validate");
+            $form->setField('email', 'valid=drdata_Emails->validate');
             
             if (EF_USSERS_EMAIL_AS_NICK) {
-                $rec = $form->input("email,names");
+                $rec = $form->input('email,names');
             } else {
-                $rec = $form->input("nick,email,names");
+                $rec = $form->input('nick,email,names');
             }
             
-            if ( $form->isSubmitted() && $rec) {
+            if ($form->isSubmitted() && $rec) {
                 // Ако е конфигурирано да се използва имейлът за ник,
                 // То имейлът се записва като Nick
                 if (EF_USSERS_EMAIL_AS_NICK) {
@@ -184,25 +189,25 @@ class plg_UserReg extends core_Plugin
                 if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'") || core_Users::isForbiddenNick($rec->nick)) {
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         if ($eRec->state == 'active') {
-                            $form->setError('email', "Вече има регистриран потребител с този имейл|*. |Ако сте забравили паролата си, можете да я възстановите тук");
+                            $form->setError('email', 'Вече има регистриран потребител с този имейл|*. |Ако сте забравили паролата си, можете да я възстановите тук');
                         } else {
-                            $form->setError('email', "Вече има регистриран потребител с този имейл|*. " .
+                            $form->setError('email', 'Вече има регистриран потребител с този имейл|*. ' .
                                 "|Моля проверете всички папки, в т.ч. и папката за СПАМ, за имейл със заглавие 'Activation'|*. " .
-                                "|В него се съдържат инструкции за активиране на вашата сметка|*. |Ако не откриете писмото, опитайте да се " .
-                                "регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни|*.");
+                                '|В него се съдържат инструкции за активиране на вашата сметка|*. |Ако не откриете писмото, опитайте да се ' .
+                                'регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни|*.');
                         }
                     } else {
                         $nicks = $this->nickGenerator($mvc, $rec->email, $rec->names);
                         
                         foreach ($nicks as $n) {
-                            $htmlNicks .= ($htmlNicks ? ", " : "") . "<B>{$n}</B>";
+                            $htmlNicks .= ($htmlNicks ? ', ' : '') . "<B>{$n}</B>";
                         }
-                        $form->setError('nick', "Вече има регистриран потребител с този ник. Изберете друг, например|*: " . $htmlNicks);
+                        $form->setError('nick', 'Вече има регистриран потребител с този ник. Изберете друг, например|*: ' . $htmlNicks);
                     }
                 } else {
                     // проверка дали имейлът не се повтаря
                     if ($mvc->fetch("#email = '{$rec->email}'")) {
-                        $form->setError('email', "Вече има регистриран потребител с този имейл|*.");
+                        $form->setError('email', 'Вече има регистриран потребител с този имейл|*.');
                     }
                 }
                 
@@ -216,8 +221,8 @@ class plg_UserReg extends core_Plugin
                     $mvc->logLogin('Регистриране на потребител', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    if ($mvc->sendActivationLetter($rec, USERREG_ACTIVATION_EMAIL, 'Активиране на акаунт', 'activate') == FALSE) {
-                        redirect(array('Index'), FALSE, tr("За съжаление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор"), 'error');
+                    if ($mvc->sendActivationLetter($rec, USERREG_ACTIVATION_EMAIL, 'Активиране на акаунт', 'activate') == false) {
+                        redirect(array('Index'), false, tr('За съжаление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор'), 'error');
                     }
                     
                     // Редиректваме към страницата, която благодари за регистрацията
@@ -226,8 +231,8 @@ class plg_UserReg extends core_Plugin
                     
                     $conf = core_Packs::getConfig('core');
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
-
-                    redirect(array('Index'), FALSE, '|' . $msg->getContent());
+                    
+                    redirect(array('Index'), false, '|' . $msg->getContent());
                 }
             }
             
@@ -239,29 +244,28 @@ class plg_UserReg extends core_Plugin
             
             $form->toolbar->addSbBtn('Регистрирай');
             
-            $form->title = "Регистриране на нов потребител в|* \"" . $conf->EF_APP_TITLE . "\"";
+            $form->title = 'Регистриране на нов потребител в|* "' . $conf->EF_APP_TITLE . '"';
             
             if (!$form->gotErrors()) {
                 $form->info = tr("След като попълните полетата по-долу натиснете бутона 'Регистрирай'|*.<br>" .
-                    "|На посочения от вас имейл ще получите линк за избор на паролата за достъп|*.");
+                    '|На посочения от вас имейл ще получите линк за избор на паролата за достъп|*.');
             }
             
             
             if (EF_USSERS_EMAIL_AS_NICK) {
-                $content = $form->renderHtml("email,names", $rec);
-                $form->addAttr("email,names", array('style' => 'width:300px'));
+                $content = $form->renderHtml('email,names', $rec);
+                $form->addAttr('email,names', array('style' => 'width:300px'));
             } else {
-                $content = $form->renderHtml("nick,email,names", $rec);
-                $form->addAttr("email,names,nick", array('style' => 'width:300px'));
+                $content = $form->renderHtml('nick,email,names', $rec);
+                $form->addAttr('email,names,nick', array('style' => 'width:300px'));
             }
             
-            return FALSE;
+            return false;
         } elseif ($act == 'activate' || $act == 'changepass') {
-            
             $form = cls::get('core_Form');
             
             $form->setAction(array('core_Users', 'changePass'));
-                        
+            
             //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
             if (EF_USSERS_EMAIL_AS_NICK) {
                 //Ако използваме имейлите вместо никове, скриваме полето ник
@@ -275,58 +279,57 @@ class plg_UserReg extends core_Plugin
             
             $form->setDefault($nickField, $rec->{$nickField});
             $form->setReadOnly($nickField);
-
+            
             if ($act == 'activate') {
                 // Нова парола и нейния производен ключ
                 $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
                 $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Вашата парола,input,hint={$minLenHint},width=15em");
-                $form->FNC('passNewHash', 'varchar', 'caption=Хеш на паролата,input=hidden'); 
+                $form->FNC('passNewHash', 'varchar', 'caption=Хеш на паролата,input=hidden');
                 
                 // Повторение на новата парола
                 $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
                 $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
-
-                $form->title = "Активиране на вашия достъп до системата";
-                $form->info = tr("За да си активирате достъпа до системата, моля въведете избраната от вас парола в полетата по-долу. Паролата трябва да е поне|* " .
                 
-                EF_USERS_PASS_MIN_LEN . " |символа и да съдържа букви, цифри и други символи.");
-
+                $form->title = 'Активиране на вашия достъп до системата';
+                $form->info = tr('За да си активирате достъпа до системата, моля въведете избраната от вас парола в полетата по-долу. Паролата трябва да е поне|* ' .
+                
+                EF_USERS_PASS_MIN_LEN . ' |символа и да съдържа букви, цифри и други символи.');
             } else {
                 // Нова парола и нейния производен ключ
                 $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
                 $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Новата парола,input,hint={$minLenHint},width=15em");
-                $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола  ч,input=hidden'); 
+                $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола  ч,input=hidden');
                 
                 // Повторение на новата парола
                 $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
                 $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола (пак),input,hint={$passReHint},width=15em");
-
-                $form->title = "Задаване на нова парола";
-                $form->info = tr("За да смените паролата си за достъп до системата, моля въведете новата " .
-                "парола в полетата по-долу. " . "Паролата трябва да е поне|* " .
-                EF_USERS_PASS_MIN_LEN . " |символа и да съдържа букви, цифри и други символи.");
+                
+                $form->title = 'Задаване на нова парола';
+                $form->info = tr('За да смените паролата си за достъп до системата, моля въведете новата ' .
+                'парола в полетата по-долу. ' . 'Паролата трябва да е поне|* ' .
+                EF_USERS_PASS_MIN_LEN . ' |символа и да съдържа букви, цифри и други символи.');
             }
-
+            
             core_Users::setUserFormJS($form);
-             
+            
             $form->FNC('id', 'identifier', 'input=hidden');
             $form->FLD('ret_url', 'varchar', 'input=hidden,silent');
-
+            
             $form->toolbar->addSbBtn('Изпрати');
             
             
             $pRec = $form->input();
             
-            if($form->isSubmitted()) {
+            if ($form->isSubmitted()) {
                 core_Users::calcUserForm($form);
-               
-                if($pRec->isLenOK == -1) {
+                
+                if ($pRec->isLenOK == -1) {
                     $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
-                } elseif(!$pRec->passNewHash) {
+                } elseif (!$pRec->passNewHash) {
                     $form->setError('passNew,passRe', 'Моля, въведете (и повторете) паролата');
-                } elseif($pRec->passNew != $pRec->passRe) {
+                } elseif ($pRec->passNew != $pRec->passRe) {
                     $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
-                }  
+                }
                 
                 if (!$form->gotErrors()) {
                     $rec->ps5Enc = $pRec->passNewHash;
@@ -344,13 +347,13 @@ class plg_UserReg extends core_Plugin
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
                     
                     // Добавяме права на потребителя - user, partner
-                    if(!haveRole('user', $userId)) {
+                    if (!haveRole('user', $userId)) {
                         core_Users::addRole($userId, 'user');
                     }
-                    if(!haveRole('executive', $userId)) {
+                    if (!haveRole('executive', $userId)) {
                         core_Users::addRole($userId, 'partner');
                     }
-
+                    
                     redirect(array('core_Users','login', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')));
                 }
             }
@@ -361,13 +364,11 @@ class plg_UserReg extends core_Plugin
                 '.formInfo' => 'max-width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
                 '' => 'margin-top:20px;margin-left:20px;'
             );
-             
-            $content = $form->renderHtml(NULL, $pRec);
             
-            return FALSE;
-
+            $content = $form->renderHtml(null, $pRec);
+            
+            return false;
         } elseif ($act == 'resetpassform') {
-            
             $mvc->requireRightFor('resetpassout');
             
             $form = $mvc->getForm();
@@ -382,24 +383,22 @@ class plg_UserReg extends core_Plugin
             $rec = $form->input('email,captcha');
             
             if ($form->isSubmitted() && $rec) {
-                
                 $id = $mvc->fetchField(array("#email = '[#1#]' AND (#state = 'active' OR #state = 'blocked')", $rec->email), 'id');
                 
                 if (!$id) {
                     sleep(2);
                     Debug::log('Sleep 2 sec. in' . __CLASS__);
-
+                    
                     $form->setError('email', 'Няма регистриран потребител с този имейл');
                 } else {
-                    
                     $rec = $mvc->fetch($id);
                     
                     core_LoginLog::add('pass_reset', $rec->id);
                     $mvc->logLogin('Ресетване на парола', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    if ($mvc->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Промяна на парола', 'changePass') == FALSE) {
-                        redirect(array('Index'), FALSE, tr("За съжаление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор"), 'error');
+                    if ($mvc->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Промяна на парола', 'changePass') == false) {
+                        redirect(array('Index'), false, tr('За съжаление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор'), 'error');
                     }
                     
                     // Редиректваме към страницата, която благодари за регистрацията
@@ -410,49 +409,49 @@ class plg_UserReg extends core_Plugin
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
                     // Редиректване с показване на съобщение
-                    redirect(array('Index'), TRUE, '|' . $msg->getContent());
+                    redirect(array('Index'), true, '|' . $msg->getContent());
                 }
             }
             
             $form->toolbar->addSbBtn('Изпрати заявка');
             
-            $form->title = "Възстановяване на забравена парола за|*" . " \"" . $conf->EF_APP_TITLE . "\"";
+            $form->title = 'Възстановяване на забравена парола за|*' . ' "' . $conf->EF_APP_TITLE . '"';
             
-            if (!$form->gotErrors())
-            $form->info = tr("Попълнете полетата и натиснете бутона за изпращане.|*<br>|" .
-                "Имейл адресът трябва да бъде този, с който сте се регистрирали.|* <br>|" .
-                "На този имейл ще получите линк за избор на нова парола за достъп.");
+            if (!$form->gotErrors()) {
+                $form->info = tr('Попълнете полетата и натиснете бутона за изпращане.|*<br>|' .
+                'Имейл адресът трябва да бъде този, с който сте се регистрирали.|* <br>|' .
+                'На този имейл ще получите линк за избор на нова парола за достъп.');
+            }
             
-            $form->addAttr("email", array('style' => 'width:300px'));
+            $form->addAttr('email', array('style' => 'width:300px'));
             
             $form->setField('email', 'caption=Имейл');
-
-            $content = $form->renderHtml("email,captcha", $rec);
             
-            return FALSE;
+            $content = $form->renderHtml('email,captcha', $rec);
+            
+            return false;
         } elseif ($act == 'unblock') {
-            
             $rec->state = isset($rec->exState) ? $rec->exState : 'active';
-                
+            
             $mvc->save($rec);
             
             $mvc->logLogin('Отблокиран потребител', $rec->id);
             core_LoginLog::add('unblock', $rec->id);
             
             core_Cache::remove(USERREG_CACHE_TYPE, $id);
-
-            redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), TRUE, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
-        } elseif($act == 'unblocklocal' && type_Ip::isLocal()) {
+            
+            redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), true, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
+        } elseif ($act == 'unblocklocal' && type_Ip::isLocal()) {
             Request::setProtected('userId');
             $userId = Request::get('userId', 'int');
-            if($rec = $mvc->fetch($userId)) {
+            if ($rec = $mvc->fetch($userId)) {
                 $rec->state = isset($rec->exState) ? $rec->exState : 'active';
                 $mvc->save($rec);
                 
                 $mvc->logLogin('Отблокиран локален потребител', $rec->id);
                 core_LoginLog::add('unblock', $rec->id);
-
-                redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), TRUE, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
+                
+                redirect(array('crm_Profiles', 'changePassword', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')), true, '|Успешно отблокирахте потребителя. Моля, логнете се и сменете паролата си.');
             }
         }
     }
@@ -461,7 +460,7 @@ class plg_UserReg extends core_Plugin
     /**
      * Тази функция връща няколко предложения за свободни никове
      */
-    function nickGenerator($mvc, $email, $names = '')
+    public function nickGenerator($mvc, $email, $names = '')
     {
         $email = explode('@', $email);
         $res[] = $email[0];
@@ -476,20 +475,20 @@ class plg_UserReg extends core_Plugin
         }
         
         if ($last) {
-            $res[] = $names[0]{0} . "." . $last;
-            $res[] = $names[0] . "." . $last{0};
-            $res[] = $names[0] . "." . $last;
+            $res[] = $names[0]{0} . '.' . $last;
+            $res[] = $names[0] . '.' . $last{0};
+            $res[] = $names[0] . '.' . $last;
         }
         
         if ($names[2]) {
-            $res[] = $names[0] . "." . $names[1]{0} . "." . $last;
+            $res[] = $names[0] . '.' . $names[1]{0} . '.' . $last;
         }
         
         $n = '';
         
         while (empty($nicks)) {
             foreach ($res as $nick) {
-                $nick = preg_replace('/[^a-zа-я0-9\.]+/', '_', $nick) . $n;
+                $nick = preg_replace('/[^a-zа-я0-9\.]+/u', '_', $nick) . $n;
                 
                 if (!$mvc->fetch("#nick = '{$nick}'")) {
                     $nicks[] = $nick;
@@ -508,14 +507,14 @@ class plg_UserReg extends core_Plugin
     
     
     /**
-     * Изпращане на писмо за активиране на сметкатa
-     * 
+     * Изпращане на писмо за активиране на сметката
+     *
      * @param core_Users $mvc
-     * @param NULL|boolean $res
-     * @param stdClass $rec
-     * @param string $tpl
-     * @param string $subject
-     * @param string $act
+     * @param NULL|bool  $res
+     * @param stdClass   $rec
+     * @param string     $tpl
+     * @param string     $subject
+     * @param string     $act
      */
     public static function on_AfterSendActivationLetter($mvc, &$res, $rec, $tpl = USERS_UNBLOCK_EMAIL, $subject = 'Отблокиране на потребител', $act = 'unblock')
     {
@@ -531,14 +530,14 @@ class plg_UserReg extends core_Plugin
         if ($corpAcc) {
             $PML = email_Accounts::getPML($corpAcc->email);
         } else {
-            $PML = cls::get('phpmailer_Instance', array('emailTo' =>$rec->email));
+            $PML = cls::get('phpmailer_Instance', array('emailTo' => $rec->email));
         }
         
         $rec1 = clone ($rec);
         
         setIfNot($rec1->url, toUrl(array('core_Users', $act, $h), 'absolute'));
         
-        setIfNot($rec1->senderName, phpmailer_Setup::get('PML_FROM_NAME', TRUE));
+        setIfNot($rec1->senderName, phpmailer_Setup::get('PML_FROM_NAME', true));
         
         $expireDate = dt::addDays(USERS_DRAFT_MAX_DAYS);
         $dt = cls::get('type_Datetime');
@@ -546,8 +545,8 @@ class plg_UserReg extends core_Plugin
         
         setIfNot($rec1->regLifetime, $expireDate);
         
-        setIfNot($rec1->EF_APP_TITLE, core_Setup::get('EF_APP_TITLE', TRUE));
-
+        setIfNot($rec1->EF_APP_TITLE, core_Setup::get('EF_APP_TITLE', true));
+        
         $tpl = new ET($tpl);
         
         $tpl->translate();

@@ -1,31 +1,30 @@
 <?php
 
 
-
 /**
  * Клас 'legalscript_Engine' - Генериране на юридически текст по шаблон
  *
  *
  * @category  vendors
  * @package   legalscript
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class legalscript_Engine extends core_BaseClass
 {
-    
-    
     /**
      * Инициализиране на обекта
      */
-    function init($params = array())
+    public function init($params = array())
     {
         parent::init($params);
         
-        if($this->path) {
+        if ($this->path) {
             $this->script = file_get_contents(EF_APP_PATH . '/' . $this->path);
         }
     }
@@ -34,11 +33,11 @@ class legalscript_Engine extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function render_($rec)
+    public function render_($rec)
     {
         $lines = explode("\n", $this->script);
         
-        $pFlag = TRUE;     // Дали следващата линия да започва с параграф
+        $pFlag = true;     // Дали следващата линия да започва с параграф
         // Броячи (номератори) на нивата на влагане на параграфите
         // 0 - Без номериране
         // 1 - Раздел, не нулира Чл.
@@ -53,11 +52,11 @@ class legalscript_Engine extends core_BaseClass
         // Ниво на влагане за следващата линия
         $level = 0;
         
-        foreach($lines as $line) {
+        foreach ($lines as $line) {
             $line = trim($line);
             
-            if(empty($line)) {
-                $pFlag = TRUE;
+            if (empty($line)) {
+                $pFlag = true;
                 continue;
             }
             
@@ -65,18 +64,18 @@ class legalscript_Engine extends core_BaseClass
             
             $w0 = $words[0];
             
-            if(isset($words[1])) {
+            if (isset($words[1])) {
                 $w1 = $words[1];
             }
             
-            $label = FALSE;
+            $label = false;
             
-            if($w0 == '#' || $w0 == '##' || $w0 == '###' || $w0 == '####' || $w0 == '#####') {
+            if ($w0 == '#' || $w0 == '##' || $w0 == '###' || $w0 == '####' || $w0 == '#####') {
                 $level = strlen($w0);
                 
                 unset($words[0]);
                 
-                if(substr($w1, 0, 2) == '::') {
+                if (substr($w1, 0, 2) == '::') {
                     $label = substr($w1, 2);
                     unset($words[1]);
                 }
@@ -88,53 +87,53 @@ class legalscript_Engine extends core_BaseClass
             
             $line->placeObject($rec);
             
-            $line = $line->getContent(NULL, "CONTENT", FALSE, FALSE);
+            $line = $line->getContent(null, 'CONTENT', false, false);
             
-            if(strpos($line, '[#') !== FALSE) {
-                $out[] = ($pFlag ? "<p>" : "") . "<span style='color:#ffcccc'>" . $line . "</span>";
-                $pFlag = FALSE;
+            if (strpos($line, '[#') !== false) {
+                $out[] = ($pFlag ? '<p>' : '') . "<span style='color:#ffcccc'>" . $line . '</span>';
+                $pFlag = false;
                 continue;
             }
             
-            switch($level) {
-                case 0 :
+            switch ($level) {
+                case 0:
                     $prefix = '';
                     break;
-                case 1 :
+                case 1:
                     $pLevels[$level]++;
-                    $prefix = '<b>' . $this->numberToRoman($pLevels[1]) . ".</b>&nbsp;";
-                    $pFlag = TRUE;
+                    $prefix = '<b>' . $this->numberToRoman($pLevels[1]) . '.</b>&nbsp;';
+                    $pFlag = true;
                     break;
-                case 2 :
+                case 2:
                     $pLevels[$level]++;
                     $pLevels[$level + 1] = $pLevels[$level + 2] = $pLevels[$level + 3] = 0;
                     $prefix = '<b>Чл.' . $pLevels[$level] . '.</b>&nbsp;';
-                    $pFlag = TRUE;
+                    $pFlag = true;
                     break;
-                case 3 :
+                case 3:
                     $pLevels[$level]++;
                     $pLevels[$level + 1] = $pLevels[$level + 2] = 0;
                     $prefix = '&nbsp;&nbsp;<b>' . $pLevels[$level] . ')</b>&nbsp;';
-                    $pFlag = TRUE;
+                    $pFlag = true;
                     break;
-                case 4 :
+                case 4:
                     $pLevels[$level]++;
                     $pLevels[$level + 1] = 0;
                     $prefix = '&nbsp;&nbsp;&nbsp;&nbsp;<b>' . mb_substr($bgAlpha, $pLevels[$level], 1) . '.</b>&nbsp;';
-                    $pFlag = TRUE;
+                    $pFlag = true;
                     break;
-                case 5 :
+                case 5:
                     $pLevels[$level]++;
                     $prefix = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>-</b>&nbsp;';
-                    $pFlag = TRUE;
+                    $pFlag = true;
                     break;
             }
             
-            if($pFlag) {
+            if ($pFlag) {
                 $prefix = "<p class='level-" . $level . "'>" . $prefix;
             }
             
-            $pFlag = FALSE;
+            $pFlag = false;
             
             $line = $prefix . $line;
             
@@ -145,7 +144,7 @@ class legalscript_Engine extends core_BaseClass
         
         $tpl = new ET("<div class='legalscript'>{$html}</div>");
         
-        $tpl->appendOnce("
+        $tpl->appendOnce('
            .legalscript p {
                font-size:1.05em;
                line-height:1.4em;
@@ -172,7 +171,7 @@ class legalscript_Engine extends core_BaseClass
             .legalscript h1 {
                 font-size:1.5em;
             }
-        ", "STYLES");
+        ', 'STYLES');
         
         return $tpl;
     }
@@ -181,9 +180,9 @@ class legalscript_Engine extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function numberToRoman($num, $type = 1)
+    public function numberToRoman($num, $type = 1)
     {
-        if($type == 1){ 
+        if ($type == 1) {
             //upper character number
             // Make sure that we only use the integer portion of the value
             
@@ -195,7 +194,7 @@ class legalscript_Engine extends core_BaseClass
                 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40,
                 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
             
-            foreach ($lookup as $roman => $value){
+            foreach ($lookup as $roman => $value) {
                 // Determine the number of matches
                 $matches = intval($n / $value);
                 
@@ -208,7 +207,7 @@ class legalscript_Engine extends core_BaseClass
             
             // The Roman numeral should be built, return it
             return $result;
-        } elseif($type == 2){ //low character number
+        } elseif ($type == 2) { //low character number
             
             // Make sure that we only use the integer portion of the value
             $n = intval($num);
@@ -220,7 +219,7 @@ class legalscript_Engine extends core_BaseClass
                 'c' => 100, 'xc' => 90, 'l' => 50, 'xl' => 40,
                 'x' => 10, 'ix' => 9, 'v' => 5, 'iv' => 4, 'i' => 1);
             
-            foreach ($lookup as $roman => $value){
+            foreach ($lookup as $roman => $value) {
                 // Determine the number of matches
                 $matches = intval($n / $value);
                 

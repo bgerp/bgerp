@@ -1,22 +1,21 @@
 <?php
 
 
-
 /**
  * Документ за Разходни касови ордери
  *
  *
  * @category  bgerp
  * @package   cash
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cash_Rko extends cash_Document
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -26,9 +25,9 @@ class cash_Rko extends cash_Document
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Разходни касови ордери";
+    public $title = 'Разходни касови ордери';
     
-	
+    
     /**
      * Заглавие на единичен документ
      */
@@ -44,7 +43,7 @@ class cash_Rko extends cash_Document
     /**
      * Абревиатура
      */
-    public $abbr = "Rko";
+    public $abbr = 'Rko';
     
     
     /**
@@ -62,13 +61,13 @@ class cash_Rko extends cash_Document
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.2|Финанси";
+    public $newBtnGroup = '4.2|Финанси';
     
     
     /**
      * Кое поле отговаря на броилия парите
      */
-    protected $personDocumentField = "beneficiary";
+    protected $personDocumentField = 'beneficiary';
     
     
     /**
@@ -82,13 +81,13 @@ class cash_Rko extends cash_Document
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-    	// Зареждаме полетата от бащата
-    	parent::getFields($this);
-    	$this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
-    	$this->setField("contragentName", "caption=Контрагент->Получател");
-    	$this->setField("termDate", "caption=Срок");
+        // Зареждаме полетата от бащата
+        parent::getFields($this);
+        $this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
+        $this->setField('contragentName', 'caption=Контрагент->Получател');
+        $this->setField('termDate', 'caption=Срок');
     }
     
     
@@ -97,15 +96,15 @@ class cash_Rko extends cash_Document
      */
     protected static function getOperations($operations)
     {
-    	$options = array(); 
-    	
-    	// Оставяме само тези операции, в които се дебитира основната сметка на документа
-    	foreach ($operations as $sysId => $op){
-    		if($op['credit'] == static::$baseAccountSysId){
-    			$options[$sysId] = $op['title'];
-    		}
-    	}
-    	 
-    	return $options;
+        $options = array();
+        
+        // Оставяме само тези операции, в които се дебитира основната сметка на документа
+        foreach ($operations as $sysId => $op) {
+            if ($op['credit'] == static::$baseAccountSysId) {
+                $options[$sysId] = $op['title'];
+            }
+        }
+        
+        return $options;
     }
 }

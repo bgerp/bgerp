@@ -3,51 +3,56 @@
 
 /**
  * Експортиране на документи
- * 
+ *
  * @category  bgerp
  * @package   export
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class export_Export extends core_Mvc
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
-    public $title = "Експортиране на документ";
+    public $title = 'Експортиране на документ';
     
     
     /**
      * Връща масив с възможните формати за експорт
-     * 
-     * @param integer $clsId
-     * @param integer $objectId
-     * @param NULL|integer $limit
-     * 
+     *
+     * @param int      $clsId
+     * @param int      $objectId
+     * @param NULL|int $limit
+     *
      * @return array
      */
-    public static function getPossibleExports($clsId, $objectId, $limit = NULL)
+    public static function getPossibleExports($clsId, $objectId, $limit = null)
     {
         $clsArr = core_Classes::getOptionsByInterface('export_ExportTypeIntf');
         
         $res = array();
         
         foreach ($clsArr as $cls => $clsName) {
-            
-            if (!cls::load($clsName, TRUE)) continue;
+            if (!cls::load($clsName, true)) {
+                continue;
+            }
             
             $clsInst = cls::getInterface('export_ExportTypeIntf', $cls);
             
-            if (!$clsInst->canUseExport($clsId, $objectId)) continue;
+            if (!$clsInst->canUseExport($clsId, $objectId)) {
+                continue;
+            }
             
             $res[$cls] = $clsInst->getExportTitle($clsId, $objectId);
             
             if (isset($limit)) {
-                if (!--$limit) break;
+                if (!--$limit) {
+                    break;
+                }
             }
         }
         
@@ -55,30 +60,32 @@ class export_Export extends core_Mvc
     }
     
     
-    
     /**
      * Помощна функция за проверка на права към документа
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
-     * @return boolean
+     * @return bool
      */
     public static function canUseExport($clsId, $objId)
     {
         static $resArr = array();
         $key = $clsId . '|' . $objId . '|' . core_Users::getCurrent();
         
-        if (isset($resArr[$key])) return $resArr[$key];
-        
-        if (!$clsId || !$objId) {
-            $resArr[$key] = FALSE;
+        if (isset($resArr[$key])) {
             
             return $resArr[$key];
         }
         
-        if (!cls::load($clsId, TRUE)) {
-            $resArr[$key] = FALSE;
+        if (!$clsId || !$objId) {
+            $resArr[$key] = false;
+            
+            return $resArr[$key];
+        }
+        
+        if (!cls::load($clsId, true)) {
+            $resArr[$key] = false;
             
             return $resArr[$key];
         }
@@ -88,28 +95,27 @@ class export_Export extends core_Mvc
         $dRec = $dInst->fetch($objId);
         
         if (($dRec->state == 'rejected') || ($dRec->state == 'draft')) {
-            $resArr[$key] = FALSE;
+            $resArr[$key] = false;
             
             return $resArr[$key];
         }
         
         if (!$dInst->haveRightFor('single', $objId)) {
-            $resArr[$key] = FALSE;
+            $resArr[$key] = false;
             
             return $resArr[$key];
         }
         
-        $resArr[$key] = TRUE;
+        $resArr[$key] = true;
         
         return $resArr[$key];
     }
     
     
-    
     /**
      * Екшън за експортиране
      */
-    function act_Export()
+    public function act_Export()
     {
         Request::setProtected(array('classId', 'docId'));
         
@@ -127,7 +133,7 @@ class export_Export extends core_Mvc
         
         $form = $this->getForm();
         
-        $form->title = "Експортиране на документ";
+        $form->title = 'Експортиране на документ';
         
         $retUrl = getRetUrl();
         
@@ -152,7 +158,6 @@ class export_Export extends core_Mvc
         $form->input();
         
         if ($form->isSubmitted()) {
-            
             $exportFormatsArr = $this->getPossibleExports($classId, $docId);
             expect($exportFormatsArr[$form->rec->type]);
             
@@ -160,7 +165,7 @@ class export_Export extends core_Mvc
             
             $eRes = $intfCls->makeExport($form, $classId, $docId);
             
-            if (is_object($eRes) && $eRes instanceOf core_Redirect) {
+            if (is_object($eRes) && $eRes instanceof core_Redirect) {
                 
                 return $eRes;
             }
@@ -169,7 +174,7 @@ class export_Export extends core_Mvc
             
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към документа') . ', class=fright');
             
-			// Добавяме необходимите бутони от интерфейсите
+            // Добавяме необходимите бутони от интерфейсите
             $intfArr = core_Classes::getOptionsByInterface('export_FileActionIntf');
             foreach ($intfArr as $cls) {
                 $intfCls = cls::getInterface('export_FileActionIntf', $cls);
@@ -183,13 +188,13 @@ class export_Export extends core_Mvc
         $tpl = $form->renderHtml();
         
         $inst->currentTab = 'Нишка';
-        if(core_Packs::isInstalled('colab')){
-        	if (core_Users::haveRole('partner')) {
-        		plg_ProtoWrapper::changeWrapper($inst, 'cms_ExternalWrapper');
-        	}
+        if (core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('partner')) {
+                plg_ProtoWrapper::changeWrapper($inst, 'cms_ExternalWrapper');
+            }
         }
         
-	    $tpl = $inst->renderWrapping($tpl);
+        $tpl = $inst->renderWrapping($tpl);
         
         return $tpl;
     }
@@ -198,7 +203,7 @@ class export_Export extends core_Mvc
     /**
      * Помощен екшън за ескпорт със съответния интерфейс
      */
-    function act_ExportInExternal()
+    public function act_ExportInExternal()
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
         
@@ -240,12 +245,11 @@ class export_Export extends core_Mvc
         core_Users::exitSudo($su);
         
         if ($fileHnd) {
-            
             $typeClsInst->logInfo('Експортиран документ');
             
-            return Request::forward(array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE));
+            return Request::forward(array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true));
         }
         
-        followRetUrl(NULL, '|Няма данни за експорт', 'error');
+        followRetUrl(null, '|Няма данни за експорт', 'error');
     }
 }

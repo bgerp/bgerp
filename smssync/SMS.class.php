@@ -6,16 +6,16 @@
  *
  * @category  vendors
  * @package   clickatell
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @see http://smssync.ushahidi.com/
  */
 class smssync_SMS extends core_Manager
 {
-    
-	
     /**
      * Кой има право да чете?
      */
@@ -50,53 +50,51 @@ class smssync_SMS extends core_Manager
      * Кой има право да го изтрие?
      */
     protected $canDelete = 'no_one';
-	
     
-	/**
-	 * Интерфейсния клас за изпращане на SMS
-	 */
-	public $interfaces = 'callcenter_SentSMSIntf'; 
-	
-	
-	/**
-	 * Заглавие на модела
-	 */
-	public $title = 'SMSSync';
-	
+    
+    /**
+     * Интерфейсния клас за изпращане на SMS
+     */
+    public $interfaces = 'callcenter_SentSMSIntf';
+    
+    
+    /**
+     * Заглавие на модела
+     */
+    public $title = 'SMSSync';
+    
     
     /**
      * Плъгини за зареждане
-     * 
+     *
      * var string|array
      */
     public $loadList = 'plg_Created';
-	
-	
-	/**
-	 * 
-	 */
-	public function description()
-	{
-	    $this->FLD('sender', 'varchar', 'caption=Изпращач');
-	    $this->FLD('number', 'drdata_PhoneType', 'caption=Получател');
-	    $this->FLD('message', 'blob', 'caption=Съобщение');
-	    $this->FLD('status', 'enum(pending=Чакащо, fetched=Извлечен, sended=Изпратен)', 'caption=Статус, input=none, hint=Статус на съобщението');
-	    $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-	}
-	
-	
-	/**
+    
+    
+    public function description()
+    {
+        $this->FLD('sender', 'varchar', 'caption=Изпращач');
+        $this->FLD('number', 'drdata_PhoneType', 'caption=Получател');
+        $this->FLD('message', 'blob', 'caption=Съобщение');
+        $this->FLD('status', 'enum(pending=Чакащо, fetched=Извлечен, sended=Изпратен)', 'caption=Статус, input=none, hint=Статус на съобщението');
+        $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
+    }
+    
+    
+    /**
      * Интерфейсен метод за изпращане на SMS' и
+     *
      * @see callcenter_SentSMSIntf
-     * 
-     * @param string $number - Номера на получателя
+     *
+     * @param string $number  - Номера на получателя
      * @param string $message - Текста на съобщението
-     * @param string $sender - От кого се изпраща съобщението
-     * 
-     * @return array $nRes - Mасив с информация, дали е получено
-     * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
-     * $nRes['uid'] string - Уникалното id на съобщението
-     * $nRes['msg'] - Статуса
+     * @param string $sender  - От кого се изпраща съобщението
+     *
+     * @return array $nRes - Масив с информация, дали е получено
+     *               $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
+     *               $nRes['uid'] string - Уникалното id на съобщението
+     *               $nRes['msg'] - Статуса
      */
     public function sendSMS($number, $message, $sender)
     {
@@ -111,10 +109,12 @@ class smssync_SMS extends core_Manager
         
         // Опитваме се да генерираме уникално id за SMS-a
         do {
-            if(16 < $i++) error('@Unable to generate random uid', $nRec);
+            if (16 < $i++) {
+                error('@Unable to generate random uid', $nRec);
+            }
             
             $nRec->uid = self::getUid();
-        } while(self::fetch("#uid = '{$nRec->uid}'"));
+        } while (self::fetch("#uid = '{$nRec->uid}'"));
         
         // Резултата
         $nRes = array('uid' => $nRec->uid);
@@ -133,16 +133,15 @@ class smssync_SMS extends core_Manager
     /**
      * Инрерфейсен метод
      * Връща статуса на съобщението от съоветната услуга
+     *
      * @see callcenter_SentSMSIntf
-     * 
+     *
      * @param string $uid
-     * 
-     * @return 
+     *
+     * @return
      */
     public function getStatus($uid)
     {
-        
-        return ;
     }
     
     
@@ -151,13 +150,16 @@ class smssync_SMS extends core_Manager
      * Връща JSON данни за SMS-а за изпращане.
      * Може и да се вика при входящ SMS на телефона
      */
-    function act_Sync()
+    public function act_Sync()
     {
         $secret = Request::get('secret');
         $task = Request::get('task');
         
         // Ако ключа не е коректен или IP-то не е в допустимите, не може да извлича записте
-        if (!self::isAuthorizied($secret)) return FALSE;
+        if (!self::isAuthorizied($secret)) {
+            
+            return false;
+        }
         
         $res = array();
         
@@ -196,19 +198,21 @@ class smssync_SMS extends core_Manager
     
     /**
      * Изтирва записите
-     * 
+     *
      * @param array $recs
      */
     protected static function deleteRecs($recs)
     {
         $classId = self::getClassId();
         
-        foreach ((array)$recs as $id => $rec) {
+        foreach ((array) $recs as $id => $rec) {
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $rec->uid, 'sended');
             
-            if (!$id) continue;
+            if (!$id) {
+                continue;
+            }
             
             // Изтриваме записа от този модел
             self::delete($id);
@@ -243,37 +247,37 @@ class smssync_SMS extends core_Manager
     
     /**
      * Подготвя масива с данните за изходящите съобщения
-     * 
-     * @param array $recs
+     *
+     * @param array  $recs
      * @param string $task
      * @param string $secret
-     * 
+     *
      * @return array
      */
     protected static function prepareSendRes($recs, $task, $secret)
     {
         $messages = self::prepareMessages($recs);
         $res = array(
-    				'payload' => array (
-                        'task' => $task,
-                        'secret' => $secret,
-                        'messages' => $messages
-                    )
-                );
-                
+            'payload' => array(
+                'task' => $task,
+                'secret' => $secret,
+                'messages' => $messages
+            )
+        );
+        
         return $res;
     }
     
     
     /**
      * Подготвя масива с изходящите съобщения
-     * 
+     *
      * @param array $recs
      */
     protected static function prepareMessages_($recs)
     {
         $messagesArr = array();
-        foreach ((array)$recs as $rec) {
+        foreach ((array) $recs as $rec) {
             $messagesArr[] = array('to' => $rec->number, 'message' => $rec->message);
         }
         
@@ -283,14 +287,14 @@ class smssync_SMS extends core_Manager
     
     /**
      * Подготвя масива с данните за входящите съобщения
-     * 
+     *
      * @param array $dataArr
      */
     protected static function prepareIncomingRes($dataArr)
     {
         $incomingMsg = self::prepareIncomingMessage($dataArr);
         $res = array(
-        	'payload' => $incomingMsg
+            'payload' => $incomingMsg
         );
         
         return $res;
@@ -298,24 +302,24 @@ class smssync_SMS extends core_Manager
     
     
     /**
-     * Подготвя масива след получаване на входящо съобщение 
-     * 
+     * Подготвя масива след получаване на входящо съобщение
+     *
      * @param array $dataArr
      */
     protected static function prepareIncomingMessage_($dataArr)
     {
         $res = array(
-                'success' => TRUE,
-                'error' => NULL
-            );
-            
+            'success' => true,
+            'error' => null
+        );
+        
         return $res;
     }
     
     
     /**
      * Проверява дали текущия потребител има достъп да изпраща/получава съобщения
-     * 
+     *
      * @param string $secret
      */
     protected static function isAuthorizied($secret)
@@ -330,7 +334,7 @@ class smssync_SMS extends core_Manager
             self::logErr('Невалиден публичен ключ: ' . $secret);
             
             // Връщаме
-            return FALSE;
+            return false;
         }
         
         // Масив с разрешените IP' та
@@ -343,29 +347,29 @@ class smssync_SMS extends core_Manager
             $realIpAdd = core_Users::getRealIpAddr();
             
             // Обхождаме масива с хостовете
-            foreach ((array)$allowedIpArr as $allowedIp) {
+            foreach ((array) $allowedIpArr as $allowedIp) {
                 
                 // Ако се съдържа в нашия списък
                 if (stripos($realIpAdd, $allowedIp) === 0) {
                     
-                    return TRUE;
+                    return true;
                 }
             }
             
             // Записваме в лога
             self::logWarning('Не е позволен достъпа от това IP');
             
-            return FALSE;
+            return false;
         }
         
         // Ако проверките минат успешно
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Връща уникално id
-     * 
+     *
      * @return string
      */
     protected static function getUid()
@@ -376,11 +380,11 @@ class smssync_SMS extends core_Manager
     
     /**
      * Добавя филтър за изпратените SMS-и
-     * 
+     *
      * @param callcenter_SMS $mvc
-     * @param object $data
+     * @param object         $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy('status', 'ASC');
         $data->query->orderBy('id', 'DESC');
@@ -389,12 +393,13 @@ class smssync_SMS extends core_Manager
     
     /**
      * Интерфейсен метод, който връща масив с настройките за услугата
+     *
      * @see callcenter_SentSMSIntf
-     * 
+     *
      * @return array $paramsArr
-     * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
-     * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
-     * string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
+     *               enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
+     *               integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
+     *               string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
      */
     public function getParams()
     {
@@ -402,7 +407,7 @@ class smssync_SMS extends core_Manager
         $paramsArr = array();
         $paramsArr['utf8'] = $conf->SMSSYNC_SUPPORT_UTF8;
         $paramsArr['maxStrLen'] = $conf->SMSSYNC_MAX_STRING_LEN;
-        $paramsArr['allowedUserNames'] = arr::make($conf->SMSSYNC_ALLOWED_USER_NAMES, TRUE);
+        $paramsArr['allowedUserNames'] = arr::make($conf->SMSSYNC_ALLOWED_USER_NAMES, true);
         
         return $paramsArr;
     }

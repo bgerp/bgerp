@@ -1,63 +1,66 @@
 <?php 
 
-
 /**
  * Клас 'email_Pop3' - Използване на pop3
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Pop3
 {
-    
-    
     /**
      * Ресурс с връзката към пощенската кутия
      */
-    var $connection;
+    public $connection;
+    
     
     /**
      * Хоста, където се намира пощенската кутия
      */
-    protected $host = NULL;
+    protected $host = null;
+    
     
     /**
      * Порта, от който ще се свързваме
      */
-    protected $port = NULL;
+    protected $port = null;
+    
     
     /**
      * Потребителското име за връзка
      */
-    protected $user = NULL;
+    protected $user = null;
+    
     
     /**
      * Паролата за връзка
      */
-    protected $pass = NULL;
+    protected $pass = null;
     
     
     /**
      * Грешки при свързване
      */
-    var $err = NULL;
+    public $err = null;
     
     
     /**
      * Дали потребителското име исъвпадат
      */
-    var $logged = NULL;
+    public $logged = null;
     
     
     /**
      * При създаване на инстанция на класа, създава и връзка с пощенската кутия
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $this->host = $params['host'];
         $this->port = $params['port'];
@@ -71,17 +74,17 @@ class email_Pop3
     /**
      * Установяваме връзката
      */
-    function connect()
+    public function connect()
     {
-    	$conf = core_Packs::getConfig('email');
-    	
+        $conf = core_Packs::getConfig('email');
+        
         @$this->connection = fsockopen($this->host, $this->port, $this->err['no'], $this->err['str'], $conf->EMAIL_POP3_TIMEOUT);
         
         if ($this->connection === false) {
             log_System::add(get_called_class(), "Не може да се установи връзка с пощенската кутия на: 
-                            \"{$this->user}\". Грешка: " . $this->err['no'] . " - " . $this->err['str'], NULL, 'err');
+                            \"{$this->user}\". Грешка: " . $this->err['no'] . ' - ' . $this->err['str'], null, 'err');
             
-            return FALSE;
+            return false;
         }
         
         //Прочита и изчиства буфера
@@ -92,10 +95,10 @@ class email_Pop3
         
         if (!$this->logged) {
             log_System::add(get_called_class(), "Не може да се установи връзка с пощенската кутия на: 
-                            \"{$this->user}\". Потребителското име и/или паролата са грешни.", NULL, 'err');
+                            \"{$this->user}\". Потребителското име и/или паролата са грешни.", null, 'err');
         }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -104,10 +107,10 @@ class email_Pop3
      */
     protected function login()
     {
-        $user = "USER " . $this->user;
+        $user = 'USER ' . $this->user;
         $userStr = $this->setBuffer($user);
         
-        $pass = "PASS " . $this->pass;
+        $pass = 'PASS ' . $this->pass;
         $passStr = $this->setBuffer($pass);
         
         $this->logged = $this->checkIsCorrect($passStr);
@@ -132,8 +135,8 @@ class email_Pop3
      */
     protected function getBuffer()
     {
-    	$conf = core_Packs::getConfig('email');
-    	
+        $conf = core_Packs::getConfig('email');
+        
         stream_set_timeout($this->connection, $conf->EMAIL_POP3_TIMEOUT);
         
         $buffer = '';
@@ -151,19 +154,19 @@ class email_Pop3
      */
     protected function checkIsCorrect($str)
     {
-        if (stristr($str, '+OK') !== FALSE) {
+        if (stristr($str, '+OK') !== false) {
             
-            return TRUE;
+            return true;
         }
         
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща хедър-а на имейл-а
      */
-    function getHeader($msgId)
+    public function getHeader($msgId)
     {
         $header = "TOP {$msgId} 0";
         
@@ -176,13 +179,13 @@ class email_Pop3
     /**
      * Връща броя на съобщенията
      */
-    function getStat()
+    public function getStat()
     {
-        $stat = "STAT";
+        $stat = 'STAT';
         $statStr = $this->setBuffer($stat);
         
         if ($this->checkIsCorrect($statStr)) {
-            $arr = explode(" ", $statStr);
+            $arr = explode(' ', $statStr);
             $numMsg = $arr[1];
         }
         
@@ -193,14 +196,14 @@ class email_Pop3
     /**
      * Прочита и връща съдържанието на съобщението
      */
-    function readMsg($msgId)
+    public function readMsg($msgId)
     {
         $read = "RETR {$msgId}";
         $readStr = $this->setBuffer($read);
         
         if (!$this->checkIsCorrect($readStr)) {
             
-            return FALSE;
+            return false;
         }
         
         return $readStr;
@@ -210,7 +213,7 @@ class email_Pop3
     /**
      * Маркира съобщението за изтриване
      */
-    function delMsg($msgId)
+    public function delMsg($msgId)
     {
         $del = "DELE {$msgId}";
         $delStr = $this->setBuffer($del);
@@ -222,9 +225,9 @@ class email_Pop3
     /**
      * Ако има съобщение, маркирано за изтриване, премахва маркера
      */
-    function undelMsg()
+    public function undelMsg()
     {
-        $rset = "RSET";
+        $rset = 'RSET';
         
         $rsetStr = $this->setBuffer($rset);
         
@@ -235,9 +238,9 @@ class email_Pop3
     /**
      * Затваря връзката, и ако има съобщения маркирани за изтриване ги изтрива
      */
-    function closeConn()
+    public function closeConn()
     {
-        $quit = "QUIT";
+        $quit = 'QUIT';
         
         $quitStr = $this->setBuffer($quit);
         

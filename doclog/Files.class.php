@@ -6,73 +6,73 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doclog_Files extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
-    var $title = "Лог на файловете";
+    public $title = 'Лог на файловете';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, doc';
+    public $canRead = 'admin, doc';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, doc';
+    public $canView = 'admin, doc';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, doc';
+    public $canList = 'admin, doc';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'no_one';
+    public $canReject = 'no_one';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created';
+    public $loadList = 'plg_Created';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $listFields = 'cid, fileHnd, createdOn=Свален->На, createdBy=Свален->От, seenFromIp=Свален->Ip';
+    public $listFields = 'cid, fileHnd, createdOn=Свален->На, createdBy=Свален->От, seenFromIp=Свален->Ip';
     
     
     /**
@@ -84,22 +84,24 @@ class doclog_Files extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
-            array('notNull' => TRUE, 'caption' => 'Манипулатор'));
+        $this->FLD(
+            'fileHnd',
+            'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')',
+            array('notNull' => true, 'caption' => 'Манипулатор')
+        );
         
         $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Контейнер,notNull,value=0');
         
         $this->FLD('seenFromIp', 'ip', 'input=none', 'caption=IP,value=0');
-        
     }
-
+    
     
     /**
      * Записваме информация за свалянето на съответния файл
      */
-    static function downloaded($fileHnd, $cid)
+    public static function downloaded($fileHnd, $cid)
     {
         // Създаваме обект
         $rec = new stdClass();
@@ -112,7 +114,7 @@ class doclog_Files extends core_Manager
         
         // Контейнера, от където е файла
         $rec->cid = $cid;
-
+        
         // Записваме
         static::save($rec);
     }

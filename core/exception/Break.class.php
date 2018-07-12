@@ -2,19 +2,19 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_exception_Break extends Exception
 {
-    
-    
     /**
      * Вербален тип на изключението
      */
@@ -30,12 +30,12 @@ class core_exception_Break extends Exception
     /**
      *  Конструктор на изключението
      */
-    public function __construct($message = "", $type = 'Изключение', $dump = NULL)
+    public function __construct($message = '', $type = 'Изключение', $dump = null)
     {
         parent::__construct($message);
         
-        $this->type  = $type;
-        $this->dump  = $dump;
+        $this->type = $type;
+        $this->dump = $dump;
     }
     
     

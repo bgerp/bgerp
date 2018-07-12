@@ -75,7 +75,7 @@ function showTooltip() {
     if (!($('.tooltip-arrow-link').length)) {
         return;
     }
-    // Aко има тултипи
+    // Ако има тултипи
     var element;
 
     var cachedArr = new Array();
@@ -3591,7 +3591,7 @@ efae.prototype.setUrl = function(url) {
 /**
  * Връща локалното URL, което да се извика
  *
- * @return - Локолното URL, което да се извикa по AJAX
+ * @return - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.getUrl = function() {
 
@@ -3612,7 +3612,7 @@ efae.prototype.setParentUrl = function(parentUrl) {
 /**
  * Връща URL-то, от което се вика AJAX-а
  *
- * @return - Локолното URL, което да се извикa по AJAX
+ * @return - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.getParentUrl = function() {
 
@@ -5273,7 +5273,10 @@ JSON.stringify = JSON.stringify || function (obj) {
  * Дали елемента е видим във viewport
  */
 $.fn.isInViewport = function() {
-    var elementTop = $(this).offset().top;
+	if (typeof($(this).offset()) == 'undefined') return ;
+	
+	var elementTop = $(this).offset().top;
+    
     var elementBottom = elementTop + $(this).outerHeight();
 
     var viewportTop = $(window).scrollTop();

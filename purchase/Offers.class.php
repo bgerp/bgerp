@@ -1,70 +1,69 @@
 <?php
 
 
-
 /**
  * Мениджър на оферти за покупки
  *
  *
  * @category  bgerp
  * @package   purchase
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Оферти за покупки
  */
 class purchase_Offers extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'Pqt';
+    public $abbr = 'Pqt';
     
     
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Оферта от доставчик';
+    public $singleTitle = 'Оферта от доставчик';
     
-     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,folderId, product, date, offer, sum, document';
-
+    public $listFields = 'id,folderId, product, date, offer, sum, document';
+    
+    
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/doc_table.png';
+    public $singleIcon = 'img/16/doc_table.png';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Оферти за покупки';
+    public $title = 'Оферти за покупки';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_Rejected, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, plg_Rejected, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
 						purchase_Wrapper,plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
-
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,purchase';
+    public $canRead = 'ceo,purchase';
     
     
     /**
@@ -76,57 +75,59 @@ class purchase_Offers extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,purchase';
+    public $canEdit = 'ceo,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,purchase';
+    public $canAdd = 'ceo,purchase';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,purchase';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,purchase';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,purchase';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,purchase';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,purchase';
+    public $canView = 'ceo,purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,purchase';
+    public $canDelete = 'ceo,purchase';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
+    
     
     /**
      * Поле за търсене
      */
-    var $searchFields = 'folderId, threadId, containerId';
+    public $searchFields = 'folderId, threadId, containerId';
+    
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.1|Логистика";
+    public $newBtnGroup = '4.1|Логистика';
     
     
-    var $filterDateField = 'date';
-
+    public $filterDateField = 'date';
+    
     
     /**
      * Полета, които при клониране да не са попълнени
@@ -139,53 +140,55 @@ class purchase_Offers extends core_Master
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-    	 // Контрагент
-         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
-         $this->FLD('contragentId', 'int', 'input=hidden');
+        // Контрагент
+        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
+        $this->FLD('contragentId', 'int', 'input=hidden');
         
-    	 $this->FLD('product', 'varchar', 'caption=Продукт,summary=amount');
-    	 $this->FLD('sum', 'double', 'caption=Оферта->Цена, summary=amount');
-    	 $this->FLD('date', 'date', 'caption=Оферта->Дата');
-    	 $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
-    	 $this->FLD('document', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ');
+        $this->FLD('product', 'varchar', 'caption=Продукт,summary=amount');
+        $this->FLD('sum', 'double', 'caption=Оферта->Цена, summary=amount');
+        $this->FLD('date', 'date', 'caption=Оферта->Дата');
+        $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
+        $this->FLD('document', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ');
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    public function on_AfterPrepareListFilter($mvc, $data)
     {
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields .= ',state';
         
         $data->listFilter->input('state', 'silent');
         
-    	if($filterRec = $data->listFilter->rec){
-        	if($filterRec->state){
-        		$data->query->where(array("#state = '[#1#]'", $filterRec->state));
-        	}
-    	}
+        if ($filterRec = $data->listFilter->rec) {
+            if ($filterRec->state) {
+                $data->query->where(array("#state = '[#1#]'", $filterRec->state));
+            }
+        }
     }
     
     
     /**
      * Връща тялото на имейла генериран от документа
-     * 
+     *
      * @see email_DocumentIntf
-     * @param int $id - ид на документа
-     * @param boolean $forward
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
      * @return string - тялото на имейла
      */
-    public function getDefaultEmailBody($id, $forward = FALSE)
+    public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
         
         // Създаваме шаблона
-        $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта: ") . '#[#handle#]');
+        $tpl = new ET(tr('Предлагаме на вашето внимание нашата оферта: ') . '#[#handle#]');
         
         // Заместваме датата в шаблона
         $tpl->append($handle, 'handle');
@@ -196,11 +199,12 @@ class purchase_Offers extends core_Master
     
     /**
      * В кои корици може да се вкарва документа
+     *
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getCoversAndInterfacesForNewDoc()
     {
-    	return array('crm_ContragentAccRegIntf');
+        return array('crm_ContragentAccRegIntf');
     }
     
     
@@ -214,33 +218,35 @@ class purchase_Offers extends core_Master
     {
         // Добавяме тези документи само в персонални папки
         $threadRec = doc_Threads::fetch($threadId);
-
+        
         return self::canAddToFolder($threadRec->folderId);
     }
-
     
-	 /**
+    
+    /**
      * Може ли документ-оферта да се добави в посочената папка?
      * Документи-оферта могат да се добавят само в папки с корица контрагент.
      *
      * @param $folderId int ид на папката
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canAddToFolder($folderId)
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
+        
         return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
     /**
      * @param int $id key(mvc=sales_Sales)
+     *
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
     {
-      	$rec = $this->fetch($id);
+        $rec = $this->fetch($id);
         
         $row = new stdClass();
         
@@ -258,5 +264,4 @@ class purchase_Offers extends core_Master
         
         return $row;
     }
-    
 }

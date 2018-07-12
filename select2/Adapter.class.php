@@ -3,43 +3,49 @@
 
 /**
  * Добавя необходимите атрибути за работа със select2
- * 
+ *
  * @category  bgerp
  * @package   selec2
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class select2_Adapter
 {
-    
-    
     /**
      * Проверка дали може да се изполва select2
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public static function canUseSelect2()
     {
-        if ((strtolower(log_Browsers::getUserAgentOsName()) == 'android' ) && (strtolower(log_Browsers::getUserAgentBrowserName()) == 'safari')) return FALSE;
+        if ((strtolower(log_Browsers::getUserAgentOsName()) == 'android') && (strtolower(log_Browsers::getUserAgentBrowserName()) == 'safari')) {
+            
+            return false;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Добавя необходимите файлове и стартира скирпта
-     * 
-     * @param core_Et $tpl
-     * @param string $id
-     * @param string|NULL $placeHolder
-     * @param boolean $allowClear
+     *
+     * @param core_Et           $tpl
+     * @param string            $id
+     * @param string|NULL       $placeHolder
+     * @param bool              $allowClear
      * @param string|NULL|FALSE $lg
      */
-    public static function appendAndRun(&$tpl, $id, $placeHolder=NULL, $allowClear=FALSE, $lg=NULL, $ajaxUrl = '')
+    public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '')
     {
-        if (!($tpl instanceof core_ET)) return ;
+        if (!($tpl instanceof core_ET)) {
+            
+            return ;
+        }
         
         if (is_null($lg)) {
             $lg = core_Lg::getCurrent();
@@ -52,23 +58,26 @@ class select2_Adapter
     
     /**
      * Добавя необходимите файлове за работа на select2
-     * 
-     * @param core_Et $tpl
+     *
+     * @param core_Et           $tpl
      * @param string|NULL|FALSE $lg
      */
-    public static function appendFiles(&$tpl, $lg=NULL)
+    public static function appendFiles(&$tpl, $lg = null)
     {
-        if (!($tpl instanceof core_ET)) return ;
+        if (!($tpl instanceof core_ET)) {
+            
+            return ;
+        }
         
         $conf = core_Packs::getConfig('select2');
         
-        $tpl->push('select2/' . $conf->SELECT2_VERSION . "/select2.min.css", "CSS");
-        $tpl->push('select2/' . $conf->SELECT2_VERSION . "/select2.min.js", "JS");
-
-        // custom стилове за плъгина
-        $tpl->push('select2/css/select2-custom.css', "CSS");
+        $tpl->push('select2/' . $conf->SELECT2_VERSION . '/select2.min.css', 'CSS');
+        $tpl->push('select2/' . $conf->SELECT2_VERSION . '/select2.min.js', 'JS');
         
-        if ($lg !== FALSE) {
+        // custom стилове за плъгина
+        $tpl->push('select2/css/select2-custom.css', 'CSS');
+        
+        if ($lg !== false) {
             if (is_null($lg)) {
                 $lg = core_Lg::getCurrent();
             }
@@ -76,7 +85,7 @@ class select2_Adapter
             if (isset($lg)) {
                 $lgPath = 'select2/' . $conf->SELECT2_VERSION . '/i18n/' . $lg . '.js';
                 if (getFullPath($lgPath)) {
-                    $tpl->push($lgPath, "JS");
+                    $tpl->push($lgPath, 'JS');
                 }
             }
         }
@@ -85,24 +94,27 @@ class select2_Adapter
     
     /**
      * Добавя скрипт, който да се стартира
-     * 
-     * @param core_Et $tpl
-     * @param string $id
-     * @param string|NULL $placeHolder
-     * @param boolean $allowClear
+     *
+     * @param core_Et           $tpl
+     * @param string            $id
+     * @param string|NULL       $placeHolder
+     * @param bool              $allowClear
      * @param string|NULL|FALSE $lg
      */
-    public static function run(&$tpl, $id, $placeHolder=NULL, $allowClear=FALSE, $lg=NULL, $ajaxUrl = '')
+    public static function run(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '')
     {
-        if (!($tpl instanceof core_ET)) return ;
+        if (!($tpl instanceof core_ET)) {
+            
+            return ;
+        }
         
         if ($ajaxUrl) {
-        	$minimumResultsForSearch = 0;
-    	} else {
-    	    $conf = core_Packs::getConfig('select2');
-    	    $minimumResultsForSearch = mode::is('screenMode', 'narrow') ? $conf->SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT : $conf->SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT;
-    	}
-    	
+            $minimumResultsForSearch = 0;
+        } else {
+            $conf = core_Packs::getConfig('select2');
+            $minimumResultsForSearch = mode::is('screenMode', 'narrow') ? $conf->SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT : $conf->SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT;
+        }
+        
         $select2Str = "
         
         $('#" . $id . "').addClass('select2-src').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}', minimumResultsForSearch: {$minimumResultsForSearch}";
@@ -133,11 +145,11 @@ class select2_Adapter
     		minimumInputLength: 0";
         }
         
-        $select2Str .= ",templateResult: formatSelect2Data,templateSelection: formatSelect2DataSelection, matcher: modelMatcher";
-        	        
-        $select2Str .= "});";
+        $select2Str .= ',templateResult: formatSelect2Data,templateSelection: formatSelect2DataSelection, matcher: modelMatcher';
         
-        jquery_Jquery::run($tpl, $select2Str, TRUE);
+        $select2Str .= '});';
+        
+        jquery_Jquery::run($tpl, $select2Str, true);
         
         $tpl->push(('select2/js/adapter.js'), 'JS');
     }
@@ -146,21 +158,21 @@ class select2_Adapter
     /**
      * Връща резултат за показване в AJAX формат
      * Показва резултата в JSON формат и вика shutdown()
-     * 
+     *
      * @param string $type
      * @param string $hnd
      * @param string $q
-     * @param integer $maxSuggestions
-     * @return boolean
+     * @param int    $maxSuggestions
+     *
+     * @return bool
      */
     public static function getAjaxRes($type, $hnd, $q, $maxSuggestions = 100)
     {
         if (!$hnd || !($sugg = unserialize(core_Cache::get($type, $hnd)))) {
-        
             core_App::outputJson(array(
-                (object)array('text' => tr('Липсват допълнителни опции'))
+                (object) array('text' => tr('Липсват допълнителни опции'))
             ));
-        	
+            
             return ;
         }
         
@@ -171,63 +183,70 @@ class select2_Adapter
         
         $cnt = 0;
         
-        $group = FALSE;
+        $group = false;
         
-        foreach ((array)$sugg as $key => $titleArr) {
-            $isGroup=FALSE;
-        	
-            $titleArr =  (array) $titleArr;
-
+        foreach ((array) $sugg as $key => $titleArr) {
+            $isGroup = false;
+            
+            $titleArr = (array) $titleArr;
+            
             $title = $titleArr['title'];
             $titleNormalized = $titleArr['id'];
-        	
+            
             $attr = array();
-        	
-            if ($key == '') continue;
-        	
-            if (!isset($title->group) && $q && (!preg_match($q, ' ' . $titleNormalized))) continue;
-        	
+            
+            if ($key == '') {
+                continue;
+            }
+            
+            if (!isset($title->group) && $q && (!preg_match($q, ' ' . $titleNormalized))) {
+                continue;
+            }
+            
             $sVal = new stdClass();
             $sVal->id = $key;
-        	
+            
             if (is_object($title)) {
                 $sVal->text = $title->title;
-        		
+                
                 $sVal->element = new stdClass();
-        		
+                
                 $sVal->element->className = $title->attr['class'];
-        		
+                
                 if ($title->group) {
-        			
                     $sVal->element->className .= ($sVal->element->className) ? ' ' : '';
                     $sVal->element->className .= 'group';
-                    $sVal->group = TRUE;
-                    $sVal->element->group = TRUE;
-        			
-                    $sVal->id = NULL;
+                    $sVal->group = true;
+                    $sVal->element->group = true;
+                    
+                    $sVal->id = null;
                     $group = $sVal;
-                    $isGroup = TRUE;
+                    $isGroup = true;
                 }
-        		
+                
                 if ($title->attr) {
                     $sVal->attr = $title->attr;
                 }
             } else {
                 $sVal->text = $title;
             }
-        	
+            
             // Предпазва от добавяне на група без елементи в нея
-            if ($isGroup && $group) continue;
+            if ($isGroup && $group) {
+                continue;
+            }
             if (!$isGroup && $group) {
                 $resArr[] = $group;
-                $group = FALSE;
+                $group = false;
             }
-        	
+            
             $resArr[] = $sVal;
-        	
+            
             $cnt++;
-        	
-            if ($cnt >= $maxSuggestions) break;
+            
+            if ($cnt >= $maxSuggestions) {
+                break;
+            }
         }
         
         core_App::outputJson($resArr);

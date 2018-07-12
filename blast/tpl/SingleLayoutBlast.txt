@@ -1,6 +1,5 @@
 <!--ET_BEGIN handle-->|Реф.|*: [#handle#]
-<!--ET_END handle--><!--ET_BEGIN createdDate-->|Дата|*: [#createdDate#]
-<!--ET_END createdDate--><!--ET_BEGIN recipient-->|До|*: [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->
+<!--ET_END handle--><!--ET_BEGIN recipient-->|До|*: [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->
 <!--ET_END recipient--><!--ET_BEGIN attn-->|Към|*: [#attn#]
 <!--ET_END attn--><!--ET_BEGIN email-->|Имейл|*: [#email#]<!--ET_BEGIN emailLeft-->[#emailLeft#]<!--ET_END emailLeft-->
 <!--ET_END email--><!--ET_BEGIN tel-->|Тел.|*: [#tel#]

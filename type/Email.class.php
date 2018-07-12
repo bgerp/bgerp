@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас  'type_Email' - Тип за имейл
  *
@@ -10,26 +9,27 @@
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
-class type_Email extends type_Varchar {
-    
-    
+class type_Email extends type_Varchar
+{
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = 80;
+    public $dbFieldLen = 80;
     
     
     /**
      * Инициализиране на типа
      * Задава, че в базата имейлите ще са case-insensitive
      */
-    function init($params = array())
+    public function init($params = array())
     {
         setIfNot($params['params']['ci'], 'ci');
         
@@ -40,30 +40,31 @@ class type_Email extends type_Varchar {
     /**
      * Превръща вербална стойност с имейл към вътрешно представяне
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         $value = trim($value);
         
         $value = static::replaceEscaped($value);
-
-        if(empty($value)) return NULL;
-                
-        if(!$this->isValidEmail($value)) {
+        
+        if (empty($value)) {
+            
+            return;
+        }
+        
+        if (!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
             
-            return FALSE;
-        } else {
-            
-            return $value;
+            return false;
         }
+        
+        return $value;
     }
-
-
-
+    
+    
     /**
      * Замества низове, които се използват за скриване на ймейл адресите от ботовете
      */
-    static function replaceEscaped($value)
+    public static function replaceEscaped($value)
     {
         $from = array('<at>', '[at]', '(at)', '{at}', ' at ', ' <at> ',
             ' [at] ', ' (at) ', ' {at} ');
@@ -76,7 +77,7 @@ class type_Email extends type_Varchar {
         $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
         
         $value = str_ireplace($from, $to, $value);
-
+        
         return $value;
     }
     
@@ -84,9 +85,9 @@ class type_Email extends type_Varchar {
     /**
      * Добавя атрибут за тип = email, ако изгледа е мобилен
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
-        if(Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
+        if (Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
             $attr['type'] = 'email';
         }
         
@@ -97,80 +98,92 @@ class type_Email extends type_Varchar {
     /**
      * Проверява дали е валиден имейл
      */
-    static function isValidEmail($email)
+    public static function isValidEmail($email)
     {
-        if (!strlen($email)) return NULL;
-        
-        if (preg_match("/[\\000-\\037]/", $email)) {
+        if (!strlen($email)) {
             
-            return FALSE;
+            return;
+        }
+        
+        if (preg_match('/[\\000-\\037]/', $email)) {
+            
+            return false;
         }
         
         $pattern = "/^[-_a-z0-9\'+*$^&%=~!?{}]++(?:\.[-_a-z0-9\'+*$^&%=~!?{}]+)*+@(?:(?![-.])" .
         "[-a-z0-9.]+(?<![-.])\.[a-z]{2,}|\d{1,3}(?:\.\d{1,3}){3})(?::\d++)?$/iD";
         
-        if(!preg_match($pattern, $email)){
+        if (!preg_match($pattern, $email)) {
             
-            return FALSE;
+            return false;
         }
         
-        if((mb_stripos($email, '@fax.man') === FALSE) && (!core_Url::isValidTld($email))) {
+        if ((mb_stripos($email, '@fax.man') === false) && (!core_Url::isValidTld($email))) {
             
-            return FALSE;
+            return false;
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Преобразува имейл-а в човешки вид
      */
-    function toVerbal($email)
+    public function toVerbal($email)
     {
-        if(empty($email)) return NULL;
+        if (empty($email)) {
+            
+            return;
+        }
         
         $email = self::removeBadPart($email);
         
-        if(!haveRole('user') && !Mode::is('text', 'plain')) {
-            $verbal = str_replace('@', " [аt] ", $email);
+        $cu = core_Users::getCurrent();
+        if (!haveRole('user') && !Mode::is('text', 'plain') && ($cu != -1)) {
+            $verbal = str_replace('@', ' [аt] ', $email); //CyrLat
         } else {
-            $verbal =  $email;
+            $verbal = $email;
         }
-
+        
         if (Mode::is('text', 'plain') || Mode::is('htmlEntity', 'none')) {
             $verbal = $email;
-        } elseif($this->params['link'] != 'no') {
+        } elseif ($this->params['link'] != 'no') {
             $verbal = $this->addHyperlink($email, $verbal);
         } else {
-            $verbal = str_replace('@', "&#64;", $email);
+            $verbal = str_replace('@', '&#64;', $email);
         }
-
+        
         return $verbal;
     }
     
     
     /**
      * Премахва "лошата" част от имейла
-     * 
+     *
      * @param string $email
-     * @param array $email
-     * 
+     * @param array  $email
+     *
      * @return string
      */
     public static function removeBadPart($email, $removeArr = array('+', '='))
     {
-        if (!$email) return $email;
+        if (!$email) {
+            
+            return $email;
+        }
         
         static $emailsArr = array();
         
-        if (isset($emailsArr[$email])) return $emailsArr[$email];
+        if (isset($emailsArr[$email])) {
+            
+            return $emailsArr[$email];
+        }
         
         list($emailUser, $domain) = explode('@', $email);
         
         foreach ($removeArr as $r) {
-            if(($rPos = mb_strpos($emailUser, $r)) !== FALSE) {
-                
+            if (($rPos = mb_strpos($emailUser, $r)) !== false) {
                 $emailUser = mb_substr($emailUser, 0, $rPos);
             }
         }
@@ -184,9 +197,9 @@ class type_Email extends type_Varchar {
     /**
      * Превръща имейлите в препратка за изпращане на имейл
      */
-    function addHyperlink_($email, $verbal)
+    public function addHyperlink_($email, $verbal)
     {
-        if(Mode::is('text', 'html') || !Mode::is('text')) {
+        if (Mode::is('text', 'html') || !Mode::is('text')) {
             list($user, $domain) = explode('@', $email);
             $domain = '&#64;' . $domain;
             
@@ -207,36 +220,37 @@ class type_Email extends type_Varchar {
      * Извлича домейна (частта след `@`) от имейл адрес
      *
      * @param string $value имейл адрес
+     *
      * @return string
      */
-    static function domain($value)
+    public static function domain($value)
     {
         list(, $domain) = explode('@', $value, 2);
         
-        $domain = empty($domain) ? FALSE : trim($domain);
+        $domain = empty($domain) ? false : trim($domain);
         
         $domain = rtrim($domain, '\'"<>;,');
         
         return $domain;
     }
-
+    
     
     /**
      * Връща масив от всички под-стрингове, които
      * приличат на е-имейл адреси от дадения стринг
      */
-    static function extractEmails($string)
+    public static function extractEmails($string)
     {
         preg_match_all('/[=\+\/\._a-zA-Z0-9-]+@[\._a-zA-Z0-9-]+/i', $string, $matches);
         
-        if(is_array($matches[0])) {
-            foreach($matches[0] as $id => $eml) {
-                if(!self::isValidEmail($eml)) {
+        if (is_array($matches[0])) {
+            foreach ($matches[0] as $id => $eml) {
+                if (!self::isValidEmail($eml)) {
                     unset($matches[0][$id]);
                 }
             }
         }
-
+        
         return $matches[0];
     }
 }

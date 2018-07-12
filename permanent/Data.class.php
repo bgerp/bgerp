@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Хранилището за перманентни данни.
  *
@@ -8,40 +9,41 @@
  *
  * @category  vendors
  * @package   permanent
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Хранилище за данни
  */
-class permanent_Data extends core_Manager {
-    
-    
+class permanent_Data extends core_Manager
+{
     /**
      * Титла
      */
-    var $title = "Хранилище за данни";
+    public $title = 'Хранилище за данни';
     
     
     /**
      * Права
      */
-    var $canWrite = "no_one";
+    public $canWrite = 'no_one';
     
     
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-        $this->FLD("key", 'varchar(64)', 'caption=Ключ');
-        $this->FLD("data", 'blob(100000)');
+        $this->FLD('key', 'varchar(64)', 'caption=Ключ');
+        $this->FLD('data', 'blob(100000)');
         $this->FLD('isCompressed', 'enum(yes,no)');
         $this->FLD('isSerialized', 'enum(yes,no)');
         
         $this->setDbUnique('key');
         
-        $this->load("plg_Created");
+        $this->load('plg_Created');
     }
     
     
@@ -50,16 +52,16 @@ class permanent_Data extends core_Manager {
      * Данните могат да бъдат скалар или обект или масив.
      * Изисква се или посочения ключ да го няма или редът под този ключ да не е заключен от друг потребител.
      */
-    static function write($key, $data)
+    public static function write($key, $data)
     {
         $conf = core_Packs::getConfig('permanent');
         
         $rec = permanent_Data::fetch("#key = '{$key}'");
         
-		if(!$rec) {
-			$rec = new stdClass();
-		}
-
+        if (!$rec) {
+            $rec = new stdClass();
+        }
+        
         $rec->key = $key;
         
         if (is_object($data) || is_array($data)) {
@@ -82,7 +84,7 @@ class permanent_Data extends core_Manager {
         // Изтриваме заключването
         core_Locks::release($key);
         
-        return TRUE;
+        return true;
     }
     
     
@@ -91,16 +93,19 @@ class permanent_Data extends core_Manager {
      *
      * @param string $key
      */
-    static function read($key, $lock = TRUE)
+    public static function read($key, $lock = true)
     {
-        if ($lock && !core_Locks::get($key)) {  
-            self::logWarning("Грешка при четене - заключен обект");
-            exit (1);
+        if ($lock && !core_Locks::get($key)) {
+            self::logWarning('Грешка при четене - заключен обект');
+            exit(1);
         }
         
         $rec = permanent_Data::fetch("#key = '{$key}'");
         
-        if (!$rec) return;
+        if (!$rec) {
+            
+            return;
+        }
         
         $data = $rec->data;
         
@@ -121,7 +126,7 @@ class permanent_Data extends core_Manager {
      *
      * @param string $key
      */
-    static function remove($key)
+    public static function remove($key)
     {
         permanent_Data::delete("#key = '{$key}'");
     }

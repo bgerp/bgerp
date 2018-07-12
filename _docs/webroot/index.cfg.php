@@ -4,7 +4,7 @@ DEFINE('CORE_ERROR_REPORTING_LEVEL', E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 error_reporting(CORE_ERROR_REPORTING_LEVEL);
 
 // Дали да са включени финкциите за дебъг и настройка
-DEFINE('EF_DEBUG', TRUE);
+DEFINE('EF_DEBUG', true);
 
 // Името на папката със статичните ресурсни файлове:
 // css, js, png, gif, jpg, flv, swf, java, xml, txt, html ...
@@ -13,9 +13,9 @@ DEFINE('EF_DEBUG', TRUE);
 // Ако не се дефинира си остава `sbf`
  # DEFINE('EF_SBF', 'sbf');
 
-// Общата коренна директория на [bgerp], [conf], 
+// Общата коренна директория на [bgerp], [conf],
 // [uploads] и др. Не е задължително всички посочени
-// директории да са в тази папка. В основният конфигурационен файл 
+// директории да са в тази папка. В основният конфигурационен файл
 // може да им се зададат различни пътища
  # DEFINE('EF_ROOT_PATH', '[#PATH_TO_FOLDER#]');
 

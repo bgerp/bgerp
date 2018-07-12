@@ -3,36 +3,36 @@
 
 /**
  * Клас за работа с EFAE - Experta Framework Ajax Engine
- * 
+ *
  * @category  ef
  * @package   core
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Ajax extends core_Mvc
 {
-    
-    
     /**
      * Колко дни да остане в лога
      */
-    static $logKeepDays = 3;
+    public static $logKeepDays = 3;
     
     
     /**
      * Екшън, който се вика по AJAX и извиква всички подадени URL-та
      */
-    function act_Get()
+    public function act_Get()
     {
         // Ако не сме в DEBUG режим
         if (!isDebug()) {
             
             // Очаквае заявката да е по AJAX - да има такъв хедър
             if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
-                self::logNotice("Стартиране на core_Ajax::get() извън AJAX" . core_Type::mixedToString(Request::$vars) . '. IP: ' . core_Users::getRealIpAddr() . ' BRID: ' . log_Browsers::getBrid());
-                expect(FALSE);
+                self::logNotice('Стартиране на core_Ajax::get() извън AJAX' . core_Type::mixedToString(Request::$vars) . '. IP: ' . core_Users::getRealIpAddr() . ' BRID: ' . log_Browsers::getBrid());
+                expect(false);
             }
         }
         
@@ -59,23 +59,25 @@ class core_Ajax extends core_Mvc
         $ajaxMode = 1;
         
         // Ако няма нищо в масив, прекъсваме функцията
-        if (!$subscribed) shutdown();
+        if (!$subscribed) {
+            shutdown();
+        }
         
         // Резултатния масив
         $jResArr = array();
         
         // Стойности, които да се игнорират
-        Request::ignoreParams(array('subscribed' => TRUE,
-                					'parentUrl' => TRUE,
-                					'idleTime' => TRUE,
-                					'hitTime' => TRUE,
-                					'ajax_mode' => TRUE,
-                					'refreshUrl' => TRUE,
-                					'divId' => TRUE,
-                					'hitId' => TRUE));
+        Request::ignoreParams(array('subscribed' => true,
+            'parentUrl' => true,
+            'idleTime' => true,
+            'hitTime' => true,
+            'ajax_mode' => true,
+            'refreshUrl' => true,
+            'divId' => true,
+            'hitId' => true));
         
         // Обхождаме всички подадедени локални URL-та
-        foreach ((array)$subscribedArr as $name=>$url) {
+        foreach ((array) $subscribedArr as $name => $url) {
             
             // Декодираме URL-то
             $url = urldecode($url);
@@ -107,19 +109,16 @@ class core_Ajax extends core_Mvc
             try {
                 // Извикваме URL-то
                 $resArr = Request::forward($urlArr);
-                
             } catch (core_exception_Expect $e) {
-                
                 reportException($e);
                 
                 $errMsg = "Грешка при вземане на данни от {$url} - {$e->getMessage()}";
                 
                 // Записваме в лога
-                self::logNotice($errMsg, NULL, self::$logKeepDays);
+                self::logNotice($errMsg, null, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
-                    
                     $errMsg = "|Грешка при вземане на данни от|* {$url} - {$e->getMessage()}";
                     
                     // Показваме статус съобщение
@@ -131,7 +130,6 @@ class core_Ajax extends core_Mvc
             
             // Ако няма масив или масива не е масива
             if (!is_array($resArr)) {
-                
                 if (is_object($resArr) && ($resArr instanceof core_Redirect)) {
                     // Пушваме ajax_mode, за да може функцията да върне резултат по AJAX, вместо директно да редиректне
                     Request::push(array('ajax_mode' => $ajaxMode));
@@ -145,17 +143,16 @@ class core_Ajax extends core_Mvc
                 
                 $errMsg = "Некоректен резултат от {$url} - {$resStr}";
                 
-                self::logErr($errMsg, NULL, self::$logKeepDays);
+                self::logErr($errMsg, null, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
-                    
                     $errMsg = "|Некоректен резултат от|* {$url} - {$resStr}";
                     
                     // Показваме статус съобщение
                     core_Statuses::newStatus($errMsg, 'warning');
                 }
-                 
+                
                 continue;
             }
             
@@ -172,16 +169,16 @@ class core_Ajax extends core_Mvc
     
     /**
      * Функция, която абонира дадено URL за извлича данни по AJAX
-     * 
-     * @param core_ET $tpl - Щаблон, към който ще се добавя
-     * @param array $urlArr - Масив, от който ще се генерира локално URL
-     * @param string $name - Уникално име
-     * @param int $interval - Интервал на извикване в секунди
+     *
+     * @param core_ET $tpl      - Щаблон, към който ще се добавя
+     * @param array   $urlArr   - Масив, от който ще се генерира локално URL
+     * @param string  $name     - Уникално име
+     * @param int     $interval - Интервал на извикване в секунди
      */
-    static function subscribe(&$tpl, $urlArr, $name, $interval=5000)
+    public static function subscribe(&$tpl, $urlArr, $name, $interval = 5000)
     {
         // Масив с всички използвани имена
-        static $nameArr=array();
+        static $nameArr = array();
         
         // Ако няам име или не  е уникално
         if (!$name || $nameArr[$name]) {
@@ -191,27 +188,26 @@ class core_Ajax extends core_Mvc
             $msg = "Повтарящо се име за абониране - {$name}";
             
             // Добавяме грешката
-            self::logWarning($msg, NULL, self::$logKeepDays);
+            self::logWarning($msg, null, self::$logKeepDays);
             
             // Ако сме в дебъг режим и сме логнат
             if (isDebug() && haveRole('user')) {
-                
                 $msg = "|Повтарящо се име за абониране|* - {$name}";
                 
                 // Показваме статус съобщение
                 core_Statuses::newStatus($msg, 'warning');
             }
-            
+
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {
-//                
+//
 //                // Добавяме след името
 //                $name .= '_efae';
 //            }
         }
         
         // Добавяме в масива
-        $nameArr[$name] = TRUE;
+        $nameArr[$name] = true;
         
         // Добавяме необходимите неща за стартиране на efae
         static::run($tpl);
@@ -221,16 +217,15 @@ class core_Ajax extends core_Mvc
         
         // Ескейпваме
         $localUrl = urlencode($localUrl);
-                
-        // Добавяме стринга, който субскрайбва съответното URL
-        jquery_Jquery::run($tpl, "getEfae().subscribe('{$name}', '{$localUrl}', {$interval});", TRUE);
         
+        // Добавяме стринга, който субскрайбва съответното URL
+        jquery_Jquery::run($tpl, "getEfae().subscribe('{$name}', '{$localUrl}', {$interval});", true);
     }
     
     
     /**
      * Добавя фунцкция, която стартира efae
-     * 
+     *
      * @param core_ET $tpl - Щаблон, към който ще се добавя
      */
     protected static function run(&$tpl)
@@ -242,28 +237,28 @@ class core_Ajax extends core_Mvc
         if ($printing = Request::get('Printing')) {
             // Добавяме в пареметрите
             $url['Printing'] = $printing;
-        } else if (Mode::get('printing')) {
+        } elseif (Mode::get('printing')) {
             $url['Printing'] = 1;
         }
         
         $url = toUrl($url);
         
         // Добавяме URL-то за сваляне на ajax
-        jquery_Jquery::run($tpl, "getEfae().setUrl('{$url}');", TRUE);
+        jquery_Jquery::run($tpl, "getEfae().setUrl('{$url}');", true);
         
         // URL от който ще се вика айакса
         $parentUrl = toUrl(getCurrentUrl(), 'local');
         
         // Задаваме УРЛ-то
-        jquery_Jquery::run($tpl, "getEfae().setParentUrl('{$parentUrl}');", TRUE);
+        jquery_Jquery::run($tpl, "getEfae().setParentUrl('{$parentUrl}');", true);
         
         // Ако има hitId сетваме стойността на променливата
         if ($hitId = Request::get('hit_id')) {
-        	jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');", TRUE);
+            jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');", true);
         }
         
         // Стартираме извикването на `run` фунцкцията на efae
-        jquery_Jquery::run($tpl, "\n getEfae().run();", TRUE);
-        jquery_Jquery::run($tpl, "\n getEO().runIdleTimer();", TRUE);
+        jquery_Jquery::run($tpl, "\n getEfae().run();", true);
+        jquery_Jquery::run($tpl, "\n getEO().runIdleTimer();", true);
     }
 }

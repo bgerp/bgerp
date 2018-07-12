@@ -1,32 +1,31 @@
 <?php
 
 
-
 /**
  * Фирми доставчици на храна
  *
  *
  * @category  bgerp
  * @package   catering
+ *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class catering_Companies extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
-    public $title = "Фирми за кетъринг";
+    public $title = 'Фирми за кетъринг';
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = "Фирмa за кетъринг";
+    public $singleTitle = 'Фирма за кетъринг';
     
     
     /**
@@ -84,10 +83,10 @@ class catering_Companies extends core_Manager
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if(!count($data->recs)) {
+        if (!count($data->recs)) {
             $res = new ET('За да използвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
             
-            return FALSE;
+            return false;
         }
     }
     
@@ -103,7 +102,7 @@ class catering_Companies extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $data->form->title = "Добавяне на запис във \"Фирми за кетъринг\"";
+        $data->form->title = 'Добавяне на запис във "Фирми за кетъринг"';
         $data->form->setDefault('state', 'active');
         
         // START Prepare select options for $companyId
@@ -111,20 +110,20 @@ class catering_Companies extends core_Manager
             // В случай, че редактираме записа
             $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
             
-            while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+            while ($recCrmCompanies = $queryCrmCompanies->fetch('1=1')) {
                 $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
             }
             
             unset($recCrmCompanies);
-            
-            // END Редактираме записа
+        
+        // END Редактираме записа
         } else {
             
             // В случай, че добавяне нов запис
             $queryCompaniesInUse = $mvc->getQuery();
-            $where = "1=1";
+            $where = '1=1';
             
-            while($recCompaniesInUse = $queryCompaniesInUse->fetch($where)) {
+            while ($recCompaniesInUse = $queryCompaniesInUse->fetch($where)) {
                 $companiesInUse[$recCompaniesInUse->companyId] = $mvc->CrmCompanies->fetchField("#id = {$recCompaniesInUse->companyId}", 'name');
             }
             unset($recCompaniesInUse);
@@ -133,14 +132,14 @@ class catering_Companies extends core_Manager
             
             if (!empty($companiesInUse)) {
                 // List only companies which are not already in use
-                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+                while ($recCrmCompanies = $queryCrmCompanies->fetch('1=1')) {
                     if (!array_key_exists($recCrmCompanies->id, $companiesInUse)) {
                         $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
                     }
                 }
             } else {
                 // List all companies
-                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+                while ($recCrmCompanies = $queryCrmCompanies->fetch('1=1')) {
                     $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
                 }
             }
@@ -150,46 +149,45 @@ class catering_Companies extends core_Manager
         
         $data->form->setOptions('companyId', $selectOptCompanies);
         
-        // END Prepare select options for $companyId        
+        // END Prepare select options for $companyId
     }
     
     
-   /**
-    * След преобразуване на записа в четим за хора вид.
-    *
-    * @param core_Mvc $mvc
-    * @param stdClass $row Това ще се покаже
-    * @param stdClass $rec Това е записа в машинно представяне
-    */
-    public static function on_AfterRecToVerbal ($mvc, $row, $rec)
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-       
         $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
         
-        while($cRec = $queryCrmCompanies->fetch("#id = {$rec->companyId}")) {
+        while ($cRec = $queryCrmCompanies->fetch("#id = {$rec->companyId}")) {
             $companyDetails = $cRec;
         }
         
         
         // Ако имаме права да видим визитката
-        if(crm_Companies::haveRightFor('single', $rec->companyId)){
-       		$name = crm_Companies::fetchField("#id = '{$rec->companyId}'", 'name');
-        	$row->name = ht::createLink($name, array ('crm_Companies', 'single', 'id' => $rec->companyId), NULL, 'ef_icon = img/16/vcard.png');
+        if (crm_Companies::haveRightFor('single', $rec->companyId)) {
+            $name = crm_Companies::fetchField("#id = '{$rec->companyId}'", 'name');
+            $row->name = ht::createLink($name, array('crm_Companies', 'single', 'id' => $rec->companyId), null, 'ef_icon = img/16/vcard.png');
         }
-      
-       
-        /*$row->address = type_Varchar::escape($companyDetails->pCode);
         
-        $row->address = type_Varchar::escape($companyDetails->pCode) . ", 
+        
+        /*$row->address = type_Varchar::escape($companyDetails->pCode);
+
+        $row->address = type_Varchar::escape($companyDetails->pCode) . ",
                         " . type_Varchar::escape($companyDetails->place) .
         "<br>" . type_Varchar::escape($companyDetails->address);
-        
+
         $row->phones = "<div class='contacts-row'>
                              <p class='clear_l w-80px gr'>телефон: </p>
                              <p>" . type_Varchar::escape($companyDetails->tel) . "</p>
                              <p class='clear_l w-80px gr'>мобилен: </p>
                              <p>" . type_Varchar::escape($companyDetails->mobile) . "</p>
-                             <p class='clear_l w-80px gr'>факс: </p> 
+                             <p class='clear_l w-80px gr'>факс: </p>
                              <p>" . type_Varchar::escape($companyDetails->fax) . "</p>
                          </div>";*/
     }
@@ -203,7 +201,7 @@ class catering_Companies extends core_Manager
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if(!count($data->recs)) {
+        if (!count($data->recs)) {
             $data->toolbar->removeBtn('btnPrint');
         }
     }

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Actions extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -24,7 +23,7 @@ class log_Actions extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Действия";
+    public $title = 'Действия';
     
     
     /**
@@ -62,7 +61,7 @@ class log_Actions extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -75,9 +74,6 @@ class log_Actions extends core_Manager
     public $searchFields = 'action';
     
     
-    /**
-     * 
-     */
     public static $actionsArr = array();
     
     
@@ -95,14 +91,17 @@ class log_Actions extends core_Manager
     
     /**
      * Връща crc32 стойността на стринга
-     * 
+     *
      * @param string $action
-     * 
-     * @return integer
+     *
+     * @return int
      */
     public static function getActionCrc($action)
     {
-        if (!$action) return ;
+        if (!$action) {
+            
+            return ;
+        }
         
         $actionCrc = crc32($action);
         
@@ -119,24 +118,25 @@ class log_Actions extends core_Manager
      */
     public static function saveActions()
     {
-       foreach (self::$actionsArr as $crc => $action) {
-
-           if(self::fetch("#crc = {$crc}")) continue;
-
-           $rec = new stdClass();
-           $rec->crc = $crc;
-           $rec->action = $action;
-           
-           self::save($rec, NULL, 'IGNORE');
-       }
+        foreach (self::$actionsArr as $crc => $action) {
+            if (self::fetch("#crc = {$crc}")) {
+                continue;
+            }
+            
+            $rec = new stdClass();
+            $rec->crc = $crc;
+            $rec->action = $action;
+            
+            self::save($rec, null, 'IGNORE');
+        }
     }
     
     
     /**
      * Връща действието от crc стойността
-     * 
-     * @param integer $crc
-     * 
+     *
+     * @param int $crc
+     *
      * @return string
      */
     public static function getActionFromCrc($crc)

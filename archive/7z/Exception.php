@@ -10,8 +10,6 @@
  * @version   0.1 alpha
  *
  */
-
 class Archive_7z_Exception extends Exception
 {
-
 }

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Колко минути да е активна информацията в кеша?
  */
@@ -38,19 +37,20 @@ defIfNot('CAPTCHA_CACHE_TYPE', 'Captcha');
  *
  * @category  vendors
  * @package   captcha
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class captcha_Type extends core_Type {
-    
-    
+class captcha_Type extends core_Type
+{
     /**
      * Рендира полето за въвеждане на Captcha
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    public function renderInput_($name, $value = '', &$attr = array())
     {
         $attr['size'] = CAPTCHA_LENGTH;
         $attr['autocomplete'] = 'off';
@@ -59,13 +59,15 @@ class captcha_Type extends core_Type {
         
         $code = str::getRand('####');
         
-        $handler = core_Cache::set(CAPTCHA_CACHE_TYPE, // Тип
-            '1' . str::getRand("#########"), // Манипулатор
+        $handler = core_Cache::set(
+            
+            CAPTCHA_CACHE_TYPE, // Тип
+            '1' . str::getRand('#########'), // Манипулатор
             $code, // Код, който се изписва с картинка
             CAPTCHA_LIFETIME // Колко време да е валидна кепчата
         );
         
-        $tpl = ht::createTextInput($name . "[value]", "", $attr);
+        $tpl = ht::createTextInput($name . '[value]', '', $attr);
         
         $url = toUrl(array('captcha_Type', 'img', $handler));
         
@@ -81,7 +83,7 @@ class captcha_Type extends core_Type {
     /**
      * Проверява дали стойността съответства на записа в кеша
      */
-    function fromVerbal($value)
+    public function fromVerbal($value)
     {
         $handler = (int) $value['handler'];
         
@@ -89,24 +91,23 @@ class captcha_Type extends core_Type {
         
         $code = core_Cache::get(CAPTCHA_CACHE_TYPE, $handler);
         
-        if(!$code) {
-            $this->error = "Времето за разпознаване е изтекло. Пробвайте с друг код.";
+        if (!$code) {
+            $this->error = 'Времето за разпознаване е изтекло. Пробвайте с друг код.';
             
-            return FALSE;
+            return false;
         }
         
         core_Cache::remove(CAPTCHA_CACHE_TYPE, $handler);
         
         $value = trim($value['value']);
         
-        if($code == $value) {
+        if ($code == $value) {
             
             return $value;
-        } else {
-            $this->error = "Некоректно разпознаване на кода";
-            
-            return FALSE;
         }
+        $this->error = 'Некоректно разпознаване на кода';
+        
+        return false;
     }
     
     
@@ -114,7 +115,7 @@ class captcha_Type extends core_Type {
      * Връща png картинка, съдържаща цифрите от капчата
      * От Request-а взема манипулатора на запис в кеша, който съдържа цифрите
      */
-    function act_Img()
+    public function act_Img()
     {
         $width = CAPTCHA_WIDTH;
         $height = CAPTCHA_HEIGHT;
@@ -133,12 +134,12 @@ class captcha_Type extends core_Type {
         $noise_color = imagecolorallocate($image, 100, 120, 180);
         
         /* generate random dots in background */
-        for($i = 0; $i<($width * $height) / 3; $i++) {
+        for ($i = 0; $i < ($width * $height) / 3; $i++) {
             imagefilledellipse($image, mt_rand(0, $width), mt_rand(0, $height), 1, 1, $noise_color);
         }
         
         /* generate random lines in background */
-        for($i = 0; $i<($width * $height) / 150; $i++) {
+        for ($i = 0; $i < ($width * $height) / 150; $i++) {
             imageline($image, mt_rand(0, $width), mt_rand(0, $height), mt_rand(0, $width), mt_rand(0, $height), $noise_color);
         }
         
@@ -147,7 +148,7 @@ class captcha_Type extends core_Type {
         $x = ($width - $textbox[4]) / 2;
         $y = ($height - $textbox[5]) / 2;
         
-        imagettftext($image, $font_size, 0, $x, $y, $text_color, $font , $code) or halt('Error in imagettftext function');
+        imagettftext($image, $font_size, 0, $x, $y, $text_color, $font, $code) or halt('Error in imagettftext function');
         
         /* output captcha image to browser */
         header('Content-Type: image/jpeg');
@@ -157,36 +158,34 @@ class captcha_Type extends core_Type {
         imagedestroy($image);
     }
     
+    
     /**
      * Добавя контролна сума към ID параметър
      */
-    function protectId($id)
+    public function protectId($id)
     {
-
         $hash = substr(base64_encode(md5(EF_SALT . 'type_Captcha' . $id)), 0, EF_ID_CHECKSUM_LEN);
         
         return $id . $hash;
     }
     
-
+    
     /**
      * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
      */
-    function unprotectId($id)
+    public function unprotectId($id)
     {
-
         $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
         
         $idProt = $this->protectId($idStrip);
-
-        if($id == $idProt) {
+        
+        if ($id == $idProt) {
             
             return $idStrip;
-        } else {
-            sleep(2);
-            Debug::log('Sleep 2 sec. in' . __CLASS__);
-
-            return FALSE;
         }
+        sleep(2);
+        Debug::log('Sleep 2 sec. in' . __CLASS__);
+        
+        return false;
     }
 }

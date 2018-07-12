@@ -7,19 +7,20 @@
  *
  * @category  vendors
  * @package   editwatch
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class editwatch_Editors extends core_Manager {
-    
-    
+class editwatch_Editors extends core_Manager
+{
     /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
         $this->FLD('mvcName', 'varchar(64)', 'caption=Мениджър');
@@ -33,30 +34,29 @@ class editwatch_Editors extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    static function getAndSetCurrentEditors($mvcName, $recId, $userId = NULL)
+    public static function getAndSetCurrentEditors($mvcName, $recId, $userId = null)
     {
-        
-        return static::getCurrentEditors($mvcName, $recId, $userId, TRUE);
+        return static::getCurrentEditors($mvcName, $recId, $userId, true);
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    static function getCurrentEditors($mvcName, $recId, $userId = NULL, $setEditor = FALSE)
+    public static function getCurrentEditors($mvcName, $recId, $userId = null, $setEditor = false)
     {
         $res = array();
         
         // Подготовка на данните
-        if(is_object($mvcName)) {
+        if (is_object($mvcName)) {
             $mvcName = cls::getClassName($mvcName);
         }
         
-        if(NULL === $userId) {
+        if (null === $userId) {
             $userId = Users::getCurrent();
         }
         
-        if($setEditor) {
+        if ($setEditor) {
             $rec = new stdClass();
             $rec->id = static::fetchField("#userId = {$userId} AND #mvcName = '{$mvcName}' AND #recId = {$recId}", 'id');
             $rec->lastEdit = DT::verbal2mysql();
@@ -68,12 +68,12 @@ class editwatch_Editors extends core_Manager {
         
         $query = static::getQuery();
         
-        $before1min = dt::timestamp2Mysql(time()-7);
+        $before1min = dt::timestamp2Mysql(time() - 7);
         
         $sql = "#userId != {$userId} AND " .
         "#mvcName = '{$mvcName}' AND #recId = {$recId} AND #lastEdit >= '{$before1min}'";
         
-        while($rec = $query->fetch($sql)) {
+        while ($rec = $query->fetch($sql)) {
             $res[$rec->userId] = $rec->lastEdit;
         }
         
@@ -84,15 +84,15 @@ class editwatch_Editors extends core_Manager {
     /**
      * Изпълнява се след начално установяване
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$conf = core_Packs::getConfig('editwatch');
-    	
+        $conf = core_Packs::getConfig('editwatch');
+        
         $rec = new stdClass();
-        $rec->systemId = "delete_old_editwatch_records";
-        $rec->description = "Изтриване на старите editwatch записа";
-        $rec->controller = "editwatch_Editors";
-        $rec->action = "DeleteOldRecs";
+        $rec->systemId = 'delete_old_editwatch_records';
+        $rec->description = 'Изтриване на старите editwatch записа';
+        $rec->controller = 'editwatch_Editors';
+        $rec->action = 'DeleteOldRecs';
         $rec->period = max(1, round($conf->EDITWATCH_REC_LIFETIME / 60));
         $rec->offset = 0;
         $res .= core_Cron::addOnce($rec);
@@ -102,10 +102,10 @@ class editwatch_Editors extends core_Manager {
     /**
      * Изтриване на старите записи по часовник
      */
-    function cron_DeleteOldRecs()
+    public function cron_DeleteOldRecs()
     {
-    	$conf = core_Packs::getConfig('editwatch');
-    	
+        $conf = core_Packs::getConfig('editwatch');
+        
         $expireTime = dt::timestamp2Mysql(time() - $conf->EDITWATCH_REC_LIFETIME);
         
         $cnt = $this->delete("#lastEdit <= '{$expireTime}'");

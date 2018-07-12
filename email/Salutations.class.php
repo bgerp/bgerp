@@ -1,6 +1,5 @@
 <?php 
 
-
 /**
  * Обръщения, които ще се търсят
  * Включва 'Здравейте,Здравей,Привет,Скъпи,Скъпа,Скъпо,Уважаеми,Уважаема,Уважаемо,Dear,Gentlemen,Ladies,Hi;
@@ -13,31 +12,31 @@ defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравей,Привет,Скъп,Ува
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Salutations extends core_Manager
 {
-    
-    
     /**
      * Шаблона за обръщение
      */
     protected static $salutationsPattern;
-
+    
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'email_Wrapper, plg_Sorting, plg_Created, plg_RowTools2, plg_Search, plg_State';
-
+    
     
     /**
      * Заглавие
      */
-    public $title = "Обръщение в имейлите";
+    public $title = 'Обръщение в имейлите';
     
     
     /**
@@ -50,7 +49,7 @@ class email_Salutations extends core_Manager
      * Кой може да добавя
      */
     protected $canAdd = 'no_one';
-	
+    
     
     /**
      * Кой може да го редактира
@@ -66,14 +65,12 @@ class email_Salutations extends core_Manager
     
     /**
      * Полета от които се генерират ключови думи за търсене
+     *
      * @see plg_Search
      */
     public $searchFields = 'salutation, toEmail';
     
     
-    /**
-     * 
-     */
     public function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер,input=none');
@@ -87,16 +84,19 @@ class email_Salutations extends core_Manager
         $this->setDbIndex('createdBy');
     }
     
-
+    
     /**
      * Добавя обръщение
-     * 
+     *
      * @param object $eRec - Изходящия имейл
      */
     public static function add($eRec)
     {
         // Ако липсва
-        if (!$eRec->threadId || !$eRec->folderId || !$eRec->containerId) return ;
+        if (!$eRec->threadId || !$eRec->folderId || !$eRec->containerId) {
+            
+            return ;
+        }
         
         // За чернови документи да не се записва
 //         if ($eRec->state == 'draft') return ;
@@ -105,7 +105,10 @@ class email_Salutations extends core_Manager
         $salutation = self::getSalutations($eRec->body);
         
         // Ако няма обръщение да не се записва празен запис
-        if (!trim($salutation)) return ;
+        if (!trim($salutation)) {
+            
+            return ;
+        }
         
         // Ако няма такъв запис
         if (!($nRec = self::fetch("#containerId = '{$eRec->containerId}'"))) {
@@ -121,24 +124,30 @@ class email_Salutations extends core_Manager
         $nRec->toEmail = $eRec->email;
         $nRec->state = $eRec->state;
         
-        self::save($nRec, NULL, 'UPDATE');
+        self::save($nRec, null, 'UPDATE');
     }
     
     
     /**
      * Връща потребителя, за обръщението в контейнера
-     * 
-     * @param integer $cId
-     * 
+     *
+     * @param int $cId
+     *
      * @return FALSE|int
      */
     public static function getUserId($cId)
     {
-        if (!$cId) return FALSE;
+        if (!$cId) {
+            
+            return false;
+        }
         
         $rec = self::fetch(array("#containerId = '[#1#]'", $cId));
         
-        if (!$rec) return FALSE;
+        if (!$rec) {
+            
+            return false;
+        }
         
         return $rec->userId;
     }
@@ -146,18 +155,21 @@ class email_Salutations extends core_Manager
     
     /**
      * Връща последното обръщение в нишката или в папката
-     * 
+     *
      * @param doc_Folders $folderId - id на папка
      * @param doc_Threads $threadId - id на нишка
-     * @param stribg $email - Имейл
-     * @param core_Users $userId - id на потребител
-     * 
+     * @param stribg      $email    - Имейл
+     * @param core_Users  $userId   - id на потребител
+     *
      * @return NULL|string - Поздрава
      */
-    public static function get($folderId, $threadId=NULL, $email=NULL, $userId=NULL)
+    public static function get($folderId, $threadId = null, $email = null, $userId = null)
     {
         // Ако не трябва да извлечем запис
-        if (!self::isGoodRec($folderId, $threadId, $email)) return ;
+        if (!self::isGoodRec($folderId, $threadId, $email)) {
+            
+            return ;
+        }
         
         // Вземаме всички обръщения от папката
         $query = self::getQuery();
@@ -183,13 +195,19 @@ class email_Salutations extends core_Manager
             
             $salutation = self::getSalutationFromQuery($thClone, $email);
             
-            if ($salutation) return $salutation;
+            if ($salutation) {
+                
+                return $salutation;
+            }
         }
         
         // Ако е подадена нишка, но не сме открили обръщението в нишката
         if ($threadId) {
             // Проверяваме дали може да се използва записа за папката
-            if (!self::isGoodRec($folderId, NULL, $email)) return ;
+            if (!self::isGoodRec($folderId, null, $email)) {
+                
+                return ;
+            }
         }
         
         // Намираме последното обръщение в поздрава
@@ -201,22 +219,26 @@ class email_Salutations extends core_Manager
     
     /**
      * Връща обръщениет от заявката
-     * 
+     *
      * @param core_Query $query
-     * @param string $email
-     * 
-     * @return boolean|string
+     * @param string     $email
+     *
+     * @return bool|string
      */
-    protected static function getSalutationFromQuery($query, $email=NULL)
+    protected static function getSalutationFromQuery($query, $email = null)
     {
-        if (!$query) return FALSE;
+        if (!$query) {
+            
+            return false;
+        }
         
         $salutation = '';
         
         // Вземаме записа
         while ($rec = $query->fetch()) {
-            
-            if (!trim($rec->salutation)) continue;
+            if (!trim($rec->salutation)) {
+                continue;
+            }
             
             // Ако има обръщение да не се променя
             if (!$salutation) {
@@ -237,20 +259,24 @@ class email_Salutations extends core_Manager
         return $salutation;
     }
     
+    
     /**
      * Проверяваме дали от дадената папка или нишка можем да извлечем съответните данни
      * От всички нишки може. Ако не е подадена нишка, само от папки с корица контрагент
-     * 
+     *
      * @param doc_Folders $folderId - id на папка
      * @param doc_Threads $threadId - id на нишка
-     * @param string $email - имейл
-     * 
-     * @return boolean - Дали можем да извлечем запис
+     * @param string      $email    - имейл
+     *
+     * @return bool - Дали можем да извлечем запис
      */
-    protected static function isGoodRec($folderId=NULL, $threadId=NULL, $email=NULL) 
+    protected static function isGoodRec($folderId = null, $threadId = null, $email = null)
     {
         // Ако няма папка и нишка
-        if (!$folderId && !$threadId) return FALSE;
+        if (!$folderId && !$threadId) {
+            
+            return false;
+        }
         
         // Опитваме се да вземема папката от нишката
         if (!$folderId) {
@@ -258,9 +284,12 @@ class email_Salutations extends core_Manager
             // Папката
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
-
+        
         // Ако не може да се намери папката
-        if (!$folderId) return FALSE;
+        if (!$folderId) {
+            
+            return false;
+        }
         
         // Ако няма нишка
         if (!$threadId) {
@@ -282,7 +311,10 @@ class email_Salutations extends core_Manager
                     $conf = core_Packs::getConfig('email');
                     $now = dt::now();
                     $secsDiff = dt::secsBetween($now, $rec->createdOn);
-                    if ($conf->EMAIL_SALUTATION_EMAIL_TIME_LIMIT > $secsDiff) return TRUE;
+                    if ($conf->EMAIL_SALUTATION_EMAIL_TIME_LIMIT > $secsDiff) {
+                        
+                        return true;
+                    }
                 }
             }
             
@@ -292,30 +324,33 @@ class email_Salutations extends core_Manager
             // Ако корицата не е контрагент, връщаме
             if (($coverClass != 'crm_persons') && ($coverClass != 'crm_companies')) {
                 
-                return FALSE;
+                return false;
             }
             
             // Ако е потребител
             if ($coverClass == 'crm_persons') {
                 
                 // id' на корицата
-                $coverId = doc_Folders::fetchCoverId($folderId);  
+                $coverId = doc_Folders::fetchCoverId($folderId);
                 
                 // Ако има потребителски профил
-                if (crm_Profiles::fetch("#personId = '{$coverId}'")) return FALSE;      
+                if (crm_Profiles::fetch("#personId = '{$coverId}'")) {
+                    
+                    return false;
+                }
             }
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Парсира стринга и връща обръщението
-     * 
+     *
      * @param string $text - Текста, в който ще се търси
-     * 
-     * @return string  - Обръщението
+     *
+     * @return string - Обръщението
      */
     protected static function getSalutations($text)
     {
@@ -324,14 +359,14 @@ class email_Salutations extends core_Manager
         
         // Намираме обръщенито
         preg_match($pattern, $text, $matche);
- 
+        
         // Тримваме и връщаме текста
         return trim($matche['allText']);
     }
     
     
-	/**
-	 * Връща шаблона за обръщенията
+    /**
+     * Връща шаблона за обръщенията
      */
     protected static function getSalutaionsPattern()
     {
@@ -345,7 +380,9 @@ class email_Salutations extends core_Manager
             foreach ($salutationsArr as $salutation) {
                 
                 // Ако е празен стринг прескачаме
-                if (!($salutation = trim($salutation))) continue;
+                if (!($salutation = trim($salutation))) {
+                    continue;
+                }
                 
                 // Ескейпваме текста
                 $salutation = preg_quote($salutation, '/');
@@ -358,14 +395,14 @@ class email_Salutations extends core_Manager
             if ($salutationPatter) {
                 
                 // Добавяме текста в шаблона
-                self::$salutationsPattern = "/^(?'space'\s*)(?'allText'(?'salutation'{$salutationPatter})(?'text'.*))/ui";    
+                self::$salutationsPattern = "/^(?'space'\s*)(?'allText'(?'salutation'{$salutationPatter})(?'text'.*))/ui";
             } else {
                 
                 // Добавяме FALSE, за да не се опитваме да го определим пак
-                self::$salutationsPattern = FALSE;
+                self::$salutationsPattern = false;
             }
         }
-      
+        
         // Връщаме резултата
         return self::$salutationsPattern;
     }
@@ -375,7 +412,7 @@ class email_Salutations extends core_Manager
      * Подготвя вербалните стойности за показване
      * Изпълнява се след основния метод за вербализиране
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         try {
             // Документа
@@ -385,35 +422,35 @@ class email_Salutations extends core_Manager
             $docRow = $doc->getDocumentRow();
             
             // Документа да е линк към single' а на документа
-            $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), $doc->instance->getSingleUrlArray($doc->that), NULL);
-        } catch(core_exception_Expect $e) {
-            $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->containerId . "</span>";
+            $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), $doc->instance->getSingleUrlArray($doc->that), null);
+        } catch (core_exception_Expect $e) {
+            $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->containerId . '</span>';
         }
-
+        
         try {
             // Записите за папката
             $folderRec = doc_Folders::fetch($rec->folderId);
             
             // Вземаме линка към папката
             $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
-        } catch(core_exception_Expect $e) {
-            $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->folderId . "</span>";
+        } catch (core_exception_Expect $e) {
+            $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->folderId . '</span>';
         }
     }
     
     
     /**
      * Подготовка на филтър формата
-     * 
+     *
      * @param email_Salutations $mvc
-     * @param object $data
+     * @param object            $data
      */
-	static function on_AfterPrepareListFilter($mvc, &$data)
-	{
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
         $data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
-	    $data->query->orderBy('createdOn', 'DESC');
-	}
+        $data->query->orderBy('createdOn', 'DESC');
+    }
 }

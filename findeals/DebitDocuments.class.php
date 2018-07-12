@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Документ за "Прехвърляне на вземания"
  * Могат да се добавят към нишки на покупки, продажби и финансови сделки
@@ -9,25 +8,25 @@
  *
  * @category  bgerp
  * @package   findeals
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class findeals_DebitDocuments extends deals_Document
 {
-	
-	
-	/**
+    /**
      * Какви интерфейси поддържа този мениджър
      */
-    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_DebitDocument, bgerp_DealIntf';
-   
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_DebitDocument, bgerp_DealIntf';
+    
     
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Прехвърляне на вземания";
+    public $title = 'Прехвърляне на вземания';
     
     
     /**
@@ -35,31 +34,31 @@ class findeals_DebitDocuments extends deals_Document
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,deals_plg_SelectInvoice,doc_plg_HidePrices,
-                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
+                     plg_Search, bgerp_plg_Blank,bgerp_DealIntf';
     
     
     /**
      * Заглавие на единичен документ
      */
-    public $singleTitle = 'Прехвърляне на взeмане';
+    public $singleTitle = 'Прехвърляне на вземане';
     
     
     /**
      * Абревиатура
      */
-    public $abbr = "Cdd";
+    public $abbr = 'Cdd';
     
     
     /**
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'findeals/tpl/SingleLayoutDebitDocument.shtml';
-
+    
     
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.5|Финанси";
+    public $newBtnGroup = '4.5|Финанси';
     
     
     /**
@@ -97,7 +96,7 @@ class findeals_DebitDocuments extends deals_Document
      */
     public function description()
     {
-    	parent::addDocumentFields($this);
+        parent::addDocumentFields($this);
     }
     
     
@@ -106,23 +105,20 @@ class findeals_DebitDocuments extends deals_Document
      */
     public static function on_AfterInputDocumentEditForm($mvc, &$form)
     {
-    	$rec = &$form->rec;
-    	
-    	if ($form->isSubmitted()){
-    		
-    		expect($rec->dealId);
-    		
-    		$oprtations = $form->dealInfo->get('allowedPaymentOperations');
-    		$operation = $oprtations[$rec->operationSysId];
-    		$debitAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');
-    		
-    		$debitAccount = empty($operation['reverse']) ? acc_Accounts::fetchRec($debitAcc)->systemId : $operation['credit'];
-    		$creditAccount = empty($operation['reverse']) ? $operation['credit'] : acc_Accounts::fetchRec($debitAcc)->systemId;
-    		
-    		// Коя е дебитната и кредитната сметка
-    		$rec->debitAccount = $debitAccount;
-    		$rec->creditAccount = $creditAccount;
-    		$rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
-    	}
+        $rec = &$form->rec;
+        
+        if ($form->isSubmitted()) {
+            $oprtations = $form->dealInfo->get('allowedPaymentOperations');
+            $operation = $oprtations[$rec->operationSysId];
+            $debitAcc = findeals_Deals::fetchField($rec->dealId, 'accountId');
+            
+            $debitAccount = empty($operation['reverse']) ? acc_Accounts::fetchRec($debitAcc)->systemId : $operation['credit'];
+            $creditAccount = empty($operation['reverse']) ? $operation['credit'] : acc_Accounts::fetchRec($debitAcc)->systemId;
+            
+            // Коя е дебитната и кредитната сметка
+            $rec->debitAccount = $debitAccount;
+            $rec->creditAccount = $creditAccount;
+            $rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
+        }
     }
 }

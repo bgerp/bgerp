@@ -7,41 +7,41 @@
  *
  * @category  vendors
  * @package   color
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class color_Setup extends core_ProtoSetup 
+class color_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Поддръжка на цветове: въвеждане и конвертиране";
+    public $info = 'Поддръжка на цветове: въвеждане и конвертиране';
     
     
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = true;
 }

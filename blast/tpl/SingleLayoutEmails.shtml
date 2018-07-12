@@ -18,12 +18,6 @@
                                         <td>[#handle#]</td>
                                     </tr>
                                     <!--ET_END handle-->
-                                    <!--ET_BEGIN createdDate-->
-                                    <tr>
-                                        <td class='aright'>|Дата|*:</td>
-                                        <td>[#createdDate#]</td>
-                                    </tr>
-                                    <!--ET_END createdDate-->
                                     <!--ET_BEGIN recipient-->
                                     <tr>
                                         <td class='aright'>|До|*:</td>

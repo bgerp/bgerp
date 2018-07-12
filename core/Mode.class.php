@@ -17,31 +17,32 @@ defIfNot('EF_MODE_SESSION_VAR', 'pMode');
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Mode
 {
-    
-    
     /**
      * Масив в който се записват runtime стойностите на параметрите
      */
-    static $mode = NULL;
+    public static $mode = null;
+    
     
     /**
      * Стек за запазване на старите стойности на параметрите от runtime обкръжението
      */
-    static $stack = array();
+    public static $stack = array();
     
     
     /**
      * Записва стойност на параметър na runtime обкръжението.
      */
-    static function set($name, $value = TRUE)
+    public static function set($name, $value = true)
     {
         expect($name, 'Параметъра $name трябва да е непразен стринг', self::$mode);
         
@@ -57,7 +58,7 @@ class core_Mode
      * Вкарва в runtime променливите указаната двойка име=стойност,
      * като запомня старото и значение, което по-късно може да бъде възстановено с ::pop
      */
-    static function push($name, $value)
+    public static function push($name, $value)
     {
         $rec = new stdClass();
         $rec->name = $name;
@@ -72,14 +73,16 @@ class core_Mode
     /**
      * Връща старото състояние на променливата от runtime-обкръжението
      */
-    static function pop($name = NULL, $force = NULL)
+    public static function pop($name = null, $force = null)
     {
         do {
             expect($rec = array_shift(self::$stack));
-        } while($force && $rec->name != $name && count(self::$stack));
+        } while ($force && $rec->name != $name && count(self::$stack));
         
         
-        if($name) expect($rec->name == $name, "Очаква се Mode::pop('{$rec->name}') а не Mode::pop('{$name}')", self::$stack);
+        if ($name) {
+            expect($rec->name == $name, "Очаква се Mode::pop('{$rec->name}') а не Mode::pop('{$name}')", self::$stack);
+        }
         
         self::set($rec->name, $rec->value);
         
@@ -90,13 +93,13 @@ class core_Mode
     /**
      * Запис на стойност в сесията
      */
-    static function setPermanent($name, $value = TRUE)
+    public static function setPermanent($name, $value = true)
     {
         // Запис в статичната памет
         static::set($name, $value);
         
         // Запис в сесията, ако потребителския агент не е бот
-        if(!log_Browsers::detectBot()) {
+        if (!log_Browsers::detectBot()) {
             $pMode = core_Session::get(EF_MODE_SESSION_VAR);
             $pMode[$name] = $value;
             core_Session::set(EF_MODE_SESSION_VAR, $pMode);
@@ -107,28 +110,29 @@ class core_Mode
     /**
      * Връща стойността на променлива от обкръжението
      */
-    static function get($name, $offset = 0)
+    public static function get($name, $offset = 0)
     {
-        expect ($offset <= 0);
+        expect($offset <= 0);
         
         if ($offset < 0) {
             foreach (self::$stack as $r) {
                 if ($r->name == $name) {
                     $offset++;
                     if ($offset == 0) {
+                        
                         return $r->value;
                     }
                 }
             }
             
-            return NULL;
+            return;
         }
         
         // Инициализираме стойностите с данните от сесията
         self::prepareMode();
         
-        $res = NULL;
-        if(isset(self::$mode[$name])) {
+        $res = null;
+        if (isset(self::$mode[$name])) {
             $res = self::$mode[$name];
         }
         
@@ -155,7 +159,7 @@ class core_Mode
      * Сравнява стойността на променлива от обкръжението
      * с предварително зададена стойност
      */
-    static function is($name, $value = TRUE)
+    public static function is($name, $value = true)
     {
         return Mode::get($name) == $value;
     }
@@ -164,7 +168,7 @@ class core_Mode
     /**
      * Връща уникален, случаен ключ валиден по време на сесията
      */
-    static function getPermanentKey()
+    public static function getPermanentKey()
     {
         if (!$key = Mode::get('permanentKey')) {
             $key = str::getRand();
@@ -178,7 +182,7 @@ class core_Mode
     /**
      * Връща уникален ключ валиден в рамките на текущия процес
      */
-    static function getProcessKey()
+    public static function getProcessKey()
     {
         if (!$key = Mode::get('processKey')) {
             $key = str::getRand();
@@ -192,10 +196,10 @@ class core_Mode
     /**
      * Унищожава цялата перманентна информация
      */
-    static function destroy()
+    public static function destroy()
     {
-        core_Session::set(EF_MODE_SESSION_VAR, NULL);
-        self::$mode = NULL;
+        core_Session::set(EF_MODE_SESSION_VAR, null);
+        self::$mode = null;
         self::$stack = array();
     }
     
@@ -205,11 +209,12 @@ class core_Mode
      */
     public static function isReadOnly()
     {
-    	// Ако режима е xhtml, printing, pdf, inlineDocument
-    	if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('inlineDocument')){
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
+        // Ако режима е xhtml, printing, pdf, inlineDocument
+        if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('inlineDocument')) {
+            
+            return true;
+        }
+        
+        return false;
     }
 }

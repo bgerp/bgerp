@@ -1,66 +1,65 @@
 <?php 
 
-
 /**
  * Лог за използванията
- * 
+ *
  * @category  bgerp
  * @package   doclog
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doclog_Used extends core_Manager
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
-    var $title = "Използвани документи";
+    public $title = 'Използвани документи';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug';
+    public $canRead = 'debug';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'debug';
+    public $canView = 'debug';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    public $canList = 'debug';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created';
+    public $loadList = 'plg_Created';
     
     
     /**
@@ -72,7 +71,7 @@ class doclog_Used extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер->Документ');
         $this->FLD('usedContainerId', 'key(mvc=doc_Containers)', 'caption=Контейнер->Използван');
@@ -84,28 +83,33 @@ class doclog_Used extends core_Manager
     
     /**
      * Добавя запис
-     * 
-     * @param integer $cid
-     * @param integer $usedCid
+     *
+     * @param int $cid
+     * @param int $usedCid
      */
     public static function add($cid, $usedCid)
     {
         // За да се гарантира извикването на on_Shutdown
         cls::get(get_called_class());
-        if (!$cid || !$usedCid) error('Липсва стойност', $cid, $usedCid);
+        if (!$cid || !$usedCid) {
+            error('Липсва стойност', $cid, $usedCid);
+        }
         self::$usedArr[] = array('cid' => $cid, 'usedCid' => $usedCid);
     }
     
     
     /**
      * Премахва запис
-     * 
-     * @param integer $cid
-     * @param integer $usedCid
+     *
+     * @param int $cid
+     * @param int $usedCid
      */
     public static function remove($cid, $usedCid)
     {
-        if (!$cid || !$usedCid) return ;
+        if (!$cid || !$usedCid) {
+            
+            return ;
+        }
         
         self::delete("#containerId = {$cid} AND #usedContainerId = {$usedCid}");
         
@@ -119,13 +123,13 @@ class doclog_Used extends core_Manager
     
     /**
      * Подготвя записите за показване
-     * 
-     * @param integer $cid
+     *
+     * @param int             $cid
      * @param NULL|core_Pager $pager
-     * 
+     *
      * @return array
      */
-    public static function prepareRecsFor($cid, &$pager = NULL)
+    public static function prepareRecsFor($cid, &$pager = null)
     {
         $query = self::getQuery();
         $query->where(array("#usedContainerId = '[#1#]'", $cid));
@@ -144,7 +148,7 @@ class doclog_Used extends core_Manager
         while ($rec = $query->fetch()) {
             
             // Добавяме в масива
-            $rowsArr[] =  self::recToVerbal($rec);
+            $rowsArr[] = self::recToVerbal($rec);
         }
         
         return $rowsArr;
@@ -153,10 +157,10 @@ class doclog_Used extends core_Manager
     
     /**
      * Връща броя на използваните документи
-     * 
-     * @param integer $cid
-     * 
-     * @return integer
+     *
+     * @param int $cid
+     *
+     * @return int
      */
     public static function getUsedCount($cid)
     {
@@ -171,16 +175,19 @@ class doclog_Used extends core_Manager
     
     /**
      * Връща броя на използваните документи за всичко контейнери
-     * 
+     *
      * @param array $cArr
-     * 
+     *
      * @return array
      */
     public static function getAllUsedCount($cArr)
     {
         $resArr = array();
         
-        if (empty($cArr)) return $resArr;
+        if (empty($cArr)) {
+            
+            return $resArr;
+        }
         
         $query = self::getQuery();
         $query->in('usedContainerId', $cArr);
@@ -198,7 +205,7 @@ class doclog_Used extends core_Manager
     
     /**
      * При приключване на изпълнените на скрипта
-     * 
+     *
      * @param doclog_Used $mvc
      */
     public static function on_Shutdown($mvc)
@@ -208,7 +215,9 @@ class doclog_Used extends core_Manager
             $rec->containerId = $usedArr['cid'];
             $rec->usedContainerId = $usedArr['usedCid'];
             
-            if (!self::save($rec, NULL, 'IGNORE')) continue;
+            if (!self::save($rec, null, 'IGNORE')) {
+                continue;
+            }
             
             // Добавяме използване на документа
             if ($usedArr['usedCid']) {
@@ -221,7 +230,6 @@ class doclog_Used extends core_Manager
                 $threadId = doc_Containers::fetchField($rec->usedContainerId, 'threadId');
                 doclog_Documents::removeHistoryFromCache($threadId);
             } catch (ErrorException $e) {
-                
                 reportException($e);
                 
                 continue;
@@ -234,8 +242,8 @@ class doclog_Used extends core_Manager
      * След преобразуване на записа в четим за хора вид.
      *
      * @param doclog_Used $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass    $row Това ще се покаже
+     * @param stdClass    $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
@@ -255,11 +263,11 @@ class doclog_Used extends core_Manager
     
     /**
      * Подготовка на филтър формата
-     * 
+     *
      * @param doclog_Used $mvc
-     * @param object $data
+     * @param object      $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('createdOn', 'DESC');
     }

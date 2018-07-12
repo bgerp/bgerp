@@ -1,27 +1,26 @@
 <?php
 
 
-
 /**
  * Интерфейс за класовете ползващи перманентни данни
  *
  *
  * @category  vendors
  * @package   permanent
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Интерфейс за перманентни данни
  */
 class permanent_SettingsIntf
 {
-    
-    
     /**
      * Връща ключ под който ще се запишат данните
      */
-    function getSettingsKey()
+    public function getSettingsKey()
     {
         return $this->class->getSettingsKey();
     }
@@ -33,7 +32,7 @@ class permanent_SettingsIntf
      *
      * @param object $form
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
         return $this->class->prepareSettingsForm($form);
     }
@@ -49,7 +48,7 @@ class permanent_SettingsIntf
      *
      * @param object $form
      */
-    function setSettingsFromForm($form)
+    public function setSettingsFromForm($form)
     {
         return $this->class->setSettingsFromForm($form);
     }
@@ -58,7 +57,7 @@ class permanent_SettingsIntf
     /**
      * Връща текущите настройки на обекта
      */
-    function getSettings()
+    public function getSettings()
     {
         $this->class->getSettings();
     }
@@ -66,9 +65,10 @@ class permanent_SettingsIntf
     
     /**
      * Задава вътрешните настройки на обекта
+     *
      * @param object $data
      */
-    function setSettings($data)
+    public function setSettings($data)
     {
         $this->class->setSettings($data);
     }

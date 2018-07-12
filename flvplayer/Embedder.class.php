@@ -1,11 +1,10 @@
 <?php
 
 
-
 /**
  * @todo Чака за документация...
  */
-defIfNot('FLVPLAYER_PATH', sbf("flvplayer/1.6.0/player_flv_maxi.swf"));
+defIfNot('FLVPLAYER_PATH', sbf('flvplayer/1.6.0/player_flv_maxi.swf'));
 
 
 /**
@@ -14,15 +13,15 @@ defIfNot('FLVPLAYER_PATH', sbf("flvplayer/1.6.0/player_flv_maxi.swf"));
  *
  * @category  vendors
  * @package   flvplayer
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class flvplayer_Embedder
 {
-    
-    
     /**
      * @todo Чака за документация...
      */
@@ -41,7 +40,7 @@ class flvplayer_Embedder
             'flv' => $flvFile,
             'startimage' => $startImage,
             'width' => $width,
-            'height'=> $height
+            'height' => $height
         );
         
         $swfObj->setAlternativeContent($altHtml);

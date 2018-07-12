@@ -1,13 +1,16 @@
 <?php
 
+
 /**
  * Клас - 'acc_journal_Transaction'
  *
  * @category bgerp
  * @package acc
+ *
  * @author Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license GPL 3
+ *
  * @since v 0.1
  */
 class acc_journal_Transaction
@@ -18,16 +21,19 @@ class acc_journal_Transaction
      */
     protected $entries = array();
     
+    
     /**
      *
      * @var stdClass
      */
     public $rec;
     
+    
     /**
      * @var acc_Journal
      */
     public $Journal;
+    
     
     /**
      * @var acc_JournalDetails
@@ -37,12 +43,12 @@ class acc_journal_Transaction
     
     /**
      * @param float|array|object $amount ако е float се приема за обща стойност на транзакцията;
-     * в противен случай - за данни, резултат от извикването
-     * на @see acc_TransactionSourceIntf::getTransaction()
+     *                                   в противен случай - за данни, резултат от извикването
+     *                                   на @see acc_TransactionSourceIntf::getTransaction()
      *
      * @see acc_TransactionSourceIntf::getTransaction()
      */
-    public function __construct($amount = NULL)
+    public function __construct($amount = null)
     {
         $rec = new stdClass();
         
@@ -63,11 +69,12 @@ class acc_journal_Transaction
      * Инициализира транзакция, с данни получени от acc_TransactionSourceIntf::getTransaction()
      *
      * @param stdClass $data
+     *
      * @return void
      */
     public function init($data)
     {
-        $data = (object)$data;
+        $data = (object) $data;
         
         $this->entries = array();
         
@@ -86,9 +93,10 @@ class acc_journal_Transaction
      * Добавя нов ред в транзакция
      *
      * @param acc_journal_Entry $entry
+     *
      * @return acc_journal_Entry $entry
      */
-    public function add($entry = NULL)
+    public function add($entry = null)
     {
         if (!isset($entry) || !($entry instanceof acc_journal_Entry)) {
             $entry = new acc_journal_Entry($entry);
@@ -103,13 +111,14 @@ class acc_journal_Transaction
     /**
      * Проверка на валидността на счетоводна транзакция
      *
-     * @return boolean
+     * @return bool
+     *
      * @throws acc_journal_Exception
      */
     public function check()
     {
         /* @var $entry acc_journal_Entry */
-        if(count($this->entries)){
+        if (count($this->entries)) {
             foreach ($this->entries as $entry) {
                 try {
                     $entry->check();
@@ -123,11 +132,15 @@ class acc_journal_Transaction
             $sumItemsAmount = $this->amount();
             $roundTotal = core_Math::roundNumber($this->rec->totalAmount);
             
-            acc_journal_Exception::expect(trim($roundTotal) == trim($sumItemsAmount),
-                "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$roundTotal}) суми на транзакция");
+            acc_journal_Exception::expect(
+                
+                trim($roundTotal) == trim($sumItemsAmount),
+                "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$roundTotal}) суми на транзакция"
+            
+            );
         }
         
-        return TRUE;
+        return true;
     }
     
     
@@ -152,30 +165,31 @@ class acc_journal_Transaction
     /**
      * Записва транзакция в БД
      *
-     * @return boolean
+     * @return bool
      */
     public function save()
     {
         $this->check();
         
         if (!$this->begin()) {
-            return FALSE;
+            
+            return false;
         }
         
-       try {
-            if(count($this->entries)){
-            	$recsToSave = array();
+        try {
+            if (count($this->entries)) {
+                $recsToSave = array();
                 foreach ($this->entries as $entry) {
-                	$recsToSave[] = $entry->getRec($this->rec->id);
+                    $recsToSave[] = $entry->getRec($this->rec->id);
                 }
                 
                 // Записваме всички детайли с една заявка
-                if(!$this->JournalDetails->saveArray($recsToSave)){
-                	
-                	// Проблем при записването на детайл-запис. Rollback!!!
-                	$this->rollback();
-                	
-                	return FALSE;
+                if (!$this->JournalDetails->saveArray($recsToSave)) {
+                    
+                    // Проблем при записването на детайл-запис. Rollback!!!
+                    $this->rollback();
+                    
+                    return false;
                 }
             }
             
@@ -185,19 +199,22 @@ class acc_journal_Transaction
             throw $ex;
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Стартира процеса на записване на транзакция
      *
-     * @return boolean
+     * @return bool
      */
     protected function begin()
     {
         // Ако транзакцията е празна не се записва в журнала
-        if($this->isEmpty()) return TRUE;
+        if ($this->isEmpty()) {
+            
+            return true;
+        }
         
         // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
         $this->rec->state = 'draft';
@@ -205,17 +222,17 @@ class acc_journal_Transaction
         
         if (!$this->Journal->save($this->rec)) {
             // Не стана създаването на мастър запис, аборт!
-            return FALSE;
+            return false;
         }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Финализира транзакция след успешно записване
      *
-     * @return boolean
+     * @return bool
      */
     protected function commit()
     {
@@ -223,7 +240,10 @@ class acc_journal_Transaction
         $this->rec->state = 'active';
         
         // Ако транзакцията е празна не се записва в журнала
-        if($this->isEmpty()) return TRUE;
+        if ($this->isEmpty()) {
+            
+            return true;
+        }
         
         return $this->Journal->save($this->rec);
     }
@@ -232,7 +252,7 @@ class acc_journal_Transaction
     /**
      * Изтрива частично записана транзакция
      *
-     * @return boolean
+     * @return bool
      */
     public function rollback()
     {
@@ -240,10 +260,11 @@ class acc_journal_Transaction
         $this->Journal->delete($this->rec->id);
         
         // Логваме в журнала
-        $this->Journal->logWrite("Rollback на ред от журнала", $this->rec->id);
+        $this->Journal->logWrite('Rollback на ред от журнала', $this->rec->id);
         
-        return TRUE;
+        return true;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -286,9 +307,8 @@ class acc_journal_Transaction
     {
         $closedEntries = array();
         
-        if(isset($this->entries)){
-            
-            foreach ($this->entries as $entry){
+        if (isset($this->entries)) {
+            foreach ($this->entries as $entry) {
                 $closedEntries += $entry->debit->getClosedItems();
                 $closedEntries += $entry->credit->getClosedItems();
             }

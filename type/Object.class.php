@@ -1,37 +1,38 @@
 <?php
 
 
-
 /**
  * Клас  'type_Object' - Структурни данни в MYSQL blob поле
  *
  *
  * @category  ef
  * @package   type
+ *
  * @author    Milen Georgiev <milen@download.bg> и Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
-class type_Object extends type_Blob {
-    
-    
+class type_Object extends type_Blob
+{
     /**
      * Стойност по подразбиране
      */
-    var $defaultValue = '';
+    public $defaultValue = '';
     
     
     /**
      * Връща представяне подходящо за MySQL за структурни данни
      *
      * @param string $value
+     *
      * @return string
      */
     public function toMysql($value, $db, $notNull, $defValue)
     {
-        if ($value !== NULL) {
+        if ($value !== null) {
             $value = json_encode($value);
         }
         
@@ -41,12 +42,14 @@ class type_Object extends type_Blob {
     
     /**
      * @see core_Type::fromMysql()
+     *
      * @param string $value
+     *
      * @return mixed
      */
     public function fromMysql($value)
     {
-        if ($value !== NULL) {
+        if ($value !== null) {
             $value = @json_decode($value);
         }
         
