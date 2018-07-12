@@ -190,7 +190,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             
             $from = acc_Periods::fetch($rec->period)->start;
             
-            $to = acc_Periods::fetch($rec->period)->end;
+            $to = dt::today();
             
             $storeId = acc_Items::fetch($key)->objectId;
             
@@ -200,7 +200,8 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                 'fromDate' => $from,
                 'toDate' => $to,
                 'accNum' => 321,
-                'ent1Id' => $key
+                'ent1Id' => $key,
+                'ent2Id' => $dRec->articulId
             );
             
             $row->store .= ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
