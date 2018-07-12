@@ -1253,7 +1253,7 @@ class eshop_Carts extends core_Master
                         $contragentClassId = crm_Persons::getClassId();
                         $contragentId = crm_Profiles::getProfile($cu)->id;
                     }
-                    
+                   
                     // Ако има въведени адресни данни
                     if (!empty($rec->deliveryCountry) || !empty($rec->deliveryPCode) || !empty($rec->deliveryPlace) || !empty($rec->deliveryAddress)) {
                         $rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
@@ -1425,12 +1425,12 @@ class eshop_Carts extends core_Master
             // Адреса за доставка е този от последната количка
             $cQuery = eshop_Carts::getQuery();
             $cQuery->where("#userId = {$cu} AND #state = 'active'");
-            $cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress');
+            $cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress,locationId');
             $cQuery->orderBy('activatedOn', 'DESC');
             $cQuery->limit(1);
             
             if ($lastCart = $cQuery->fetch()) {
-                foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $field) {
+                foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
                     $form->setDefault($field, $lastCart->{$field});
                 }
             } else {
