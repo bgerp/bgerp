@@ -3417,6 +3417,7 @@ fieldset.sharing-history {
 		border: 1px solid #cccccc;
 		border-radius: 3px;
 		border-radius: 0;
+		min-width: 34px;
 		&.inputError {
 			border-color: red;
 		}
