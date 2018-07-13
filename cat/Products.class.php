@@ -884,7 +884,13 @@ class cat_Products extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         static::expandFilter($data->listFilter);
-        $data->listFilter->setDefault('order', 'standard');
+        
+        $data->listFilter->input(NULL, 'silent');
+        $defOrder = 'standard';
+        if ($data->listFilter->rec->groupId) {
+            $defOrder = 'all';
+        }
+        $data->listFilter->setDefault('order', $defOrder);
         
         $data->listFilter->FNC('type', 'class', 'caption=Вид');
         $classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
@@ -917,6 +923,10 @@ class cat_Products extends embed_Manager
         
         if ($data->listFilter->rec->type) {
             $data->query->where("#innerClass = {$data->listFilter->rec->type}");
+        }
+        
+        if ($data->listFilter->rec->groupId) {
+//             $data->listFilter->rec->order = 'all';
         }
         
         switch ($data->listFilter->rec->order) {
