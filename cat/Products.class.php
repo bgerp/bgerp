@@ -925,10 +925,6 @@ class cat_Products extends embed_Manager
             $data->query->where("#innerClass = {$data->listFilter->rec->type}");
         }
         
-        if ($data->listFilter->rec->groupId) {
-//             $data->listFilter->rec->order = 'all';
-        }
-        
         switch ($data->listFilter->rec->order) {
             case 'all':
                 $data->query->orderBy("#state,#{$order}");
