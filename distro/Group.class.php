@@ -269,7 +269,7 @@ class distro_Group extends core_Master
                 $dRepoArr = $mvc->getDuplicateFileRepoId($rRec);
                 
                 if (!empty($dRepoArr)) {
-                    redirect(array($mvc, 'single', $rec->id), false, '|Не може да се активира, защото същестува такава директория|*. |Променете заглавието');
+                    redirect(array($mvc, 'single', $rec->id), false, '|Не може да се активира, защото съществува такава директория|*. |Променете заглавието');
                 }
             }
         }

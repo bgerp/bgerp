@@ -426,7 +426,7 @@ class sales_Quotations extends core_Master
             if (isset($rec->date, $rec->validFor)) {
                 $expireOn = dt::verbal2mysql(dt::addSecs($rec->validFor, $rec->date), false);
                 if ($expireOn < dt::today()) {
-                    $form->setWarning('date,validFor', 'Валидноста на офертата е преди текущата дата');
+                    $form->setWarning('date,validFor', 'Валидността на офертата е преди текущата дата');
                 }
             }
             
@@ -534,7 +534,7 @@ class sales_Quotations extends core_Master
                         $row->validDate = "<span class='red'>{$row->validDate}</span>";
                         
                         if ($rec->state == 'draft') {
-                            $row->validDate = ht::createHint($row->validDate, 'Валидноста на офертата е преди текущата дата', 'warning');
+                            $row->validDate = ht::createHint($row->validDate, 'Валидността на офертата е преди текущата дата', 'warning');
                         } elseif ($rec->state != 'rejected') {
                             $row->validDate = ht::createHint($row->validDate, 'Офертата е изтекла', 'warning');
                         }

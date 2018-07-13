@@ -87,6 +87,7 @@ class eshop_ProductDetails extends core_Detail
      */
     public $notesFld = 'title';
     
+    
     /**
      * Описание на модела
      */
@@ -278,8 +279,8 @@ class eshop_ProductDetails extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
-        	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-        	
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             if (!$price = self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');

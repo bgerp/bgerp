@@ -69,7 +69,7 @@ defIfNot('PLG_SEACH_MAX_TEXT_LEN', 64000);
 
 
 /**
- * Максималното отклоненение в таймстампа при логване в системата
+ * Максималното отклонение в таймстампа при логване в системата
  * 1 час и 30 мин.
  */
 defIfNot('CORE_LOGIN_TIMESTAMP_DEVIATION', 5400);
@@ -295,7 +295,7 @@ class core_Setup extends core_ProtoSetup
         
         'PLG_SEACH_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
         
-        'CORE_LOGIN_TIMESTAMP_DEVIATION' => array('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклоненение в таймстампа при логване в системата->Време'),
+        'CORE_LOGIN_TIMESTAMP_DEVIATION' => array('time(suggestions=30 мин|1 час|90 мин|2 часа)', 'caption=Максималното отклонение в таймстампа при логване в системата->Време'),
         
         'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
         

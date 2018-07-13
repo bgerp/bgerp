@@ -2947,7 +2947,7 @@ class fileman_Files extends core_Master
         // Пътя до временните файлове
         $tempPath = static::getTempDir();
         
-        // Ако не същестува
+        // Ако не съществува
         if (!is_dir($tempPath)) {
             
             // Ако не може да се създаде

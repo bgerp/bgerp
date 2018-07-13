@@ -235,7 +235,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
                 
                 if ($rec->inputedQuantity > $rec->limit) {
-                    $caption = ($rec->type == 'input') ? 'Вложеното' : (($rec->type == 'waste') ? 'Отпадакът' : 'Произведеното');
+                    $caption = ($rec->type == 'input') ? 'Вложеното' : (($rec->type == 'waste') ? 'Отпадъкът' : 'Произведеното');
                     $form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
                 }
             }

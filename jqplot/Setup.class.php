@@ -30,7 +30,7 @@ class jqplot_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Изтрумент за рендиране на графики, използващ JQPlot';
+    public $info = 'Инструмент за рендиране на графики, използващ JQPlot';
     
     
     /**

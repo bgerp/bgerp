@@ -74,7 +74,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $fieldset->FLD(
             
             'additional',
-            'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)',
+            'table(columns=code|name|minQuantity|maxQuantity,captions=Код на артикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)',
             'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none'
         
         );
@@ -536,7 +536,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec - записа
+     * @param stdClass $rec  - записа
      * @param stdClass $dRec - чистия запис
      *
      * @return stdClass $row - вербалния запис

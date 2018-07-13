@@ -190,10 +190,10 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
         
         // Възнаграждения
-        $this->FLD('salaryBase', 'double(decimals=2)', 'caption=Възнагражение->Основно');
-        $this->FLD('forYearsOfService', 'percent(decimals=2)', 'caption=Възнагражение->За стаж');
-        $this->FLD('compersations', 'double(decimals=2)', 'caption=Възнагражение->За вредности');
-        $this->FLD('degreePay', 'double(decimals=2)', 'caption=Възнагражение->За научна степен');
+        $this->FLD('salaryBase', 'double(decimals=2)', 'caption=Възнаграждение->Основно');
+        $this->FLD('forYearsOfService', 'percent(decimals=2)', 'caption=Възнаграждение->За стаж');
+        $this->FLD('compersations', 'double(decimals=2)', 'caption=Възнаграждение->За вредности');
+        $this->FLD('degreePay', 'double(decimals=2)', 'caption=Възнаграждение->За научна степен');
         
         // Срокове
         $this->FLD('startFrom', 'date(format=d.m.Y)', 'caption=Време->Начало,mandatory');

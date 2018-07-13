@@ -53,7 +53,7 @@ class tracking_Log extends core_Master
         $this->FLD('location', 'location_Type', 'caption=Локация, tdClass=large-field');
         
         $this->FLD('data', 'blob', 'caption=Данни');
-        $this->FLD('fixTime', 'datetime()', 'caption=Време на засичне');
+        $this->FLD('fixTime', 'datetime()', 'caption=Време на засичане');
         $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Тракер IP');
         

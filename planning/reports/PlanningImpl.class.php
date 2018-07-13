@@ -571,7 +571,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     {
         $exportFields['id'] = 'Име (код)';
         $exportFields['quantity'] = 'Поръчано';
-        $exportFields['quantityJob'] = 'За пороизводство';
+        $exportFields['quantityJob'] = 'За производство';
         $exportFields['quantityDelivered'] = 'Доставено';
         $exportFields['quantityProduced'] = 'Произведено';
         $exportFields['quantityToDelivered'] = 'За доставяне';

@@ -282,7 +282,7 @@ class doc_Setup extends core_ProtoSetup
         ),
         array(
             'systemId' => 'deleteOldObject',
-            'description' => 'Изтриване на остарялите информации за обектите в документ',
+            'description' => 'Изтриване на остарелите информации за обектите в документ',
             'controller' => 'doc_UsedInDocs',
             'action' => 'deleteOldObject',
             'period' => 1440,

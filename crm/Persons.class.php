@@ -2061,7 +2061,7 @@ class crm_Persons extends core_Master
 //        $cntOfVcards = count($allVcards);
         
         // Добавяме титлата на формата
-        $form->title = 'Създавяне на потребител от визитка';
+        $form->title = 'Създаване на потребител от визитка';
         
         // За сега вземаме първата визитка във файла
         $currVcard = $allVcards[0];

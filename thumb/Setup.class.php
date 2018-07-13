@@ -54,7 +54,7 @@ class thumb_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     public $systemActions = array(
-        array('title' => 'Изтриване', 'url' => array('thumb_M', 'clear', 'ret_url' => true), 'params' => array('title' => 'Изтриване на кешираните изобажения'))
+        array('title' => 'Изтриване', 'url' => array('thumb_M', 'clear', 'ret_url' => true), 'params' => array('title' => 'Изтриване на кешираните изображения'))
     );
     
     
