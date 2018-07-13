@@ -158,10 +158,10 @@ class fileman_Indexes extends core_Manager
             
             // Задаваме той да е текущия
             $currentTab = $data->currentTab;
-        } elseif ($tabsArr[$tabsArr['__defaultTab']]) {
+        } elseif ($tabsArr['__defaultTab'] && $tabsArr['__defaultTab']->name && $tabsArr[$tabsArr['__defaultTab']->name]) {
             
             // Ако не е избран таб, избираме таба по подразбиране зададен от класа
-            $currentTab = $tabsArr['__defaultTab'];
+            $currentTab = $tabsArr['__defaultTab']->name;
         } else {
             unset($tabsArr['__defaultTab']);
             

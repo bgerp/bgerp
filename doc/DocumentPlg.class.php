@@ -186,8 +186,13 @@ class doc_DocumentPlg extends core_Plugin
         if (!$defTab) {
             if ($tabsArr['text']) {
                 $defTab = 'text';
+            } else {
+                if ($tabsArr['__defaultTab'] && $tabsArr['__defaultTab']->name) {
+                    $defTab = $tabsArr['__defaultTab']->name;
+                } else {
+                    $defTab = 'info';
+                }
             }
-            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
         }
         
         $Indexes = cls::get('fileman_Indexes');
