@@ -69,7 +69,7 @@ class fileman_webdrv_Generic extends core_Manager
                 'order' => 1,
             );
         
-        $tabsArr['__defaultTab'] = static::$defaultTab;
+        $tabsArr['__defaultTab'] = (object) array('name' => static::$defaultTab, 'order' => 1000);
         
         return $tabsArr;
     }

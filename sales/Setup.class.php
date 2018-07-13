@@ -254,6 +254,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProformaDetails',
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
+    	'migrate::updateDeltaStates',
     );
     
     
@@ -389,5 +390,25 @@ class sales_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на състоянията
+     */
+    public function updateDeltaStates()
+    {
+    	$Deltas = cls::get('sales_PrimeCostByDocument');
+    	$toSave = array();
+    	$dQuery = $Deltas->getQuery();
+    	$dQuery->where("#state IS NULL || #state = ''");
+    	$dQuery->EXT('cState', 'doc_Containers', 'externalName=state,externalKey=containerId');
+    	$dQuery->show('containerId,cState');
+    	while($dRec = $dQuery->fetch()){
+    		$dRec->state = $dRec->cState;
+    		$toSave[$dRec->id] = $dRec;
+    	}
+    	
+    	$Deltas->saveArray($toSave, 'id,state');
     }
 }

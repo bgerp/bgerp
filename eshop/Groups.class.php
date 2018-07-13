@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -65,12 +65,6 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Кой може да чете
-     */
-    public $canRead = 'eshop,ceo';
-    
-    
-    /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'eshop,ceo';
@@ -107,21 +101,9 @@ class eshop_Groups extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'eshop,ceo';
-    
-    
-    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
-    
-    
-    /**
-     * Нов темплейт за показване
-     */
-    // var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
     
     
     
@@ -143,7 +125,7 @@ class eshop_Groups extends core_Master
     /**
      * Изпълнява се след подготовката на формата за единичен запис
      */
-    public function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $cQuery = cms_Content::getQuery();
         
@@ -169,7 +151,7 @@ class eshop_Groups extends core_Master
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
-    public function on_AfterPrepareListFilter($mvc, $data)
+    protected function on_AfterPrepareListFilter($mvc, $data)
     {
         $form = $data->listFilter;
         
@@ -206,11 +188,30 @@ class eshop_Groups extends core_Master
     /**
      * Изпълнява се след подготовката на вербалните стойности за всеки запис
      */
-    public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    protected function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
-            $row->name = ht::createLink($row->name, self::getUrl($rec), null, 'ef_icon=img/16/monitor.png');
+        if (isset($fields['-list'])){
+        	$row->name = $mvc->getHyperlink($rec, true);
+        	
+        	if (haveRole('powerUser') && $rec->state != 'closed') {
+        		core_RowToolbar::createIfNotExists($row->_rowTools);
+        		$row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
+        	}
         }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if (haveRole('powerUser') && $data->rec->state != 'closed') {
+    		$data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
+    	}
     }
     
     
@@ -393,17 +394,13 @@ class eshop_Groups extends core_Master
     /**
      * Добавя бутони за разглеждане във витрината на групите с продукти
      */
-    public function on_AfterPrepareListToolbar($mvc, $data)
+    protected function on_AfterPrepareListToolbar($mvc, $data)
     {
         $cQuery = cms_Content::getQuery();
-        
         $classId = core_Classes::getId($mvc->className);
         
         while ($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
-            $data->toolbar->addBtn(
-                type_Varchar::escape($rec->menu),
-                array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1)
-            );
+            $data->toolbar->addBtn(type_Varchar::escape($rec->menu), array('eshop_Groups', 'ShowAll', 'cMenuId' => $rec->id, 'PU' => 1));
         }
     }
     
@@ -693,7 +690,7 @@ class eshop_Groups extends core_Master
      * Титлата за листовия изглед
      * Съдържа и текущия домейн
      */
-    public static function on_AfterPrepareListTitle($mvc, $res, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
