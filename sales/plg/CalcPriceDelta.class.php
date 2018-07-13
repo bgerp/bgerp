@@ -104,6 +104,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'quantity' => $dRec->{$mvc->detailQuantityFld},
                 'productId' => $dRec->{$mvc->detailProductFld},
                 'sellCost' => $sellCost,
+                'state'    => 'active',
                 'primeCost' => $primeCost);
             
             $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
@@ -132,5 +133,21 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         if (haveRole('admin,ceo,debug') && ($data->rec->state == 'active' || $data->rec->state == 'closed')) {
             $data->toolbar->addBtn('Делти', array('sales_PrimeCostByDocument', 'list', 'documentId' => '#' . $mvc->getHandle($data->rec)), 'ef_icon=img/16/bug.png,title=Делти по документа,row=2');
         }
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id  първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($exRec = sales_PrimeCostByDocument::fetch("#containerId = {$rec->containerId}")){
+    		$exRec->state = $rec->state;
+    		sales_PrimeCostByDocument::save($exRec, 'state');
+    	}
     }
 }

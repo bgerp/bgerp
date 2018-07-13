@@ -87,6 +87,7 @@ class eshop_ProductDetails extends core_Detail
      */
     public $notesFld = 'title';
     
+    
     /**
      * Описание на модела
      */
@@ -292,7 +293,6 @@ class eshop_ProductDetails extends core_Detail
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	
-            $row->productId = cat_Products::getHyperlink($rec->productId, true);
             if (!$price = self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
             }

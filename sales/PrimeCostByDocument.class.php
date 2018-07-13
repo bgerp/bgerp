@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,dealerId,initiatorId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,dealerId,initiatorId,state';
     
     
     /**
@@ -92,6 +92,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FNC('delta', 'double', 'caption=Цени->Делта,mandatory');
         $this->FLD('dealerId', 'user', 'caption=Дилър,mandatory');
         $this->FLD('initiatorId', 'user', 'caption=Инициатор,mandatory');
+        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка,closed=Затворено)', 'caption=Статус, input=none');
         
         $this->setDbIndex('detailClassId,detailRecId,productId');
     }

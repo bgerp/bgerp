@@ -1308,7 +1308,7 @@ class doc_Threads extends core_Manager
             // Входяща папка
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
-                        
+            
             recently_Values::add('MoveFolders', $folderId);
             
             $message = '';

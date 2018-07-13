@@ -588,7 +588,7 @@ class acc_CostAllocations extends core_Manager
                 }
                 
                 $r->expenseItemId = $dRec->expenseItemId;
-                acc_journal_Exception::expect($r->expenseItemId, 'Невалиден раход');
+                acc_journal_Exception::expect($r->expenseItemId, 'Невалиден разход');
                 
                 // Задаване на к-то и приспадане
                 $r->quantity = $dRec->quantity;

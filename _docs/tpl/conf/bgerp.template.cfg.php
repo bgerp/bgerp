@@ -519,7 +519,7 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  # defIfNot('BLOGM_DEFAULT_THEME', 'blogm/themes/default');
 
 
-// Константа за продължителноста на живота на бисквитките създадени от блога
+// Константа за продължителността на живота на бисквитките създадени от блога
  # defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
 
 

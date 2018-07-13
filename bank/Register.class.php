@@ -100,7 +100,7 @@ class bank_Register extends core_Manager
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име');
         $this->FLD('contragentIban', 'varchar(255)', 'caption=Контрагент->Сметка');
         
-        $this->FLD('matches', 'blob(compress,serialize)', 'caption=Съответстия,input=none,oldFieldName=accounting');
+        $this->FLD('matches', 'blob(compress,serialize)', 'caption=Съответствия,input=none,oldFieldName=accounting');
         
         $this->FLD('state', 'enum(waiting=Чакащ, active=Активиран, rejected=Оттеглен)', 'caption=Състояние');
         

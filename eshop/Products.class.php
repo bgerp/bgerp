@@ -294,7 +294,7 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if (haveRole('powerUser') && $data->rec->state != 'closed') {
+        if (haveRole('powerUser') && $data->rec->state != 'closed') {
             $data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
@@ -430,7 +430,9 @@ class eshop_Products extends core_Master
         
         if (is_array($data->groups)) {
             foreach ($data->groups as $gData) {
-                if (!count($gData->recs)) continue;
+                if (!count($gData->recs)) {
+                    continue;
+                }
                 $layout->append('<h2>' . eshop_Groups::getVerbal($gData->groupRec, 'name') . '</h2>');
                 $layout->append(self::renderGroupList($gData));
             }
@@ -641,7 +643,10 @@ class eshop_Products extends core_Master
     {
         $rec = self::fetchRec($rec);
         $gRec = eshop_Groups::fetch($rec->groupId);
-        if (empty($gRec->menuId)) return array();
+        if (empty($gRec->menuId)) {
+            
+            return array();
+        }
         
         $mRec = cms_Content::fetch($gRec->menuId);
         $lg = $mRec->lang;
@@ -1125,14 +1130,18 @@ class eshop_Products extends core_Master
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
+     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
-    	$rec = $this->fetch($id);
-    	if (empty($rec)) return;
-    	
-    	// Обновяване на модела, за да се преизчислят ключовите думи
-    	$this->save($rec);
+        $rec = $this->fetch($id);
+        if (empty($rec)) {
+            
+            return;
+        }
+        
+        // Обновяване на модела, за да се преизчислят ключовите думи
+        $this->save($rec);
     }
 }

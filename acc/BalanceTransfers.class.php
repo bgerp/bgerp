@@ -214,7 +214,7 @@ class acc_BalanceTransfers extends core_Master
             
             // Подсигуряваме се, че аналитичностите на началната и крайната сметка, наистина съвпадат
             if ($form->fromAccountInterfaces != $form->getFieldTypeParam('toAccount', 'regInterfaces')) {
-                $form->setError('fromAccount,toAccount', 'Трябва двете сметки да са със съответсващи аналитичности');
+                $form->setError('fromAccount,toAccount', 'Трябва двете сметки да са със съответстващи аналитичности');
             }
             
             // Всички аналитичности

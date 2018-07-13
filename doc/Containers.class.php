@@ -2300,7 +2300,7 @@ class doc_Containers extends core_Manager
                         // Ако originId липсва в контейнерите
                         if (!$oCRec = doc_Containers::fetch($dRec->originId, '*', false)) {
                             $resArr['originId']++;
-                            $clsInst->logNotice('Нилиран originId на документа', $dRec->id);
+                            $clsInst->logNotice('Нулиран originId на документа', $dRec->id);
                             $dRec->originId = null;
                             
                             try {

@@ -190,7 +190,7 @@ class core_Array
      *                o   'str'     - стрингово сравнение
      *                о   'stri'    - стрингово сравнение без отчитане на кейса
      *                о   'natural' - стрингово сравнение, използвайки natural sorting algorityma
-     *                
+     *
      * @return void
      */
     public static function sortObjects(&$array, $field = 'order', $dir = 'asc', $mode = 'native')
@@ -200,9 +200,6 @@ class core_Array
         expect($dir == 'desc' || $dir == 'asc', $dir);
         
         uasort($array, function ($a, $b) use ($field, $dir, $mode) {
-            
-            if (is_string($a) || is_string($b)) return 0;
-            
             $a = (object) $a;
             expect(property_exists($a, $field), $a);
             
@@ -220,7 +217,7 @@ class core_Array
             } elseif ($mode == 'stri') {
                 $res = ($dir == 'asc' ? 1 : -1) * strcasecmp($a->{$field}, $b->{$field});
             } elseif ($mode == 'natural') {
-            	$res = ($dir == 'asc' ? 1 : -1) * strnatcasecmp($a->{$field}, $b->{$field});
+                $res = ($dir == 'asc' ? 1 : -1) * strnatcasecmp($a->{$field}, $b->{$field});
             } else {
                 expect(in_array($mode, array('native', 'str', 'stri')), $mode);
             }
