@@ -34,7 +34,7 @@ function copyValToPlaceholder()
 function changeInputWidth()
 {
 	$('.option-quantity-input').each(function () {
-		$(this).attr( "size", Math.max(2,$(this).val().length));
+		$(this).css( "width", 12 + $(this).val().length * 10);
 	});
 }
 

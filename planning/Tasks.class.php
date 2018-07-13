@@ -465,7 +465,7 @@ class planning_Tasks extends core_Master
             
             if (!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)) {
                 if (strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)) {
-                    $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителноста не отговарят на въведената крайната дата');
+                    $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителността не отговарят на въведената крайната дата');
                 }
             }
             

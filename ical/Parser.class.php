@@ -117,7 +117,7 @@ class ical_Parser extends core_Mvc
                     $e->statusVrb = tr('НЕОБХОДИМО ДЕЙСТВИЕ||' . $e->status);
                     break;
                 case 'COMPLETED':
-                    $e->statusVrb = tr('ИЗПЪЛЕНО||' . $e->status);
+                    $e->statusVrb = tr('ИЗПЪЛНЕНО||' . $e->status);
                     break;
                 case 'IN-PROCESS':
                     $e->statusVrb = tr('В ПРОЦЕС||' . $e->status);

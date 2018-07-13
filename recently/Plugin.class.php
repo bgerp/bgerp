@@ -23,7 +23,7 @@ class recently_Plugin extends core_Plugin
     public function on_BeforeRenderFields(&$form)
     {
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
-                
+        
         $inputFields = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
         if (count($inputFields)) {
@@ -46,7 +46,7 @@ class recently_Plugin extends core_Plugin
     public function on_AfterInput($form)
     {
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
-                
+        
         $flds = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
         $rec = $form->rec;

@@ -17,9 +17,9 @@
  */
 class sens2_ControllerIntf
 {
-
     public $oldClassName = 'sens2_DriverIntf';
-
+    
+    
     /**
      * Информация за входните портове на устройството
      *

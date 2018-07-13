@@ -318,7 +318,10 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->_updatePrice === false) return;
+        if ($rec->_updatePrice === false) {
+            
+            return;
+        }
         
         self::updatePriceInfo($rec);
     }
@@ -379,8 +382,8 @@ class eshop_CartDetails extends core_Detail
             
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
-            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "size=4,class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . '</span>';
-
+            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . '</span>';
+            
             self::updatePriceInfo($rec, null, true);
             
             $settings = cms_Domains::getSettings();
@@ -400,7 +403,7 @@ class eshop_CartDetails extends core_Detail
             $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         }
-    
+        
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $row->productId .= " ({$row->packagingId})";
         
@@ -492,11 +495,11 @@ class eshop_CartDetails extends core_Detail
         $resObj3 = new stdClass();
         $resObj3->func = 'html';
         $resObj3->arg = array('id' => 'cart-external-status', 'html' => eshop_Carts::getStatus($cartId)->getContent(), 'replace' => true);
-
+        
         // Ще се реплейсне статуса на кошницата
         $resObj4 = new stdClass();
         $resObj4->func = 'changeInputWidth';
-
+        
         // Показваме веднага и чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');

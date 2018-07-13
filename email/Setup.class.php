@@ -348,9 +348,9 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_REJECT_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
         
         'EMAIL_SHOW_THREAD_IN_EXTERNAL' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Показване'),
-            
+        
         'EMAIL_SHOW_THREAD_DATE_LIMITATION' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Ограничение по дата'),
-            
+        
         'EMAIL_SHOW_THREAD_EMAIL_LIMITATION' => array('enum(yes=Да, no=Не)', 'caption=Преглед на нишката с имейлите във външната част->Ограничение по имейл'),
     );
     
