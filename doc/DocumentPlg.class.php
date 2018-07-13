@@ -1105,6 +1105,7 @@ class doc_DocumentPlg extends core_Plugin
                 
                 // Спиране на документите
                 doc_Threads::stopDocuments($rec->threadId);
+                doc_DocumentCache::threadCacheInvalidation($rec->threadId);
                 
                 // Редирект
                 if ($type == 'stopped') {
