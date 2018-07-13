@@ -227,7 +227,7 @@ class email_Incomings extends core_Master
         
         $this->FLD('toAndCc', 'blob(serialize,compress)', 'caption=Имейл до');
         
-        $this->FLD('spamScore', 'double', 'caption=Смам рейтинг');
+        $this->FLD('spamScore', 'double', 'caption=Спам рейтинг');
         
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');

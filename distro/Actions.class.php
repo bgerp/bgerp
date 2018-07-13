@@ -35,7 +35,7 @@ class distro_Actions extends embed_Manager
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Дейстие';
+    public $singleTitle = 'Действие';
     
     
     /**

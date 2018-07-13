@@ -1511,7 +1511,7 @@ class doc_Folders extends core_Master
                                     $fRec->coverClass = $coverId;
                                     $fRec->coverId = $cRec->id;
                                     self::save($fRec, 'coverClass, coverId', 'IGNORE');
-                                    self::logNotice('Промене coverClass и coverId', $fRec->id);
+                                    self::logNotice('Промяна на coverClass и coverId', $fRec->id);
                                     $resArr['coverId']++;
                                 }
                             } catch (ErrorException $e) {

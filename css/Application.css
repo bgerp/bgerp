@@ -2944,7 +2944,8 @@ span.sharing-history-title {
     padding: 2px 5px 2px 0;
     border: 1px solid #cccccc;
     border-radius: 3px;
-    border-radius: 0; }
+    border-radius: 0;
+    min-width: 34px; }
     .quantity-input-column input.inputError {
       border-color: red; }
 

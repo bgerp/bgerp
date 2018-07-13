@@ -8,11 +8,11 @@
  *
  * @category  bgerp
  * @package   bgerp
- * 
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>, Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * 
+ *
  * @since     v 0.1
  */
 class bgerp_L extends core_Manager
@@ -229,7 +229,6 @@ class bgerp_L extends core_Manager
             
             // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
             if (($options['to'] || $options['cc']) && !haveRole('user')) {
-                
                 $emailsStr = $options['to'];
                 if ($options['cc']) {
                     $emailsStr .= ', ' . $options['cc'];
@@ -392,7 +391,6 @@ class bgerp_L extends core_Manager
             Mode::set('noBlank', true);
             
             foreach ($tEmailsDocArr as $containerId => $dRec) {
-                
                 $dDoc = doc_Containers::getDocument($containerId);
                 
                 $className = 'doc';
@@ -433,7 +431,7 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            $html .= "</div>";
+            $html .= '</div>';
             
             Mode::set('wrapper', 'page_External');
             
@@ -464,11 +462,11 @@ class bgerp_L extends core_Manager
     
     /**
      * Връща всички имейли (входящи/изходящи) от същата нишка, като документа
-     * 
-     * @param int $cid
+     *
+     * @param int    $cid
      * @param string $mid
-     * @param boolean $onlyCheck
-     * 
+     * @param bool   $onlyCheck
+     *
      * @return array
      */
     protected function getThreadEmails($cid, $mid, $onlyCheck = false)
@@ -477,7 +475,10 @@ class bgerp_L extends core_Manager
         
         $mRec = doclog_Documents::fetchByMid($mid);
         
-        if (!$mRec) return $resArr;
+        if (!$mRec) {
+            
+            return $resArr;
+        }
         
         // Имейлите от документа източник
         $midEmailsStr = $mRec->data->to;
@@ -487,18 +488,27 @@ class bgerp_L extends core_Manager
         $midEmailsStr = strtolower($midEmailsStr);
         $midEmailsArr = type_Emails::toArray($midEmailsStr);
         
-        if (empty($midEmailsArr)) return $resArr;
+        if (empty($midEmailsArr)) {
+            
+            return $resArr;
+        }
         
-        $midEmailsArr= arr::make($midEmailsArr, true);
+        $midEmailsArr = arr::make($midEmailsArr, true);
         
         $doc = doc_Containers::getDocument($cid);
         
-        if (!$doc) return $resArr;
+        if (!$doc) {
+            
+            return $resArr;
+        }
         
         // Вземаме записа за документа
         $dRec = $doc->fetch();
         
-        if (!$dRec || !$dRec->threadId) return $resArr;
+        if (!$dRec || !$dRec->threadId) {
+            
+            return $resArr;
+        }
         
         
         $inClsId = email_Incomings::getClassId();
@@ -525,7 +535,9 @@ class bgerp_L extends core_Manager
         while ($cRec = $cQuery->fetch()) {
             $continue = false;
             
-            if (!$cRec->docId) continue;
+            if (!$cRec->docId) {
+                continue;
+            }
             
             // Подготвяме имейлите от документа
             $emailArr = array();
@@ -550,7 +562,9 @@ class bgerp_L extends core_Manager
                         $cRec->_mid = $sLog->mid;
                     }
                     
-                    if (($strictDate == 'yes') && ($sLog->createdOn > $mRec->createdOn) && ($mRec->containerId != $sLog->containerId)) continue;
+                    if (($strictDate == 'yes') && ($sLog->createdOn > $mRec->createdOn) && ($mRec->containerId != $sLog->containerId)) {
+                        continue;
+                    }
                     
                     $emailsStr .= ($emailsStr) ? ', ' : '';
                     
@@ -565,14 +579,15 @@ class bgerp_L extends core_Manager
                 $emailArr = type_Emails::toArray($emailsStr);
                 $emailArr = arr::make($emailArr, true);
                 
-                if (empty($emailArr)) continue;
+                if (empty($emailArr)) {
+                    continue;
+                }
             }
             
             // Ако има ограничение по имейлите - когато всички получатели трябва да ги има в списъка
             if ($strictEmail == 'yes') {
                 foreach ($midEmailsArr as $email) {
                     if (!$emailArr[$email]) {
-                        
                         $continue = true;
                         
                         break;
@@ -582,7 +597,6 @@ class bgerp_L extends core_Manager
                 $continue = true;
                 foreach ($midEmailsArr as $email) {
                     if ($emailArr[$email]) {
-                        
                         $continue = false;
                         
                         break;
@@ -590,13 +604,18 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            if ($continue) continue;
+            if ($continue) {
+                continue;
+            }
             
             $resArr[$cRec->id] = $cRec;
             
             // Ако само се проверява дали има имейли
             if ($onlyCheck) {
-                if (count($resArr) > 1) return $resArr;
+                if (count($resArr) > 1) {
+                    
+                    return $resArr;
+                }
             }
         }
         

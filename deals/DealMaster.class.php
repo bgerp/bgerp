@@ -1304,7 +1304,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         
-        // ако има каса, метода за плащане е COD и текущия потрбител може да се логне в касата
+        // ако има каса, метода за плащане е COD и текущия потребител може да се логне в касата
         if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)) {
             
             // Може да се плати с продуктите
@@ -1419,7 +1419,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Приключва остарялите сделки
+     * Приключва остарелите сделки
      */
     public function closeOldDeals($olderThan, $closeDocName, $limit)
     {
@@ -1879,7 +1879,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $forceUrl['force'] = true;
         
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
-        $form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
+        $form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = Създаване на нова продажба');
         $form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if (core_Users::haveRole('partner')) {

@@ -69,7 +69,7 @@ class custom_Settings extends core_Manager
      */
     public function description()
     {
-        $this->FLD('userId', 'user', 'caption=Потрбител, input=none');
+        $this->FLD('userId', 'user', 'caption=Потребител, input=none');
         $this->FLD('classId', 'class(interface=custom_SettingsIntf)', 'caption=Обект->Клас, silent, input=none');
         $this->FLD('objectId', 'int', 'caption=Обект->ID, silent, input=none');
         $this->FLD('property', 'varchar(32)', 'caption=Свойство->Име, input=none');
@@ -164,7 +164,7 @@ class custom_Settings extends core_Manager
         
         while ($rec = $query->fetch()) {
             
-            // Ако е добавен в масива и в момента се опитваме да добавим настойки по подразбиране
+            // Ако е добавен в масива и в момента се опитваме да добавим настройки по подразбиране
             if (isset($propertiesArr[$rec->property]) && ($rec->userId == -1)) {
                 continue;
             }

@@ -43,7 +43,7 @@ class tcost_Fees extends core_Detail
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'държава и п.Код';
+    public $singleTitle = 'Държава и п. код';
     
     
     /**

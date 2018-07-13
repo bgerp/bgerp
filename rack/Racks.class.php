@@ -375,12 +375,12 @@ class rack_Racks extends core_Master
                 if (!isset($title) && ($pId = $reserved[$posFull])) {
                     $title = $pos;
                     $attr['style'] = 'color:#fbb;';
-                    $hint = tr('Запазано място');
+                    $hint = tr('Запазено място');
                     
                     if ($pId > 0) {
                         $prodRec = rack_Products::fetch($pId);
                         $prodTitle = rack_Products::getVerbal($prodRec, 'productId');
-                        $hint = tr('Запазано място за') . ' ' . $prodTitle;
+                        $hint = tr('Запазено място за') . ' ' . $prodTitle;
                     }
                 }
                 

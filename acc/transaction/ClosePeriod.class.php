@@ -162,10 +162,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $amount4535 = $bQuery->fetch()->blAmount;
         $amount4535 += $diffAmount;
         
-        if($amount4535 > 0){
-        	$entries[] = array('amount' => abs($amount4535), 'debit' => array('123', $this->date->year), 'credit' => array('4535'), 'reason' => 'ДДС - остатъци');
+        if ($amount4535 > 0) {
+            $entries[] = array('amount' => abs($amount4535), 'debit' => array('123', $this->date->year), 'credit' => array('4535'), 'reason' => 'ДДС - остатъци');
         } else {
-        	$entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year), 'reason' => 'ДДС - платено, но неначислено');
+            $entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year), 'reason' => 'ДДС - платено, но неначислено');
         }
         
         $total += $amount4535;

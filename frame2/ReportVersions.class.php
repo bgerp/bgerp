@@ -19,7 +19,7 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'История на промяната на репортите';
+    public $title = 'История на промяната на справките';
     
     
     /**
@@ -87,7 +87,7 @@ class frame2_ReportVersions extends core_Detail
      */
     public function description()
     {
-        $this->FLD('reportId', 'key(mvc=frame2_Reports)', 'caption=Репорт');
+        $this->FLD('reportId', 'key(mvc=frame2_Reports)', 'caption=Справка');
         $this->FLD('oldRec', 'blob(serialize, compress,size=20000000)', 'caption=Стар запис');
         $this->FLD('versionBefore', 'int', 'caption=Предишна версия');
         

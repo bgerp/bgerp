@@ -98,7 +98,7 @@ class core_ProtoSetup
     
     
     /**
-     * Масив с настойки за Cron
+     * Масив с настройки за Cron
      *
      * @var array
      */

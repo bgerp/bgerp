@@ -20,8 +20,8 @@ class plg_SelectPeriod extends core_Plugin
      * Префикс използван в recently пакета
      */
     const RECENTLY_KEY = 'UNIQ.PERIOD';
-
-
+    
+    
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
@@ -224,21 +224,23 @@ class plg_SelectPeriod extends core_Plugin
         
         // Друг период
         $opt['gr6'] = (object) array('title' => tr('Друг период'), 'group' => true);
-
+        
         $f = count($opt);
-
+        
         // Вкарваме периодите от recently
         $values = recently_Values::fetchSuggestions(self::RECENTLY_KEY, 5);
         if (is_array($values)) {
             foreach ($values as $val) {
-                if(!$val) continue;
+                if (!$val) {
+                    continue;
+                }
                 list($key, $title) = explode('=>', $val);
-                if(!$opt[$key]) {
+                if (!$opt[$key]) {
                     $opt[$key] = $title;
                 }
             }
         }
-
+        
         // Добяваме вербално определение и търсим евентуално ключа отговарящ на избрания период
         foreach ($opt as $key => $val) {
             if (is_scalar($val)) {
@@ -263,29 +265,28 @@ class plg_SelectPeriod extends core_Plugin
         if ($fromSel && $toSel && !$keySel) {
             $keySel = $fromSel . '|' . $toSel;
             $title = self::getPeriod($fromSel, $toSel);
-            if(!$opt[$keySel]) {
+            if (!$opt[$keySel]) {
                 $opt[$keySel] = $title;
             }
             $val = $fromSel . '|' . $toSel . '=>' . $title;
             recently_Values::add(self::RECENTLY_KEY, $val);
         }
-
+        
         $first = array_slice($opt, 0, $f);
         $second = array_slice($opt, $f);
- 
+        
         uksort($second, function ($a, $b) {
-       
             if (strpos($a, '|') && strpos($b, '|')) {
                 $res = $a > $b ? 1 : -1;
             } else {
-                $res = NULL;
+                $res = null;
             }
-
+            
             return $res;
         });
- 
+        
         $opt = $first + $second;
-
+        
         // Добавяме избор на производлен период
         $opt['select'] = (object) array('title' => tr('Избор'), 'attr' => array('class' => 'out-btn multipleFiles'));
         

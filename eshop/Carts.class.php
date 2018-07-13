@@ -7,15 +7,15 @@
  *
  * @category  bgerp
  * @package   eshop
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class eshop_Carts extends core_Master
 {
-    
-    
     /**
      * Заглавие
      */
@@ -206,9 +206,9 @@ class eshop_Carts extends core_Master
                 
                 $packagingName = tr(cat_UoM::getShortName($packagingId));
                 $packType = cat_UoM::fetchField($packagingId, 'type');
-               	if($packType == 'packaging'){
-               		$packagingName = str::getPlural($exRec->packQuantity, $packagingName, true);
-               	}
+                if ($packType == 'packaging') {
+                    $packagingName = str::getPlural($exRec->packQuantity, $packagingName, true);
+                }
                 
                 $packQuantity = core_Type::getByName('double(smartRound)')->toVerbal($exRec->packQuantity);
                 $productName = cat_Products::getVerbal($productId, 'name');
@@ -229,7 +229,6 @@ class eshop_Carts extends core_Master
         
         // Ако режимът е за AJAX
         if (Request::get('ajax_mode')) {
-        	
             core_Statuses::newStatus($msg, ($success === true) ? 'notice' : 'error');
             
             // Ще се реплейсне статуса на кошницата
@@ -316,7 +315,10 @@ class eshop_Carts extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        if (!$rec) return;
+        if (!$rec) {
+            
+            return;
+        }
         
         $rec->productCount = $rec->total = $rec->totalNoVat = 0;
         $rec->deliveryNoVat = $rec->deliveryTime = null;
@@ -729,7 +731,7 @@ class eshop_Carts extends core_Master
             $tpl->replace(core_Type::getByName('richtext')->toVerbal($settings->info), 'COMMON_TEXT');
         }
         
-        $cartInfo = tr('Всички цени са')  . " " . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+        $cartInfo = tr('Всички цени са')  . ' ' . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
         $tpl->replace($cartInfo, 'VAT_STATUS');
         
         // Ако има последно активирана кошница да се показва като съобщение
@@ -891,13 +893,13 @@ class eshop_Carts extends core_Master
         
         // Ако има доставка се показва и тя
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
-        	$transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-        	$deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
-        	$deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
-        	$deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-        	$row->deliveryAmount = $deliveryAmount;
-        	$row->deliveryCaption = tr('Доставка||Shipping');
-        	$row->deliveryCurrencyId = $row->currencyId;
+            $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+            $deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+            $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
+            $deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+            $row->deliveryAmount = $deliveryAmount;
+            $row->deliveryCaption = tr('Доставка||Shipping');
+            $row->deliveryCurrencyId = $row->currencyId;
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
@@ -1253,7 +1255,7 @@ class eshop_Carts extends core_Master
                         $contragentClassId = crm_Persons::getClassId();
                         $contragentId = crm_Profiles::getProfile($cu)->id;
                     }
-                    
+                   
                     // Ако има въведени адресни данни
                     if (!empty($rec->deliveryCountry) || !empty($rec->deliveryPCode) || !empty($rec->deliveryPlace) || !empty($rec->deliveryAddress)) {
                         $rec->locationId = crm_Locations::update($contragentClassId, $contragentId, $rec->deliveryCountry, 'За получаване на пратки', $rec->deliveryPCode, $rec->deliveryPlace, $rec->deliveryAddress, $rec->locationId);
@@ -1425,12 +1427,12 @@ class eshop_Carts extends core_Master
             // Адреса за доставка е този от последната количка
             $cQuery = eshop_Carts::getQuery();
             $cQuery->where("#userId = {$cu} AND #state = 'active'");
-            $cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress');
+            $cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress,locationId');
             $cQuery->orderBy('activatedOn', 'DESC');
             $cQuery->limit(1);
             
             if ($lastCart = $cQuery->fetch()) {
-                foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $field) {
+                foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
                     $form->setDefault($field, $lastCart->{$field});
                 }
             } else {

@@ -57,13 +57,13 @@ class recently_Values extends core_Manager
     /**
      * Връща предложенията за посоченото поле
      */
-    public static function fetchSuggestions($name, $maxSuggestion = NULL, $maxKeepingDays = NULL)
+    public static function fetchSuggestions($name, $maxSuggestion = null, $maxKeepingDays = null)
     {
         $conf = core_Packs::getConfig('recently');
         
         setIfNot($maxSuggestion, $conf->RECENTLY_MAX_SUGGESTION);
         setIfNot($maxKeepingDays, $conf->RECENTLY_MAX_KEEPING_DAYS);
-
+        
         $query = self::getQuery();
         $query->orderBy('#createdOn=DESC');
         $query->limit($maxSuggestion);
@@ -81,7 +81,7 @@ class recently_Values extends core_Manager
                 $opt[$value] = $value;
             }
         }
-    
+        
         return count($opt) > 1 ? $opt : array();
     }
     
