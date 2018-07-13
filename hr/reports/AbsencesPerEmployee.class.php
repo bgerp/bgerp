@@ -42,6 +42,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     protected $changeableFields = 'from,to,employee';
     
     
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -50,16 +51,18 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=До,input=none,single=none');
-        $fieldset->FLD('firstDayOfPeriod', 'date', 'caption=От,input=none,single=none');
-        $fieldset->FLD('periods', 'date', 'caption=Периоди,input=none,single=none');
         $fieldset->FLD('days', 'int', 'caption=Период,unit=дни,after=from,single=none,mandatory');
         $fieldset->FLD('numberOfPeriods', 'int', 'caption=Периоди,after=days,single=none');
         $fieldset->FLD('type', 'set(leave=Отпуска, sick=Болничен, trips=Командировка)', 'notNull,caption=Причина за отсъствието,maxRadio=3,after=periods,single=none');
         $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal,allowEmpty)', 'caption=Служител,after=to,single=none');
+        
+        $fieldset->FNC('periods', 'date', 'caption=Периоди,input=none,single=none');
+        $fieldset->FNC('to', 'date', 'caption=До,input=none,single=none');
+        // $fieldset->FLD('firstDayOfPeriod', 'date', 'caption=От,input=none,single=none');
     }
     
     
+
     /**
      * След рендиране на единичния изглед
      *
@@ -84,6 +87,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -116,6 +120,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -133,7 +138,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         
         $rec->firstDayOfPeriod = $rec->from;
         
-        $rec->periods = explode('-', $rec->from)[2] . 'm' . explode('-', $rec->from)[1];
+        $rec->periods = dt::mysql2verbal($rec->from, 'dmy');
         
         $period = 1;
         
@@ -198,7 +203,8 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                             'endPeriod' => $rec->to,
                             'numberOfLeavesDays' => $numberOfLeavesDays,
                             'numberOfTripsesDays' => $numberOfTripsesDays,
-                            'numberOfSickdays' => $numberOfSickdays
+                            'numberOfSickdays' => $numberOfSickdays,
+                            'absencesDays' => ''
                         
                         );
                     } else {
@@ -281,7 +287,6 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                         'personId' => $val->personId,
                         'startPeriod' => $val->startPeriod,
                         'endPeriod' => $val->endPeriod,
-                        
                         'absencesDays' => ($val->numberOfLeavesDays + $val->numberOfTripsesDays + $val->numberOfSickdays)
                     );
                 } else {
@@ -292,12 +297,12 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                 }
             }
             
-            $aaa[] = $pRecs;
-            
             $rec->firstDayOfPeriod = dt::addDays(1, $lastDayOfPeriod, false);
+            
             if ($period <= ($rec->numberOfPeriods - 1)) {
-                $rec->periods .= ',' . explode('-', $rec->firstDayOfPeriod)[2] . 'm' . explode('-', $rec->firstDayOfPeriod)[1];
+                $rec->periods .= ',' . dt::mysql2verbal($rec->firstDayOfPeriod, 'dmy');
             }
+            
             unset($sickdaysQuery);
             
             unset($leavesQuery);
@@ -313,6 +318,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
@@ -328,13 +334,22 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         if ($export === false) {
-            $periodsArr = explode(',', $rec->periods);
-            
             $fld->FLD('employee', 'varchar', 'caption=Потребител');
             
+            $periodsArr = explode(',', $rec->periods);
+            
             foreach ($periodsArr as $key => $val) {
-                $periodName = str_replace('m', '/', $val);
+                $fieldNameArr[$key] = $val;
+            }
+            
+            foreach ($fieldNameArr as $key => $val) {
                 
+                if (dt::mysql2verbal($rec->from, 'Y') != dt::mysql2verbal($rec->to, 'Y')) {
+                    
+                    $periodName = (substr($val, 0, 2) . '/' . substr($val, 2, 2) . '/' . substr($val, 4, 2));
+                } else {
+                    $periodName = (substr($val, 0, 2) . '/' . substr($val, 2, 2));
+                }
                 $fld->FLD("{$val}", 'int', "caption= Отсъствия->{$periodName},tdClass=centered");
             }
             
@@ -345,6 +360,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -363,11 +379,14 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $row = new stdClass();
         
         $periodsArr = explode(',', $rec->periods);
+        
         $absencesDaysArr = explode(',', $dRec->absencesDays);
         
         $row->employee = crm_Persons::getContragentData($dRec->personId)->person;
         
         foreach ($periodsArr as $key => $val) {
+            $val = str_replace('/', 'm', $val);
+            
             $row->$val = $Int->toVerbal($absencesDaysArr[$key]);
             
             $totalAbs += $absencesDaysArr[$key];
@@ -379,6 +398,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * След рендиране на единичния изглед
      *
@@ -419,6 +439,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * След подготовка на реда за експорт
      *
@@ -437,6 +458,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * Връща масив с данни за сечението на проверявания период и периода на документа
      *
@@ -494,6 +516,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     }
     
     
+
     /**
      * Връща следващите три дати, когато да се актуализира справката
      *

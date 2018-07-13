@@ -42,6 +42,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected $changeableFields;
     
     
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -56,6 +57,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     }
     
     
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -73,6 +75,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     }
     
     
+
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -128,6 +131,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     }
     
     
+
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
@@ -154,6 +158,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     }
     
     
+
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -177,19 +182,40 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $productId = acc_Items::fetch($dRec->articulId)->objectId;
         
-        $row->articul = cat_Products::getHyperlink($productId, 'name');
+        $row->articul = cat_Products::getShortHyperlink($productId, 'name');
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
         $stores = explode(',', $dRec->storeId);
+        
         $quantities = explode(',', $dRec->quantity);
         
         $resArr = array_combine($stores, $quantities);
+        
         asort($resArr);
+        
         foreach ($resArr as $key => $val) {
+            
+            $from = acc_Periods::fetch($rec->period)->start;
+            
+            $to = dt::today();
+            
             $storeId = acc_Items::fetch($key)->objectId;
             
+            $histUrl = array(
+                'acc_BalanceHistory',
+                'History',
+                'fromDate' => $from,
+                'toDate' => $to,
+                'accNum' => 321,
+                'ent1Id' => $key,
+                'ent2Id' => $dRec->articulId
+            );
+            
+            $row->store .= ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+            
             $row->store .= store_Stores::getHyperlink($storeId) . '</br>';
+            
             $color = 'green';
             if ($val < 0) {
                 $color = 'red';
@@ -212,6 +238,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     }
     
     
+
     /**
      * След рендиране на единичния изглед
      *
@@ -242,6 +269,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     }
     
     
+
     /**
      * След подготовка на реда за експорт
      *
