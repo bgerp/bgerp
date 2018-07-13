@@ -1905,6 +1905,33 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Екшън за преглед на файла (pdf) в браузъра
+     */
+    function act_PreviewFile()
+    {
+        $this->requireRightFor('single');
+        expect($id = Request::get('id', 'int'));
+        expect($fRec = static::fetch($id));
+        $this->requireRightFor('single', $fRec);
+        
+        $ext = fileman_Files::getExt($fRec->name);
+        
+        expect($ext == 'pdf');
+        
+        fileman_Log::updateLogInfo($fRec->fileHnd, 'preview');
+        
+        echo fileman_Files::getContent($fRec->fileHnd);
+        
+        header('Content-type: application/pdf');
+        header("Content-Disposition: inline; filename={$fRec->name}.pdf");
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
+        shutdown();
+    }
+    
+    
+    /**
      * Екшън връщащ бутоните за контектстното меню
      */
     public function act_getContextMenu()
@@ -1927,10 +1954,15 @@ class fileman_Files extends core_Master
             $icon = 'fileman/icons/16/default.png';
         }
         
-        // Вземаме линка към сингъла на файла таб преглед
-        $urlPreview = array('fileman_Files', 'single', $fh);
-        $urlPreview['currentTab'] = 'preview';
-        $urlPreview['#'] = 'fileDetail';
+        if ($ext == 'pdf') {
+            // Вземаме линка към преглед на файла в браузъра
+            $urlPreview = array('fileman_Files', 'PreviewFile', $fh);
+        } else {
+            // Вземаме линка към сингъла на файла таб преглед
+            $urlPreview = array('fileman_Files', 'single', $fh);
+            $urlPreview['currentTab'] = 'preview';
+            $urlPreview['#'] = 'fileDetail';
+        }
         
         $tpl = new core_ET();
         $preview = ht::createLink(tr('Преглед'), $urlPreview, null, array('ef_icon' => $icon, 'target' => '_blank', 'title' => 'Преглед на файла', 'class' => 'button'));
