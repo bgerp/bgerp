@@ -400,6 +400,8 @@ class sales_Setup extends core_ProtoSetup
     public function updateDeltaStates()
     {
     	$Deltas = cls::get('sales_PrimeCostByDocument');
+    	$Deltas->setupMvc();
+    	
     	$toSave = array();
     	$dQuery = $Deltas->getQuery();
     	$dQuery->where("#state IS NULL || #state = ''");
