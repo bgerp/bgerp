@@ -400,15 +400,6 @@ class doc_SharablePlg extends core_Plugin
                             unset($sharedArr[$currUserId]);
                             $res['sharedUsers'] += (array) $sharedArr;
                         }
-                        
-                        // Предотвратяване на евентуално зацикляне
-                        static $originArr = array();
-                        
-                        if ($dRec->originId && !$originArr[$dRec->originId]) {
-                            $originArr[$dRec->originId] = true;
-                            $sharedArr = $mvc->getDefaultData($dRec);
-                            $res['sharedUsers'] += (array) $sharedArr['sharedUsers'];
-                        }
                     }
                 } else {
                     if ($mvc->autoShareOriginCreator) {

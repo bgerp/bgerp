@@ -254,7 +254,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProformaDetails',
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
-    	'migrate::updateDeltaStates',
+    	'migrate::updateDeltaStates1',
     );
     
     
@@ -396,19 +396,12 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция на състоянията
      */
-    public function updateDeltaStates()
+    public function updateDeltaStates1()
     {
-    	$Deltas = cls::get('sales_PrimeCostByDocument');
-    	$toSave = array();
-    	$dQuery = $Deltas->getQuery();
-    	$dQuery->where("#state IS NULL || #state = ''");
-    	$dQuery->EXT('cState', 'doc_Containers', 'externalName=state,externalKey=containerId');
-    	$dQuery->show('containerId,cState');
-    	while($dRec = $dQuery->fetch()){
-    		$dRec->state = $dRec->cState;
-    		$toSave[$dRec->id] = $dRec;
-    	}
-    	
-    	$Deltas->saveArray($toSave, 'id,state');
+        $Deltas = cls::get('sales_PrimeCostByDocument');
+        $Deltas->setupMvc();
+        
+        $query = "UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id";
+        $Deltas->db->query($query);
     }
 }
