@@ -148,7 +148,7 @@ class eshop_Products extends core_Master
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти');
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
-        $this->FLD('quantityCount', 'enum(3=3 количества,2=2 количества,1=1 количество,0=Без количество)', 'caption=Запитване->Брой количества');
+        $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
         
         $this->setDbIndex('groupId');
     }
@@ -161,7 +161,7 @@ class eshop_Products extends core_Master
      *
      * @return int|NULL
      */
-    private function getUomFromDriver($rec)
+    private static function getUomFromDriver($rec)
     {
         $uomId = null;
         if (cls::load($rec->coDriver, true)) {
@@ -170,6 +170,31 @@ class eshop_Products extends core_Master
             }
         }
         
+        return $uomId;
+    }
+
+
+    /**
+     * Връща id на мярката по подразбиране
+     */
+    private static function getUomId($rec)
+    {
+        $rec = self::fetchRec($rec);
+        
+        $uomId = self::getUomFromDriver($rec);
+
+        if(!$uomId) {
+            $uomId = $rec->measureId;
+        }
+
+        if(!$uomId) {
+            $uomId =  cat_Setup::get('DEFAULT_MEASURE_ID');
+        }
+
+        if(!$uomId) {
+            $uomId = cat_UoM::fetchBySysId('pcs')->id;
+        }
+
         return $uomId;
     }
     
@@ -190,7 +215,8 @@ class eshop_Products extends core_Master
                 $form->setSuggestions('proto', $protoProducts);
             }
             
-            if ($uomId = $mvc->getUomFromDriver($rec)) {
+            // Ако мярката идва от драйвера
+            if ($mvc->getUomFromDriver($rec)) {
                 $form->setField('measureId', 'input=none');
             }
         }
@@ -216,7 +242,7 @@ class eshop_Products extends core_Master
      */
     public function prepareGroupList_($data)
     {
-        $data->row = $this->recToVerbal($data->rec);
+        $data->row = $this->recToVerbal($data->rec);  
     }
     
     
@@ -227,6 +253,8 @@ class eshop_Products extends core_Master
     {
         $row->name = tr($row->name);
         
+        $uomId = self::getUomId($rec);
+ 
         // Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
         if (empty($rec->coMoq) && isset($rec->coDriver)) {
             if (cls::load($rec->coDriver, true)) {
@@ -237,10 +265,18 @@ class eshop_Products extends core_Master
                 }
             }
         }
-        
+
+        // Определяме, ако има мярката на продукта
+        $uom = cat_UoM::getShortName($uomId);
+
         if ($rec->coMoq) {
             $row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
-        }
+            if($uom) {
+                $row->coMoq .= '&nbsp;' . $uom;
+            }
+         } else {
+             $row->coMoq = null;
+         }
         
         if ($rec->coDriver) {
             if (marketing_Inquiries2::haveRightFor('new')) {
@@ -249,16 +285,6 @@ class eshop_Products extends core_Master
                 if (cls::load($rec->coDriver, true)) {
                     Request::setProtected('drvId,protos,moq,lg,measureId');
                     $url = array('marketing_Inquiries2', 'new', 'title' => $rec->name, 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'ret_url' => true);
-                    $uomId = null;
-                    $defUom = cat_Setup::get('DEFAULT_MEASURE_ID');
-                    if (!$defUom) {
-                        $defUom = null;
-                    }
-                    
-                    setIfNot($uomId, $mvc->getUomFromDriver($rec), $rec->measureId, $defUom);
-                    if (empty($rec->proto) && !isset($uomId)) {
-                        $uomId = cat_UoM::fetchBySysId('pcs')->id;
-                    }
                     $url['measureId'] = $uomId;
                     $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn");
                     Request::removeProtected('drvId,protos,moq,lg,measureId');

@@ -234,14 +234,13 @@ class marketing_Inquiries2 extends embed_Manager
                 }
             }
         }
-        
+    
         $caption = 'Количества|*';
         if (isset($data->Driver)) {
+            $uom = '';
             $uomId = $form->rec->measureId;
-            if (isset($uomId) && $uomId != cat_UoM::fetchBySysId('pcs')->id) {
+            if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || $form->rec->quantityCount > 0)) {
                 $uom = cat_UoM::getShortName($uomId);
-            } else {
-                $uom = '';
             }
             
             if (isset($form->rec->moq)) {
@@ -253,13 +252,16 @@ class marketing_Inquiries2 extends embed_Manager
         // Добавяме полета за количество според параметрите на продукта
         $quantityCount = &$form->rec->quantityCount;
         
-        if (!isset($quantityCount)) {
-            $quantityCount = 3;
-        } elseif ($quantityCount > 3) {
+        if ($quantityCount > 3) {
             $quantityCount = 3;
         } elseif ($quantityCount == 0) {
-            $form->setReadOnly('quantity1', $form->rec->moq);
-            $form->setField('quantity1', "input,caption={$caption}->Количество|1");
+            if($form->rec->moq) {
+                $form->setReadOnly('quantity1', $form->rec->moq);
+                $form->setField('quantity1', "input,unit={$uom},caption={$caption}->Количество|1");
+            } else {
+                $form->setDefault('quantity1', 1);
+                $form->setField('quantity1', "input=hidden");
+            }
         }
         
         for ($i = 1; $i <= $quantityCount; $i++) {
