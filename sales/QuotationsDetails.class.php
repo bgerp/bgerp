@@ -476,9 +476,13 @@ class sales_QuotationsDetails extends doc_Detail
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $priceAtDate = (isset($masterRec->date)) ? $masterRec->date : dt::today();
         
-        if ($rec->productId) {
+        if ($rec->productInfo) {
+            $productInfo = $rec->productInfo;
+        } elseif($rec->productId) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            
+        }
+
+        if($rec->productId) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
             $rec->vatPercent = $vat;
             $packs = cat_Products::getPacks($rec->productId);
@@ -493,7 +497,6 @@ class sales_QuotationsDetails extends doc_Detail
             }
             
             // Ако артикула не е складируем, скриваме полето за мярка
-            $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($productInfo->meta['canStore'])) {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('packQuantity', "unit={$measureShort}");
@@ -514,7 +517,7 @@ class sales_QuotationsDetails extends doc_Detail
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            
+
             // Проверка дали к-то е под МКП
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
             

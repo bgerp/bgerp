@@ -1011,7 +1011,11 @@ abstract class deals_Helper
      */
     public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity')
     {
-        $moq = cat_Products::getMoq($productId);
+        $moq = $form->rec->_moq;
+
+        if(!$moq) {
+            $moq = cat_Products::getMoq($productId);
+        }
         
         if (isset($moq) && $quantity < $moq) {
             $moq /= $quantityInPack;

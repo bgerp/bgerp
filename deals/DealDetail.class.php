@@ -272,9 +272,13 @@ abstract class deals_DealDetail extends doc_Detail
         
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         
-        if ($rec->productId) {
+        if ($rec->productInfo) {
+            $productInfo = $rec->productInfo;
+        } elseif($rec->productId) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            
+        }
+
+        if ($rec->productId) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
             $packs = cat_Products::getPacks($rec->productId);
             $form->setOptions('packagingId', $packs);
