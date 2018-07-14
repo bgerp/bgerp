@@ -149,7 +149,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             
             // Продукта ще се създава, няма да се избира
             $form->setField('productId', 'input=none');
-            
+ 
             if (isset($cloneRec)) {
                 $form->setField('packQuantity', 'mandatory');
                 
@@ -250,9 +250,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         $form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
                     }
                     
-                    if ($Driver->getDefaultUomId()) {
-                        $defaultUomId = $Driver->getDefaultUomId();
-                        $form->setDefault('measureId', $defaultUomId);
+                    if ($Driver->getDefaultUomId()) { 
+                        $driverUomId = $Driver->getDefaultUomId();
+                        $form->rec->measureId = $driverUomId;
                         $form->setField('measureId', 'input=hidden');
                     } else {
                         $measureOptions = cat_UoM::getUomOptions();
@@ -272,12 +272,21 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 }
                 
                 $form->input();
+ 
+                if($driverUomId) {
+                    $form->rec->measureId = $driverUomId;
+                }
+
                 if (empty($form->rec->packagingId)) {
-                    $form->rec->packagingId = $form->rec->measureId;
+                    $form->rec->packagingId =  $form->rec->measureId;
                 }
                 
                 $Products->invoke('AfterInputEditForm', array($form));
+
+                $form->rec->_moq = $Driver->getMoq();
+                $form->rec->productInfo = clone($form->rec);
                 $mvc->invoke('AfterInputEditForm', array($form));
+
                 if ($form->rec->packagingId) {
                     $form->setReadOnly('packagingId');
                 }
@@ -318,9 +327,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             // След събмит
             if ($form->isSubmitted()) {
                 $rec = $form->rec;
-                
+                 
                 if (isset($cloneRec)) {
-                    $rec->proto = cat_Products::fetchField($rec->productId, 'proto');
+                    $rec->proto = cat_Products::fetchField($cloneRec->productId, 'proto');
                 }
                 
                 $arrRec = (array) $rec;
