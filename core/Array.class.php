@@ -200,11 +200,6 @@ class core_Array
         expect($dir == 'desc' || $dir == 'asc', $dir);
         
         uasort($array, function ($a, $b) use ($field, $dir, $mode) {
-            if (is_string($a) || is_string($b)) {
-                
-                return 0;
-            }
-            
             $a = (object) $a;
             expect(property_exists($a, $field), $a);
             

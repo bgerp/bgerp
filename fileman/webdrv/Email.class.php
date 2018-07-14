@@ -87,7 +87,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         } else {
             
             // Таба по подразбиране да е текстовия
-            $tabsArr['__defaultTab'] = 'text';
+            $tabsArr['__defaultTab']->name = 'text';
         }
         
         
