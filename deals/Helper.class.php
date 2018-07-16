@@ -1016,8 +1016,8 @@ abstract class deals_Helper
         if(!$moq) {
             $moq = cat_Products::getMoq($productId);
         }
-        
-        if (isset($moq) && $quantity < $moq) {
+
+        if (isset($moq) && isset($quantity) && $quantity < $moq) {
             $moq /= $quantityInPack;
             $verbal = core_Type::getByName('double(smartRound)')->toVerbal($moq);
             if (haveRole('powerUser')) {

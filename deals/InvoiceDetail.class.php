@@ -514,7 +514,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
             if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
-                $form->setDefault('quantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $form->setDefault('quantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 if (empty($rec->quantity)) {
                     $form->setError('quantity', 'Не е въведено количество');
                 }
