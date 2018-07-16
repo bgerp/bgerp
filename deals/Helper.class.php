@@ -546,7 +546,7 @@ abstract class deals_Helper
      * @param NULL|float   $discount
      * @param NULL|float   $tolerance
      * @param NULL|int     $term
-     * @param NULL|varchar $batch
+     * @param NULL|string $batch
      *
      * @return FALSE|stdClass
      */
@@ -699,16 +699,17 @@ abstract class deals_Helper
      *
      * @param int   $productId
      * @param int   $storeId
-     * @param float $quantity
+     * @param double $quantity
+     * @param string state
      *
      * @return string $hint
      */
-    public static function getQuantityHint($productId, $storeId, $quantity)
+    public static function getQuantityHint($productId, $storeId, $quantity, $state)
     {
         $hint = '';
         $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
         $quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
-        
+  
         if (is_null($quantityInStore)) {
             $hint = 'Разполагаемо количество в склада: н.д.';
         } elseif ($quantityInStore < 0 || ($quantityInStore - $quantity) < 0) {
