@@ -208,7 +208,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $storeId = $data->masterData->rec->storeId;
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-            $warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
+            $warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state);
             
             if (strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending'))) {
                 $row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', false, null, 'class=doc-negative-quantiy');
