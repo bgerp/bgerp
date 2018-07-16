@@ -527,6 +527,10 @@ class core_App
         
         $url = toUrl($url, $absolute ? 'absolute' : 'relative');
         
+        if (Request::get('_bp') == 'redirect') {
+            bp($url);
+        }
+        
         if (Request::get('ajax_mode')) {
             
             // Ако сме в Ajax_mode редиректа става чрез Javascript-а
