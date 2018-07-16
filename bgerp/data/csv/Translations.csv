@@ -2742,10 +2742,10 @@ en,прогрес,progress
 en,Продължи,Continue
 en,за,for
 en,Вижте цялата нишка,See whole thread
-en,Повече от едномерен масив в URL-то не се поддържа
-en,Очаква масив
+en,Повече от едномерен масив в URL-то не се поддържа,More than one-dimensional array in URL is not supported
+en,Очаква масив,Expected array
 en,Артикули в е-магазина
-en,Е-Магазин|E-Shop
+en,Е-Магазин,E-Shop
 en,Е-артикул,E-Product
 en,Вече има продукт със същия код,There is product with the same code
 en,Несъществуващ клас,Non-existing class
@@ -2753,7 +2753,7 @@ en,Преглед във външната част,Veiw in the outer web site
 en,Нов продукт,New product
 en,Листване в е-магазина,Listing in the e-shop
 en,Добавяне към,Add to
-en,Нямате права да свързвате артикула,You do not have sufficient rights to create the article 
+en,Нямате права да свързвате артикула,You do not have sufficient rights to create the article
 en,Артикулът вече е свързан с е-магазина на текущия домейн,The product is already linked with current domain e-shop
 en,Артикулът е свързан с онлайн магазина,The product is linked with e-shop
 en,Листване на артикула към е-магазина,Listing of product in the e-ahop
