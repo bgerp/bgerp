@@ -719,10 +719,12 @@ abstract class deals_Helper
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
         $class = 'doc-warning-quantiy';
-       
+        $makeLink = true;
+        
         if ($futureQuantity < 0 && $freeQuantity < 0){
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!!!";
             $class = 'doc-negative-quantiy';
+            $makeLink = false;
         } elseif($futureQuantity < 0 && $freeQuantity > 0){
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!!! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
@@ -733,6 +735,12 @@ abstract class deals_Helper
         
         if(!empty($hint)){
             $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
+            
+            // Линк към наличното в склада ако има права
+            if($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()){
+                $productName = cat_Products::getVerbal($productId, 'name');
+                $html = ht::createLinkRef($html, array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName));
+            }
         }
     }
     
