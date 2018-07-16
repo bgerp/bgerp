@@ -370,7 +370,9 @@ class core_App
         
         // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
-        
+        if (core_DateTime::getMicrotime() - core_Debug::$startMicroTime > 4) {
+            expect(false);
+        }
         // Спираме изпълнението и излизаме
         self::exitScript();
     }
@@ -526,6 +528,10 @@ class core_App
         }
         
         $url = toUrl($url, $absolute ? 'absolute' : 'relative');
+        
+        if (Request::get('_bp') == 'redirect') {
+            bp($url);
+        }
         
         if (Request::get('ajax_mode')) {
             

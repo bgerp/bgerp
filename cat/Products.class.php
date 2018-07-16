@@ -1775,7 +1775,7 @@ class cat_Products extends embed_Manager
     {
         // Ако в името имаме '||' го превеждаме
         $name = $rec->name;
-        if (strpos($rec->name, '||') !== false) {
+        if (strpos($rec->name, '||') !== false && !Mode::is('forSearch')) {
             $name = tr($rec->name);
         }
         

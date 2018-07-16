@@ -4301,6 +4301,10 @@ div.location.public {
   color: red;
   font-weight: bold; }
 
+.doc-warning-quantiy {
+  color: #d66737;
+  font-weight: bold; }
+
 /*
  * Стилове за `sens`
  */
