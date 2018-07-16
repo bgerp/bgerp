@@ -89,7 +89,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         $sysId = acc_Accounts::fetchField($dRec->accountId, 'systemId');
         $bQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceRec->id, $sysId);
-        $bQuery->where('#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL');
+        //$bQuery->where('#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL');
         
         //$bQuery->where("#ent1Id = 10405 AND #ent2Id = 10509");
         
