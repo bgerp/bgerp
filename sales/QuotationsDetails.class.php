@@ -472,7 +472,7 @@ class sales_QuotationsDetails extends doc_Detail
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        $rec = &$form->rec;
+        $rec = &$form->rec; 
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $priceAtDate = (isset($masterRec->date)) ? $masterRec->date : dt::today();
         
@@ -508,7 +508,7 @@ class sales_QuotationsDetails extends doc_Detail
         if ($form->isSubmitted()) {
             if (!isset($form->rec->packQuantity)) {
                 $form->rec->defQuantity = true;
-                $form->setDefault('packQuantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 if (empty($rec->packQuantity)) {
                     $form->setError('packQuantity', 'Не е въведено количество');
                 }
