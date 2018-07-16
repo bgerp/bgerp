@@ -151,7 +151,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders,crm_ContragentAccRegIntf';
     
     
     /**
