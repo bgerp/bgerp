@@ -194,11 +194,8 @@ class sales_SalesDetails extends deals_DealDetail
             $pInfo = cat_Products::getProductInfo($rec->productId);
             
             if ($storeId = $masterRec->shipmentStoreId) {
-                if (isset($pInfo->meta['canStore']) && in_array($masterRec->state, array('draft', 'pending'))) {
-                    $warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
-                    if (strlen($warning)) {
-                        $row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', false, null, 'class=doc-negative-quantiy');
-                    }
+                if (isset($pInfo->meta['canStore'])) {
+                    deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $masterRec->state);
                 }
             }
             

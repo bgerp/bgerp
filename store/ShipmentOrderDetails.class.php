@@ -208,11 +208,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $storeId = $data->masterData->rec->storeId;
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-            $warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state);
-            
-            if (strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending'))) {
-                $row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', false, null, 'class=doc-negative-quantiy');
-            }
+            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state);
             
             if ($rec->price < cat_Products::getSelfValue($rec->productId, null, $rec->quantity)) {
                 if (!core_Users::haveRole('partner') && isset($row->packPrice)) {

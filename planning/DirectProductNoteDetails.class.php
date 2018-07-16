@@ -328,10 +328,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                     continue;
                 }
                 
-                $warning = deals_Helper::getQuantityHint($rec->productId, $rec->storeId, $rec->quantity);
-                if (strlen($warning) && in_array($data->masterData->rec->state, array('draft', 'pending'))) {
-                    $row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', false, null, 'class=doc-negative-quantiy');
-                }
+                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state);
             }
         }
     }
