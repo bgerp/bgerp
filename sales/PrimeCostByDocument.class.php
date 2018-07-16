@@ -151,6 +151,8 @@ class sales_PrimeCostByDocument extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             try {
                 $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);

@@ -806,7 +806,7 @@ class core_App
         }
         
         // Очакваме, че параметъра е масив
-        expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
+        expect(is_array($params), $params, 'toUrl($params) Очаква масив');
         
         $Request = core_Cls::get('core_Request');
         
@@ -1035,6 +1035,29 @@ class core_App
     
     
     /**
+     * Връща масив с пътищата до всички репозиторита, които участват в системата
+     *
+     * @return array
+     */
+    public static function getRepos()
+    {
+        if (defined('EF_PRIVATE_PATH')) {
+            $paths = EF_PRIVATE_PATH . ';' . EF_APP_PATH;
+        } else {
+            $paths = EF_APP_PATH;
+        }
+        
+        $pathsArr = explode(';', str_replace('\\', '/', $paths));
+        $pathsArr = array_filter($pathsArr, function ($value) {
+            
+            return $value !== '';
+        });
+        
+        return $pathsArr;
+    }
+    
+    
+    /**
      * Тази функция определя пълния път до файла.
      * Като аргумент получава последната част от името на файла
      * Файла се търси в EF_PRIVATE_PATH, EF_APP_PATH
@@ -1050,13 +1073,9 @@ class core_App
             return $shortPath;
         }
         
-        if (defined('EF_PRIVATE_PATH')) {
-            $pathsArr = array(EF_PRIVATE_PATH, EF_APP_PATH);
-        } else {
-            $pathsArr = array(EF_APP_PATH);
-        }
+        $repos = self::getRepos();
         
-        foreach ($pathsArr as $base) {
+        foreach ($repos as $base) {
             $fullPath = $base . '/' . $shortPath;
             
             if (@is_readable($fullPath)) {

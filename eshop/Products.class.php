@@ -172,8 +172,8 @@ class eshop_Products extends core_Master
         
         return $uomId;
     }
-
-
+    
+    
     /**
      * Връща id на мярката по подразбиране
      */
@@ -182,19 +182,19 @@ class eshop_Products extends core_Master
         $rec = self::fetchRec($rec);
         
         $uomId = self::getUomFromDriver($rec);
-
-        if(!$uomId) {
+        
+        if (!$uomId) {
             $uomId = $rec->measureId;
         }
-
-        if(!$uomId) {
-            $uomId =  cat_Setup::get('DEFAULT_MEASURE_ID');
+        
+        if (!$uomId) {
+            $uomId = cat_Setup::get('DEFAULT_MEASURE_ID');
         }
-
-        if(!$uomId) {
+        
+        if (!$uomId) {
             $uomId = cat_UoM::fetchBySysId('pcs')->id;
         }
-
+        
         return $uomId;
     }
     
@@ -231,7 +231,7 @@ class eshop_Products extends core_Master
             $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
             
             if (strlen($rec->code) && ($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
-                $form->setError('code', 'Повторение на кода със съществуващ продукт: |* <strong>' . $mvc->getVerbal($rec, 'name') . '</strong>');
+                $form->setError('code', 'Вече има продукт със същия код|*: <strong>' . $mvc->getVerbal($rec, 'name') . '</strong>');
             }
         }
     }
@@ -242,7 +242,7 @@ class eshop_Products extends core_Master
      */
     public function prepareGroupList_($data)
     {
-        $data->row = $this->recToVerbal($data->rec);  
+        $data->row = $this->recToVerbal($data->rec);
     }
     
     
@@ -254,7 +254,7 @@ class eshop_Products extends core_Master
         $row->name = tr($row->name);
         
         $uomId = self::getUomId($rec);
- 
+        
         // Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
         if (empty($rec->coMoq) && isset($rec->coDriver)) {
             if (cls::load($rec->coDriver, true)) {
@@ -265,18 +265,18 @@ class eshop_Products extends core_Master
                 }
             }
         }
-
+        
         // Определяме, ако има мярката на продукта
         $uom = cat_UoM::getShortName($uomId);
-
+        
         if ($rec->coMoq) {
             $row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
-            if($uom) {
+            if ($uom) {
                 $row->coMoq .= '&nbsp;' . $uom;
             }
-         } else {
-             $row->coMoq = null;
-         }
+        } else {
+            $row->coMoq = null;
+        }
         
         if ($rec->coDriver) {
             if (marketing_Inquiries2::haveRightFor('new')) {
@@ -301,11 +301,11 @@ class eshop_Products extends core_Master
             $row->showParams = $mvc->getFieldType('showParams')->toVerbal(keylist::fromArray($params));
         }
         
-        if (isset($fields['-list'])){
-        	if (haveRole('powerUser') && $rec->state != 'closed') {
-        		core_RowToolbar::createIfNotExists($row->_rowTools);
-        		$row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
-        	}
+        if (isset($fields['-list'])) {
+            if (haveRole('powerUser') && $rec->state != 'closed') {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
+            }
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);

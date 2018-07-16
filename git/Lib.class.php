@@ -28,9 +28,9 @@ class git_Lib
      */
     private static function cmdExec($cmd, &$lines, $path)
     {
-        $path = escapeshellarg($path . '/.git');
+        $path = escapeshellarg($path);
         
-        $c = "git --git-dir=${path} {$cmd} 2>&1";
+        $c = "git -C ${path} {$cmd} 2>&1";
         
         exec($c, $lines, $returnVar);
         
@@ -378,5 +378,35 @@ class git_Lib
         curl_close($ch);
         
         return $result;
+    }
+    
+    
+    /**
+     * Връща масив с файловете, които са променени в посоченото репозитори
+     *
+     * @param string  $repoPath          - път до git репозитори
+     * @param array() $log               - масив с логове
+     * @param bool    $includeLastCommit - да се включат ли и файловете от последния комит
+     *
+     * @return array - Масив с относителни пътища до променените файлове
+     */
+    public static function getDiffFiles($repoPath, &$log, $includeLastCommit = false)
+    {
+        if ($includeLastCommit) {
+            $command = 'HEAD~1 diff --name-only';
+        } else {
+            $command = 'diff --name-only';
+        }
+        
+        // Първият ред съдържа резултата
+        if (self::cmdExec($command, $res, $repoPath)) {
+            
+            return $res;
+        }
+        
+        $repoName = basename($repoPath);
+        $log[] = "[{$repoName}]: Неуспешно извличане на променените файлове";
+        
+        return false;
     }
 }
