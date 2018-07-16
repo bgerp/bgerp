@@ -68,7 +68,7 @@
                      				
                                     <!--ET_BEGIN termDate-->
                                     <tr>
-                                        <td>|Очаквано на|*: </td>
+                                        <td class="nowrap">|Очаквано на|*: </td>
                                         <td>[#termDate#]</td>
                                     </tr>
                                     <!--ET_END termDate-->
