@@ -312,6 +312,42 @@ class core_Query extends core_FieldSet
         
         return $this;
     }
+
+
+    /**
+     * Преброява срещанията на всяко от изброените id-та в полето keylistName на редовете от заявката
+     *
+     * @param string $keylistName името на keylist полето
+     * @param array  $ids         масив с id-та, които трябва да се изброят. Ако не се посочат - броят се всички от модела
+     *
+     * @return array масив $id => брой записи
+     */
+    public function countKeylist($keylistName, $ids = NULL)
+    {
+        if($ids === NULL) {
+            $type = $this->getFieldType($keylistName);
+            $kMvc = $type->params['mvc'];
+            $kQuery = $kMvc::getQuery();
+            $kQuery->show('id');
+            while($kRec = $kQuery->fetch()) {
+                $ids[$kRec->id] = $kRec->id;
+            }
+        }
+
+        $mysqlKeylistName = $this->getMysqlField($keylistName);
+        foreach($ids as $id) {
+            $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', $mysqlKeylistName) > 0)");
+        }
+        $rec = $this->fetch();
+
+        $res = array();
+        foreach($ids as $id) {
+            $name = $keylistName . '_cnt_' . $id;
+            $res[$id] = $rec->{$name};
+        }
+
+        return $res;
+    }
     
     
     /**
