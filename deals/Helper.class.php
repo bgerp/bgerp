@@ -697,28 +697,43 @@ abstract class deals_Helper
     /**
      * Връща хинт с количеството в склада
      *
+     * @param mixed $html
      * @param int   $productId
      * @param int   $storeId
      * @param double $quantity
      * @param string state
      *
-     * @return string $hint
+     * @return void
      */
-    public static function getQuantityHint($productId, $storeId, $quantity, $state)
+    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state)
     {
+        if (!in_array($state, array('draft', 'pending'))) return;
+        
         $hint = '';
-        $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
-        $quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
-  
-        if (is_null($quantityInStore)) {
-            $hint = 'Разполагаемо количество в склада: н.д.';
-        } elseif ($quantityInStore < 0 || ($quantityInStore - $quantity) < 0) {
-            $quantityInStore = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInStore);
-            $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-            $hint = "Разполагаемо количество в склада|*: {$quantityInStore} {$measureName}";
+        $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+        $Double = core_Type::getByName('double(smartRound)');
+        
+        $freeQuantityOriginal = $stRec->quantity - $stRec->reservedQuantity;
+        $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
+        $futureQuantity = $stRec->quantity - $quantity;
+        $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
+        $inStockVerbal = $Double->toVerbal($stRec->quantity);
+        $class = 'doc-warning-quantiy';
+       
+        if ($futureQuantity < 0 && $freeQuantity < 0){
+            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!!!";
+            $class = 'doc-negative-quantiy';
+        } elseif($futureQuantity < 0 && $freeQuantity > 0){
+            $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!!! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+        } elseif($futureQuantity >= 0 && $freeQuantity < 0){
+            $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+            $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
         }
         
-        return $hint;
+        if(!empty($hint)){
+            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
+        }
     }
     
     
@@ -730,7 +745,7 @@ abstract class deals_Helper
      *
      * @param array  $array        - масив от обекти с ключ ид на перо на валута и полета amount и quantity
      * @param string $currencyCode - към коя валута да се конвертират
-     * @param date   $date         - дата
+     * @param DateTime   $date         - дата
      *
      * @return array $res
      *               ->quantity - Количество във подадената валута
