@@ -223,8 +223,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         if ($rec->contragent || $rec->crmGroup) {
             
-            
-            
             $contragentsArr = array();
             $contragentsId = array();
             
@@ -255,9 +253,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 $query->in('coverId', $contragentsId);
                 
-                $query->in('groupList', $contragentsId,false,true);
+                $query->in('groupList', $groupsArr,false,true);
                 
             }
+        
+            if ($rec->crmGroup && !$rec->contragent) {
+                
+                $groupsArr = keylist::toArray($rec->crmGroup);
+                
+                $query->in('groupList', $groupsArr);
+                
+            }
+        
         }
         
         if (isset($rec->group)) {
