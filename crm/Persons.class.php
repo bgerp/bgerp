@@ -864,7 +864,7 @@ class crm_Persons extends core_Master
     public static function on_Shutdown($mvc)
     {
         if ($mvc->updateGroupsCnt) {
-            $mvc->updateGroupsCnt();
+            crm_Groups::updateGroupsCnt($mvc->className, 'personsCnt');
         }
         
         if (count($mvc->updatedRecs)) {
@@ -975,56 +975,11 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Обновява информацията за количеството на визитките в групите
-     */
-    public function updateGroupsCnt()
-    {
-        $query = $this->getQuery();
-        
-        $groupsCnt = array();
-        
-        while ($rec = $query->fetch()) {
-            $keyArr = keylist::toArray($rec->groupList);
-            
-            foreach ($keyArr as $groupId) {
-                $gRec = crm_Groups::fetch($groupId);
-                if ($gRec->parentId) {
-                    unset($keyArr[$gRec->parentId]);
-                }
-            }
-            
-            foreach ($keyArr as $groupId) {
-                $groupsCnt[$groupId]++;
-            }
-        }
-        
-        // Вземаме id' тата на всички групи
-        $groupsArr = crm_Groups::getGroupRecsId();
-        
-        // Обхождаме масива
-        foreach ($groupsArr as $id) {
-            
-            // Записа, който ще обновим
-            $groupsRec = new stdClass();
-            
-            // Броя на потребителите в съответната група
-            $groupsRec->personsCnt = (int) $groupsCnt[$id];
-            
-            // id' то на групата
-            $groupsRec->id = $id;
-            
-            // Обновяваме броя на потребителите
-            crm_Groups::save($groupsRec, 'personsCnt');
-        }
-    }
-    
-    
-    /**
      * Ако е празна таблицата с контактите я инициализираме с един нов запис
      * Записа е с id=1 и е с данните от файла bgerp.cfg.php
      *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
+     * @param crm_Persons $mvc
+     * @param stdClass    $res
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {

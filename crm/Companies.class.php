@@ -1305,7 +1305,7 @@ class crm_Companies extends core_Master
     public static function on_Shutdown($mvc)
     {
         if ($mvc->updateGroupsCnt) {
-            $mvc->updateGroupsCnt();
+            crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');
         }
         
         if (count($mvc->updatedRecs)) {
@@ -1330,50 +1330,6 @@ class crm_Companies extends core_Master
         foreach ($query->getDeletedRecs() as $rec) {
             // изтриваме всички правила за рутиране, свързани с визитката
             email_Router::removeRules('company', $rec->id);
-        }
-    }
-    
-    
-    /**
-     * Обновява информацията за количеството на визитките в групите
-     */
-    public function updateGroupsCnt()
-    {
-        $query = $this->getQuery();
-        $groupsCnt = array();
-        
-        while ($rec = $query->fetch()) {
-            $keyArr = keylist::toArray($rec->groupList);
-            
-            foreach ($keyArr as $groupId) {
-                $gRec = crm_Groups::fetch($groupId);
-                if ($gRec->parentId) {
-                    unset($keyArr[$gRec->parentId]);
-                }
-            }
-            
-            foreach ($keyArr as $groupId) {
-                $groupsCnt[$groupId]++;
-            }
-        }
-        
-        // Вземаме id' тата на всички групи
-        $groupsArr = crm_Groups::getGroupRecsId();
-        
-        // Обхождаме масива
-        foreach ($groupsArr as $id) {
-            
-            // Записа, който ще обновим
-            $groupsRec = new stdClass();
-            
-            // Броя на фирмите в съответната група
-            $groupsRec->companiesCnt = (int) $groupsCnt[$id];
-            
-            // id' то на групата
-            $groupsRec->id = $id;
-            
-            // Обновяваме броя на фирмите
-            crm_Groups::save($groupsRec, 'companiesCnt');
         }
     }
     
