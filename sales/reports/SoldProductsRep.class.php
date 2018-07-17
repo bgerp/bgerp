@@ -65,7 +65,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
-        $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group');
+        $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
         
         // $fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
     }
@@ -145,6 +145,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
         
+        asort($suggestions);
+        
         $form->setSuggestions('contragent', $suggestions);
     }
 
@@ -170,8 +172,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        
-        $query->EXT('docState', 'doc_Containers', 'externalName=state,externalKey=containerId');
         
         if (($rec->compare) == 'no') {
             $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
@@ -211,7 +211,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
         }
         
-        $query->where("#docState != 'rejected'");
+        $query->where("#state != 'rejected'");
         
         if (isset($rec->dealers)) {
             if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
@@ -240,9 +240,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 $query->in('coverId', $contragentsId);
             }
-            if ($rec->crmGroup && $rec->contragent) {
+            
+            if ($rec->crmGroup && !$rec->contragent) {
                 
-                $groupsArr = keylist::toArray($rec->crmGroup);
+                $query->likeKeylist('groupList', $rec->crmGroup);
+            }
+            
+            if ($rec->crmGroup && $rec->contragent) {
                 
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
@@ -253,18 +257,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 $query->in('coverId', $contragentsId);
                 
-                $query->in('groupList', $groupsArr,false,true);
-                
+                $query->likeKeylist('groupList', $rec->crmGroup);
             }
-        
-            if ($rec->crmGroup && !$rec->contragent) {
-                
-                $groupsArr = keylist::toArray($rec->crmGroup);
-                
-                $query->in('groupList', $groupsArr);
-                
-            }
-        
         }
         
         if (isset($rec->group)) {
@@ -353,10 +347,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $quantity = (-1) * $recPrime->quantity;
                     
                     $primeCost = (-1) * $recPrime->sellCost * $recPrime->quantity;
+                    
+                    $delta = (-1) * $recPrime->delta;
                 } else {
                     $quantity = $recPrime->quantity;
                     
                     $primeCost = $recPrime->sellCost * $recPrime->quantity;
+                    
+                    $delta = $recPrime->delta;
                 }
             }
             
@@ -371,7 +369,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     'quantityPrevious' => $quantityPrevious,
                     'quantityLastYear' => $quantityLastYear,
                     'primeCost' => $primeCost,
-                    'group' => cat_Products::fetchField($recPrime->productId, 'groups')
+                    'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
+                    'groupList' => $recPrime->groupList,
+                    'delta' => $delta
                 
                 );
             } else {
@@ -380,6 +380,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->quantityPrevious += $quantityPrevious;
                 $obj->quantityLastYear += $quantityLastYear;
                 $obj->primeCost += $primeCost;
+                $obj->delta += $delta;
             }
         }
         
@@ -449,6 +450,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         $fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
         
+        $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+        
         if ($export === true) {
             $fld->FLD('group', 'keylist(mvc=cat_groups,select=name)', 'caption=Група');
         }
@@ -488,7 +491,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         foreach (array(
             'quantity',
-            'primeCost'
+            'primeCost',
+            'delta'
         ) as $fld) {
             $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
             if ($dRec->{$fld} < 0) {
@@ -666,21 +670,37 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
-            
+            $marker = 0;
             if (isset($data->rec->crmGroup)) {
                 
-              
-                
                 foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
-                    $groupVerb .= (crm_Groups::getTitleById($group) . ', ');
+                    
+                    $marker++;
+                    
+                    $groupVerb .= (crm_Groups::getTitleById($group));
+                    
+                    if ((count((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
+                        $groupVerb .= ', ';
+                    }
                 }
                 
                 $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
             }
             
+            $marker = 0;
+            
             if (isset($data->rec->contragent)) {
+                
                 foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
-                    $contragentVerb .= (doc_Folders::getTitleById($contragent) . ', ');
+                    
+                    $marker++;
+                    
+                    $contragentVerb .= (doc_Folders::getTitleById($contragent));
+                    
+                    if ((count(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
+                        
+                        $contragentVerb .= ', ';
+                    }
                 }
                 
                 $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
@@ -694,7 +714,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         if (isset($data->rec->article)) {
-            $fieldTpl->append($data->row->art, 'art');
+            $fieldTpl->append($data->rec->art, 'art');
         }
         
         if (isset($data->rec->compare)) {
