@@ -167,6 +167,45 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Обновява информацията за количеството на визитките в групите
+     *
+     * @param string $clsName
+     * @param string $fieldName
+     */
+    public static function updateGroupsCnt($clsName, $fieldName)
+    {
+        if (!$clsName) {
+            
+            return ;
+        }
+        
+        $query = $clsName::getQuery();
+        $gCntArr = $query->countKeylist('groupList');
+        
+        if (!empty($gCntArr)) {
+            ksort($gCntArr);
+        }
+        
+        foreach ($gCntArr as $gId => $cCnt) {
+            $gRec = crm_Groups::fetch($gId);
+            if ($gRec->parentId) {
+                $gCntArr[$gRec->parentId] -= $cCnt;
+            }
+        }
+        
+        foreach ($gCntArr as $gId => $cCnt) {
+            $grRec = new stdClass();
+            $grRec->id = $gId;
+            if ($cCnt < 0) {
+                $cCnt = 0;
+            }
+            $grRec->{$fieldName} = $cCnt;
+            crm_Groups::save($grRec, $fieldName);
+        }
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
