@@ -284,7 +284,8 @@ class eshop_Products extends core_Master
                 $lg = cms_Content::getLang();
                 if (cls::load($rec->coDriver, true)) {
                     Request::setProtected('drvId,protos,moq,lg,measureId');
-                    $url = array('marketing_Inquiries2', 'new', 'title' => $rec->name, 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'ret_url' => true);
+                    $quantityCount = empty($rec->quantityCount) ? 0 : $rec->quantityCount;
+                    $url = array('marketing_Inquiries2', 'new', 'title' => $rec->name, 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $quantityCount, 'moq' => $rec->coMoq, 'ret_url' => true);
                     $url['measureId'] = $uomId;
                     $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn");
                     Request::removeProtected('drvId,protos,moq,lg,measureId');
