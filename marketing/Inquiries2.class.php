@@ -234,9 +234,9 @@ class marketing_Inquiries2 extends embed_Manager
                 }
             }
         }
-    
+        
         $caption = 'Количества|*';
-        if (isset($data->Driver)) {
+        if (isset($data->Driver) || isset($form->rec->innerClass)) {
             $uom = '';
             $uomId = $form->rec->measureId;
             if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || $form->rec->quantityCount > 0)) {
@@ -251,21 +251,23 @@ class marketing_Inquiries2 extends embed_Manager
         
         // Добавяме полета за количество според параметрите на продукта
         $quantityCount = &$form->rec->quantityCount;
-        
+       
         if ($quantityCount > 3) {
             $quantityCount = 3;
-        } elseif ($quantityCount == 0) {
+        } elseif (isset($quantityCount) && $quantityCount == 0) {
             if($form->rec->moq) {
                 $form->setReadOnly('quantity1', $form->rec->moq);
-                $form->setField('quantity1', "input,unit={$uom},caption={$caption}->Количество|1");
+                $form->setField('quantity1', "input,unit={$uom},caption={$caption}->Количество|* 1");
             } else {
                 $form->setDefault('quantity1', 1);
                 $form->setField('quantity1', "input=hidden");
             }
+        } elseif(!isset($quantityCount)){
+            $quantityCount = 3;
         }
         
         for ($i = 1; $i <= $quantityCount; $i++) {
-            $fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
+            $fCaption = ($quantityCount == 1) ? 'Количество' : "Количество|* {$i}";
             $form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption}");
         }
         
