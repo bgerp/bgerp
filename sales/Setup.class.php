@@ -341,7 +341,7 @@ class sales_Setup extends core_ProtoSetup
      * Зареждане на данни
      */
     public function loadSetupData($itr = '')
-    {setContragentFieldKeylist
+    {
         $res = parent::loadSetupData($itr);
         
         // Ако няма посочени от потребителя сметки за синхронизация
