@@ -223,10 +223,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         if ($rec->contragent || $rec->crmGroup) {
             
-            if (!is_null($rec->crmGroup)) {
-                
-                unset($rec->contragent);
-            }
+            
             
             $contragentsArr = array();
             $contragentsId = array();
@@ -235,7 +232,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
             $query->EXT('groupList', 'crm_Companies', 'externalFieldName=folderId, externalKey=folderId');
             
-            if (!$rec->crmGroup) {
+            if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
                 foreach ($contragentsArr as $val) {
@@ -245,11 +242,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 $query->in('coverId', $contragentsId);
             }
-            if ($rec->crmGroup) {
+            if ($rec->crmGroup && $rec->contragent) {
                 
                 $groupsArr = keylist::toArray($rec->crmGroup);
                 
-                $query->in('groupList', $contragentsId);
+                $contragentsArr = keylist::toArray($rec->contragent);
+                
+                foreach ($contragentsArr as $val) {
+                    
+                    $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                }
+                
+                $query->in('coverId', $contragentsId);
+                
+                $query->in('groupList', $contragentsId,false,true);
+                
             }
         }
         
@@ -655,7 +662,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             if (isset($data->rec->crmGroup)) {
                 
-                unset($data->rec->contragent);
+              
                 
                 foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
                     $groupVerb .= (crm_Groups::getTitleById($group) . ', ');
