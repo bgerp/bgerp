@@ -255,6 +255,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
     	'migrate::updateDeltaStates1',
+        'migrate::setContragentFieldKeylist',
     );
     
     
@@ -341,7 +342,7 @@ class sales_Setup extends core_ProtoSetup
      * Зареждане на данни
      */
     public function loadSetupData($itr = '')
-    {
+    {setContragentFieldKeylist
         $res = parent::loadSetupData($itr);
         
         // Ако няма посочени от потребителя сметки за синхронизация
@@ -405,4 +406,41 @@ class sales_Setup extends core_ProtoSetup
         $query = "UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id";
         $Deltas->db->query($query);
     }
+
+    /**
+     * Миграция за корекция на `contragent` полетата в keylist
+     */
+    public static function setContragentFieldKeylist()
+    {
+        $Reports = cls::get('frame2_Reports');
+        
+        $fQuery = $Reports::getQuery();
+        
+        $fQuery->where("#title = 'Продадени артикули'");
+        
+        while ($reportRec = $fQuery->fetch()){
+            
+            if(is_numeric($reportRec->driverRec['contragent']) && (!is_null($reportRec->driverRec['contragent']))){
+                
+                $contragentId=($reportRec->driverRec[contragent]);
+                
+                $reportRec->driverRec[contragent] = '|'.$contragentId.'|';
+                
+                try {
+                    
+                    $Reports->save_($reportRec,'data');
+               
+                } catch (Exception $e) {
+                    
+                    reportException($e);
+               
+                }
+                
+            }
+        
+        }
+        
+    }
+
+
 }
