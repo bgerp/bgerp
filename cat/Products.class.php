@@ -1285,20 +1285,14 @@ class cat_Products extends embed_Manager
      */
     private function updateGroupsCnt()
     {
-        $groupsCnt = array();
         $query = $this->getQuery();
+        $gCntArr = $query->countKeylist('groups');
         
-        while ($rec = $query->fetch()) {
-            $keyArr = keylist::toArray($rec->groups);
-            foreach ($keyArr as $groupId) {
-                $groupsCnt[$groupId]++;
-            }
-        }
-        
-        $groupQuery = cat_Groups::getQuery();
-        while ($grRec = $groupQuery->fetch()) {
-            $grRec->productCnt = (int) $groupsCnt[$grRec->id];
-            cat_Groups::save($grRec);
+        foreach ($gCntArr as $gId => $productCnt) {
+            $grRec = new stdClass();
+            $grRec->id = $gId;
+            $grRec->productCnt = $productCnt;
+            cat_Groups::save($grRec, 'productCnt');
         }
     }
     

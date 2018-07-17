@@ -110,7 +110,6 @@ class bglocal_Address extends core_MVC
         'levski' => 'Левски',
         'liaskovets' => 'Лясковец',
         'lom' => 'Лом',
-        'london' => 'Лондон',
         'lovech' => 'Ловеч',
         'lukovit' => 'Луковит',
         'lyaskovets' => 'Лясковец',
