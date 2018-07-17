@@ -218,7 +218,7 @@ class eshop_Carts extends core_Master
                 $addText->append($packagingName, 'packagingId');
                 $addText->append($productName, 'productName');
                 $addText->append($packQuantity, 'packQuantity');
-                
+
                 $msg = $addText->getContent();
                 $success = true;
             } catch (core_exception_Expect $e) {
@@ -235,12 +235,22 @@ class eshop_Carts extends core_Master
             $resObj = new stdClass();
             $resObj->func = 'html';
             $resObj->arg = array('id' => 'cart-external-status', 'html' => self::getStatus($cartId)->getContent(), 'replace' => true);
-            
+            if($success === true) {
+                $resObj2 = new stdClass();
+                $resObj2->func = 'Sound';
+                $resObj2->arg = array('soundOgg' => sbf('sounds/bell.ogg', ''),
+                    'soundMp3' => sbf('sounds/bell.mp3', ''),
+                );
+            } else {
+                $resObj2 = new stdClass();
+            }
+
+
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
             
-            $res = array_merge(array($resObj), (array) $statusData);
+            $res = array_merge(array($resObj, $resObj2), (array) $statusData);
             core_Lg::pop();
             
             return $res;
