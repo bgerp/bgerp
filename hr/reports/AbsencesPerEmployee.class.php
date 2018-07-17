@@ -125,6 +125,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     {
         $recs = array();
         $pRecs = array();
+        $arr = array();
         
         $typeOfAbsent = explode(',', $rec->type);
         
