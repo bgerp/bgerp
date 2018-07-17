@@ -306,16 +306,15 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             $period++;
         } while ($period <= $rec->numberOfPeriods);
         
-        // array_unshift($recs,(object) array(
         
-        // 'total' => 'Общо'
-        
-        // ));
-        
-        $recs[0] = (object) array(
+        $recs['total'] = (object) array(
             'total' => 'Общо'
         );
         
+        //asort($recs);
+        
+        
+       
         return $recs;
     }
 
