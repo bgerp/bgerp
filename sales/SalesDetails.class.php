@@ -223,6 +223,7 @@ class sales_SalesDetails extends deals_DealDetail
         if (isset($cRec)) {
             $rec->fee = $cRec->fee;
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
+            $rec->_transportExplained = $cRec->explain;
             $rec->syncFee = true;
         }
     }
@@ -235,7 +236,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
         // Синхронизиране на сумата на транспорта
         if ($rec->syncFee === true) {
-            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
+            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
         }
     }
     

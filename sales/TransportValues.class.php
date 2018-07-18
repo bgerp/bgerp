@@ -83,7 +83,7 @@ class sales_TransportValues extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'docId,recId,fee,deliveryTime';
+    public $listFields = 'docId,recId,fee,deliveryTime,explain';
     
     
     /**
@@ -96,6 +96,7 @@ class sales_TransportValues extends core_Manager
         $this->FLD('recId', 'int', 'mandatory,caption=Ид на реда');
         $this->FLD('fee', 'double', 'mandatory,caption=Сума на транспорта');
         $this->FLD('deliveryTime', 'time', 'mandatory,caption=Срок на доставка');
+        $this->FLD('explain', 'varchar(265)', 'mandatory,caption=Обяснение');
         
         $this->setDbUnique('docClassId,docId,recId');
         $this->setDbIndex('docClassId,docId');
@@ -155,6 +156,10 @@ class sales_TransportValues extends core_Manager
         
         if (isset($totalFee['deliveryTime'])) {
             $res['deliveryTime'] = $totalFee['deliveryTime'];
+        }
+        
+        if (!empty($totalFee['explain'])) {
+            $res['explain'] = $totalFee['explain'];
         }
         
         return $res;
@@ -244,7 +249,7 @@ class sales_TransportValues extends core_Manager
      *
      * @return void
      */
-    public static function sync($docClass, $docId, $recId, $fee, $deliveryTimeFromFee = null)
+    public static function sync($docClass, $docId, $recId, $fee, $deliveryTimeFromFee = null, $explained = null)
     {
         // Клас ид
         $classId = cls::get($docClass)->getClassId();
@@ -274,6 +279,10 @@ class sales_TransportValues extends core_Manager
                 $exRec->deliveryTime = $deliveryTimeFromFee;
             } else {
                 $exRec->deliveryTime = null;
+            }
+            
+            if(!empty($explained)){
+                $exRec->explain = $explained;
             }
             
             self::save($exRec);
@@ -661,6 +670,10 @@ class sales_TransportValues extends core_Manager
         
         // Ако има такъв към цената се добавя
         if (is_array($feeArr)) {
+            if(!empty($feeArr['explain'])){
+                $rec->_transportExplained = $feeArr['explain'];
+            }
+            
             if (isset($feeArr['deliveryTime'])) {
                 $rec->deliveryTimeFromFee = $feeArr['deliveryTime'];
             } else {
