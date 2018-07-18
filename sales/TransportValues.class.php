@@ -605,7 +605,7 @@ class sales_TransportValues extends core_Manager
         $toPcodeId = $toCountryId = null;
         
         // Извличане на държавата и кода
-        $location = isset($deliveryLocationId) ? $deliveryLocationId : $deliveryAddress;
+        $location = !empty($deliveryLocationId) ? $deliveryLocationId : $deliveryAddress;
         $codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $toPcodeId, $toCountryId, $location);
         $ourCompany = crm_Companies::fetchOurCompany();
         
