@@ -1004,7 +1004,7 @@ class eshop_Products extends core_Master
     public static function canLinkProduct($productId)
     {
         $productRec = cat_Products::fetch($productId, 'canSell,isPublic,state');
-        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
+        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
         
         return $res;
     }
