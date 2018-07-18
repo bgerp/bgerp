@@ -880,12 +880,16 @@ class eshop_Carts extends core_Master
      */
     private static function renderCartSummary($id, core_ET $tpl)
     {
+        $Double = core_Type::getByName('double(decimals=2)');
         $rec = self::fetchRec($id, '*', false);
         $row = self::recToVerbal($rec);
         $settings = cms_Domains::getSettings();
+        if(!empty($settings->freeDelivery)){
+            $row->freeDelivery = $Double->toVerbal($settings->freeDelivery);
+            $row->freeDeliveryCurrencyId = $settings->currencyId;
+        }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
-        $Double = core_Type::getByName('double(decimals=2)');
         
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
@@ -932,20 +936,20 @@ class eshop_Carts extends core_Master
         $rec = self::fetchRec($id);
         $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
         
-        $btn = ht::createLink(tr('Назад към магазина'), $shopUrl, null, 'title=Връщане в онлайн магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png');
+        $btn = ht::createLink(tr('Назад'), $shopUrl, null, 'title=Назад към магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png');
         $tpl->append($btn, 'CART_TOOLBAR_TOP');
         
         $wideSpan = Mode::is('screenMode', 'wide') ? '<span>|</span>' : '';
         
         if (eshop_CartDetails::haveRightFor('add', (object) array('cartId' => $rec->id))) {
             $addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => true, 'ret_url' => true);
-            $btn = ht::createLink(tr('Добавяне на артикул'), $addUrl, null, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
+            $btn = ht::createLink(tr('Добавяне'), $addUrl, null, 'title=Добавяне на нов артикул,class=eshop-link,ef_icon=img/16/add1-16.png');
             $tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
         }
         
         if (!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object) array('cartId' => $rec->id))) {
             $emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-            $btn = ht::createLink(tr('Премахване на артикулите'), $emptyUrl, 'Сигурни ли сте, че искате да изчистите артикулите?', 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
+            $btn = ht::createLink(tr('Изчистване'), $emptyUrl, 'Сигурни ли сте, че искате да изчистите артикулите?', 'title=Изчистване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png');
             $tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
         }
         
