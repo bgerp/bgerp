@@ -40,6 +40,11 @@
                [#DELIVERY_BLOCK#]
                <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
                <table style="margin-left: 10px;">
+               <!--ET_BEGIN freeDelivery-->
+               <tr>
+                     <td>|Доставката е безплатна за поръчки над|*: <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#]</td>
+                  </tr>
+       	 		<!--ET_END freeDelivery-->
                   <!--ET_BEGIN termId-->
                   <tr>
                      <td>|Условие на доставка|*: [#termId#]</td>
