@@ -292,6 +292,7 @@ class eshop_ProductDetails extends core_Detail
         if (isset($fields['-list'])) {
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
+        	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         	
             if (!$price = self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
