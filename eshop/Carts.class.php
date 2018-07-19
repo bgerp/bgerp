@@ -569,7 +569,14 @@ class eshop_Carts extends core_Master
         // Добавяне на транспорта, ако има
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-            sales_Sales::addRow($saleId, $transportId, 1, $rec->deliveryNoVat);
+            $deliveryNoVat = $rec->deliveryNoVat;
+           
+            $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
+            if (!empty($settings->freeDelivery) && round($deliveryNoVat, 2) >= round($freeDelivery, 2)){
+                $deliveryNoVat = 0;
+            }
+            
+            sales_Sales::addRow($saleId, $transportId, 1, $deliveryNoVat);
         }
         
         // Продажбата става на заявка, кошницата се активира
