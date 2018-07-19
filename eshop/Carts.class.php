@@ -346,6 +346,11 @@ class eshop_Carts extends core_Master
                     $rec->deliveryNoVat = $delivery;
                     $rec->totalNoVat += $rec->deliveryNoVat;
                     
+                    // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
+                    if (!empty($settings->freeDelivery) && round($delivery, 2) >= round($settings->freeDelivery, 2)){
+                        $delivery = 0;
+                    }
+                    
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                     $rec->total += $delivery * (1 + cat_Products::getVat($transportId));
                 } else {
@@ -910,10 +915,16 @@ class eshop_Carts extends core_Master
             $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
             $deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
             $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
-            $deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-            $row->deliveryAmount = $deliveryAmount;
+            $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+            $row->deliveryAmount = $deliveryAmountV;
             $row->deliveryCaption = tr('Доставка||Shipping');
             $row->deliveryCurrencyId = $row->currencyId;
+            
+            // Ако доставката е безплатна отбелязва се
+            if(!empty($settings->freeDelivery) && $deliveryAmount >= $settings->freeDelivery){
+                $row->deliveryAmount = ht::createHint($row->deliveryAmount, 'Безплатна доставка');
+                $row->deliveryAmount = "<span style ='text-decoration: line-through;' class='quiet'>" . $row->deliveryAmount . "</span>";
+            }
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
