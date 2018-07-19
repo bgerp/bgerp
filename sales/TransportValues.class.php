@@ -418,9 +418,9 @@ class sales_TransportValues extends core_Manager
      * @param float  $currencyRate - валутен курс
      * @param string $chargeVat    - режим на ДДС
      *
-     * @return core_ET|varchar $amountRow  - сумата на реда с хинт
+     * @return core_ET|string $amountRow  - сумата на реда с хинт
      */
-    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
+    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat, $explain = null)
     {
         if (!haveRole('powerUser') || !isset($amountRow)) {
             
@@ -442,6 +442,10 @@ class sales_TransportValues extends core_Manager
             $amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
             $amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
             $hint = tr("Транспорт|*: {$amountFee}");
+            
+            if (!empty($explain) && haveRole('admin')){
+                $hint .= "<br>" . $explain;
+            }
             
             return ht::createHint($amountRow, $hint, 'notice', false, 'width=14px,height=14px');
         }
