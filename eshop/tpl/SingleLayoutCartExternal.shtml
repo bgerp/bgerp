@@ -57,7 +57,7 @@
                   <!--ET_BEGIN deliveryCountry-->
                   <tr>
                      <td>
-                        |Доставка|*: <!--ET_BEGIN deliveryCountry-->[#deliveryCountry#]<!--ET_END deliveryCountry--><!--ET_BEGIN deliveryPlace-->, [#deliveryPCode#] [#deliveryPlace#]<!--ET_END deliveryPlace--><!--ET_BEGIN deliveryAddress-->, [#deliveryAddress#]<!--ET_END deliveryAddress-->
+                        |Доставка|*: [#deliveryCountry#]<!--ET_BEGIN deliveryPlace-->, [#deliveryPCode#] [#deliveryPlace#]<!--ET_END deliveryPlace--><!--ET_BEGIN deliveryAddress-->, [#deliveryAddress#]<!--ET_END deliveryAddress-->
                      </td>
                   </tr>
                   <!--ET_END deliveryCountry-->
@@ -84,12 +84,13 @@
                   <!--ET_END DELIVERY_BLOCK-->
                </table>
             </div>
+            <!--ET_BEGIN INVOICE_BLOCK-->
+            [#INVOICE_BLOCK#]
             <div class="half-width fright">
                <!--ET_BEGIN activeFolderId-->
                <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
                <!--ET_END activeFolderId-->
-               <!--ET_BEGIN INVOICE_BLOCK-->
-               [#INVOICE_BLOCK#]
+
                <h4 style="margin-bottom: 3px;">|Данни за фактура|*</h4>
                <table style="margin-left: 10px;">
                   <!--ET_BEGIN NO_INVOICE-->
@@ -128,8 +129,8 @@
                   </tr>
                   <!--ET_END invoiceAddress-->
                </table>
-               <!--ET_END INVOICE_BLOCK-->
             </div>
+            <!--ET_END INVOICE_BLOCK-->
             <div class="clearfix21"></div>
             <!--ET_END SALE_BLOCK-->
          </div>
