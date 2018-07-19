@@ -13,8 +13,11 @@
             <!--ET_BEGIN SALE_BLOCK-->
             [#SALE_BLOCK#]
             <div class="half-width fleft">
+               <!--ET_BEGIN editBtn-->
                <h4 style="margin-bottom: 3px;">|Данни за поръчката|* [#editBtn#]</h4>
-               <table style="margin-left: 10px;">
+
+
+               <table style="margin-left: 10px; margin-bottom: 10px">
                   <!--ET_BEGIN personNames-->
                   <tr>
                      <td>|Имена|*: [#personNames#]</td>
@@ -36,9 +39,10 @@
                   </tr>
                   <!--ET_END paymentId-->
                </table>
+               <!--ET_END editBtn-->
                <!--ET_BEGIN DELIVERY_BLOCK-->
                [#DELIVERY_BLOCK#]
-               <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
+               <h4 style="margin: 0px 0 3px;">|Доставка|*</h4>
                <table style="margin-left: 10px;">
                <!--ET_BEGIN freeDelivery-->
                <tr>
