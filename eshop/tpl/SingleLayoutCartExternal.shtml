@@ -57,13 +57,13 @@
                   <!--ET_BEGIN deliveryCountry-->
                   <tr>
                      <td>
-                        |Доставка|*: [#deliveryCountry#]<!--ET_BEGIN deliveryPlace-->, [#deliveryPCode#] [#deliveryPlace#]<!--ET_END deliveryPlace--><!--ET_BEGIN deliveryAddress-->, [#deliveryAddress#]<!--ET_END deliveryAddress-->
+                        |Адрес|*: [#deliveryCountry#]<!--ET_BEGIN deliveryPlace-->, [#deliveryPCode#] [#deliveryPlace#]<!--ET_END deliveryPlace--><!--ET_BEGIN deliveryAddress-->, [#deliveryAddress#]<!--ET_END deliveryAddress-->
                      </td>
                   </tr>
                   <!--ET_END deliveryCountry-->
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td>|Доставка до|*: <b>[#deliveryTime#]</b></td>
+                     <td>|Срок|*: <b>[#deliveryTime#]</b></td>
                   </tr>
                   <!--ET_END deliveryTime-->
                   <!--ET_BEGIN deliveryError-->
