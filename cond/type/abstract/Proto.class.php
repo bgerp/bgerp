@@ -170,7 +170,7 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
      * @param mixed $class
      * @param int   $id
      *
-     * @return void;
+     * @return mixed
      */
     public function toVerbal($id, $domainClass, $domainId, $value)
     {

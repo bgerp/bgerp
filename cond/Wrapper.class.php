@@ -31,7 +31,9 @@ class cond_Wrapper extends plg_ProtoWrapper
         $this->TAB('cond_Parameters', 'Търговски условия->Видове', 'ceo,admin');
         $this->TAB('cond_Texts', 'Пасажи->Текстове', 'ceo,admin');
         $this->TAB('cond_Groups', 'Пасажи->Групи', 'ceo,admin');
+        $this->TAB('cond_Colors', 'Цветове', 'ceo,admin');
         $this->TAB('doc_LinkedTemplates', 'Връзки', 'admin');
+        
         $this->TAB('cond_ConditionsToCustomers', 'Условия', 'debug');
         $this->title = 'Терминология';
     }
