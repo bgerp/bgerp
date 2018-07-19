@@ -205,6 +205,7 @@ class type_Key2 extends type_Int
             $currentOpt = $this->getOptions(1, '', $value, true);
             $key = reset($currentOpt);
             if ($key) {
+                $key = is_object($key) ? $key->title : $key;
                 if (!isset($options[$key])) {
                     $options = arr::combine($currentOpt, $options);
                 }
