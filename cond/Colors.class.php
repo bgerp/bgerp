@@ -89,18 +89,6 @@ class cond_Colors extends core_Manager
     
     
     /**
-     * След като е готово вербалното представяне
-     */
-    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
-    {
-        // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
-        if ($part == 'name') {
-            $num = '222';
-        }
-    }
-    
-    
-    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData()
