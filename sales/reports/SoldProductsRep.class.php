@@ -216,7 +216,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (isset($rec->dealers)) {
             
             if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
-               
+                
                 $dealers = keylist::toArray($rec->dealers);
                 
                 $query->in('dealerId', $dealers);
