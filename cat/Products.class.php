@@ -885,7 +885,7 @@ class cat_Products extends embed_Manager
     {
         static::expandFilter($data->listFilter);
         
-        $data->listFilter->input(NULL, 'silent');
+        $data->listFilter->input(null, 'silent');
         $defOrder = 'standard';
         if ($data->listFilter->rec->groupId) {
             $defOrder = 'all';
@@ -3567,5 +3567,57 @@ class cat_Products extends embed_Manager
         }
         
         // Ако се е стигнало до тук, не може да се конвертира
+    }
+    
+    
+    /**
+     * Метод по подразбиране, за връщане на състоянието на документа в зависимот от класа/записа
+     *
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param NULL|int    $id
+     * @param NULL|bool   $hStatus
+     *
+     * @see doc_HiddenContainers
+     */
+    public function getDocHiddenStatus($id, $hStatus)
+    {
+        $rec = $this->fetch($id);
+        
+        if (doc_Threads::getFirstContainerId($rec->threadId) != $rec->containerId) {
+            // При направа на оферта от запитване, артикула да се скрива за всички
+            if ($rec->originId) {
+                $oDoc = doc_Containers::getDocument($rec->originId);
+                
+                if ($oDoc->instance instanceof marketing_Inquiries2) {
+                    if (sales_Quotations::fetch(array("#originId = '[#1#]' AND #threadId = '[#2#]' AND (#state != 'rejected' && #state != 'draft')", $rec->containerId, $rec->threadId))) {
+                        
+                        return true;
+                    }
+                }
+            }
+            
+            // Скриване на предишния артикул, който е бил клониран
+            if (self::fetch(array("#clonedFromId = '[#1#]' AND #threadId = '[#2#]' AND (#state != 'rejected' && #state != 'draft')", $rec->id, $rec->threadId))) {
+                
+                return true;
+            }
+        }
+    }
+    
+    
+    /**
+     * След клониране на модела
+     *
+     * @param core_Master $mvc
+     * @param stdClass    $rec
+     * @param stdClass    $nRec
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        if (doc_Threads::getFirstContainerId($rec->threadId) != $rec->containerId) {
+            // Скриване на предишния артикул, който е бил клониран
+            doc_HiddenContainers::showOrHideDocument($rec->containerId, true, false);
+        }
     }
 }
