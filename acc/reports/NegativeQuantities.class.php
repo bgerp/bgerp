@@ -100,7 +100,12 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $query->where('#ent1Id IS NOT NULL AND #ent2Id IS NOT NULL');
         
+        $number = 0;
+        
         while ($detail = $query->fetch()) {
+            
+            
+            
             $storesArr[$detail->ent1Id] = $detail->ent1Id;
             
             if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
@@ -112,6 +117,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                     $recs[$detail->ent2Id] = (object) array(
                         
                         'articulId' => $detail->ent2Id,
+                        'articulNo' => $number,
                         'articulName' => cat_Products::getTitleById($detail->ent2Id),
                         'uomId' => acc_Items::fetch($detail->ent2Id)->uomId,
                         'storeId' => $detail->ent1Id,
@@ -180,9 +186,11 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $row = new stdClass();
         
+        $rec->productCount ++;
+        
         $productId = acc_Items::fetch($dRec->articulId)->objectId;
         
-        $row->articul = cat_Products::getShortHyperlink($productId, 'name');
+        $row->articul =$rec->productCount.'. '. cat_Products::getShortHyperlink($productId, 'name');
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
@@ -255,6 +263,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         		                <fieldset class='detail-info'><legend class=red><small><b>|СПРАВКАТА Е В ПРОЦЕС НА РАЗРАБОТКА.ВЪЗМОЖНО Е ДА ИМА НЕТОЧНИ РЕЗУЛТАТИ|*</b></small></legend>
                                 <small><div><!--ET_BEGIN period-->|Период|*: [#period#]<!--ET_END period--></div></small>
                                 <small><div><!--ET_BEGIN minval-->|Минимален праг за отчитане|*: [#minval#]<!--ET_END minval--></div></small>
+                                <small><div><!--ET_BEGIN productCount-->|Брой артикули|*: [#productCount#]<!--ET_END productCount--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->period)) {
@@ -264,6 +273,8 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         if (isset($data->rec->minval)) {
             $fieldTpl->append('<b>' . ($data->rec->minval) . ' единици' . '</b>', 'minval');
         }
+        
+        $fieldTpl->append('<b>' . ($data->rec->productCount) . '</b>', 'productCount');
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
