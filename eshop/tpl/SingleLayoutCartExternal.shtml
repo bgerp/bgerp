@@ -35,7 +35,7 @@
                   <!--ET_END tel-->
                   <!--ET_BEGIN paymentId-->
                   <tr>
-                     <td>|Метод на плащане|*: [#paymentId#]</td>
+                     <td>|Плащане|*: [#paymentId#]</td>
                   </tr>
                   <!--ET_END paymentId-->
                </table>
