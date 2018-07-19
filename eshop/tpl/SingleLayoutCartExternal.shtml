@@ -42,7 +42,7 @@
                <table style="margin-left: 10px;">
                <!--ET_BEGIN freeDelivery-->
                <tr>
-                     <td>|Доставката е безплатна за поръчки над|*: <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#]</td>
+                     <td>|Безплатна доставка за поръчки над|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#]</td>
                   </tr>
        	 		<!--ET_END freeDelivery-->
                   <!--ET_BEGIN termId-->
