@@ -57,11 +57,13 @@ class type_Key2 extends type_Int
         }
         
         $resArr = $this->getOptions(1, '', $value);
-        
+       
         $res = null;
         
         if (count($resArr)) {
             $res = reset($resArr);
+            $res = is_object($res) ? $res->title : $res;
+           
             $res = core_Type::escape($res);
         }
         
