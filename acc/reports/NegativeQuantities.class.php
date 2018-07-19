@@ -54,6 +54,8 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption = Сметка,after=title,single=none');
         $fieldset->FLD('minval', 'double(decimals=2)', 'caption = Минимален праг за отчитане,unit= (количество),
                         placeholder=Без праг,after=period');
+        
+        $fieldset->FNC('counter', 'int', 'caption = Брояч,input=none,single=none');
     }
     
     
@@ -100,8 +102,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $query->where('#ent1Id IS NOT NULL AND #ent2Id IS NOT NULL');
         
-        $number = 0;
-        
         while ($detail = $query->fetch()) {
             
             
@@ -117,7 +117,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                     $recs[$detail->ent2Id] = (object) array(
                         
                         'articulId' => $detail->ent2Id,
-                        'articulNo' => $number,
+                        'articulNo' => '',
                         'articulName' => cat_Products::getTitleById($detail->ent2Id),
                         'uomId' => acc_Items::fetch($detail->ent2Id)->uomId,
                         'storeId' => $detail->ent1Id,
@@ -130,9 +130,22 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                     
                     $obj->quantity .= ',' . $detail->blQuantity;
                 }
+            
             }
         }
+      
         
+        
+        $rec->counter =count($recs);
+        
+        $number = 1;
+        
+        foreach ($recs as $key => $val){
+            
+            $val->articulNo = $number;
+            $number++;
+        }
+       
         return $recs;
     }
     
@@ -190,7 +203,9 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $productId = acc_Items::fetch($dRec->articulId)->objectId;
         
-        $row->articul =$rec->productCount.'. '. cat_Products::getShortHyperlink($productId, 'name');
+        $row->articul =$dRec->articulNo.'. ';
+        
+        $row->articul .=cat_Products::getShortHyperlink($productId,true);
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
@@ -222,7 +237,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             
             $row->store .= ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
             
-            $row->store .= store_Stores::getHyperlink($storeId) . '</br>';
+            $row->store .= store_Stores::getHyperlink($storeId,true) . '</br>';
             
             $color = 'green';
             if ($val < 0) {
@@ -263,7 +278,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         		                <fieldset class='detail-info'><legend class=red><small><b>|СПРАВКАТА Е В ПРОЦЕС НА РАЗРАБОТКА.ВЪЗМОЖНО Е ДА ИМА НЕТОЧНИ РЕЗУЛТАТИ|*</b></small></legend>
                                 <small><div><!--ET_BEGIN period-->|Период|*: [#period#]<!--ET_END period--></div></small>
                                 <small><div><!--ET_BEGIN minval-->|Минимален праг за отчитане|*: [#minval#]<!--ET_END minval--></div></small>
-                                <small><div><!--ET_BEGIN productCount-->|Брой артикули|*: [#productCount#]<!--ET_END productCount--></div></small>
+                                <small><div><!--ET_BEGIN counter-->|Брой артикули|*: [#counter#]<!--ET_END counter--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->period)) {
@@ -273,8 +288,8 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         if (isset($data->rec->minval)) {
             $fieldTpl->append('<b>' . ($data->rec->minval) . ' единици' . '</b>', 'minval');
         }
-        
-        $fieldTpl->append('<b>' . ($data->rec->productCount) . '</b>', 'productCount');
+    
+        $fieldTpl->append('<b>' . ($data->rec->counter) . '</b>', 'counter');
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -291,10 +306,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        // $res->absencesDays = ($dRec->numberOfTripsesDays + $dRec->numberOfSickdays + $dRec->numberOfLeavesDays);
         
-        // $employee = crm_Persons::getContragentData($dRec->personId)->person;
-        
-        // $res->employee = $employee;
     }
 }
