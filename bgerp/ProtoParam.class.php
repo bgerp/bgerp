@@ -368,10 +368,12 @@ abstract class bgerp_ProtoParam extends embed_Manager
      */
     public static function toVerbal($id, $domainClass, $domainId, $value)
     {
-        $Type = self::getTypeInstance($id, $domainClass, $domainId, $value);
-        if ($Type) {
+        $rec = static::fetchRec($id);
+        if ($Driver = static::getDriver($rec)){
+            $value = trim($value);
+            $res = $Driver->toVerbal($id, $domainClass, $domainId, $value);
             
-            return $Type->toVerbal(trim($value));
+            return $res;
         }
         
         return false;
