@@ -149,7 +149,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     foreach ($details->code as $key => $v) {
                         if ($details->minQuantity[$key] && $details->maxQuantity[$key]) {
-                            if ($details->minQuantity[$key] > $details->maxQuantity[$key]) {
+                            if ((double)$details->minQuantity[$key] > (double)$details->maxQuantity[$key]) {
                                 $form->setError('additional', "Максималното количество не може да бъде по-малко от минималното {$v}");
                             }
                         }
