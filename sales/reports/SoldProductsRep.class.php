@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на отчети за продадени артикули продукти по групи и търговци
  *
@@ -16,12 +17,12 @@
  */
 class sales_reports_SoldProductsRep extends frame2_driver_TableData
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales';
-
+    
+    
     /**
      * Полета за хеширане на таговете
      *
@@ -30,25 +31,28 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      * @var string
      */
     protected $hashField = '$recIndic';
-
+    
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
      * @var string
      */
     protected $newFieldToCheck = 'docId';
-
+    
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'group';
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'from,to,compare,group,dealers,contragent,articleType';
-
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -69,15 +73,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         // $fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
     }
-
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_Form $form
-     * @param stdClass $data
+     * @param embed_Manager     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
@@ -100,14 +104,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -115,7 +119,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $rec = $form->rec;
         
         if ($rec->compare == 'month') {
-            
             $form->setField('from', 'input=none');
             $form->setField('to', 'input=none');
             $form->setField('firstMonth', 'input');
@@ -139,7 +142,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $salesQuery->show('folderId, contragentId');
         
         while ($contragent = $salesQuery->fetch()) {
-            
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = crm_Companies::fetch($contragent->contragentId)->name;
             }
@@ -149,8 +151,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $form->setSuggestions('contragent', $suggestions);
     }
-
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -179,9 +181,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         // Last период && By months
         if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-            
             if (($rec->compare == 'previous')) {
-                
                 $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
                 
                 $fromPreviuos = dt::addDays(-$daysInPeriod, $rec->from, false);
@@ -190,7 +190,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             if (($rec->compare == 'month')) {
-                
                 $rec->from = (acc_Periods::fetch($rec->firstMonth)->start);
                 
                 $rec->to = (acc_Periods::fetch($rec->firstMonth)->end);
@@ -214,9 +213,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $query->where("#state != 'rejected'");
         
         if (isset($rec->dealers)) {
-            
             if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
-                
                 $dealers = keylist::toArray($rec->dealers);
                 
                 $query->in('dealerId', $dealers);
@@ -224,7 +221,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         if ($rec->contragent || $rec->crmGroup) {
-            
             $contragentsArr = array();
             $contragentsId = array();
             
@@ -236,7 +232,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
                 foreach ($contragentsArr as $val) {
-                    
                     $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
                 }
                 
@@ -244,16 +239,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
-                
                 $query->likeKeylist('groupList', $rec->crmGroup);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
-                
                 $contragentsArr = keylist::toArray($rec->contragent);
                 
                 foreach ($contragentsArr as $val) {
-                    
                     $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
                 }
                 
@@ -310,7 +302,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $flag = false;
         
         while ($recPrime = $query->fetch()) {
-            
             $quantityPrevious = $quantity = $quantityLastYear = null;
             
             $DetClass = cls::get($recPrime->detailClassId);
@@ -389,7 +380,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $tempArr = array();
         foreach ($recs as $v) {
             if (!$rec->group) {
-                list ($firstGroup) = explode('|', trim($v->group, '|'));
+                list($firstGroup) = explode('|', trim($v->group, '|'));
                 
                 $tempArr[$v->productId] = ($v);
                 $tempArr[$v->productId]->group = $firstGroup;
@@ -414,16 +405,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         return $recs;
     }
-
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
      * @param stdClass $rec
-     *            - записа
-     * @param bool $export
-     *            - таблицата за експорт ли е
-     *            
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -431,11 +422,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         
         if ($rec->compare == 'month') {
-            
             $name1 = acc_Periods::fetch($rec->firstMonth)->title;
             $name2 = acc_Periods::fetch($rec->secondMonth)->title;
         } else {
-            
             $name1 = 'За периода';
             $name2 = 'За сравнение';
         }
@@ -446,7 +435,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption=Количество->{$name1}");
         
         if ($rec->compare != 'no') {
-            
             $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption=Количество->{$name2}");
             $fld->FLD('compare', 'double(smartRound,decimals=2)', 'smartCenter,caption=Сравнение');
         }
@@ -460,16 +448,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         return $fld;
     }
-
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
      * @param stdClass $rec
-     *            - записа
+     *                       - записа
      * @param stdClass $dRec
-     *            - чистия запис
-     *            
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -503,7 +491,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         if (isset($dRec->group)) {
-            
             $rGroup = keylist::toArray($dRec->group);
             foreach ($rGroup as &$g) {
                 $gro = cat_Groups::getVerbal($g, 'name');
@@ -528,7 +515,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $row->quantityCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantityPrevious);
                 
                 if ($dRec->quantityPrevious != 0) {
-                    
                     $compare = ($dRec->quantity - $dRec->quantityPrevious) / $dRec->quantityPrevious;
                 }
                 
@@ -550,7 +536,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $row->quantityCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantityLastYear);
                 
                 if ($dRec->quantityLastYear != 0) {
-                    
                     $compare = ($dRec->quantity - $dRec->quantityLastYear) / $dRec->quantityLastYear;
                 }
                 $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
@@ -559,15 +544,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         return $row;
     }
-
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
      * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
@@ -592,7 +577,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         if (isset($rec->article)) {
-            
             $arts = keylist::toArray($rec->article);
             foreach ($arts as &$ar) {
                 $art = cat_Products::fetchField("#id = '{$ar}'", 'name');
@@ -610,15 +594,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         );
         $row->compare = $arrCompare[$rec->compare];
     }
-
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -635,15 +619,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN art-->|Артикули|*: [#art#]<!--ET_END art--></div></small>
                                 <small><div><!--ET_BEGIN compare-->|Сравнение|*: [#compare#]<!--ET_END compare--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-       
-       
+        
         
         if ($data->rec->compare == 'month') {
-            
             unset($data->rec->from);
             unset($data->rec->to);
         } else {
-            
             unset($data->rec->firstMonth);
             unset($data->rec->secondMonth);
         }
@@ -676,9 +657,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
             $marker = 0;
             if (isset($data->rec->crmGroup)) {
-                
                 foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
-                    
                     $marker++;
                     
                     $groupVerb .= (crm_Groups::getTitleById($group));
@@ -694,15 +673,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $marker = 0;
             
             if (isset($data->rec->contragent)) {
-                
                 foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
-                    
                     $marker++;
                     
                     $contragentVerb .= (doc_Folders::getTitleById($contragent));
                     
                     if ((count(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
-                        
                         $contragentVerb .= ', ';
                     }
                 }

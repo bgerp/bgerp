@@ -1,139 +1,167 @@
 <?php
 
+
 /**
  * Начален номер на фактурите
  */
 defIfNot('SALES_TRANSPORT_PRODUCTS_ID', '');
+
 
 /**
  * Дефолтна валидност на офертата
  */
 defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
 
+
 /**
  * Начален номер на фактурите
  */
 defIfNot('SALE_INV_MIN_NUMBER1', '0');
+
 
 /**
  * Групи за делта
  */
 defIfNot('SALES_DELTA_CAT_GROUPS', '');
 
+
 /**
  * Краен номер на фактурите
  */
 defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
+
 
 /**
  * Начален номер на фактурите
  */
 defIfNot('SALE_INV_MIN_NUMBER2', '2000000');
 
+
 /**
  * Краен номер на фактурите
  */
 defIfNot('SALE_INV_MAX_NUMBER2', '3000000');
+
 
 /**
  * Колко време след като не е платена една продажба, да се отбелязва като просрочена
  */
 defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
+
 /**
  * Колко дена да се изчаква преди да се затворят миналите еднократни маршрути
  */
 defIfNot('SALES_ROUTES_CLOSE_DELAY', 3);
+
 
 /**
  * Колко време да се изчака след активиране на продажба, да се приключва автоматично
  */
 defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 
+
 /**
  * Срок по подразбиране за плащане на фактурата
  */
 defIfNot('SALES_INVOICE_DEFAULT_VALID_FOR', 60 * 60 * 24 * 3);
+
 
 /**
  * Колко продажби да се приключват автоматично брой
  */
 defIfNot('SALE_CLOSE_OLDER_NUM', 50);
 
+
 /**
  * Кой да е по подразбиране драйвера за фискален принтер
  */
 defIfNot('SALE_FISC_PRINTER_DRIVER', '');
+
 
 /**
  * Кой да е по подразбиране драйвера за фискален принтер
  */
 defIfNot('SALE_INV_VAT_DISPLAY', 'no');
 
+
 /**
  * Системата върана ли е с касови апарати или не
  */
 defIfNot('SALE_INV_HAS_FISC_PRINTERS', 'yes');
+
 
 /**
  * Дефолтен шаблон за продажби на български
  */
 defIfNot('SALE_SALE_DEF_TPL_BG', '');
 
+
 /**
  * Дефолтен шаблон за продажби на английски
  */
 defIfNot('SALE_SALE_DEF_TPL_EN', '');
+
 
 /**
  * Дефолтен шаблон за фактури на български
  */
 defIfNot('SALE_INVOICE_DEF_TPL_BG', '');
 
+
 /**
  * Дефолтен шаблон за фактури на английски
  */
 defIfNot('SALE_INVOICE_DEF_TPL_EN', '');
+
 
 /**
  * Дали да се въвежда курс в продажбата
  */
 defIfNot('SALES_USE_RATE_IN_CONTRACTS', 'no');
 
+
 /**
  * Дали да се въвежда курс в продажбата
  */
 defIfNot('SALE_INVOICES_SHOW_DEAL', 'yes');
+
 
 /**
  * Роли за добавяне на артикул в продажба от бутона 'Артикул'
  */
 defIfNot('SALES_ADD_BY_PRODUCT_BTN', '');
 
+
 /**
  * Роли за добавяне на артикул в продажба от бутона 'Създаване'
  */
 defIfNot('SALES_ADD_BY_CREATE_BTN', '');
+
 
 /**
  * Роли за добавяне на артикул в продажба от бутона 'Списък'
  */
 defIfNot('SALES_ADD_BY_LIST_BTN', '');
 
+
 /**
  * Роли за добавяне на артикул в продажба от бутона 'Импорт'
  */
 defIfNot('SALES_ADD_BY_IMPORT_BTN', '');
+
 
 /**
  * Дължина на името на артикула в продажбата
  */
 defIfNot('SALES_PROD_NAME_LENGTH', '20');
 
+
 /**
  * % Неснижаема делта по дефолт
  */
 defIfNot('SALES_DELTA_MIN_PERCENT', '');
+
 
 /**
  * Продажби - инсталиране / деинсталиране
@@ -141,36 +169,39 @@ defIfNot('SALES_DELTA_MIN_PERCENT', '');
  *
  * @category bgerp
  * @package sales
- *         
+ *
  * @author Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license GPL 3
- *         
+ *
  * @since v 0.1
  */
 class sales_Setup extends core_ProtoSetup
 {
-
     /**
      * Версия на пакета
      */
     public $version = '0.1';
-
+    
+    
     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'sales_Sales';
-
+    
+    
     /**
      * Екшън - входна точка в пакета
      */
     public $startAct = 'default';
-
+    
+    
     /**
      * Описание на модула
      */
     public $info = 'Продажби на артикули';
-
+    
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -284,7 +315,8 @@ class sales_Setup extends core_ProtoSetup
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'
         )
     );
-
+    
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
@@ -306,7 +338,8 @@ class sales_Setup extends core_ProtoSetup
         'migrate::updateDeltaStates1',
         'migrate::setContragentFieldKeylist2'
     );
-
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -320,14 +353,16 @@ class sales_Setup extends core_ProtoSetup
             'sales, ceo, acc'
         )
     );
-
+    
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_ZDDSRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices';
-
+    
+    
     /**
      * Настройки за Cron
      */
@@ -350,7 +385,8 @@ class sales_Setup extends core_ProtoSetup
             'timeLimit' => 360
         )
     );
-
+    
+    
     /**
      * Роли за достъп до модула
      */
@@ -364,8 +400,8 @@ class sales_Setup extends core_ProtoSetup
             'sales'
         )
     );
-
-
+    
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -376,8 +412,8 @@ class sales_Setup extends core_ProtoSetup
         
         return $res;
     }
-
-
+    
+    
     /**
      * Кои артикули могат да се избират като транспорт
      *
@@ -396,8 +432,8 @@ class sales_Setup extends core_ProtoSetup
         
         return $suggestions;
     }
-
-
+    
+    
     /**
      * Зареждане на данни
      */
@@ -472,8 +508,8 @@ class sales_Setup extends core_ProtoSetup
         
         return $res;
     }
-
-
+    
+    
     /**
      * Миграция на състоянията
      */
@@ -482,11 +518,11 @@ class sales_Setup extends core_ProtoSetup
         $Deltas = cls::get('sales_PrimeCostByDocument');
         $Deltas->setupMvc();
         
-        $query = "UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id";
+        $query = 'UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id';
         $Deltas->db->query($query);
     }
-
-
+    
+    
     /**
      * Миграция за корекция на `contragent` полетата в keylist
      */
@@ -498,21 +534,17 @@ class sales_Setup extends core_ProtoSetup
         
         $classId = sales_reports_SoldProductsRep::getClassId();
         
-        $fQuery->where("#driverClass = $classId");
+        $fQuery->where("#driverClass = ${classId}");
         
         while ($reportRec = $fQuery->fetch()) {
-            
             if (is_numeric($reportRec->driverRec['contragent']) && (!is_null($reportRec->driverRec['contragent']))) {
-                
                 $contragentId = ($reportRec->driverRec['contragent']);
                 
                 $reportRec->driverRec['contragent'] = '|' . $contragentId . '|';
                 
                 try {
-                    
                     $Reports->save($reportRec, 'driverRec');
                 } catch (Exception $e) {
-                    
                     reportException($e);
                 }
             }
