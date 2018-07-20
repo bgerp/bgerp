@@ -380,7 +380,7 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if ($data->masterData->rec->state == 'rejected') {
+        if ($data->masterData->rec->state == 'rejected' || Mode::isReadOnly()) {
             
             return;
         }
