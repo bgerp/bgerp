@@ -23,6 +23,12 @@ class eshop_plg_Users extends core_Plugin
      */
     public static function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
     {
+        // Ако само рефрешваме сесията на вече логнат потребител не правим нищо
+        if ($refresh) {
+            
+            return;
+        }
+        
         $Carts = cls::get('eshop_Carts');
         
         // За всеки домейн

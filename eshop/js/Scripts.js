@@ -157,13 +157,17 @@ function eshopActions() {
 		// Ръчно инвоукване на ивент на инпут полето
 		input.keyup();
 	});
-	
-	
-	
 
-	$('.eshop-product .eshop-btn').on('click', function () {
+
+
+
+	$('.eshop-btn').on('click', function () {
 		var cart = $('.logoutBlock #cart-external-status');
-		var imgtodrag = $('.product-image').eq(0);
+		if($('.eshop-product-list').length) {
+			var imgtodrag = $(this).closest('.eshop-product-list').find('.eshop-product-image');
+		} else {
+			var imgtodrag = $('.product-image').eq(0);
+		}
 		if (imgtodrag) {
 			var imgclone = imgtodrag.clone()
 				.offset({

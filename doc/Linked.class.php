@@ -388,7 +388,9 @@ class doc_Linked extends core_Manager
             
             $document = doc_Containers::getDocument($inVal);
             if ($document->haveRightFor('single')) {
+                Request::push(array('ajax_mode' => false), 'noAjaxMode');
                 $docHtml = $document->getInlineDocumentBody();
+                Request::pop('noAjaxMode');
                 
                 $tplRes->replace($docHtml, 'DOCUMENT');
             }
@@ -513,7 +515,9 @@ class doc_Linked extends core_Manager
                 
                 $tpl = new ET("<div class='preview-holder {$floatedClassName}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Източник') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
                 
+                Request::push(array('ajax_mode' => false), 'noAjaxMode');
                 $docHtml = $clsInst->getInlineDocumentBody($fId);
+                Request::pop('noAjaxMode');
                 
                 $tpl->replace($docHtml, 'DOCUMENT');
                 
@@ -586,8 +590,9 @@ class doc_Linked extends core_Manager
             
             $document = doc_Containers::getDocument($form->rec->linkContainerId);
             if ($document->haveRightFor('single')) {
+                Request::push(array('ajax_mode' => false), 'noAjaxMode');
                 $docHtml = $document->getInlineDocumentBody();
-                
+                Request::pop('noAjaxMode');
                 $tpl->replace($docHtml, 'DOCUMENT');
                 
                 $form->layout->append($tpl);

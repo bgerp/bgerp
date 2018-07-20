@@ -126,14 +126,14 @@ class eshop_Settings extends core_Manager
     public function description()
     {
         $this->FLD('classId', 'class', 'caption=Клас,removeAndrefreshForm=objectId,silent,mandatory');
-        $this->FLD('objectId', 'int', 'caption=Обект,mandatory');
+        $this->FLD('objectId', 'int', 'caption=Обект,mandatory,silent');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,mandatory');
         $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');
         $this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Възможни условия на доставка->Избор,mandatory');
         $this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,mandatory');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery,silent');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Свързване със склад->Избор');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
@@ -149,6 +149,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('emailBodyWithoutReg', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Без регистрация');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
+        $this->FLD('freeDelivery', 'double', 'caption=Безплатна доставка->Сума');
         
         $this->setDbIndex('classId, objectId');
     }
@@ -200,6 +201,7 @@ class eshop_Settings extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = $form->rec;
         
         $domainClassId = cms_Domains::getClassId();
         $classes = array($domainClassId => core_Classes::getTitleById($domainClassId));
@@ -207,9 +209,19 @@ class eshop_Settings extends core_Manager
         $form->setDefault('classId', key($classes));
         $form->setField('classId', 'input=hidden');
         
-        if (isset($form->rec->classId)) {
-            $form->setOptions('objectId', cms_Domains::getDomainOptions());
-            $form->setDefault('objectId', cms_Domains::getCurrent('id', false));
+        if (isset($rec->classId)) {
+            $domainArr = cms_Domains::getDomainOptions();
+            $query = self::getQuery();
+            $query->in('objectId', array_keys($domainArr));
+            $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'objectId');
+            $options = array_diff_key($domainArr, $alreadyIn);
+            
+            if(count($options)){
+                $form->setOptions('objectId', $options);
+                $form->setDefault('objectId', cms_Domains::getCurrent('id', false));
+            } else {
+                $form->setReadOnly('objectId');
+            }
         }
         
         $form->setDefault('listId', price_ListRules::PRICE_LIST_CATALOG);
@@ -225,12 +237,12 @@ class eshop_Settings extends core_Manager
         $form->setField('cartName', "placeholder={$namePlaceholder}");
         $notInStockPlaceholder = eshop_Setup::get('NOT_IN_STOCK_TEXT');
         $form->setField('notInStockText', "placeholder={$notInStockPlaceholder}");
-        
+       
         // Ако има ред от количка в домейна да не може да се сменя валутата и ддс-то
         if ($rec->classId == cms_Domains::getClassId()) {
             $cartQuery = eshop_CartDetails::getQuery();
             $cartQuery->EXT('domainId', 'eshop_Carts', 'externalName=domainId,externalKey=cartId');
-            $cartQuery->where("#domainId = {$rec->objectId}");
+            $cartQuery->where("#domainId = '{$rec->objectId}'");
             if ($cartQuery->count()) {
                 $form->setReadOnly('currencyId');
                 $form->setReadOnly('chargeVat');
@@ -238,18 +250,24 @@ class eshop_Settings extends core_Manager
         }
         
         // Добавяне на плейсхолдъри на някои полета
-        $lang = cls::get($form->rec->classId)->fetchField($form->rec->objectId, 'lang');
-        $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN;
-        $form->setParams('emailBodyWithReg', array('placeholder' => $placeholderValue));
+        if (isset($rec->objectId)) {
+            $lang = cls::get($rec->classId)->fetchField($rec->objectId, 'lang');
+            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN;
+            $form->setParams('emailBodyWithReg', array('placeholder' => $placeholderValue));
+            
+            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
+            $form->setParams('emailBodyWithoutReg', array('placeholder' => $placeholderValue));
+            
+            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
+            $form->setParams('addProductText', array('placeholder' => $placeholderValue));
+            
+            $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
+            $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
+        }
         
-        $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
-        $form->setParams('emailBodyWithoutReg', array('placeholder' => $placeholderValue));
-        
-        $placeholderValue = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
-        $form->setParams('addProductText', array('placeholder' => $placeholderValue));
-        
-        $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
-        $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
+        if(isset($rec->currencyId)){
+            $form->setField('freeDelivery', "unit={$rec->currencyId}");
+        }
     }
     
     
@@ -409,5 +427,17 @@ class eshop_Settings extends core_Manager
         });
         
         return $options;
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if($action == 'add'){
+            //$domains
+            //bp($rec);
+        }
     }
 }

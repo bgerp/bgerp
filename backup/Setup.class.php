@@ -281,19 +281,16 @@ class backup_Setup extends core_ProtoSetup
      */
     public function checkConfig()
     {
-        $caller = debug_backtrace(false, 2);
-        
-        if ($caller[1]['function'] != 'act_Config' && $caller[1]['function'] != 'full') {
-            
-            return;
-        }
         $conf = core_Packs::getConfig('backup');
         
         $storage = core_Cls::get('backup_' . $conf->BACKUP_STORAGE_TYPE);
         
         // Проверяваме дали имаме права за писане в сториджа
         $touchFile = tempnam(EF_TEMP_PATH, 'bgERP');
-        file_put_contents($touchFile, '1');
+        if (!@file_put_contents($touchFile, '1')) {
+            
+            return "|*<li class='debug-error'>|Няма права за писане в |* temp директорията</li>";
+        }
         
         if (@$storage->putFile($touchFile) && @$storage->removeFile(basename($touchFile))) {
             unlink($touchFile);

@@ -804,9 +804,14 @@ class email_Incomings extends core_Master
                 }
                 
                 if (count($vals)) {
+                    $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     $row->files = '';
                     
                     foreach ($vals as $keyD) {
+                        $dId = fileman::fetchField($keyD, 'dataId');
+                        if ($ourImgArr[$dId]) {
+                            continue;
+                        }
                         $row->files .= fileman_Files::getLinkById($keyD);
                     }
                 } else {

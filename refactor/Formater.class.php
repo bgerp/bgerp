@@ -97,28 +97,25 @@ class refactor_Formater extends core_Manager
         $this->FLD('newComment', 'text', 'caption=Коментар->Нов');
     }
     
-
-    /**
-     *
-     */
+    
     public function act_Process()
     {
         requireRole('admin');
         expect(isDebug());
         
         $scope = (Request::get('scope') == 'all') ? 'all' : 'changed';
-        $dry   = Request::get('dry') != 'no';
+        $dry = Request::get('dry') != 'no';
         
         $files = array();
-
+        
         $repos = core_App::getRepos();
-        foreach($repos as $r) {
-            if($scope == 'all') {
-                foreach($this->readAllFiles($r) as $f) {
+        foreach ($repos as $r) {
+            if ($scope == 'all') {
+                foreach ($this->readAllFiles($r) as $f) {
                     $files[] = $f;
                 }
             } else {
-                foreach(git_Lib::getDiffFiles($r, $log) as $f) {
+                foreach (git_Lib::getDiffFiles($r, $log) as $f) {
                     $files[] = $r . '/' . $f;
                 }
             }
@@ -126,19 +123,22 @@ class refactor_Formater extends core_Manager
         
         // Филтрираме само файловете, които ни интересуват
         $includePtr = '/\\.class\\.php/';
-        $files = array_filter($files, function($file) use($includePtr, $excludePtr) {return preg_match($includePtr, $file);});
-
+        $files = array_filter($files, function ($file) use ($includePtr, $excludePtr) {
+            
+            return preg_match($includePtr, $file);
+        });
+        
         return $this->renderWrapping($this->showProcess($files));
     }
-
- 
+    
+    
     /**
      * @todo Чака за документация...
      */
     public function showProcess($files)
     {
         set_time_limit(count($files) + 30);
-
+        
         // Променливи за метрика на кода
         $linesCnt = $filesCnt = $update = $skip = 0;
         
@@ -148,23 +148,22 @@ class refactor_Formater extends core_Manager
         $phrases = array();
         
         foreach ($files as $file) {
-            
             $logs[$file] = array();
             $res = &$logs[$file];
-
+            
             // Ако има грешки във файла, показваме ги и пропускаме по-нататъшните обработки
-            if($err = self::detectErrors($file)) {
+            if ($err = self::detectErrors($file)) {
                 $res[] = $err;
                 continue;
             }
             
             // Вземаме времето за последна модификация на файла
             $lastTime = filemtime($file);
-            $fileStrOrg =  file_get_contents($file);
-
+            $fileStrOrg = file_get_contents($file);
+            
             // Оправяме кодирането на файла
             self::csFixer($file, $dry);
-
+            
             // Зареждаме файла
             $fileStr = file_get_contents($file);
             $lines = explode("\n", $fileStr);
@@ -174,7 +173,7 @@ class refactor_Formater extends core_Manager
             // Парсиране на файла
             $parser = cls::get('refactor_PhpParser');
             $parser->loadText($fileStr);
- 
+            
             // Проверка да не би да има думи, които съдържат едновременно кирилица и латиница
             $res = array_merge($res, self::checkCyrLat($lines, $file));
             
@@ -187,10 +186,10 @@ class refactor_Formater extends core_Manager
             // Ако има промени - записваме файла
             $source = $parser->getText();
             if ($fileStrOrg != $source) {
-                if($dry) {
+                if ($dry) {
                     $res[] = 'Трябва са се префорамтира';
                     $skip++;
-                    touch($file, $lastTime, $lastTime);
+                    @touch($file, $lastTime, $lastTime);
                 } else {
                     $res[] = 'Беше преформатиран';
                     file_put_contents($file, $source);
@@ -199,30 +198,30 @@ class refactor_Formater extends core_Manager
             } else {
                 $skip++;
                 file_put_contents($file, $source);
-                touch($file, $lastTime, $lastTime);
+                @touch($file, $lastTime, $lastTime);
             }
         }
         
         // Показваме логовите съобщения, свързани с файловете
-        foreach($logs as $file => $res) {
+        foreach ($logs as $file => $res) {
             $fileEdit = core_debug::getEditLink($file);
             $html .= "\n<li>Файл: <strong>{$fileEdit}</strong>";
-            if(count($res)) {
-                $html .= "</li>";
+            if (count($res)) {
+                $html .= '</li>';
                 $html .= "\n<ul><li>" . implode("</li>\n<li>", $res) . "</li>\n</ul>";
             } else {
-                $html .= "- <strong>OK</strong></li>";
+                $html .= '- <strong>OK</strong></li>';
             }
         }
         
         // Отделя и показва тези фрази, които не са преведени
         //$html .= self::showUntranslated($phrases);
-        if(count($phrases)) {
-            $html .= "<li><strong>Фрази, които не са преведени:</strong></li><ul>";
+        if (count($phrases)) {
+            $html .= '<li><strong>Фрази, които не са преведени:</strong></li><ul>';
             core_Lg::push('en');
-            foreach($phrases as $p => $cnt) {
+            foreach ($phrases as $p => $cnt) {
                 $p1 = mb_strtolower(mb_substr($p, 0, 1)) . mb_substr($p, 1);
-                if(tr($p) == $p && tr($p1) == $p1) {
+                if (tr($p) == $p && tr($p1) == $p1) {
                     $html .= "<li>{$p}</li>";
                 }
             }
@@ -238,54 +237,57 @@ class refactor_Formater extends core_Manager
         $toolbar->addBtn('Оправяне - променени', array($this, 'process', 'scope' => 'changed', 'dry' => 'no'));
         $toolbar->addBtn('Проверка - всички', array($this, 'process', 'scope' => 'all', 'dry' => 'yes'));
         $toolbar->addBtn('Оправяне - всички', array($this, 'process', 'scope' => 'all', 'dry' => 'no'), 'warning=Наистина ли искате да преформатирате всички файлове?');
-
-        return "<h2>Стандарти за кодиране</h2><ul>{$html}</ul>" . "<div></div><br>" . $toolbar->renderHtml();
+        
+        return "<h2>Стандарти за кодиране</h2><ul>{$html}</ul>" . '<div></div><br>' . $toolbar->renderHtml();
     }
-
-
+    
+    
     /**
      * Проверява за наличие на синтактични грешки във файла
      */
     public function detectErrors($file)
     {
         // perform the lint check
-		$cmd = PHP_PATH . ' -d display_errors=1 -l ' . escapeshellarg($file);
-            
+        $cmd = PHP_PATH . ' -d display_errors=1 -l ' . escapeshellarg($file);
+        
         exec($cmd, $output, $exitCode);
- 
-		if (preg_match('#^No syntax errors detected in#', $output[0]) !== 1) {
-			
+        
+        if (preg_match('#^No syntax errors detected in#', $output[0]) !== 1) {
+            
             return '<font color=red>' . str_replace($file, '', $output[1]) . '</font>';
-		}
+        }
     }
-
+    
+    
     /**
      * Фиксира стила за кодиране в посочения файл
-     * 
+     *
      * @param string $filePath
      *
      * @see https://cs.sensiolabs.org/
      */
     public static function csFixer($filePath, $dry = false)
     {
+        expect(defined('PHP_PATH') && defined('PHP_CS_FIXER_PATH'), PHP_PATH, PHP_CS_FIXER_PATH);
+        
         $cmd = PHP_PATH . ' ' . PHP_CS_FIXER_PATH . ' ' . ($dry ? '--dry-run ' : '') .
                '--rules=@PSR2,phpdoc_align,phpdoc_indent,binary_operator_spaces,blank_line_before_return,cast_spaces,align_multiline_comment,array_indentation,' .
                'phpdoc_scalar,phpdoc_separation,combine_consecutive_issets,explicit_string_variable,function_typehint_space,lowercase_static_reference,' .
                'no_blank_lines_after_phpdoc,no_empty_phpdoc,no_empty_statement,no_mixed_echo_print,no_spaces_around_offset,no_useless_else,no_useless_return,' .
                'no_whitespace_before_comma_in_array,simplified_null_return,single_quote,standardize_increment,standardize_not_equals,trim_array_spaces  fix ' .
                 '"'. $filePath . '"';
-
+        
         exec($cmd, $output, $exitCode);
-     
+        
         $res = false;
-        if(strpos($output[0], $filePath) !== true) {
-            $res = true;;
+        if (strpos($output[0], $filePath) !== true) {
+            $res = true;
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Проверява дали в оригиналния текст има стоящи една до друга
      * букви на латиница и кирилица
@@ -302,19 +304,17 @@ class refactor_Formater extends core_Manager
                 if ($matches[1]{0} == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
                     continue;
                 }
-                $line = $i+1;
+                $line = $i + 1;
                 $lineEdit = core_debug::getEditLink($file, $line, $line);
-
+                
                 $res[] = "<font color=red>Грешка кир/lat на линия {$lineEdit}: " . str_replace($matches[1], '<b style="color:#800">' .$matches[1] . '</b>', trim($l)) . '</font>';
             }
         }
-
+        
         return $res;
     }
-
     
-
-     
+    
     /**
      * Връща масив със всички поддиректории и файлове от посочената начална директория
      *
@@ -366,6 +366,4 @@ class refactor_Formater extends core_Manager
         
         return $files['files'];
     }
-    
-    
 }

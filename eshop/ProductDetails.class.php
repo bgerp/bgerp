@@ -292,6 +292,7 @@ class eshop_ProductDetails extends core_Detail
         if (isset($fields['-list'])) {
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
+        	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         	
             if (!$price = self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
@@ -471,18 +472,8 @@ class eshop_ProductDetails extends core_Detail
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->paramListFields);
-        
-        // Подготовка на общите параметри
-        $commonParamRows = array();
-        foreach ($data->commonParams as $paramId => $val) {
-            unset($data->listFields["param{$paramId}"]);
-            $paramRow = cat_Params::recToVerbal($paramId);
-            if (!empty($paramRow->suffix)) {
-                $val .= " {$paramRow->suffix}";
-            }
-            
-            $commonParamRows[] = (object) array('caption' => $paramRow->name, 'value' => $val);
-        }
+        $listFields = &$data->listFields;
+        array_walk(array_keys($data->commonParams), function($paramId) use (&$listFields){unset($listFields["param{$paramId}"]);});
         
         $settings = cms_Domains::getSettings();
         if (empty($settings)) {
@@ -496,18 +487,7 @@ class eshop_ProductDetails extends core_Detail
         $cartInfo = "<tr><td colspan='{$colspan}' class='option-table-info'>{$cartInfo}</td></tr>";
         $tpl->append($cartInfo, 'ROW_AFTER');
         
-        // Рендиране на таблицата с общите параметри
-        if (count($commonParamRows)) {
-            $commonParamsTpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
-            foreach ($commonParamRows as $paramRow) {
-                $paramBlock = new core_ET('<tr><td>[#caption#]</td><td>[#value#]</td></tr>');
-                $paramBlock->placeObject($paramRow);
-                $paramBlock->removeBlocks();
-                $paramBlock->removePlaces();
-                $commonParamsTpl->append($paramBlock, 'row');
-            }
-            $tpl->append($commonParamsTpl, 'ROW_AFTER');
-        }
+        $tpl->append(eshop_Products::renderParams($data->commonParams), 'ROW_AFTER');
         
         return $tpl;
     }

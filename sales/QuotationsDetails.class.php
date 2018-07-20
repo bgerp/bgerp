@@ -964,9 +964,10 @@ class sales_QuotationsDetails extends doc_Detail
             deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
-            $fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id)->fee;
+            $fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id);
+            
             $vat = cat_Products::getVat($rec->productId, $masterRec->date);
-            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $fee->explain);
         }
         
         core_Lg::pop();

@@ -170,8 +170,9 @@ class tcost_FeeZones extends core_Master
      * @param array $params         - Други параметри
      *
      * @return array
-     *               ['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
-     *               ['deliveryTime']     - срока на доставка в секунди ако го има
+     *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
+     *               ['deliveryTime'] - срока на доставка в секунди ако го има
+     *               ['explain']      - текстово обяснение на изчислението
      */
     public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $params = array())
     {
@@ -191,6 +192,7 @@ class tcost_FeeZones extends core_Master
         // Опит за калкулиране на цена по посочените данни
         $fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $singleWeight);
         
+        $zoneId = $fee[2];
         $deliveryTime = ($fee[3]) ? $fee[3] : null;
         
         // Ако цената може да бъде изчислена се връща
@@ -198,13 +200,18 @@ class tcost_FeeZones extends core_Master
             $fee = (isset($fee[1])) ? $fee[1] : 0;
         }
         
+        $explain = null;
         if ($fee > 0) {
             $tax = tcost_Setup::get('ADD_TAX');
             $inc = tcost_Setup::get('ADD_PER_KG') * $singleWeight;
             $fee = $tax + $inc + $fee;
+            
+            $zoneName = tcost_FeeZones::getTitleById($zoneId);
+            $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
+            $explain = "{$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$tax}, ADD_PER_KG = {$inc}";
         }
         
-        $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime);
+        $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
         
         // Връщане на изчислената цена
         return $res;

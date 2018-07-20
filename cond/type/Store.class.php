@@ -58,4 +58,18 @@ class cond_type_Store extends cond_type_abstract_Proto
         
         return $Type;
     }
+    
+    
+    /**
+     * Вербално представяне на стойноста
+     *
+     * @param mixed $class
+     * @param int   $id
+     *
+     * @return mixed
+     */
+    public function toVerbal($id, $domainClass, $domainId, $value)
+    {
+        return store_Stores::getHyperlink($value, TRUE);
+    }
 }

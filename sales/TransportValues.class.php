@@ -83,7 +83,7 @@ class sales_TransportValues extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'docId,recId,fee,deliveryTime';
+    public $listFields = 'docId,recId,fee,deliveryTime,explain';
     
     
     /**
@@ -96,6 +96,7 @@ class sales_TransportValues extends core_Manager
         $this->FLD('recId', 'int', 'mandatory,caption=Ид на реда');
         $this->FLD('fee', 'double', 'mandatory,caption=Сума на транспорта');
         $this->FLD('deliveryTime', 'time', 'mandatory,caption=Срок на доставка');
+        $this->FLD('explain', 'varchar(265)', 'mandatory,caption=Обяснение');
         
         $this->setDbUnique('docClassId,docId,recId');
         $this->setDbIndex('docClassId,docId');
@@ -155,6 +156,10 @@ class sales_TransportValues extends core_Manager
         
         if (isset($totalFee['deliveryTime'])) {
             $res['deliveryTime'] = $totalFee['deliveryTime'];
+        }
+        
+        if (!empty($totalFee['explain'])) {
+            $res['explain'] = $totalFee['explain'];
         }
         
         return $res;
@@ -244,7 +249,7 @@ class sales_TransportValues extends core_Manager
      *
      * @return void
      */
-    public static function sync($docClass, $docId, $recId, $fee, $deliveryTimeFromFee = null)
+    public static function sync($docClass, $docId, $recId, $fee, $deliveryTimeFromFee = null, $explained = null)
     {
         // Клас ид
         $classId = cls::get($docClass)->getClassId();
@@ -274,6 +279,10 @@ class sales_TransportValues extends core_Manager
                 $exRec->deliveryTime = $deliveryTimeFromFee;
             } else {
                 $exRec->deliveryTime = null;
+            }
+            
+            if(!empty($explained)){
+                $exRec->explain = $explained;
             }
             
             self::save($exRec);
@@ -409,9 +418,9 @@ class sales_TransportValues extends core_Manager
      * @param float  $currencyRate - валутен курс
      * @param string $chargeVat    - режим на ДДС
      *
-     * @return core_ET|varchar $amountRow  - сумата на реда с хинт
+     * @return core_ET|string $amountRow  - сумата на реда с хинт
      */
-    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat)
+    public static function getAmountHint($amountRow, $amountFee, $vat, $currencyRate, $chargeVat, $explain = null)
     {
         if (!haveRole('powerUser') || !isset($amountRow)) {
             
@@ -433,6 +442,10 @@ class sales_TransportValues extends core_Manager
             $amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
             $amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
             $hint = tr("Транспорт|*: {$amountFee}");
+            
+            if (!empty($explain) && haveRole('admin')){
+                $hint .= "<br>" . $explain;
+            }
             
             return ht::createHint($amountRow, $hint, 'notice', false, 'width=14px,height=14px');
         }
@@ -596,7 +609,7 @@ class sales_TransportValues extends core_Manager
         $toPcodeId = $toCountryId = null;
         
         // Извличане на държавата и кода
-        $location = isset($deliveryLocationId) ? $deliveryLocationId : $deliveryAddress;
+        $location = !empty($deliveryLocationId) ? $deliveryLocationId : $deliveryAddress;
         $codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $toPcodeId, $toCountryId, $location);
         $ourCompany = crm_Companies::fetchOurCompany();
         
@@ -661,6 +674,10 @@ class sales_TransportValues extends core_Manager
         
         // Ако има такъв към цената се добавя
         if (is_array($feeArr)) {
+            if(!empty($feeArr['explain'])){
+                $rec->_transportExplained = $feeArr['explain'];
+            }
+            
             if (isset($feeArr['deliveryTime'])) {
                 $rec->deliveryTimeFromFee = $feeArr['deliveryTime'];
             } else {

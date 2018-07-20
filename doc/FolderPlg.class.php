@@ -773,7 +773,7 @@ class doc_FolderPlg extends core_Plugin
         
         $conditions = array(
             "LOCATE('|{$userId}|', #folderShared) ", // Всеки има достъп до споделените с него папки
-            "#folderInCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
+            "#folderInCharge = {$userId}",           // Всеки има достъп до папките, на които е отговорник
         );
         
         // Всеки (освен конракторите) имат достъп до публичните папки
