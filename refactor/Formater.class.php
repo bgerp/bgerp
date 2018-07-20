@@ -268,6 +268,8 @@ class refactor_Formater extends core_Manager
      */
     public static function csFixer($filePath, $dry = false)
     {
+        expect(defined('PHP_PATH') && defined('PHP_CS_FIXER_PATH'), PHP_PATH, PHP_CS_FIXER_PATH);
+        
         $cmd = PHP_PATH . ' ' . PHP_CS_FIXER_PATH . ' ' . ($dry ? '--dry-run ' : '') .
                '--rules=@PSR2,phpdoc_align,phpdoc_indent,binary_operator_spaces,blank_line_before_return,cast_spaces,align_multiline_comment,array_indentation,' .
                'phpdoc_scalar,phpdoc_separation,combine_consecutive_issets,explicit_string_variable,function_typehint_space,lowercase_static_reference,' .
