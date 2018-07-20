@@ -439,6 +439,9 @@ class eshop_Products extends core_Master
                     }
                 }
             }
+            
+            $commonParams = self::getCommonParams($pRec->id);
+            $pRow->commonParams = (count($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : NULL;
         }
         
         // URL за добавяне на продукт
