@@ -2754,9 +2754,20 @@ span.sharing-history-title {
   float: left;
   margin-top: 8px; }
 
+.cart-view-buttons-right {
+  text-align: center;
+  margin-top: 8px; }
+  .cart-view-buttons-right input {
+    margin-right: 0; }
+
 .narrow .cart-view-buttons-left {
   float: none;
   clear: both; }
+
+.wide .cartInfoBlock {
+  width: 23%;
+  float: left;
+  margin-left: 2%; }
 
 .cart-view-buttons-top {
   margin: 10px 0; }
@@ -2780,10 +2791,10 @@ span.sharing-history-title {
   display: block; }
 
 .wide .cartHolder {
-  display: inline-block; }
+  float: left;
+  width: 75%; }
 
 .narrow .summary-holder {
-  float: left;
   margin-top: 10px; }
 
 .eshop-link {
@@ -2793,9 +2804,9 @@ span.sharing-history-title {
 
 .order-info {
   background-color: #f1f1f1;
+  border: 1px solid #cccccc;
   padding: 10px;
-  font-size: 0.9em;
-  margin-bottom: 20px; }
+  font-size: 0.9em; }
 
 .toolbar .eshop-link {
   margin-top: 15px;
@@ -2837,7 +2848,6 @@ span.sharing-history-title {
   color: #222222;
   min-width: 320px;
   width: 100%;
-  margin-bottom: 10px;
   font-size: 0.9em; }
   .optionsTable th {
     text-align: center;
@@ -2904,11 +2914,11 @@ span.sharing-history-title {
   border-top-left-radius: 12px;
   border-right: none; }
 
-.wide .cart-container {
-  display: inline-block; }
-
 .summary-holder {
-  float: right; }
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #cccccc;
+  text-align: left; }
     .summary-holder table td {
       padding: 5px 10px; }
 
@@ -3246,6 +3256,12 @@ table .eshop-btn {
   border: solid 1px #aaaaaa;
   clear: both;
   margin-bottom: 5px; }
+
+  .toggleGroups .openBtn {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url('../img/16/toggle1.png') center bottom no-repeat; }
 
 .cms-row h1 {
   margin-top: 0;
