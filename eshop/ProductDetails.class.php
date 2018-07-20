@@ -501,7 +501,7 @@ class eshop_ProductDetails extends core_Detail
         if (count($commonParamRows)) {
             $commonParamsTpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
             foreach ($commonParamRows as $paramRow) {
-                $paramBlock = new core_ET('<tr><td>[#caption#]</td><td>[#value#]</td></tr>');
+                $paramBlock = new core_ET('<tr><td>&bull; <b>[#caption#]<b>:</td><td>[#value#]</td></tr>');
                 $paramBlock->placeObject($paramRow);
                 $paramBlock->removeBlocks();
                 $paramBlock->removePlaces();
