@@ -74,7 +74,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции';
+    public $listFields = 'typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,createdOn,createdBy';
     
     
     /**

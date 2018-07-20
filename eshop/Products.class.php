@@ -439,6 +439,9 @@ class eshop_Products extends core_Master
                     }
                 }
             }
+            
+            $commonParams = self::getCommonParams($pRec->id);
+            $pRow->commonParams = (count($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : NULL;
         }
         
         // URL за добавяне на продукт
@@ -1004,7 +1007,7 @@ class eshop_Products extends core_Master
     public static function canLinkProduct($productId)
     {
         $productRec = cat_Products::fetch($productId, 'canSell,isPublic,state');
-        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
+        $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
         
         return $res;
     }
@@ -1145,6 +1148,11 @@ class eshop_Products extends core_Master
             
             // Ако всичките записи имат еднаква стойност, значи параметъра е общ
             if ($isCommon === true && isset($value)) {
+                $paramRow = cat_Params::recToVerbal($paramId, 'suffix');
+                if (!empty($paramRow->suffix)) {
+                    $value .= " {$paramRow->suffix}";
+                }
+                
                 $res[$paramId] = $value;
             }
         }
@@ -1170,5 +1178,30 @@ class eshop_Products extends core_Master
         
         // Обновяване на модела, за да се преизчислят ключовите думи
         $this->save($rec);
+    }
+    
+    
+    /**
+     * Рендира параметрите на е-артикула
+     * 
+     * @param array $array
+     * 
+     * @return core_ET
+     */
+    public static function renderParams($array)
+    {
+        $tpl = new core_ET("");
+        if (!is_array($array))  return $tpl;
+        
+        $tpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
+        foreach ($array as $paramId => $value) {
+             $paramBlock = new core_ET('<tr><td>&bull; <b>[#caption#]<b>:</td><td>[#value#]</td></tr>');
+             $paramBlock->placeArray(array('caption' => cat_Params::getTitleById($paramId), 'value' => $value));
+             $paramBlock->removeBlocks();
+             $paramBlock->removePlaces();
+             $tpl->append($paramBlock, 'row');
+        }
+        
+        return $tpl;
     }
 }

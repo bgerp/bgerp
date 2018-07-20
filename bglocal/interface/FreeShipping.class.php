@@ -58,8 +58,9 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      * @param array $params         - Други параметри
      *
      * @return array
-     *               ['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
-     *               ['deliveryTime']     - срока на доставка в секунди ако го има
+     *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
+     *               ['deliveryTime'] - срока на доставка в секунди ако го има
+     *               ['explain']      - текстово обяснение на изчислението
      */
     public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $params)
     {

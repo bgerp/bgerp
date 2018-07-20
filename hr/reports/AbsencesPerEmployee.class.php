@@ -52,7 +52,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $fieldset->FLD('type', 'set(leave=Отпуска, sick=Болничен, trips=Командировка)', 'notNull,caption=Причина за отсъствието,maxRadio=3,after=periods,single=none');
         $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal,allowEmpty)', 'caption=Служител,after=to,single=none');
         
-        $fieldset->FLD('periods', 'date', 'caption=Периоди,input=none,single=none');
+        $fieldset->FNC('periods', 'date', 'caption=Периоди,input=none,single=none');
         $fieldset->FNC('to', 'date', 'caption=До,input=none,single=none');
     }
 
@@ -125,6 +125,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     {
         $recs = array();
         $pRecs = array();
+        $arr = array();
         
         $typeOfAbsent = explode(',', $rec->type);
         
@@ -182,9 +183,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                 while ($sickdays = $sickdaysQuery->fetch()) {
                     $doc['startDate'] = ($sickdays->startDate);
                     $doc['endDate'] = $sickdays->toDate;
-                    
+                 
                     $docPeriod = self::getPeriod($rec, $doc);
-                    
+                   //   bp($docPeriod,$doc, $rec->firstDayOfPeriod,$rec->to);
                     $numberOfSickdays = $docPeriod['workingDays'];
                     
                     if (!array_key_exists($sickdays->productId, $pRecs)) {
@@ -271,7 +272,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                     }
                 }
             }
-            
+           
             foreach ($pRecs as $key => $val) {
                 if (!array_key_exists($key, $recs)) {
                     $recs[$key] = (object) array(
@@ -279,6 +280,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                         'personId' => $val->personId,
                         'startPeriod' => $val->startPeriod,
                         'endPeriod' => $val->endPeriod,
+                        'numberOfLeavesDays' => $val->numberOfLeavesDays,
+                        'numberOfTripsesDays' => $val->numberOfTripsesDays,
+                        'numberOfSickdays' => $val->numberOfSickdays,
                         'absencesDays' => ($val->numberOfLeavesDays + $val->numberOfTripsesDays + $val->numberOfSickdays)
                     );
                 } else {
@@ -305,16 +309,36 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             
             $period++;
         } while ($period <= $rec->numberOfPeriods);
-        
-        
-        $recs['total'] = (object) array(
-            'total' => 'Общо'
-        );
-        
-        //asort($recs);
-        
-        
        
+
+        
+        foreach ($recs as $key => $val){
+            
+            $periodsArr = explode(',', $val->startPeriod);
+            
+            $absencesArr = explode(',', $val->absencesDays);
+            
+            foreach ($periodsArr as $k => $v) {
+               
+                
+                if(!empty($v)){
+                    $start = 'a' .dt::mysql2verbal($v, 'dmy');
+                    $arr[$start] += $absencesArr[$k];
+                }
+               
+            }
+            
+        }
+        
+        $arr = array_merge(array('total' => 'Общо'),$arr);
+        
+        
+        $recs[-1] = (object)array(
+            'total' => $arr
+         );
+      
+        ksort($recs);
+      
         return $recs;
     }
 
@@ -377,7 +401,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $row = new stdClass();
-        
+       
         $periodsArr = explode(',', $rec->periods);
         
         $absencesDaysArr = explode(',', $dRec->absencesDays);
@@ -402,23 +426,23 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                     
                     $totalAbs += $absencesDaysArr[$key1];
                     
-                    $rec->{$val} += $absencesDaysArr[$key1];
                 }
             }
         }
         
-        $row->totalAbs = $Int->toVerbal($totalAbs);
+        $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
         
         if ($dRec->total) {
             
-            $row->employee = "<b>" . $dRec->total . "</b>";
+            $row->employee = "<b>" . $dRec->total[total] . "</b>";
             
             foreach ($periodsArr as $key => $val) {
                 
                 $val = 'a' . $val;
                 
-                $row->$val = "<b>" . $Int->toVerbal($rec->{$val}) . "</b>";
-                $totalAbs += $rec->{$val};
+                $row->$val = "<b>" . $Int->toVerbal($dRec->total[$val] ) . "</b>";
+                
+                $totalAbs += $dRec->total[$val];
             }
             
             $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
@@ -500,6 +524,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     public function getPeriod($rec, $doc)
     {
         $period = array();
+               
         if (($rec->firstDayOfPeriod <= $doc['startDate']) && ($rec->to >= $doc['endDate'])) {
             $period['startDate'] = $doc['startDate'];
             $period['endDate'] = $doc['endDate'];
@@ -517,7 +542,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             }
         }
         
-        if ($rec->to < $doc['endtDate']) {
+        if ($rec->to < $doc['endDate']) {
             if ($rec->firstDayOfPeriod <= $doc['startDate']) {
                 $period['startDate'] = $doc['startDate'];
                 $period['endDate'] = $rec->to;

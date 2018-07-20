@@ -1459,8 +1459,13 @@ class sales_Quotations extends core_Master
                         $value = isset($emails[0]) ? $emails[0] : null;
                     } elseif ($fld == 'tel') {
                         $tels = drdata_PhoneType::toArray($data->{$fld});
-                        $value = isset($tels[0]) ? $tels[0]->number : null;
+                        if(is_object($tels[0])){
+                            $value = '+' . $tels[0]->countryCode . $tels[0]->areaCode . $tels[0]->number;
+                        } else {
+                            $value = null;
+                        }
                     }
+                    
                     $newRec->{$fld} = $value;
                 }
             }

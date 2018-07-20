@@ -3190,10 +3190,24 @@ fieldset.sharing-history {
 	float: left;
 	margin-top: 8px;
 }
+.cart-view-buttons-right {
+	text-align: center;
+	margin-top: 8px;
+	input {
+		margin-right: 0;
+	}
+}
 .narrow .cart-view-buttons-left {
 	float: none;
 	clear: both;
 }
+
+.wide .cartInfoBlock {
+	width: 23%;
+	float: left;
+	margin-left: 2%;
+}
+
 .cart-view-buttons-top {
 	margin: 10px 0;
 	span {
@@ -3221,10 +3235,10 @@ fieldset.sharing-history {
 }
 
 .wide .cartHolder {
-	display: inline-block;
+	float: left;
+	width: 75%;
 }
 .narrow .summary-holder{
-	float: left;
 	margin-top: 10px;
 }
 .eshop-link {
@@ -3235,9 +3249,13 @@ fieldset.sharing-history {
 
 .order-info {
 	background-color: #f1f1f1;
+	border: 1px solid #ccc ;
 	padding: 10px;
 	font-size: 0.9em;
-	margin-bottom: 20px;
+}
+
+.narrow .order-info {
+	margin-bottom: 10px;
 }
 
 .toolbar .eshop-link {
@@ -3287,9 +3305,7 @@ fieldset.sharing-history {
 	color: #222;
 	min-width: 320px;
 	width: 100%;
-	margin-bottom: 10px;
-    		font-size: 0.9em;
-
+    font-size: 0.9em;
 	th {
 		text-align: center;
 		padding: 5px;
@@ -3364,15 +3380,14 @@ fieldset.sharing-history {
 	border-right: none;
 }
 
-.wide .cart-container {
-	display: inline-block;
-}
-
 .summary-holder {
-	float: right;
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid #ccc;
+	text-align: left;
 	table {
 		td {
-			padding: 5px 10px;
+			padding: 3px 10px;
 		}
 	}
 }
@@ -3761,8 +3776,17 @@ table .eshop-btn {
 	border: solid 1px #aaa;
 	clear: both;
 	margin-bottom: 5px
-}
 
+}
+.toggleGroups {
+	.openBtn {
+		display: inline-block;
+		width: 20px;
+		height: 20px;
+		background: url('../img/16/toggle1.png') center bottom no-repeat;
+
+	}
+}
 .cms-row h1 {
     margin-top: 0;
     margin-left: -2px;

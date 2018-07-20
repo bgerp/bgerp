@@ -733,6 +733,21 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
             
+            // Проверка дали националния номер е валиден за държавата
+            if($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)){
+                if(!crm_Companies::checkUicId($rec->uicNo, $rec->contragentCountryId)){
+                    $form->setError('uicNo', 'Невалиден ЕИК');
+                }
+            }
+            
+            if (!empty($rec->uicId)) {
+                if (!static::checkUicId($rec->uicId, $rec->country)) {
+                    $form->setWarning('uicId', 'Невалиден ЕИК');
+                }
+            }
+            
+            
+            
             // Ако е ДИ или КИ
             if ($rec->type != 'invoice') {
                 if (isset($rec->changeAmount)) {

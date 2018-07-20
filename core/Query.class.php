@@ -275,20 +275,18 @@ class core_Query extends core_FieldSet
             unset($keylistArr[-1], $keylistArr[0]);
         }
         
-        $isFirst = true;
+        $cond = '';
         
         if (count($keylistArr)) {
             foreach ($keylistArr as $key => $value) {
-                $cond = "LOCATE('|{$key}|', #{$field})";
-                
-                if ($or === true) {
-                    $this->orWhere($cond);
-                } else {
-                    $this->where($cond);
-                }
-                
-                $or = true;
+                $cond .= ($cond ? ' OR ' : '') . "LOCATE('|{$key}|', #{$field})";
             }
+        }
+        
+        if ($or === true) {
+            $this->orWhere($cond);
+        } else {
+            $this->where($cond);
         }
         
         return $this;
@@ -301,19 +299,16 @@ class core_Query extends core_FieldSet
      */
     public function likeKeylist1($field, $keylist, $or = false)
     {
-        $keylistArr = keylist::toArray($keylist);
+        $regExp = trim($keylist, '|');
         
-        $isFirst = true;
-        
-        if (count($keylistArr)) {
-            $regExp = implode('|', $keylistArr);
-            $this->where("#{$field} REGEXP '\\\|({$regExp})\\\|'", $or);
+        if ($regExp) {
+            $this->where("#{$field} REGEXP BINARY '\\\|({$regExp})\\\|'", $or);
         }
         
         return $this;
     }
-
-
+    
+    
     /**
      * Преброява срещанията на всяко от изброените id-та в полето keylistName на редовете от заявката
      *
@@ -322,30 +317,30 @@ class core_Query extends core_FieldSet
      *
      * @return array масив $id => брой записи
      */
-    public function countKeylist($keylistName, $ids = NULL)
+    public function countKeylist($keylistName, $ids = null)
     {
-        if($ids === NULL) {
+        if ($ids === null) {
             $type = $this->getFieldType($keylistName);
             $kMvc = $type->params['mvc'];
             $kQuery = $kMvc::getQuery();
             $kQuery->show('id');
-            while($kRec = $kQuery->fetch()) {
+            while ($kRec = $kQuery->fetch()) {
                 $ids[$kRec->id] = $kRec->id;
             }
         }
-
+        
         $mysqlKeylistName = $this->getMysqlField($keylistName);
-        foreach($ids as $id) {
-            $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', $mysqlKeylistName) > 0)");
+        foreach ($ids as $id) {
+            $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
         }
         $rec = $this->fetch();
-
+        
         $res = array();
-        foreach($ids as $id) {
+        foreach ($ids as $id) {
             $name = $keylistName . '_cnt_' . $id;
             $res[$id] = $rec->{$name};
         }
-
+        
         return $res;
     }
     
