@@ -48,10 +48,10 @@ class cond_type_Color extends cond_type_abstract_Proto
         $valueVerbal = parent::toVerbal($id, $domainClass, $domainId, $value);
         $valueHex = cond_Colors::fetchField($value, 'hex');
        
-        $attr = array('style' => "background-color: {$valueHex} !important;width:15px;height:15px;display:inline-block");
+        $attr = array('class' => 'colorBox', 'style' => "background-color: {$valueHex} !important;width:15px;height:15px;display:inline-block");
         $colorBox = ht::createElement("span", $attr, null, true);
        
-        $res = new core_ET("<span>[#colorBox#] [#name#]</span>");
+        $res = new core_ET("<span><span class='colorName'>[#name#]</span> [#colorBox#]</span>");
         $res->append($colorBox, 'colorBox');
         $res->append($valueVerbal, 'name');
         
