@@ -635,6 +635,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN art-->|Артикули|*: [#art#]<!--ET_END art--></div></small>
                                 <small><div><!--ET_BEGIN compare-->|Сравнение|*: [#compare#]<!--ET_END compare--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
+       
+       
         
         if ($data->rec->compare == 'month') {
             
