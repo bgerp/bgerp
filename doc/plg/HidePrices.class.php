@@ -84,6 +84,15 @@ class doc_plg_HidePrices extends core_Plugin
             }
         }
         
+        // Ако потребителя е системен и е указано че той има достъп до сингъла
+        if (Mode::is('isSystemCanSingle')){
+            $cu = core_Users::getCurrent('id', FALSE);
+            if( isset($cu) && $cu == core_Users::SYSTEM_USER){
+                
+                return true;
+            }
+        }
+        
         // Ако горните не са изпълнени, потребителя няма право да вижда цените/сумите по документите
         return false;
     }

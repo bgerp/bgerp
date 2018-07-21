@@ -206,9 +206,9 @@ class sales_SalesDetails extends deals_DealDetail
             }
             
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
-            $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id)->fee;
+            $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $fee->explain);
         }
     }
     
@@ -223,6 +223,7 @@ class sales_SalesDetails extends deals_DealDetail
         if (isset($cRec)) {
             $rec->fee = $cRec->fee;
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
+            $rec->_transportExplained = $cRec->explain;
             $rec->syncFee = true;
         }
     }
@@ -235,7 +236,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
         // Синхронизиране на сумата на транспорта
         if ($rec->syncFee === true) {
-            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
+            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
         }
     }
     

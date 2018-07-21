@@ -149,7 +149,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     foreach ($details->code as $key => $v) {
                         if ($details->minQuantity[$key] && $details->maxQuantity[$key]) {
-                            if ($details->minQuantity[$key] > $details->maxQuantity[$key]) {
+                            if ((double) $details->minQuantity[$key] > (double) $details->maxQuantity[$key]) {
                                 $form->setError('additional', 'Максималното количество не може да бъде по-малко от минималното');
                             }
                         }
@@ -498,7 +498,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         
         $row = new stdClass();
-        $row->productId = cat_Products::getShortHyperlink($dRec->productId);
+        $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
         
         if (isset($dRec->quantity)) {
             $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);

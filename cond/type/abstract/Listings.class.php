@@ -69,4 +69,18 @@ abstract class cond_type_abstract_Listings extends cond_type_abstract_Proto
     {
         return false;
     }
+    
+    
+    /**
+     * Вербално представяне на стойноста
+     *
+     * @param mixed $class
+     * @param int   $id
+     *
+     * @return mixed
+     */
+    public function toVerbal($id, $domainClass, $domainId, $value)
+    {
+        return cat_Listings::getHyperlink($value, TRUE);
+    }
 }

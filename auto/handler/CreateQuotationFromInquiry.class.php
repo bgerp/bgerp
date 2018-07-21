@@ -99,7 +99,9 @@ class auto_handler_CreateQuotationFromInquiry
                 
                 if (!empty($profileRec->buzTel)) {
                     $tels = drdata_PhoneType::toArray($profileRec->buzTel);
-                    $fields['tel'] = $tels[0]->number;
+                    if(is_object($tels[0])){
+                        $fields['tel'] = '+' . $tels[0]->countryCode . $tels[0]->areaCode . $tels[0]->number;
+                    }
                 }
             }
             

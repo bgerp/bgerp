@@ -385,13 +385,15 @@ class store_InventoryNoteDetails extends doc_Detail
             return;
         }
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
-        $data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
-        $data->listFilter->FLD("{$data->masterData->tabTopParam}", 'varchar', 'input=hidden');
-        $data->listFilter->setDefault("{$data->masterData->tabTopParam}", get_called_class());
-        $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
-        $data->listFilter->showFields = $mvc->searchInputField;
-        $data->listFilter->view = 'horizontal';
+        if (!Mode::isReadOnly()) {
+            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
+            $data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
+            $data->listFilter->FLD("{$data->masterData->tabTopParam}", 'varchar', 'input=hidden');
+            $data->listFilter->setDefault("{$data->masterData->tabTopParam}", get_called_class());
+            $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
+            $data->listFilter->showFields = $mvc->searchInputField;
+            $data->listFilter->view = 'horizontal';
+        }
         
         $data->query->orderby('id', 'DESC');
     }
