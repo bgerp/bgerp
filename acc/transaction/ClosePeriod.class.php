@@ -163,9 +163,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $amount4535 += $diffAmount;
         
         if ($amount4535 > 0) {
-            $entries[] = array('amount' => abs($amount4535), 'debit' => array('123', $this->date->year), 'credit' => array('4535'), 'reason' => 'ДДС - остатъци');
+            $entries[] = array('amount' => abs($amount4535), 'debit' => array('123', $this->date->year), 'credit' => array('4535'), 'reason' => 'ДДС - платено, но неначислено');
         } else {
-            $entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year), 'reason' => 'ДДС - платено, но неначислено');
+            $entries[] = array('amount' => abs($amount4535), 'debit' => array('4535'), 'credit' => array('123', $this->date->year), 'reason' => 'ДДС - остатъци');
         }
         
         $total += abs($amount4535);
