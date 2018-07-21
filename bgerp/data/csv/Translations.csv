@@ -1885,9 +1885,10 @@ en,Статистика,Statistic
 en,Статия,Article
 en,Статус на съоб_e3628,Message status
 en,Статус,Status
-en,Стелаж №,Stillage №
-en,Стелажи в СКЛАД,Stillages in Warehouse
-en,Стелажи,Stillages
+en,Стелаж №,Rack №
+en,Стелаж,Rack
+en,Стелажи в СКЛАД,Racks in Warehouse
+en,Стелажи,Racks
 en,Стойност по по_acbfc,Default value
 en,Стойност,Value
 en,Стойности,Values
@@ -2517,7 +2518,7 @@ en,Текстът е над допустимите,Text is over allowed
 en,Неправилен формат на данните,Invalid data format
 en,палети,pallets
 en,палета,pallets
-en,Палети,pallets
+en,Палети,Pallets
 en,Палета,pallets
 en,Кашон,carton
 en,кашона,cartons

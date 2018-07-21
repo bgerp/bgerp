@@ -84,8 +84,8 @@ class rack_Products extends store_Products
         $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
         
-        $this->FNC('quantityNotOnPallets', 'double', 'caption=Количество->Непалетирано,input=hidden,smartCenter');
-        $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden,smartCenter');
+        $this->FNC('quantityNotOnPallets', 'double(maxDecimals=2)', 'caption=Количество->Непалетирано,input=hidden,smartCenter');
+        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На палети,input=hidden,smartCenter');
     }
     
     
@@ -113,8 +113,15 @@ class rack_Products extends store_Products
     public function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         core_RowToolbar::createIfNotExists($row->_rowTools);
-        $row->_rowTools->addLink('Палетиране', array('rack_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
-        $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/filter.png,title=Търсене на палети с артикул');
+        $row->_rowTools->addLink('Палетиране', array('rack_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/pallet2.png,title=Палетиране на артикул');
+
+        $row->quantityNotOnPallets .= '&nbsp;' . ht::createLink('', array('rack_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/pallet2.png,title=Палетиране на артикул');
+
+        $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикул');
+        if($rec->quantityOnPallets > 0) {
+            $row->quantityOnPallets .= '&nbsp;' . ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикул');
+        }
+
     }
     
     
