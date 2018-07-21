@@ -25,7 +25,7 @@ class rack_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_RefreshRows, plg_State, plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_RefreshRows, plg_State, plg_Sorting,plg_Search';
     
     
     /**
@@ -102,7 +102,12 @@ class rack_Movements extends core_Manager
     
     public $listFields = 'palletId,position,positionTo,workerId,note,created=Създаване';
     
-    
+
+    /**
+     * Полета по които да се търси
+     */
+    public $searchFields = 'palletId,position,positionTo,workerId,note';
+
     /**
      * Описание на модела (таблицата)
      */
@@ -112,7 +117,7 @@ class rack_Movements extends core_Manager
         $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Палет,smartCenter');
         
         $this->FLD('position', 'rack_PositionType', 'caption=От,smartCenter');
-        $this->FLD('positionTo', 'rack_PositionType', 'caption=Към,smartCenter');
+        $this->FLD('positionTo', 'rack_PositionType', 'caption=До,smartCenter');
         
         $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter,input=hidden');
         $this->FLD('workerId', 'user(roles=storeWorker,ceo)', 'caption=Товарач,smartCenter');
@@ -196,6 +201,10 @@ class rack_Movements extends core_Manager
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
