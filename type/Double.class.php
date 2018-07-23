@@ -137,45 +137,33 @@ class type_Double extends core_Type
         
         $conf = core_Packs::getConfig('core');
         
-        if (!$this->params['decPoint']) {
-            $this->params['decPoint'] = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
-        }
+        $decPoint = isset($this->params['decPoint']) ? $this->params['decPoint'] : html_entity_decode($conf->EF_NUMBER_DEC_POINT);
+        $thousandsSep = Mode::is('forSearch') ? '' : isset($this->params['thousandsSep']) ?  $this->params['thousandsSep'] : html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
+        $decimals = isset($this->params['decimals']) ? $this->params['decimals'] : EF_NUMBER_DECIMALS;
         
-        if (!isset($this->params['thousandsSep'])) {
-            $this->params['thousandsSep'] = html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
+        // Ограничаване на максиомалния брой знаци след десетичната точка
+        if(isset($this->params['maxDecimals'])) {
+            $decimals = min($decimals, $this->params['maxDecimals']);
         }
-        
-        if (!isset($this->params['decimals'])) {
-            $this->params['decimals'] = $this->params['decimals'];
-        }
-        
-        if (!isset($this->params['decimals'])) {
-            $this->params['decimals'] = EF_NUMBER_DECIMALS;
+       
+        // Ограничаване на минималния брой знаци след десетичната точка
+        if(isset($this->params['minDecimals'])) {
+            $decimals = max($decimals, $this->params['minDecimals']);
         }
         
         // Ако закръгляме умно
         if ($this->params['smartRound']) {
-            $oldDecimals = $this->params['decimals'];
-            
             // Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-            $this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
+            $decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
         }
         
         // Закръгляме числото преди да го обърнем в нормален вид
-        $value = round($value, $this->params['decimals']);
-        $ts = Mode::is('forSearch') ? '' : $this->params['thousandsSep'];
-        $value = number_format($value, $this->params['decimals'], $this->params['decPoint'], $ts);
+        $value = round($value, $decimals);
+        $value = number_format($value, $decimals, $decPoint, $thousandsSep);
         
         if (!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
         }
-        
-        if ($this->params['smartRound']) {
-            // След умното закръгляне, връщаме старата стойност за брой десетични знаци.
-            // Така се подсигуряваме че след последователно викане на стойноста винаги ще се изчислява на момента
-            $this->params['decimals'] = $oldDecimals;
-        }
-        
         return $value;
     }
     
