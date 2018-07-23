@@ -201,10 +201,10 @@ class core_Array
         
         uasort($array, function ($a, $b) use ($field, $dir, $mode) {
             $a = (object) $a;
-            expect(property_exists($a, $field), $a);
+            expect(property_exists($a, $field), $a, $field);
             
             $b = (object) $b;
-            expect(property_exists($b, $field), $b);
+            expect(property_exists($b, $field), $b, $field);
             
             if ($mode == 'native') {
                 if ($a->{$field} == $b->{$field}) {
