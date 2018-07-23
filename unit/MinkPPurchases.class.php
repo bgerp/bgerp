@@ -67,6 +67,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+        sleep(2);
         
         return $browser;
     }
@@ -241,17 +242,18 @@ class unit_MinkPPurchases extends core_Manager
         
         // Записваме артикула
         $browser->press('Запис');
-        if (strpos($browser->gettext(), 'Некоректна стойност на полето \'Цена\'!')) {
+        ///if (strpos($browser->gettext(), 'Некоректна стойност на полето \'Цена\'!')) { Контролът е променен
+        if (strpos($browser->gettext(), 'Сумата на реда не може да бъде под 0.01')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Не дава грешка при отрицателна цена', 'warning');
         }
         
-        if (strpos($browser->gettext(), 'Не е над - \'0,0000\'')) {
-        } else {
+//         if (strpos($browser->gettext(), 'Не е над - \'0,0000\'')) {
+//         } else {
             
-            return unit_MinkPbgERP::reportErr('Не дава грешка "Не е над - \'0,0000\'"', 'warning');
-        }
+//             return unit_MinkPbgERP::reportErr('Не дава грешка "Не е над - \'0,0000\'"', 'warning');
+//         }
     }
     
     
