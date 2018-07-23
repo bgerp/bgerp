@@ -882,7 +882,7 @@ class eshop_Products extends core_Master
         // Проверки
         $this->requireRightFor('linktoeshop');
         expect($productId = Request::get('productId', 'int'));
-        expect($productRec = cat_Products::fetch($productId, 'canStore,measureId'));
+        expect(cat_Products::fetch($productId, 'canStore,measureId'));
         
         // Редирект ако потребителя се върна с бутона 'НАЗАД'
         if (eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($productId, cms_Domains::getPublicDomain()->id)) {
@@ -978,7 +978,7 @@ class eshop_Products extends core_Master
      * @param int      $productId - артикул
      * @param int|NULL $domainId  - ид на домейн или NULL за текущия
      *
-     * @return id|NULL - намерения е-артикул
+     * @return int|NULL - намерения е-артикул
      */
     public static function getByProductId($productId, $domainId = null)
     {
