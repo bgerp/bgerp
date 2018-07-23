@@ -3250,6 +3250,7 @@ fieldset.sharing-history {
 .order-info {
 	background-color: #f1f1f1;
 	border: 1px solid #ccc ;
+	color: #222;
 	padding: 10px;
 	font-size: 0.9em;
 }
@@ -3305,10 +3306,10 @@ fieldset.sharing-history {
 	color: #222;
 	min-width: 320px;
 	width: 100%;
-    font-size: 0.9em;
+    font-size: 0.95em;
 	th {
 		text-align: center;
-		padding: 5px;
+		padding: 7px 5px;
 		border-top: 1px solid #ccc;
 	}
 	td {
@@ -3402,7 +3403,7 @@ fieldset.sharing-history {
 }
 .order-info .richtext {
 	font-size: 1em;
-	color: #000;
+	color: #222;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 }
 
