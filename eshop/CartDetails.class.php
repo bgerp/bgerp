@@ -519,8 +519,10 @@ class eshop_CartDetails extends core_Detail
     {
         $id = Request::get('id', 'int');
         $cartId = Request::get('cartId', 'int');
-        $quantity = Request::get('packQuantity', 'double');
+        $quantity = Request::get('packQuantity', 'varchar');
         $this->requireRightFor('updatecart', (object) array('cartId' => $cartId));
+        $quantity = rtrim($quantity, '.');
+        $quantity = rtrim($quantity, ',');
         
         $rec = self::fetch($id);
         $rec->quantity = $quantity * $rec->quantityInPack;
