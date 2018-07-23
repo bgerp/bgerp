@@ -92,7 +92,7 @@ function eshopActions() {
 	});
 	
 	// Време за изчакване
-	var timeout1;
+	var timeout1 = [];
 	
 	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
@@ -115,10 +115,11 @@ function eshopActions() {
 		    var data = {packQuantity:packQuantity};
 		    
 		    // След всяко натискане на бутон изчистваме времето на изчакване
-			clearTimeout(timeout1);
-			
+			var idProd = $(this).attr('name');
+			clearTimeout(timeout1[idProd]);
+
 			// Правим Ajax заявката като изтече време за изчакване
-			timeout1 = setTimeout(function(){
+			timeout1[idProd] = setTimeout(function(){
 				resObj = new Object();
 				resObj['url'] = url;
 				getEfae().process(resObj, data);
