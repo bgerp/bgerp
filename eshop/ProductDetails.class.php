@@ -391,6 +391,7 @@ class eshop_ProductDetails extends core_Detail
      */
     private static function getExternalRow($rec)
     {
+        $settings = cms_Domains::getSettings();
         $row = new stdClass();
         $row->productId = (empty($rec->title)) ? cat_Products::getVerbal($rec->productId, 'name') : core_Type::getByName('varchar')->toVerbal($rec->title);
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
@@ -406,11 +407,11 @@ class eshop_ProductDetails extends core_Detail
         $row->orderPrice = $catalogPriceInfo->price;
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-        $row->btn = ht::createFnBtn('Купи||Buy', null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
+        
+        $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        $settings = cms_Domains::getSettings();
         if (isset($settings->storeId) && $canStore == 'yes') {
             $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
             if ($quantity < $rec->quantityInPack) {

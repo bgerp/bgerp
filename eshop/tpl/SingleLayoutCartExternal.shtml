@@ -94,7 +94,7 @@
             <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
             <!--ET_END activeFolderId-->
 
-            <h4 style="margin: 0px 0 3px;">|Данни за фактура|*</h4>
+            <h4 style="margin: 0px 0 3px;">|Фактура|*</h4>
             <table style="margin-left: 10px;">
                <!--ET_BEGIN NO_INVOICE-->
                <tr>
