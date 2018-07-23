@@ -168,6 +168,7 @@ function eshopActions() {
 
 
 	$('.eshop-btn').on('click', function () {
+		if($('.eshop-product-option').hasClass('inputError')) return;
 		var cart = $('.logoutBlock #cart-external-status');
 		if($('.eshop-product-list').length) {
 			var imgtodrag = $(this).closest('.eshop-product-list').find('.eshop-product-image');
