@@ -133,7 +133,7 @@ function eshopActions() {
 		
 		var packQuantity = $(this).val();
 		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 0)){
 			$(this).addClass('inputError');
 		}
 	});
@@ -146,13 +146,18 @@ function eshopActions() {
 		
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
+		var valNew = parseFloat(val) + parseFloat(step);
 		
-		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
-			$(input).val(val + step);
+		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
+			
+			val = valNew.toString();
+			valNew.toFixed(2);
+			
+			$(input).val(valNew);
 			$(input).css( "color", "green");
 			changeInputWidth();
             $("#cart-view-table").css("cursor", "progress");
-			if(max && val >= max) return;
+			if(max > 0 && val >= max) return;
 		}
 
 		// Ръчно инвоукване на ивент на инпут полето
@@ -163,6 +168,7 @@ function eshopActions() {
 
 
 	$('.eshop-btn').on('click', function () {
+		if($('.eshop-product-option').hasClass('inputError')) return;
 		var cart = $('.logoutBlock #cart-external-status');
 		if($('.eshop-product-list').length) {
 			var imgtodrag = $(this).closest('.eshop-product-list').find('.eshop-product-image');
