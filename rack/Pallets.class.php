@@ -94,8 +94,8 @@ class rack_Pallets extends core_Manager
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,column=none');
-        $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory,smartCenter');
-        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory');
+        $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory');
+        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
