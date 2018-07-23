@@ -121,6 +121,18 @@ class eshop_Settings extends core_Manager
     
     
     /**
+     * Заглавие на бутона за добавяне в количката на бг
+     */
+    const DEFAULT_ADD_TO_CART_LABEL_BG = 'Купи';
+    
+    
+    /**
+     * Заглавие на бутона за добавяне в количката на ен
+     */
+    const DEFAULT_ADD_TO_CART_LABEL_EN = 'Buy';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -142,6 +154,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
         $this->FLD('addProductText', 'text(rows=3)', 'caption=Добавяне на артикул към количката->Текст');
+        $this->FLD('addToCartBtn', 'varchar(16)', 'caption=Добавяне на артикул към количката->Надпис');
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
         $this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
         $this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
@@ -268,6 +281,9 @@ class eshop_Settings extends core_Manager
         if(isset($rec->currencyId)){
             $form->setField('freeDelivery', "unit={$rec->currencyId}");
         }
+        
+        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
+        $form->setField('addToCartBtn', "placeholder={$btnPlaceholder}");
     }
     
     
@@ -344,6 +360,10 @@ class eshop_Settings extends core_Manager
             // Какъв е живота на количките на нерегистрираните потребители
             if (empty($settingRec->lifetimeForNoUserDraftCarts)) {
                 $settingRec->lifetimeForNoUserDraftCarts = self::DEFAULT_LIFETIME_NO_USER_CARTS;
+            }
+            
+            if (empty($settingRec->addToCartBtn)) {
+                $settingRec->addToCartBtn = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
             }
         }
         
