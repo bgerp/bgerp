@@ -206,7 +206,6 @@ class eshop_Products extends core_Master
     {
         $rec = $form->rec;
         
-        $isMandatoryMeasure = false;
         if ($form->rec->coDriver) {
             $protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
             
