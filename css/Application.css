@@ -2805,6 +2805,7 @@ span.sharing-history-title {
 .order-info {
   background-color: #f1f1f1;
   border: 1px solid #cccccc;
+  color: #222222;
   padding: 10px;
   font-size: 0.9em; }
 
@@ -2851,10 +2852,10 @@ span.sharing-history-title {
   color: #222222;
   min-width: 320px;
   width: 100%;
-  font-size: 0.9em; }
+  font-size: 0.95em; }
   .optionsTable th {
     text-align: center;
-    padding: 5px;
+    padding: 7px 5px;
     border-top: 1px solid #cccccc; }
   .optionsTable td {
     padding: 4px 7px; }
@@ -2933,7 +2934,7 @@ span.sharing-history-title {
 
 .order-info .richtext {
   font-size: 1em;
-  color: black;
+  color: #222222;
   font-family: Verdana, Arial, Helvetica, sans-serif; }
 
 .remove-from-cart:hover {

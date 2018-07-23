@@ -54,10 +54,18 @@ class plg_AlignDecimals2 extends core_Plugin
             foreach ($decFields as $fName) {
                 if (isset($recs[$id]->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName})) {
                     $Type = clone $mvc->fields[$fName]->type;
-                    $max = (${"{$fName}FracLen"} > 5) ? 5 : ${"{$fName}FracLen"};
-                    $Type->params['decimals'] = max($max, $Type->params['minDecimals']);
                     
-                    $rows[$id]->{$fName} = str_replace($mvc->getFieldType($fName)->toVerbal($rec->{$fName}), $Type->toVerbal($rec->{$fName}), $rows[$id]->{$fName});
+                    if(!$Type->params['decimals']) {
+                        $max = $Type->params['maxDecimals'] ? $Type->params['maxDecimals'] : 5;
+                        $min = $Type->params['minDecimals'] ? $Type->params['minDecimals'] : 0;
+                        $Type->params['decimals'] = min($max, max($min, ${"{$fName}FracLen"}));
+                    }
+                    
+                    if(strpos($rows[$id]->{$fName}, $mvc->getFieldType($fName)->toVerbal($rec->{$fName})) !== FALSE) {
+                        $rows[$id]->{$fName} = str_replace($mvc->getFieldType($fName)->toVerbal($rec->{$fName}), $Type->toVerbal($rec->{$fName}), $rows[$id]->{$fName});
+                    } else {
+                        $rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
+                    }
                 }
             }
         }

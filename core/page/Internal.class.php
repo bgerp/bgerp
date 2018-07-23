@@ -101,7 +101,7 @@ class core_page_Internal extends core_page_Active
         if (Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div id='mainMenu'>
-                     <div class='menuRow clearfix21'><img class='favicon' src=" . sbf('img/favicon.ico') . " alt=''>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
+                     <div class='menuRow clearfix21'><img class='favicon' src=/favicon.ico alt=''>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
                 </div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
         } else {
