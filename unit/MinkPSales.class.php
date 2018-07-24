@@ -2488,7 +2488,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '1');//
         $browser->setValue('discount', 20);
         $browser->press('Запис и Нов');
@@ -2506,21 +2506,14 @@ class unit_MinkPSales extends core_Manager
         
         // активираме продажбата
         $browser->press('Активиране');
-        
+       
         // Контиране, ако не е в бъдещ период
         if (strpos($browser->gettext(), 'Активиране/Контиране')) {
-            $browser->press('Активиране/Контиране');
-            if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
-                $browser->setValue('Ignore', '1');
-                $browser->press('Активиране/Контиране');
-            } else {
-                
-                return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
-            }
-            
+            $browser->press('Активиране/Контиране'); 
+             
             if (strpos($browser->gettext(), 'ДДС 20%: BGN 12,96')) {
             } else {
-                
+               
                 return unit_MinkPbgERP::reportErr('Грешно ДДС 20%', 'warning');
             }
             if (strpos($browser->gettext(), 'ДДС 9%: BGN 6,63')) {
