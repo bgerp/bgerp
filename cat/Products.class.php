@@ -217,7 +217,7 @@ class cat_Products extends embed_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'name, code, info';
+    public $searchFields = 'name, code, info, innerClass';
     
     
     /**
