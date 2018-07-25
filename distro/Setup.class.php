@@ -60,8 +60,6 @@ class distro_Setup extends core_ProtoSetup
         'distro_CopyDriver',
         'distro_AbsorbDriver',
         'distro_ArchiveDriver',
-        'migrate::reposToKey',
-        'migrate::syncFiles',
     );
     
     
@@ -71,62 +69,4 @@ class distro_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(1.9, 'Документи', 'Дистрибутив', 'distro_Group', 'default', 'admin'),
     );
-    
-    
-    /**
-     * Миграция за превръщане от keylist в key поле
-     */
-    public static function reposToKey()
-    {
-        // Ако полето липсва в таблицата на модела да не се изпълнява
-        $cls = cls::get('distro_Files');
-        $cls->db->connect();
-        $reposField = str::phpToMysqlName('repos');
-        if (!$cls->db->isFieldExists($cls->dbTableName, $reposField)) {
-            
-            return ;
-        }
-        
-        $fQuery = $cls->getQuery();
-        
-        unset($fQuery->fields['repos']);
-        $fQuery->FLD('repos', 'keylist(mvc=distro_Repositories, select=name)');
-        
-        $fQuery->where('#repoId IS NULL');
-        
-        while ($fRec = $fQuery->fetch()) {
-            $reposArr = type_Keylist::toArray($fRec->repos);
-            
-            foreach ($reposArr as $repoId) {
-                $fRec->repos = null;
-                $fRec->repoId = $repoId;
-                
-                $cls->save($fRec);
-                
-                unset($fRec->id);
-            }
-        }
-    }
-    
-    
-    /**
-     * Миграция за синхронизиране на файловете с новите имена на директориите
-     */
-    public static function syncFiles()
-    {
-        $Files = cls::get('distro_Files');
-        $gQuery = distro_Group::getQuery();
-        
-        while ($gRec = $gQuery->fetch()) {
-            $reposArr = type_Keylist::toArray($gRec->repos);
-            
-            foreach ($reposArr as $repoId) {
-                try {
-                    $Files->forceSync($gRec->id, $repoId);
-                } catch (ErrorException $e) {
-                    continue;
-                }
-            }
-        }
-    }
 }

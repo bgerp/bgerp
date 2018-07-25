@@ -206,16 +206,6 @@ class bgerp_Setup extends core_ProtoSetup
     
     
     /**
-     * Списък с мениджърите, които съдържа пакета
-     */
-    public $managers = array(
-        'migrate::addThreadIdToRecently',
-        'migrate::migrateBookmarks2',
-        'migrate::fixTreeObjectName',
-    );
-    
-    
-    /**
      * Настройки за Cron
      */
     public $cronSettings = array(
@@ -521,91 +511,6 @@ class bgerp_Setup extends core_ProtoSetup
                         unset($res);
                     }
                 }
-            }
-        }
-    }
-    
-    
-    /**
-     * Миграция за добавяне на threadId на документите
-     */
-    public static function addThreadIdToRecently()
-    {
-        $Recently = cls::get(bgerp_Recently);
-        $rQuery = $Recently->getQuery();
-        $rQuery->where('#threadId IS NULL');
-        $rQuery->where('#objectId IS NOT NULL');
-        $rQuery->where("#objectId != ''");
-        $rQuery->where('#objectId != 0');
-        $rQuery->where("#type = 'document'");
-        
-        while ($rec = $rQuery->fetch()) {
-            try {
-                $Recently->save($rec, 'threadId');
-            } catch (Exception $e) {
-                continue;
-            }
-        }
-    }
-    
-    
-    /**
-     * Миграция за подредбата на букмарките
-     */
-    public static function migrateBookmarks2()
-    {
-        $mvc = cls::get('bgerp_Bookmark');
-        
-        $query = $mvc->getQuery();
-        
-        $query->orderBy('modifiedOn', 'DESC');
-        $query->orderBy('createdOn', 'DESC');
-        
-        $arr = array();
-        $i = array();
-        $cnt = 0;
-        while ($rec = $query->fetch()) {
-            if (!isset($i[$rec->user])) {
-                $i[$rec->user] = 1;
-            }
-            $rec->saoOrder = $i[$rec->user]++;
-            $rec->saoLevel = 1;
-            $mvc->save_($rec, 'saoOrder, saoLevel');
-            $cnt++;
-        }
-        
-        return '<li>Мигрирани букмарки: ' . $cnt;
-    }
-    
-    
-    public static function fixTreeObjectName()
-    {
-        foreach (array('cat_Groups', 'crm_Groups', 'hr_Departments') as $clsName) {
-            if (!cls::load($clsName, true)) {
-                continue ;
-            }
-            
-            $clsInst = cls::get($clsName);
-            
-            if (!$clsInst->hasPlugin('plg_TreeObject')) {
-                continue ;
-            }
-            
-            $clsQuery = $clsInst->getQuery();
-            $clsQuery->where("#{$clsInst->nameField} = '' OR #{$clsInst->nameField} IS NULL");
-            
-            while ($cRec = $clsQuery->fetch()) {
-                $pQuery = $clsInst->getQuery();
-                $pQuery->where(array("#parentId = '[#1#]'", $cRec->id));
-                
-                while ($pRec = $pQuery->fetch()) {
-                    $pRec->parentId = null;
-                    $clsInst->logDebug('Нулиран parentId', $pRec);
-                    $clsInst->save_($pRec, 'parentId');
-                }
-                
-                $clsInst->logDebug('Изтрит запис с празна стойност', $cRec);
-                $clsInst->delete($cRec->id);
             }
         }
     }

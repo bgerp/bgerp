@@ -126,9 +126,6 @@ class callcenter_Setup extends core_ProtoSetup
         'callcenter_SMS',
         'callcenter_Numbers',
         'callcenter_Hosts',
-        'migrate::nullWrongAnswerAndEndTime',
-        'migrate::fixDurationField',
-        'migrate::clearBrokenNotificaions'
     );
     
     
@@ -205,63 +202,5 @@ class callcenter_Setup extends core_ProtoSetup
             
             return "Невалиден изпращач. Позволените са: {$allowedUsers}";
         }
-    }
-    
-    
-    /**
-     * Миграция за премахване на записите с `0000-00-00 00:00:00`
-     */
-    public static function nullWrongAnswerAndEndTime()
-    {
-        $cnt = 0;
-        $cQuery = callcenter_Talks::getQuery();
-        $zeroTime = '0000-00-00 00:00:00';
-        $cQuery->where("#answerTime = '{$zeroTime}'");
-        $cQuery->orWhere("#endTime = '{$zeroTime}'");
-        while ($rec = $cQuery->fetch()) {
-            if ($rec->answerTime == $zeroTime) {
-                $rec->answerTime = null;
-            }
-            
-            if ($rec->endTime == $zeroTime) {
-                $rec->endTime = null;
-            }
-            
-            callcenter_Talks::save($rec);
-            $cnt++;
-        }
-        
-        if ($cnt) {
-            
-            return "<li class='green'>Оправени записи за времена на разговорите на {$cnt} записа</li>";
-        }
-    }
-    
-    
-    /**
-     * Миграция за добавяне на продължителност на разговорите
-     */
-    public static function fixDurationField()
-    {
-        $cQuery = callcenter_Talks::getQuery();
-        $cQuery->where('#duration IS NULL');
-        while ($rec = $cQuery->fetch()) {
-            $rec->duration = callcenter_Talks::getDuration($rec->answerTime, $rec->endTime);
-            if (!$rec->duration) {
-                continue;
-            }
-            callcenter_Talks::save($rec);
-        }
-    }
-    
-    
-    /**
-     * Изчиства старите (счупените) нотификация за пропуснато повикване
-     */
-    public static function clearBrokenNotificaions()
-    {
-        $urlArr = array('callcenter_Talks', 'list');
-        
-        bgerp_Notifications::clear($urlArr, '*');
     }
 }

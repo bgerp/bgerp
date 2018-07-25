@@ -376,17 +376,7 @@ class email_Setup extends core_ProtoSetup
         'email_ThreadHandles',
         'email_SendOnTime',
         'email_SpamRules',
-        'migrate::transferThreadHandles',
-        'migrate::fixEmailSalutations',
-        'migrate::repairRecsInFilters',
-        'migrate::repairSendOnTimeClasses',
-        'migrate::updateUserInboxesD',
-        'migrate::repairSalutations',
-        'migrate::repairDelayTime',
-        'migrate::fieldDeleteAfterRetrieval',
         'migrate::checkMailBox',
-        'migrate::removeDearSirs',
-        'migrate::spamFilter',
     );
     
     
@@ -452,172 +442,6 @@ class email_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция, която прехвърля манипулаторите на нишки от модел doc_Threads
-     * в email_ThreadHandles
-     */
-    public function transferThreadHandles()
-    {
-        $docThreads = cls::get('doc_Threads');
-        
-        if ($docThreads->db->isFieldExists($docThreads->dbTableName, 'handle')) {
-            // Манипулатор на нишката (thread handle)
-            $docThreads->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
-            
-            $tQuery = $docThreads->getQuery();
-            
-            while ($rec = $tQuery->fetch('#handle IS NOT NULL')) {
-                $rec->handle = strtoupper($rec->handle);
-                if ($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
-                    email_ThreadHandles::save((object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle), null, 'IGNORE');
-                }
-            }
-        }
-    }
-    
-    
-    /**
-     * Миграция
-     * Премахва празните записи и добавя toEmail
-     */
-    public static function fixEmailSalutations()
-    {
-        $query = email_Salutations::getQuery();
-        while ($rec = $query->fetch()) {
-            
-            // Ако няма обръщение, премахваме от списъка
-            if (!trim($rec->salutation) || !$rec->containerId) {
-                email_Salutations::delete($rec->id);
-                continue;
-            }
-            
-            // От имейла извличаме стойността на полето имейл и обновяваме записа
-            $doc = doc_Containers::getDocument($rec->containerId);
-            if (($doc->instance instanceof email_Outgoings) && $doc->that) {
-                $emailRec = $doc->getInstance()->fetch($doc->that);
-                
-                $rec->state = $emailRec->state;
-                
-                $rec->toEmail = $emailRec->email;
-                
-                email_Salutations::save($rec);
-            }
-        }
-    }
-    
-    
-    /**
-     * Миграция, за да се изтрият повтарящите се записи и да се изчисли systemId
-     */
-    public static function repairRecsInFilters()
-    {
-        $query = email_Filters::getQuery();
-        
-        $condFieldArr = array();
-        $condFieldArr[] = 'email';
-        $condFieldArr[] = 'subject';
-        $condFieldArr[] = 'body';
-        
-        $systemArr = array();
-        
-        while ($rec = $query->fetch()) {
-            foreach ($condFieldArr as $field) {
-                $rec->$field = str_replace('%', '*', $rec->$field);
-            }
-            
-            $systemId = email_Filters::getSystemId($rec);
-            
-            if ($systemArr[$systemId]) {
-                email_Filters::delete($rec->id);
-                continue;
-            }
-            
-            $systemArr[$systemId] = $systemId;
-            
-            $rec->systemId = $systemId;
-            
-            email_Filters::save($rec);
-        }
-    }
-    
-    
-    /**
-     * Миграция, за поправка на класовете в sendOnTime
-     */
-    public static function repairSendOnTimeClasses()
-    {
-        $query = email_SendOnTime::getQuery();
-        while ($rec = $query->fetch()) {
-            if (!cls::load($rec->class, true)) {
-                continue;
-            }
-            $clsInst = cls::get($rec->class);
-            
-            $rec->class = core_Cls::getClassName($clsInst);
-            
-            email_SendOnTime::save($rec, 'class');
-        }
-    }
-    
-    
-    /**
-     * Обновява имейл акаунтите в userInboxes в email_Incomings
-     */
-    public static function updateUserInboxesD()
-    {
-        $callOn = dt::addSecs(120);
-        core_CallOnTime::setOnce('email_Setup', 'migrateEmails', null, $callOn);
-    }
-    
-    
-    /**
-     * Извиква се от core_CallOnTime
-     * Прави миграцията на updateUserInboxesD - добавя стойности за userInboxes и toAndCc
-     *
-     * @see core_CallOnTime
-     */
-    public static function callback_migrateEmails()
-    {
-        $isLogging = core_Debug::$isLogging;
-        
-        try {
-            core_Debug::$isLogging = false;
-            
-            $inst = cls::get('email_Incomings');
-            
-            $query = $inst->getQuery();
-            $query->where('#headers IS NOT NULL');
-            $query->orWhere('#emlFile IS NOT NULL');
-            
-            $query->where('#userInboxes IS NULL');
-            $query->orWhere('#toAndCc IS NULL');
-            
-            $query->limit(1000);
-            $query->orderBy('createdOn', 'DESC');
-            
-            while ($rec = $query->fetch()) {
-                $haveRec = true;
-                
-                $inst->calcAllToAndCc($rec);
-                
-                $inst->updateUserInboxes($rec);
-            }
-            
-            if ($haveRec) {
-                $callOn = dt::addSecs(120);
-                core_CallOnTime::setCall('email_Setup', 'migrateEmails', null, $callOn);
-            }
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-            
-            $callOn = dt::addSecs(300);
-            core_CallOnTime::setCall('email_Setup', 'migrateEmails', null, $callOn);
-        }
-        
-        core_Debug::$isLogging = $isLogging;
-    }
-    
-    
-    /**
      * Проверяваме дали всичко е сетнато, за да работи пакета
      * Ако има грешки, връщаме текст
      */
@@ -631,85 +455,11 @@ class email_Setup extends core_ProtoSetup
     
     
     /**
-     * Поправка на userId на обръщенията
-     */
-    public function repairSalutations()
-    {
-        $query = email_Salutations::getQuery();
-        $query->where('#userId IS NULL');
-        $query->orWhere("#userId = '0' || #userId = '-1'");
-        
-        while ($rec = $query->fetch()) {
-            $rec->userId = $rec->createdBy;
-            
-            email_Salutations::save($rec, 'userId');
-        }
-    }
-    
-    
-    /**
-     * Миграция за поправка на полетата за изчакване от time в datetime
-     */
-    public static function repairDelayTime()
-    {
-        // Ако полето липсва в таблицата на модела да не се изпълнява
-        $cls = cls::get('email_SendOnTime');
-        $cls->db->connect();
-        $delayField = str::phpToMysqlName('delay');
-        if (!$cls->db->isFieldExists($cls->dbTableName, $delayField)) {
-            
-            return ;
-        }
-        
-        $eQuery = $cls->getQuery();
-        
-        unset($eQuery->fields['delay']);
-        $eQuery->FLD('delay', 'time');
-        
-        $eQuery->where('#delaySendOn IS NULL');
-        $eQuery->where('#delay IS NOT NULL');
-        $eQuery->where('#delay != 0');
-        
-        while ($eRec = $eQuery->fetch()) {
-            $eRec->delaySendOn = dt::addSecs($eRec->delay, $eRec->createdOn);
-            
-            $cls->save($eRec, 'delaySendOn');
-        }
-    }
-    
-    
-    /**
-     * Миграция за полето deleteAfterPeriod
-     */
-    public function fieldDeleteAfterRetrieval()
-    {
-        $accMvc = cls::get('email_Accounts');
-        
-        if (!$accMvc->db->isFieldExists($accMvc->dbTableName, 'delete_after_retrieval')) {
-            
-            return;
-        }
-        
-        $query = $accMvc->getQuery();
-        $query->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)', 'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
-        
-        while ($rec = $query->fetch()) {
-            if ($rec->deleteAfterRetrieval == 'yes' && empty($rec->deleteAfterPeriod)) {
-                $rec->deleteAfterPeriod = 7 * 24 * 60 * 60;
-                $accMvc->save_($rec, 'deleteAfterPeriod');
-            }
-        }
-    }
-    
-    
-    /**
      * Зареждане на данни
      */
     public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
-        
-        $res .= $this->callMigrate('repairDownloadedOn', 'email');
         
         $res .= $this->addOurImgData();
         
@@ -788,21 +538,6 @@ class email_Setup extends core_ProtoSetup
         Mode::pop('text');
         
         core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 1000000);
-    }
-    
-    
-    /**
-     * Миграция за задаване на текущото време на свалените имейли
-     */
-    public static function repairDownloadedOn()
-    {
-        $Fingerprints = cls::get('email_Fingerprints');
-        
-        $downOnFiled = str::phpToMysqlName('downloadedOn');
-        
-        $now = dt::now();
-        
-        $Fingerprints->db->query("UPDATE `{$Fingerprints->dbTableName}` SET `{$downOnFiled}` = '{$now}'");
     }
     
     
@@ -959,42 +694,5 @@ class email_Setup extends core_ProtoSetup
         
         $callOn = dt::addSecs(60 * $mp);
         core_CallOnTime::setCall('email_Setup', 'checkMailBox', $emlStatus, $callOn);
-    }
-    
-    
-    /**
-     * Премахва "Dear Sirs," от поздравите
-     */
-    public static function removeDearSirs()
-    {
-        email_Salutations::delete("LOWER(#salutation) LIKE 'dear sirs%'");
-    }
-    
-    
-    /**
-     * Преместване на филтриранията по СПАМ от email_Filter
-     */
-    public static function spamFilter()
-    {
-        $fQuery = email_Filters::getQuery();
-        $fQuery->where("#action = 'spam'");
-        
-        while ($fRec = $fQuery->fetch()) {
-            $nRec = new stdClass();
-            $nRec->systemId = $fRec->systemId;
-            $nRec->email = $fRec->email;
-            $nRec->subject = $fRec->subject;
-            $nRec->body = $fRec->body;
-            $nRec->systemId = $fRec->systemId;
-            $nRec->note = $fRec->note;
-            $nRec->state = $fRec->state;
-            $nRec->createdOn = $fRec->createdOn;
-            $nRec->createdBy = $fRec->createdBy;
-            $nRec->points = email_Setup::get('HARD_SPAM_SCORE') + 1;
-            
-            email_SpamRules::save($nRec, null, 'IGNORE');
-            
-            email_Filters::delete($fRec->id);
-        }
     }
 }
