@@ -607,7 +607,7 @@ class fileman_webdrv_Generic extends core_Manager
      * @param fconv_Script $script     -
      * @param array        $fileHndArr - Масив от манипулатори
      *
-     * @return integet $savedId - fileman_Indexes id' то на записа в
+     * @return int $savedId - fileman_Indexes id' то на записа в
      */
     public static function saveBarcodes($script, $fileHndArr)
     {
@@ -621,7 +621,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
             
             // Вземаме баркодовете
-            $barcodesArr = static::findBarcodes($fileHndArr, $params['dataId']);
+            $barcodesArr = static::findBarcodes($fileHndArr, $params['dataId'], $params['ext']);
         } catch (fileman_Exception $e) {
             
             // Добавяме съобщението за грешка
@@ -648,15 +648,16 @@ class fileman_webdrv_Generic extends core_Manager
     /**
      * Намира баркодовете във подадените файлове
      *
-     * @param mixed $fh         - Манипулатор на файла или масив от манипулатори на файла
-     * @param int   $fileInfoId - id' то на записа от fileman_Indexes, в който ще запишем получената информация
+     * @param mixed  $fh         - Манипулатор на файла или масив от манипулатори на файла
+     * @param int    $fileInfoId - id' то на записа от fileman_Indexes, в който ще запишем получената информация
+     * @param string $ext
      *
      * @access protected
      */
-    public static function findBarcodes($fileHnd, $dataId)
+    public static function findBarcodes($fileHnd, $dataId, $ext)
     {
         // Проверяваме дали оригиналния файл е с допустимите размери и разширение за определяне на баркод
-        if (!static::canReadBarcodes($dataId)) {
+        if (!static::canReadBarcodes($dataId, $ext)) {
             
             return ;
         }
@@ -697,29 +698,36 @@ class fileman_webdrv_Generic extends core_Manager
     
     /**
      * Проверяваме дали оригиналния файл е с допустимите размери за определяне на баркод
+     *
+     * $param integer $dataId
+     * $param string $ext
      */
-    public static function canReadBarcodes($dataId)
+    public static function canReadBarcodes($dataId, $ext)
     {
         // Вземаме записа за оригиналния файл
-        $dRec = fileman_Files::fetch("#dataId = {$dataId}");
+        $dRec = fileman_Data::fetch($dataId);
         
-        // Вземаме конфигурационните константи
-        $conf = core_Packs::getConfig('fileman');
-        
-        $excludeExtensions = explode (";", $conf->FILEINFO_FILEINFO_EXCLUDE_FILE_EXT_BARCODE);
-        
-        if (array_search(fileman_Files::getExt($dRec->name), $excludeExtensions)) {
-            
-            return false;
+        $excludeExt = mb_strtolower(fileman_Setup::get('FILEINFO_EXCLUDE_FILE_EXT_BARCODE', true));
+        $excludeExt = str_replace(array(',', ';'), array(' ', ' '), $excludeExt);
+        $excludeExtArr = explode(' ', $excludeExt);
+        $excludeExtArr = arr::make($excludeExtArr, true);
+        unset($excludeExtArr['']);
+        unset($excludeExtArr[' ']);
+        if (!empty($excludeExtArr)) {
+            $ext = mb_strtolower($ext);
+            if ($excludeExtArr[$ext]) {
+                
+                return false;
+            }
         }
-
+        
         // Вземаме размера на файла
         $fLen = $dRec->fileLen;
         
         // По голям или равен на 15kB
         // По малък или равен на 1mB
         // Проверяваме дали е в допустимите граници
-        if (($fLen >= $conf->FILEINFO_MIN_FILE_LEN_BARCODE) && (($fLen <= $conf->FILEINFO_MAX_FILE_LEN_BARCODE))) {
+        if (($fLen >= fileman_Setup::get('FILEINFO_MIN_FILE_LEN_BARCODE', true)) && ($fLen <= fileman_Setup::get('FILEINFO_MAX_FILE_LEN_BARCODE', true))) {
             
             return true;
         }
@@ -835,6 +843,8 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Функцията, която ще се извика след приключване на обработката на файла
             $Script->callBack($params['callBack']);
+            
+            $params['ext'] = fileman::getExt($fRec->name);
             
             // Други необходими променливи
             $Script->params = serialize($params);
@@ -1358,7 +1368,7 @@ class fileman_webdrv_Generic extends core_Manager
     /**
      * Връща съдържанието на HTML таба
      *
-     * @param URL $htmlUrl - Линк към HTML файла
+     * @param string $htmlUrl - Линк към HTML файла
      *
      * @return core_ET - Текста, за създаване на таб
      */
