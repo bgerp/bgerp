@@ -1154,7 +1154,7 @@ class cat_Products extends embed_Manager
     public static function getByCode($code)
     {
         $code = trim($code);
-        expect($code, 'Не е зададен код');
+        expect($code, 'Не е зададен код', $code);
         $res = new stdClass();
         
         // Проверяваме имали опаковка с този код: вътрешен или баркод
