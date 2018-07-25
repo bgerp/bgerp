@@ -1195,7 +1195,7 @@ class eshop_Carts extends core_Master
                 }
             }
         }
-        core_Statuses::newStatus($form->rec->makeInvoice);
+        
         $invoiceFields = $form->selectFields('#invoiceData');
         if ($form->rec->makeInvoice != 'none') {
             
