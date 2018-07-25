@@ -173,6 +173,8 @@ class fileman_Setup extends core_ProtoSetup
         
         'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
         
+        'FILEINFO_EXCLUDE_FILE_EXT_BARCODE' => array('varchar', 'caption=Разширения на файловете|*&comma;| в който няма да се търси баркод->Тип, suggestions=TIF;TIFF'),
+        
         'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
         
         'FILEMAN_WEBDRV_ERROR_CLEAN' => array('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при индексиране на файл->Време'),

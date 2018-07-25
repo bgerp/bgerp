@@ -700,14 +700,21 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function canReadBarcodes($dataId)
     {
-        // Вземаме записа за оригиналния файла
-        $dRec = fileman_Data::fetch($dataId);
-        
-        // Вземаме размера на файла
-        $fLen = $dRec->fileLen;
+        // Вземаме записа за оригиналния файл
+        $dRec = fileman_Files::fetch("#dataId = {$dataId}");
         
         // Вземаме конфигурационните константи
         $conf = core_Packs::getConfig('fileman');
+        
+        $excludeExtensions = explode (";", $conf->FILEINFO_FILEINFO_EXCLUDE_FILE_EXT_BARCODE);
+        
+        if (array_search(fileman_Files::getExt($dRec->name), $excludeExtensions)) {
+            
+            return false;
+        }
+
+        // Вземаме размера на файла
+        $fLen = $dRec->fileLen;
         
         // По голям или равен на 15kB
         // По малък или равен на 1mB
