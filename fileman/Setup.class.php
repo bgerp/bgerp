@@ -66,6 +66,12 @@ defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
 
 
 /**
+ * Разширения на файловете, в които няма да се търси баркод
+ */
+defIfNot('FILEINFO_EXCLUDE_FILE_EXT_BARCODE', '');
+
+
+/**
  * Максимален брой на страниците при показване на превю
  */
 defIfNot('FILEINFO_MAX_PREVIEW_PAGES', 20);
@@ -172,6 +178,8 @@ class fileman_Setup extends core_ProtoSetup
         'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
         
         'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
+        
+        'FILEINFO_EXCLUDE_FILE_EXT_BARCODE' => array('varchar', 'caption=Разширения на файловете|*&comma;| в които няма да се търси баркод->Тип'),
         
         'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
         
