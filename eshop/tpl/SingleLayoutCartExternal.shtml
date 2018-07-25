@@ -101,6 +101,8 @@
          <div style="padding-bottom: 5px;">[#NO_INVOICE#]</div>
          <!--ET_END NO_INVOICE-->
 
+		<!--ET_BEGIN WITH_INVOICE-->
+			[#WITH_INVOICE#]
             <h4 style="margin: 0px 0 3px;">|Фактура|*</h4>
             <table style="margin-left: 10px;">
                <!--ET_BEGIN invoiceNames-->
@@ -134,7 +136,7 @@
                </tr>
                <!--ET_END invoiceAddress-->
             </table>
-
+		 <!--ET_END WITH_INVOICE-->
          <!--ET_END INVOICE_BLOCK-->
 
          <!--ET_END SALE_BLOCK-->
