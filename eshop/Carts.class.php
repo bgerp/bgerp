@@ -128,7 +128,7 @@ class eshop_Carts extends core_Master
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
         
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
-        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationId');
+        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationIdinvoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
@@ -1170,7 +1170,7 @@ class eshop_Carts extends core_Master
         $form->input(null, 'silent');
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         $cu = core_Users::getCurrent('id', false);
-        if (isset($cu)) {
+        if (isset($cu) && $form->rec->makeInvoice != 'none') {
             $profileRec = crm_Profiles::getProfile($cu);
             if ($form->rec->saleFolderId == $profileRec->folderId) {
                 $form->rec->makeInvoice = 'person';
@@ -1195,7 +1195,7 @@ class eshop_Carts extends core_Master
                 }
             }
         }
-        
+        core_Statuses::newStatus($form->rec->makeInvoice);
         $invoiceFields = $form->selectFields('#invoiceData');
         if ($form->rec->makeInvoice != 'none') {
             
@@ -1232,6 +1232,8 @@ class eshop_Carts extends core_Master
             $form->setDefault('invoicePCode', $rec->deliveryPCode);
             $form->setDefault('invoicePlace', $rec->deliveryPlace);
             $form->setDefault('invoiceAddress', $rec->deliveryAddress);
+        } else {
+            
         }
         
         if ($form->isSubmitted()) {
@@ -1244,10 +1246,13 @@ class eshop_Carts extends core_Master
             
             $arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
             $emptyFields = array();
-            foreach ($arr as $invField => $delField) {
-                $rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
-                if (empty($rec->{$invField})) {
-                    $emptyFields[] = $invField;
+            
+            if ($rec->makeInvoice != 'none'){
+                foreach ($arr as $invField => $delField) {
+                    $rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
+                    if (empty($rec->{$invField})) {
+                        $emptyFields[] = $invField;
+                    }
                 }
             }
             
