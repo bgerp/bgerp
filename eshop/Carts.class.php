@@ -385,8 +385,8 @@ class eshop_Carts extends core_Master
     
     /**
      * Име на кошницата във външната част
-     *
-     * @return string
+     * 
+     * @return string $cartName
      */
     public static function getCartDisplayName()
     {
@@ -971,19 +971,19 @@ class eshop_Carts extends core_Master
         
         $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => true) : array();
         if (empty($rec->personNames) && count($checkoutUrl)) {
-            $btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
+            $btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
         // Ако се изисква онлайн плащане добавя се бутон към него
         if (isset($rec->paymentId) && cond_PaymentMethods::doRequireOnlinePayment($rec->paymentId)) {
             $paymentUrl = cond_PaymentMethods::getOnlinePaymentUrl($rec->paymentId);
-            $btn = ht::createBtn('Плащане', $paymentUrl, null, null, "title=Плащане на поръчката,class=order-btn eshop-btn {$disabledClass}");
+            $btn = ht::createBtn('Плащане', $paymentUrl, null, null, "title=Плащане на поръчката,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, "title=Завършване на поръчката,class=order-btn eshop-btn {$disabledClass}");
+            $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, "title=Завършване на поръчката,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
     }
@@ -1211,7 +1211,6 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактура->VAT/EIC');
             }
-            $vatCaption = ($form->rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
         } else {
             foreach ($invoiceFields as $name => $fld) {
                 $form->setField($name, 'input=none');
@@ -1378,7 +1377,7 @@ class eshop_Carts extends core_Master
             $defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
             $form->setDefault('paymentId', $defaultPaymentId);
             if ($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)) {
-                $paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
+                $paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($defaultPaymentId, 'name'));
             }
         }
         
