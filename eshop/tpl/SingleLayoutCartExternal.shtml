@@ -145,7 +145,7 @@
                <!--ET_BEGIN deliveryAmount-->
                <tr>
                   <td class="aright">[#deliveryCaption#]: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#deliveryCurrencyId#]</span></td>
+                  <td class="aright"><!--ET_BEGIN deliveryCurrencyId--><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span><!--ET_END deliveryCurrencyId--></td>
                   <td class="aright"><b>[#deliveryAmount#]</b></td>
                </tr>
                <!--ET_END deliveryAmount-->

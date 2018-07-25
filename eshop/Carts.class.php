@@ -930,8 +930,8 @@ class eshop_Carts extends core_Master
             
             // Ако доставката е безплатна отбелязва се
             if(!empty($settings->freeDelivery) && $deliveryAmount >= $settings->freeDelivery){
-                $row->deliveryAmount = ht::createHint($row->deliveryAmount, 'Безплатна доставка');
-                $row->deliveryAmount = "<span style ='text-decoration: line-through;' class='quiet'>" . $row->deliveryAmount . "</span>";
+                $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
+                unset($row->deliveryCurrencyId);
             }
         }
         
