@@ -1198,7 +1198,7 @@ class eshop_Carts extends core_Master
         }
         
         $invoiceFields = $form->selectFields('#invoiceData');
-        if ($form->rec->makeInvoice != 'none') {
+        if (isset($form->rec->makeInvoice) && $form->rec->makeInvoice != 'none') {
             
             // Ако има ф-ра полетата за ф-ра се показват
             foreach ($invoiceFields as $name => $fld) {
