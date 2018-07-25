@@ -128,7 +128,7 @@ class eshop_Carts extends core_Master
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
         
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
-        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationIdinvoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationIdinvoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
@@ -1172,10 +1172,8 @@ class eshop_Carts extends core_Master
         $cu = core_Users::getCurrent('id', false);
         if (isset($cu) && $form->rec->makeInvoice != 'none') {
             $profileRec = crm_Profiles::getProfile($cu);
-            if ($form->rec->saleFolderId == $profileRec->folderId) {
-                $form->rec->makeInvoice = 'person';
-            } else {
-                $form->rec->makeInvoice = 'company';
+            if (isset($form->rec->saleFolderId)){
+                $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
             }
         }
         
@@ -1203,6 +1201,7 @@ class eshop_Carts extends core_Master
             foreach ($invoiceFields as $name => $fld) {
                 $form->setField($name, 'input');
             }
+            
             if ($form->rec->makeInvoice == 'person') {
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Име');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактура->ЕГН');
@@ -1211,16 +1210,17 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактура->VAT/EIC');
             }
+            
+            $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
+            $form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
+            $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
+            $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
+            
         } else {
             foreach ($invoiceFields as $name => $fld) {
                 $form->setField($name, 'input=none');
             }
         }
-        
-        $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
-        $form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
-        $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
-        $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
         
         $form->input();
         if ($Driver) {
@@ -1232,8 +1232,6 @@ class eshop_Carts extends core_Master
             $form->setDefault('invoicePCode', $rec->deliveryPCode);
             $form->setDefault('invoicePlace', $rec->deliveryPlace);
             $form->setDefault('invoiceAddress', $rec->deliveryAddress);
-        } else {
-            
         }
         
         if ($form->isSubmitted()) {
@@ -1254,8 +1252,10 @@ class eshop_Carts extends core_Master
                         $emptyFields[] = $invField;
                     }
                 }
+            } else {
+                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceNames = $rec->invoiceVatNo = NULL;
             }
-            
+           
             if (count($emptyFields)) {
                 $form->setError($emptyFields, 'Липсват данни за фактура');
             }
