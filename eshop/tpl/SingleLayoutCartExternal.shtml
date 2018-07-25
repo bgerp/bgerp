@@ -97,13 +97,12 @@
             <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
             <!--ET_END activeFolderId-->
 
+         <!--ET_BEGIN NO_INVOICE-->
+         <div style="padding-bottom: 5px;">[#NO_INVOICE#]</div>
+         <!--ET_END NO_INVOICE-->
+
             <h4 style="margin: 0px 0 3px;">|Фактура|*</h4>
             <table style="margin-left: 10px;">
-               <!--ET_BEGIN NO_INVOICE-->
-               <tr>
-                  <td colspan="2">[#NO_INVOICE#]</td>
-               </tr>
-               <!--ET_END NO_INVOICE-->
                <!--ET_BEGIN invoiceNames-->
                <tr>
                   <td colspan="2">[#invoiceNames#]</td>
