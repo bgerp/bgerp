@@ -43,8 +43,6 @@ class unit_MinkPSales extends core_Manager
         $res .= '  14.'.$this->act_CreateCreditDebitInvoiceVATFree();
         $res .= '  15.'.$this->act_CreateCreditDebitInvoiceVATNo();
         $res .= '  16.'.$this->act_CreateCreditDebitInvoiceVATYes();
-        
-        //$res .= "  15.".$this->act_CreateCreditInvoiceDiffVATYes();
         $res .= '  17.'.$this->act_CreateCreditInvoiceAdvPayment();
         $res .= '  18.'.$this->act_CreateCreditInvoiceAdvPaymentSep();
         $res .= '  19.'.$this->act_CreateCreditDebitInvoiceVATFreeAdv();
@@ -52,15 +50,15 @@ class unit_MinkPSales extends core_Manager
         $res .= '  21.'.$this->act_CreateSaleAdvPaymentInclVAT();
         $res .= '  22.'.$this->act_CreateSaleAdvPaymentSep();
         $res .= '  23.'.$this->act_CreateSaleDifVAT();
-        $res .= '  22.'.$this->act_CreateSaleExtraIncome();
-        $res .= '  23.'.$this->act_CreateSaleAdvExtraIncome();
-        $res .= '  24.'.$this->act_CreateSaleAdvExtraIncome1();
-        $res .= '  25.'.$this->act_CreateSaleExtraExpenses();
-        $res .= '  26.'.$this->act_CreateSaleAdvExtraExpenses();
-        $res .= '  27.'.$this->act_CreateSaleAdvExtraExpenses1();
-        $res .= '  28.'.$this->act_CreateSaleManuf();
-        $res .= '  29.'.$this->act_CreateSaleService();
-        
+        $res .= '  24.'.$this->act_CreateSaleExtraIncome();
+        $res .= '  25.'.$this->act_CreateSaleAdvExtraIncome();
+        $res .= '  26.'.$this->act_CreateSaleAdvExtraIncome1();
+        $res .= '  27.'.$this->act_CreateSaleExtraExpenses();
+        $res .= '  28.'.$this->act_CreateSaleAdvExtraExpenses();
+        $res .= '  29.'.$this->act_CreateSaleAdvExtraExpenses1();
+        $res .= '  30.'.$this->act_CreateSaleManuf();
+        $res .= '  31.'.$this->act_CreateSaleService();
+        $res .= '  32.'.$this->act_CreateSaleControlQuantity();
         return $res;
     }
     
@@ -190,7 +188,7 @@ class unit_MinkPSales extends core_Manager
             $browser->press('Продажба');
         }
         
-        $browser->setValue('reff', 'QuantityMinus');
+        $browser->setValue('reff', 'QuantityZero');
         $browser->setValue('note', 'MinkPSaleQuantityZero');
         $browser->setValue('paymentMethodId', 'В брой при получаване');
         $browser->setValue('chargeVat', 'Отделен ред за ДДС');
@@ -492,7 +490,7 @@ class unit_MinkPSales extends core_Manager
         //}
     }
     
-    
+        
     /**
      * 8. Контрол на датата на фактурата - Sal11
      */
@@ -529,9 +527,9 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '1');
-        $browser->setValue('discount', 2);
+        $browser->setValue('discount', 3);
         
         // Записване на артикула
         $browser->press('Запис');
@@ -539,15 +537,6 @@ class unit_MinkPSales extends core_Manager
         // активиране на продажбата
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
-        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
-            $browser->setValue('Ignore', '1');
-            $browser->press('Активиране/Контиране');
-        } else {
-            
-            return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
-        }
-        
-        // Когато няма автом. избиране - ЕН
         
         // Фактура с днешна дата
         $browser->press('Фактура');
@@ -555,7 +544,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         $browser->press('Контиране');
         
-        return $browser->getHtml();
+        //return $browser->getHtml();
         
         // Фактура с вчерашна дата - контрол, грешка и отказ
         $browser->press('Фактура');
@@ -587,9 +576,8 @@ class unit_MinkPSales extends core_Manager
         
         $browser->press('Възстановяване');
         
-        //return $browser->getHtml();
         //проверка на статистиката - не работи
-        if (strpos($browser->gettext(), '979,99 979,99 0,00 979,99')) {
+        if (strpos($browser->gettext(), '0,97 0,97 0,00 0,97')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешка - неправилно възстановяване', 'warning');
@@ -2631,7 +2619,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 21. Проверка извънредни приходи (с втория ПБД е платена цялата сума, вместо разликата) Sal29
+     * 25. Проверка извънредни приходи (с втория ПБД е платена цялата сума, вместо разликата) Sal29
      * Продажба - схема с авансово плащане, отделно ДДС
      */
     
@@ -2757,7 +2745,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 22. Проверка извънредни приходи - валута
+     * 26. Проверка извънредни приходи - валута
      * Продажба - схема с авансово плащане, освободено от ДДС Sal28
      * Втората фактура е без приспадане на аванса
      */
@@ -2884,7 +2872,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 23. Проверка извънредни разходи
+     * 27. Проверка извънредни разходи
      * Продажба - Включено ДДС в цените Sal29
      */
     
@@ -2973,7 +2961,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 24. Проверка извънредни разходи (платен е само авансът) Sal30
+     * 28. Проверка извънредни разходи (платен е само авансът) Sal30
      * Продажба - схема с авансово плащане, отделно ДДС
      */
     
@@ -3097,7 +3085,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 25. Проверка извънредни разходи
+     * 29. Проверка извънредни разходи
      * Продажба - схема с авансово плащане, отделно ДДС Sal31
      * Втората фактура е без приспадане на аванса
      */
@@ -3223,7 +3211,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 26. Продажба договор за изработка Sal32
+     * 30. Продажба договор за изработка Sal32
      * да се добави задание, задача
      *
      */
@@ -3298,7 +3286,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 27. Продажба - договор за услуга Sal33
+     * 31. Продажба - договор за услуга Sal33
      */
     
     //http://localhost/unit_MinkPSales/CreateSaleService/
@@ -3367,4 +3355,60 @@ class unit_MinkPSales extends core_Manager
         
         //return $browser->getHtml();
     }
+    
+    /**
+     * 32. Контрол на налично количество - Salxxxx
+     */
+    
+    //http://localhost/unit_MinkPSales/CreateSaleControlQuantity/
+    public function act_CreateSaleControlQuantity()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+        
+        // нова продажба - проверка има ли бутон
+        if (strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+        
+        //$browser->hasText('Създаване на продажба');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('shipmentStoreId', '1');
+        $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
+        $browser->setValue('note', 'MinkPSaleControlQuantity');
+        $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
+        $browser->setValue('chargeVat', 'Включено ДДС в цените');
+        
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+        
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packPrice', '1');
+        $browser->setValue('discount', 2);
+        
+        // Записване на артикула
+        $browser->press('Запис');
+        
+        // активиране на продажбата
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
+        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
+            $browser->setValue('Ignore', '1');
+            $browser->press('Активиране/Контиране');
+        } else {
+            
+            return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
+        }
+    }
+    
 }
