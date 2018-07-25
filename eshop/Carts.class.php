@@ -172,7 +172,6 @@ class eshop_Carts extends core_Master
         if (isset($productId)) {
             $packRec = cat_products_Packagings::getPack($productId, $packagingId);
             $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
-            $canStore = cat_Products::fetchField($productId, 'canStore');
             
             // Проверка на к-то
             if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
@@ -201,7 +200,6 @@ class eshop_Carts extends core_Master
                 eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
                 $this->updateMaster($cartId);
                 
-                $rec = self::fetch($cartId);
                 $exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
                 
                 $packagingName = tr(cat_UoM::getShortName($packagingId));
@@ -388,7 +386,7 @@ class eshop_Carts extends core_Master
     /**
      * Име на кошницата във външната част
      *
-     * @return varchar
+     * @return string
      */
     public static function getCartDisplayName()
     {
@@ -839,7 +837,7 @@ class eshop_Carts extends core_Master
         }
         
         if (self::haveRightFor('checkout', $rec)) {
-            $editSaleBtn = ht::createLink('', array($this, 'order', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на данните на поръчката');
+            $editSaleBtn = ht::createLink('', array('eshop_Carts', 'order', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на данните на поръчката');
             $tpl->append($editSaleBtn, 'saleEditBtn');
         }
         
