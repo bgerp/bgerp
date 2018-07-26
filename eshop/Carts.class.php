@@ -932,6 +932,7 @@ class eshop_Carts extends core_Master
             if(!empty($settings->freeDelivery) && $deliveryAmount >= $settings->freeDelivery){
                 $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
                 unset($row->deliveryCurrencyId);
+                $row->deliveryColspan = "colspan=2";
             }
         }
         

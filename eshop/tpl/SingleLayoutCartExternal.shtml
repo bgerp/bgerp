@@ -144,9 +144,13 @@
             <table style="width: 100%">
                <!--ET_BEGIN deliveryAmount-->
                <tr>
+                  <!--ET_BEGIN deliveryCaption-->
                   <td class="aright">[#deliveryCaption#]: </td>
-                  <td class="aright"><!--ET_BEGIN deliveryCurrencyId--><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span><!--ET_END deliveryCurrencyId--></td>
-                  <td class="aright"><b>[#deliveryAmount#]</b></td>
+                  <!--ET_END deliveryCaption-->
+                  <!--ET_BEGIN deliveryCurrencyId-->
+                  <td class="aright"><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span></td>
+                  <!--ET_END deliveryCurrencyId-->
+                  <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
                </tr>
                <!--ET_END deliveryAmount-->
                <!--ET_BEGIN totalNoVat-->
