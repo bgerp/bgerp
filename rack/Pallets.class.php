@@ -604,4 +604,32 @@ class rack_Pallets extends core_Manager
         
         return $res;
     }
+    
+    
+    /**
+     * Връща опции за избор на палети
+     * 
+     * @param int|null $productId - ид на артикул или null за всички артикули
+     * @param int|null $storeId   - ид на склад или null за всички складове
+     * 
+     * @return array $options
+     */
+    public static function getOptions($productId = null, $storeId = null)
+    {
+        $options = array();
+        $query = self::getQuery();
+        
+        if(isset($productId)){
+            $query->where("#productId = {$productId}");
+        }
+        if(isset($storeId)){
+            $query->where("#storeId = {$storeId}");
+        }
+        
+        while($rec = $query->fetch()){
+            $options[$rec->id] = self::getRecTitle($rec);
+        }
+        
+        return $options;
+    }
 }
