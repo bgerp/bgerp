@@ -368,6 +368,10 @@ class core_Detail extends core_Manager
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
             
+            // Ако в сесията е спряно обновяването на мастъра, спира се
+            $stopMasterUpdate = Mode::get("stopMasterUpdate{$rec->{$masterKey}}");
+            if($stopMasterUpdate === true) break;
+            
             $masterInstance->invoke('AfterUpdateDetail', array($masterId, $this));
         }
         
