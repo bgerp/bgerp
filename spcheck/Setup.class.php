@@ -46,8 +46,6 @@ class spcheck_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'spcheck_Dictionary',
-        'migrate::addLg',
-        'migrate::removeBadRecs'
     );
     
     
@@ -80,39 +78,5 @@ class spcheck_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Spell Check', 'spcheck_Plugin', 'core_Master', 'family');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за попълване на езика за думите
-     */
-    public static function addLg()
-    {
-        $Dictionary = cls::get('spcheck_Dictionary');
-        $lQuery = $Dictionary->getQuery();
-        $lQuery->where('#lg IS NULL');
-        
-        $defLg = core_Lg::getDefaultLang();
-        
-        while ($lRec = $lQuery->fetch()) {
-            $lRec->lg = $defLg;
-            
-            $Dictionary->save_($lRec, 'lg');
-        }
-    }
-    
-    
-    /**
-     * Миграция за попълване на езика за думите
-     */
-    public static function removeBadRecs()
-    {
-        $delCnt = spcheck_Dictionary::delete("#isCorrect != 'yes' AND #modifiedBy <= 0 AND #createdBy <= 0");
-        
-        $msg = 'Изтрити записи: ' . $delCnt;
-        
-        spcheck_Dictionary::logDebug($msg);
-        
-        return $msg;
     }
 }

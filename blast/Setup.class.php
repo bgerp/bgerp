@@ -142,12 +142,6 @@ class blast_Setup extends core_ProtoSetup
         'blast_Letters',
         'blast_LetterDetails',
         'blast_EmailSend',
-        'migrate::fixEmails',
-        'migrate::addEmailSendHash',
-        'migrate::updateListLg2',
-        'migrate::stateOfBlockedEmails',
-        'migrate::calcProgress',
-        'migrate::removeEmptyLines'
     );
     
     
@@ -193,103 +187,6 @@ class blast_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция за blast_Emails таблицата
-     */
-    public static function fixEmails()
-    {
-        $blsInst = cls::get('blast_Emails');
-        
-        $blsInst->db->connect();
-        
-        $listId = str::phpToMysqlName('listId');
-        
-        if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) {
-            
-            return ;
-        }
-        
-        $blsInst->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист, mandatory');
-        
-        // Всички записи, които нямат клас и обект
-        $query = $blsInst->getQuery();
-        $query->where('#perSrcClassId IS NULL');
-        $query->where('#perSrcObjectId IS NULL');
-        
-        $listClassId = blast_Lists::getClassId();
-        
-        while ($rec = $query->fetch()) {
-            $nRec = new stdClass();
-            $nRec->id = $rec->id;
-            $nRec->perSrcClassId = $listClassId;
-            $nRec->perSrcObjectId = $rec->listId;
-            
-            $blsInst->save($nRec, 'perSrcClassId, perSrcObjectId', 'UPDATE');
-        }
-    }
-    
-    
-    /**
-     * Добавя хеш на имейлите
-     */
-    public static function addEmailSendHash()
-    {
-        $query = blast_EmailSend::getQuery();
-        $query->where('#hash IS NULL');
-        while ($rec = $query->fetch()) {
-            if (is_null($rec->email)) {
-                continue;
-            }
-            $emailH = $rec->email;
-            $hash = null;
-            
-            do {
-                $hash = blast_EmailSend::getHash($emailH);
-                $emailH = $hash;
-            } while (blast_EmailSend::fetch("#hash = '{$hash}' AND #emailId = '{$rec->emailId}'"));
-            
-            $rec->hash = $hash;
-            
-            blast_EmailSend::save($rec, 'hash', 'UPDATE');
-        }
-    }
-    
-    
-    /**
-     * Обновява езика на списъците
-     */
-    public static function updateListLg2()
-    {
-        $lQuery = blast_Lists::getQuery();
-        $lQuery->where("#lg IS NULL OR #lg = '' OR #lg = 'auto'");
-        
-        while ($lRec = $lQuery->fetch()) {
-            $ldQuery = blast_ListDetails::getQuery();
-            $ldQuery->where("#listId = {$lRec->id}");
-            
-            $cnt = $ldQuery->count();
-            
-            if ($cnt && $lRec->keyField == 'email') {
-                $ldQuery->where("#key LIKE '%.bg'");
-                
-                $bgCnt = $ldQuery->count();
-                
-                $cntRes = $bgCnt / $cnt;
-                
-                if ($cntRes > 0.1) {
-                    $lRec->lg = 'bg';
-                } else {
-                    $lRec->lg = 'en';
-                }
-            } else {
-                $lRec->lg = 'en';
-            }
-            
-            blast_Lists::save($lRec, 'lg');
-        }
-    }
-    
-    
-    /**
      * Миграция за обновяване на времето на стартиране
      */
     public static function updateEmailsSendOn()
@@ -319,43 +216,5 @@ class blast_Setup extends core_ProtoSetup
             $rec->sendingFrom = date('G', $timeStamp) * 3600;
             $cls->save($rec, 'sendingDay, sendingFrom');
         }
-    }
-    
-    
-    /**
-     * Миграция, за промяна на състоянието на всички имейли в блокирани
-     */
-    public static function stateOfBlockedEmails()
-    {
-        $query = blast_BlockedEmails::getQuery();
-        
-        while ($rec = $query->fetch()) {
-            $rec->state = 'blocked';
-            blast_BlockedEmails::save($rec, 'state');
-        }
-    }
-    
-    
-    /**
-     * Миграция, за промяна на прогреса
-     */
-    public static function calcProgress()
-    {
-        $query = blast_Emails::getQuery();
-        
-        while ($rec = $query->fetch()) {
-            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
-            
-            blast_Emails::save($rec, 'progress');
-        }
-    }
-    
-    
-    /**
-     * Премахва празните редове имейли
-     */
-    public static function removeEmptyLines()
-    {
-        blast_BlockedEmails::delete("#email IS NULL OR #email = ''");
     }
 }

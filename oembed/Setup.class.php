@@ -69,7 +69,6 @@ class oembed_Setup extends core_ProtoSetup
     // Инсталиране на мениджърите
     public $managers = array(
         'oembed_Cache',
-        'migrate::removeLongUrl',
     );
     
     
@@ -88,14 +87,5 @@ class oembed_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('oEmbed връзки', 'oembed_Plugin', 'type_Richtext', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за изтриване на дългите линкове
-     */
-    public static function removeLongUrl()
-    {
-        return oembed_Cache::delete('CHAR_LENGTH(#url) = 128');
     }
 }

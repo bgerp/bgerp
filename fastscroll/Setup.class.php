@@ -41,14 +41,6 @@ class fastscroll_Setup extends core_ProtoSetup
     
     
     /**
-     * Списък с мениджърите, които съдържа пакета
-     */
-    public $managers = array(
-        'migrate::removeOldPlugins',
-    );
-    
-    
-    /**
      * Инсталиране на пакета
      */
     public function install()
@@ -97,14 +89,5 @@ class fastscroll_Setup extends core_ProtoSetup
     public function getCommonCss()
     {
         return 'fastscroll/lib/fastscroll.css';
-    }
-    
-    
-    public function removeOldPlugins()
-    {
-        $this->deinstall();
-        $Plugins = cls::get('core_Plugins');
-        
-        $Plugins->installPlugin('Бързо скролиране в страниците', 'fastscroll_Plugin', 'core_page_Active', 'family');
     }
 }

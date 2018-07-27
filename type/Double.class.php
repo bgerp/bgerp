@@ -99,11 +99,16 @@ class type_Double extends core_Type
         $signP = '(\*|\/|\+|\-|\.|\,)';
         $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))|\=|[^0-9\(\)]{1}[^0-9\(\)]{1}/";
         
-        if (!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
-            @eval($code);
-            
-            return (float) $val;
+        try {
+            if (!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
+                @eval($code);
+                
+                return (float) $val;
+            }
+        } catch (Throwable $e) {
+            // Нищо не се прави - основно за PARSE_ERROR
         }
+        
         $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
         
         return false;

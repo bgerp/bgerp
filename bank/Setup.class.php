@@ -63,7 +63,6 @@ class bank_Setup extends core_ProtoSetup
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
         'bank_Register',
-        'migrate::repairSerchKeywords',
     );
     
     
@@ -99,18 +98,5 @@ class bank_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция за регенериране на ключовите думи
-     */
-    public static function repairSerchKeywords()
-    {
-        $callOn = dt::addSecs(1200);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'bank_IncomeDocuments', $callOn);
-        
-        $callOn = dt::addSecs(1260);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'bank_SpendingDocuments', $callOn);
     }
 }

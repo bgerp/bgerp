@@ -69,10 +69,6 @@ class cal_Setup extends core_ProtoSetup
         'cal_ReminderSnoozes',
         'cal_TaskConditions',
         'cal_LinkedPostponed',
-        'migrate::windUpRem',
-        'migrate::removePOKey',
-        'migrate::updateTaskProgresses',
-        'migrate::updateClosedTimed',
     );
     
     
@@ -180,37 +176,6 @@ class cal_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция за "зациклилите" напомняния
-     * Търсим напомняния, на които "Предварително" е по-голямо
-     * от "Повторението". В такъв случай ще сетнем "Повторението"
-     * на половината време от "Повторението"
-     */
-    public function windUpRem()
-    {
-        $query = cal_Reminders::getQuery();
-        $query->where('#repetitionEach IS NOT NULL AND #repetitionType IS NOT NULL');
-        
-        while ($rec = $query->fetch()) {
-            if (isset($rec->repetitionEach, $rec->repetitionType)) {
-                if (isset($rec->timePreviously)) {
-                    $secRepetitionType = cal_Reminders::$map[$rec->repetitionType];
-                    $repetitionSec = $rec->repetitionEach * $secRepetitionType;
-                    
-                    if ($repetitionSec > 0) {
-                        $halfRepetitionSec = $repetitionSec / 2;
-                    }
-                    
-                    if ($rec->timePreviously >= $repetitionSec) {
-                        $rec->timePreviously = $halfRepetitionSec;
-                        cal_Reminders::save($rec, 'timePreviously');
-                    }
-                }
-            }
-        }
-    }
-    
-    
-    /**
      * Връща възможните опции за избор на тип празници, които да се показват
      *
      * @return array
@@ -306,92 +271,5 @@ class cal_Setup extends core_ProtoSetup
         core_Cache::set($type, $handler, $res, $keepMinutes, $depends);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция за премахване на грешно добавени празници за PO
-     */
-    public static function removePOKey()
-    {
-        cal_Holidays::delete("#key = 'constitutionPO' OR #key = 'independencePO'");
-        
-        cal_Holidays::updateCalendarHolidays();
-    }
-    
-    
-    /**
-     * Зареждане на данни
-     */
-    public function loadSetupData($itr = '')
-    {
-        $res = parent::loadSetupData($itr);
-        
-        $res .= $this->callMigrate('addCalTaskType', 'cal');
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Миграция за добавяне на драйвер към задачите
-     */
-    public function addCalTaskType()
-    {
-        $Tasks = cls::get('cal_Tasks');
-        
-        $driverClassField = str::phpToMysqlName('driverClass');
-        
-        $clsId = cal_TaskType::getClassId();
-        
-        expect($clsId);
-        
-        $Tasks->db->query("UPDATE `{$Tasks->dbTableName}` SET `{$driverClassField}` = '{$clsId}' WHERE `{$driverClassField}` IS NULL");
-    }
-    
-    
-    /**
-     * Обновява полетата на модела, ако е инсталиран
-     */
-    public function updateTaskProgresses()
-    {
-        if (!cls::load('cal_TaskProgresses', true)) {
-            
-            return ;
-        }
-        
-        $Progresses = cls::get('cal_TaskProgresses');
-        
-        // Ако таблицата не е създадена
-        if (!$Progresses->db->tableExists($Progresses->dbTableName)) {
-            
-            return ;
-        }
-        
-        $Progresses->setupMVC();
-    }
-    
-    
-    /**
-     * Поправка на времето на затваряне на задачите
-     */
-    public function updateClosedTimed()
-    {
-        $Tasks = cls::get('cal_Tasks');
-        
-        $tQuery = $Tasks->getQuery();
-        $tQuery->where("#state = 'closed'");
-        $tQuery->orWhere("#state = 'stopped'");
-        $tQuery->where('#timeClosed IS NULL');
-        
-        while ($tRec = $tQuery->fetch()) {
-            $tRec->timeClosed = $tRec->modifiedOn;
-            
-            try {
-                $Tasks->save($tRec, 'timeClosed');
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-            }
-        }
     }
 }

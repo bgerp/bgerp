@@ -59,7 +59,6 @@ class cash_Setup extends core_ProtoSetup
         'cash_InternalMoneyTransfer',
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
-        'migrate::repairSerchKeywords',
     );
     
     
@@ -95,18 +94,5 @@ class cash_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция за регенериране на ключовите думи
-     */
-    public static function repairSerchKeywords()
-    {
-        $callOn = dt::addSecs(60);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'cash_Pko', $callOn);
-        
-        $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'cash_Rko', $callOn);
     }
 }

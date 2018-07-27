@@ -2765,9 +2765,13 @@ span.sharing-history-title {
   clear: both; }
 
 .wide .cartInfoBlock {
-  width: 23%;
+  width: 26%;
   float: left;
   margin-left: 2%; }
+  .wide .cartInfoBlock td {
+    vertical-align: top; }
+  .wide .cartInfoBlock .aright {
+    padding-right: 5px; }
 
 .cart-view-buttons-top {
   margin: 10px 0; }
@@ -2792,7 +2796,7 @@ span.sharing-history-title {
 
 .wide .cartHolder {
   float: left;
-  width: 75%; }
+  width: 72%; }
 
 .narrow .summary-holder {
   margin-top: 10px; }
@@ -2919,12 +2923,22 @@ span.sharing-history-title {
   border-right: none; }
 
 .summary-holder {
-  margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid #cccccc;
   text-align: left; }
     .summary-holder table td {
       padding: 3px 10px; }
+  .summary-holder.borderTop {
+    margin-top: 10px;
+    border-top: 1px solid #cccccc; }
+
+.textInfo {
+  padding-top: 20px;
+  line-height: 1.5em;
+  text-align: right;
+  color: #222222;
+  font-size: 0.9em; }
+  .textInfo .richtext-holder .richtext {
+    color: #222222 !important; }
 
   .richtext-holder .richtext {
     display: inline;
