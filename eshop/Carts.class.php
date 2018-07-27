@@ -128,7 +128,7 @@ class eshop_Carts extends core_Master
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
         
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
-        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationId');
+        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|locationIdinvoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
@@ -385,8 +385,8 @@ class eshop_Carts extends core_Master
     
     /**
      * Име на кошницата във външната част
-     *
-     * @return string
+     * 
+     * @return string $cartName
      */
     public static function getCartDisplayName()
     {
@@ -876,6 +876,10 @@ class eshop_Carts extends core_Master
             $tpl->append($editBtn, 'editBtn');
         }
         
+        if(!empty($rec->personNames)){
+            $tpl->append('borderTop', 'BORDER_CLASS');
+        }
+        
         return $tpl;
     }
     
@@ -900,7 +904,6 @@ class eshop_Carts extends core_Master
         }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
-        
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
         
@@ -927,8 +930,9 @@ class eshop_Carts extends core_Master
             
             // Ако доставката е безплатна отбелязва се
             if(!empty($settings->freeDelivery) && $deliveryAmount >= $settings->freeDelivery){
-                $row->deliveryAmount = ht::createHint($row->deliveryAmount, 'Безплатна доставка');
-                $row->deliveryAmount = "<span style ='text-decoration: line-through;' class='quiet'>" . $row->deliveryAmount . "</span>";
+                $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
+                unset($row->deliveryCurrencyId);
+                $row->deliveryColspan = "colspan=2";
             }
         }
         
@@ -971,19 +975,19 @@ class eshop_Carts extends core_Master
         
         $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => true) : array();
         if (empty($rec->personNames) && count($checkoutUrl)) {
-            $btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn {$disabledClass}");
+            $btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
         // Ако се изисква онлайн плащане добавя се бутон към него
         if (isset($rec->paymentId) && cond_PaymentMethods::doRequireOnlinePayment($rec->paymentId)) {
             $paymentUrl = cond_PaymentMethods::getOnlinePaymentUrl($rec->paymentId);
-            $btn = ht::createBtn('Плащане', $paymentUrl, null, null, "title=Плащане на поръчката,class=order-btn eshop-btn {$disabledClass}");
+            $btn = ht::createBtn('Плащане', $paymentUrl, null, null, "title=Плащане на поръчката,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
-            $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, "title=Завършване на поръчката,class=order-btn eshop-btn {$disabledClass}");
+            $btn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), 'Сигурни ли сте, че искате да направите поръчката|*!', null, "title=Завършване на поръчката,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
     }
@@ -1170,12 +1174,10 @@ class eshop_Carts extends core_Master
         $form->input(null, 'silent');
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         $cu = core_Users::getCurrent('id', false);
-        if (isset($cu)) {
+        if (isset($cu) && $form->rec->makeInvoice != 'none') {
             $profileRec = crm_Profiles::getProfile($cu);
-            if ($form->rec->saleFolderId == $profileRec->folderId) {
-                $form->rec->makeInvoice = 'person';
-            } else {
-                $form->rec->makeInvoice = 'company';
+            if (isset($form->rec->saleFolderId)){
+                $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
             }
         }
         
@@ -1197,12 +1199,13 @@ class eshop_Carts extends core_Master
         }
         
         $invoiceFields = $form->selectFields('#invoiceData');
-        if ($form->rec->makeInvoice != 'none') {
+        if (isset($form->rec->makeInvoice) && $form->rec->makeInvoice != 'none') {
             
             // Ако има ф-ра полетата за ф-ра се показват
             foreach ($invoiceFields as $name => $fld) {
                 $form->setField($name, 'input');
             }
+            
             if ($form->rec->makeInvoice == 'person') {
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Име');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактура->ЕГН');
@@ -1211,17 +1214,17 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактура->VAT/EIC');
             }
-            $vatCaption = ($form->rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
+            
+            $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
+            $form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
+            $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
+            $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
+            
         } else {
             foreach ($invoiceFields as $name => $fld) {
                 $form->setField($name, 'input=none');
             }
         }
-        
-        $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
-        $form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
-        $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
-        $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
         
         $form->input();
         if ($Driver) {
@@ -1245,13 +1248,18 @@ class eshop_Carts extends core_Master
             
             $arr = array('invoiceCountry' => 'deliveryCountry', 'invoicePCode' => 'deliveryPCode', 'invoicePlace' => 'deliveryPlace', 'invoiceAddress' => 'deliveryAddress');
             $emptyFields = array();
-            foreach ($arr as $invField => $delField) {
-                $rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
-                if (empty($rec->{$invField})) {
-                    $emptyFields[] = $invField;
-                }
-            }
             
+            if ($rec->makeInvoice != 'none'){
+                foreach ($arr as $invField => $delField) {
+                    $rec->{$invField} = !empty($rec->{$invField}) ? $rec->{$invField} : $rec->{$delField};
+                    if (empty($rec->{$invField})) {
+                        $emptyFields[] = $invField;
+                    }
+                }
+            } else {
+                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceNames = $rec->invoiceVatNo = NULL;
+            }
+           
             if (count($emptyFields)) {
                 $form->setError($emptyFields, 'Липсват данни за фактура');
             }
@@ -1378,7 +1386,7 @@ class eshop_Carts extends core_Master
             $defaultPaymentId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'paymentMethodSale');
             $form->setDefault('paymentId', $defaultPaymentId);
             if ($defaultPaymentId && !array_key_exists($defaultPaymentId, $paymentMethods)) {
-                $paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($paymentId, 'name'));
+                $paymentMethods[$defaultPaymentId] = tr(cond_PaymentMethods::getVerbal($defaultPaymentId, 'name'));
             }
         }
         

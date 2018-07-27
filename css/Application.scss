@@ -3203,9 +3203,15 @@ fieldset.sharing-history {
 }
 
 .wide .cartInfoBlock {
-	width: 23%;
+	width: 26%;
 	float: left;
 	margin-left: 2%;
+	td {
+		vertical-align: top;
+	}
+	.aright {
+		padding-right: 5px;
+	}
 }
 
 .cart-view-buttons-top {
@@ -3236,7 +3242,7 @@ fieldset.sharing-history {
 
 .wide .cartHolder {
 	float: left;
-	width: 75%;
+	width: 72%;
 }
 .narrow .summary-holder{
 	margin-top: 10px;
@@ -3382,17 +3388,29 @@ fieldset.sharing-history {
 }
 
 .summary-holder {
-	margin-top: 10px;
 	padding-top: 10px;
-	border-top: 1px solid #ccc;
 	text-align: left;
 	table {
 		td {
 			padding: 3px 10px;
 		}
 	}
+	&.borderTop{
+		margin-top: 10px;
+		border-top: 1px solid #ccc;
+	}
 }
 
+.textInfo {
+	padding-top: 20px;
+	line-height: 1.5em;
+	text-align: right;
+	color: #222;
+	font-size: 0.9em;
+	.richtext-holder .richtext {
+		color: #222 !important;
+	}
+}
 .richtext-holder {
 	.richtext {
 		display: inline;

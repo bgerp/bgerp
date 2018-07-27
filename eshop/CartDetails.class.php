@@ -193,9 +193,16 @@ class eshop_CartDetails extends core_Detail
         $rec = $form->rec;
         
         if (isset($rec->packagingId)) {
+            $rec->defaultQuantity = $rec->packQuantity;
+            if(empty($rec->packQuantity)){
+                $moq = cat_Products::getMoq();
+                $rec->defaultQuantity = (!empty($moq)) ? $moq : 1;
+                $form->setField('packQuantity', "placeholder={$rec->defaultQuantity}");
+            }
+            
             $productInfo = cat_Products::getProductInfo($rec->productId);
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+            $rec->quantity = $rec->defaultQuantity * $rec->quantityInPack;
             
             $settings = cms_Domains::getSettings();
             if ($price = eshop_ProductDetails::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)) {
@@ -536,7 +543,7 @@ class eshop_CartDetails extends core_Detail
             return self::getUpdateCartResponse($cartId);
         }
         
-        return followRremoveexternaletUrl($retUrl);
+        return followRremoveexternaletUrl();
     }
     
     
