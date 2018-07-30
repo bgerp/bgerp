@@ -579,6 +579,10 @@ class rack_Pallets extends core_Manager
         }
         
         $row->created = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'createdOn') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
+    
+        $pRec = store_Products::fetch($rec->productId);
+        $row->productId = cat_Products::getHyperlink($pRec->productId, TRUE);
+        $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     }
     
     
