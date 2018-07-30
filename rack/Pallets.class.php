@@ -85,7 +85,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,productId,quantity,position,created=Създаване';
+    public $listFields = 'storeId,label,productId,quantity,position,created=Създаване';
     
     
     /**
@@ -583,6 +583,21 @@ class rack_Pallets extends core_Manager
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $title = self::getVerbal($rec, 'label');
+        if(!empty($rec->position)){
+            $position = self::getVerbal($rec, 'position');
+            $title .= " {$position}";
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
      * Връща масив с всички използвани палети
      */
     public static function getUsed($storeId = null)
@@ -603,33 +618,5 @@ class rack_Pallets extends core_Manager
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Връща опции за избор на палети
-     * 
-     * @param int|null $productId - ид на артикул или null за всички артикули
-     * @param int|null $storeId   - ид на склад или null за всички складове
-     * 
-     * @return array $options
-     */
-    public static function getOptions($productId = null, $storeId = null)
-    {
-        $options = array();
-        $query = self::getQuery();
-        
-        if(isset($productId)){
-            $query->where("#productId = {$productId}");
-        }
-        if(isset($storeId)){
-            $query->where("#storeId = {$storeId}");
-        }
-        
-        while($rec = $query->fetch()){
-            $options[$rec->id] = self::getRecTitle($rec);
-        }
-        
-        return $options;
     }
 }
