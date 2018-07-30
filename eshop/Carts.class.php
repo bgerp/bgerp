@@ -98,7 +98,13 @@ class eshop_Carts extends core_Master
      * Детайла, на модела
      */
     public $details = 'eshop_CartDetails';
-    
+
+
+    /**
+     * Нов темплейт за показване
+     */
+    public $singleLayoutFile = 'eshop/tpl/SingleLayoutCart.shtml';
+
     
     /**
      * Описание на модела

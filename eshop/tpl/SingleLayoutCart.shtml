@@ -1,0 +1,117 @@
+<div class="singleView email-class">
+   [#SingleToolbar#]
+   <h3>
+      <div style="padding:5px;" class=" state-[#state#]">|Онлайн поръчка|* <b style="color:green;display:inline-block;word-break:break-all">№[#id#]</b></div>
+   </h3>
+   <div class='scrolling-holder'>
+      <table class="styled-table" style='width:99%'>
+         <!--ET_BEGIN ip-->
+         <tr>
+            <td class="title-style" style='width:150px'>IP</td>
+            <td> [#ip#]</td>
+         </tr>
+         <!--ET_END ip-->
+         <!--ET_BEGIN brid-->
+         <tr>
+            <td class="title-style">|Браузър|*</td>
+            <td>[#brid#]</td>
+         </tr>
+         <!--ET_END brid-->
+         <!--ET_BEGIN userId-->
+         <tr>
+            <td class="title-style">|Потребител|*</td>
+            <td>[#userId#]</td>
+         </tr>
+         <!--ET_END userId-->
+      </table>
+      <table class="styled-table" style='width:99%'>
+         <tr>
+            <th colspan="2">|Общи данни|*</th>
+         </tr>
+         <!--ET_BEGIN deliveryTime-->
+         <tr>
+            <td class="title-style" style='width:150px'>Срок на доставка</td>
+            <td> [#deliveryTime#]</td>
+         </tr>
+         <!--ET_END deliveryTime-->
+         <!--ET_BEGIN deliveryNoVat-->
+         <tr>
+            <td class="title-style" style='width:150px'>|Доставка без ДДС|*</td>
+            <td> [#deliveryNoVat#]</td>
+         </tr>
+         <!--ET_END deliveryNoVat-->
+         <!--ET_BEGIN total-->
+         <tr>
+            <td class="title-style">|Стойност|*</td>
+            <td>[#total#]</td>
+         </tr>
+         <!--ET_END total-->
+         <!--ET_BEGIN totalNoVat-->
+         <tr>
+            <td class="title-style">|Стойност без ДДС|*</td>
+            <td>[#totalNoVat#]</td>
+         </tr>
+         <!--ET_END totalNoVat-->
+         <!--ET_BEGIN productCount-->
+         <tr>
+            <td class="title-style">|Брой артикули|*</td>
+            <td>[#productCount#]</td>
+         </tr>
+         <!--ET_END productCount-->
+      </table>
+      <table class="styled-table" style='width:99%'>
+         <tr>
+            <th colspan="2">|Контактни данни|*</th>
+         </tr>
+         <tr>
+            <td style='width:150px'><span class="title-style">|Имена|*</span></td>
+            <td> [#personNames#]</td>
+         </tr>
+         <tr>
+            <td><span class="title-style">|Имейл|*</span></td>
+            <td>[#email#]</td>
+         </tr>
+         <tr>
+            <td><span class="title-style">|Телефон|*</span> </td>
+            <td>[#tel#]</td>
+         </tr>
+      </table>
+   <table class="styled-table" style='width:99%'>
+      <tr>
+         <th colspan="2">Доставка</th>
+      </tr>
+      <tr>
+         <td style='width:150px'> <span class="title-style">|Начин|*</span> </td>
+         <td>[#termId#]</td>
+      </tr>
+      <tr>
+         <td><span class="title-style">|Адрес|*</span></td>
+         <td> [#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
+      </tr>
+   </table>
+   <table class="styled-table" style='width:99%'>
+      <tr>
+         <th colspan="2">|Плащане|*</th>
+      </tr>
+      <tr>
+         <td style='width:150px'><span class="title-style">|Начин|* </span></td>
+         <td> [#paymentId#]</td>
+      </tr>
+      <tr>
+         <td><span class="title-style">|Фактуриране|*</span> </td>
+         <td>[#makeInvoice#]</td>
+      </tr>
+      <!--ET_BEGIN saleId-->
+      <tr>
+         <td class="title-style">|Продажба|*</td>
+         <td>[#saleId#]</td>
+      </tr>
+      <!--ET_END saleId-->
+
+   </table>
+</div>
+   <div><span class="quiet">|Активиране|*: </span>[#activatedOn#] </div>
+   <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
+   <div style="margin-bottom: 20px"><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+
+   [#DETAILS#]
