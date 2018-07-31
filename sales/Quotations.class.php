@@ -440,7 +440,8 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->deliveryTermId)) {
-                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryPlaceId)) {
+                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
+                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                     $form->setWarning('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
                 }
             }
@@ -665,7 +666,8 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->deliveryTermId)) {
-                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $rec->deliveryPlaceId)) {
+                $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
+                if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                     unset($row->deliveryTermId);
                     $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
