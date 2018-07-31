@@ -943,6 +943,7 @@ class eshop_Carts extends core_Master
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
+        unset($row->invoiceVatNo);
         $tpl->placeObject($row);
         
         return $tpl;
