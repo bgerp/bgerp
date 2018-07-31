@@ -428,11 +428,11 @@ class sales_TransportValues extends core_Manager
         }
         
         if ($amountFee < 0) {
-            $hint = 'Скритият транспорт не може да бъде изчислен: ';
+            $hint = '|Скритият транспорт не може да бъде изчислен|*: ';
             if ($amountFee == cond_TransportCalc::ZONE_FIND_ERROR) {
-                $hint .= 'липсваща зона';
+                $hint .= '|липсваща зона|*';
             } elseif ($amountFee == cond_TransportCalc::EMPTY_WEIGHT_ERROR) {
-                $hint .= 'няма транспортно тегло';
+                $hint .= '|няма транспортно тегло|*';
             } else {
                 $hint .= "({$amountFee})";
             }
@@ -441,7 +441,7 @@ class sales_TransportValues extends core_Manager
         } elseif (isset($amountFee)) {
             $amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
             $amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
-            $hint = tr("Транспорт|*: {$amountFee}");
+            $hint = "Транспорт|*: {$amountFee}";
             
             if (!empty($explain) && haveRole('admin')){
                 $hint .= "<br>" . $explain;
