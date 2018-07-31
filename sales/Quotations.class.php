@@ -199,7 +199,7 @@ class sales_Quotations extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'reff, date';
+    public $fieldsNotToClone = 'reff, date, expectedTransportCost';
     
     
     /**
@@ -215,6 +215,7 @@ class sales_Quotations extends core_Master
     {
         $this->FLD('date', 'date', 'caption=Дата');
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
+        $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         
         $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
         $this->FNC('row2', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
@@ -441,6 +442,7 @@ class sales_Quotations extends core_Master
             
             if (isset($rec->deliveryTermId)) {
                 $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
+                
                 if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
                     $form->setWarning('deliveryTermId,deliveryAdress,deliveryPlaceId', $error);
                 }
@@ -692,6 +694,8 @@ class sales_Quotations extends core_Master
      */
     private function getExpectedTransportCost($rec)
     {
+        if(isset($rec->expectedTransportCost)) return $rec->expectedTransportCost;
+        
         $expectedTransport = 0;
         
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
@@ -730,6 +734,12 @@ class sales_Quotations extends core_Master
             if (is_array($fee) && $fee['totalFee'] > 0) {
                 $expectedTransport += $fee['totalFee'];
             }
+        }
+        
+        // Кеширане на очаквания транспорт при нужда
+        if(is_null($rec->expectedTransportCost) && in_array($rec->state, array('active', 'closed'))){
+            $rec->expectedTransportCost = $expectedTransport;
+            $this->save_($rec, 'expectedTransportCost');
         }
         
         // Връщане на очаквания транспорт
