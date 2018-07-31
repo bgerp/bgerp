@@ -731,8 +731,13 @@ class crm_Companies extends core_Master
             }
             
             if (!empty($rec->uicId)) {
-                if (!static::checkUicId($rec->uicId, $rec->country)) {
-                    $form->setWarning('uicId', 'Невалиден ЕИК');
+                static::checkUicId($rec->uicId, $rec->country, $msg, $isError);
+                if(!empty($msg)){
+                    if($isError === true){
+                        $form->setError('uicNo', $msg);
+                    } else {
+                        $form->setWarning('uicNo', $msg);
+                    }
                 }
             }
         }
@@ -793,9 +798,11 @@ class crm_Companies extends core_Master
             }
             
             if (!empty($rec->uicId)) {
-                if (!static::checkUicId($rec->uicId, $rec->country)) {
+                crm_Companies::checkUicId($rec->uicId, $rec->country, $msg, $isError);
+                if(!empty($msg)){
                     $row->uicId = "<span class='red'>{$row->uicId}</span>";
-                    $row->uicId = ht::createHint($row->uicId, 'Невалиден ЕИК', 'error');
+                    $icon = ($isError === true ) ? 'error' : 'warning';
+                    $row->uicId = ht::createHint($row->uicId, $msg, 'error');
                 }
             }
             
@@ -2356,15 +2363,46 @@ class crm_Companies extends core_Master
      *
      * @return bool - валиден ли е националния номер
      */
-    public static function checkUicId($uicNo, $countryId = null)
+    public static function checkUicId($uicNo, $countryId = null, &$msg, &$isError)
     {
+        $msg = NULL;
         expect($uicNo);
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         
         // Ако няма държава или държавате е България, провряваме дали е валиден ЕИК номер
         if (empty($countryId) || $countryId == $bgId) {
-            
-            return drdata_Vats::isBulstat($uicNo);
+            switch(mb_strlen($uicNo)){
+                case 9:
+                case 13:
+                    $res = drdata_Vats::isBulstat($uicNo);
+                    if($res){
+                        return true;
+                    } else {
+                        $msg = 'Невалиден ЕИК';
+                        $isError = true;
+                        return false;
+                    }
+                    break;
+                case 10:
+                    $Egn = cls::get('bglocal_EgnType');
+                    $Egn = cls::get(bglocal_EgnType);
+                    $res = $Egn->isValid($uicNo);
+                    if(isset($res['error'])){
+                        $msg = 'ДДС номер (9 или 13 символа): въведени са 10 символа, които не са валидно ЕГН';
+                        $isError = true;
+                        return false;
+                    } else {
+                        $msg = 'ДДС номер (9 или 13 символа): въведени са 10 символа, които са валидно ЕГН|*?';
+                        $isError = false;
+                        return true;
+                    }
+                    break;
+                default:
+                    $msg = 'Невалиден ЕИК';
+                    $isError = true;
+                    return false;
+                    break;
+            }
         }
         
         // Ако се стигне до тук, винаги номера е валиден

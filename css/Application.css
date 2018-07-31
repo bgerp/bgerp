@@ -2747,9 +2747,6 @@ span.sharing-history-title {
     font-size: 4.5em !important;
     left: 2% !important; }
 
-#cart-view-total {
-  margin-bottom: 10px; }
-
 .cart-view-buttons-left {
   float: left;
   margin-top: 8px; }
@@ -2797,9 +2794,6 @@ span.sharing-history-title {
 .wide .cartHolder {
   float: left;
   width: 72%; }
-
-.narrow .summary-holder {
-  margin-top: 10px; }
 
 .eshop-link {
   font-size: 16px;
@@ -2923,11 +2917,11 @@ span.sharing-history-title {
   border-right: none; }
 
 .summary-holder {
-  padding-top: 10px;
   text-align: left; }
     .summary-holder table td {
       padding: 3px 10px; }
   .summary-holder.borderTop {
+    padding-top: 10px;
     margin-top: 10px;
     border-top: 1px solid #cccccc; }
 
@@ -2939,6 +2933,18 @@ span.sharing-history-title {
   font-size: 0.9em; }
   .textInfo .richtext-holder .richtext {
     color: #222222 !important; }
+
+.narrow .textInfo {
+  padding: 0px 0 10px; }
+  .narrow .textInfo .richtext {
+    font-size: 1em; }
+
+.wide .infoBlock {
+  margin-top: 20px; }
+
+.narrow .infoBlock {
+  margin: 10px 0 20px;
+  font-size: 0.9em; }
 
   .richtext-holder .richtext {
     display: inline;

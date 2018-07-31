@@ -8,21 +8,22 @@
       <div class='cart-container clearfix21' >
          <div class="scrolling-holder" style="margin-bottom: 20px;">
             [#CART_TABLE#]
-            <div class="textInfo">
-               <!--ET_BEGIN freeDelivery-->
-               <div>|Безплатна доставка за поръчки над|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#]</div>
-               <!--ET_END freeDelivery-->
-               <!--ET_BEGIN COMMON_TEXT-->
-               <div class="richtext-holder"> [#COMMON_TEXT#]</div>
-               <!--ET_END COMMON_TEXT-->
-               [#VAT_STATUS#]
-            </div>
+
 
 
          </div>
+         <div class="textInfo">
+            <!--ET_BEGIN freeDelivery-->
+            <div>|Безплатна доставка за поръчки над|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#]</div>
+            <!--ET_END freeDelivery-->
+            <!--ET_BEGIN COMMON_TEXT-->
+            <div class="richtext-holder"> [#COMMON_TEXT#]</div>
+            <!--ET_END COMMON_TEXT-->
+            [#VAT_STATUS#]
+         </div>
          <div class="clearfix21"></div>
          <!--ET_BEGIN CHECK_EMAIL-->
-         <div style="margin-top: 25px;">|Имате предишна активна поръчка, моля проверете си имейла|* <b>[#CHECK_EMAIL#]</b>.</div>
+         <div class="infoBlock">|Имате предишна активна поръчка, моля проверете си имейла|* <b>[#CHECK_EMAIL#]</b>.</div>
          <!--ET_END CHECK_EMAIL-->
       </div>
    </div>

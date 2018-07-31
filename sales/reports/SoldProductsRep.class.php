@@ -60,7 +60,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен,month=По месеци, year=Миналогодишен)', 'caption=Сравнение,after=title,single=none,refreshForm,silent');
+        $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен,month=По месеци, year=Миналогодишен)', 'caption=Сравнение,after=title,refreshForm,single=none,silent');
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none');
@@ -119,8 +119,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $rec = $form->rec;
         
         if ($rec->compare == 'month') {
-            $form->setField('from', 'input=none');
-            $form->setField('to', 'input=none');
+            $form->setField('from', 'input=hidden');
+            $form->setField('to', 'input=hidden');
             $form->setField('firstMonth', 'input');
             $form->setField('secondMonth', 'input');
         }
