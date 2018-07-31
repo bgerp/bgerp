@@ -428,11 +428,11 @@ class sales_TransportValues extends core_Manager
         }
         
         if ($amountFee < 0) {
-            $hint = 'Скритият транспорт не може да бъде изчислен: ';
+            $hint = '|Скритият транспорт не може да бъде изчислен|*: ';
             if ($amountFee == cond_TransportCalc::ZONE_FIND_ERROR) {
-                $hint .= 'липсваща зона';
+                $hint .= '|липсваща зона|*';
             } elseif ($amountFee == cond_TransportCalc::EMPTY_WEIGHT_ERROR) {
-                $hint .= 'няма транспортно тегло';
+                $hint .= '|няма транспортно тегло|*';
             } else {
                 $hint .= "({$amountFee})";
             }
