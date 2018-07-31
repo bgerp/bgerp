@@ -1570,7 +1570,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 10);
+        $browser->setValue('packQuantity', 800);
         $browser->setValue('packPrice', 1.1124);
         
         // Записване на артикула
@@ -1580,7 +1580,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
         
-        if (strpos($browser->gettext(), 'Четиридесет и четири BGN и 0,25')) {
+        if (strpos($browser->gettext(), 'Хиляда деветдесет и осем BGN и 0,81')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
@@ -1632,7 +1632,7 @@ class unit_MinkPPurchases extends core_Manager
         
         //избор на разходно перо и разпределение
         //$browser->setValue('expenseItemId', $purId);
-        $browser->setValue('expenseItemId', 'Pur16/Фирма доставчик/Други стоки (goods) (16 pur)');
+        $browser->setValue('expenseItemId', 'Pur16/Фирма доставчик/Чувал голям 50 L (sm(16 pur)');
         $browser->refresh('Запис');
         $browser->setValue('allocationBy', 'value');
         $browser->refresh('Запис');
@@ -1655,7 +1655,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->setValue('number', '18');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if (strpos($browser->gettext(), 'Данъчна основа: BGN 36,88')) {
+        if (strpos($browser->gettext(), 'Данъчна основа: BGN 915,68')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');

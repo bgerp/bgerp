@@ -98,7 +98,13 @@ class eshop_Carts extends core_Master
      * Детайла, на модела
      */
     public $details = 'eshop_CartDetails';
-    
+
+
+    /**
+     * Нов темплейт за показване
+     */
+    public $singleLayoutFile = 'eshop/tpl/SingleLayoutCart.shtml';
+
     
     /**
      * Описание на модела
@@ -109,7 +115,7 @@ class eshop_Carts extends core_Master
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
-        $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
+        $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
         $this->FLD('deliveryTime', 'time', 'caption=Общи данни->Срок на доставка,input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
         $this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none');

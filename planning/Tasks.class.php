@@ -392,7 +392,7 @@ class planning_Tasks extends core_Master
                 if (isset($diffVerbal)) {
                     
                     // Показва се след очакваното време в скоби, с хинт оригиналната дата
-                    $hint = tr('Зададено') . ': ' . $row->{$timeField};
+                    $hint = 'Зададено|*: ' . $row->{$timeField};
                     $diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
                     $row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
                 }

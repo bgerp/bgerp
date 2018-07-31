@@ -85,7 +85,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,productId,quantity,position,created=Създаване';
+    public $listFields = 'storeId,label,productId,quantity,position,created=Създаване';
     
     
     /**
@@ -579,6 +579,25 @@ class rack_Pallets extends core_Manager
         }
         
         $row->created = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'createdOn') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
+    
+        $pRec = store_Products::fetch($rec->productId);
+        $row->productId = cat_Products::getHyperlink($pRec->productId, TRUE);
+        $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $title = self::getVerbal($rec, 'label');
+        if(!empty($rec->position)){
+            $position = self::getVerbal($rec, 'position');
+            $title .= " {$position}";
+        }
+        
+        return $title;
     }
     
     

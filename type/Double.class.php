@@ -159,7 +159,7 @@ class type_Double extends core_Type
         // Ако закръгляме умно
         if ($this->params['smartRound']) {
             // Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-            $decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
+            $decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
         }
         
         // Закръгляме числото преди да го обърнем в нормален вид
