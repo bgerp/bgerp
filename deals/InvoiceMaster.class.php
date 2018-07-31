@@ -617,7 +617,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
-            if ($className == 'crm_Persons') {bp();
+            if ($className == 'crm_Persons') {
                 $numType = 'bglocal_EgnType';
                 $form->setField('uicNo', 'caption=Контрагент->ЕГН');
                 $form->getField('uicNo')->type = cls::get($numType);

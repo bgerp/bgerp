@@ -2385,7 +2385,6 @@ class crm_Companies extends core_Master
                     break;
                 case 10:
                     $Egn = cls::get('bglocal_EgnType');
-                    $Egn = cls::get(bglocal_EgnType);
                     $res = $Egn->isValid($uicNo);
                     if(isset($res['error'])){
                         $msg = 'ДДС номер (9 или 13 символа): въведени са 10 символа, които не са валидно ЕГН';
