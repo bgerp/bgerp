@@ -197,7 +197,7 @@ function reportException($e, $update = null, $supressShowing = true)
     
     switch ($type){
         
-        // throw new core_Exception_Expect()
+        // core_Exception_Expect
         case 'Изключение':
             $errCode = 500;
             break;
@@ -220,6 +220,11 @@ function reportException($e, $update = null, $supressShowing = true)
         // wp
         case 'Наблюдение':
             $errCode = 150;
+            break;
+        
+        // core_exception_Db
+        case 'DB Грешка':
+            $errCode = 550;
             break;
         
         default:
@@ -268,6 +273,8 @@ function logHitState($debugCode = '200', $state = array())
         $state['timers'] = core_Debug::$timers;
         
         $state['executionTime'] = $execTime;
+        
+        $state['update'] = FALSE;
         
         $data = @json_encode($state);
         

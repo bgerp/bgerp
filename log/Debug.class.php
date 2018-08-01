@@ -17,8 +17,6 @@
  */
 class log_Debug extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
@@ -62,7 +60,6 @@ class log_Debug extends core_Manager
         
         // Показва съдъражаниете на дебъга, ако е избран файла
         if ($debugFile = Request::get('debugFile')) {
-            
             $errUrlArr = array($this, 'ShowDebug', 'debugFile' => $debugFile);
             $tpl->replace("<iframe style='float: left' width=1100 height= 800 src='" . toUrl($errUrlArr). "'>" . '</iframe>', 'ERR_FILE');
             $tpl->replace(ht::createLink(tr('Преглед на дебъг инфото'), $errUrlArr, null, 'target=_blank'), 'SHOW_DEBUG_LINK');
@@ -99,7 +96,7 @@ class log_Debug extends core_Manager
     /**
      * Показва дебъг файловете
      */
-    function act_listDebugFiles()
+    public function act_listDebugFiles()
     {
         $this->requireRightFor('list');
         
@@ -175,10 +172,10 @@ class log_Debug extends core_Manager
         $tpl->append($fLink, 'DEBUG_LINK');
         
         
-        
         echo $tpl->getContent();
         
         Mode::set('wrapper', 'page_Empty');
+
 //         shutdown();
     }
     
@@ -413,7 +410,7 @@ class log_Debug extends core_Manager
                         } else {
                             $bPos = $fArrCnt - $after - $before;
                         }
-                            
+                        
                         $bPos = max(0, $bPos);
                         $nArr = array_slice($fArr, $bPos, $after + $before);
                     }
@@ -467,6 +464,7 @@ class log_Debug extends core_Manager
         }
     }
     
+    
     /**
      * Крон метод за изтриване на старите дебъг файлове
      */
@@ -482,7 +480,7 @@ class log_Debug extends core_Manager
         }
         
         // Колко часа да се пазят грешките в директорията
-        $delTimeMapArr = array('def' => 30, '000' => 30, '0' => 100, '150' => 100, '200' => 5, '201' => 5, '500' => 100, '501' => 100, '503' => 100, '505' => 100, '510' => 100, '520' => 100);
+        $delTimeMapArr = array('def' => 30, '000' => 30, '0' => 100, '150' => 100, '200' => 5, '201' => 5, '500' => 100, '501' => 100, '503' => 100, '505' => 100, '510' => 100, '520' => 100, '550' => 100);
         
         $nowT = dt::mysql2timestamp();
         
@@ -492,7 +490,7 @@ class log_Debug extends core_Manager
             
             return ($nowT - ($h * 60 * 60));
         }, $delTimeMapArr);
-            
+        
         $cnt = 0;
         
         foreach ($fArr as $fName => $cDate) {
