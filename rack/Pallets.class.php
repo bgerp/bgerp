@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -108,7 +108,7 @@ class rack_Pallets extends core_Manager
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
@@ -591,6 +591,7 @@ class rack_Pallets extends core_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
+        $rec = static::fetchRec($rec);
         $title = self::getVerbal($rec, 'label');
         if(!empty($rec->position)){
             $position = self::getVerbal($rec, 'position');
@@ -622,5 +623,30 @@ class rack_Pallets extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Кои са наличните палети
+     * 
+     * @param int $productId - артикул
+     * @param int $storeId   - склад
+     * 
+     * @return array $options
+     */
+    public static function getPalletOptions($productId, $storeId)
+    {
+        $query = self::getQuery();
+        $storeRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+        $query->where("#productId = {$storeRec->id} AND #storeId = {$storeRec->storeId}");
+        
+        Mode::push('text', 'plain');
+        $options = array();
+        while($rec = $query->fetch()){
+            $options[$rec->id] = self::getRecTitle($rec, FALSE);
+        }
+        Mode::pop('text');
+        
+        return $options;
     }
 }
