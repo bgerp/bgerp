@@ -279,12 +279,15 @@ function logHitState($debugCode = '200', $state = array())
         
         $cnt = 0;
         
+        $debugCodeOrig = $debugCode;
+        
         // Ако името съвпада - създаваме нов
         $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
         do {
             $pathName = log_Debug::getDebugLogFile($debugCode, $fileName);
             
-            $debugCode .= '|' . $cnt++;
+            $debugCode = $debugCodeOrig . '|' . ++$cnt;
+            
             if ($cnt > 100) {
                 break;
             }
@@ -482,7 +485,7 @@ function bp()
  */
 function wp()
 {
-    return;
+//     return;
 
     try {
         $dump = func_get_args();
