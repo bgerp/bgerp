@@ -669,7 +669,9 @@ class sales_Quotations extends core_Master
             
             if (isset($rec->deliveryTermId)) {
                 $locationId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
+                
                 if ($error = sales_TransportValues::getDeliveryTermError($rec->deliveryTermId, $rec->deliveryAdress, $rec->contragentClassId, $rec->contragentId, $locationId)) {
+                   
                     unset($row->deliveryTermId);
                     $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
@@ -1583,7 +1585,10 @@ class sales_Quotations extends core_Master
         // Изчисляване на транспортните разходи
         if (core_Packs::isInstalled('tcost')) {
             $form = sales_QuotationsDetails::getForm();
-            sales_TransportValues::prepareFee($newRec, $form, $rec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+            $clone = clone $rec;
+            $clone->deliveryPlaceId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id') : null; 
+            
+            sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
         }
         
         // Проверки на записите
