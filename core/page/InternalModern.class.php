@@ -201,7 +201,7 @@ class core_page_InternalModern extends core_page_Active
             core_Cache::set($key, 'page', $tpl, 10000);
         }
         
-        if (isDebug()) {
+        if (isDebug() && !log_Debug::haveRightFor('list')) {
             $tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
                                          Време за изпълнение: [#DEBUG::getExecutionTime#]
                                          [#Debug::getLog#]</div>"), 'DEBUG');
@@ -341,8 +341,16 @@ class core_page_InternalModern extends core_page_Active
         } else {
             $mode = ht::createLink(tr('Десктоп'), array('log_Browsers', 'setWideScreen', 'ret_url' => true), null, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
         }
+        
         if (isDebug()) {
-            $debug = ht::createLink('Debug', '#wer', false, array('title' => 'Показване на debug информация', 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
+            if (log_Debug::haveRightFor('list')) {
+                $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
+                $fileName = log_Debug::getDebugLogFile('200', $fileName, false, false);
+                
+                $debug = ht::createLink('Debug', array('log_Debug', 'Default', 'debugFile' => $fileName), false, array('title' => 'Показване на debug информация', 'ef_icon' => 'img/16/bug-icon.png', 'target' => '_blank'));
+            } else {
+                $debug = ht::createLink('Debug', '#wer', false, array('title' => 'Показване на debug информация', 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
+            }
         }
         
         // Смяна на езика

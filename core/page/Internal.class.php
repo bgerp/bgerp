@@ -297,7 +297,7 @@ class core_page_Internal extends core_page_Active
             $tpl->append($form);
         }
         
-        if (isDebug() && Mode::is('screenMode', 'wide')) {
+        if (isDebug() && !log_Debug::haveRightFor('list') && Mode::is('screenMode', 'wide')) {
             $tpl->append(new ET("<div id='debug_info' style='margin:5px; display:none;'>
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"));
