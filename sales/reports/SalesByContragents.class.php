@@ -439,6 +439,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $groArr = array();
+        
+        $rec->total += $dRec->sellValue ;
+        
         $row = new stdClass();
         
         if (isset($dRec->code)) {
@@ -565,6 +568,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END contragent--></div></small>
                                 <small><div><!--ET_BEGIN crmGroup-->|Група контрагенти|*: [#crmGroup#]<!--ET_END crmGroup--></div></small>
                                 <small><div><!--ET_BEGIN group-->|Групи продукти|*: [#group#]<!--ET_END group--></div></small>
+                                <small><div><!--ET_BEGIN total-->|ОБЩО ПРОДАЖБИ|*: [#total#]<!--ET_END total--></div></small>
                                 <small><div><!--ET_BEGIN compare-->|Сравнение|*: [#compare#]<!--ET_END compare--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
@@ -644,6 +648,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if (isset($data->rec->compare)) {
             $fieldTpl->append('<b>' . $data->row->compare . '</b>', 'compare');
         }
+        
+        $fieldTpl->append('<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->total) . '</b>', 'total');
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }

@@ -143,7 +143,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = crm_Companies::fetch($contragent->contragentId)->name;
+                $suggestions[$contragent->folderId] = crm_Companies::getTitleById($contragent->contragentId);
             }
         }
         
