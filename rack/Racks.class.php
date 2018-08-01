@@ -167,7 +167,7 @@ class rack_Racks extends core_Master
             $storeId = store_Stores::getCurrent();
             $query = self::getQuery();
             $query->orderBy('#num', 'DESC');
-            $lastRec = $query->fetch();
+            $lastRec = $query->fetch("#storeId = {$storeId}");
             
             if ($lastRec) {
                 $rec->num = $lastRec->num + 1;
@@ -289,6 +289,13 @@ class rack_Racks extends core_Master
         
         $row->num = ' №' . $row->num;
         
+        $fields = arr::make($fields, true);
+        
+        if(isset($fields['-single'])) {
+            $storeId = store_Stores::getCurrent();
+            $row->num .= ' / ' . store_Stores::getTitleById($storeId);
+        }
+
         return $row;
     }
     
