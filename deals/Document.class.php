@@ -172,7 +172,7 @@ abstract class deals_Document extends deals_PaymentDocument
         }
         
         // Кои са дефолтните сметки по които може да се създават ф. сделки
-        $accOptions = findeals_Deals::getDefaultAccountOptions();
+        $accOptions = cls::get('findeals_Deals')->getDefaultAccountOptions();
         foreach ($accOptions as $k => $v) {
             if (is_object($v)) {
                 continue;
