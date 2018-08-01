@@ -630,7 +630,7 @@ class core_Debug
         }
         
         if (!empty($state['update'])) {
-            $data['update'] = ht::createLink('Обновяване на системата', $state['update']);
+            $data['update'] = ht::createLink('Обновяване на системата', (array)$state['update']);
         }
         
         $tpl = new core_NT(getFileContent('core/tpl/Debug.shtml'));
