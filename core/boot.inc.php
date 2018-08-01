@@ -52,9 +52,9 @@ core_Debug::setErrorWaching();
 try {
     // Дъмпване във файл на всички входни данни
     if (defined('DEBUG_FATAL_ERRORS_PATH')) {
-        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/' . rand(1000, 9999) . date('_H_i_s') . '.txt';
+        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.txt';
         
-        $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST));
+        $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST, 'SERVER' => $_SERVER));
         
         if (!$data) {
             $data = json_last_error();
@@ -150,6 +150,11 @@ try {
     
     // Изход от скрипта
     core_App::exitScript();
+} catch (Throwable  $e) {
+    reportException($e, $update, false);
+    
+    // Изход от скрипта
+    core_App::exitScript();
 }
 
 
@@ -185,8 +190,118 @@ function reportException($e, $update = null, $supressShowing = true)
     }
     
     $state = core_Debug::prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
-
+    
+    if (method_exists($e, 'getType')) {
+        $type = $e->getType();
+    }
+    
+    switch ($type){
+        
+        // core_Exception_Expect
+        case 'Изключение':
+            $errCode = 500;
+            break;
+        
+        // error
+        case 'Грешка':
+            $errCode = 501;
+            break;
+            
+        // bp
+        case 'Прекъсване':
+            $errCode = 503;
+            break;
+            
+        // expect
+        case 'Несъответствие':
+            $errCode = 505;
+            break;
+            
+        // wp
+        case 'Наблюдение':
+            $errCode = 150;
+            break;
+        
+        // core_exception_Db
+        case 'DB Грешка':
+            $errCode = 550;
+            break;
+        
+        default:
+            
+            if (method_exists($e, 'getCode')) {
+                $errCode = $e->getCode();
+            } else {
+                $errCode = '510';
+            }
+            
+            break;
+    }
+    
+    $state['errCode'] = $errCode;
+    
     core_Debug::renderErrorState($state, $supressShowing);
+}
+
+
+/**
+ * Записва стейта на хита в съответния файл
+ * 
+ * @param string $debugCode
+ * @param array $state
+ */
+function logHitState($debugCode = '200', $state = array())
+{
+    if (defined('DEBUG_FATAL_ERRORS_FILE')) {
+        
+        $execTime = core_Debug::getExecutionTime();
+        
+        $data = @file_get_contents(DEBUG_FATAL_ERRORS_FILE);
+        
+        if ($data) {
+            $dataArr = (array)@json_decode($data);
+            
+            if (!$dataArr) {
+                $dataArr = json_last_error();
+                $dataArr .= array('jsonData' => ' Unserialize: ' . $data);
+            }
+        }
+        
+        $state += (array)$dataArr;
+        
+        $state['debugTime'] = core_Debug::$debugTime;
+        $state['timers'] = core_Debug::$timers;
+        
+        $state['executionTime'] = $execTime;
+        
+        $state['update'] = FALSE;
+        
+        $data = @json_encode($state);
+        
+        // Ако възникне JSON грешка, записваме я и сериализираме данните
+        if (!$data) {
+            $data = json_last_error();
+            $data .= ' Serilize: ' . @serialize($state);
+        }
+        
+        $cnt = 0;
+        
+        $debugCodeOrig = $debugCode;
+        
+        // Ако името съвпада - създаваме нов
+        $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
+        do {
+            $pathName = log_Debug::getDebugLogFile($debugCode, $fileName);
+            
+            $debugCode = $debugCodeOrig . '|' . ++$cnt;
+            
+            if ($cnt > 100) {
+                break;
+            }
+        } while (@file_exists($pathName));
+        
+        @file_put_contents($pathName, $data);
+    }
 }
 
 

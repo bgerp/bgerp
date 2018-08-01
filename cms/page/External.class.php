@@ -64,7 +64,7 @@ class cms_page_External extends core_page_Active
         
         $pageTpl = getFileContent('cms/tpl/Page.shtml');
         
-        if (isDebug() && Request::get('Debug') && haveRole('debug')) {
+        if (isDebug() && !log_Debug::haveRightFor('list') && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';
         }
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');

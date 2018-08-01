@@ -192,10 +192,16 @@ class core_Debug
         $html = '';
         
         if (count(self::$debugTime)) {
-            self::log('Край ' . core_DateTime::now());
+            if (!Mode::is('showDebug')) {
+                self::log('Край ' . core_DateTime::now());
+            }
+            
+            if ($dExTime = Mode::get('debugExecutionTime')) {
+                $dExTime = ' - ' . tr('време за изпълнение') . ': ' . $dExTime;
+            }
             
             $html .= "\n<div class='debug_block' style=''>" .
-            "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul><li style='padding:15px 0px 15px 0px;'>";
+            "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log{$dExTime}</div><ul><li style='padding:15px 0px 15px 0px;'>";
             
             $html .= core_Html::mixedToHtml($_COOKIE) . '</li>';
             
@@ -310,6 +316,7 @@ class core_Debug
         
         foreach ($trace as $count => $frame) {
             $file = 'unknown';
+            $frame = (array) $frame;
             if (!empty($frame['file'])) {
                 $line = self::getEditLink($frame['file'], $frame['line'], $frame['line']);
                 $file = self::getEditLink($frame['file']);
@@ -505,12 +512,14 @@ class core_Debug
         $breakpointPos = $breakFile = $breakLine = null;
         
         foreach ($stack as $i => $f) {
+            $f = (array) $f;
             if (in_array(strtolower($f['function'] . ':' . (isset($f['class']) ? $f['class'] : '')), $intFunc)) {
                 $breakpointPos = $i;
             }
         }
         
         if (isset($breakpointPos)) {
+            $stack[$breakpointPos] = (array) $stack[$breakpointPos];
             $breakLine = $stack[$breakpointPos]['line'];
             $breakFile = $stack[$breakpointPos]['file'];
             $stack = array_slice($stack, $breakpointPos + 1);
@@ -621,9 +630,8 @@ class core_Debug
         }
         
         if (!empty($state['update'])) {
-            $data['update'] = ht::createLink('Обновяване на системата', $state['update']);
+            $data['update'] = ht::createLink('Обновяване на системата', (array)$state['update']);
         }
-        
         
         $tpl = new core_NT(getFileContent('core/tpl/Debug.shtml'));
         
@@ -765,6 +773,13 @@ class core_Debug
      */
     public static function renderErrorState($state, $supressShowing = false)
     {
+        $errCode = $state['errCode'];
+        if (!isset($errCode)) {
+            $errCode = '520';
+        }
+        
+        logHitState($errCode, $state);
+        
         if (isDebug() || defined('EF_DEBUG_LOG_PATH') || defined('EF_REMOTE_ERROR_REPORT_URL')) {
             $debugPage = core_Debug::getDebugPage($state);
         }

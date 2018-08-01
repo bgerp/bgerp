@@ -442,11 +442,17 @@ class core_Cls
     public static function shutdown()
     {
         if (count(core_Cls::$singletons)) {
+            core_Debug::log('Начало на shutdown');
+            core_Debug::startTimer('shutdown');
             foreach (core_Cls::$singletons as $name => $instance) {
                 if ($instance instanceof core_BaseClass) {
+                    core_Debug::startTimer('shutdown_' . $name);
                     $instance->invoke('shutdown');
+                    core_Debug::stopTimer('shutdown_' . $name);
                 }
             }
+            core_Debug::stopTimer('shutdown');
+            core_Debug::log('Край на shutdown');
         }
     }
     
