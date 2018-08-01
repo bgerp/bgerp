@@ -307,8 +307,8 @@ class rack_Pallets extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
-        $data->query->where("#storeId = {$storeId}");
         $data->title = 'Палетизирани наличности в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->query->where("#storeId = {$storeId}");
         
         
         $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
