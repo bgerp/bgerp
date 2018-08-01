@@ -3211,6 +3211,9 @@ fieldset.sharing-history {
 	}
 }
 
+.narrow .order-info td {
+	vertical-align: top !important;
+}
 .cart-view-buttons-top {
 	margin: 10px 0;
 	span {
@@ -3408,6 +3411,7 @@ fieldset.sharing-history {
 }
 .narrow .textInfo {
 	padding: 0px 0 10px ;
+	text-align: left;
 	.richtext {
 		font-size: 1em;
 	}

@@ -2770,6 +2770,9 @@ span.sharing-history-title {
   .wide .cartInfoBlock .aright {
     padding-right: 5px; }
 
+.narrow .order-info td {
+  vertical-align: top !important; }
+
 .cart-view-buttons-top {
   margin: 10px 0; }
   .cart-view-buttons-top span {
@@ -2935,7 +2938,8 @@ span.sharing-history-title {
     color: #222222 !important; }
 
 .narrow .textInfo {
-  padding: 0px 0 10px; }
+  padding: 0px 0 10px;
+  text-align: left; }
   .narrow .textInfo .richtext {
     font-size: 1em; }
 

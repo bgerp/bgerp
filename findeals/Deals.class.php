@@ -353,13 +353,12 @@ class findeals_Deals extends deals_DealBase
      *
      * @return array $options
      */
-    public static function getDefaultAccountOptions()
+    public function getDefaultAccountOptions()
     {
-        $me = cls::get(get_called_class());
-        $options = acc_Accounts::getOptionsByListInterfaces($me->accountListInterfaces);
-        
+        $options = acc_Accounts::getOptionsByListInterfaces($this->accountListInterfaces);
+       
         // Премахваме от избора упоменатите сметки, които трябва да се изключат
-        $except = arr::make(static::$exceptAccSysIds);
+        $except = arr::make($this::$exceptAccSysIds);
         foreach ($except as $sysId) {
             $accId = acc_Accounts::getRecBySystemId($sysId)->id;
             unset($options[$accId]);
@@ -380,7 +379,7 @@ class findeals_Deals extends deals_DealBase
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $options = static::getDefaultAccountOptions();
+        $options = $mvc->getDefaultAccountOptions();
         $form->setOptions('accountId', $options);
         
         if (count($options) == 2) {
