@@ -217,7 +217,7 @@ class cat_Products extends embed_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'name, code, info';
+    public $searchFields = 'name, code, info, innerClass';
     
     
     /**
@@ -633,7 +633,7 @@ class cat_Products extends embed_Manager
         }
         
         // Ако няма такъв артикул създаваме документа
-        if (!$exRec = $this->fetch("#code = '{$rec->code}'")) {
+        if (!$this->fetch("#code = '{$rec->code}'")) {
             $rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
             $this->route($rec);
         }
@@ -885,7 +885,7 @@ class cat_Products extends embed_Manager
     {
         static::expandFilter($data->listFilter);
         
-        $data->listFilter->input(null, 'silent');
+        $data->listFilter->input(NULL, 'silent');
         $defOrder = 'standard';
         if ($data->listFilter->rec->groupId) {
             $defOrder = 'all';
@@ -1154,7 +1154,7 @@ class cat_Products extends embed_Manager
     public static function getByCode($code)
     {
         $code = trim($code);
-        expect($code, 'Не е зададен код');
+        expect($code, 'Не е зададен код', $code);
         $res = new stdClass();
         
         // Проверяваме имали опаковка с този код: вътрешен или баркод
@@ -1190,7 +1190,7 @@ class cat_Products extends embed_Manager
      * Връща ДДС на даден продукт
      *
      * @param int  $productId - Ид на продукт
-     * @param date $date      - Дата към която начисляваме ДДС-то
+     * @param DateTime $date      - Дата към която начисляваме ДДС-то
      *
      * @return float $vat - ДДС-то на продукта:
      *               Ако има параметър ДДС за продукта го връщаме, впротивен случай
@@ -1840,7 +1840,7 @@ class cat_Products extends embed_Manager
      *
      * @param mixed               $id                - ид или запис на артикул
      * @param datetime            $time              - време
-     * @param auto|detailed|short $mode              - режим на показване
+     * @param string              $mode              - режим на показване
      * @param string              $lang              - език
      * @param int                 $componentQuantity - к-во на компонентите
      * @param bool                $showCode          - да се показва ли кода до името или не
@@ -1930,12 +1930,12 @@ class cat_Products extends embed_Manager
         $tpl->replace($title, 'name');
         $tpl->replace($descriptionTpl, 'desc');
         
-        
         if (!empty($subTitle)) {
             $tpl->replace($subTitle, 'additionalTitle');
         }
         
-        $r = $tpl->getContent();
+        $tpl->removeBlocks();
+        $tpl->removePlaces();
         
         return $tpl;
     }
@@ -1945,7 +1945,7 @@ class cat_Products extends embed_Manager
      * Връща последната активна рецепта на артикула
      *
      * @param mixed            $id   - ид или запис
-     * @param sales|production $type - вид работна или търговска
+     * @param string $type - вид работна или търговска
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
@@ -2374,10 +2374,10 @@ class cat_Products extends embed_Manager
     /**
      * Връща складовата (средно притеглената цена) на артикула в подадения склад за количеството
      *
-     * @param float  $quantity  - к-во
-     * @param int    $productId - ид на артикула
-     * @param date   $date      - към коя дата
-     * @param string $storeId   - склада
+     * @param float      $quantity  - к-во
+     * @param int        $productId - ид на артикула
+     * @param datetime   $date      - към коя дата
+     * @param string     $storeId   - склада
      *
      * @return mixed $amount   - сумата или NULL ако няма
      */
@@ -2476,7 +2476,7 @@ class cat_Products extends embed_Manager
      * Връща готовото описание на артикула
      *
      * @param mixed                         $id
-     * @param enum(public,internal,invoice) $documentType
+     * @param string $documentType
      *
      * @return core_ET
      */
@@ -3178,7 +3178,7 @@ class cat_Products extends embed_Manager
      *
      * @param mixed $rec - ид или запис на артикул
      *
-     * @return NULL|varchar - Допълнителните условия за дадения продукт
+     * @return NULL|string - Допълнителните условия за дадения продукт
      */
     public static function getHash($rec)
     {
@@ -3237,6 +3237,7 @@ class cat_Products extends embed_Manager
         
         $exportFStr = $this->getExportMasterFieldName();
         $exportFCls = cls::get(get_called_class());
+        $fFieldsArr = array();
         
         foreach ($detArr as $dName) {
             if (!cls::load($dName, true)) {
@@ -3567,57 +3568,5 @@ class cat_Products extends embed_Manager
         }
         
         // Ако се е стигнало до тук, не може да се конвертира
-    }
-    
-    
-    /**
-     * Метод по подразбиране, за връщане на състоянието на документа в зависимот от класа/записа
-     *
-     * @param core_Master $mvc
-     * @param NULL|string $res
-     * @param NULL|int    $id
-     * @param NULL|bool   $hStatus
-     *
-     * @see doc_HiddenContainers
-     */
-    public function getDocHiddenStatus($id, $hStatus)
-    {
-        $rec = $this->fetch($id);
-        
-        if (doc_Threads::getFirstContainerId($rec->threadId) != $rec->containerId) {
-            // При направа на оферта от запитване, артикула да се скрива за всички
-            if ($rec->originId) {
-                $oDoc = doc_Containers::getDocument($rec->originId);
-                
-                if ($oDoc->instance instanceof marketing_Inquiries2) {
-                    if (sales_Quotations::fetch(array("#originId = '[#1#]' AND #threadId = '[#2#]' AND (#state != 'rejected' && #state != 'draft')", $rec->containerId, $rec->threadId))) {
-                        
-                        return true;
-                    }
-                }
-            }
-            
-            // Скриване на предишния артикул, който е бил клониран
-            if (self::fetch(array("#clonedFromId = '[#1#]' AND #threadId = '[#2#]' AND (#state != 'rejected' && #state != 'draft')", $rec->id, $rec->threadId))) {
-                
-                return true;
-            }
-        }
-    }
-    
-    
-    /**
-     * След клониране на модела
-     *
-     * @param core_Master $mvc
-     * @param stdClass    $rec
-     * @param stdClass    $nRec
-     */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
-    {
-        if (doc_Threads::getFirstContainerId($rec->threadId) != $rec->containerId) {
-            // Скриване на предишния артикул, който е бил клониран
-            doc_HiddenContainers::showOrHideDocument($rec->containerId, true, false);
-        }
     }
 }

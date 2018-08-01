@@ -686,7 +686,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Екшън изискващ подаване на себестойност, когато се опитваме да произведем артикул
      * без да сме специфицирали неговите материали
      *
-     * @return unknown
+     * @return core_ET $tpl
      */
     public function act_addDebitAmount()
     {
@@ -730,6 +730,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Ъпдейъваме подадената себестойност
             $rec->debitAmount = $amount;
             $this->save($rec, 'debitAmount');
+            $this->logWrite('Задаване на себестойност', $rec->id);
             
             // Редирект към екшъна за контиране
             redirect($this->getContoUrl($id));

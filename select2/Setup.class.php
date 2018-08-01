@@ -71,14 +71,6 @@ class select2_Setup extends core_ProtoSetup
     
     
     /**
-     * Списък с мениджърите, които съдържа пакета
-     */
-    public $managers = array(
-        'migrate::removeUserListPlugin',
-    );
-    
-    
-    /**
      * Инсталиране на пакета
      */
     public function install()
@@ -118,15 +110,6 @@ class select2_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Select2 за тип SmartSelect', 'select2_PluginSmartSelect', 'core_Form', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за премахване на закачените плъгини за userList
-     */
-    public static function removeUserListPlugin()
-    {
-        core_Plugins::delete("#name = 'Select2 за тип UsersList'");
     }
     
     

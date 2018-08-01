@@ -168,7 +168,8 @@ class batch_BatchesInDocuments extends core_Manager
             
             // Вербализацията на к-то ако е нужно
             if (count($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
-                $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($rec->quantity / $rInfo->quantityInPack);
+                $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
+                $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($rec->quantity / $quantityInPack);
                 $quantity .= ' ' . tr(cat_UoM::getShortName($rInfo->packagingId));
                 $block->append($quantity, 'quantity');
             }

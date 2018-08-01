@@ -3183,9 +3183,6 @@ fieldset.sharing-history {
 	}
 }
 
-#cart-view-total {
-	margin-bottom: 10px;
-}
 .cart-view-buttons-left {
 	float: left;
 	margin-top: 8px;
@@ -3203,11 +3200,20 @@ fieldset.sharing-history {
 }
 
 .wide .cartInfoBlock {
-	width: 23%;
+	width: 26%;
 	float: left;
 	margin-left: 2%;
+	td {
+		vertical-align: top;
+	}
+	.aright {
+		padding-right: 5px;
+	}
 }
 
+.narrow .order-info td {
+	vertical-align: top !important;
+}
 .cart-view-buttons-top {
 	margin: 10px 0;
 	span {
@@ -3236,11 +3242,9 @@ fieldset.sharing-history {
 
 .wide .cartHolder {
 	float: left;
-	width: 75%;
+	width: 72%;
 }
-.narrow .summary-holder{
-	margin-top: 10px;
-}
+
 .eshop-link {
 	font-size: 16px;
 	font-weight: normal;
@@ -3250,6 +3254,7 @@ fieldset.sharing-history {
 .order-info {
 	background-color: #f1f1f1;
 	border: 1px solid #ccc ;
+	color: #222;
 	padding: 10px;
 	font-size: 0.9em;
 }
@@ -3305,10 +3310,10 @@ fieldset.sharing-history {
 	color: #222;
 	min-width: 320px;
 	width: 100%;
-    font-size: 0.9em;
+    font-size: 0.95em;
 	th {
 		text-align: center;
-		padding: 5px;
+		padding: 7px 5px;
 		border-top: 1px solid #ccc;
 	}
 	td {
@@ -3381,17 +3386,44 @@ fieldset.sharing-history {
 }
 
 .summary-holder {
-	margin-top: 10px;
-	padding-top: 10px;
-	border-top: 1px solid #ccc;
 	text-align: left;
 	table {
 		td {
 			padding: 3px 10px;
 		}
 	}
+	&.borderTop{
+		padding-top: 10px;
+		margin-top: 10px;
+		border-top: 1px solid #ccc;
+	}
 }
 
+.textInfo {
+	padding-top: 20px;
+	line-height: 1.5em;
+	text-align: right;
+	color: #222;
+	font-size: 0.9em;
+	.richtext-holder .richtext {
+		color: #222 !important;
+	}
+}
+.narrow .textInfo {
+	padding: 0px 0 10px ;
+	text-align: left;
+	.richtext {
+		font-size: 1em;
+	}
+}
+.wide .infoBlock {
+	margin-top: 20px;
+}
+
+.narrow .infoBlock {
+	margin: 10px 0 20px;
+	font-size: 0.9em;
+}
 .richtext-holder {
 	.richtext {
 		display: inline;
@@ -3402,7 +3434,7 @@ fieldset.sharing-history {
 }
 .order-info .richtext {
 	font-size: 1em;
-	color: #000;
+	color: #222;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 }
 

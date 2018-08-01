@@ -63,8 +63,6 @@ class log_Setup extends core_ProtoSetup
         'log_Classes',
         'log_Ips',
         'log_Referer',
-        'migrate::removeMaxCrc',
-        'migrate::repairType'
     );
     
     
@@ -76,29 +74,4 @@ class log_Setup extends core_ProtoSetup
         'LOG_WARNING_TO_ERR_PERIOD' => array('time(suggestions=5 мин, 20 мин, 1 час)', 'caption=Период за преобразуване на предупрежденията в грешки->Максимално време'),
         'LOG_WARNING_TO_ERR_CNT' => array('int', 'caption=Брой записи над които предупрежденията ще са грешки->Брой'),
     );
-    
-    
-    public static function removeMaxCrc()
-    {
-        $max = 2147483647;
-        log_Actions::delete("#crc = '{$max}'");
-        log_Classes::delete("#crc = '{$max}'");
-        log_Data::delete("#actionCrc = '{$max}' OR #classCrc = '{$max}'");
-    }
-    
-    
-    /**
-     * Поправя типовете след промяната
-     */
-    public static function repairType()
-    {
-        $query = log_Data::getQuery();
-        $query->where("#type IS NULL OR #type = ''");
-        
-        while ($rec = $query->fetch()) {
-            $rec->type = 'write';
-            
-            log_Data::save($rec, 'type');
-        }
-    }
 }

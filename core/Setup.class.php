@@ -335,16 +335,10 @@ class core_Setup extends core_ProtoSetup
         'core_Users',
         'core_Locks',
         'core_LoginLog',
-        'migrate::loginLogTruncate',
         'core_Settings',
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
-        'migrate::settigsDataFromCustomToCore',
-        'migrate::movePersonalizationData',
-        'migrate::repairUsersRolesInput',
-        'migrate::removeFalseTranslate',
-        'migrate::repairSearchKeywords'
     );
     
     
@@ -500,147 +494,6 @@ class core_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция, която изтрива съдържанието на таблицата core_LoginLog
-     */
-    public function loginLogTruncate()
-    {
-        $loginLog = cls::get('core_LoginLog');
-        $loginLog->db->query("TRUNCATE TABLE `{$loginLog->dbTableName}`");
-    }
-    
-    
-    /**
-     * Миграция за прехвъраляне на данните от `custom_Settings` в `core_Settings`
-     */
-    public static function settigsDataFromCustomToCore()
-    {
-        if (!cls::load('custom_Settings', true)) {
-            
-            return ;
-        }
-        
-        $inst = cls::get('custom_Settings');
-        
-        if (!$inst->db->tableExists($inst->dbTableName)) {
-            
-            return ;
-        }
-        
-        $dataArr = array();
-        
-        // Взема всички записи и общите ги обядинява в един
-        $cQuery = custom_Settings::getQuery();
-        while ($cRec = $cQuery->fetch()) {
-            if (!cls::load($cRec->classId, true)) {
-                continue;
-            }
-            $classInst = cls::get($cRec->classId);
-            if (!method_exists($classInst, 'getSettingsKey')) {
-                continue;
-            }
-            
-            $key = $classInst->getSettingsKey($cRec->objectId);
-            
-            $userId = $cRec->userId;
-            if ($userId == -1) {
-                $userId = type_UserOrRole::getAllSysTeamId();
-            }
-            
-            $dataArr[$key][$userId][$cRec->property] = $cRec->value;
-        }
-        
-        // Обикаля по получения резултат и добавя в новия модел
-        foreach ((array) $dataArr as $key => $dataUserArr) {
-            foreach ((array) $dataUserArr as $userId => $valArr) {
-                if (!$valArr) {
-                    continue;
-                }
-                core_Settings::setValues($key, $valArr, $userId);
-            }
-        }
-    }
-    
-    
-    /**
-     * Фунцкия за миграция
-     * Премества персонализационните данни за потребителя от core_Users в core_Settings
-     */
-    public static function movePersonalizationData()
-    {
-        $userInst = cls::get('core_Users');
-        
-        $userInst->db->connect();
-        
-        $confData = str::phpToMysqlName('configData');
-        
-        // Ако в модела в MySQL липсва колоната, няма нужда от миграция
-        if (!$userInst->db->isFieldExists($userInst->dbTableName, $confData)) {
-            
-            return ;
-        }
-        
-        $userInst->FLD('configData', 'blob(serialize,compress)', 'caption=Конфигурационни данни,input=none');
-        
-        // Преместваме всикчи данни от полето в core_Settings
-        $userQuery = core_Users::getQuery();
-        $userQuery->where('#configData IS NOT NULL');
-        while ($rec = $userQuery->fetch()) {
-            $key = core_Users::getSettingsKey($rec->id);
-            
-            core_Settings::setValues($key, $rec->configData, $rec->id);
-        }
-    }
-    
-    
-    /**
-     * Поправя потребителите с празни rolesInput
-     */
-    public static function repairUsersRolesInput()
-    {
-        $query = core_Users::getQuery();
-        $query->where('#rolesInput IS NULL');
-        $query->orWhere("#rolesInput = ''");
-        $query->orWhere("#rolesInput = '|'");
-        
-        while ($rec = $query->fetch()) {
-            $rec->rolesInput = $rec->roles;
-            
-            core_Users::save($rec, 'rolesInput');
-        }
-    }
-    
-    
-    /**
-     * Премахва ненужните преводи, добавени по погрешка
-     */
-    public static function removeFalseTranslate()
-    {
-        $query = core_Lg::getQuery();
-        $query->where('1=1');
-        
-        $deleteArr = array();
-        
-        // Ако намери стрингкове, които не са преведени, ги премахваме от модела
-        while ($rec = $query->fetch()) {
-            $translated = str_ireplace(array("\n\r", "\r\n", "\n", "\r"), '<br />', $rec->translated);
-            
-            $translated = core_Lg::prepareKey($translated);
-            
-            if ($translated == $rec->kstring) {
-                $deleteArr[$rec->id] = $rec->id;
-            }
-        }
-        
-        if (!empty($deleteArr)) {
-            $in = implode(', ', $deleteArr);
-            $delCnt = core_Lg::delete("#id IN ({$in})");
-            
-            core_Lg::logNotice("Изтрити {$delCnt} брой ненужни записи");
-        }
-    }
-    
-    
-    /**
      * Връща JS файлове, които са подходящи за компактиране
      */
     public function getCommonJs()
@@ -665,56 +518,6 @@ class core_Setup extends core_ProtoSetup
     public function getCommonCss()
     {
         return $res;
-    }
-    
-    
-    /**
-     * Премахва всички * от полетата за търсене
-     */
-    public static function repairSearchKeywords()
-    {
-        // Вземаме инстанция на core_Interfaces
-        $Interfaces = cls::get('core_Interfaces');
-        
-        // id' то на интерфейса
-        $interfaceId = $Interfaces->fetchByName('core_ManagerIntf');
-        
-        $query = core_Classes::getQuery();
-        $query->where("#state = 'active' AND #interfaces LIKE '%|{$interfaceId}|%'");
-        
-        while ($rec = $query->fetch()) {
-            if (!cls::load($rec->name, true)) {
-                continue;
-            }
-            
-            $Inst = cls::get($rec->name);
-            
-            // Ако няма таблица
-            if (!$Inst || !$Inst->db) {
-                continue;
-            }
-            
-            // Ако таблицата не съществува в модела
-            if (!$Inst->db->tableExists($Inst->dbTableName)) {
-                continue ;
-            }
-            
-            // Ако полето не съществува в таблицата
-            $sk = str::phpToMysqlName('searchKeywords');
-            if (!$Inst->db->isFieldExists($Inst->dbTableName, $sk)) {
-                continue ;
-            }
-            
-            $plugins = arr::make($Inst->loadList, true);
-            
-            if (!isset($plugins['plg_Search']) && !$Inst->fields['searchKeywords']) {
-                continue;
-            }
-            
-            $searchField = str::phpToMysqlName('searchKeywords');
-            
-            $Inst->db->query("UPDATE {$Inst->dbTableName} SET {$searchField} = REPLACE({$searchField}, '*', '')");
-        }
     }
     
     
@@ -771,82 +574,5 @@ class core_Setup extends core_ProtoSetup
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Зареждане на данни
-     */
-    public function loadSetupData($itr = '')
-    {
-        $res = parent::loadSetupData($itr);
-        
-        $res .= $this->callMigrate('addObjectIdFromKey', 'core');
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Миграция за добавяне на objectId от ключа
-     */
-    public static function addObjectIdFromKey()
-    {
-        $cQuery = core_Settings::getQuery();
-        $cQuery->where('#objectId IS NULL');
-        $cQuery->where("#key LIKE 'doc_Folders%'");
-        $cQuery->orWhere("#key LIKE 'doc_Threads%'");
-        
-        $maxArr = array();
-        
-        $dFolders = doc_Folders::getQuery();
-        $dFolders->XPR('max', 'int', 'MAX(#id)');
-        $dFolders->show('max');
-        $fRec = $dFolders->fetch();
-        $maxArr['doc_Folders'] = $fRec->max;
-        
-        $dThreads = doc_Threads::getQuery();
-        $dThreads->XPR('max', 'int', 'MAX(#id)');
-        $dThreads->show('max');
-        $tRec = $dThreads->fetch();
-        $maxArr['doc_Threads'] = $tRec->max;
-        
-        $fKeyArr = array();
-        
-        while ($cRec = $cQuery->fetch()) {
-            $kStr = 'doc_Threads';
-            if (stripos($cRec->key, 'doc_Folders') === 0) {
-                $kStr = 'doc_Folders';
-            }
-            
-            if (strpos($cRec->key, '::')) {
-                list(, $fId) = explode('::', $cRec->key);
-                $fKeyArr[$kStr][$fId] = $cRec->key;
-            } else {
-                $fId = 1000;
-            }
-            
-            while (true) {
-                if (!isset($fKeyArr[$kStr][$fId])) {
-                    $fKeyArr[$kStr][$fId] = core_Settings::prepareKey("{$kStr}::" . $fId);
-                }
-                
-                if ($fKeyArr[$kStr][$fId] == $cRec->key) {
-                    $cRec->objectId = $fId;
-                    
-                    try {
-                        core_Settings::save($cRec, 'objectId');
-                    } catch (core_exception_Expect $e) {
-                        reportException($e);
-                        continue;
-                    }
-                    break;
-                }
-                
-                if ($fId++ > $maxArr[$kStr]) {
-                    break;
-                }
-            }
-        }
     }
 }

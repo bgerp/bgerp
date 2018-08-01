@@ -85,7 +85,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,productId,quantity,position,created=Създаване';
+    public $listFields = 'storeId,label,productId,quantity,position,created=Създаване';
     
     
     /**
@@ -94,8 +94,8 @@ class rack_Pallets extends core_Manager
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,column=none');
-        $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory,smartCenter');
-        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory');
+        $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory');
+        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
@@ -579,6 +579,25 @@ class rack_Pallets extends core_Manager
         }
         
         $row->created = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'createdOn') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
+    
+        $pRec = store_Products::fetch($rec->productId);
+        $row->productId = cat_Products::getHyperlink($pRec->productId, TRUE);
+        $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $title = self::getVerbal($rec, 'label');
+        if(!empty($rec->position)){
+            $position = self::getVerbal($rec, 'position');
+            $title .= " {$position}";
+        }
+        
+        return $title;
     }
     
     

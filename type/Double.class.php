@@ -99,11 +99,16 @@ class type_Double extends core_Type
         $signP = '(\*|\/|\+|\-|\.|\,)';
         $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))|\=|[^0-9\(\)]{1}[^0-9\(\)]{1}/";
         
-        if (!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
-            @eval($code);
-            
-            return (float) $val;
+        try {
+            if (!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
+                @eval($code);
+                
+                return (float) $val;
+            }
+        } catch (Throwable $e) {
+            // Нищо не се прави - основно за PARSE_ERROR
         }
+        
         $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
         
         return false;
@@ -145,16 +150,16 @@ class type_Double extends core_Type
         if(isset($this->params['maxDecimals'])) {
             $decimals = min($decimals, $this->params['maxDecimals']);
         }
-
+       
         // Ограничаване на минималния брой знаци след десетичната точка
         if(isset($this->params['minDecimals'])) {
             $decimals = max($decimals, $this->params['minDecimals']);
         }
-
+        
         // Ако закръгляме умно
         if ($this->params['smartRound']) {
             // Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-            $decimals = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
+            $decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
         }
         
         // Закръгляме числото преди да го обърнем в нормален вид
@@ -164,7 +169,6 @@ class type_Double extends core_Type
         if (!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
         }
-
         return $value;
     }
     

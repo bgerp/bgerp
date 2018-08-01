@@ -148,8 +148,6 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
-        'migrate::removeUnusedRole',
-        'migrate::recalcAllGlobalRole'
     );
     
     
@@ -415,8 +413,6 @@ class acc_Setup extends core_ProtoSetup
             $res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
         }
         
-        $res .= $this->callMigrate('fixRepRoles', 'acc');
-        
         return $res;
     }
     
@@ -471,72 +467,5 @@ class acc_Setup extends core_ProtoSetup
         $options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         
         return $options;
-    }
-    
-    
-    /**
-     * Миграция за премахване на грешно изписана роля
-     */
-    public static function removeUnusedRole()
-    {
-        $rId = core_Roles::fetchByName('storeaAllGlobal');
-        if ($rId) {
-            core_Roles::removeRoles(array(
-                $rId
-            ));
-        }
-    }
-    
-    
-    /**
-     * Миграция за премахване на грешно изписана роля
-     */
-    public static function recalcAllGlobalRole()
-    {
-        $rId = core_Roles::fetchByName('allGlobal');
-        if ($rId) {
-            core_Roles::removeRoles(array(
-                $rId
-            ));
-        }
-        
-        core_Roles::rebuildRoles();
-        core_Users::rebuildRoles();
-        
-        core_Roles::addOnce('allGlobal');
-    }
-    
-    
-    /**
-     * Миграция за заместване на старите роли "rep_" на потребителите
-     */
-    public static function fixRepRoles()
-    {
-        foreach (array('rep_cat' => 'repAllGlobal', 'rep_acc' => 'repAll') as $oRole => $nRole) {
-            $rRec = core_Roles::fetch("#role = '{$oRole}'");
-            $nRec = core_Roles::fetch("#role = '{$nRole}'");
-            
-            expect($nRec);
-            
-            if ($rRec) {
-                $uQuery = core_Users::getQuery();
-                $uQuery->likeKeylist('rolesInput', $rRec->id);
-                $uQuery->likeKeylist('roles', $rRec->id);
-                
-                while ($uRec = $uQuery->fetch()) {
-                    $uRec->roles = type_Keylist::removeKey($uRec->roles, $rRec->id);
-                    $uRec->rolesInput = type_Keylist::removeKey($uRec->rolesInput, $rRec->id);
-                    
-                    $uRec->roles = type_Keylist::addKey($uRec->roles, $nRec->id);
-                    $uRec->rolesInput = type_Keylist::addKey($uRec->rolesInput, $nRec->id);
-                    
-                    core_Users::save($uRec, 'roles, rolesInput');
-                }
-                
-                // Затваряме ролите
-                $rRec->state = 'closed';
-                core_Roles::save($rRec, 'state');
-            }
-        }
     }
 }

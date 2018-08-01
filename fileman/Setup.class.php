@@ -66,6 +66,12 @@ defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
 
 
 /**
+ * Разширения на файловете, в които няма да се търси баркод
+ */
+defIfNot('FILEINFO_EXCLUDE_FILE_EXT_BARCODE', '');
+
+
+/**
  * Максимален брой на страниците при показване на превю
  */
 defIfNot('FILEINFO_MAX_PREVIEW_PAGES', 20);
@@ -173,6 +179,8 @@ class fileman_Setup extends core_ProtoSetup
         
         'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
         
+        'FILEINFO_EXCLUDE_FILE_EXT_BARCODE' => array('varchar', 'caption=Разширения на файловете|*&comma;| в които няма да се търси баркод->Тип'),
+        
         'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
         
         'FILEMAN_WEBDRV_ERROR_CLEAN' => array('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при индексиране на файл->Време'),
@@ -216,11 +224,6 @@ class fileman_Setup extends core_ProtoSetup
         'fileman_Log',
         
         'fileman_import_Base64',
-        
-        'migrate::addFileLen',
-        'migrate::bucketRoles',
-        'migrate::regenerateData1',
-        'migrate::regenerateBarcodes'
     );
     
     
@@ -404,95 +407,5 @@ class fileman_Setup extends core_ProtoSetup
         $versionArr['subVersion'] = $subVersion;
         
         return $versionArr;
-    }
-    
-    
-    /**
-     * Миграция, за добавяне на размера на файловете
-     */
-    public static function addFileLen()
-    {
-        $query = fileman_Files::getQuery();
-        $query->where('#fileLen IS NULL');
-        $query->where('#dataId IS NOT NULL');
-        
-        $query->EXT('dataSize', 'fileman_Data', 'externalName=fileLen,externalKey=dataId');
-        
-        while ($rec = $query->fetch()) {
-            if (!$rec->dataId || ($rec->dataId < 0)) {
-                continue;
-            }
-            
-            $rec->fileLen = $rec->dataSize;
-            fileman_Files::save($rec, 'fileLen');
-        }
-    }
-    
-    
-    /**
-     * Миграция към keylist на полето за ролите
-     */
-    public static function bucketRoles()
-    {
-        $query = fileman_Buckets::getQuery();
-        while ($rec = $query->fetch()) {
-            if (strlen($rec->rolesForDownload)) {
-                $rec->rolesForDownload = core_Roles::getRolesAsKeylist($rec->rolesForDownload);
-            }
-            if (strlen($rec->rolesForAdding)) {
-                $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rec->rolesForAdding);
-            }
-            fileman_Buckets::save($rec, 'rolesForDownload,rolesForAdding');
-        }
-    }
-    
-    
-    /**
-     * Пускане на последните файлове
-     */
-    public static function regenerateData1()
-    {
-        $dQuery = fileman_Data::getQuery();
-        $dQuery->where("#processed = 'yes'");
-        
-        $dQuery->orderBy('lastUse', 'DESC');
-        $dQuery->orderBy('createdOn', 'DESC');
-        
-        $dQuery->limit(10000);
-        
-        while ($dRec = $dQuery->fetch()) {
-            $dRec->processed = 'no';
-            fileman_Data::save($dRec, 'processed');
-        }
-    }
-    
-    
-    /**
-     * Изтриване на последно генерирани баркодове от системата
-     */
-    public static function regenerateBarcodes()
-    {
-        $iQuery = fileman_Indexes::getQuery();
-        $iQuery->where("#type = 'barcodes'");
-        $iQuery->where('#createdBy < 1');
-        
-        $iQuery->orderBy('createdOn', 'DESC');
-        
-        $iQuery->limit(1000);
-        
-        $delArr = array();
-        
-        while ($iRec = $iQuery->fetch()) {
-            fileman_Data::resetProcess($iRec->dataId);
-            
-            $delArr[$iRec->id] = $iRec->id;
-        }
-        
-        if (!empty($delArr)) {
-            $delImpl = implode(',', $delArr);
-            $delCnt = fileman_Indexes::delete("#id IN ({$delImpl})");
-            
-            fileman_Indexes::logDebug("Изтрити баркодове: {$delCnt}");
-        }
     }
 }

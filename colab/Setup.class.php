@@ -41,8 +41,6 @@ class colab_Setup extends core_ProtoSetup
     public $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
-        'migrate::addColabLastTime',
-        'migrate::sharePrivateFolders'
     );
     
     
@@ -168,119 +166,5 @@ class colab_Setup extends core_ProtoSetup
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция, за добавяне на partnerDocLast
-     */
-    public function addColabLastTime()
-    {
-        $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('colab_Setup', 'addColabLastTime', null, $callOn);
-    }
-    
-    
-    /**
-     * Миграция, за добавяне на partnerDocLast
-     */
-    public static function callback_addColabLastTime()
-    {
-        $maxTime = dt::addSecs(40);
-        
-        $Threads = cls::get('doc_Threads');
-        
-        $tQuery = $Threads->getQuery();
-        $tQuery->where("#visibleForPartners = 'yes' AND #partnerDocLast IS NULL AND #partnerDocCnt > 0");
-        
-        $qCnt = $tQuery->count();
-        
-        if (!$qCnt) {
-            $Threads->logDebug('Приключи поправката на partnerDocLast');
-            
-            return ;
-        }
-        
-        $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('colab_Setup', 'addColabLastTime', null, $callOn);
-        
-        $tQuery->orderBy('last', 'DESC');
-        
-        $rCnt = 0;
-        
-        while ($tRec = $tQuery->fetch()) {
-            if (dt::now() >= $maxTime) {
-                break;
-            }
-            
-            $rCnt++;
-            
-            try {
-                $Threads->prepareDocCnt($tRec, $firstDcRec, $lastDcRec);
-                $Threads->save_($tRec, 'partnerDocLast');
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-            }
-        }
-        
-        $Threads->logDebug("Поправка на partnerDocLast - {$rCnt} от {$qCnt}");
-    }
-    
-    
-    /**
-     * Споделя частните папки на партньорите
-     */
-    public function sharePrivateFolders()
-    {
-        $partnerId = core_Roles::fetchByName('partner');
-        $params = array('rolesArr' => 'partner', 'titleFld' => 'id');
-        $partners = core_Users::getSelectArr($params);
-        
-        if (!count($partners)) {
-            
-            return;
-        }
-        
-        $folders = $profiles = array();
-        $sharedQuery = colab_FolderToPartners::getQuery();
-        $sharedQuery->show('contractorId,folderId');
-        
-        while ($sRec = $sharedQuery->fetch()) {
-            if (!array_key_exists($sRec->contractorId, $folders)) {
-                $folders[$sRec->contractorId] = array();
-            }
-            $folders[$sRec->contractorId][] = $sRec->folderId;
-        }
-        
-        $profQuery = crm_Profiles::getQuery();
-        $profQuery->show('userId,personId');
-        while ($pRec = $profQuery->fetch()) {
-            if (isset($pRec->personId)) {
-                $profiles[$pRec->userId] = $pRec->personId;
-            }
-        }
-        
-        $now = dt::now();
-        $toSave = array();
-        foreach ($partners as $userId) {
-            if (!array_key_exists($userId, $profiles)) {
-                continue;
-            }
-            $personId = $profiles[$userId];
-            
-            $exFolders = (is_array($folders[$userId])) ? $folders[$userId] : array();
-            $folderId = crm_Persons::forceCoverAndFolder($personId);
-            if (in_array($folderId, $exFolders)) {
-                continue;
-            }
-            
-            $toSave[] = (object) array('contractorId' => $userId, 'folderId' => $folderId, 'createdOn' => $now, 'createdBy' => core_Users::SYSTEM_USER);
-        }
-        
-        if (!count($toSave)) {
-            
-            return;
-        }
-        cls::get('colab_FolderToPartners')->saveArray($toSave);
     }
 }

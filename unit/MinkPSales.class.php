@@ -43,8 +43,6 @@ class unit_MinkPSales extends core_Manager
         $res .= '  14.'.$this->act_CreateCreditDebitInvoiceVATFree();
         $res .= '  15.'.$this->act_CreateCreditDebitInvoiceVATNo();
         $res .= '  16.'.$this->act_CreateCreditDebitInvoiceVATYes();
-        
-        //$res .= "  15.".$this->act_CreateCreditInvoiceDiffVATYes();
         $res .= '  17.'.$this->act_CreateCreditInvoiceAdvPayment();
         $res .= '  18.'.$this->act_CreateCreditInvoiceAdvPaymentSep();
         $res .= '  19.'.$this->act_CreateCreditDebitInvoiceVATFreeAdv();
@@ -52,15 +50,15 @@ class unit_MinkPSales extends core_Manager
         $res .= '  21.'.$this->act_CreateSaleAdvPaymentInclVAT();
         $res .= '  22.'.$this->act_CreateSaleAdvPaymentSep();
         $res .= '  23.'.$this->act_CreateSaleDifVAT();
-        $res .= '  22.'.$this->act_CreateSaleExtraIncome();
-        $res .= '  23.'.$this->act_CreateSaleAdvExtraIncome();
-        $res .= '  24.'.$this->act_CreateSaleAdvExtraIncome1();
-        $res .= '  25.'.$this->act_CreateSaleExtraExpenses();
-        $res .= '  26.'.$this->act_CreateSaleAdvExtraExpenses();
-        $res .= '  27.'.$this->act_CreateSaleAdvExtraExpenses1();
-        $res .= '  28.'.$this->act_CreateSaleManuf();
-        $res .= '  29.'.$this->act_CreateSaleService();
-        
+        $res .= '  24.'.$this->act_CreateSaleExtraIncome();
+        $res .= '  25.'.$this->act_CreateSaleAdvExtraIncome();
+        $res .= '  26.'.$this->act_CreateSaleAdvExtraIncome1();
+        $res .= '  27.'.$this->act_CreateSaleExtraExpenses();
+        $res .= '  28.'.$this->act_CreateSaleAdvExtraExpenses();
+        $res .= '  29.'.$this->act_CreateSaleAdvExtraExpenses1();
+        $res .= '  30.'.$this->act_CreateSaleManuf();
+        $res .= '  31.'.$this->act_CreateSaleService();
+        $res .= '  32.'.$this->act_CreateSaleControlQuantity();
         return $res;
     }
     
@@ -190,7 +188,7 @@ class unit_MinkPSales extends core_Manager
             $browser->press('Продажба');
         }
         
-        $browser->setValue('reff', 'QuantityMinus');
+        $browser->setValue('reff', 'QuantityZero');
         $browser->setValue('note', 'MinkPSaleQuantityZero');
         $browser->setValue('paymentMethodId', 'В брой при получаване');
         $browser->setValue('chargeVat', 'Отделен ред за ДДС');
@@ -492,7 +490,7 @@ class unit_MinkPSales extends core_Manager
         //}
     }
     
-    
+        
     /**
      * 8. Контрол на датата на фактурата - Sal11
      */
@@ -529,9 +527,9 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '1');
-        $browser->setValue('discount', 2);
+        $browser->setValue('discount', 3);
         
         // Записване на артикула
         $browser->press('Запис');
@@ -539,23 +537,12 @@ class unit_MinkPSales extends core_Manager
         // активиране на продажбата
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
-        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
-            $browser->setValue('Ignore', '1');
-            $browser->press('Активиране/Контиране');
-        } else {
-            
-            return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
-        }
-        
-        // Когато няма автом. избиране - ЕН
         
         // Фактура с днешна дата
         $browser->press('Фактура');
         $browser->setValue('additionalInfo', 'за оттегляне и контрол да не може да се възстанови');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        
-        return $browser->getHtml();
         
         // Фактура с вчерашна дата - контрол, грешка и отказ
         $browser->press('Фактура');
@@ -572,7 +559,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Отказ');
         
         // Оттегляне на фактурата с днешна дата
-        $browser->press('btnDelete54');
+        $browser->press('btnDelete134');
         
         // Фактура с вчерашна дата - контиране
         $browser->press('Фактура');
@@ -587,9 +574,8 @@ class unit_MinkPSales extends core_Manager
         
         $browser->press('Възстановяване');
         
-        //return $browser->getHtml();
         //проверка на статистиката - не работи
-        if (strpos($browser->gettext(), '979,99 979,99 0,00 979,99')) {
+        if (strpos($browser->gettext(), '0,97 0,97 0,00 0,97')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешка - неправилно възстановяване', 'warning');
@@ -604,7 +590,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 9. Продажба - включено ДДС в цените, клониране Sal12
+     * 9. Продажба - включено ДДС в цените, клониране Sal12 и Sal13
      */
     
     //http://localhost/unit_MinkPSales/CreateSaleVatInclude/
@@ -985,7 +971,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt11');
+        $browser->click('edt13');
         
         //намира арт. от фактурата
         $browser->setValue('quantity', '20');
@@ -1004,7 +990,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt12');
+        $browser->click('edt14');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1030,7 +1016,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt13');
+        $browser->click('edt15');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1045,7 +1031,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt14');
+        $browser->click('edt16');
         $browser->setValue('packPrice', '2.5556');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1143,7 +1129,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt16');
+        $browser->click('edt18');
         
         //намира арт. от фактурата
         $browser->setValue('quantity', '20');
@@ -1162,7 +1148,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt17');
+        $browser->click('edt19');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1188,7 +1174,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt18');
+        $browser->click('edt20');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1203,7 +1189,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt19');
+        $browser->click('edt21');
         $browser->setValue('packPrice', '2.5556');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1308,7 +1294,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt21');
+        $browser->click('edt23');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1323,7 +1309,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt22');
+        $browser->click('edt24');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1354,7 +1340,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt23');
+        $browser->click('edt25');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1369,7 +1355,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt24');
+        $browser->click('edt26');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1473,7 +1459,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt26');
+        $browser->click('edt28');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1488,7 +1474,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt27');
+        $browser->click('edt29');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1519,7 +1505,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt28');
+        $browser->click('edt30');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1534,7 +1520,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt29');
+        $browser->click('edt31');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1643,7 +1629,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt31');
+        $browser->click('edt33');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1658,7 +1644,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt32');
+        $browser->click('edt34');
         $browser->setValue('packPrice', '0.8');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1689,7 +1675,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt33');
+        $browser->click('edt35');
         $browser->setValue('quantity', '100');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1704,7 +1690,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Edit');
-        $browser->click('edt34');
+        $browser->click('edt36');
         $browser->setValue('packPrice', '1.3');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -2156,7 +2142,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Чернова');
         
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt37');
+        $browser->click('edt39');
         $browser->setValue('quantity', '0');
         $browser->press('Следващ');
         $browser->setValue('quantity', '0');
@@ -2488,7 +2474,7 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packQuantity', '1');
         $browser->setValue('packPrice', '1');//
         $browser->setValue('discount', 20);
         $browser->press('Запис и Нов');
@@ -2506,21 +2492,14 @@ class unit_MinkPSales extends core_Manager
         
         // активираме продажбата
         $browser->press('Активиране');
-        
+       
         // Контиране, ако не е в бъдещ период
         if (strpos($browser->gettext(), 'Активиране/Контиране')) {
-            $browser->press('Активиране/Контиране');
-            if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
-                $browser->setValue('Ignore', '1');
-                $browser->press('Активиране/Контиране');
-            } else {
-                
-                return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
-            }
-            
+            $browser->press('Активиране/Контиране'); 
+             
             if (strpos($browser->gettext(), 'ДДС 20%: BGN 12,96')) {
             } else {
-                
+               
                 return unit_MinkPbgERP::reportErr('Грешно ДДС 20%', 'warning');
             }
             if (strpos($browser->gettext(), 'ДДС 9%: BGN 6,63')) {
@@ -2638,7 +2617,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 21. Проверка извънредни приходи (с втория ПБД е платена цялата сума, вместо разликата) Sal29
+     * 25. Проверка извънредни приходи (с втория ПБД е платена цялата сума, вместо разликата) Sal29
      * Продажба - схема с авансово плащане, отделно ДДС
      */
     
@@ -2764,8 +2743,8 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 22. Проверка извънредни приходи - валута
-     * Продажба - схема с авансово плащане, освободено от ДДС Sal28
+     * 26. Проверка извънредни приходи - валута
+     * Продажба - схема с авансово плащане, освободено от ДДС Sal30
      * Втората фактура е без приспадане на аванса
      */
     
@@ -2891,8 +2870,8 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 23. Проверка извънредни разходи
-     * Продажба - Включено ДДС в цените Sal29
+     * 27. Проверка извънредни разходи
+     * Продажба - Включено ДДС в цените Sal31
      */
     
     //http://localhost/unit_MinkPSales/CreateSaleExtraExpenses/
@@ -2980,7 +2959,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 24. Проверка извънредни разходи (платен е само авансът) Sal30
+     * 28. Проверка извънредни разходи (платен е само авансът) Sal32
      * Продажба - схема с авансово плащане, отделно ДДС
      */
     
@@ -3104,8 +3083,8 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 25. Проверка извънредни разходи
-     * Продажба - схема с авансово плащане, отделно ДДС Sal31
+     * 29. Проверка извънредни разходи
+     * Продажба - схема с авансово плащане, отделно ДДС Sal33
      * Втората фактура е без приспадане на аванса
      */
     
@@ -3230,7 +3209,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 26. Продажба договор за изработка Sal32
+     * 30. Продажба договор за изработка Sal34
      * да се добави задание, задача
      *
      */
@@ -3305,7 +3284,7 @@ class unit_MinkPSales extends core_Manager
     
     
     /**
-     * 27. Продажба - договор за услуга Sal33
+     * 31. Продажба - договор за услуга Sal35
      */
     
     //http://localhost/unit_MinkPSales/CreateSaleService/
@@ -3374,4 +3353,60 @@ class unit_MinkPSales extends core_Manager
         
         //return $browser->getHtml();
     }
+    
+    /**
+     * 32. Контрол на налично количество - Sal36
+     */
+    
+    //http://localhost/unit_MinkPSales/CreateSaleControlQuantity/
+    public function act_CreateSaleControlQuantity()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+        
+        // нова продажба - проверка има ли бутон
+        if (strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+        
+        //$browser->hasText('Създаване на продажба');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('shipmentStoreId', '1');
+        $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
+        $browser->setValue('note', 'MinkPSaleControlQuantity');
+        $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
+        $browser->setValue('chargeVat', 'Включено ДДС в цените');
+        
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+        
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packPrice', '1');
+        $browser->setValue('discount', 2);
+        
+        // Записване на артикула
+        $browser->press('Запис');
+        
+        // активиране на продажбата
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
+        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
+            $browser->setValue('Ignore', '1');
+            $browser->press('Активиране/Контиране');
+        } else {
+            
+            return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');
+        }
+    }
+    
 }

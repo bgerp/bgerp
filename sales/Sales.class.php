@@ -293,6 +293,7 @@ class sales_Sales extends deals_DealMaster
     {
         parent::setDealFields($this);
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
+        $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
@@ -1211,6 +1212,7 @@ class sales_Sales extends deals_DealMaster
      */
     private function getExpectedTransportCost($rec)
     {
+        if(isset($rec->expectedTransportCost)) return $rec->expectedTransportCost;
         $expectedTransport = 0;
         
         // Ако няма калкулатор в условието на доставка, не се изчислява нищо
@@ -1242,6 +1244,12 @@ class sales_Sales extends deals_DealMaster
             if (is_array($fee) && $fee['totalFee'] > 0) {
                 $expectedTransport += $fee['totalFee'];
             }
+        }
+        
+        // Кеширане на очаквания транспорт при нужда
+        if(is_null($rec->expectedTransportCost) && in_array($rec->state, array('active', 'closed'))){
+            $rec->expectedTransportCost = $expectedTransport;
+            $this->save_($rec, 'expectedTransportCost');
         }
         
         // Връщане на очаквания транспорт

@@ -206,7 +206,6 @@ class eshop_Products extends core_Master
     {
         $rec = $form->rec;
         
-        $isMandatoryMeasure = false;
         if ($form->rec->coDriver) {
             $protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
             
@@ -230,7 +229,7 @@ class eshop_Products extends core_Master
             
             $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
             
-            if (strlen($rec->code) && ($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
+            if (strlen($rec->code) && ($query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
                 $form->setError('code', 'Вече има продукт със същия код|*: <strong>' . $mvc->getVerbal($rec, 'name') . '</strong>');
             }
         }
@@ -435,7 +434,7 @@ class eshop_Products extends core_Master
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         
                         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-                        $pRow->addBtn = ht::createFnBtn('Купи', null, false, array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $minPackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+                        $pRow->addBtn = ht::createFnBtn($settings->addToCartBtn, null, false, array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $minPackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
                     }
                 }
             }
@@ -882,7 +881,7 @@ class eshop_Products extends core_Master
         // Проверки
         $this->requireRightFor('linktoeshop');
         expect($productId = Request::get('productId', 'int'));
-        expect($productRec = cat_Products::fetch($productId, 'canStore,measureId'));
+        expect(cat_Products::fetch($productId, 'canStore,measureId'));
         
         // Редирект ако потребителя се върна с бутона 'НАЗАД'
         if (eshop_ProductDetails::isTheProductAlreadyInTheSameDomain($productId, cms_Domains::getPublicDomain()->id)) {
@@ -978,7 +977,7 @@ class eshop_Products extends core_Master
      * @param int      $productId - артикул
      * @param int|NULL $domainId  - ид на домейн или NULL за текущия
      *
-     * @return id|NULL - намерения е-артикул
+     * @return int|NULL - намерения е-артикул
      */
     public static function getByProductId($productId, $domainId = null)
     {
