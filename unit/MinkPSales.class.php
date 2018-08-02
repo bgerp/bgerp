@@ -3234,6 +3234,7 @@ class unit_MinkPSales extends core_Manager
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleManuf');
+        $browser->setValue('shipmentStoreId', '');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
         $browser->setValue('chargeVat', 'exempt');
         
@@ -3255,31 +3256,31 @@ class unit_MinkPSales extends core_Manager
         
         // активиране на продажбата
         $browser->press('Активиране');
-        $browser->press('Активиране/Контиране');
-        
+         
         if (strpos($browser->gettext(), 'Two hundred and fifty-five EUR')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
+//         $browser->click('Добавяне на ново задание за производство');
+//         $valior = strtotime('+1 Day');
+//         $browser->setValue('dueDate', date('d-m-Y', $valior));
+//         $browser->setValue('packQuantity', '500');
+//         $browser->setValue('department', 'Цех 1');
+//         $browser->press('Чернова');
+//         $browser->press('Активиране');
         
-        // експедиционно нареждане
-        //$browser->press('Експедиране');
-        //$browser->setValue('storeId', 'Склад 1');
-        //$browser->setValue('template', 'Packaging list');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
         
-        // Фактура
-        $browser->press('Фактура');
-        $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if (strpos($browser->gettext(), 'Tax base: BGN 498,74')) {
-        } else {
+//         // Фактура
+//         $browser->press('Фактура');
+//         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
+//         $browser->press('Чернова');
+//         $browser->press('Контиране');
+//         if (strpos($browser->gettext(), 'Tax base: BGN 498,74')) {
+//         } else {
             
-            return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
-        }
+//             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
+//         }
     }
     
     
