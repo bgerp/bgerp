@@ -54,52 +54,9 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $tpl = new ET(tr('|*<div>[#SHOW_DEBUG_LINK#]</div><!--ET_BEGIN CREATED_DATE--><div>|Дата|*: [#CREATED_DATE#]</div><!--ET_END CREATED_DATE--> <div>[#LIST_FILE#]</div> <div>[#ERR_FILE#]</div>'));
+        $tpl = new ET(tr('|*<div>[#BEFORE_LINK#]</div><div>[#AFTER_LINK#]</div><div>[#SHOW_DEBUG_LINK#]</div><!--ET_BEGIN CREATED_DATE--><div>|Дата|*: [#CREATED_DATE#]</div><!--ET_END CREATED_DATE--> <div style="float: left">[#LIST_FILE#]</div><div>[#ERR_FILE#]</div>'));
         
-        $tpl->replace("<iframe style='float: left' width=340 height=800 src='" . toUrl(array($this, 'listDebugFiles', 'debugFile' => Request::get('debugFile'), 'search' => Request::get('search'))). "'>" . '</iframe>', 'LIST_FILE');
-        
-        // Показва съдъражаниете на дебъга, ако е избран файла
-        if ($debugFile = Request::get('debugFile')) {
-            $errUrlArr = array($this, 'ShowDebug', 'debugFile' => $debugFile);
-            $tpl->replace("<iframe style='float: left' width=1100 height= 800 src='" . toUrl($errUrlArr). "'>" . '</iframe>', 'ERR_FILE');
-            $tpl->replace(ht::createLink(tr('Преглед на дебъг инфото'), $errUrlArr, null, 'target=_blank'), 'SHOW_DEBUG_LINK');
-            
-            $fPath = $this->getDebugFilePath($debugFile);
-            if (is_file($fPath) && is_readable($fPath)) {
-                $date = @filemtime($fPath);
-                $date = dt::timestamp2Mysql($date);
-                $date = dt::mysql2verbal($date, 'smartTime');
-                
-                $tpl->replace($date, 'CREATED_DATE');
-            }
-        }
-        
-        $otherFilesFromSameHit = array();
-        
-        $debugFileName = null;
-        if ($debugFile) {
-            $debugFileName = $debugFile . '.txt';
-        }
-        
-        $before = 10;
-        $after = 10;
-        if (!$debugFileName) {
-            $before = 20;
-            $after = 20;
-        }
-        
-        // Рендираме страницата
-        return  $this->renderWrapping($tpl);
-    }
-    
-    
-    /**
-     * Показва дебъг файловете
-     */
-    public function act_listDebugFiles()
-    {
-        $this->requireRightFor('list');
-        
+        // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
@@ -111,7 +68,7 @@ class log_Debug extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $tpl = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div>[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
+        $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div>[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         
         $data->listFilter->title = 'Дебъг';
         
@@ -119,7 +76,7 @@ class log_Debug extends core_Manager
         
         $data->listFilter->input(null, true);
         
-        $tpl->append($this->renderListFilter($data), 'ListFilter');
+        $tplList->append($this->renderListFilter($data), 'ListFilter');
         
         $otherFilesFromSameHit = array();
         
@@ -128,16 +85,57 @@ class log_Debug extends core_Manager
             $debugFileName = $debugFile . '.txt';
         }
         
-        $before = 20;
-        $after = 20;
+        $before = 25;
+        $after = 25;
         
         // Вземаме файловете, които да се показват
         $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search);
         
-        arsort($fArr);
+        $fArrCnt = count($fArr);
         
         $fLink = '';
         
+        if ($fArrCnt > 1) {
+            arsort($fArr);
+        }
+        
+        // Показваме линкове за навигиране
+        $aPos = array_search($debugFileName, array_keys($fArr));
+        
+        $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search);
+        
+        $bLinkArr = array();
+        // Ако има предишен дебъг файл
+        if ($aPos) {
+            if ($aPosArr = array_slice($fArr, $aPos-1, 1)) {
+                if ($fNameBefore = key($aPosArr)) {
+                    $fNameBefore = fileman::getNameAndExt($fNameBefore);
+                    if ($fNameBefore['name']) {
+                        $bLinkArr = $otherLinkUrl;
+                        $bLinkArr['debugFile'] = $fNameBefore['name'];
+                    }
+                }
+            }
+        }
+        $bLink = ht::createLink(tr('Предишен'), $bLinkArr);
+        $tpl->replace($bLink, 'BEFORE_LINK');
+        
+        // Ако има следващ дебъг файл
+        if ($fArrCnt != ($aPos+1)) {
+            if ($aPosArr = array_slice($fArr, $aPos+1, 1)) {
+                if ($fNameAfter = key($aPosArr)) {
+                    $fNameAfter = fileman::getNameAndExt($fNameAfter);
+                    if ($fNameAfter['name']) {
+                        $aLinkArr = $otherLinkUrl;
+                        $aLinkArr['debugFile'] = $fNameAfter['name'];
+                    }
+                }
+            }
+        }
+        
+        $aLink = ht::createLink(tr('Следващ'), $aLinkArr);
+        $tpl->replace($aLink, 'AFTER_LINK');
+            
         // Показваме всички файлове
         foreach ($fArr as $fNameWithExt => $time) {
             list($fName) = explode('.', $fNameWithExt, 2);
@@ -164,19 +162,38 @@ class log_Debug extends core_Manager
             
             $fLink .= '<div>' . ht::createLink($fName, $linkUrl, false, array('class' => $cls, 'target' => '_parent')). '</div>';
             
-            if ($mCnt++ > 100) {
+            if ($mCnt++ > 200) {
                 break;
             }
         }
         
-        $tpl->append($fLink, 'DEBUG_LINK');
-        
-        
-        echo $tpl->getContent();
-        
-        Mode::set('wrapper', 'page_Empty');
+        $tplList->append($fLink, 'DEBUG_LINK');
 
-//         shutdown();
+        $tpl->append($tplList, 'LIST_FILE');
+        
+        // Показва съдъражаниете на дебъга, ако е избран файла
+        if ($debugFile = Request::get('debugFile')) {
+            $errUrlArr = array($this, 'ShowDebug', 'debugFile' => $debugFile);
+            $tpl->replace("<iframe style='float: left' width=1100 height=900 src='" . toUrl($errUrlArr). "'>" . '</iframe>', 'ERR_FILE');
+            $tpl->replace(ht::createLink(tr('Преглед на дебъг инфото'), $errUrlArr, null, 'target=_blank'), 'SHOW_DEBUG_LINK');
+            
+            $fPath = $this->getDebugFilePath($debugFile);
+            if (is_file($fPath) && is_readable($fPath)) {
+                $date = @filemtime($fPath);
+                $date = dt::timestamp2Mysql($date);
+                $date = dt::mysql2verbal($date, 'smartTime');
+                
+                $tpl->replace($date, 'CREATED_DATE');
+            }
+            
+            Mode::set('wrapper', 'page_Empty');
+            
+            // Рендираме страницата
+            return  $tpl;
+        }
+        
+        // Рендираме страницата
+        return  $this->renderWrapping($tpl);
     }
     
     
