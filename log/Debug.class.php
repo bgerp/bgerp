@@ -104,41 +104,40 @@ class log_Debug extends core_Manager
         
         $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search);
         
+        // Ако има следващ дебъг файл
         $bLinkArr = array();
+        if ($fArrCnt != ($aPos + 1)) {
+            if ($bPosArr = array_slice($fArr, $aPos + 1, 1)) {
+                if ($fNameBefore = key($bPosArr)) {
+                    $fNameBefore = fileman::getNameAndExt($fNameBefore);
+                    if ($fNameBefore['name']) {
+                        $bLinkArr = $otherLinkUrl;
+                        $bLinkArr['debugFile'] = $fNameBefore['name'];
+                    }
+                }
+            }
+        }
+        $aLink = ht::createLink(tr('Предишен'), $bLinkArr);
+        $tpl->replace($aLink, 'BEFORE_LINK');
         
         // Ако има предишен дебъг файл
+        $aLinkArr = array();
         if ($aPos) {
             if ($aPosArr = array_slice($fArr, $aPos - 1, 1)) {
-                if ($fNameBefore = key($aPosArr)) {
-                    $fPathStr = $this->getDebugFilePath($fNameBefore, false);
+                if ($fNameAfter = key($aPosArr)) {
+                    $fPathStr = $this->getDebugFilePath($fNameAfter, false);
                     if (DEBUG_FATAL_ERRORS_FILE != $fPathStr) {
-                        $fNameBefore = fileman::getNameAndExt($fNameBefore);
-                        if ($fNameBefore['name']) {
-                            $bLinkArr = $otherLinkUrl;
-                            $bLinkArr['debugFile'] = $fNameBefore['name'];
+                        $fNameAfter = fileman::getNameAndExt($fNameAfter);
+                        if ($fNameAfter['name']) {
+                            $aLinkArr = $otherLinkUrl;
+                            $aLinkArr['debugFile'] = $fNameAfter['name'];
                         }
                     }
                 }
             }
         }
-        $bLink = ht::createLink(tr('Предишен'), $bLinkArr);
-        $tpl->replace($bLink, 'BEFORE_LINK');
-        
-        // Ако има следващ дебъг файл
-        if ($fArrCnt != ($aPos + 1)) {
-            if ($aPosArr = array_slice($fArr, $aPos + 1, 1)) {
-                if ($fNameAfter = key($aPosArr)) {
-                    $fNameAfter = fileman::getNameAndExt($fNameAfter);
-                    if ($fNameAfter['name']) {
-                        $aLinkArr = $otherLinkUrl;
-                        $aLinkArr['debugFile'] = $fNameAfter['name'];
-                    }
-                }
-            }
-        }
-        
-        $aLink = ht::createLink(tr('Следващ'), $aLinkArr);
-        $tpl->replace($aLink, 'AFTER_LINK');
+        $bLink = ht::createLink(tr('Следващ'), $aLinkArr);
+        $tpl->replace($bLink, 'AFTER_LINK');
         
         // Показваме всички файлове
         foreach ($fArr as $fNameWithExt => $time) {
