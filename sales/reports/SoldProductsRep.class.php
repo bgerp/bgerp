@@ -304,7 +304,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $flag = false;
         
         while ($recPrime = $query->fetch()) {
-            $quantityPrevious = $quantity = $quantityLastYear = null;
+            $quantityPrevious = $quantity = $quantityLastYear = 0;
             
             $DetClass = cls::get($recPrime->detailClassId);
             

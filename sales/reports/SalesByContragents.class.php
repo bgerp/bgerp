@@ -305,6 +305,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $flag = false;
         
         while ($recPrime = $query->fetch()) {
+            $sellValuePrevious = $sellValueLastYear = $sellValue = 0;
+            
             $DetClass = cls::get($recPrime->detailClassId);
             
             if ($DetClass instanceof sales_SalesDetails) {
@@ -558,6 +560,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $currency = currency_Currencies::getCodeById(acc_Periods::getBaseCurrencyId());
+        
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
@@ -568,10 +572,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END contragent--></div></small>
                                 <small><div><!--ET_BEGIN crmGroup-->|Група контрагенти|*: [#crmGroup#]<!--ET_END crmGroup--></div></small>
                                 <small><div><!--ET_BEGIN group-->|Групи продукти|*: [#group#]<!--ET_END group--></div></small>
-                                <small><div><!--ET_BEGIN total-->|ОБЩО ПРОДАЖБИ|*: [#total#]<!--ET_END total--></div></small>
+                                <small><div><!--ET_BEGIN total-->|ОБЩО ПРОДАЖБИ|*: [#total#] |{$currency}|<!--ET_END total--></div></small>
                                 <small><div><!--ET_BEGIN compare-->|Сравнение|*: [#compare#]<!--ET_END compare--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-        
         
         if ($data->rec->compare == 'month') {
             unset($data->rec->from);
