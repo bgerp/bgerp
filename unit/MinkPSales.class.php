@@ -2493,8 +2493,8 @@ class unit_MinkPSales extends core_Manager
         // активираме продажбата
         $browser->press('Активиране');
        
-        // Контиране, ако не е в бъдещ период
-        if (strpos($browser->gettext(), 'Активиране/Контиране')) {
+        // Контиране, ако не е в бъдещ период 
+        //if (strpos($browser->gettext(), 'бъдещ счетоводен период')) {
             $browser->press('Активиране/Контиране'); 
              
             if (strpos($browser->gettext(), 'ДДС 20%: BGN 12,96')) {
@@ -2512,7 +2512,7 @@ class unit_MinkPSales extends core_Manager
                 
                 return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
             }
-        }
+        //}
     }
     
     
@@ -3388,9 +3388,9 @@ class unit_MinkPSales extends core_Manager
         
         // Добавяне на артикул
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други стоки');
+        $browser->setValue('productId', 'Други продукти');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packQuantity', '10');
         $browser->setValue('packPrice', '1');
         $browser->setValue('discount', 2);
         
