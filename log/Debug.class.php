@@ -105,14 +105,18 @@ class log_Debug extends core_Manager
         $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search);
         
         $bLinkArr = array();
+        
         // Ако има предишен дебъг файл
         if ($aPos) {
-            if ($aPosArr = array_slice($fArr, $aPos-1, 1)) {
+            if ($aPosArr = array_slice($fArr, $aPos - 1, 1)) {
                 if ($fNameBefore = key($aPosArr)) {
-                    $fNameBefore = fileman::getNameAndExt($fNameBefore);
-                    if ($fNameBefore['name']) {
-                        $bLinkArr = $otherLinkUrl;
-                        $bLinkArr['debugFile'] = $fNameBefore['name'];
+                    $fPathStr = $this->getDebugFilePath($fNameBefore, false);
+                    if (DEBUG_FATAL_ERRORS_FILE != $fPathStr) {
+                        $fNameBefore = fileman::getNameAndExt($fNameBefore);
+                        if ($fNameBefore['name']) {
+                            $bLinkArr = $otherLinkUrl;
+                            $bLinkArr['debugFile'] = $fNameBefore['name'];
+                        }
                     }
                 }
             }
@@ -121,8 +125,8 @@ class log_Debug extends core_Manager
         $tpl->replace($bLink, 'BEFORE_LINK');
         
         // Ако има следващ дебъг файл
-        if ($fArrCnt != ($aPos+1)) {
-            if ($aPosArr = array_slice($fArr, $aPos+1, 1)) {
+        if ($fArrCnt != ($aPos + 1)) {
+            if ($aPosArr = array_slice($fArr, $aPos + 1, 1)) {
                 if ($fNameAfter = key($aPosArr)) {
                     $fNameAfter = fileman::getNameAndExt($fNameAfter);
                     if ($fNameAfter['name']) {
@@ -135,7 +139,7 @@ class log_Debug extends core_Manager
         
         $aLink = ht::createLink(tr('Следващ'), $aLinkArr);
         $tpl->replace($aLink, 'AFTER_LINK');
-            
+        
         // Показваме всички файлове
         foreach ($fArr as $fNameWithExt => $time) {
             list($fName) = explode('.', $fNameWithExt, 2);
@@ -168,7 +172,7 @@ class log_Debug extends core_Manager
         }
         
         $tplList->append($fLink, 'DEBUG_LINK');
-
+        
         $tpl->append($tplList, 'LIST_FILE');
         
         // Показва съдъражаниете на дебъга, ако е избран файла
