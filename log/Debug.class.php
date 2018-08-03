@@ -54,6 +54,8 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
+        Mode::set('stopLoggingDebug', true);
+        
         $tpl = new ET(tr('|*<div>[#BEFORE_LINK#]</div><div>[#AFTER_LINK#]</div><div>[#SHOW_DEBUG_LINK#]</div><!--ET_BEGIN CREATED_DATE--><div>|Дата|*: [#CREATED_DATE#]</div><!--ET_END CREATED_DATE--> <div style="float: left">[#LIST_FILE#]</div><div>[#ERR_FILE#]</div>'));
         
         // Подготвяме листовия изглед за избор на дебъг файл
@@ -210,6 +212,8 @@ class log_Debug extends core_Manager
         $debugFile = Request::get('debugFile');
         
         expect($debugFile);
+        
+        Mode::set('stopLoggingDebug', true);
         
         $fPath = $this->getDebugFilePath($debugFile);
         

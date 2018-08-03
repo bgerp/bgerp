@@ -256,7 +256,7 @@ function reportException($e, $update = null, $supressShowing = true)
  */
 function logHitState($debugCode = '200', $state = array())
 {
-    if (defined('DEBUG_FATAL_ERRORS_FILE')) {
+    if (defined('DEBUG_FATAL_ERRORS_FILE') && !Mode::is('stopLoggingDebug')) {
         
         $execTime = core_Debug::getExecutionTime();
         
