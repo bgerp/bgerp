@@ -50,6 +50,9 @@ require_once(EF_APP_PATH . '/core/Html.class.php');
 core_Debug::setErrorWaching();
 
 try {
+    // Инициализиране на системата
+    core_App::initSystem();
+    
     // Дъмпване във файл на всички входни данни
     if (defined('DEBUG_FATAL_ERRORS_PATH')) {
         $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.txt';
@@ -65,9 +68,6 @@ try {
             define('DEBUG_FATAL_ERRORS_FILE', $pathName);
         }
     }
-    
-    // Инициализиране на системата
-    core_App::initSystem();
     
     // Параметрите от виртуалното URL за зареждат в $_GET
     core_App::processUrl();
