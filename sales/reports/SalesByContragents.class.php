@@ -84,9 +84,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-            if (!($form->rec->dealers)) {
-                $form->setError('dealers', 'Нямате избран дилър');
-            }
             
             // Проверка на периоди
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
