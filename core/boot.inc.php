@@ -50,19 +50,24 @@ require_once(EF_APP_PATH . '/core/Html.class.php');
 core_Debug::setErrorWaching();
 
 try {
-    // Инициализиране на системата
-    core_App::initSystem();
+    $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
     
-    // Дъмпване във файл на всички входни данни
-    if (defined('DEBUG_FATAL_ERRORS_PATH')) {
-        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.txt';
-        
+    // Вземаме всички входни данни
+    if ($isDefinedFatalErrPath) {
         $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST, 'SERVER' => $_SERVER));
         
         if (!$data) {
             $data = json_last_error();
             $data .= ' Serilize: ' . @serialize($data);
         }
+    }
+    
+    // Инициализиране на системата
+    core_App::initSystem();
+    
+    // Дъмпване във файл на всички входни данни
+    if ($isDefinedFatalErrPath) {
+        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.txt';
         
         if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
             define('DEBUG_FATAL_ERRORS_FILE', $pathName);
@@ -256,7 +261,7 @@ function reportException($e, $update = null, $supressShowing = true)
  */
 function logHitState($debugCode = '200', $state = array())
 {
-    if (defined('DEBUG_FATAL_ERRORS_FILE') && !Mode::is('stopLoggingDebug')) {
+    if (defined('DEBUG_FATAL_ERRORS_FILE') && @!Mode::is('stopLoggingDebug')) {
         
         $execTime = core_Debug::getExecutionTime();
         
@@ -294,6 +299,10 @@ function logHitState($debugCode = '200', $state = array())
         
         // Ако името съвпада - създаваме нов
         $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
+        
+        // В края добавяме и броя на символите/размера
+        $fileName .= '_' . strlen($data);
+        
         do {
             $pathName = log_Debug::getDebugLogFile($debugCode, $fileName);
             

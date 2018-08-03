@@ -345,8 +345,8 @@ class core_page_InternalModern extends core_page_Active
         if (isDebug()) {
             if (log_Debug::haveRightFor('list')) {
                 $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
-                $fileName = log_Debug::getDebugLogFile('200', $fileName, false, false);
-                
+                $fileName .= '_x';
+                $fileName = log_Debug::getDebugLogFile('2x', $fileName, false, false);
                 $debug = ht::createLink('Debug', array('log_Debug', 'Default', 'debugFile' => $fileName), false, array('title' => 'Показване на debug информация', 'ef_icon' => 'img/16/bug-icon.png', 'target' => '_blank'));
             } else {
                 $debug = ht::createLink('Debug', '#wer', false, array('title' => 'Показване на debug информация', 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
