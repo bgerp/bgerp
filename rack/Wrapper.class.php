@@ -23,10 +23,13 @@ class rack_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('rack_Movements', 'Движения');
+        $this->TAB('rack_Movements', 'Движения->Палети');
+        $this->TAB('rack_Journals', 'Движения->Архив');
         $this->TAB('rack_Products', 'Продукти');
         $this->TAB('rack_Pallets', 'Палети');
         $this->TAB('rack_Racks', 'Стелажи');
+        $this->TAB('rack_Journals', 'Документи', 'ceo,rack,store');
+        $this->TAB('rack_Zones', 'Зони', 'admin,ceo,rack,store');
         
         $this->title = 'Палетен склад';
     }

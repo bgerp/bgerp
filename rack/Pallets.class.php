@@ -636,12 +636,14 @@ class rack_Pallets extends core_Manager
      */
     public static function getPalletOptions($productId, $storeId)
     {
+        $options = array();
         $query = self::getQuery();
         $storeRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+        if(!is_object($storeRec)) return $options;
+        
         $query->where("#productId = {$storeRec->id} AND #storeId = {$storeRec->storeId}");
         
         Mode::push('text', 'plain');
-        $options = array();
         while($rec = $query->fetch()){
             $options[$rec->id] = self::getRecTitle($rec, FALSE);
         }

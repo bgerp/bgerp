@@ -1,0 +1,47 @@
+<div class="singleView">
+    [#SingleToolbar#]
+           <h2>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Зона|* <b style="color:green;">[#name#]</b></div>
+    </h2>
+            <fieldset class="detail-info">
+                <div class="groupList">
+                    <table>
+                    	<!--ET_BEGIN storeId-->
+                        <tr>
+                            <td class='dt'>|Склад|*</td>
+                            <td> [#storeId#]</td>
+                        </tr>
+                        <!--ET_END storeId-->
+                        <!--ET_BEGIN containerId-->
+                        <tr>
+                            <td class='dt'>|Документ|*:</td>
+                            <td>[#containerId#]</td>
+                        </tr>
+                        <!--ET_END containerId-->
+                        <!--ET_BEGIN readiness-->
+                        <tr>
+                            <td class='dt'>|Готовност|*:</td>
+                            <td>[#readiness#]</td>
+                        </tr>
+                        <!--ET_END readiness-->
+                    </table>
+                </div>
+            </fieldset>
+            
+            <fieldset class="detail-info">
+            	<legend class="groupTitle">|Обобщена информация|*</legend>
+                <div class="groupList">
+                [#SUMMARY_TABLE#]
+                </div>
+                <div style='margin-top:5px'>
+                [#takeBtn#][#putBtn#]
+                </div>
+            </fieldset>
+            
+            <fieldset class="detail-info">
+            	<legend class="groupTitle">|Движения|*</legend>
+                <div class="groupList">
+                [#rack_Journals#]
+                </div>
+            </fieldset>
+</div>
