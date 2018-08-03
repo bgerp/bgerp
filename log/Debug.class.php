@@ -60,8 +60,8 @@ class log_Debug extends core_Manager
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
-        $data->listFilter->layout =  "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#]</form>\n";
-
+        $data->listFilter->layout = "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#]</form>\n";
+        
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
@@ -112,40 +112,42 @@ class log_Debug extends core_Manager
         
         $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search);
         
-        // Ако има следващ дебъг файл
-        $bLinkArr = array();
-        if ($fArrCnt != ($aPos + 1)) {
-            if ($bPosArr = array_slice($fArr, $aPos + 1, 1)) {
-                if ($fNameBefore = key($bPosArr)) {
-                    $fNameBefore = fileman::getNameAndExt($fNameBefore);
-                    if ($fNameBefore['name']) {
-                        $bLinkArr = $otherLinkUrl;
-                        $bLinkArr['debugFile'] = $fNameBefore['name'];
-                    }
-                }
-            }
-        }
-        $aLink = ht::createLink(tr(' << '), $bLinkArr);
-        $tpl->replace($aLink, 'BEFORE_LINK');
-        
-        // Ако има предишен дебъг файл
-        $aLinkArr = array();
-        if ($aPos) {
-            if ($aPosArr = array_slice($fArr, $aPos - 1, 1)) {
-                if ($fNameAfter = key($aPosArr)) {
-                    $fPathStr = $this->getDebugFilePath($fNameAfter, false);
-                    if (DEBUG_FATAL_ERRORS_FILE != $fPathStr) {
-                        $fNameAfter = fileman::getNameAndExt($fNameAfter);
-                        if ($fNameAfter['name']) {
-                            $aLinkArr = $otherLinkUrl;
-                            $aLinkArr['debugFile'] = $fNameAfter['name'];
+        if ($debugFile) {
+            // Ако има следващ дебъг файл
+            $bLinkArr = array();
+            if ($fArrCnt != ($aPos + 1)) {
+                if ($bPosArr = array_slice($fArr, $aPos + 1, 1)) {
+                    if ($fNameBefore = key($bPosArr)) {
+                        $fNameBefore = fileman::getNameAndExt($fNameBefore);
+                        if ($fNameBefore['name']) {
+                            $bLinkArr = $otherLinkUrl;
+                            $bLinkArr['debugFile'] = $fNameBefore['name'];
                         }
                     }
                 }
             }
+            $aLink = ht::createLink(tr(' << '), $bLinkArr);
+            $tpl->replace($aLink, 'BEFORE_LINK');
+            
+            // Ако има предишен дебъг файл
+            $aLinkArr = array();
+            if ($aPos) {
+                if ($aPosArr = array_slice($fArr, $aPos - 1, 1)) {
+                    if ($fNameAfter = key($aPosArr)) {
+                        $fPathStr = $this->getDebugFilePath($fNameAfter, false);
+                        if (DEBUG_FATAL_ERRORS_FILE != $fPathStr) {
+                            $fNameAfter = fileman::getNameAndExt($fNameAfter);
+                            if ($fNameAfter['name']) {
+                                $aLinkArr = $otherLinkUrl;
+                                $aLinkArr['debugFile'] = $fNameAfter['name'];
+                            }
+                        }
+                    }
+                }
+            }
+            $bLink = ht::createLink(tr(' >> '), $aLinkArr);
+            $tpl->replace($bLink, 'AFTER_LINK');
         }
-        $bLink = ht::createLink(tr(' >> '), $aLinkArr);
-        $tpl->replace($bLink, 'AFTER_LINK');
         
         // Показваме всички файлове
         foreach ($fArr as $fNameWithExt => $time) {
@@ -171,7 +173,7 @@ class log_Debug extends core_Manager
                 $cls .= ' same';
             }
             
-            $fLink .=  ht::createLink($fName, $linkUrl, false, array('class' => $cls, 'target' => '_parent'));
+            $fLink .= ht::createLink($fName, $linkUrl, false, array('class' => $cls, 'target' => '_parent'));
             
             if ($mCnt++ > 200) {
                 break;
@@ -199,12 +201,12 @@ class log_Debug extends core_Manager
             
             Mode::set('wrapper', 'page_Empty');
             $tpl->push('css/debug.css', 'CSS');
-
+            
             // Плъгин за лайаута
-     //       jquery_Jquery::run( $tpl, 'enableLayout();');
-     //       jqueryui_Ui::enable($tpl);
-     //       jqueryui_Ui::enableLayout($tpl);
-
+            //       jquery_Jquery::run( $tpl, 'enableLayout();');
+            //       jqueryui_Ui::enable($tpl);
+            //       jqueryui_Ui::enableLayout($tpl);
+            
             // Рендираме страницата
             return  $tpl;
         }
