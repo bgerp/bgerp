@@ -19,13 +19,13 @@
 .debugLink {
     display: block;
     padding: 5px 5px 5px 25px;
-    color: #ccc;
+    color: #ccc !important;
     border-top: 1px dotted #666;
     &.current {
-      color: #AE508D;
+      color: #AE508D !important;
     }
     &.same {
-      color: #2ca2bd;
+      color: #2ca2bd !important;
     }
 }
 

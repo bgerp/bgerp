@@ -26,12 +26,12 @@
 .debugLink {
   display: block;
   padding: 5px 5px 5px 25px;
-  color: #cccccc;
+  color: #cccccc !important;
   border-top: 1px dotted #666666; }
   .debugLink.current {
-    color: #ae508d; }
+    color: #ae508d !important; }
   .debugLink.same {
-    color: #2ca2bd; }
+    color: #2ca2bd !important; }
 
 .debugPreview {
   padding: 0; }

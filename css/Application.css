@@ -3663,6 +3663,14 @@ table .eshop-btn {
 /*
  * стилове за fileman
  */
+.debugLink {
+  display: inline-block;
+  padding: 3px;
+  margin: 10px 10px 0 0;
+  border: 1px solid #cccccc;
+  background: #eeeeee;
+  border-radius: 3px; }
+
 /*
  * стилове за блог
  */
