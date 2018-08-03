@@ -54,19 +54,20 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $tpl = new ET(tr('|*<div>[#BEFORE_LINK#]</div><div>[#AFTER_LINK#]</div><div>[#SHOW_DEBUG_LINK#]</div><!--ET_BEGIN CREATED_DATE--><div>|Дата|*: [#CREATED_DATE#]</div><!--ET_END CREATED_DATE--> <div style="float: left">[#LIST_FILE#]</div><div>[#ERR_FILE#]</div>'));
+        $tpl = new ET(tr('|*<div class="ui-layout-north">[#SHOW_DEBUG_LINK#]<div class="aright"><!--ET_BEGIN CREATED_DATE-->[#CREATED_DATE#]<!--ET_END CREATED_DATE--> [#BEFORE_LINK#][#AFTER_LINK#]</div></div><div class="debugList ui-layout-west">[#LIST_FILE#]</div><div class="debugPreview ui-layout-center">[#ERR_FILE#]</div>'));
         
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
-        
+        $data->listFilter->layout =  "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#]</form>\n";
+
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
         $data->listFilter->showFields = 'search, debugFile';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
         
         $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div>[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         
@@ -124,7 +125,7 @@ class log_Debug extends core_Manager
                 }
             }
         }
-        $aLink = ht::createLink(tr('Предишен'), $bLinkArr);
+        $aLink = ht::createLink(tr(' << '), $bLinkArr);
         $tpl->replace($aLink, 'BEFORE_LINK');
         
         // Ако има предишен дебъг файл
@@ -143,7 +144,7 @@ class log_Debug extends core_Manager
                 }
             }
         }
-        $bLink = ht::createLink(tr('Следващ'), $aLinkArr);
+        $bLink = ht::createLink(tr(' >> '), $aLinkArr);
         $tpl->replace($bLink, 'AFTER_LINK');
         
         // Показваме всички файлове
@@ -164,13 +165,13 @@ class log_Debug extends core_Manager
             }
             
             if ($fName == $debugFile) {
-                $cls = 'debugLink-current';
+                $cls .= ' current';
                 $linkUrl = array();
             } elseif ($otherFilesFromSameHit[$fNameWithExt]) {
-                $cls = 'debugLink-same';
+                $cls .= ' same';
             }
             
-            $fLink .= '<div>' . ht::createLink($fName, $linkUrl, false, array('class' => $cls, 'target' => '_parent')). '</div>';
+            $fLink .=  ht::createLink($fName, $linkUrl, false, array('class' => $cls, 'target' => '_parent'));
             
             if ($mCnt++ > 200) {
                 break;
@@ -184,7 +185,7 @@ class log_Debug extends core_Manager
         // Показва съдъражаниете на дебъга, ако е избран файла
         if ($debugFile) {
             $errUrlArr = array($this, 'ShowDebug', 'debugFile' => $debugFile);
-            $tpl->replace("<iframe style='float: left' width=1100 height=900 src='" . toUrl($errUrlArr). "'>" . '</iframe>', 'ERR_FILE');
+            $tpl->replace("<iframe style='width: 100%; height: 100%' src='" . toUrl($errUrlArr). "'>" . '</iframe>', 'ERR_FILE');
             $tpl->replace(ht::createLink(tr('Преглед на дебъг инфото'), $errUrlArr, null, 'target=_blank'), 'SHOW_DEBUG_LINK');
             
             $fPath = $this->getDebugFilePath($debugFile);
@@ -197,7 +198,13 @@ class log_Debug extends core_Manager
             }
             
             Mode::set('wrapper', 'page_Empty');
-            
+            $tpl->push('css/debug.css', 'CSS');
+
+            // Плъгин за лайаута
+     //       jquery_Jquery::run( $tpl, 'enableLayout();');
+     //       jqueryui_Ui::enable($tpl);
+     //       jqueryui_Ui::enableLayout($tpl);
+
             // Рендираме страницата
             return  $tpl;
         }

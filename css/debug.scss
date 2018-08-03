@@ -1,0 +1,77 @@
+.ui-layout-pane { /* all 'panes' */
+    background: #FFF;
+    border: 1px solid #BBB;
+    padding: 10px;
+    overflow: auto;
+}
+
+.ui-layout-resizer { /* all 'resizer-bars' */
+    background: #DDD;
+}
+
+.ui-layout-toggler { /* all 'toggler-buttons' */
+   background: #AAA;
+}
+.ui-layout-north {
+    padding: 10px;
+    background-color: #333;
+}
+.debugLink {
+    display: block;
+    padding: 5px 5px 5px 25px;
+    color: #ccc;
+    border-top: 1px dotted #666;
+    &.current {
+      color: #AE508D;
+    }
+    &.same {
+      color: #2ca2bd;
+    }
+}
+
+.debugPreview {
+    padding: 0;
+}
+.debugList {
+    float: left;
+    background-color: #333;
+    width: 15%;
+}
+
+.debugPreview {
+    float: left;
+    width: 85%;
+    height: 1000px;
+}
+
+.listFilter {
+    display: block;
+    margin: 10px 25px;
+    input {
+        background-color: #fff !important;
+        border-radius: 2px;
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+
+#filter {
+    margin: 0;
+    width: 10px;
+    background-position: center;
+    height:26px;
+}
+.ui-layout-north {
+    color: #eee;
+    a, span {
+      color: #eee !important;
+      display: inline-block;
+      margin-right: 20px;
+    }
+}
+
+.aright {
+    float: right;
+    text-align: right;
+    display: inline-block;
+}
