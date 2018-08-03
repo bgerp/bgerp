@@ -119,7 +119,17 @@ class sens2_Setup extends core_ProtoSetup
         $rec->action = 'RunAll';
         $rec->period = 1;
         $rec->delay = 15;
-        $rec->timeLimit = 55;
+        $rec->timeLimit = 30;
+        $html .= core_Cron::addOnce($rec);
+        
+        $rec = new stdClass();
+        $rec->systemId = 'sens2_RunScripts2';
+        $rec->description = 'Изпълнява всички скриптове';
+        $rec->controller = 'sens2_Scripts';
+        $rec->action = 'RunAll';
+        $rec->period = 1;
+        $rec->delay = 45;
+        $rec->timeLimit = 30;
         $html .= core_Cron::addOnce($rec);
         
         return $html;
