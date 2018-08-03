@@ -195,47 +195,51 @@ function reportException($e, $update = null, $supressShowing = true)
         $type = $e->getType();
     }
     
-    switch ($type){
-        
-        // core_Exception_Expect
-        case 'Изключение':
-            $errCode = 500;
-            break;
-        
-        // error
-        case 'Грешка':
-            $errCode = 501;
-            break;
+    if ($state['httpStatusCode'] == 500) {
+        switch ($type){
             
-        // bp
-        case 'Прекъсване':
-            $errCode = 503;
-            break;
-            
-        // expect
-        case 'Несъответствие':
-            $errCode = 505;
-            break;
-            
-        // wp
-        case 'Наблюдение':
-            $errCode = 150;
-            break;
-        
-        // core_exception_Db
-        case 'DB Грешка':
-            $errCode = 550;
-            break;
-        
-        default:
-            
-            if (method_exists($e, 'getCode')) {
-                $errCode = $e->getCode();
-            } else {
-                $errCode = '510';
-            }
-            
-            break;
+            // core_Exception_Expect
+            case 'Изключение':
+                $errCode = 500;
+                break;
+                
+                // error
+            case 'Грешка':
+                $errCode = 501;
+                break;
+                
+                // bp
+            case 'Прекъсване':
+                $errCode = 503;
+                break;
+                
+                // expect
+            case 'Несъответствие':
+                $errCode = 505;
+                break;
+                
+                // wp
+            case 'Наблюдение':
+                $errCode = 150;
+                break;
+                
+                // core_exception_Db
+            case 'DB Грешка':
+                $errCode = 550;
+                break;
+                
+            default:
+                
+                if (method_exists($e, 'getCode')) {
+                    $errCode = $e->getCode();
+                } else {
+                    $errCode = '510';
+                }
+                
+                break;
+        }
+    } else {
+        $errCode = $state['httpStatusCode'];
     }
     
     $state['errCode'] = $errCode;
