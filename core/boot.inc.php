@@ -50,24 +50,29 @@ require_once(EF_APP_PATH . '/core/Html.class.php');
 core_Debug::setErrorWaching();
 
 try {
-    // Дъмпване във файл на всички входни данни
-    if (defined('DEBUG_FATAL_ERRORS_PATH')) {
-        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.txt';
-        
+    $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
+    
+    // Вземаме всички входни данни
+    if ($isDefinedFatalErrPath) {
         $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST, 'SERVER' => $_SERVER));
         
         if (!$data) {
             $data = json_last_error();
             $data .= ' Serilize: ' . @serialize($data);
         }
+    }
+    
+    // Инициализиране на системата
+    core_App::initSystem();
+    
+    // Дъмпване във файл на всички входни данни
+    if ($isDefinedFatalErrPath) {
+        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.txt';
         
         if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
             define('DEBUG_FATAL_ERRORS_FILE', $pathName);
         }
     }
-    
-    // Инициализиране на системата
-    core_App::initSystem();
     
     // Параметрите от виртуалното URL за зареждат в $_GET
     core_App::processUrl();
@@ -195,47 +200,51 @@ function reportException($e, $update = null, $supressShowing = true)
         $type = $e->getType();
     }
     
-    switch ($type){
-        
-        // core_Exception_Expect
-        case 'Изключение':
-            $errCode = 500;
-            break;
-        
-        // error
-        case 'Грешка':
-            $errCode = 501;
-            break;
+    if ($state['httpStatusCode'] == 500) {
+        switch ($type){
             
-        // bp
-        case 'Прекъсване':
-            $errCode = 503;
-            break;
-            
-        // expect
-        case 'Несъответствие':
-            $errCode = 505;
-            break;
-            
-        // wp
-        case 'Наблюдение':
-            $errCode = 150;
-            break;
-        
-        // core_exception_Db
-        case 'DB Грешка':
-            $errCode = 550;
-            break;
-        
-        default:
-            
-            if (method_exists($e, 'getCode')) {
-                $errCode = $e->getCode();
-            } else {
-                $errCode = '510';
-            }
-            
-            break;
+            // core_Exception_Expect
+            case 'Изключение':
+                $errCode = 500;
+                break;
+                
+                // error
+            case 'Грешка':
+                $errCode = 501;
+                break;
+                
+                // bp
+            case 'Прекъсване':
+                $errCode = 503;
+                break;
+                
+                // expect
+            case 'Несъответствие':
+                $errCode = 505;
+                break;
+                
+                // wp
+            case 'Наблюдение':
+                $errCode = 150;
+                break;
+                
+                // core_exception_Db
+            case 'DB Грешка':
+                $errCode = 550;
+                break;
+                
+            default:
+                
+                if (method_exists($e, 'getCode')) {
+                    $errCode = $e->getCode();
+                } else {
+                    $errCode = '510';
+                }
+                
+                break;
+        }
+    } else {
+        $errCode = $state['httpStatusCode'];
     }
     
     $state['errCode'] = $errCode;
@@ -252,7 +261,7 @@ function reportException($e, $update = null, $supressShowing = true)
  */
 function logHitState($debugCode = '200', $state = array())
 {
-    if (defined('DEBUG_FATAL_ERRORS_FILE')) {
+    if (defined('DEBUG_FATAL_ERRORS_FILE') && @!Mode::is('stopLoggingDebug')) {
         
         $execTime = core_Debug::getExecutionTime();
         
@@ -290,6 +299,10 @@ function logHitState($debugCode = '200', $state = array())
         
         // Ако името съвпада - създаваме нов
         $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
+        
+        // В края добавяме и броя на символите/размера
+        $fileName .= '_' . strlen($data);
+        
         do {
             $pathName = log_Debug::getDebugLogFile($debugCode, $fileName);
             

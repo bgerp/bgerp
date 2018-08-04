@@ -54,19 +54,20 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $tpl = new ET(tr('|*<div>[#BEFORE_LINK#]</div><div>[#AFTER_LINK#]</div><div>[#SHOW_DEBUG_LINK#]</div><!--ET_BEGIN CREATED_DATE--><div>|Дата|*: [#CREATED_DATE#]</div><!--ET_END CREATED_DATE--> <div style="float: left">[#LIST_FILE#]</div><div>[#ERR_FILE#]</div>'));
+        $tpl = new ET(tr('|*<div class="ui-layout-north">[#SHOW_DEBUG_LINK#]<div class="aright"><!--ET_BEGIN CREATED_DATE-->[#CREATED_DATE#]<!--ET_END CREATED_DATE--> [#BEFORE_LINK#][#AFTER_LINK#]</div></div><div class="debugList ui-layout-west">[#LIST_FILE#]</div><div class="debugPreview ui-layout-center">[#ERR_FILE#]</div>'));
         
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
+        $data->listFilter->layout = "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#]</form>\n";
         
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
         $data->listFilter->showFields = 'search, debugFile';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
         
         $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div>[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         
@@ -82,14 +83,21 @@ class log_Debug extends core_Manager
         
         $debugFileName = null;
         if ($debugFile = Request::get('debugFile')) {
+            Mode::set('stopLoggingDebug', true);
             $debugFileName = $debugFile . '.txt';
         }
         
         $before = 25;
         $after = 25;
         
+        $oDebugFileName = $debugFileName;
+        
         // Вземаме файловете, които да се показват
         $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search);
+        
+        if ($oDebugFileName != $debugFileName) {
+            list($debugFile) = explode('.', $debugFileName);
+        }
         
         $fArrCnt = count($fArr);
         
@@ -104,40 +112,42 @@ class log_Debug extends core_Manager
         
         $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search);
         
-        // Ако има следващ дебъг файл
-        $bLinkArr = array();
-        if ($fArrCnt != ($aPos + 1)) {
-            if ($bPosArr = array_slice($fArr, $aPos + 1, 1)) {
-                if ($fNameBefore = key($bPosArr)) {
-                    $fNameBefore = fileman::getNameAndExt($fNameBefore);
-                    if ($fNameBefore['name']) {
-                        $bLinkArr = $otherLinkUrl;
-                        $bLinkArr['debugFile'] = $fNameBefore['name'];
-                    }
-                }
-            }
-        }
-        $aLink = ht::createLink(tr('Предишен'), $bLinkArr);
-        $tpl->replace($aLink, 'BEFORE_LINK');
-        
-        // Ако има предишен дебъг файл
-        $aLinkArr = array();
-        if ($aPos) {
-            if ($aPosArr = array_slice($fArr, $aPos - 1, 1)) {
-                if ($fNameAfter = key($aPosArr)) {
-                    $fPathStr = $this->getDebugFilePath($fNameAfter, false);
-                    if (DEBUG_FATAL_ERRORS_FILE != $fPathStr) {
-                        $fNameAfter = fileman::getNameAndExt($fNameAfter);
-                        if ($fNameAfter['name']) {
-                            $aLinkArr = $otherLinkUrl;
-                            $aLinkArr['debugFile'] = $fNameAfter['name'];
+        if ($debugFile) {
+            // Ако има следващ дебъг файл
+            $bLinkArr = array();
+            if ($fArrCnt != ($aPos + 1)) {
+                if ($bPosArr = array_slice($fArr, $aPos + 1, 1)) {
+                    if ($fNameBefore = key($bPosArr)) {
+                        $fNameBefore = fileman::getNameAndExt($fNameBefore);
+                        if ($fNameBefore['name']) {
+                            $bLinkArr = $otherLinkUrl;
+                            $bLinkArr['debugFile'] = $fNameBefore['name'];
                         }
                     }
                 }
             }
+            $aLink = ht::createLink(tr(' << '), $bLinkArr);
+            $tpl->replace($aLink, 'BEFORE_LINK');
+            
+            // Ако има предишен дебъг файл
+            $aLinkArr = array();
+            if ($aPos) {
+                if ($aPosArr = array_slice($fArr, $aPos - 1, 1)) {
+                    if ($fNameAfter = key($aPosArr)) {
+                        $fPathStr = $this->getDebugFilePath($fNameAfter, false);
+                        if (DEBUG_FATAL_ERRORS_FILE != $fPathStr) {
+                            $fNameAfter = fileman::getNameAndExt($fNameAfter);
+                            if ($fNameAfter['name']) {
+                                $aLinkArr = $otherLinkUrl;
+                                $aLinkArr['debugFile'] = $fNameAfter['name'];
+                            }
+                        }
+                    }
+                }
+            }
+            $bLink = ht::createLink(tr(' >> '), $aLinkArr);
+            $tpl->replace($bLink, 'AFTER_LINK');
         }
-        $bLink = ht::createLink(tr('Следващ'), $aLinkArr);
-        $tpl->replace($bLink, 'AFTER_LINK');
         
         // Показваме всички файлове
         foreach ($fArr as $fNameWithExt => $time) {
@@ -157,13 +167,13 @@ class log_Debug extends core_Manager
             }
             
             if ($fName == $debugFile) {
-                $cls = 'debugLink-current';
+                $cls .= ' current';
                 $linkUrl = array();
             } elseif ($otherFilesFromSameHit[$fNameWithExt]) {
-                $cls = 'debugLink-same';
+                $cls .= ' same';
             }
             
-            $fLink .= '<div>' . ht::createLink($fName, $linkUrl, false, array('class' => $cls, 'target' => '_parent')). '</div>';
+            $fLink .= ht::createLink($fName, $linkUrl, false, array('class' => $cls, 'target' => '_parent'));
             
             if ($mCnt++ > 200) {
                 break;
@@ -175,9 +185,9 @@ class log_Debug extends core_Manager
         $tpl->append($tplList, 'LIST_FILE');
         
         // Показва съдъражаниете на дебъга, ако е избран файла
-        if ($debugFile = Request::get('debugFile')) {
+        if ($debugFile) {
             $errUrlArr = array($this, 'ShowDebug', 'debugFile' => $debugFile);
-            $tpl->replace("<iframe style='float: left' width=1100 height=900 src='" . toUrl($errUrlArr). "'>" . '</iframe>', 'ERR_FILE');
+            $tpl->replace("<iframe style='width: 100%; height: 100%' src='" . toUrl($errUrlArr). "'>" . '</iframe>', 'ERR_FILE');
             $tpl->replace(ht::createLink(tr('Преглед на дебъг инфото'), $errUrlArr, null, 'target=_blank'), 'SHOW_DEBUG_LINK');
             
             $fPath = $this->getDebugFilePath($debugFile);
@@ -190,6 +200,12 @@ class log_Debug extends core_Manager
             }
             
             Mode::set('wrapper', 'page_Empty');
+            $tpl->push('css/debug.css', 'CSS');
+            
+            // Плъгин за лайаута
+            //       jquery_Jquery::run( $tpl, 'enableLayout();');
+            //       jqueryui_Ui::enable($tpl);
+            //       jqueryui_Ui::enableLayout($tpl);
             
             // Рендираме страницата
             return  $tpl;
@@ -210,6 +226,8 @@ class log_Debug extends core_Manager
         $debugFile = Request::get('debugFile');
         
         expect($debugFile);
+        
+        Mode::set('stopLoggingDebug', true);
         
         $fPath = $this->getDebugFilePath($debugFile);
         
@@ -346,7 +364,7 @@ class log_Debug extends core_Manager
      *
      * @return array
      */
-    protected static function getDebugFilesArr($fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $search = null)
+    protected static function getDebugFilesArr(&$fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $search = null)
     {
         $fArr = array();
         
@@ -367,9 +385,17 @@ class log_Debug extends core_Manager
         
         $iterator->setFlags(FilesystemIterator::NEW_CURRENT_AND_KEY | FilesystemIterator::SKIP_DOTS);
         
+        // Намираме шаблонното име от файла
         $fNameTemplate = null;
         if (isset($fName)) {
-            list(, , $fNameTemplate) = explode('_', $fName, 3);
+            list($fNameTemplate) = explode('.', $fName, 2);
+            
+            $fNameTemplateArr = explode('_', $fNameTemplate);
+            unset($fNameTemplateArr[0]);
+            unset($fNameTemplateArr[1]);
+            unset($fNameTemplateArr[6]);
+            
+            $fNameTemplate = implode('_', $fNameTemplateArr);
         }
         
         // Намираме всички файлове и им вземаме времето на създаване
@@ -408,17 +434,37 @@ class log_Debug extends core_Manager
         }
         
         if (!empty($fArr)) {
-            asort($fArr);
             if (($before || $after)) {
                 if ($fName) {
-                    $aPos = array_search($fName, array_keys($fArr));
-                    
                     // Премахваме файловете от същия хит - за да ги добавим по-късно
                     if (!empty($otherFilesFromSameHitArr)) {
+                        $pregPattern = '/^' . preg_quote($fName, '/') . '$/';
+                        
+                        $pregPattern = str_replace('x', '.+', $pregPattern);
+                        
+                        $foundFName = false;
+                        
+                        if ($fArr[$fName]) {
+                            $foundFName = true;
+                        }
+                        
                         foreach ($otherFilesFromSameHitArr as $sameFName => $time) {
+                            // Ако в името има неизвестни стойности, намираме файла от системата
+                            if (!$foundFName && preg_match($pregPattern, $sameFName)) {
+                                $fName = $sameFName;
+                                $fArr[$fName] = $time;
+                                $foundFName = true;
+                                unset($otherFilesFromSameHitArr[$fName]);
+                                continue;
+                            }
+                            
                             unset($fArr[$sameFName]);
                         }
                     }
+                    
+                    asort($fArr);
+                    
+                    $aPos = array_search($fName, array_keys($fArr));
                     
                     $fArrCnt = count($fArr);
                     
@@ -500,7 +546,7 @@ class log_Debug extends core_Manager
         }
         
         // Колко часа да се пазят грешките в директорията
-        $delTimeMapArr = array('def' => 30, '000' => 30, '0' => 100, '150' => 100, '200' => 5, '201' => 5, '500' => 100, '501' => 100, '503' => 100, '505' => 100, '510' => 100, '520' => 100, '550' => 100);
+        $delTimeMapArr = array('def' => 30, '000' => 30, '0' => 100, '150' => 100, '2' => 5, '8' => 5, '5' => 100, '404' => 5);
         
         $nowT = dt::mysql2timestamp();
         
@@ -515,7 +561,16 @@ class log_Debug extends core_Manager
         
         foreach ($fArr as $fName => $cDate) {
             list($v) = explode('_', $fName, 2);
-            $delOn = $delTimeMapArr[$v] ? $delTimeMapArr[$v] : $delTimeMapArr['def'];
+            
+            $delOn = $delTimeMapArr[$v];
+            
+            if (!$delOn) {
+                $delOn = $delTimeMapArr[$v{0}];
+            }
+            
+            if (!$delOn) {
+                $delOn = $delTimeMapArr['def'];
+            }
             
             if ($delOn < $cDate) {
                 continue;
