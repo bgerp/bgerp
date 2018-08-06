@@ -274,7 +274,7 @@ class drdata_Vats extends core_Manager
                 $client = @new SoapClient('http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl', array('connection_timeout' => 4));
                 
                 $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
-                @$result = $client->checkVat($params);
+                $result = @$client->checkVat($params);
             } catch (Exception $e) {
                 reportException($e);
                 $result = new stdClass();
