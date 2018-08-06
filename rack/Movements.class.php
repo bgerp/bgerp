@@ -102,22 +102,33 @@ class rack_Movements extends core_Manager
     
     public $listFields = 'palletId,position,positionTo,workerId,note,created=Създаване';
     
-
+    
     /**
      * Полета по които да се търси
      */
     public $searchFields = 'palletId,position,positionTo,workerId,note';
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Палет,smartCenter');
         
+        // Палет, позиции и зони
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Палет,smartCenter');
         $this->FLD('position', 'rack_PositionType', 'caption=От,smartCenter');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=До,smartCenter');
+        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони,smartCenter');
+        
+        // Описание на продукта и количеството, което се взема от палета
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
+        $this->FLD('quantity', 'double', 'caption=Количество,input=none');
+        
+        // Опаковка на продукта и количеството в опаковка
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
+        $this->FLD('quantityInPack', 'double', 'input=none');
         
         $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter,input=hidden');
         $this->FLD('workerId', 'user(roles=storeWorker,ceo)', 'caption=Товарач,smartCenter');
@@ -201,13 +212,16 @@ class rack_Movements extends core_Manager
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
-
+        
         $data->listFilter->showFields = 'search';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
+    /**
+     * Екшън за започване на движението
+     */
     public function act_Start()
     {
         $this->requireRightFor('start');
@@ -219,9 +233,13 @@ class rack_Movements extends core_Manager
         $rec->workerId = core_Users::getCurrent();
         $this->save($rec, 'state,workerId');
         
-        redirect(array($this));
+        followretUrl(array($this));
     }
     
+    
+    /**
+     * Екшън за отказа от движението
+     */
     public function act_Cancel()
     {
         $this->requireRightFor('Cancel');
@@ -233,10 +251,13 @@ class rack_Movements extends core_Manager
         $rec->workerId = null;
         $this->save($rec, 'state,workerId');
         
-        redirect(array($this));
+        followretUrl(array($this));
     }
     
     
+    /**
+     * Екшън за приключване на движението
+     */
     public function act_Done()
     {
         $this->requireRightFor('Done');
@@ -244,6 +265,8 @@ class rack_Movements extends core_Manager
         expect($rec = $this->fetch($id));
         $this->requireRightFor('Done', $rec);
         
+        
+        // Действия при приключване на движението
         $pRec = rack_Pallets::fetch($rec->palletId);
         $pRec->position = $rec->positionTo;
         
@@ -266,7 +289,7 @@ class rack_Movements extends core_Manager
         
         $rMvc->on_Shutdown($rMvc);
         
-        redirect(array($this));
+        followretUrl(array($this));
     }
     
     
