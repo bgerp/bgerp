@@ -945,12 +945,6 @@ class core_Form extends core_FieldSet
                 foreach ($captionArr as $id => $c) {
                     $captionArr[$id] = $caption = $c1 = tr($c);
                     
-                    // Удебеляваме имената на задължителните полета
-                    if ($field->mandatory || ($id != ($captionArrCount - 1))) {
-                        $caption = "<b>${caption}</b>";
-                    } else {
-                        $caption = "${caption}";
-                    }
                     
                     if ($lastCaptionArr[$id] != $c1 && $id != ($captionArrCount - 1)) {
                         $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
@@ -959,6 +953,13 @@ class core_Form extends core_FieldSet
                         if (strpos($group, '||')) {
                             list($group, $en) = explode('||', $group);
                         }
+                    }
+
+                    // Удебеляваме имената на задължителните полета
+                    if ($field->mandatory || ($id != ($captionArrCount - 1))) {
+                        $caption = "<b>${caption}</b>";
+                    } else {
+                        $caption = "${caption}";
                     }
                 }
                 
