@@ -54,7 +54,7 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $tpl = new ET(tr('|*<div class="ui-layout-north">[#SHOW_DEBUG_INFO#]<div>[#DOWNLOAD_FILE#]</div><div class="aright"><!--ET_BEGIN CREATED_DATE-->[#CREATED_DATE#]<!--ET_END CREATED_DATE--> [#BEFORE_LINK#][#AFTER_LINK#]</div></div><div class="debugList ui-layout-west">[#LIST_FILE#]</div><div class="debugPreview ui-layout-center">[#ERR_FILE#]</div>'));
+        $tpl = new ET(tr('|*<div class="ui-layout-north">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span style="display: inline-block;margin-right: 10px;"> [#DOWNLOAD_FILE#]</span> [#BEFORE_LINK#][#AFTER_LINK#]</div></div><div class="debugList ui-layout-west">[#LIST_FILE#]</div><div class="debugPreview ui-layout-center">[#ERR_FILE#]</div>'));
         
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
