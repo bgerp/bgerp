@@ -3236,10 +3236,6 @@ fieldset.sharing-history {
 	line-height: 1.4em;
 }
 
-.narrow .cart-view-buttons-top a{
-	display: block;
-}
-
 .wide .cartHolder {
 	float: left;
 	width: 72%;
@@ -3319,9 +3315,21 @@ fieldset.sharing-history {
 	td {
 		padding: 4px 7px; 
 	}
-	tbody tr {
-		background: linear-gradient(#eeeeee, #f8f8f8, white, #f8f8f8, #eeeeee);
+	tbody tr:not(.ecartCommonRow) {
+		background: linear-gradient(white, white, white, white, white, white, #eee);
 	}
+	tbody tr.ecartCommonRow {
+		background: linear-gradient(#eee, white, white, white, white, white, white);
+	}
+	tbody tr:not(.ecartCommonRow) td {
+		padding-bottom:10px;
+   		padding-top:3px;
+    }
+	tbody tr.ecartCommonRow td {
+        padding-top:10px;
+   		padding-bottom:3px;
+	}
+
   	thead tr:first-child {
 		background-color: #F1F1F1;
 	}
@@ -3474,6 +3482,7 @@ fieldset.sharing-history {
 .narrow .quantity-input-column input {
 	height: 29px;
 }
+
 .narrow .optionsTable {
 	min-width: 320px;
 	margin-top: 15px;
