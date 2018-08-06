@@ -521,9 +521,6 @@ class rack_Journals extends core_Detail
     }
     
     
-    
-    
-    
     /**
      * Избор на зона в документ
      *
@@ -551,6 +548,7 @@ class rack_Journals extends core_Detail
             $saveRec = (object)array('operation' => 'take', 'productId' => $fRec->productId, 'packagingId' => $fRec->packagingId, 'quantityInPack' => $quantityInPack, 'state' => $state, 'palletId' => $fRec->palletId);
             $arr = (array)$fRec;
             
+            // За всички записи
             foreach ($arr as $name => $value) {
                 if(strpos($name, "quantity|") === false) continue;
                 if(empty($value)) continue;
@@ -566,6 +564,7 @@ class rack_Journals extends core_Detail
                 $toSave[] = $cloneRec;
             }
             
+            // Ако няма проблем движенията се записват
             if(!$form->gotErrors()){
                 foreach ($toSave as $rec) {
                     $this->save($rec);
@@ -586,10 +585,15 @@ class rack_Journals extends core_Detail
         core_Form::preventDoubleSubmission($tpl, $form);
         
         return $tpl;
-        bp($storeId);
     }
     
     
+    /**
+     * Подготовка на формата за бързо събиране
+     * 
+     * @param int $storeId
+     * @return core_Form $form
+     */
     private function prepareOrderPickupForm($storeId)
     {
         $form = cls::get('core_Form');

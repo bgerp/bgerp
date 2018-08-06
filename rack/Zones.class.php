@@ -27,7 +27,7 @@ class rack_Zones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'rack_Wrapper,plg_Sorting,plg_SaveAndNew,plg_Created,plg_State2,plg_RowTools2';
+    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2';
     
     
     /**
@@ -233,8 +233,10 @@ class rack_Zones extends core_Master
             // Рендиране на таблицата на статистиката
             $table = cls::get('core_TableView', array('mvc' => $fld));
             $details = $table->get($data->summary->rows, "productId=Артикул,measureId=Мярка,jQuantity=Нагласено,dQuantity=Очаквано");
+            $details->append("style='width:100%;'", 'TABLE_ATTR');
             $tpl->append($details, "SUMMARY_TABLE");
             
+            // Поставяне на бутоните
             if(isset($data->summary->takeUrl)){
                 $takeBtn = ht::createBtn('Нагласяне', $data->summary->takeUrl, false, false, 'title=Нагласяне на палет в зоната,ef_icon=img/16/bug.png');
                 $tpl->replace($takeBtn, 'takeBtn');
