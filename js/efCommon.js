@@ -5287,6 +5287,23 @@ $.fn.isInViewport = function() {
 
 
 /**
+ * Фокусира еднократно върху посоченото id пи зададения rand
+ */
+function focusOnce(id, rand) {
+    if (typeof(Storage) !== "undefined") {
+        if(localStorage.getItem(rand) !== null) {
+            return;
+        }
+        localStorage.setItem(rand, 1);
+    }
+    
+    if($(id).isInViewpor && $(id).isInViewport()) {
+        $(id).focus();
+    }
+}
+
+
+/**
  * Fix за IE7
  * implement JSON.parse de-serialization
  *
@@ -5297,24 +5314,6 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
-
-
-
-/**
- * Фокусира еднократно върху посоченото id пи зададения rand
- */
-function focusOnce(id, rand) {
-    if (typeof(Storage) !== "undefined") {
-        if(localStorage.getItem(rand) !== null) {
-            return;
-        }
-        localStorage.setItem(rand, 1);
-    }
-    if($(id).isInViewport()) {
-        $(id).focus();
-    }
-}
-
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
