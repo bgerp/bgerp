@@ -1045,7 +1045,7 @@ class sales_Quotations extends core_Master
             'originId' => $rec->containerId,
             'template' => $templateId,
             'deliveryAdress' => $rec->deliveryAdress,
-            'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
+            'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id'),
         );
         
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
