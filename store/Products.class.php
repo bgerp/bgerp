@@ -503,7 +503,7 @@ class store_Products extends core_Detail
             // Всички заявки
             $sQuery = $Doc->getQuery();
             $sQuery->where("#state = 'pending'");
-            $sQuery->show("id,containerId,{$storeField}");
+            $sQuery->show("id,containerId,modifiedOn,{$storeField}");
             
             while ($sRec = $sQuery->fetch()) {
                 
