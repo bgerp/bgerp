@@ -91,6 +91,13 @@ class log_Debug extends core_Manager
         
         $oDebugFileName = $debugFileName;
         
+        $fPathStr = $this->getDebugFilePath($debugFileName, false);
+        
+        if (!file_exists($fPathStr) && strpos($debugFile, 'x') === false) {
+            $dFileNameArr = explode('_', $debugFile, 2);
+            $debugFileName = 'x_' . $dFileNameArr[1] . '_x.debug';
+        }
+        
         // Вземаме файловете, които да се показват
         $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search);
         
@@ -183,6 +190,8 @@ class log_Debug extends core_Manager
         
         $tpl->append($tplList, 'LIST_FILE');
         
+        $tpl->append('bgERP tracer', 'PAGE_TITLE');
+        
         // Показва съдъражаниете на дебъга, ако е избран файла
         if ($debugFile) {
             $fPath = $this->getDebugFilePath($debugFile);
@@ -209,9 +218,9 @@ class log_Debug extends core_Manager
             $tpl->push('css/debug.css', 'CSS');
             
             // Плъгин за лайаута
-            //       jquery_Jquery::run( $tpl, 'enableLayout();');
-            //       jqueryui_Ui::enable($tpl);
-            //       jqueryui_Ui::enableLayout($tpl);
+//             jquery_Jquery::run( $tpl, 'enableLayout();');
+//             jqueryui_Ui::enable($tpl);
+//             jqueryui_Ui::enableLayout($tpl);
             
             // Рендираме страницата
             return  $tpl;
@@ -274,6 +283,36 @@ class log_Debug extends core_Manager
                 
                 if ($rArr['POST']) {
                     $rArr['contex']->_POST = $rArr['POST'];
+                }
+                
+                if (!$rArr['errType']) {
+                    if ($rArr['_debugCode']) {
+                        $rArr['header'] .= $rArr['_debugCode'];
+                    }
+                    
+                    if ($rArr['_Ctr']) {
+                        $rArr['header'] .= ' ' . $rArr['_Ctr'];
+                    }
+                    
+                    if ($rArr['_Act']) {
+                        $rArr['header'] .= ' » ' . $rArr['_Act'];
+                    }
+                    
+                    if ($rArr['_executionTime']) {
+                        $rArr['header'] .= ' (' . number_format($rArr['_executionTime'], 1) . 'sec)';
+                    }
+                    
+                    if (!trim($rArr['header'])) {
+                        if ($rArr['GET']) {
+                            $rArr['header'] = $rArr['GET']->virtual_url;
+                        }
+                    }
+                    
+                    if ($rArr['_debugCode'] && ($rArr['_debugCode']{0} == 2 || $rArr['_debugCode']{0} == 8)) {
+                        $rArr['headerCls'] = 'okMsg';
+                    } else {
+                        $rArr['headerCls'] = 'warningMsg';
+                    }
                 }
                 
                 $rArr['_showDownloadUrl'] = false;
@@ -397,6 +436,12 @@ class log_Debug extends core_Manager
             unset($fNameTemplateArr[0]);
             unset($fNameTemplateArr[1]);
             unset($fNameTemplateArr[6]);
+            
+            foreach ($fNameTemplateArr as $k => $t) {
+                if ($t == 'x') {
+                    unset($fNameTemplateArr[$k]);
+                }
+            }
             
             $fNameTemplate = implode('_', $fNameTemplateArr);
         }

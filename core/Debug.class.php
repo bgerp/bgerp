@@ -617,6 +617,12 @@ class core_Debug
         $lineHtml = self::getEditLink($breakFile, $breakLine, $breakLine);
         $fileHtml = self::getEditLink($breakFile);
         
+        if (!$state['headerCls']) {
+            $data['headerCls'] = 'errorMsg';
+        } else {
+            $data['headerCls'] = $state['headerCls'];
+        }
+        
         if (isset($state['header'])) {
             $data['header'] = $state['header'];
         } else {
