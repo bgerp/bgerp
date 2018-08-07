@@ -3756,7 +3756,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
-        if ($cRec->state == 'draft') {
+        if ($cRec->state == 'draft' || $cRec->state == 'pending') {
             $res = false;
             
             return ;
