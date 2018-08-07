@@ -1283,6 +1283,9 @@ class doc_DocumentPlg extends core_Plugin
             
             $res = new Redirect($res);
             
+            $sP = cls::get('store_Products');
+            $sP->updateOnShutdown = true;
+            
             return false;
         }
         

@@ -78,6 +78,12 @@ class store_Products extends core_Detail
     
     
     /**
+     * Флаг за обновяване на наличностите на шътдаун
+     */
+    public $updateOnShutdown = false;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -478,6 +484,17 @@ class store_Products extends core_Detail
         
         if (!count($options)) {
             $options[''] = '';
+        }
+    }
+    
+    
+    /**
+     * Ако е вдигнат флаг, обновява запазаните наличности на shutdown
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if ($mvc->updateOnShutdown) {
+            $mvc->cron_CalcReservedQuantity();
         }
     }
     
