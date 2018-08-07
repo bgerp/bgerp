@@ -133,7 +133,6 @@ class rack_Racks extends core_Master
     
     public function act_Show()
     {
-        $storeId = store_Stores::getCurrent();
         $pos = Request::get('pos');
         
         list($n, $r, $c) = explode('-', $pos);
@@ -141,14 +140,26 @@ class rack_Racks extends core_Master
         $n = (int) $n;
         
         if ($n) {
-            $rec = rack_Racks::fetch(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $n));
+            $rec = rack_Racks::getByNum($n);
             if ($rec) {
                 
                 return Request::forward(array('Act' => 'single', 'id' => $rec->id, 'pos' => "{$r}-{$c}"));
             }
         }
         
-        return new Redirect(array($this), 'Позицията не може да бъде открита', 'error');
+        return new Redirect(array($this), 'Позицията|* {$pos} |не може да бъде открита', 'error');
+    }
+    
+    
+    /**
+     * Връща записа за стелажа, според номера му в текущия склад
+     */
+    public static function getByNum($num)
+    {
+        $storeId = store_Stores::getCurrent();
+        $rec = rack_Racks::fetch(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $num));
+        
+        return $rec;
     }
     
     
@@ -291,11 +302,11 @@ class rack_Racks extends core_Master
         
         $fields = arr::make($fields, true);
         
-        if(isset($fields['-single'])) {
+        if (isset($fields['-single'])) {
             $storeId = store_Stores::getCurrent();
             $row->num .= ' / ' . store_Stores::getTitleById($storeId);
         }
-
+        
         return $row;
     }
     

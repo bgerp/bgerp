@@ -94,6 +94,8 @@
 	                <td style='width: 1%; white-space:nowrap'>[#forward#]</td>
 	            </tr>
 	        </table>
+	        <h3>[#date#]</h3>
+	        <h3>URI: [#uri#]</h3>
 		</div>
 	</div>
 </body>

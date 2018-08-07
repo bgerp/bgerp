@@ -501,4 +501,27 @@ class core_Detail extends core_Manager
         
         return parent::getLinkForObject($objId);
     }
+    
+    
+    /**
+     * Подготвя формата за филтриране
+     */
+    public function prepareListFilter_($data)
+    {
+        parent::prepareListFilter_($data);
+        
+        // Ако детайла се подготвя за показване в мастъра
+        if(is_object($data->listFilter) && isset($data->masterMvc)){
+           
+            // Кои са хидън полетата на мастъра?
+            $masterFields = $data->masterMvc->selectFields("#input == 'hidden'");
+            
+            // Ако има те се махат от лист фийлда на детайла да няма засечка между полетата
+            foreach ($masterFields as $name => $fld) {
+                unset($data->listFilter->fields[$name]);
+            }
+        }
+        
+        return $data;
+    }
 }

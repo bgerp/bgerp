@@ -966,7 +966,7 @@ class eshop_Carts extends core_Master
         $btn = ht::createLink(tr('Магазин'), $shopUrl, null, 'title=Назад към магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png');
         $tpl->append($btn, 'CART_TOOLBAR_TOP');
         
-        $wideSpan = Mode::is('screenMode', 'wide') ? '<span>|</span>' : '';
+        $wideSpan = '<span>|</span>';
         
         if (eshop_CartDetails::haveRightFor('add', (object) array('cartId' => $rec->id))) {
             $addUrl = array('eshop_CartDetails', 'add', 'cartId' => $rec->id, 'external' => true, 'ret_url' => true);
@@ -1089,8 +1089,14 @@ class eshop_Carts extends core_Master
         $data->listTableMvc->FNC('code', 'varchar', 'smartCenter');
         $data->listTableMvc->setFieldType('quantity', core_Type::getByName('varchar'));
         $data->listTableMvc->setField('quantity', 'tdClass=quantity-input-column');
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable', 'tableId' => 'cart-view-table'));
-        
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => 'optionsTable', 'tableId' => 'cart-view-table'));        
+
+        if (Mode::is('screenMode', 'narrow')) {
+            $data->listTableMvc->commonRowClass = 'ecartCommonRow';
+            $data->listTableMvc->commonFirst = true;
+            $data->listFields['productId'] = '@Артикул';
+        }
+
         plg_RowTools2::on_BeforeRenderListTable($data->listTableMvc, $tpl, $data);
         $tpl->replace($table->get($data->rows, $data->listFields));
         

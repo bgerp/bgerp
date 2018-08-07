@@ -105,7 +105,7 @@ class core_TableView extends core_BaseClass
         $fields = arr::make($fields, true);
         
         $header = array();
-        $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
+        $row = "<tr [#ROW_ATTR#]>";
         $addRows = '';
         $colspan = 0;
         $maxColHeaders = 1;
@@ -234,7 +234,7 @@ class core_TableView extends core_BaseClass
                     }
                     
                     // Допълнителни цели редове, ако колоната няма заглавие
-                    $addRows .= "<tr [#ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRows .= "<tr [#COMMON_ROW_ATTR#]><td {$attr} colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
             }
         }
@@ -283,8 +283,15 @@ class core_TableView extends core_BaseClass
         
         $this->colspan = $colspan;
         
-        $row .= "</tr>\n{$addRows}<!--ET_END ROW-->";
-        
+        $row .= "</tr>\n";
+
+        if($this->mvc->commonFirst) {
+            $row = "{$addRows}{$row}";
+        } else {
+            $row = "{$row}{$addRows}";
+        }
+            
+        $row = "\n<!--ET_BEGIN ROW-->{$row}<!--ET_END ROW-->";
         if (!$this->tableClass) {
             $this->tableClass = 'listTable';
         }
@@ -319,12 +326,19 @@ class core_TableView extends core_BaseClass
                 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
                 if (count($r['ROW_ATTR'])) {
+                    if($this->mvc->commonRowClass) {
+                        $attrs['class'] .= ' ' . $this->mvc->commonRowClass;
+                    }
+
                     $attrs = '';
                     
                     foreach ($r['ROW_ATTR'] as $attrName => $attrValue) {
                         $attrs .= " ${attrName}=\"{$attrValue}\"";
                     }
                     $rowTpl->replace($attrs, 'ROW_ATTR');
+                    $rowTpl->replace($attrs, 'COMMON_ROW_ATTR');
+                } else {
+                    $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR');
                 }
                 
                 $rowTpl->append2Master();

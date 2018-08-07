@@ -106,7 +106,7 @@ class incoming_Archiving extends core_Master
     public function description()
     {
         $this->FLD('unitNumber', 'int', 'caption=Единица No,mandatory,input');
-        $this->FLD('typeOfArhive', 'key(mvc=incoming_TypeOfArchive,select=name,allowEmpty)', 'caption=Тип на архива,mandatory');
+        $this->FLD('typeOfArhive', 'key(mvc=incoming_TypeOfArchive,select=name,allowEmpty)', 'caption=Архив,mandatory');
         
         
         $this->setDbUnique('unitNumber');

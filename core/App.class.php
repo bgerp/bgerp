@@ -360,7 +360,6 @@ class core_App
             session_write_close();
         }
         
-        
         if (!isDebug() && $sendOutput) {
             self::flushAndClose();
         }
@@ -370,7 +369,7 @@ class core_App
         
         // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
-
+        
         // Спираме изпълнението и излизаме
         self::exitScript();
     }
@@ -383,6 +382,26 @@ class core_App
     {
         // Изтрива дебъг файла, ако няма фатална грешка
         if (defined('DEBUG_FATAL_ERRORS_FILE')) {
+            $errCode = '2';
+            $logHit = true;
+            if (Request::get('ajax_mode')) {
+                $errCode = '8';
+                $logHit = false;
+                if (Request::get('logAjax')) {
+                    $logHit = true;
+                }
+            }
+            
+            // Добавяме времето за изпълнение
+            $execTime = Debug::getExecutionTime();
+            $execTime = number_format($execTime, 0);
+            $execTime = str_pad($execTime, 2, '0', STR_PAD_LEFT);
+            $errCode .= $execTime;
+            
+            if ($logHit) {
+                logHitState($errCode);
+            }
+            
             @unlink(DEBUG_FATAL_ERRORS_FILE);
         }
         
