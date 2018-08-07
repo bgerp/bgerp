@@ -85,6 +85,7 @@ class plg_SelectPeriod extends core_Plugin
     public static function on_BeforePrepareListSummary($mvc, &$res, $data)
     {
         $form = $data->listFilter;
+        if (empty($form)) return;
         $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
         $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
         

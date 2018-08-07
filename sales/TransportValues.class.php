@@ -443,7 +443,7 @@ class sales_TransportValues extends core_Manager
             $amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
             $hint = "Транспорт|*: {$amountFee}";
             
-            if (!empty($explain) && haveRole('admin')){
+            if (!empty($explain) && haveRole('admin,tcost')){
                 $hint .= "<br>" . $explain;
             }
             

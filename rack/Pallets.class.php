@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -85,7 +85,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'storeId,label,productId,quantity,position,created=Създаване';
+    public $listFields = 'storeId,label,productId,quantity,position,rackId,created=Създаване';
     
     
     /**
@@ -94,7 +94,8 @@ class rack_Pallets extends core_Manager
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,column=none');
-        $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory');
+        $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=hidden,column=none');
+        $this->FLD('productId', 'key(mvc=store_Products,select=productId,allowEmpty)', 'caption=Продукт,silent,remember,refreshForm,mandatory');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
@@ -108,7 +109,7 @@ class rack_Pallets extends core_Manager
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
@@ -130,7 +131,7 @@ class rack_Pallets extends core_Manager
         $form->setHidden('storeId', store_Stores::getCurrent());
         $form->FNC('positionTo', 'rack_PositionType', 'caption=Позиция на стелажите->Нова,input');
         $form->setField('position', 'caption=Позиция на стелажите->Текуща');
-        $form->FNC('movementCreate', 'enum(off=Изключено,on=Включено)', 'caption=Движение->Задаване,input,autohide,remember');
+        $form->FNC('movementCreate', 'enum(off=Изключено,on=Включено)', 'caption=Движение->Задаване,input,autohide,maxRadio=2,remember');
         $form->FNC('movementInfo', 'varchar', 'caption=Движение->Информация,input,autohide,recently');
         
         if ($rec->productId) {
@@ -371,7 +372,14 @@ class rack_Pallets extends core_Manager
                 
                 // Моментален запис на позицията
                 $rec->position = $rec->positionTo;
-                $mvc->save_($rec, 'position');
+                if ($rec->position) {
+                    list($num, $row, $col) = explode('-', $rec->position);
+                    $rRec = rack_Racks::getByNum($num);
+                    $rec->rackId = $rRec->id;
+                } else {
+                    $rec->rackId = null;
+                }
+                $mvc->save_($rec, 'position,rackId');
                 $mRec->state = 'closed';
             }
             
@@ -579,10 +587,10 @@ class rack_Pallets extends core_Manager
         }
         
         $row->created = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'createdOn') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
-    
+        
         $pRec = store_Products::fetch($rec->productId);
-        $row->productId = cat_Products::getHyperlink($pRec->productId, TRUE);
-        $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+        $row->productId = cat_Products::getHyperlink($pRec->productId, true);
+        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
     }
     
     
@@ -591,8 +599,9 @@ class rack_Pallets extends core_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
+        $rec = static::fetchRec($rec);
         $title = self::getVerbal($rec, 'label');
-        if(!empty($rec->position)){
+        if (!empty($rec->position)) {
             $position = self::getVerbal($rec, 'position');
             $title .= " {$position}";
         }
@@ -622,5 +631,30 @@ class rack_Pallets extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Кои са наличните палети
+     *
+     * @param int $productId - артикул
+     * @param int $storeId   - склад
+     *
+     * @return array $options
+     */
+    public static function getPalletOptions($productId, $storeId)
+    {
+        $query = self::getQuery();
+        $storeRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+        $query->where("#productId = {$storeRec->id} AND #storeId = {$storeRec->storeId}");
+        
+        Mode::push('text', 'plain');
+        $options = array();
+        while ($rec = $query->fetch()) {
+            $options[$rec->id] = self::getRecTitle($rec, false);
+        }
+        Mode::pop('text');
+        
+        return $options;
     }
 }

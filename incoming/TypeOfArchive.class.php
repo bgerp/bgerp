@@ -105,7 +105,7 @@ class incoming_TypeOfArchive extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(128)', 'caption=Тип архив,mandatory');
+        $this->FLD('name', 'varchar(128)', 'caption=Aрхив,mandatory');
         $this->FLD('archivUnit', 'varchar(128)', 'caption=Единица за архивиране,mandatory');
         $this->FLD('responsiblePerson', 'key(mvc=crm_Persons,select=name)', 'caption=Отговорник,mandatory');
         $this->FLD('storagePeriod', 'int', 'caption=Срок за съхранение,unit = години,mandatory');

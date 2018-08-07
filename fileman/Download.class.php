@@ -100,7 +100,7 @@ class fileman_Download extends core_Manager
      * @param int    $lifeTime - Колко време да се пази линка (в часове)
      * @param string $type     -  - Типа на сорса - handler, url, path
      *
-     * @return URL - Линк към файла
+     * @return bool|string - Линк към файла
      */
     public static function getDownloadUrl($src, $lifeTime = 1, $type = 'handler')
     {

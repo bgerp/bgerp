@@ -2791,9 +2791,6 @@ span.sharing-history-title {
   font-family: sans-serif;
   line-height: 1.4em; }
 
-.narrow .cart-view-buttons-top a {
-  display: block; }
-
 .wide .cartHolder {
   float: left;
   width: 72%; }
@@ -2860,8 +2857,16 @@ span.sharing-history-title {
     border-top: 1px solid #cccccc; }
   .optionsTable td {
     padding: 4px 7px; }
-  .optionsTable tbody tr {
-    background: linear-gradient(#eeeeee, #f8f8f8, white, #f8f8f8, #eeeeee); }
+  .optionsTable tbody tr:not(.ecartCommonRow) {
+    background: linear-gradient(white, white, white, white, white, white, #eeeeee); }
+  .optionsTable tbody tr.ecartCommonRow {
+    background: linear-gradient(#eeeeee, white, white, white, white, white, white); }
+  .optionsTable tbody tr:not(.ecartCommonRow) td {
+    padding-bottom: 10px;
+    padding-top: 3px; }
+  .optionsTable tbody tr.ecartCommonRow td {
+    padding-top: 10px;
+    padding-bottom: 3px; }
   .optionsTable thead tr:first-child {
     background-color: #f1f1f1; }
   .optionsTable tbody tr:last-child td {
@@ -3663,6 +3668,14 @@ table .eshop-btn {
 /*
  * стилове за fileman
  */
+#packWrapper .debugLink {
+  display: inline-block;
+  padding: 3px;
+  margin: 10px 10px 0 0;
+  border: 1px solid #cccccc;
+  background: #eeeeee;
+  border-radius: 3px; }
+
 /*
  * стилове за блог
  */

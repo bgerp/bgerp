@@ -147,15 +147,31 @@ class boilerplate_Manager extends core_Manager
     {
     }
     
-    
+
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+    }
+
+
     /**
      * Извиква се след успешен запис в модела
      *
-     * @param core_Mvc $mvc
-     * @param int      $id  първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Първичния ключ на направения запис
+     * @param stdClass     $rec     Всички полета, които току-що са били записани
+     * @param string|array $fields  Имена на полетата, които sa записани
+     * @param string       $mode    Режим на записа: replace, ignore
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
     }
     

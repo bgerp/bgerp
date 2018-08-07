@@ -1238,4 +1238,17 @@ class core_String
         
         return $res;
     }
+
+
+    /**
+     * Добавя в списък полето
+     */
+    public static function addToList(&$list, $field)
+    {
+        if(is_array($list)) {
+            $list[$field] = $field;
+        } else {
+            $list .= ($list ? ',' : '') . $field;
+        }
+    }
 }

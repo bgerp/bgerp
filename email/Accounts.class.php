@@ -627,4 +627,178 @@ class email_Accounts extends core_Master
         
         return $pml;
     }
+    
+    
+    /**
+     * Форсира проверка на свалените имейли
+     */
+    public function act_checkMailBox()
+    {
+        requireRole('admin');
+        
+        // Вземаме последователно сметките, подредени по случаен начин
+        $accQuery = email_Accounts::getQuery();
+        $accQuery->XPR('order', 'double', 'RAND()');
+        $accQuery->orderBy('#order');
+        
+        $resMsg = '';
+        
+        while (($accRec = $accQuery->fetch("#state = 'active'"))) {
+            $resMsg .= '<li><b>' . $accRec->email . '</b>: ';
+            
+            $pKey = 'checkMailBox|' . $accRec->id;
+            
+            $emlStatus = core_Permanent::get($pKey);
+            
+            if ($emlStatus) {
+                $resMsg .= tr('вече има активирана проверка за този имейл');
+                continue;
+            }
+            
+            $lockKey = 'Inbox:' . $accRec->id;
+            
+            expect(core_Locks::get($lockKey, 50, 30));
+            
+            // Връзка по IMAP към сървъра на посочената сметка
+            $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
+            
+            if ($imapConn->connect() !== false) {
+                // Получаваме броя на писмата в INBOX папката
+                $numMsg = $imapConn->getStatistic('messages');
+                
+                // Махаме заключването от кутията
+                core_Locks::release($lockKey);
+                
+                if (!$numMsg) {
+                    $resMsg .= tr('няма имейли в кутията');
+                    continue;
+                }
+                
+                $emlStatus = $accRec->id . '|0|' . $numMsg;
+                
+                $mp = $accRec->id;
+                if ($mp > 10) {
+                    $mp = rand(1, 10);
+                }
+                
+                $callOn = dt::addSecs(60 * $mp++);
+                core_CallOnTime::setCall('email_Accounts', 'checkMailBox', $emlStatus, $callOn);
+                
+                core_Permanent::set($pKey, $emlStatus, 100000);
+                
+                $resMsg .= tr('успешно добавена кутия за проверка');
+            } else {
+                $resMsg .= tr('грешка при свързване');
+            }
+        }
+        
+        if (!$resMsg) {
+            $resMsg = tr('Няма имейл кутии за проверка');
+        }
+        
+        return $resMsg;
+    }
+    
+    
+    /**
+     * Функция за проверка на свалените имейли
+     * Ако хеша го няма - предизвиква сваляне
+     *
+     * @param string $emlStatus
+     */
+    public static function callback_checkMailBox($emlStatus)
+    {
+        $tLimit = ini_get('max_execution_time') + 70;
+        core_App::setTimeLimit($tLimit);
+        
+        list($accId, $begin, $end) = explode('|', $emlStatus);
+        
+        if (!$accId) {
+            
+            return ;
+        }
+        
+        if (!$begin) {
+            $begin = 1;
+        }
+        
+        $pKey = 'checkMailBox|' . $accId;
+        
+        if ($begin >= $end) {
+            email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
+            
+            core_Permanent::remove($pKey);
+            
+            return ;
+        }
+        
+        $accRec = email_Accounts::fetch($accId);
+        
+        if ($accRec->state != 'active') {
+            
+            return ;
+        }
+        
+        sleep(7);
+        
+        $deadline = time() + 40;
+        
+        $lockKey = 'Inbox:' . $accRec->id;
+        
+        if (core_Locks::get($lockKey, 55, 30)) {
+            $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
+            
+            if ($imapConn->connect() !== false) {
+                
+                // За да не гърми с warning при надвишаване на броя имейли
+                $numMsg = $imapConn->getStatistic('messages');
+                if (isset($numMsg) && $end != $numMsg) {
+                    email_Accounts::logDebug("Променен брой имейли за проверка от {$end} на {$numMsg}", $accId);
+                    
+                    $end = $numMsg;
+                }
+                if ($begin >= $end) {
+                    email_Accounts::logNotice('Приключи проверката на имейл кутията', $accId);
+                    
+                    core_Permanent::remove($pKey);
+                    
+                    core_Locks::release($lockKey);
+                    
+                    return ;
+                }
+                
+                $Incomings = cls::get('email_Incomings');
+                
+                for ($i = $begin; $i < $end && ($deadline > time()); $i++) {
+                    try {
+                        $status = $Incomings->fetchEmail($imapConn, $i);
+                        
+                        if ($status != 'duplicated') {
+                            email_Incomings::logNotice('Свален имейл, който е бил пропуснат');
+                        }
+                    } catch (Exception $e) {
+                        reportException($e);
+                    }
+                }
+                
+                $begin = $i;
+            }
+        }
+        
+        email_Accounts::logNotice("Проверени {$begin} от общо {$end} имейли", $accId);
+        
+        core_Locks::release($lockKey);
+        
+        $emlStatus = $accRec->id . '|' . $begin . '|' . $end;
+        
+        core_Permanent::set($pKey, $emlStatus, 100000);
+        
+        $mp = $accId;
+        if ($mp == 1 || $mp > 10) {
+            $mp = rand(1, 10);
+        }
+        
+        $callOn = dt::addSecs(60 * $mp);
+        core_CallOnTime::setCall('email_Accounts', 'checkMailBox', $emlStatus, $callOn);
+    }
 }
