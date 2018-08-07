@@ -799,6 +799,6 @@ class email_Accounts extends core_Master
         }
         
         $callOn = dt::addSecs(60 * $mp);
-        core_CallOnTime::setCall('email_Setup', 'checkMailBox', $emlStatus, $callOn);
+        core_CallOnTime::setCall('email_Accounts', 'checkMailBox', $emlStatus, $callOn);
     }
 }
