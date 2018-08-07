@@ -630,7 +630,20 @@ class core_Debug
         }
         
         if (!empty($state['update'])) {
-            $data['update'] = ht::createLink('Обновяване на системата', (array)$state['update']);
+            $data['update'] = ht::createLink('Обновяване на системата', (array) $state['update']);
+        }
+        
+        if ($state['_debugFileName'] && log_Debug::haveRightFor('list')) {
+            $bName = basename($state['_debugFileName'], '.debug');
+            
+            if ($bName) {
+                $data['errTitle'] .= ' - ' . ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
+                
+                $dUrl = fileman_Download::getDownloadUrl($state['_debugFileName'], 1, 'path');
+                if ($dUrl) {
+                    $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
+                }
+            }
         }
         
         $tpl = new core_NT(getFileContent('core/tpl/Debug.shtml'));
@@ -658,6 +671,9 @@ class core_Debug
         $state['back'] = ht::createLink('Назад', 'javascript:onclick=history.back(-1)', null, 'ef_icon=img/16/back-img.png');
         
         $state['forward'] = ht::createLink('Към сайта', array('Index'), null, 'ef_icon=img/16/next-img.png');
+        
+        $state['date'] = dt::now();
+        $state['uri'] = str::limitLen($_SERVER['REQUEST_URI'], 255);
         
         $page = $tpl->render($state);
         
@@ -778,7 +794,11 @@ class core_Debug
             $errCode = '520';
         }
         
-        logHitState($errCode, $state);
+        $debugFileName = logHitState($errCode, $state);
+        
+        if ($debugFileName) {
+            $state['_debugFileName'] = $debugFileName;
+        }
         
         if (isDebug() || defined('EF_DEBUG_LOG_PATH') || defined('EF_REMOTE_ERROR_REPORT_URL')) {
             $debugPage = core_Debug::getDebugPage($state);

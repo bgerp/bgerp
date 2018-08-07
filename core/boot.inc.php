@@ -67,7 +67,7 @@ try {
     
     // Дъмпване във файл на всички входни данни
     if ($isDefinedFatalErrPath) {
-        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.txt';
+        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.debug';
         
         if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
             define('DEBUG_FATAL_ERRORS_FILE', $pathName);
@@ -258,11 +258,12 @@ function reportException($e, $update = null, $supressShowing = true)
  * 
  * @param string $debugCode
  * @param array $state
+ * 
+ * @return NULL|string
  */
 function logHitState($debugCode = '200', $state = array())
 {
     if (defined('DEBUG_FATAL_ERRORS_FILE') && @!Mode::is('stopLoggingDebug')) {
-        
         $execTime = core_Debug::getExecutionTime();
         
         $data = @file_get_contents(DEBUG_FATAL_ERRORS_FILE);
@@ -281,9 +282,18 @@ function logHitState($debugCode = '200', $state = array())
         $state['debugTime'] = core_Debug::$debugTime;
         $state['timers'] = core_Debug::$timers;
         
-        $state['executionTime'] = $execTime;
+        $state['_executionTime'] = $execTime;
         
         $state['update'] = FALSE;
+        
+        $state['_Ctr'] = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
+        $state['_Act'] = $_GET['Act'] ? $_GET['Act'] : 'default';
+        $state['_dbName'] = EF_DB_NAME;
+        $state['_info'] = 'DB: ' . EF_DB_NAME . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
+        
+        if ($state['httpStatusCode']) {
+            $state['_info'] .= ' >> Code: ' . $state['httpStatusCode'];
+        }
         
         $data = @json_encode($state);
         
@@ -314,6 +324,8 @@ function logHitState($debugCode = '200', $state = array())
         } while (@file_exists($pathName));
         
         @file_put_contents($pathName, $data);
+        
+        return $pathName;
     }
 }
 
@@ -578,9 +590,9 @@ function defIfNot($name, $value = null)
  * Аналогична фунция на urldecode()
  * Прави опити за конвертиране в UTF-8. Ако не успее връща оригиналното URL.
  *
- * @param URL $url
+ * @param string $url
  *
- * @return URL
+ * @return string
  */
 function decodeUrl($url)
 {
