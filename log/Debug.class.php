@@ -333,7 +333,7 @@ class log_Debug extends core_Manager
         }
         
         if (!$res) {
-            $res = tr('Възникна грешка при показване на') . ' ' . $fPath;
+            $res = '<p style="padding-left: 20px">' . tr('Възникна грешка при показване на') . ' ' . $fPath . '</p>';
         }
         
         return $res;
