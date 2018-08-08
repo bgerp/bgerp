@@ -395,6 +395,18 @@ class core_App
             // Добавяме времето за изпълнение
             $execTime = Debug::getExecutionTime();
             $execTime = number_format($execTime, 0);
+            
+            // Времето за изпълнение го правим стъпково
+            if ($execTime <= 1) {
+                $execTime = 0;
+            } elseif ($execTime <= 5) {
+                $execTime = 5;
+            } elseif ($execTime <= 20) {
+                $execTime = 20;
+            } else {
+                $execTime = 50;
+            }
+            
             $execTime = str_pad($execTime, 2, '0', STR_PAD_LEFT);
             $errCode .= $execTime;
             

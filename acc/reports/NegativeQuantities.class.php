@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на отчети за артикули с отрицателни количества
  *
@@ -15,30 +16,32 @@
  */
 class acc_reports_NegativeQuantities extends frame2_driver_TableData
 {
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,acc';
-
+    
+    
     /**
      * Брой записи на страница
      *
      * @var int
      */
     protected $listItemsPerPage = 30;
-
+    
+    
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'articul';
-
+    
+    
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields;
-
-
+    
+    
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -48,20 +51,21 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     {
         $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=accountId,single=none');
         $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption = Сметка,after=title,single=none');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name)', 'caption = Склад,after=accountId');
         $fieldset->FLD('minval', 'double(decimals=2)', 'caption = Минимален праг за отчитане,unit= (количество),
                         placeholder=Без праг,after=period,single=none');
         
         $fieldset->FNC('counter', 'int', 'caption = Брояч,input=none,single=none');
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver
-     *            $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
+     *                                      $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -70,8 +74,8 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $form->setDefault('accountId', 81);
     }
-
-
+    
+    
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -96,12 +100,25 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $query->where('#ent1Id IS NOT NULL AND #ent2Id IS NOT NULL');
         
+        if (!is_null($rec->storeId)) {
+            $storesForCheck = keylist::toArray($rec->storeId);
+        }
         while ($detail = $query->fetch()) {
+          
+          //  $storesArr[$detail->ent1Id] = $detail->ent1Id;
             
-            $storesArr[$detail->ent1Id] = $detail->ent1Id;
+            if (!is_null($rec->storeId)) {
+                if (in_array((acc_Items::fetch($detail->ent1Id)->objectId), $storesForCheck)) {
+                    if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
+                        $articulsForCheck[$detail->ent2Id] = $detail->ent2Id;
+                    }
+                }
+            }
             
-            if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
-                $articulsForCheck[$detail->ent2Id] = $detail->ent2Id;
+            if (is_null($rec->storeId)) {
+                if (($detail->blQuantity < 0) && (abs($detail->blQuantity) > $rec->minval)) {
+                    $articulsForCheck[$detail->ent2Id] = $detail->ent2Id;
+                }
             }
             
             if ((in_array($detail->ent2Id, $articulsForCheck)) && abs($detail->blQuantity) > $rec->minval) {
@@ -130,23 +147,22 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $number = 1;
         
         foreach ($recs as $key => $val) {
-            
             $val->articulNo = $number;
             $number++;
         }
         
         return $recs;
     }
-
-
+    
+    
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
      * @param stdClass $rec
-     *            - записа
-     * @param bool $export
-     *            - таблицата за експорт ли е
-     *            
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
+     *
      * @return core_FieldSet - полетата
      */
     protected function getTableFieldSet($rec, $export = false)
@@ -163,16 +179,16 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         return $fld;
     }
-
-
+    
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
      * @param stdClass $rec
-     *            - записа
+     *                       - записа
      * @param stdClass $dRec
-     *            - чистия запис
-     *            
+     *                       - чистия запис
+     *
      * @return stdClass $row - вербалния запис
      */
     protected function detailRecToVerbal($rec, &$dRec)
@@ -190,9 +206,9 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $productId = acc_Items::fetch($dRec->articulId)->objectId;
         
-        $row->articul = "<span class= ''>" . $dRec->articulNo . '. ' . "</span>";
+        $row->articul = "<span class= ''>" . $dRec->articulNo . '. ' . '</span>';
         
-        $row->articul .= "<span class= ''>" . cat_Products::getShortHyperlink($productId, true) . "</span>";
+        $row->articul .= "<span class= ''>" . cat_Products::getShortHyperlink($productId, true) . '</span>';
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
@@ -205,7 +221,6 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         asort($resArr);
         
         foreach ($resArr as $key => $val) {
-            
             $from = acc_Periods::fetch($rec->period)->start;
             
             $to = dt::today();
@@ -246,15 +261,15 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         return $row;
     }
-
-
+    
+    
     /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -278,16 +293,17 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-
-
+    
+    
     /**
      * След подготовка на реда за експорт
      *
      * @param frame2_driver_Proto $Driver
-     * @param stdClass $res
-     * @param stdClass $rec
-     * @param stdClass $dRec
+     * @param stdClass            $res
+     * @param stdClass            $rec
+     * @param stdClass            $dRec
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
-    {}
+    {
+    }
 }

@@ -46,8 +46,20 @@ class expert_Dataset extends core_BaseClass
         $name = trim($name);
         $cond = trim($cond);
         $expr = trim($expr);
-        if ($name{0} == '$') {
-            $name = substr($name, 1);
+        $name = ltrim($name, '$');
+
+        // Избягване на дублирани правила
+        if(is_array($this->rules[$name])) {
+            foreach($this->rules[$name] as $id => $r) {
+                if($r->name == $name && $r->expr == $expr && $r->cond == $cond) {
+                    if($r->priority < $priority) {
+                        unset($this->rules[$name][$id]);
+                    } else {
+                        // Не записваме това правило, защото има същото
+                        return;
+                    }
+                }
+            }
         }
         
         $id = substr(md5($name . $expr . $cond . $priority), 0, 8);
@@ -307,7 +319,11 @@ class expert_Dataset extends core_BaseClass
                     }
                     
                     // общия рейтинг на текущото правило
-                    $r->rate = 9 + $r->trust - $l + $r->priority;
+                    if($l == 0) {
+                        $r->rate = 9 + $r->trust + ($r->priority > 0 ? $r->priority : 0);
+                    } else {
+                        $r->rate = 9 + $r->trust - $l + $r->priority;
+                    }
                     
                     if (!isset($bestRule) || $bestRule->rate < $r->rate) {
                         $bestRule = $r;
