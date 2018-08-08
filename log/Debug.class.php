@@ -539,6 +539,7 @@ class log_Debug extends core_Manager
                         asort($nArr);
                     }
                 } else {
+                    asort($fArr);
                     
                     // Ако няма зададен файл, показваме по ограничение
                     $nArr = array_slice($fArr, -1 * ($before + $after));
