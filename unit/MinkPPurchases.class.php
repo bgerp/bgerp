@@ -1380,7 +1380,7 @@ class unit_MinkPPurchases extends core_Manager
         
         // Записване черновата на Покупката
         $browser->press('Чернова');
-        
+        //return $browser->getHtml();
         if (strpos($browser->gettext(), 'Датата е в несъществуващ счетоводен период')) {
             $browser->setValue('Игнорирай предупреждението', true);
             
@@ -1388,7 +1388,7 @@ class unit_MinkPPurchases extends core_Manager
             $browser->press('Чернова');
         }
         if (strpos($browser->gettext(), 'Датата е в бъдещ счетоводен период')) {
-            $browser->setValue('Игнорирай предупреждението', true);
+            $browser->setValue('Ignore', true);
             $browser->press('Чернова');
         }
         
@@ -1600,7 +1600,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->click('Информация за перото');
         
         // ID на покупка 1, за да се избере при разпр. на разход
-        //$purId = "69";
+        //$purId = "42";
         //$purId = $purId .'.16';
         
         //Покупка 2 - услуги
@@ -1632,7 +1632,7 @@ class unit_MinkPPurchases extends core_Manager
         
         //избор на разходно перо и разпределение
         //$browser->setValue('expenseItemId', $purId);
-        $browser->setValue('expenseItemId', 'Pur16/Фирма доставчик/Чувал голям 50 L (sm(16 pur)');
+        $browser->setValue('expenseItemId', 'Pur16/Фирма доставчик/Чувал голям 50 L (sm');
         $browser->refresh('Запис');
         $browser->setValue('allocationBy', 'value');
         $browser->refresh('Запис');
