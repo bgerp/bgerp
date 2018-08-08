@@ -1,35 +1,24 @@
-.ui-layout-pane {
-    /*
-   * all 'panes'
-   */
-  background: white;
-  border: 1px solid #bbbbbb;
-  padding: 10px;
-  overflow: auto; }
+body {
+  overflow: hidden; }
 
-.ui-layout-resizer {
-    /*
-   * all 'resizer-bars'
-   */
-  background: #dddddd; }
-
-.ui-layout-toggler {
-    /*
-   * all 'toggler-buttons'
-   */
-  background: #aaaaaa; }
-
-.ui-layout-north {
+.headerLine {
   padding: 10px;
   background-color: #333333; }
 
 .debugLink {
   display: block;
   padding: 5px 5px 5px 25px;
+  font-size: 0.85em;
   color: #cccccc !important;
+  position: relative;
   border-top: 1px dotted #666666; }
   .debugLink.current {
     color: #ae508d !important; }
+    .debugLink.current:before {
+      content: "\bb \20";
+      position: absolute;
+      left: 10px;
+      top: 3px; }
   .debugLink.same {
     color: #2ca2bd !important; }
 
@@ -39,21 +28,37 @@
 .debugList {
   float: left;
   background-color: #333333;
-  width: 15%; }
+  width: 15%;
+  overflow-y: auto; }
 
 .debugPreview {
   float: left;
   width: 85%;
-  height: 1000px; }
+  height: 1000px;
+  overflow: auto; }
 
 .listFilter {
   display: block;
   margin: 10px 25px; }
   .listFilter input {
+    width: 180px;
     background-color: white !important;
     border-radius: 2px;
     border: none !important;
     box-shadow: none !important; }
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background-color: whitesmoke; }
+
+::-webkit-scrollbar-thumb {
+  -webkit-box-shadow: inset 0 0 6px black;
+  border-radius: 15px; }
+
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: whitesmoke; }
 
 #filter {
   margin: 0;
@@ -61,10 +66,10 @@
   background-position: center;
   height: 26px; }
 
-.ui-layout-north {
+.headerLine {
   color: #eeeeee; }
-  .ui-layout-north a,
-  .ui-layout-north span {
+  .headerLine a,
+  .headerLine span {
     color: #eeeeee !important;
     display: inline-block;
     margin-right: 20px; }
