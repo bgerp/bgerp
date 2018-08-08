@@ -1282,7 +1282,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res);
-            
+           
             $sP = cls::get('store_Products');
             $sP->updateOnShutdown = true;
             
@@ -2030,6 +2030,8 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->state = 'draft';
                 $rec->brState = 'pending';
                 $rec->pendingSaved = true;
+                $sP = cls::get('store_Products');
+                $sP->updateOnShutdown = true;
             }
             
             if ($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
