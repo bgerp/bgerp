@@ -228,20 +228,22 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             arr::sortObjects($sRecs, 'invoiceDate', 'asc', 'stri');
         }
         
-        arsort($invoiceCurrentSummArr);
-        
         $recs = $sRecs;
         
-        foreach ($invoiceCurrentSummArr as $k => $v) {
-            foreach ($recs as $key => $val) {
-                if ($val->contragentId == $k) {
-                    $val->invoiceCurrentSummArr = $invoiceCurrentSummArr;
-                    
-                    $rTemp[] = $val;
+        if (is_array($invoiceCurrentSummArr)) {
+           
+            arsort($invoiceCurrentSummArr);
+            
+            foreach ($invoiceCurrentSummArr as $k => $v) {
+                foreach ($recs as $key => $val) {
+                    if ($val->contragentId == $k) {
+                        $val->invoiceCurrentSummArr = $invoiceCurrentSummArr;
+                        
+                        $rTemp[] = $val;
+                    }
                 }
             }
         }
-        
         $recs = $rTemp;
         
         return $recs;
