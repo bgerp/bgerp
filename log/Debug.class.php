@@ -60,7 +60,7 @@ class log_Debug extends core_Manager
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
-        $data->listFilter->layout =  "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#]</form>\n";
+        $data->listFilter->layout =  "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
 
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
