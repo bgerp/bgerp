@@ -70,6 +70,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
+        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта)','caption=Подреди по,maxRadio=2,after=articleType');
     }
     
     
@@ -127,6 +128,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $form->setDefault('secondMonth', $monthSugg);
         
         $form->setDefault('articleType', 'all');
+        
+        $form->setDefault('orderBy', 'salleValue');
         
         $form->setDefault('compare', 'no');
         
@@ -395,7 +398,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
         
         if (!is_null($recs)) {
-            arr::sortObjects($recs, 'sellValue', 'desc', 'natural');
+            
+            arr::sortObjects($recs, 'sellValue', 'desc');
         }
         
         $recs['total'] = (object) array(
@@ -407,7 +411,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         array_unshift($recs, $recs['total']);
         
-        // bp($recs);
         return $recs;
     }
     
