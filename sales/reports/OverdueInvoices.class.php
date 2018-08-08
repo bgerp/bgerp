@@ -243,9 +243,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     }
                 }
             }
-        }
-        $recs = $rTemp;
-        
+       
+       
+            $recs = $rTemp;
+         }
         return $recs;
     }
     
