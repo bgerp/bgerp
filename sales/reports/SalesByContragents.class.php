@@ -166,7 +166,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
         
-        $query->EXT('isPub }lic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
