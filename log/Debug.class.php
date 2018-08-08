@@ -54,13 +54,14 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $tpl = new ET(tr('|*<div class="ui-layout-north">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span style="display: inline-block;margin-right: 10px;"> [#DOWNLOAD_FILE#]</span> [#BEFORE_LINK#][#AFTER_LINK#]</div></div><div class="debugList ui-layout-west">[#LIST_FILE#]</div><div class="debugPreview ui-layout-center">[#ERR_FILE#]</div>'));
+        $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span style="display: inline-block;margin-right: 10px;"> [#DOWNLOAD_FILE#]</span> [#BEFORE_LINK#][#AFTER_LINK#] </div><div style="clear: both;"></div></div><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div>'));
         
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
-        
+        $data->listFilter->layout =  "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
+
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
@@ -216,12 +217,10 @@ class log_Debug extends core_Manager
             
             Mode::set('wrapper', 'page_Empty');
             $tpl->push('css/debug.css', 'CSS');
-            
+
             // Плъгин за лайаута
-//             jquery_Jquery::run( $tpl, 'enableLayout();');
-//             jqueryui_Ui::enable($tpl);
-//             jqueryui_Ui::enableLayout($tpl);
-            
+            jquery_Jquery::run( $tpl, 'debugLayout();');
+
             // Рендираме страницата
             return  $tpl;
         }
@@ -334,7 +333,7 @@ class log_Debug extends core_Manager
         }
         
         if (!$res) {
-            $res = tr('Възникна грешка при показване на') . ' ' . $fPath;
+            $res = '<p style="padding-left: 20px">' . tr('Възникна грешка при показване на') . ' ' . $fPath . '</p>';
         }
         
         return $res;
@@ -540,6 +539,7 @@ class log_Debug extends core_Manager
                         asort($nArr);
                     }
                 } else {
+                    asort($fArr);
                     
                     // Ако няма зададен файл, показваме по ограничение
                     $nArr = array_slice($fArr, -1 * ($before + $after));

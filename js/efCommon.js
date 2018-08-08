@@ -25,6 +25,8 @@ function spr(sel, refresh) {
 
 }
 
+
+
 /**
  * Опитваме се да репортнем JS грешките
  */
@@ -4991,6 +4993,14 @@ function detectScrollAndWp() {
     if($('#packWrapper').outerWidth() > $(window).width() ) {
     	getEfae().process({url: wpUrl}, {errType: 'Scroll Detected', currUrl: window.location.href});
     }
+}
+
+/**
+ * Определяне на височината на елементите в дебъг лога
+ */
+function debugLayout() {
+    var leftMenuHeight = $(window).height() - $('.headerLine').outerHeight();
+    $('.debugList, .debugPreview').css('height', leftMenuHeight);
 }
 
 

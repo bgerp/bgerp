@@ -71,7 +71,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
         
-        // $fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
+        //$fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
     }
     
     
@@ -85,6 +85,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        $Reports = cls::get('frame2_Reports');
+        
+        $fQuery = $Reports::getQuery();
+        
+        $classId = sales_reports_SoldProductsRep::getClassId();
+        
+        $fQuery->where("#driverClass = ${classId}");
+        
+        while ($reportRec = $fQuery->fetch()) {
+            if (is_numeric($reportRec->driverRec['contragent']) && (!is_null($reportRec->driverRec['contragent']))) {
+                $contragentId = ($reportRec->driverRec['contragent']);
+                
+                $reportRec->driverRec['contragent'] = '|' . $contragentId . '|';
+                
+                $reportRec->contragent = '|' . $contragentId . '|';
+                
+                try {
+                    $Reports->save($reportRec, 'contragent');
+                } catch (Exception $e) {
+                    reportException($e);
+                }
+            }
+        }
+        
         if ($form->isSubmitted()) {
             
             // Проверка на периоди
@@ -301,7 +325,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $flag = false;
         
         while ($recPrime = $query->fetch()) {
-            $quantityPrevious = $quantity = $quantityLastYear = 0;
+            $quantityPrevious = $quantity = $quantityLastYear = $primeCost = $delta = 0;
             
             $DetClass = cls::get($recPrime->detailClassId);
             
@@ -432,10 +456,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fld->FLD('code', 'varchar', 'caption=Код');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption=Количество->{$name1}");
+        if ($rec->compare != 'no') {
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name1}");
+        } else {
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
+        }
         
         if ($rec->compare != 'no') {
-            $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption=Количество->{$name2}");
+            $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name2}");
             $fld->FLD('compare', 'double(smartRound,decimals=2)', 'smartCenter,caption=Сравнение');
         }
         $fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');

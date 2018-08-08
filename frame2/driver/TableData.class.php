@@ -159,11 +159,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Групиране само ако има поне една стойност за групиране
             $groupByField = $data->groupByField;
-            array_walk($data->recs, function ($r) use ($groupByField, &$found) {
-                if (isset($r->{$groupByField})) {
-                    $found = true;
-                }
-            });
+            
+            if (is_array($data->recs)) {
+                array_walk($data->recs, function ($r) use ($groupByField, &$found) {
+                    if (isset($r->{$groupByField})) {
+                        $found = true;
+                    }
+                });
+            }
             
             if ($found === true) {
                 $this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField, $data);

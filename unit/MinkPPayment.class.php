@@ -64,6 +64,7 @@ class unit_MinkPPayment extends core_Manager
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+        sleep(2);
         
         return $browser;
     }
@@ -95,7 +96,7 @@ class unit_MinkPPayment extends core_Manager
     {
         // Логваме се
         $browser = $this->SetUp();
-        
+       
         //Отваряме папката на фирмата
         $browser = $this->SetFirm();
         
@@ -121,7 +122,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '089-07*08');//33
         $browser->setValue('packPrice', '07+3*0.8');//9.4
@@ -231,7 +232,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме нов артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*08');//34
         $browser->setValue('packPrice', '09.20+0.3*08');//11.6
