@@ -290,6 +290,7 @@ function logHitState($debugCode = '200', $state = array())
         $state['_Act'] = $_GET['Act'] ? $_GET['Act'] : 'default';
         $state['_dbName'] = EF_DB_NAME;
         $state['_info'] = 'DB: ' . EF_DB_NAME . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
+        $state['_debugCode'] = $debugCode;
         
         if ($state['httpStatusCode']) {
             $state['_info'] .= ' >> Code: ' . $state['httpStatusCode'];

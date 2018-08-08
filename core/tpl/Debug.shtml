@@ -52,19 +52,24 @@
         .dump .unknown {
             color: #c96
         }
-        .errorMsg {
-            padding:10px;
-            margin:0;
-            background-color:#c33;
-            color:white
+        .errorMsg, .okMsg, .warningMsg {
+            padding: 10px;
+            margin: 0;
+            background-color: #c33;
+            color: white
         }
-
+        .okMsg {
+            background-color: green;
+        }
+        .warningMsg {
+            background-color: yellow;
+            color: green
+        }
         .errorMsg a {
-            color:#ffffcc;
+            color: #ffffcc;
         }
-
         .update a {
-            color:white;
+            color: white;
         }
 
 /**
@@ -137,7 +142,7 @@ div.simpleTabsContent.currentTab {
 </head>
 
 <body style='background-color:#eee'>
-    <!header><h2 class='errorMsg' style='background-color:[#background#]'>[#header#]</h2></!header>
+    <!header><h2 class='[#headerCls#]' style='background-color:[#background#]'>[#header#]</h2></!header>
     <!errTitle><h3 style='padding:10px;margin:0;background-color:#eee;'>[#errTitle#]</h3></!errTitle>
     <!code><pre style='background-color:#eee !important;margin:0;padding:10px;'>[#code#]</pre></!code>
     <!update><h3 class='update' style='padding:10px;margin:0;background-color:#00f;'>[#update#]</h3></!update>
