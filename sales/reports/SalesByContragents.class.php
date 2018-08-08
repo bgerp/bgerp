@@ -30,7 +30,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $hashField ;
+    protected $hashField;
     
     
     /**
@@ -38,13 +38,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $newFieldToCheck ;
+    protected $newFieldToCheck;
     
     
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField ;
+    protected $groupByField;
     
     
     /**
@@ -166,17 +166,11 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
         
-        $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $query->EXT('isPub }lic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $query->where("#state != 'rejected'");
-        
-        $query->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
-        
-        $query->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-        
-        $query->EXT('groupList', 'crm_Companies', 'externalFieldName=folderId, externalKey=folderId');
         
         if (($rec->compare) == 'no') {
             $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
@@ -218,38 +212,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $dealers = keylist::toArray($rec->dealers);
                 
                 $query->in('dealerId', $dealers);
-            }
-        }
-        
-        if ($rec->contragent || $rec->crmGroup) {
-            $contragentsArr = array();
-            $contragentsId = array();
-            
-            
-            if (!$rec->crmGroup && $rec->contragent) {
-                $contragentsArr = keylist::toArray($rec->contragent);
-                
-                foreach ($contragentsArr as $val) {
-                    $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
-                }
-                
-                $query->in('coverId', $contragentsId);
-            }
-            
-            if ($rec->crmGroup && !$rec->contragent) {
-                $query->likeKeylist('groupList', $rec->crmGroup);
-            }
-            
-            if ($rec->crmGroup && $rec->contragent) {
-                $contragentsArr = keylist::toArray($rec->contragent);
-                
-                foreach ($contragentsArr as $val) {
-                    $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
-                }
-                
-                $query->in('coverId', $contragentsId);
-                
-                $query->likeKeylist('groupList', $rec->crmGroup);
             }
         }
         
@@ -302,9 +264,60 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $flag = false;
         
         while ($recPrime = $query->fetch()) {
-            $sellValuePrevious = $sellValueLastYear = $sellValue = 0;
+            $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = 0;
             
             $DetClass = cls::get($recPrime->detailClassId);
+            
+            // контрагента по сделката
+            $detClassName = $DetClass->className;
+            $masterClassName = $DetClass->Master->className;
+            $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
+            $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
+            
+            if ($rec->contragent || $rec->crmGroup) {
+                $checkContragentsArr = array();
+                $contragentsId = array();
+                
+                // групите на контрагента по сделката
+                if ($contragentId) {
+                    $contragentGroups = crm_Companies::fetchField($contragentId, 'groupList');
+                    
+                    $contragentGroups = keylist::toArray($contragentGroups);
+                }
+                
+                // избрани контрагенти
+                $checkContragentsArr = keylist::toArray($rec->contragent);
+                
+                foreach ($checkContragentsArr as $val) {
+                    $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+                }
+                
+                $checkContragent = in_array($contragentId, $contragentsId);
+                
+                $checkGroup = keylist::isIn($contragentGroups, $rec->crmGroup);
+                
+                // филтър по контрагент без група
+                if (!$rec->crmGroup && $rec->contragent) {
+                    if (!$checkContragent) {
+                        continue;
+                    }
+                }
+                
+                
+                //филтър по група без контрагент
+                if ($rec->crmGroup && !$rec->contragent) {
+                    if (!$checkGroup) {
+                        continue;
+                    }
+                }
+                
+                //филтър по група и контрагент
+                if ($rec->crmGroup && $rec->contragent) {
+                    if (!$checkContragent || !$checkGroup) {
+                        continue;
+                    }
+                }
+            }
             
             if ($DetClass instanceof sales_SalesDetails) {
                 if (is_array($salesWithShipArr)) {
@@ -313,7 +326,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     }
                 }
             }
-            $id = $recPrime->coverId;
+            $id = $contragentId;
             
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
@@ -371,13 +384,30 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $obj->sellValue += $sellValue;
                 $obj->delta += $delta;
             }
+            
+            $totalSalleValue += $sellValue;
+            
+            $totalDelta += $delta;
+            
+            $totalValuePrevious += $sellValuePrevious;
+            
+            $totalValueLastYear += $sellValueLastYear;
         }
-        
         
         if (!is_null($recs)) {
             arr::sortObjects($recs, 'sellValue', 'desc', 'natural');
         }
         
+        $recs['total'] = (object) array(
+            'totalValue' => $totalSalleValue,
+            'totalDelta' => $totalDelta,
+            'totalValuePrevious' => $totalValuePrevious,
+            'totalValueLastYear' => $totalValueLastYear
+        );
+        
+        array_unshift($recs, $recs['total']);
+        
+        // bp($recs);
         return $recs;
     }
     
@@ -404,9 +434,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $name2 = 'За сравнение';
         }
         
-        
         $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
-        $fld->FLD('sellValue', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name1}");
+        
+        if ($rec->compare != 'no') {
+            $fld->FLD('sellValue', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name1}");
+        } else {
+            $fld->FLD('sellValue', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
+        }
         if ($rec->compare != 'no') {
             $fld->FLD('sellValueCompare', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name2}");
             $fld->FLD('compare', 'double(smartRound,decimals=2)', 'smartCenter,caption=Сравнение');
@@ -439,17 +473,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $groArr = array();
         
-        $rec->total += $dRec->sellValue ;
-        
         $row = new stdClass();
         
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
-        
-        $row->contragentId = crm_Companies::getShortHyperlink($dRec->contragentId, true);
-        
-        
+        if ($dRec->contragentId) {
+            $row->contragentId = crm_Companies::getShortHyperlink($dRec->contragentId, true);
+        }
         foreach (array(
             'sellValue',
             'delta'
@@ -500,6 +531,54 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     $compare = ($dRec->sellValue - $dRec->sellValueLastYear) / $dRec->sellValueLastYear;
                 }
                 $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
+            }
+        }
+        if ($dRec->totalValue) {
+            $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
+            $row->sellValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
+            $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
+            
+            if ($rec->compare != 'no') {
+                if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
+                    if (($dRec->totalValue - $dRec->totalValuePrevious) > 0 && $dRec->totalValuePrevious != 0) {
+                        $color = 'green';
+                        $marker = '+';
+                    } elseif (($dRec->totalValue - $dRec->totalValuePrevious) < 0.1) {
+                        $color = 'red';
+                        $marker = '';
+                    } else {
+                        $color = 'black';
+                        $marker = '';
+                    }
+                    
+                    $row->sellValueCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious). '</b>';
+                    
+                    if ($dRec->totalValuePrevious != 0) {
+                        $compare = ($dRec->totalValue - $dRec->totalValuePrevious) / $dRec->totalValuePrevious;
+                    }
+                    
+                    $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
+                }
+                
+                if ($rec->compare == 'year') {
+                    if (($dRec->totalValue - $dRec->totalValueLastYear) > 0 && $dRec->totalValueLastYear != 0) {
+                        $color = 'green';
+                        $marker = '+';
+                    } elseif (($dRec->totalValue - $dRec->totalValueLastYear) < 0) {
+                        $color = 'red';
+                        $marker = '';
+                    } else {
+                        $color = 'black';
+                        $marker = '';
+                    }
+                    
+                    $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValueLastYear);
+                    
+                    if ($dRec->totalValueLastYear != 0) {
+                        $compare = ($dRec->totalValue - $dRec->totalValueLastYear) / $dRec->totalValueLastYear;
+                    }
+                    $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
+                }
             }
         }
         
@@ -569,7 +648,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END contragent--></div></small>
                                 <small><div><!--ET_BEGIN crmGroup-->|Група контрагенти|*: [#crmGroup#]<!--ET_END crmGroup--></div></small>
                                 <small><div><!--ET_BEGIN group-->|Групи продукти|*: [#group#]<!--ET_END group--></div></small>
-                                <small><div><!--ET_BEGIN total-->|ОБЩО ПРОДАЖБИ|*: [#total#] |{$currency}|<!--ET_END total--></div></small>
                                 <small><div><!--ET_BEGIN compare-->|Сравнение|*: [#compare#]<!--ET_END compare--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
