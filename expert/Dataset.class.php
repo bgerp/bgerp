@@ -320,7 +320,7 @@ class expert_Dataset extends core_BaseClass
                     
                     // общия рейтинг на текущото правило
                     if($l == 0) {
-                        $r->rate = 9 + $r->trust + $r->priority;
+                        $r->rate = 9 + $r->trust + ($r->priority > 0 ? $r->priority : 0);
                     } else {
                         $r->rate = 9 + $r->trust - $l + $r->priority;
                     }
