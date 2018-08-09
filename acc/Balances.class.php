@@ -420,7 +420,7 @@ class acc_Balances extends core_Master
     /**
      * Рекалкулира баланса
      */
-    public function recalc($rc)
+    public function recalc()
     {
         $lockKey = 'RecalcBalances';
         
