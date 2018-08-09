@@ -314,7 +314,7 @@ class acc_Balances extends core_Master
      *
      * @return bool Дали е правено преизчисляване
      */
-    private function forceCalc(&$rec,$rc)
+    private function forceCalc(&$rec)
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10, $rec);
@@ -360,6 +360,7 @@ class acc_Balances extends core_Master
             
             // Преизчисляваме баланса (първия няколко пъти, за да подаде верни данни на следващите)
             $j = 0;
+			$rc = true;
             do {			
                 self::calc($rec);
                 self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}; rc = {$rc}");
@@ -449,7 +450,7 @@ class acc_Balances extends core_Master
             $rec->toDate = $pRec->end;
             $rec->periodId = $pRec->id;
 
-			self::forceCalc($rec,$rc);
+			self::forceCalc($rec);
         }
         
         // Освобождаваме заключването на процеса
