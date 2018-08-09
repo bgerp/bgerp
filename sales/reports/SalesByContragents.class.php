@@ -284,7 +284,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $masterClassName = $DetClass->Master->className;
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
            
-            if (!is_null($masterKey)) {
+            if (is_null($masterKey)) {
+                wp($recPrime, $detClassName,$detClassName::fetch($recPrime->detailRecId));
+            }else{
                 $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
                 $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
                 $contragentClassName = core_Classes::fetch($contragentClassId)->name;
