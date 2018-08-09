@@ -280,9 +280,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $DetClass = cls::get($recPrime->detailClassId);
             
             // контрагента по сделката
-            $detClassName = $DetClass->className;if (!in_array($detClassName, $arr)) {
-              $arr[]=$detClassName;  ;
-            }
+            $detClassName = $DetClass->className;
             $masterClassName = $DetClass->Master->className;
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
            
@@ -296,7 +294,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 
                 // групите на контрагента по сделката
                 if ($contragentId) {
-                    $contragentGroups = crm_Contragents::fetchField($contragentId, 'groupList');
+                    $contragentGroups = crm_Companies::fetchField($contragentId, 'groupList');
                     
                     $contragentGroups = keylist::toArray($contragentGroups);
                 }
@@ -401,7 +399,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $totalValuePrevious += $sellValuePrevious;
             
             $totalValueLastYear += $sellValueLastYear;
-        }bp($arr);
+        }
         
         if (!is_null($recs)) {
             
