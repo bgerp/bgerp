@@ -357,8 +357,16 @@ class acc_Balances extends core_Master
                 }
             }
             
-            self::calc($rec);
             
+            // Преизчисляваме баланса (първия няколко пъти, за да подаде верни данни на следващите)
+            $j = 0;
+            do {			
+                self::calc($rec);
+                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
+            } while ($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
+			
+            $rc = false;
+			
             return true;
         }
     }
@@ -440,14 +448,8 @@ class acc_Balances extends core_Master
             $rec->fromDate = $pRec->start;
             $rec->toDate = $pRec->end;
             $rec->periodId = $pRec->id;
-            
-            // Преизчисляваме баланса (първия няколко пъти, за да подаде верни данни на следващите)
-            $j = 0;
-            do {
-                self::forceCalc($rec);
-                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
-            } while ($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
-            $rc = false;
+
+			self::forceCalc($rec);
         }
         
         // Освобождаваме заключването на процеса
