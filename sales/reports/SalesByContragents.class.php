@@ -258,7 +258,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         foreach ($checkContragentsArr as $val) {
             $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
         }
-        
+       
         // Синхронизира таймлимита с броя записи //
         $rec->count = $query->count();
         
@@ -273,7 +273,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $quantity = 0;
         
         $flag = false;
-        $arr=array();
+       
         while ($recPrime = $query->fetch()) {
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = 0;
             
@@ -285,14 +285,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
            
             if (!is_null($masterKey)) {
-            $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
+                $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
                 $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
                 $contragentClassName = core_Classes::fetch($contragentClassId)->name;
             }
            
             if ($rec->contragent || $rec->crmGroup) {
                 $checkContragentsArr = array();
-                $contragentsId = array();
+               
                 
                 // групите на контрагента по сделката
                 if ($contragentId) {
