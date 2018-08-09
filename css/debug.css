@@ -10,6 +10,10 @@ body {
     .headerLine .debugActions:hover {
       opacity: 0.8; }
 
+form {
+  width: 220px;
+  overflow: hidden; }
+
 .debugLink {
   display: block;
   padding: 5px 5px 5px 20px;
