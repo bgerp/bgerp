@@ -360,6 +360,7 @@ class acc_Balances extends core_Master
             
             // Преизчисляваме баланса (първия няколко пъти, за да подаде верни данни на следващите)
             $j = 0;
+			$rc = true;
             do {			
                 self::calc($rec);
                 self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}; rc = {$rc}");
