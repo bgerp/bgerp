@@ -55,6 +55,7 @@ class unit_MinkPPrices extends core_Manager
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
+        sleep(2);
         
         return $browser;
     }
