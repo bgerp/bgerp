@@ -363,7 +363,7 @@ class acc_Balances extends core_Master
             do {			
                 self::calc($rec);
                 self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}; rc = {$rc}");
-            } while ($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
+            } while ($rec->lastCalculateChange != 'no' && $j++ < 4 && $rc);
 			
             $rc = false;
 			
@@ -420,7 +420,7 @@ class acc_Balances extends core_Master
     /**
      * Рекалкулира баланса
      */
-    public function recalc()
+    public function recalc($rc)
     {
         $lockKey = 'RecalcBalances';
         
