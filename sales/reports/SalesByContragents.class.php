@@ -161,9 +161,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        file_put_contents('debug.txt', serialize($rec));
         
         $recs = array();
+        
+        $contragentsId = array();
         
         $query = sales_PrimeCostByDocument::getQuery();
         
@@ -251,6 +252,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $salesWithShipArr[$sale->detailId] = $sale->detailId;
         }
         
+        // избрани контрагенти
+        $checkContragentsArr = keylist::toArray($rec->contragent);
+        
+        foreach ($checkContragentsArr as $val) {
+            $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
+        }
+       
         // Синхронизира таймлимита с броя записи //
         $rec->count = $query->count();
         
@@ -265,7 +273,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $quantity = 0;
         
         $flag = false;
-        
+       
         while ($recPrime = $query->fetch()) {
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = 0;
             
@@ -275,24 +283,22 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $detClassName = $DetClass->className;
             $masterClassName = $DetClass->Master->className;
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
-            $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
-            
+           
+            if (!is_null($masterKey)) {
+                $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
+                $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
+                $contragentClassName = core_Classes::fetch($contragentClassId)->name;
+            }
+           
             if ($rec->contragent || $rec->crmGroup) {
                 $checkContragentsArr = array();
-                $contragentsId = array();
+               
                 
                 // групите на контрагента по сделката
                 if ($contragentId) {
-                    $contragentGroups = crm_Companies::fetchField($contragentId, 'groupList');
+                    $contragentGroups = $contragentClassName::fetchField($contragentId, 'groupList');
                     
                     $contragentGroups = keylist::toArray($contragentGroups);
-                }
-                
-                // избрани контрагенти
-                $checkContragentsArr = keylist::toArray($rec->contragent);
-                
-                foreach ($checkContragentsArr as $val) {
-                    $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
                 }
                 
                 $checkContragent = in_array($contragentId, $contragentsId);
