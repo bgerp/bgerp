@@ -285,7 +285,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
            
             if (!is_null($masterKey)) {
-                $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
+            $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
+                $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
+                $contragentClassName = core_Classes::fetch($contragentClassId)->name;
             }
            
             if ($rec->contragent || $rec->crmGroup) {
@@ -294,7 +296,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 
                 // групите на контрагента по сделката
                 if ($contragentId) {
-                    $contragentGroups = crm_Companies::fetchField($contragentId, 'groupList');
+                    $contragentGroups = $contragentClassName::fetchField($contragentId, 'groupList');
                     
                     $contragentGroups = keylist::toArray($contragentGroups);
                 }
