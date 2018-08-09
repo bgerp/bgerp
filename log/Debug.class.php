@@ -60,7 +60,7 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span style="display: inline-block;margin-right: 10px;"> [#SIGNAL#]</span> <span style="display: inline-block;margin-right: 10px;"> [#DOWNLOAD_FILE#]</span> [#BEFORE_LINK#][#AFTER_LINK#] </div><div style="clear: both;"></div></div><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div>'));
+        $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugHolder"><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div></div>'));
         
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
@@ -206,7 +206,7 @@ class log_Debug extends core_Manager
                 $dUrl = fileman_Download::getDownloadUrl($fPath, 1, 'path');
                 
                 if ($dUrl) {
-                    $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl), 'DOWNLOAD_FILE');
+                    $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
                 }
                 
                 $tpl->replace($this->getDebuFileInfo($fPath, $rArr), 'ERR_FILE');
@@ -222,7 +222,7 @@ class log_Debug extends core_Manager
             }
             
             if ($this->haveRightFor('report')) {
-                $singal = ht::createLink(tr('Сигнал'), array('log_Debug', 'report', 'debugFile' => $debugFile, 'ret_url' => true), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP'));
+                $singal = ht::createLink(tr('Сигнал'), array('log_Debug', 'report', 'debugFile' => $debugFile, 'ret_url' => true), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/16/debug_bug.png'));
                 $tpl->append($singal, 'SIGNAL');
             }
             
