@@ -362,7 +362,7 @@ class acc_Balances extends core_Master
             $j = 0;
             do {			
                 self::calc($rec);
-                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}; rc = {$rc}");
+                self::logDebug("After Calc: {$rec->lastCalculateChange}; j = {$j}");
             } while ($rec->lastCalculateChange != 'no' && $j++ < 10 && $rc);
 			
             $rc = false;
