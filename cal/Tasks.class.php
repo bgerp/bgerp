@@ -3083,8 +3083,27 @@ class cal_Tasks extends embed_Manager
         
         expect($systemId);
         
+        $debugFileHnd = null;
+        
+        // Качваме файла
+        if ($isReportFromStream = Request::get('streamReport')) {
+            if ($fData = Request::get('data')) {
+                $fName = Request::get('fName');
+                if (!$fName) {
+                    $fName = 'debug';
+                }
+                $fName .= '.debug';
+                
+                $fData = gzuncompress($fData);
+                
+                if ($fData) {
+                    $debugFileHnd = fileman::absorbStr($fData, 'Support', $fName);
+                }
+            }
+        }
+        
         // Ако има права за добавяне, директно се редиректва там
-        if ($this->haveRightFor('add')) {
+        if (!$isReportFromStream && $this->haveRightFor('add')) {
             $folderId = support_Systems::forceCoverAndFolder($systemId);
             
             if (doc_Folders::haveRightFor('single', $folderId)) {
@@ -3113,7 +3132,7 @@ class cal_Tasks extends embed_Manager
         $form->setOptions($this->driverClassField, $interfaces);
         
         // Ако е наличен само един драйвер избираме него
-        if (count($interfaces) == 1) {
+        if ((count($interfaces) == 1) || $isReportFromStream) {
             $intfKey = key($interfaces);
             $form->setDefault($this->driverClassField, $intfKey);
             $form->setReadOnly($this->driverClassField);
@@ -3132,16 +3151,24 @@ class cal_Tasks extends embed_Manager
             $Driver->prepareFieldForIssue($form);
         }
         
-        
         $form->setField('title', 'silent, input=hidden');
-        $form->setField('description', 'input, mandatory');
+        $form->setField('description', 'input, silent, mandatory');
         
         $form->input(null, true);
         $form->input();
         
         setIfNot($form->rec->title, '*Без заглавие*');
         
-        if ($form->isSubmitted()) {
+        if ($isReportFromStream || $form->isSubmitted()) {
+            if ($isReportFromStream) {
+                $form->rec->description = gzuncompress($form->rec->description);
+                $form->rec->description = type_Varchar::escape($form->rec->description);
+                
+                if ($debugFileHnd) {
+                    $form->rec->file = $debugFileHnd;
+                }
+            }
+            
             $form->rec->state = 'active';
             $form->rec->activatedBy = (int) core_Users::getCurrent();
             
@@ -3153,7 +3180,14 @@ class cal_Tasks extends embed_Manager
             
             vislog_History::add('Изпращане на сигнал');
             
-            return followRetUrl(null, '|Благодарим Ви за сигнала', 'success');
+            $successMsg = 'Благодарим Ви за сигнала';
+            
+            if ($isReportFromStream) {
+                echo tr($successMsg);
+                shutdown();
+            }
+            
+            return followRetUrl(null, "|{$successMsg}", 'success');
         }
         
         $sTitle = '';
