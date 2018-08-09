@@ -314,7 +314,7 @@ class acc_Balances extends core_Master
      *
      * @return bool Дали е правено преизчисляване
      */
-    private function forceCalc(&$rec,&$rc)
+    private function forceCalc(&$rec,$rc)
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10, $rec);
