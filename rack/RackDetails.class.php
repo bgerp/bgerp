@@ -84,7 +84,7 @@ class rack_RackDetails extends core_Detail
                                    unusable=Неизползваемо,
                                    reserved=Запазено                                     
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
-        $this->FLD('productId', 'key(mvc=cat_Products, select=name,allowEmpty)', 'caption=Артикул,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty)', 'caption=Артикул,input=none');
         $this->setDbUnique('rackId,row,col');
     }
     
@@ -138,7 +138,6 @@ class rack_RackDetails extends core_Detail
         
         if ($rec->status == 'reserved') {
             $form->setField('productId', 'input=input');
-            $form->setOptions('productId', array() + rack_Products::getInStock($rRec->storeId));
         }
         
         // Ако има палет на това място, или към него е насочено движение
