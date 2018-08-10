@@ -59,9 +59,13 @@ class log_Debug extends core_Manager
     public function act_Default()
     {
         $this->requireRightFor('list');
-        
-        $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugHolder"><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div></div>'));
-        
+        if(Mode::is('screenMode', 'wide')) {
+            $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugHolder"><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div></div>'));
+        } else {
+            $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span>[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div>'));
+
+        }
+
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
@@ -75,7 +79,7 @@ class log_Debug extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
         
-        $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div>[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
+        $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div class="linksGroup">[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         
         $data->listFilter->title = 'Дебъг';
         
@@ -117,7 +121,7 @@ class log_Debug extends core_Manager
         $fLink = '';
         
         if ($fArrCnt > 1) {
-            arsort($fArr);
+            $fArr = array_reverse($fArr);
         }
         
         // Показваме линкове за навигиране
@@ -163,7 +167,7 @@ class log_Debug extends core_Manager
         }
         
         // Показваме всички файлове
-        foreach ($fArr as $fNameWithExt => $time) {
+        foreach ($fArr as $fNameWithExt => $dummy) {
             list($fName) = explode('.', $fNameWithExt, 2);
             
             $fPathStr = $this->getDebugFilePath($fName);
@@ -243,7 +247,7 @@ class log_Debug extends core_Manager
     
     /**
      * Екшън за репортване на грешката
-     * 
+     *
      * @return Redirect|ET
      */
     public function act_Report()
@@ -257,8 +261,9 @@ class log_Debug extends core_Manager
         $form->FNC('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input');
         $form->FNC('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input');
         $form->FNC('debugFile', 'varchar(64)', 'caption=Данни за обратна връзка->Файл, silent, input=hidden');
-        
-        $form->title = 'Сигнал към разработчиците на bgERP';
+
+        $img = ht::createElement('img', array('src' => sbf('img/16/headset.png', '')));
+        $form->title = "|*" . $img . '   |Сигнал към разработчиците на bgERP';
         
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         
@@ -553,8 +558,9 @@ class log_Debug extends core_Manager
             $mTime = null;
             $fileName = $iterator->key();
             $path = $iterator->current()->getPath();
+            @$currentDepth = $iterator->getDepth();
             
-            if (!$iterator->isDir()) {
+            if (($currentDepth < 1) && !$iterator->isDir()) {
                 $canShow = true;
                 
                 $search = trim($search);
@@ -568,7 +574,7 @@ class log_Debug extends core_Manager
                 // Ако се търси определен файл и отговаря на изискванията - го показваме
                 if ($canShow) {
                     $mTime = $iterator->current()->getMTime();
-                    $fArr[$fileName] = $mTime;
+                    $fArr[$fileName] = $mTime . '|' . $fileName;
                 }
                 
                 if ($fName) {
@@ -579,7 +585,7 @@ class log_Debug extends core_Manager
                             }
                             
                             // Ако има друг файл от същия хит
-                            $otherFilesFromSameHitArr[$fileName] = $mTime;
+                            $otherFilesFromSameHitArr[$fileName] = $mTime . '|' . $fileName;
                         }
                     }
                 }
@@ -740,6 +746,8 @@ class log_Debug extends core_Manager
             if (!$delOn) {
                 $delOn = $delTimeMapArr['def'];
             }
+            
+            list($cDate) = explode('|', $cDate, 2);
             
             if ($delOn < $cDate) {
                 continue;

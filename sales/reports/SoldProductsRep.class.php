@@ -158,16 +158,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $salesQuery = sales_Sales::getQuery();
         
+        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+        
         $salesQuery->groupBy('folderId');
         
-        $salesQuery->show('folderId, contragentId');
+        $salesQuery->show('folderId, contragentId, folderTitle');
         
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = crm_Companies::getTitleById($contragent->contragentId);
+                $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
         }
-        
+       
         asort($suggestions);
         
         $form->setSuggestions('contragent', $suggestions);
@@ -426,7 +428,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             arr::sortObjects($recs, 'code', 'asc', 'stri');
         }
         
-        // bp($recs,$rec);
         return $recs;
     }
     

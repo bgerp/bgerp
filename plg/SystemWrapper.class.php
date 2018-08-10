@@ -41,7 +41,7 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('log_Referer', 'Логове->Реферери', 'admin');
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         
-        $this->TAB('core_Cron', 'Крон');
+        $this->TAB('core_Cron', 'Крон', 'admin');
         $this->TAB('core_Plugins', 'Плъгини', 'admin');
         $this->TAB('core_Cache', 'Вътрешни->Кеш', 'debug');
         $this->TAB('core_Permanent', 'Вътрешни->Постоянен кеш', 'debug');

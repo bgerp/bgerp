@@ -5000,7 +5000,12 @@ function detectScrollAndWp() {
  */
 function debugLayout() {
     var leftMenuHeight = $(window).height() - $('.headerLine').outerHeight();
-    $('.debugList, .debugPreview').css('height', leftMenuHeight);
+    $('.wide .debugList, .wide .debugPreview').css('height', leftMenuHeight);
+
+    if ($('body').hasClass('narrow')) {
+        $('.linksGroup').scrollTop($('.debugLink.current').offset().top - $('.linksGroup').height() -10);
+    }
+
 }
 
 
