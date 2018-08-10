@@ -57,6 +57,9 @@ class rack_Setup extends core_ProtoSetup
         'rack_Pallets',
         'rack_Racks',
         'rack_RackDetails',
+        'rack_Zones',
+        'rack_ZoneDetails',
+        'migrate::truncateOldRecs',
     );
     
     
@@ -82,8 +85,7 @@ class rack_Setup extends core_ProtoSetup
         $html = parent::install();
         
         $Plugins = cls::get('core_Plugins');
-        $html .= $Plugins->installPlugin('Връзка между междускладовия трансфер и палетния склад', 'rack_plg_Document', 'store_TransfersDetails', 'private');
-        $html .= $Plugins->installPlugin('Връзка между ЕН и палетния склад', 'rack_plg_Document', 'store_ShipmentOrderDetails', 'private');
+        $html .= $Plugins->installPlugin('Връзка между ЕН-то и палетния склад', 'rack_plg_Shipments', 'store_ShipmentOrders', 'private');
         
         return $html;
     }
@@ -108,5 +110,18 @@ class rack_Setup extends core_ProtoSetup
     {
         $sMvc = cls::get('store_Stores');
         $sMvc->setupMVC();
+    }
+    
+    
+    /**
+     * Изпълнява се след setup-а
+     */
+    public function truncateOldRecs()
+    {
+        foreach (array('rack_Pallets', 'rack_RackDetails', 'rack_Zones', 'rack_ZoneDetails', 'rack_Movements') as $class){
+            $Class = cls::get($class);
+            $Class->setupMvc();
+            $Class->truncate();
+        }
     }
 }

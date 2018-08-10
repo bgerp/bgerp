@@ -142,7 +142,7 @@
 
          <!--ET_END SALE_BLOCK-->
          <div id = 'cart-view-total' class="summary-holder [#BORDER_CLASS#]" >
-            <table style="width: 100%">
+            <table>
                <!--ET_BEGIN deliveryAmount-->
                <tr>
                   <!--ET_BEGIN deliveryCaption-->

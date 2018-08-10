@@ -30,7 +30,7 @@
 "мол","мол",,1,"closed","mol","|mol|mola|",2,"uom",
 "ом","Ω",,1,"closed","ohm","|om|ohm|oma|Ω|",0,"uom",
 "пакет","пакет",,,"active",,,0,"packaging",1
-"палет","палет",,,"active",,,0,"packaging",1
+"палет","палет",,,"active",pallet,,0,"packaging",1
 "ролка","ролка",,,"active",,,0,"packaging",1
 "сантиметър","см","метър","0.01","closed","cm","|cm|sm|santimetra|santimetar|santimetri|",0,"uom",
 "секунда","сек.","секунда",1,"active","s","|sec|secunda|seconds|second|secundi|",0,"uom",

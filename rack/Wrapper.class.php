@@ -27,6 +27,7 @@ class rack_Wrapper extends plg_ProtoWrapper
         $this->TAB('rack_Products', 'Продукти');
         $this->TAB('rack_Pallets', 'Палети');
         $this->TAB('rack_Racks', 'Стелажи');
+        $this->TAB('rack_Zones', 'Зони');
         
         $this->title = 'Палетен склад';
     }
