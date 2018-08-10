@@ -302,7 +302,6 @@ class log_Debug extends core_Manager
             $dataArr['name'] = $form->rec->name;
             $dataArr['email'] = $form->rec->email;
             $dataArr['description'] = gzcompress($form->rec->description);
-            $dataArr['Lg'] = core_Lg::getCurrent();
             $dataArr['streamReport'] = true;
             $dataArr['title'] = $form->rec->title;
             
