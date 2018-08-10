@@ -10,29 +10,31 @@ body.wide {
     .headerLine .debugActions:hover {
       opacity: 0.8; }
 
+.wide form {
+  width: 220px;
+  overflow: hidden; }
+
 .narrow .debugPreview,
 .narrow .debugList {
   display: block;
   width: 100%;
   flex: auto; }
 
-.wide form {
-  width: 220px;
-  overflow: hidden; }
-
 .narrow .listFilter {
   margin-left: 20px;
   padding-bottom: 10px;
   float: left; }
   .narrow .listFilter input {
-    width: 240px; }
+    width: 300px; }
 
 .narrow #filter {
   width: 28px;
   height: 29px;
-  background-color: #cccccc !important;
+  background-color: rgba(0, 0, 0, 0) !important;
   background-image: url('../img/16/find.png');
-  background-repeat: no-repeat; }
+  background-repeat: no-repeat;
+  position: relative;
+  left: -30px; }
 
 .narrow .toolbar,
 .narrow   div.hFormField {
@@ -79,6 +81,9 @@ body.wide {
       top: 3px; }
   .debugLink.same {
     color: #2ca2bd !important; }
+
+.narrow .debug_block {
+  display: block !important; }
 
 .debugPreview {
   padding: 0; }

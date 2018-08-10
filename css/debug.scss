@@ -29,16 +29,18 @@ body.wide {
     padding-bottom: 10px;
     float: left;
     input {
-        width: 240px;
+        width: 300px;
     }
 }
 
 .narrow #filter {
     width: 28px;
     height: 29px;
-    background-color: #ccc !important;
+    background-color: transparent !important;
     background-image: url('../img/16/find.png');
     background-repeat: no-repeat;
+    position: relative;
+    left: -30px;
 }
 
 .narrow .toolbar, .narrow   div.hFormField {
