@@ -5000,7 +5000,7 @@ function detectScrollAndWp() {
  */
 function debugLayout() {
     var leftMenuHeight = $(window).height() - $('.headerLine').outerHeight();
-    $('.debugList, .debugPreview').css('height', leftMenuHeight);
+    $('.wide .debugList, .wide .debugPreview').css('height', leftMenuHeight);
 }
 
 

@@ -1,4 +1,4 @@
-body {
+body.wide {
   overflow: hidden; }
 
 .headerLine {
@@ -10,9 +10,58 @@ body {
     .headerLine .debugActions:hover {
       opacity: 0.8; }
 
-form {
+.narrow .debugPreview,
+.narrow .debugList {
+  display: block;
+  width: 100%;
+  flex: auto; }
+
+.wide form {
   width: 220px;
   overflow: hidden; }
+
+.narrow .listFilter {
+  margin-left: 20px;
+  padding-bottom: 10px;
+  float: left; }
+  .narrow .listFilter input {
+    width: 240px; }
+
+.narrow #filter {
+  width: 28px;
+  height: 29px;
+  background-color: #cccccc !important;
+  background-image: url('../img/16/find.png');
+  background-repeat: no-repeat; }
+
+.narrow .toolbar,
+.narrow   div.hFormField {
+  float: left;
+  display: inline-block;
+  margin: 0 !important; }
+
+.narrow .aright {
+  border-top: 1px solid #666666;
+  margin-top: 10px;
+  padding-top: 10px;
+  float: none;
+  width: 100%; }
+
+.narrow .headerLine {
+  font-size: 0.85em; }
+  .narrow .headerLine .debugActions {
+    margin-right: 5px; }
+  .narrow .headerLine span {
+    margin: 0 5px; }
+
+.narrow .linksGroup {
+  clear: both;
+  margin-bottom: 20px;
+  height: 200px;
+  overflow-y: auto; }
+
+.narrow form:after {
+  clear: both; }
 
 .debugLink {
   display: block;
@@ -34,7 +83,7 @@ form {
 .debugPreview {
   padding: 0; }
 
-.debugHolder {
+.wide .debugHolder {
   resize: horizontal;
   overflow: hidden;
   display: flex; }
@@ -47,7 +96,7 @@ form {
   resize: horizontal;
   min-width: 10px !important; }
 
-.debugPreview {
+.wide .debugPreview {
   flex: auto;
   width: 85%;
   height: 1000px;

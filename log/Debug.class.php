@@ -59,9 +59,13 @@ class log_Debug extends core_Manager
     public function act_Default()
     {
         $this->requireRightFor('list');
-        
-        $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugHolder"><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div></div>'));
-        
+        if(Mode::is('screenMode', 'wide')) {
+            $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugHolder"><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div></div>'));
+        } else {
+            $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span>[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div>'));
+
+        }
+
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
@@ -75,7 +79,7 @@ class log_Debug extends core_Manager
         
         $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
         
-        $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div>[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
+        $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div class="linksGroup">[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         
         $data->listFilter->title = 'Дебъг';
         
