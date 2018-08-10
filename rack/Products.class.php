@@ -203,13 +203,15 @@ class rack_Products extends store_Products
             if (is_array($onlyIds)) {
                 $onlyIds = implode(',', $onlyIds);
             }
+            $onlyIds = trim($onlyIds, ',');
             $query->where("#productId IN ({$onlyIds})");
         }
         
         $rec = $query->fetch();
         
         $onlyIds = $rec->onlyIds;
-        
+        $onlyIds = trim($onlyIds, ',');
+
         $products = array();
         $pQuery = cat_Products::getQuery();
         
@@ -219,6 +221,7 @@ class rack_Products extends store_Products
                 return array();
             }
             $ids = implode(',', $onlyIds);
+            $ids = trim($ids, ',');
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
             $pQuery->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
