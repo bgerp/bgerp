@@ -722,12 +722,12 @@ abstract class deals_Helper
         $makeLink = true;
         
         if ($futureQuantity < 0 && $freeQuantity < 0){
-            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!!!";
+            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!";
             $class = 'doc-negative-quantiy';
             $makeLink = false;
         } elseif($futureQuantity < 0 && $freeQuantity > 0){
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!!! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
         } elseif($futureQuantity >= 0 && $freeQuantity < 0){
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
@@ -1669,7 +1669,7 @@ abstract class deals_Helper
     
     
     /**
-     * Предупреждения за множеството артикули с отрицателн и количества в склада
+     * Предупреждения за множеството артикули с отрицателни количества в склада
      *
      * @param array  $arr
      * @param int    $storeId

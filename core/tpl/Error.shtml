@@ -51,6 +51,15 @@
             margin: 0  0 20px 0;
             font-family: Verdana;
          }
+         .error .signalLink {
+             padding-left: 22px !important;
+             background-position: 3px center;
+             font-size: 0.6em !important;
+             float: right;
+         }
+         .wrapText {
+             word-break: break-all;
+         }
          @media handheld, only screen and (max-width: 640px) { 
             .error-holder {
                 margin-top: 0;
@@ -86,17 +95,16 @@
 	<div class='error-holder'>
 		<h2 class='red-text'>[#httpStatusCode#] [#httpStatusMsg#]</h2>
 		<div class='error'>
-	        <h2>[#errTitle#]</h2>
-	        <table style='width: 100%'>
-	            <tr>
-	                <td style='width: 1%'>[#back#]</td>
-	                <td style='width: 98%' align="center">[#update#]</td>
-	                <td style='width: 1%; white-space:nowrap'>[#forward#]</td>
-	            </tr>
-	        </table>
+	        <h2>[#errTitle#] [#signal#]</h2>
 	        <h3>[#date#]</h3>
-	        <h3>URI: [#uri#]</h3>
-	        <h3>[#signal#]</h3>
+	        <h3 class="wrapText">URI: [#uri#]</h3>
+            <table style='width: 100%'>
+                <tr>
+                    <td style='width: 1%'>[#back#]</td>
+                    <td style='width: 98%' align="center">[#update#]</td>
+                    <td style='width: 1%; white-space:nowrap'>[#forward#]</td>
+                </tr>
+            </table>
 		</div>
 	</div>
 </body>

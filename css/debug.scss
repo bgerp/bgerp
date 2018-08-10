@@ -1,4 +1,4 @@
-body {
+body.wide {
     overflow: hidden;
 }
 .headerLine {
@@ -13,11 +13,70 @@ body {
     }
 }
 
-form {
+.wide form {
     width: 220px;
     overflow: hidden;
 }
 
+.narrow .debugPreview, .narrow .debugList {
+    display: block;
+    width: 100%;
+    flex: auto;
+}
+
+.narrow .listFilter {
+    margin-left: 20px;
+    padding-bottom: 10px;
+    float: left;
+    input {
+        width: 300px;
+    }
+}
+
+.narrow #filter {
+    width: 28px;
+    height: 29px;
+    background-color: transparent !important;
+    background-image: url('../img/16/find.png');
+    background-repeat: no-repeat;
+    position: relative;
+    left: -30px;
+}
+
+.narrow .toolbar, .narrow   div.hFormField {
+    float: left;
+    display: inline-block;
+    margin: 0 !important;
+}
+
+.narrow .aright {
+    border-top: 1px solid #666;
+    margin-top: 10px;
+    padding-top: 10px;
+    float: none;
+    width: 100%;
+}
+
+.narrow .headerLine {
+    font-size: 0.85em;
+    .debugActions {
+        margin-right: 5px;
+    }
+    span {
+        margin: 0 5px;
+    }
+}
+
+.narrow .linksGroup {
+    clear: both;
+    margin-bottom: 20px;
+    height: 200px;
+    overflow-y: auto;
+}
+
+.narrow form:after {
+    clear: both;
+}
 .debugLink {
     display: block;
     padding: 5px 5px 5px 20px;
@@ -39,10 +98,14 @@ form {
     }
 }
 
+.narrow .debug_block {
+    display: block !important;
+}
+
 .debugPreview {
     padding: 0;
 }
-.debugHolder {
+.wide .debugHolder {
     resize: horizontal;
     overflow: hidden;
     display: flex;
@@ -50,13 +113,13 @@ form {
 .debugList {
     display: block;
     background-color: #333;
-width: 270px;
+    width: 270px;
     overflow-y: auto;
     resize: horizontal;
     min-width: 10px !important;
 }
 
-.debugPreview {
+.wide .debugPreview {
     flex: auto;
     width: 85%;
     height: 1000px;
