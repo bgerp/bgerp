@@ -129,7 +129,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         $form->setDefault('articleType', 'all');
         
-        $form->setDefault('orderBy', 'salleValue');
+        $form->setDefault('orderBy', 'saleValue');
         
         $form->setDefault('compare', 'no');
         
@@ -284,7 +284,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $masterClassName = $DetClass->Master->className;
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
            
-            if (!is_null($masterKey)) {
+            if (is_null($masterKey)) {
+                wp($recPrime, $detClassName,$detClassName::fetch($recPrime->detailRecId));
+            }else{
                 $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
                 $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
                 $contragentClassName = core_Classes::fetch($contragentClassId)->name;
@@ -380,7 +382,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     'contragentId' => $id,
                     'sellValuePrevious' => $sellValuePrevious,
                     'sellValueLastYear' => $sellValueLastYear,
-                    'sellValue' => $sellValue,
+                    'saleValue' => $sellValue,
                     'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
                     'groupList' => $recPrime->groupList,
                     'delta' => $delta
@@ -390,7 +392,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $obj = &$recs[$id];
                 $obj->sellValuePrevious += $sellValuePrevious;
                 $obj->sellValueLastYear += $sellValueLastYear;
-                $obj->sellValue += $sellValue;
+                $obj->saleValue += $sellValue;
                 $obj->delta += $delta;
             }
             
@@ -405,7 +407,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         if (!is_null($recs)) {
             
-            arr::sortObjects($recs, 'sellValue', 'desc');
+            arr::sortObjects($recs, $rec->orderBy, 'desc');
         }
         
         $recs['total'] = (object) array(
@@ -446,9 +448,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
         
         if ($rec->compare != 'no') {
-            $fld->FLD('sellValue', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name1}");
+            $fld->FLD('saleValue', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name1}");
         } else {
-            $fld->FLD('sellValue', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
+            $fld->FLD('saleValue', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
         }
         if ($rec->compare != 'no') {
             $fld->FLD('sellValueCompare', 'double(smartRound,decimals=2)', "smartCenter,caption=Продажби->{$name2}");
@@ -491,7 +493,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $row->contragentId = crm_Companies::getShortHyperlink($dRec->contragentId, true);
         }
         foreach (array(
-            'sellValue',
+            'saleValue',
             'delta'
         ) as $fld) {
             $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
@@ -502,10 +504,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         if ($rec->compare != 'no') {
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                if (($dRec->sellValue - $dRec->sellValuePrevious) > 0 && $dRec->sellValuePrevious != 0) {
+                if (($dRec->saleValue - $dRec->sellValuePrevious) > 0 && $dRec->sellValuePrevious != 0) {
                     $color = 'green';
                     $marker = '+';
-                } elseif (($dRec->sellValue - $dRec->sellValuePrevious) < 0.1) {
+                } elseif (($dRec->saleValue - $dRec->sellValuePrevious) < 0.1) {
                     $color = 'red';
                     $marker = '';
                 } else {
@@ -516,17 +518,17 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
                 
                 if ($dRec->sellValuePrevious != 0) {
-                    $compare = ($dRec->sellValue - $dRec->sellValuePrevious) / $dRec->sellValuePrevious;
+                    $compare = ($dRec->saleValue - $dRec->sellValuePrevious) / $dRec->sellValuePrevious;
                 }
                 
                 $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
             }
             
             if ($rec->compare == 'year') {
-                if (($dRec->sellValue - $dRec->sellValueLastYear) > 0 && $dRec->sellValueLastYear != 0) {
+                if (($dRec->saleValue - $dRec->sellValueLastYear) > 0 && $dRec->sellValueLastYear != 0) {
                     $color = 'green';
                     $marker = '+';
-                } elseif (($dRec->sellValue - $dRec->sellValueLastYear) < 0) {
+                } elseif (($dRec->saleValue - $dRec->sellValueLastYear) < 0) {
                     $color = 'red';
                     $marker = '';
                 } else {
@@ -537,14 +539,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
                 
                 if ($dRec->sellValueLastYear != 0) {
-                    $compare = ($dRec->sellValue - $dRec->sellValueLastYear) / $dRec->sellValueLastYear;
+                    $compare = ($dRec->saleValue - $dRec->sellValueLastYear) / $dRec->sellValueLastYear;
                 }
                 $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
             }
         }
         if ($dRec->totalValue) {
             $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
-            $row->sellValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
+            $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
             $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
             
             if ($rec->compare != 'no') {

@@ -42,6 +42,12 @@ class log_Debug extends core_Manager
     
     
     /**
+     * Кой може да репортва грешките
+     */
+    public $canReport = 'user';
+    
+    
+    /**
      * Плъгини и MVC класове за предварително зареждане
      */
     public $loadList = 'plg_SystemWrapper';
@@ -54,14 +60,14 @@ class log_Debug extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span style="display: inline-block;margin-right: 10px;"> [#DOWNLOAD_FILE#]</span> [#BEFORE_LINK#][#AFTER_LINK#] </div><div style="clear: both;"></div></div><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div>'));
+        $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span style="margin-left: 20px;">[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugHolder"><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div></div>'));
         
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
-        $data->listFilter->layout =  "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
-
+        $data->listFilter->layout = "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
+        
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
@@ -200,7 +206,7 @@ class log_Debug extends core_Manager
                 $dUrl = fileman_Download::getDownloadUrl($fPath, 1, 'path');
                 
                 if ($dUrl) {
-                    $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl), 'DOWNLOAD_FILE');
+                    $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
                 }
                 
                 $tpl->replace($this->getDebuFileInfo($fPath, $rArr), 'ERR_FILE');
@@ -215,18 +221,112 @@ class log_Debug extends core_Manager
                 }
             }
             
+            if ($this->haveRightFor('report')) {
+                $singal = ht::createLink(tr('Сигнал'), array('log_Debug', 'report', 'debugFile' => $debugFile, 'ret_url' => true), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/16/debug_bug.png'));
+                $tpl->append($singal, 'SIGNAL');
+            }
+            
             Mode::set('wrapper', 'page_Empty');
             $tpl->push('css/debug.css', 'CSS');
-
+            
             // Плъгин за лайаута
-            jquery_Jquery::run( $tpl, 'debugLayout();');
-
+            jquery_Jquery::run($tpl, 'debugLayout();');
+            
             // Рендираме страницата
             return  $tpl;
         }
         
         // Рендираме страницата
         return  $this->renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Екшън за репортване на грешката
+     * 
+     * @return Redirect|ET
+     */
+    public function act_Report()
+    {
+        $this->requireRightFor('report');
+        
+        $form = cls::get('core_Form');
+        
+        $form->FNC('title', 'varchar(128)', 'caption=Заглавие, mandatory, input');
+        $form->FNC('description', 'text(rows=10)', 'caption=Описание, mandatory, input');
+        $form->FNC('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input');
+        $form->FNC('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input');
+        $form->FNC('debugFile', 'varchar(64)', 'caption=Данни за обратна връзка->Файл, silent, input=hidden');
+        
+        $form->title = 'Сигнал към разработчиците на bgERP';
+        
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
+        
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('Portal', 'Show');
+        }
+        
+        $form->toolbar->addBtn('Отказ', $retUrl, 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
+        
+        $email = email_Inboxes::getUserEmail();
+        if (!$email) {
+            $email = core_Users::getCurrent('email');
+        }
+        list($user, $domain) = explode('@', $email);
+        $name = core_Users::getCurrent('names');
+        
+        $form->setDefault('email', $email);
+        $form->setDefault('name', $name);
+        
+        $form->input(null, true);
+        
+        $form->setDefault('title', $_SERVER['HTTP_HOST']);
+        
+        $form->input();
+        
+        if ($form->isSubmitted()) {
+            $dataArr = array();
+            
+            $fPath = $this->getDebugFilePath($form->rec->debugFile);
+            
+            if ($fPath && is_file($fPath)) {
+                $data = @file_get_contents($fPath);
+                
+                if ($data) {
+                    $dataArr['data'] = gzcompress($data);
+                    $dataArr['fName'] = $form->rec->debugFile;
+                }
+            }
+            
+            $dataArr['name'] = $form->rec->name;
+            $dataArr['email'] = $form->rec->email;
+            $dataArr['description'] = gzcompress($form->rec->description);
+            $dataArr['Lg'] = core_Lg::getCurrent();
+            $dataArr['streamReport'] = true;
+            $dataArr['title'] = $form->rec->title;
+            
+            // use key 'http' even if you send the request to https://...
+            $options = array(
+                'http' => array(
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method' => 'POST',
+                    'content' => http_build_query($dataArr),
+                ),
+            );
+            $context = stream_context_create($options);
+            $url = help_Setup::get('BGERP_SUPPORT_URL', true);
+            $resStr = @file_get_contents($url, false, $context);
+            
+            $msg = null;
+            if ($resStr && is_string($resStr)) {
+                $msg = str::limitLen($resStr, 500);
+            }
+            
+            return new Redirect($retUrl, $msg);
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -271,9 +371,12 @@ class log_Debug extends core_Manager
                 }
                 
                 if (!$rArr['contex']) {
-                    $rArr['contex'] = $rArr['SERVER'];
+                    $rArr['contex'] = (object) $rArr['SERVER'];
                 } else {
-                    $rArr['contex']->_SERVER = $rArr['SERVER'];
+                    $rArr['contex'] = (object) $rArr['contex'];
+                    if ($rArr['SERVER']) {
+                        $rArr['contex']->_SERVER = $rArr['SERVER'];
+                    }
                 }
                 
                 if ($rArr['GET']) {
@@ -577,6 +680,19 @@ class log_Debug extends core_Manager
             
             if ($requiredRoles != 'no_one') {
                 if (!defined('DEBUG_FATAL_ERRORS_PATH')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if ($action == 'report' && $requiredRoles != 'no_one') {
+            if (!defined('DEBUG_FATAL_ERRORS_PATH')) {
+                $requiredRoles = 'no_one';
+            }
+            
+            if ($requiredRoles != 'no_one') {
+                $supportUrl = help_Setup::get('BGERP_SUPPORT_URL', true);
+                if (!$supportUrl || strpos($supportUrl, '//') === false) {
                     $requiredRoles = 'no_one';
                 }
             }

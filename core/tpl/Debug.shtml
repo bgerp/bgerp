@@ -138,6 +138,21 @@ div.simpleTabsContent.currentTab {
     display:block; 
     background-color:#fff;
 }
+.errTitleLink {
+    font-size: 0.9em;
+}
+
+.errTitleLink a {
+    font-size: 1.1em;
+    display: inline-block;
+    margin: 0 10px;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.errTitleLink a:hover {
+    text-decoration: underline;
+}
     </style>
 </head>
 

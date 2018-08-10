@@ -47,12 +47,12 @@ class expert_Dataset extends core_BaseClass
         $cond = trim($cond);
         $expr = trim($expr);
         $name = ltrim($name, '$');
-
+        
         // Избягване на дублирани правила
-        if(is_array($this->rules[$name])) {
-            foreach($this->rules[$name] as $id => $r) {
-                if($r->name == $name && $r->expr == $expr && $r->cond == $cond) {
-                    if($r->priority < $priority) {
+        if (is_array($this->rules[$name])) {
+            foreach ($this->rules[$name] as $id => $r) {
+                if ($r->name == $name && $r->expr == $expr && $r->cond == $cond) {
+                    if ($r->priority < $priority) {
                         unset($this->rules[$name][$id]);
                     } else {
                         // Не записваме това правило, защото има същото
@@ -141,6 +141,9 @@ class expert_Dataset extends core_BaseClass
         } else {
             expect(substr($var, -2) == '[]');
             $array = substr($var, 0, strlen($var) - 2);
+            if (is_string($this->vars[$array])) {
+                $this->vars[$array] = array($this->vars[$array]);
+            }
             $this->vars[$array][] = $value;
         }
         
@@ -319,7 +322,7 @@ class expert_Dataset extends core_BaseClass
                     }
                     
                     // общия рейтинг на текущото правило
-                    if($l == 0) {
+                    if ($l == 0) {
                         $r->rate = 9 + $r->trust + ($r->priority > 0 ? $r->priority : 0);
                     } else {
                         $r->rate = 9 + $r->trust - $l + $r->priority;

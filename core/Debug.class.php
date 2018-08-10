@@ -639,16 +639,38 @@ class core_Debug
             $data['update'] = ht::createLink('Обновяване на системата', (array) $state['update']);
         }
         
-        if ($state['_debugFileName'] && log_Debug::haveRightFor('list')) {
+        // Показваме линковете за работа със сигнала
+        if ($state['_debugFileName']) {
             $bName = basename($state['_debugFileName'], '.debug');
             
             if ($bName) {
-                $data['errTitle'] .= ' - ' . ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
+                $data['errTitle'] .= "<span class = 'errTitleLink'>";
                 
-                $dUrl = fileman_Download::getDownloadUrl($state['_debugFileName'], 1, 'path');
-                if ($dUrl) {
-                    $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
+                $canList = log_Debug::haveRightFor('list');
+                $canReport = log_Debug::haveRightFor('report');
+                
+                if ($canList || $canReport) {
+                    $data['errTitle'] .= ' - ';
                 }
+                
+                if ($canList) {
+                    $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
+                    
+                    $dUrl = fileman_Download::getDownloadUrl($state['_debugFileName'], 1, 'path');
+                    if ($dUrl) {
+                        $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
+                    }
+                }
+                
+                if ($canReport) {
+                    if ($canList) {
+                        $data['errTitle'] .= '|';
+                    }
+                    
+                    $data['errTitle'] .= ht::createLink(tr('сигнал'), array('log_Debug', 'report', 'debugFile' => $bName), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP'));
+                }
+                
+                $data['errTitle'] .= '</span>';
             }
         }
         
@@ -680,6 +702,11 @@ class core_Debug
         
         $state['date'] = dt::now();
         $state['uri'] = str::limitLen($_SERVER['REQUEST_URI'], 255);
+        
+        if (log_Debug::haveRightFor('report') && $state['_debugFileName']) {
+            $bName = basename($state['_debugFileName'], '.debug');
+            $state['signal'] = ht::createLink(tr('Сигнал'), array('log_Debug', 'report', 'debugFile' => $bName), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP'));
+        }
         
         $page = $tpl->render($state);
         
@@ -818,6 +845,8 @@ class core_Debug
             echo isDebug() ? $debugPage : self::getErrorPage($state);
         }
         
+        // Премахваме линковете, които не трябва да се показват
+        $debugPage = preg_replace('/\<span class = \'errTitleLink\'>.*\<\/span>/', '', $debugPage);
         
         // Определяме заглавието на грешката в лога
         $ctr = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
