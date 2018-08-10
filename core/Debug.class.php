@@ -788,6 +788,10 @@ class core_Debug
             }
             
             $contex['BGERP_LAST_STABLE_VERSION'] = core_Setup::CURRENT_VERSION;
+            
+            if (defined('DEBUG_FATAL_ERRORS_PATH')) {
+                $contex['DEBUG_FATAL_ERRORS_PATH'] = DEBUG_FATAL_ERRORS_PATH;
+            }
         }
         
         $state = array('errType' => $errType,

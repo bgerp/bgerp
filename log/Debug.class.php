@@ -553,8 +553,9 @@ class log_Debug extends core_Manager
             $mTime = null;
             $fileName = $iterator->key();
             $path = $iterator->current()->getPath();
+            @$currentDepth = $iterator->getDepth();
             
-            if (!$iterator->isDir()) {
+            if (($currentDepth < 1) && !$iterator->isDir()) {
                 $canShow = true;
                 
                 $search = trim($search);
