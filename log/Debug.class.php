@@ -261,8 +261,9 @@ class log_Debug extends core_Manager
         $form->FNC('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input');
         $form->FNC('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input');
         $form->FNC('debugFile', 'varchar(64)', 'caption=Данни за обратна връзка->Файл, silent, input=hidden');
-        
-        $form->title = 'Сигнал към разработчиците на bgERP';
+
+        $img = ht::createElement('img', array('src' => sbf('img/16/headset.png', '')));
+        $form->title = "|*" . $img . '   |Сигнал към разработчиците на bgERP';
         
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         
