@@ -35,6 +35,9 @@ class rack_PositionType extends type_Varchar
     // var $tdClass = 'centerCol';
     
     
+    const FLOOR_NAME = 'Под||Floor';
+    
+    
     /**
      * Този метод трябва да конвертира от вербално към вътрешно представяне дадената стойност
      */
@@ -45,8 +48,16 @@ class rack_PositionType extends type_Varchar
             return;
         }
         
-        $matches = array();
+        if($value != '1-F-4'){
+            //bp($value);
+        }
         
+        if($value == tr(self::FLOOR_NAME)){
+            
+            return;
+        }
+        
+        $matches = array();
         preg_match('/([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})/i', $value, $matches);
         
         if (!is_array($matches) || count($matches) != 4) {

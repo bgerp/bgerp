@@ -2926,12 +2926,18 @@ span.sharing-history-title {
 
 .summary-holder {
   text-align: left; }
+  .summary-holder table {
+    width: 100%; }
     .summary-holder table td {
       padding: 3px 10px; }
   .summary-holder.borderTop {
     padding-top: 10px;
     margin-top: 10px;
     border-top: 1px solid #cccccc; }
+
+.narrow .summary-holder  table {
+  float: right;
+  width: auto; }
 
 .textInfo {
   padding-top: 20px;
@@ -3061,8 +3067,15 @@ table .eshop-btn {
 .narrow .eshop-btn {
   padding-left: 10px !important; }
   .narrow .eshop-btn.order-btn {
+    clear: both;
     padding-left: 20px !important;
     margin: 10px 0; }
+
+.narrow .cart-view-buttons-top span {
+  margin: 0 3px; }
+
+.narrow .cart-view-buttons-top a {
+  font-size: 0.95em; }
 
   .foldertabs > .tab-row {
     overflow: hidden;

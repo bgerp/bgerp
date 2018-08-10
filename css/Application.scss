@@ -3396,6 +3396,7 @@ fieldset.sharing-history {
 .summary-holder {
 	text-align: left;
 	table {
+		width: 100%;
 		td {
 			padding: 3px 10px;
 		}
@@ -3405,6 +3406,10 @@ fieldset.sharing-history {
 		margin-top: 10px;
 		border-top: 1px solid #ccc;
 	}
+}
+.narrow .summary-holder  table {
+	float: right;
+	width: auto;
 }
 
 .textInfo {
@@ -3567,9 +3572,18 @@ table .eshop-btn {
 .narrow .eshop-btn {
 	padding-left: 10px !important;
 	&.order-btn {
+		clear: both;
 		padding-left: 20px !important;
 		margin: 10px 0;
 	}
+}
+
+.narrow .cart-view-buttons-top span {
+	margin: 0 3px;
+}
+
+.narrow .cart-view-buttons-top a {
+	font-size: 0.95em;
 }
 
 .foldertabs {

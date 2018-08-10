@@ -84,7 +84,7 @@ class rack_RackDetails extends core_Detail
                                    unusable=Неизползваемо,
                                    reserved=Запазено                                     
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
-        $this->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,input=none');
+        $this->FLD('productId', 'key(mvc=cat_Products, select=name,allowEmpty)', 'caption=Артикул,input=none');
         $this->setDbUnique('rackId,row,col');
     }
     
@@ -138,11 +138,12 @@ class rack_RackDetails extends core_Detail
         
         if ($rec->status == 'reserved') {
             $form->setField('productId', 'input=input');
+            $form->setOptions('productId', array() + rack_Products::getInStock($rRec->storeId));
         }
         
         // Ако има палет на това място, или към него е насочено движение
         // То статусът може да е само 'Използваемо'
-        if (!rack_Pallets::isEmpty("{$data->masterRec->num}-{$rec->row}-{$rec->col}")) {
+        if (!rack_Pallets::isEmpty(null, "{$data->masterRec->num}-{$rec->row}-{$rec->col}", null)) {
             setIfNot($rec->status, 'usable');
             $form->setReadOnly('status');
         }
@@ -208,7 +209,7 @@ class rack_RackDetails extends core_Detail
                             
                             if ($used[$pos]) {
                                 if ($rec->status == 'reserved' && $used[$pos] != $rec->productId) {
-                                    $form->setError('nextCol,nextRow', 'В посочената област има други продукти' . "|* [{$pos}]");
+                                    $form->setError('nextCol,nextRow', 'В посочената област има други артикули' . "|* [{$pos}]");
                                 }
                                 if ($rec->status != 'reserved') {
                                     $form->setError('nextCol,nextRow', 'В посочената област има заети позиции' . "|* [{$pos}]");

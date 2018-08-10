@@ -219,7 +219,7 @@ class rack_Racks extends core_Master
         
         list($num, $row, $col) = explode('-', $position);
         
-        expect($num && $row && $col, $num, $row, $col);
+        expect($num && $row && $col, 'Невалиден синтаксис', $num, $row, $col);
         
         $rec = self::fetch("#storeId = {$storeId} AND #num = {$num}");
         
@@ -255,8 +255,9 @@ class rack_Racks extends core_Master
                 return false;
             }
             
-            if ($dRec->status == 'reserved' && $dRec->productId != $productId) {
-                $error = 'Мястото е запазено';
+            if ($dRec->status == 'reserved' && isset($productId) && $dRec->productId != $productId) {
+                $reservedProductName = cat_Products::getTitleById($dRec->productId);
+                $error = "Мястото е запазено за артикул|*: <b>{$reservedProductName}</b>";
                 $status = 'reserved';
                 
                 return false;
@@ -372,8 +373,7 @@ class rack_Racks extends core_Master
                 
                 // Ако е заето с нещо
                 if (!isset($title) && ($pId = $used[$posFull])) {
-                    $prodRec = rack_Products::fetch($pId);
-                    $prodTitle = rack_Products::getVerbal($prodRec, 'productId');
+                    $prodTitle = cat_Products::getTitleById($pId);
                     $attrA = array();
                     $attrA['title'] = $prodTitle;
                     $color = self::getColor($prodTitle, 0, 110);
@@ -396,8 +396,7 @@ class rack_Racks extends core_Master
                     $hint = tr('Запазено място');
                     
                     if ($pId > 0) {
-                        $prodRec = rack_Products::fetch($pId);
-                        $prodTitle = rack_Products::getVerbal($prodRec, 'productId');
+                        $prodTitle = cat_Products::getTitleById($pId);
                         $hint = tr('Запазено място за') . ' ' . $prodTitle;
                     }
                 }
