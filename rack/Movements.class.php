@@ -774,9 +774,17 @@ class rack_Movements extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
+        //@TODO да го махна
+        
         if (haveRole('admin,debug,ceo')) {
             $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
         }
+        
+        if($data->toolbar->buttons['btnAdd']){
+            $data->toolbar->removeBtn('btnAdd');
+        }
+        
+        
     }
     
     
@@ -797,5 +805,4 @@ class rack_Movements extends core_Manager
         
         return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
     }
-    
 }
