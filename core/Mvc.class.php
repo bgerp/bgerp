@@ -623,6 +623,8 @@ class core_Mvc extends core_FieldSet
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
+        } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
+            $query->where("#id IN (${onlyIds})");
         }
         
         $titleFld = $params['titleFld'];

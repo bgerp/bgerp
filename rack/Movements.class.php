@@ -94,16 +94,16 @@ class rack_Movements extends core_Manager
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory,remember');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack,silent');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack,silent');
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,silent');
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', "caption=Движение->Палет,smartCenter,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent");
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,smartCenter,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,smartCenter,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,smartCenter,input=none');
-        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', "caption=Движение->Палет към,smartCenter,input=none");
+        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,smartCenter,input=none');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=none');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
@@ -132,12 +132,12 @@ class rack_Movements extends core_Manager
             $data->form->toolbar->removeBtn('save');
             $data->form->toolbar->addSbBtn('Заявка', 'save', 'id=save, order=9.99280', 'ef_icon = img/16/tick-circle-frame.png,title=Заявяване на движението');
         }
-         
-        if($mvc->haveRightFor('toggle', $rec)){
+        
+        if ($mvc->haveRightFor('toggle', $rec)) {
             $data->form->toolbar->addSbBtn('Започване', 'active', 'id=activate, order=9.99280', 'ef_icon = img/16/control_play.png,title=Започване на движението');
         }
         
-        if($mvc->haveRightFor('done', $rec)){
+        if ($mvc->haveRightFor('done', $rec)) {
             $data->form->toolbar->addSbBtn('Приключване', 'close', 'id=close, order=9.99280', 'ef_icon = img/16/gray-close.png,title=Приключване на движението');
         }
     }
@@ -153,15 +153,15 @@ class rack_Movements extends core_Manager
     {
         $rec = $form->rec;
         
-        if($form->isSubmitted()){
+        if ($form->isSubmitted()) {
             
             // Проверка новата позиция допустима ли е
             if ($rec->positionTo && ($rec->poisition != $rec->positionTo)) {
                 if (!rack_Racks::isPlaceUsable($rec->positionTo, $rec->productId, $rec->storeId, $error, $status)) {
                     if ($status == 'reserved') {
-                       $form->setWarning('positionTo', $error);
+                        $form->setWarning('positionTo', $error);
                     } else {
-                       $form->setError('positionTo', $error);
+                        $form->setError('positionTo', $error);
                     }
                 }
                 
@@ -172,47 +172,51 @@ class rack_Movements extends core_Manager
             
             $mvc->getZoneArr($rec, $quantityInZones);
             
-            if(empty($quantityInZones)){
-                
-                if(empty($rec->packQuantity) && empty($rec->positionTo)){
+            if (empty($quantityInZones)) {
+                if (empty($rec->packQuantity) && empty($rec->positionTo)) {
                     $form->setError('packQuantity,zones,positionTo', 'Не може да се направи празно движение');
                 }
                 
-                if(!empty($rec->packQuantity) && empty($rec->palletId) && empty($rec->positionTo)) {
+                if (!empty($rec->packQuantity) && empty($rec->palletId) && empty($rec->positionTo)) {
                     $form->setError('packQuantity,zones,positionTo', 'Не може количеството да остане на същата позиция');
                 }
                 
-                if($rec->position == $rec->positionTo) {
+                if ($rec->position == $rec->positionTo) {
                     $form->setError('packQuantity,zones,positionTo', 'Не може да се направи празно движение');
                 }
             }
             
-            if(!$form->gotErrors()){
+            if (!$form->gotErrors()) {
                 $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId);
+                
+                if ($availableQuantity < 0) {
+                    $form->setError('packQuantity,zones', 'От този продукт няма достатъчна наличност');
+                }
+                
                 $restQuantity = $availableQuantity - $quantityInZones;
                 
-                if($restQuantity < 0){
+                if ($restQuantity < 0) {
                     $form->setError('packQuantity,zones', 'Количеството по зони е по-голямо от очакваното');
                 }
                 
-                if(!$form->gotErrors()){
+                if (!$form->gotErrors()) {
                     $defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId);
-                    if(empty($rec->packQuantity)){
-                        if(!empty($defQuantity)){
+                    if (empty($rec->packQuantity)) {
+                        if (!empty($defQuantity)) {
                             $rec->packQuantity = $defQuantity / $rec->quantityInPack;
                         } else {
                             $form->setError('packQuantity', 'Въведете количество');
                         }
                     }
-                        
-                    if(!$form->gotErrors()){
+                    
+                    if (!$form->gotErrors()) {
                         $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
                         $rec->state = ($form->cmd == 'active') ? 'active' : (($form->cmd == 'save') ? 'pending' : 'closed');
-                        if($rec->state == 'closed'){
+                        if ($rec->state == 'closed') {
                             $rec->_isCreatedClosed = true;
                         }
                         
-                        if(!empty($rec->position) && empty($rec->positionTo)){
+                        if (!empty($rec->position) && empty($rec->positionTo)) {
                             $rec->positionTo = $rec->position;
                         }
                     }
@@ -225,76 +229,75 @@ class rack_Movements extends core_Manager
     /**
      * Извиква се след успешен запис в модела
      *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Първичния ключ на направения запис
-     * @param stdClass     $rec     Всички полета, които току-що са били записани
-     * @param string|array $fields  Имена на полетата, които sa записани
-     * @param string       $mode    Режим на записа: replace, ignore
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         $zoneListArr = array();
-        if(isset($rec->zones)){
+        if (isset($rec->zones)) {
             $zoneArr = type_Table::toArray($rec->zones);
-            if(count($zoneArr)){
-                 foreach ($zoneArr as $obj){
-                     $zoneListArr[$obj->zone] = $obj->zone;
-                 }
+            if (count($zoneArr)) {
+                foreach ($zoneArr as $obj) {
+                    $zoneListArr[$obj->zone] = $obj->zone;
+                }
             }
         }
         
         $saveAgain = false;
         $updateFields = array();
         
-        if($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true){
-            if(empty($rec->workerId)) {
+        if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
+            if (empty($rec->workerId)) {
                 $saveAgain;
                 $rec->workerId = core_Users::getCurrent('id', false);
                 $updateFields['workerId'] = 'workerId';
             }
         }
         
-        if(empty($rec->zoneList)){
+        if (empty($rec->zoneList)) {
             $saveAgain = true;
             $updateFields['zoneList'] = 'zoneList';
             $rec->zoneList = (count($zoneListArr)) ? keylist::fromArray($zoneListArr) : null;
-       }
-       
-       if($saveAgain === true && count($updateFields)){
-           $mvc->save_($rec, $updateFields);
-       }
-       
-       if($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true){
-           $rollback = ($rec->_canceled === true) ? true : false;
-           $mvc->makeTransaction($rec, $rollback);
-       }
+        }
+        
+        if ($saveAgain === true && count($updateFields)) {
+            $mvc->save_($rec, $updateFields);
+        }
+        
+        if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
+            $rollback = ($rec->_canceled === true) ? true : false;
+            $mvc->makeTransaction($rec, $rollback);
+        }
     }
-    
-    
     
     
     private function makeTransaction($rec, $rollback = false)
     {
         $zoneArr = $this->getZoneArr($rec, $quantityInZones);
+        
         //$restQuantity = $restQuantity - $quantityInZones;
         
-        foreach ($zoneArr as $obj){
+        foreach ($zoneArr as $obj) {
             $sign = ($rollback === true) ? -1 : 1;
-            $quantity =  $obj->quantity * $rec->quantityInPack;
+            $quantity = $obj->quantity * $rec->quantityInPack;
             rack_ZoneDetails::recordMovement($obj->zone, $rec->productId, $rec->packagingId, $sign * $quantity);
         }
         
-        if(!empty($rec->palletId)){
+        if (!empty($rec->palletId)) {
             $direction = ($rollback === false) ? true : false;
             $palletRec = rack_Pallets::fetch($rec->palletId);
             $q = !empty($rec->quantity) ? $rec->quantity : $quantityInZones;
             rack_Pallets::increment($palletRec->productId, $palletRec->storeId, $palletRec->position, $q, $direction);
         }
         
-        if(!empty($rec->positionTo) && ($rec->position != $rec->positionTo)){
+        if (!empty($rec->positionTo) && ($rec->position != $rec->positionTo)) {
             $quantityTo = $rec->quantity - $quantityInZones;
             expect($palletId = rack_Pallets::increment($rec->productId, $rec->storeId, $rec->positionTo, $quantityTo, $rollback));
-            if(empty($rec->palletToId)){
+            if (empty($rec->palletToId)) {
                 $rec->palletToId = $palletId;
                 $this->save_($rec, 'palletToId');
             }
@@ -302,15 +305,14 @@ class rack_Movements extends core_Manager
     }
     
     
-    
     private function getZoneArr($rec, &$quantityInZones)
     {
         $quantityInZones = 0;
         $zoneArr = array();
-        if(isset($rec->zones)){
+        if (isset($rec->zones)) {
             $zoneArr = type_Table::toArray($rec->zones);
-            if(count($zoneArr)){
-                foreach ($zoneArr as $obj){
+            if (count($zoneArr)) {
+                foreach ($zoneArr as $obj) {
                     $quantityInZones += $obj->quantity;
                 }
             }
@@ -318,8 +320,6 @@ class rack_Movements extends core_Manager
         
         return $zoneArr;
     }
-    
-    
     
     
     /**
@@ -330,7 +330,10 @@ class rack_Movements extends core_Manager
      */
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
+        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+            
+            return;
+        }
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
@@ -350,8 +353,7 @@ class rack_Movements extends core_Manager
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setField('storeId', 'input=hidden');
         
-        $form->setOptions('productId', array('' => '') + rack_Products::getInStock());
-        if(isset($rec->productId)){
+        if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
             $form->FNC('stayOnPage', 'enum(yes=Да,no=Не)', 'caption=Продължаване,input,maxRadio=2,remember');
             $permanentName = cls::getClassName($mvc) . '_stayOnPage';
@@ -367,7 +369,7 @@ class rack_Movements extends core_Manager
             $form->setField('packQuantity', 'input');
             
             $zones = rack_Zones::getFreeZones($rec->storeId);
-            if(count($zones)){
+            if (count($zones)) {
                 $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones));
                 $form->setField('zones', 'input');
             } else {
@@ -377,47 +379,47 @@ class rack_Movements extends core_Manager
             // Възможния избор на палети от склада
             $pallets = rack_Pallets::getPalletOptions($rec->productId, $rec->storeId);
             $form->setOptions('palletId', array('' => tr('Под||Floor')) + $pallets);
-           
+            
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             
             // Показване на допустимото количество
             $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId);
-            if($defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId)){
+            if ($defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId)) {
                 $availableQuantity = min($availableQuantity, $defQuantity);
             }
             
-            if($availableQuantity >= 0){
+            if ($availableQuantity >= 0) {
                 $availableQuantity /= $rec->quantityInPack;
                 $availableQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
                 $availableQuantityVerbal = str_replace('&nbsp;', '', $availableQuantityVerbal);
                 $form->setField('packQuantity', "placeholder={$availableQuantityVerbal}");
             }
             
-            if(isset($rec->palletId)){
+            if (isset($rec->palletId)) {
                 
                 // На коя позиция е палета?
                 $form->setField('position', 'input=hidden');
-                if($positionId = rack_Pallets::fetchField($rec->palletId, 'position')){
+                if ($positionId = rack_Pallets::fetchField($rec->palletId, 'position')) {
                     $form->setDefault('position', $positionId);
-                    $form->setField('positionTo', "placeholder=Няма");
+                    $form->setField('positionTo', 'placeholder=Няма');
                 }
             } else {
-                $form->setField('positionTo', "placeholder=Под||Floor");
+                $form->setField('positionTo', 'placeholder=Под||Floor');
             }
             
             // Добавяне на предложения за нова позиция
-            if($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)){
+            if ($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)) {
                 $form->setSuggestions('positionTo', array(tr('Под||Floor') => tr('Под||Floor'), $bestPos => $bestPos));
             }
         }
         
-        if($movementType = Request::get('movementType')){
-            switch($movementType){
+        if ($movementType = Request::get('movementType')) {
+            switch ($movementType) {
                 case 'floor2rack':
                     $form->setField('zones', 'input=none');
                     $form->setField('palletId', 'input=none');
-                    if(isset($bestPos)){
+                    if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
                     }
                     break;
@@ -425,34 +427,34 @@ class rack_Movements extends core_Manager
                     $form->setField('zones', 'input=none');
                     $form->setReadOnly('palletId');
                     $form->setField('positionTo', 'input=hidden');
-                    $form->setField('palletId', 'caption=Сваляне на под->Палет');
-                    $form->setField('note', 'caption=Сваляне на под->Забележка');
+                    $form->setField('palletId', 'caption=Сваляне на пода->Палет');
+                    $form->setField('note', 'caption=Сваляне на пода->Забележка');
                     $form->setDefault('positionTo', tr(rack_PositionType::FLOOR_NAME));
                     break;
                 case 'rack2rack':
                     $form->setField('zones', 'input=none');
                     $form->setReadOnly('palletId');
                     
-                    if(isset($bestPos)){
+                    if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
                     }
                     break;
             }
         }
     }
-        
+    
     
     /**
      * Пренасочва URL за връщане след запис към сингъл изгледа
      */
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        if ($data->form && $data->form->isSubmitted()){
+        if ($data->form && $data->form->isSubmitted()) {
             $rec = $data->form->rec;
             
             if ($rec->stayOnPage == 'yes') {
                 $data->retUrl = toUrl(array('rack_Movements', 'add', 'productId' => $rec->productId, 'movementType' => $rec->movementType));
-            } elseif($data->form->cmd == 'save'){
+            } elseif ($data->form->cmd == 'save') {
                 $data->retUrl = toUrl(array('rack_Movements', 'list'));
             }
         }
@@ -462,12 +464,15 @@ class rack_Movements extends core_Manager
     public static function validateZonesTable($tableData, $Type)
     {
         $tableData = (array) $tableData;
-        if (empty($tableData)) return;
+        if (empty($tableData)) {
+            
+            return;
+        }
         
         $res = $zones = $error = $errorFields = array();
         
         foreach ($tableData['zone'] as $key => $zone) {
-            if(!empty($zone) && empty($tableData['quantity'][$key])){
+            if (!empty($zone) && empty($tableData['quantity'][$key])) {
                 $error[] = 'Липсва количество при избрана зона';
                 $errorFields['quantity'][$key] = 'Липсва количество при избрана зона';
             }
@@ -481,17 +486,17 @@ class rack_Movements extends core_Manager
         }
         
         foreach ($tableData['quantity'] as $key => $quantity) {
-            if(!empty($quantity) && empty($tableData['zone'][$key])){
+            if (!empty($quantity) && empty($tableData['zone'][$key])) {
                 $error[] = 'Зададено количество без зона';
                 $errorFields['zone'][$key] = 'Зададено количество без зона';
             }
             
-            if(empty($quantity)){
+            if (empty($quantity)) {
                 $error[] = 'Количеството не може да е 0';
                 $errorFields['quantity'][$key] = 'Количеството не може да е 0';
             }
             
-            $Double = core_Type::getByName("double");
+            $Double = core_Type::getByName('double');
             $q2 = $Double->fromVerbal($quantity);
             if (!$q2) {
                 $error[] = 'Невалидно количество';
@@ -520,12 +525,12 @@ class rack_Movements extends core_Manager
         // По-хубаво заглавие на формата
         $rec = $data->form->rec;
         
-        switch($rec->movementType){
+        switch ($rec->movementType) {
             case 'floor2rack':
                 $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id, tr('в'));
                 break;
             case 'rack2floor':
-                $title = "Сваляне на палет на пода в склад|* " . cls::get('store_Stores')->getFormTitleLink($rec->storeId);
+                $title = 'Сваляне на палет на пода в склад|* ' . cls::get('store_Stores')->getFormTitleLink($rec->storeId);
                 break;
             default:
                 $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, $mvc->singleTitle, $rec->id, tr('в'));
@@ -568,20 +573,20 @@ class rack_Movements extends core_Manager
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
         
-        $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
-        if(!isset($fields['-inline'])){
+        if (!isset($fields['-inline'])) {
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            $row->palletToId = isset($rec->palletToId) ? rack_Pallets::getTitleById($rec->palletToId) : ((isset($rec->positionTo) ? core_Type::getByName('varchar')->toVerbal($rec->positionTo) : "<span class='quiet'>" . tr('Под||Floor') . "</span>"));
+            $row->palletToId = isset($rec->palletToId) ? rack_Pallets::getTitleById($rec->palletToId) : ((isset($rec->positionTo) ? core_Type::getByName('varchar')->toVerbal($rec->positionTo) : "<span class='quiet'>" . tr('Под||Floor') . '</span>'));
             
-            if(isset($rec->palletToId)) {
+            if (isset($rec->palletToId)) {
                 $row->palletToId = rack_Pallets::getTitleById($rec->palletToId);
             }
             
             // Ре-вербализиране на зоните, да се показват с номерата си
-            if(!empty($rec->zones)){
+            if (!empty($rec->zones)) {
                 $zones = rack_Zones::getFreeZones($rec->storeId);
-                $Type = core_Type::getByName("table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em)");
+                $Type = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em)');
                 $Type->params['zone_opt'] = $zones;
                 $row->zones = $Type->toVerbal($rec->zones);
             }
@@ -595,7 +600,7 @@ class rack_Movements extends core_Manager
             $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         }
         
-        $row->palletId = isset($rec->palletId) ? rack_Pallets::getTitleById($rec->palletId) : "<span class='quiet'>" . tr('Под||Floor') . "</span>";
+        $row->palletId = isset($rec->palletId) ? rack_Pallets::getTitleById($rec->palletId) : "<span class='quiet'>" . tr('Под||Floor') . '</span>';
     }
     
     
@@ -610,12 +615,12 @@ class rack_Movements extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'toggle' && isset($rec->state)){
-            if(!in_array($rec->state, array('pending', 'active'))){
+        if ($action == 'toggle' && isset($rec->state)) {
+            if (!in_array($rec->state, array('pending', 'active'))) {
                 $requiredRoles = 'no_one';
             }
             
-            if($rec->state == 'active' && $rec->workerId != $userId){
+            if ($rec->state == 'active' && $rec->workerId != $userId) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -663,7 +668,7 @@ class rack_Movements extends core_Manager
         $oldState = $rec->state;
         
         $rec->state = ($oldState == 'pending') ? 'active' : 'pending';
-        if($rec->state == 'pending'){
+        if ($rec->state == 'pending') {
             $rec->workerId = null;
             $rec->_canceled = true;
         }
@@ -701,12 +706,12 @@ class rack_Movements extends core_Manager
         $rMvc = cls::get('rack_Racks');
         
         //if ($rec->positionTo) {
-           // $rMvc->updateRacks[$rec->storeId . '-' . $rec->positionTo] = true;
+        // $rMvc->updateRacks[$rec->storeId . '-' . $rec->positionTo] = true;
         //}
         
-       // if ($rec->position) {
-           // $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = true;
-       // }
+        // if ($rec->position) {
+        // $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = true;
+        // }
         
         //core_Cache::remove('UsedRacksPossitions', $rec->storeId);
         
@@ -728,14 +733,14 @@ class rack_Movements extends core_Manager
         $query->where("#storeId = {$storeId} AND #state != 'closed'");
         while ($rec = $query->fetch()) {
             if ($rec->position) {
-                 $res[0][$rec->position] = $rec->productId;
+                $res[0][$rec->position] = $rec->productId;
             }
             
             if ($rec->positionTo) {
-                 $res[1][$rec->positionTo] = $rec->productId;
+                $res[1][$rec->positionTo] = $rec->productId;
             }
         }
-       
+        
         return $res;
     }
     
@@ -746,24 +751,22 @@ class rack_Movements extends core_Manager
         $zoneRec = rack_Zones::fetchRec($zoneId);
         $query = self::getQuery();
         $query->where("#storeId = {$zoneRec->storeId} AND #zones IS NOT NULL AND #state != 'closed'");
-        if(isset($productId)){
+        if (isset($productId)) {
             $query->where("#productId = {$productId}");
         }
         
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $zoneTable = type_Table::toArray($rec->zones);
-            foreach ($zoneTable as $obj){
-                if($obj->zone == $zoneId){
-                   $o = (object)array('productId' => $rec->productId, 'state' => $rec->state, 'palletId' => $rec->palletId, 'quantity' => $obj->quantity);
-                   $res[] = $o;
+            foreach ($zoneTable as $obj) {
+                if ($obj->zone == $zoneId) {
+                    $o = (object) array('productId' => $rec->productId, 'state' => $rec->state, 'palletId' => $rec->palletId, 'quantity' => $obj->quantity);
+                    $res[] = $o;
                 }
             }
         }
         
         return $res;
     }
-    
-    
     
     
     /**
@@ -774,17 +777,9 @@ class rack_Movements extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        //@TODO да го махна
-        
-        if (haveRole('admin,debug,ceo')) {
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
-        }
-        
-        if($data->toolbar->buttons['btnAdd']){
+        if ($data->toolbar->buttons['btnAdd'] && !haveRole('admin,ceo')) {
             $data->toolbar->removeBtn('btnAdd');
         }
-        
-        
     }
     
     
