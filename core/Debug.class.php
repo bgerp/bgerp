@@ -705,7 +705,7 @@ class core_Debug
         
         if (log_Debug::haveRightFor('report') && $state['_debugFileName']) {
             $bName = basename($state['_debugFileName'], '.debug');
-            $state['signal'] = ht::createLink(tr('Сигнал'), array('log_Debug', 'report', 'debugFile' => $bName), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP'));
+            $state['signal'] = ht::createLink(tr('Сигнал'), array('log_Debug', 'report', 'debugFile' => $bName), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/16/headset.png', 'class' => 'signalLink'));
         }
         
         $page = $tpl->render($state);
