@@ -780,6 +780,10 @@ class rack_Movements extends core_Manager
         if ($data->toolbar->buttons['btnAdd'] && !haveRole('admin,ceo')) {
             $data->toolbar->removeBtn('btnAdd');
         }
+
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
+        }
     }
     
     
@@ -788,15 +792,13 @@ class rack_Movements extends core_Manager
      */
     public function act_Truncate()
     {
-        requireRole('admin,debug,ceo');
+        requireRole('debug');
         
         // Изчистваме записите от моделите
         self::truncate();
-        rack_Pallets::truncate();
-        rack_ZoneDetails::truncate();
-        
+         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite('Изтриване на кеша на изгледите на артикула');
+        $this->logWrite('Изтриване на движенията в палетния склад');
         
         return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
     }
