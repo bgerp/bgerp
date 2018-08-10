@@ -117,7 +117,7 @@ class log_Debug extends core_Manager
         $fLink = '';
         
         if ($fArrCnt > 1) {
-            arsort($fArr);
+            $fArr = array_reverse($fArr);
         }
         
         // Показваме линкове за навигиране
@@ -163,7 +163,7 @@ class log_Debug extends core_Manager
         }
         
         // Показваме всички файлове
-        foreach ($fArr as $fNameWithExt => $time) {
+        foreach ($fArr as $fNameWithExt => $dummy) {
             list($fName) = explode('.', $fNameWithExt, 2);
             
             $fPathStr = $this->getDebugFilePath($fName);
@@ -243,7 +243,7 @@ class log_Debug extends core_Manager
     
     /**
      * Екшън за репортване на грешката
-     * 
+     *
      * @return Redirect|ET
      */
     public function act_Report()
@@ -568,7 +568,7 @@ class log_Debug extends core_Manager
                 // Ако се търси определен файл и отговаря на изискванията - го показваме
                 if ($canShow) {
                     $mTime = $iterator->current()->getMTime();
-                    $fArr[$fileName] = $mTime;
+                    $fArr[$fileName] = $mTime . '|' . $fileName;
                 }
                 
                 if ($fName) {
@@ -579,7 +579,7 @@ class log_Debug extends core_Manager
                             }
                             
                             // Ако има друг файл от същия хит
-                            $otherFilesFromSameHitArr[$fileName] = $mTime;
+                            $otherFilesFromSameHitArr[$fileName] = $mTime . '|' . $fileName;
                         }
                     }
                 }
@@ -740,6 +740,8 @@ class log_Debug extends core_Manager
             if (!$delOn) {
                 $delOn = $delTimeMapArr['def'];
             }
+            
+            list($cDate) = explode('|', $cDate, 2);
             
             if ($delOn < $cDate) {
                 continue;
