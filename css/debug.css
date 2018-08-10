@@ -4,10 +4,19 @@ body {
 .headerLine {
   padding: 10px;
   background-color: #333333; }
+  .headerLine .debugActions {
+    display: inline-block;
+    margin-right: 10px; }
+    .headerLine .debugActions:hover {
+      opacity: 0.8; }
+
+form {
+  width: 220px;
+  overflow: hidden; }
 
 .debugLink {
   display: block;
-  padding: 5px 5px 5px 25px;
+  padding: 5px 5px 5px 20px;
   font-size: 0.85em;
   color: #cccccc !important;
   position: relative;
@@ -17,7 +26,7 @@ body {
     .debugLink.current:before {
       content: "\bb \20";
       position: absolute;
-      left: 10px;
+      left: 7px;
       top: 3px; }
   .debugLink.same {
     color: #2ca2bd !important; }
@@ -25,21 +34,28 @@ body {
 .debugPreview {
   padding: 0; }
 
+.debugHolder {
+  resize: horizontal;
+  overflow: hidden;
+  display: flex; }
+
 .debugList {
-  float: left;
+  display: block;
   background-color: #333333;
-  width: 15%;
-  overflow-y: auto; }
+  width: 270px;
+  overflow-y: auto;
+  resize: horizontal;
+  min-width: 10px !important; }
 
 .debugPreview {
-  float: left;
+  flex: auto;
   width: 85%;
   height: 1000px;
   overflow: auto; }
 
 .listFilter {
   display: block;
-  margin: 10px 25px; }
+  margin: 10px; }
   .listFilter input {
     width: 180px;
     background-color: white !important;

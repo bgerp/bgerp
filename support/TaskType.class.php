@@ -32,11 +32,12 @@ class support_TaskType extends core_Mvc
         $fieldset->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, after=typeId, refreshForm, silent');
         $fieldset->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
-        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none');
-        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none');
+        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none, silent');
+        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none, silent');
         $fieldset->FLD('url', 'varchar', 'caption=Данни за обратна връзка->URL, input=none');
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+        $fieldset->FLD('file', 'fileman_FileType(bucket=Support)', 'caption=Файл, input=none');
     }
     
     
@@ -412,6 +413,10 @@ class support_TaskType extends core_Mvc
             }
         }
         
+        if ($row->file) {
+            $resArr['file'] = array('name' => tr('Файл'), 'val' => '[#file#]');
+        }
+        
         if ($resArr['ident']['name']) {
             $resArr['ident']['name'] = tr($Driver->title);
         }
@@ -438,6 +443,7 @@ class support_TaskType extends core_Mvc
         $res['external']['progressBar'] = true;
         $res['external']['driverClass'] = true;
         $res['external']['priority'] = true;
+        $res['external']['file'] = true;
     }
     
     

@@ -2030,11 +2030,17 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->state = 'draft';
                 $rec->brState = 'pending';
                 $rec->pendingSaved = true;
+                // Преизчисляване на запазените количества
                 $sP = cls::get('store_Products');
                 $sP->updateOnShutdown = true;
             }
             
             if ($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
+                // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
+                if($rec->state != 'pending') {
+                    $sP = cls::get('store_Products');
+                    $sP->updateOnShutdown = true;
+                }
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
             }
