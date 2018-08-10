@@ -96,6 +96,10 @@ body.wide {
     }
 }
 
+.narrow .debug_block {
+    display: block !important;
+}
+
 .debugPreview {
     padding: 0;
 }
