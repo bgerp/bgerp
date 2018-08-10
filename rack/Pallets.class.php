@@ -61,7 +61,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'storeId,label,productId,quantity,position,rackId,state,closedOn,createdOn,createdBy';
+    public $listFields = 'label,productId,quantity,position,rackId,createdOn,createdBy';
     
     
     /**
