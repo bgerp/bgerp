@@ -110,7 +110,13 @@ class rack_Racks extends core_Master
      */
     public $updateRacks = array();
     
-    
+
+    /**
+     *
+     */
+    public $recTitleTpl = "|Стелаж|* [#num#]";
+
+
     /**
      * Описание на модела (таблицата)
      */

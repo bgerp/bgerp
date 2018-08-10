@@ -832,9 +832,10 @@ class core_Mvc extends core_FieldSet
             }
             
             if ($fieldName == 'id' && isset($me->singleTitle)) {
-                $cRec->id = tr("|{$me->singleTitle}|* №") . $cRec->id;
+                $cRec->id = "|{$me->singleTitle}|* №" . $cRec->id;
             }
             
+            $tpl->translate();
             $tpl->placeObject($cRec);
             
             $value = (string) $tpl;
