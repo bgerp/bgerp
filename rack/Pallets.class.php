@@ -73,7 +73,7 @@ class rack_Pallets extends core_Manager
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory');
         $this->FNC('uom', 'varchar', 'caption=Мярка,smartCenter');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
         $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
@@ -240,7 +240,7 @@ class rack_Pallets extends core_Manager
         
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,silent');
         
-        $data->listFilter->FLD('pos', 'varchar(10)', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
+        $data->listFilter->FLD('pos', 'rack_PositionType', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
         
         $data->listFilter->showFields = 'productId,pos,state';
         $data->listFilter->view = 'horizontal';
@@ -260,12 +260,12 @@ class rack_Pallets extends core_Manager
         }
         
         if (!$rec->pos) {
-            $rec->pos = Request::get('pos');
+            $rec->pos = Request::get('pos', 'rack_PositionType');
             $data->listFilter->setDefault('pos', $rec->pos);
         }
         
         if ($rec->pos) {
-            $data->query->where(array("#position LIKE UPPER('[#1#]%')", $rec->pos));
+            $data->query->where(array("#position LIKE UPPER('[#1#]')", $rec->pos));
             if (!Request::get('Sort')) {
                 $data->query->orderBy('position', 'ASC');
                 $order = true;

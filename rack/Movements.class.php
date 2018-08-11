@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,packagingId,zones=Нагласяне,packQuantity,palletId=От,palletToId=Към,workerId=Изпълнител,note,createdOn,createdBy';
+    public $listFields = 'productId,packagingId,zones=Нагласяне,packQuantity,palletId=От,palletToId=Към,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
     
     
     /**
@@ -112,7 +112,7 @@ class rack_Movements extends core_Manager
         $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter,input=none');
         $this->FLD('workerId', 'user', 'caption=Движение->Товарач,smartCenter,input=none');
         
-        $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
+        $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none,smartCenter');
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
     }
     
