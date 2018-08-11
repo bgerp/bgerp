@@ -87,6 +87,18 @@ class rack_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Връзка между ЕН-то и палетния склад', 'rack_plg_Shipments', 'store_ShipmentOrders', 'private');
         
+        // Залагаме в cron
+        $rec = new stdClass();
+        $rec->systemId = 'Update Racks';
+        $rec->description = 'Обновяване на информацията за стелажите';
+        $rec->controller = 'rack_Racks';
+        $rec->action = 'update';
+        $rec->period = 60;
+        $rec->offset = rand(5, 55);
+        $rec->delay = 0;
+        $rec->timeLimit = 20;
+        $html .= core_Cron::addOnce($rec);
+        
         return $html;
     }
     
@@ -118,7 +130,7 @@ class rack_Setup extends core_ProtoSetup
      */
     public function truncateOldRecs()
     {
-        foreach (array('rack_Pallets', 'rack_RackDetails', 'rack_Zones', 'rack_ZoneDetails', 'rack_Movements') as $class){
+        foreach (array('rack_Pallets', 'rack_RackDetails', 'rack_Zones', 'rack_ZoneDetails', 'rack_Movements') as $class) {
             $Class = cls::get($class);
             $Class->setupMvc();
             $Class->truncate();

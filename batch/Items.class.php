@@ -425,7 +425,7 @@ class batch_Items extends core_Master
         $data->Tab = 'top';
         $data->recs = $data->rows = array();
         
-        $attr = array('title' => 'История на движенията');
+        $attr = array('title' => 'Хронология на движенията');
         $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
         
         // Подготвяме формата за филтър по склад

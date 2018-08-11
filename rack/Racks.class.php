@@ -25,9 +25,15 @@ class rack_Racks extends core_Master
     
     
     /**
+     * Брой елементи на страница
+     */
+    public $itemsPerPage = 100;
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, rack_Wrapper,plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, rack_Wrapper,plg_SaveAndNew,plg_Sorting';
     
     
     /**
@@ -110,13 +116,10 @@ class rack_Racks extends core_Master
      */
     public $updateRacks = array();
     
-
-    /**
-     *
-     */
-    public $recTitleTpl = "|Стелаж|* [#num#]";
-
-
+    
+    public $recTitleTpl = '|Стелаж|* [#num#]';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -153,7 +156,7 @@ class rack_Racks extends core_Master
             }
         }
         
-        return new Redirect(array($this), 'Позицията|* {$pos} |не може да бъде открита', 'error');
+        return new Redirect(array($this), "Позицията|* {$pos} |не може да бъде открита", 'error');
     }
     
     
@@ -192,6 +195,8 @@ class rack_Racks extends core_Master
                 $rec->columns = $lastRec->columns;
                 $rec->constrColumnsStep = $lastRec->constrColumnsStep;
             }
+        } else {
+            $form->setReadOnly('num');
         }
     }
     
@@ -563,20 +568,41 @@ class rack_Racks extends core_Master
         foreach ($mvc->updateRacks as $position => $true) {
             list($storeId, $num, $row, $col) = explode('-', $position);
             if ($storeId > 0 && $num > 0) {
-                
-                // Изчисляваме заетите палети
-                $pQuery = rack_Pallets::getQuery();
-                $pQuery->where("#storeId = {$storeId} AND #position LIKE '{$num}-%'");
-                $usedCnt = $pQuery->count();
-                
                 // Записваме в информацията за палета
                 $rec = $mvc->fetch("#storeId = {$storeId} AND #num = {$num}");
                 if ($rec) {
-                    $rec->used = $usedCnt;
-                    $mvc->save_($rec, 'used');
+                    self::updateRack($rec);
                 }
             }
             unset($mvc->updateRacks[$position]);
+        }
+    }
+    
+    
+    /**
+     * Обновява информацията за посочения стелаж
+     */
+    public static function updateRack($rec)
+    {
+        // Изчисляваме заетите палети
+        $pQuery = rack_Pallets::getQuery();
+        $pQuery->where("#storeId = {$rec->storeId} AND #position LIKE '{$rec->num}-%' AND #state = 'active'");
+        $usedCnt = $pQuery->count();
+        
+        $rec->used = $usedCnt;
+        $rR = cls::get('rack_Racks');
+        $rR->save_($rec, 'used');
+    }
+    
+    
+    /**
+     * Зипълнява се по крон и обновява информацията за стелажите
+     */
+    public static function cron_Update()
+    {
+        $query = self::getQuery();
+        while ($rec = $query->fetch()) {
+            self::updateRack($rec);
         }
     }
     
