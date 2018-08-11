@@ -245,7 +245,7 @@ class blogm_Comments extends core_Detail
         $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
         
         // Ако в името на сайта има директория
-        $sr += explode('/', $rec->web) > 2 ? 0.5 : 0;
+        $sr += explode('/', $rec->web) > 2 ? 1 : 0;
         
         // Ако има линкове в описанието
         $sr += self::hasWord($rec->comment, array('href=', 'src='));
@@ -271,7 +271,7 @@ class blogm_Comments extends core_Detail
         
         // Ако е написано за под 65 секунди
         if (isset($rec->userDelay) && $rec->userDelay < 65) {
-            $sr += 0.5;
+            ++$sr;
         }
         
         // Ако е написано за над 24 часа

@@ -907,7 +907,7 @@ class acc_Balances extends core_Master
 
                 // Ако има номенклатури, правим линк към обобщението на сметката
                 if ($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) {
-                    $balImg = ($showIcon) ? 'ef_icon=img/16/filter.png' : null;
+                    $balImg = ($showIcon) ? 'ef_icon=img/16/filter.png,title=Разбивка по пера на сметката' : null;
 
                     $title = ht::createLink(
 
@@ -923,7 +923,7 @@ class acc_Balances extends core_Master
 
                     // Ако няма номенклатури, линка е към хронологията на сметката
                     if (acc_BalanceDetails::haveRightFor('history', (object) array())) {
-                        $balImg = ($showIcon) ? 'ef_icon=img/16/clock_history.png' : null;
+                        $balImg = ($showIcon) ? 'ef_icon=img/16/clock_history.png,title=Хронология на сметката' : null;
 
                         $title = ht::createLink(
 

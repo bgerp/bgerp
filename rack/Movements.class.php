@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,packagingId,zones=Нагласяне,packQuantity,palletId=От,palletToId=Към,workerId,note,createdOn,createdBy';
+    public $listFields = 'productId,packagingId,zones=Нагласяне,packQuantity,palletId=От,palletToId=Към,workerId=Изпълнител,note,createdOn,createdBy';
     
     
     /**
@@ -649,6 +649,10 @@ class rack_Movements extends core_Manager
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+
+        if($palletId = Request::get('palletId', 'int')) {
+            $data->query->where("#palletId = {$palletId} OR #palletToId = {$palletId}");
+        }
         
         $data->listFilter->showFields = 'search';
         $data->listFilter->view = 'horizontal';
@@ -780,7 +784,7 @@ class rack_Movements extends core_Manager
         if ($data->toolbar->buttons['btnAdd'] && !haveRole('admin,ceo')) {
             $data->toolbar->removeBtn('btnAdd');
         }
-
+        
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
         }
@@ -796,7 +800,7 @@ class rack_Movements extends core_Manager
         
         // Изчистваме записите от моделите
         self::truncate();
-         
+        
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite('Изтриване на движенията в палетния склад');
         
