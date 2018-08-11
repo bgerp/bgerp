@@ -61,9 +61,11 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,productId,quantity,position,rackId,createdOn,createdBy';
+    public $listFields = 'label,position,productId,uom=Мярка,quantity';
     
-    
+    public $rowToolsField = 'pallet';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -72,8 +74,9 @@ class rack_Pallets extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,mandatory');
+        $this->FNC('uom', 'varchar', 'caption=Мярка,smartCenter');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
-        $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol');
+        $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter,input=none,after=productId');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
@@ -452,26 +455,33 @@ class rack_Pallets extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-        if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->state != 'closed') {
-            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $addUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'palletId' => $rec->id, 'packagingId' => $measureId, 'packQuantity' => $rec->quantity, 'ret_url' => true);
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {   
+        if ($fields['-list']) {
             
-            $row->_rowTools->addLink('Преместване', $addUrl + array('movementType' => 'rack2rack'), 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет');
-            $row->_rowTools->addLink('Сваляне', $addUrl + array('movementType' => 'rack2floor'), 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода');
+            $uomId = cat_Products::fetch($rec->productId)->measureId;
             
-            $row->label = ht::createLink('', $addUrl + array('movementType' => 'rack2rack'), null, 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет') . '&nbsp;' . $row->label;
-            $row->label = ht::createLink('', $addUrl + array('movementType' => 'rack2floor'), null, 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода') . '&nbsp;' . $row->label;
-        }
-        
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
-        $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
-        
-        if (isset($rec->rackId)) {
-            $row->rackId = rack_Racks::getHyperlink($rec->rackId, true);
+            if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->state != 'closed') {
+                $addUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'palletId' => $rec->id, 'packagingId' => $uomId, 'packQuantity' => $rec->quantity, 'ret_url' => true);
+                
+                $row->_rowTools->addLink('Преместване', $addUrl + array('movementType' => 'rack2rack'), 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет');
+                $row->_rowTools->addLink('Сваляне', $addUrl + array('movementType' => 'rack2floor'), 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода');
+                $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
+
+                $row->label .= '&nbsp;&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2rack'), null, 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет') ;
+                $row->label .= '&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2floor'), null, 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода') ;
+            }
+            
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+            $row->uom =  cat_UoM::getShortName($uomId);
+
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
+            
+            if (isset($rec->rackId)) {
+                $row->rackId = rack_Racks::getHyperlink($rec->rackId, true);
+            }
         }
     }
     
