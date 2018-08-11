@@ -274,29 +274,38 @@ class rack_Movements extends core_Manager
         }
     }
     
-    
+
+    /**
+     * Изпълнява посоченото движение
+     */
     private function makeTransaction($rec, $rollback = false)
     {
         $zoneArr = $this->getZoneArr($rec, $quantityInZones);
         
         //$restQuantity = $restQuantity - $quantityInZones;
-        
+
+         
         foreach ($zoneArr as $obj) {
             $sign = ($rollback === true) ? -1 : 1;
             $quantity = $obj->quantity * $rec->quantityInPack;
             rack_ZoneDetails::recordMovement($obj->zone, $rec->productId, $rec->packagingId, $sign * $quantity);
         }
         
+        $exPalletId = null;
         if (!empty($rec->palletId)) {
             $direction = ($rollback === false) ? true : false;
             $palletRec = rack_Pallets::fetch($rec->palletId);
             $q = !empty($rec->quantity) ? $rec->quantity : $quantityInZones;
             rack_Pallets::increment($palletRec->productId, $palletRec->storeId, $palletRec->position, $q, $direction);
+            $palletRec = rack_Pallets::fetch($rec->palletId);
+            if($palletRec->state == 'closed') {
+                $exPalletId = $palletRec->id;
+            }
         }
-        
+    
         if (!empty($rec->positionTo) && ($rec->position != $rec->positionTo)) {
             $quantityTo = $rec->quantity - $quantityInZones;
-            expect($palletId = rack_Pallets::increment($rec->productId, $rec->storeId, $rec->positionTo, $quantityTo, $rollback));
+            expect($palletId = rack_Pallets::increment($rec->productId, $rec->storeId, $rec->positionTo, $quantityTo, $rollback, $exPalletId));
             if (empty($rec->palletToId)) {
                 $rec->palletToId = $palletId;
                 $this->save_($rec, 'palletToId');
@@ -589,7 +598,8 @@ class rack_Movements extends core_Manager
         
         if (!isset($fields['-inline'])) {
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            $row->palletToId = isset($rec->palletToId) ? rack_Pallets::getTitleById($rec->palletToId) : ((isset($rec->positionTo) ? core_Type::getByName('varchar')->toVerbal($rec->positionTo) : "<span class='quiet'>" . tr('Под||Floor') . '</span>'));
+            
+            $row->palletToId = isset($rec->palletToId) ? rack_Pallets::getTitleById($rec->palletToId) : ((isset($rec->positionTo) ? $mvc->getVerbal($rec, 'positionTo') : "<span class='quiet'>" . tr('Под||Floor') . '</span>'));
             
             if (isset($rec->palletToId)) {
                 $row->palletToId = rack_Pallets::getTitleById($rec->palletToId);
