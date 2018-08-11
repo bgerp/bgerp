@@ -839,7 +839,7 @@ class acc_BalanceDetails extends core_Detail
         if ($mvc->isDetailed()) {
             $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
             $url = array('acc_BalanceHistory', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
-            $row->history = ht::createLink($histImg, $url, null, 'title=Подробен преглед');
+            $row->history = ht::createLink($histImg, $url, null, 'title=Хронология на сметката по тези пера'); 
             $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
             
             foreach (range(1, 3) as $i) {
