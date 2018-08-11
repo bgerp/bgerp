@@ -119,15 +119,16 @@ class rack_Products extends store_Products
         
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            
             $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'packQuantity' => $rec->quantityNotOnPallets, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet2.png,title=Палетиране на артикул');
             
             $row->quantityNotOnPallets = ht::createLink('', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), false, 'ef_icon=img/16/pallet2.png,title=Палетиране на артикул') . '&nbsp;' . $row->quantityNotOnPallets ;
             
-            rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId, $measureId);
+            //rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId, $measureId);
         }
         
         if ($rec->quantityOnPallets > 0) {
-            $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула');
+            $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула');
             $row->quantityOnPallets =   ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула') . '&nbsp;' . $row->quantityOnPallets;
         }
     }
