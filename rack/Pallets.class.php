@@ -385,7 +385,7 @@ class rack_Pallets extends core_Manager
         expect($position);
         $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
         
-        if ($rec = self::fetch("#storeId = {$storeId} AND #position = '{$position}' AND #productId != '{$productId}'")) {
+        if ($rec = self::fetch("#storeId = {$storeId} AND #position = '{$position}' AND #productId != '{$productId}' AND #state = 'active'")) {
             $prodTitle = cat_Products::getTitleById($rec->productId);
             $error = "Тази позиция е заета от артикул|*: <b>{$prodTitle}</b>";
             
