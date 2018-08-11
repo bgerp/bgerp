@@ -293,11 +293,17 @@ class rack_Pallets extends core_Manager
      *
      * @return stdClass $rec    - записа на палета
      */
-    public static function increment($productId, $storeId, $position, $quantity, $reverse = false)
+    public static function increment($productId, $storeId, $position, $quantity, $reverse = false, $palletId = NULL)
     {
-        // Има ли палет на тази позиция
-        $rec = self::fetch(array("#position = '[#1#]' AND #state != 'closed'", $position));
-        
+        if($palletId && ($rec = self::fetch($palletId))) {
+            $rec->position = $position;
+            $rec->state    = 'active';
+            $rec->closedOn = null;
+        } else {
+            // Има ли палет на тази позиция
+            $rec = self::fetch(array("#position = '[#1#]' AND #state != 'closed'", $position));
+        }
+      
         // Ако няма палет се създава нов
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position);
@@ -311,9 +317,9 @@ class rack_Pallets extends core_Manager
             $sign = ($reverse === false) ? 1 : -1;
             $incrementQuantity = $sign * $quantity;
             $rec->quantity += $incrementQuantity;
-            self::save($rec, 'quantity,state,closedOn');
+            self::save($rec, 'position,quantity,state,closedOn');
             
-            $msg = "Промяна на стилаж на|*: <b>{$incrementQuantity}</b>";
+            $msg = "Промяна на палет на|*: <b>{$incrementQuantity}</b>";
         }
         
         if (haveRole('debug')) {
