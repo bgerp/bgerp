@@ -27,7 +27,7 @@ class rack_Racks extends core_Master
     /**
      * Брой елементи на страница
      */
-    public $itemsPerPage = 100;
+    public $listItemsPerPage = 100;
     
     
     /**

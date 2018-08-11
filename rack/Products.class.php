@@ -195,12 +195,13 @@ class rack_Products extends store_Products
      * Връща достъпните продаваеми артикули
      */
     public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
-    {
+    {   
+        $storeId = store_Stores::getCurrent();
         $query = store_Products::getQuery();
-        $query->XPR('onlyIds', 'text', 'GROUP_CONCAT(`store_products`.`product_id`)');
-        $query->groupBy('NULL');
-        $query->show('productId,onlyIds');
-        
+        $query->groupBy('productId');
+        $query->show('productId');
+        $query->where("#storeId = {$storeId}");
+
         if ($onlyIds) {
             if (is_array($onlyIds)) {
                 $onlyIds = implode(',', $onlyIds);
@@ -208,12 +209,12 @@ class rack_Products extends store_Products
             $onlyIds = trim($onlyIds, ',');
             $query->where("#productId IN ({$onlyIds})");
         }
-        
-        $rec = $query->fetch();
-        
-        $onlyIds = $rec->onlyIds;
-        $onlyIds = trim($onlyIds, ',');
 
+        $onlyIds = array();
+        while($rec = $query->fetch()) {
+            $onlyIds[$rec->productId] = $rec->productId;
+        }
+     
         $products = array();
         $pQuery = cat_Products::getQuery();
         
@@ -224,7 +225,7 @@ class rack_Products extends store_Products
             }
             $ids = implode(',', $onlyIds);
             $ids = trim($ids, ',');
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             $pQuery->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $pQuery->where("#id = ${onlyIds}");
