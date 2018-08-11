@@ -302,6 +302,18 @@ class rack_Movements extends core_Manager
                 $this->save_($rec, 'palletToId');
             }
         }
+
+        core_Cache::remove('UsedRacksPossitions', $rec->storeId);
+        
+        $rMvc = cls::get('rack_Racks');
+        
+        if ($rec->positionTo) {
+            $rMvc->updateRacks[$rec->storeId . '-' . $rec->positionTo] = true;
+        }
+        
+        if ($rec->position) {
+            $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = true;
+        }
     }
     
     
@@ -694,33 +706,9 @@ class rack_Movements extends core_Manager
         expect($rec = $this->fetch($id));
         $this->requireRightFor('done', $rec);
         
-        
-        // Действия при приключване на движението
-        //$pRec = rack_Pallets::fetch($rec->palletId);
-        //$pRec->position = $rec->positionTo;
-        
-        //$pMvc = cls::get('rack_Pallets');
-        //$pMvc->save_($pRec, 'position');
-        
         $rec->state = 'closed';
         $this->save($rec, 'state');
-        
-        core_Cache::remove('UsedRacksPossitions', $rec->storeId);
-        
-        $rMvc = cls::get('rack_Racks');
-        
-        //if ($rec->positionTo) {
-        // $rMvc->updateRacks[$rec->storeId . '-' . $rec->positionTo] = true;
-        //}
-        
-        // if ($rec->position) {
-        // $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = true;
-        // }
-        
-        //core_Cache::remove('UsedRacksPossitions', $rec->storeId);
-        
-        //$rMvc->on_Shutdown($rMvc);
-        
+                 
         followretUrl(array($this));
     }
     
