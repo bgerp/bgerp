@@ -868,7 +868,7 @@ class cat_Products extends embed_Manager
             
             'groupId',
             
-            'key(mvc=cat_Groups,select=name,allowEmpty)',
+            'key2(mvc=cat_Groups,select=name,allowEmpty)',
                 'placeholder=Групи,input,silent,remember,autoFilter'
         
         );
@@ -885,7 +885,7 @@ class cat_Products extends embed_Manager
     {
         static::expandFilter($data->listFilter);
         
-        $data->listFilter->input(NULL, 'silent');
+        $data->listFilter->input(null, 'silent');
         $defOrder = 'standard';
         if ($data->listFilter->rec->groupId) {
             $defOrder = 'all';
@@ -1189,7 +1189,7 @@ class cat_Products extends embed_Manager
     /**
      * Връща ДДС на даден продукт
      *
-     * @param int  $productId - Ид на продукт
+     * @param int      $productId - Ид на продукт
      * @param DateTime $date      - Дата към която начисляваме ДДС-то
      *
      * @return float $vat - ДДС-то на продукта:
@@ -1838,12 +1838,12 @@ class cat_Products extends embed_Manager
      * 		- детайлно    : винаги връщаме детайлното описание
      * 		- кратко      : връщаме краткото описание
      *
-     * @param mixed               $id                - ид или запис на артикул
-     * @param datetime            $time              - време
-     * @param string              $mode              - режим на показване
-     * @param string              $lang              - език
-     * @param int                 $componentQuantity - к-во на компонентите
-     * @param bool                $showCode          - да се показва ли кода до името или не
+     * @param mixed    $id                - ид или запис на артикул
+     * @param datetime $time              - време
+     * @param string   $mode              - режим на показване
+     * @param string   $lang              - език
+     * @param int      $componentQuantity - к-во на компонентите
+     * @param bool     $showCode          - да се показва ли кода до името или не
      *
      * @return mixed $res
      *               ако $mode e 'auto'     - ако артикула е частен се връща детайлното описание, иначе краткото
@@ -1944,7 +1944,7 @@ class cat_Products extends embed_Manager
     /**
      * Връща последната активна рецепта на артикула
      *
-     * @param mixed            $id   - ид или запис
+     * @param mixed  $id   - ид или запис
      * @param string $type - вид работна или търговска
      *
      * @return mixed $res - записа на рецептата или FALSE ако няма
@@ -2374,10 +2374,10 @@ class cat_Products extends embed_Manager
     /**
      * Връща складовата (средно притеглената цена) на артикула в подадения склад за количеството
      *
-     * @param float      $quantity  - к-во
-     * @param int        $productId - ид на артикула
-     * @param datetime   $date      - към коя дата
-     * @param string     $storeId   - склада
+     * @param float    $quantity  - к-во
+     * @param int      $productId - ид на артикула
+     * @param datetime $date      - към коя дата
+     * @param string   $storeId   - склада
      *
      * @return mixed $amount   - сумата или NULL ако няма
      */
@@ -2475,7 +2475,7 @@ class cat_Products extends embed_Manager
     /**
      * Връща готовото описание на артикула
      *
-     * @param mixed                         $id
+     * @param mixed  $id
      * @param string $documentType
      *
      * @return core_ET

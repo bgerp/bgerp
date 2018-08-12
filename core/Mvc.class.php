@@ -611,6 +611,12 @@ class core_Mvc extends core_FieldSet
     {
         $query = self::getQuery();
         
+        if (isset($params['orderBy'])) {
+            $query->orderBy($params['orderBy']);
+        } elseif (isset($params['titleFld'])) {
+            $query->orderBy($params['titleFld']);
+        }
+        
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
                 
