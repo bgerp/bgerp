@@ -274,7 +274,7 @@ class rack_Movements extends core_Manager
         }
     }
     
-
+    
     /**
      * Изпълнява посоченото движение
      */
@@ -283,8 +283,8 @@ class rack_Movements extends core_Manager
         $zoneArr = $this->getZoneArr($rec, $quantityInZones);
         
         //$restQuantity = $restQuantity - $quantityInZones;
-
-         
+        
+        
         foreach ($zoneArr as $obj) {
             $sign = ($rollback === true) ? -1 : 1;
             $quantity = $obj->quantity * $rec->quantityInPack;
@@ -298,11 +298,11 @@ class rack_Movements extends core_Manager
             $q = !empty($rec->quantity) ? $rec->quantity : $quantityInZones;
             rack_Pallets::increment($palletRec->productId, $palletRec->storeId, $palletRec->position, $q, $direction);
             $palletRec = rack_Pallets::fetch($rec->palletId);
-            if($palletRec->state == 'closed') {
+            if ($palletRec->state == 'closed') {
                 $exPalletId = $palletRec->id;
             }
         }
-    
+        
         if (!empty($rec->positionTo) && ($rec->position != $rec->positionTo)) {
             $quantityTo = $rec->quantity - $quantityInZones;
             expect($palletId = rack_Pallets::increment($rec->productId, $rec->storeId, $rec->positionTo, $quantityTo, $rollback, $exPalletId));
@@ -311,7 +311,7 @@ class rack_Movements extends core_Manager
                 $this->save_($rec, 'palletToId');
             }
         }
-
+        
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
         
         $rMvc = cls::get('rack_Racks');
@@ -455,6 +455,9 @@ class rack_Movements extends core_Manager
                 case 'rack2rack':
                     $form->setField('zones', 'input=none');
                     $form->setReadOnly('palletId');
+                    $form->setField('palletId', 'caption=Преместване на нова позиция->Палет');
+                    $form->setField('positionTo', 'caption=Преместване на нова позиция->Позиция');
+                    $form->setField('note', 'caption=Преместване на нова позиция->Забележка');
                     
                     if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
@@ -671,8 +674,8 @@ class rack_Movements extends core_Manager
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
-
-        if($palletId = Request::get('palletId', 'int')) {
+        
+        if ($palletId = Request::get('palletId', 'int')) {
             $data->query->where("#palletId = {$palletId} OR #palletToId = {$palletId}");
         }
         
@@ -718,7 +721,7 @@ class rack_Movements extends core_Manager
         
         $rec->state = 'closed';
         $this->save($rec, 'state');
-                 
+        
         followretUrl(array($this));
     }
     

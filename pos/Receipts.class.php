@@ -737,7 +737,7 @@ class pos_Receipts extends core_Master
         }
         
         $browserInfo = Mode::get('getUserAgent');
-        if (strrpos($browserInfo, 'Android') !== false) {
+        if (stripos($browserInfo, 'Android') !== false) {
             $htmlScan = "<input type='button' class='webScan {$disClass}' {$disabled} id='webScan' name='scan' onclick=\"document.location = 'http://zxing.appspot.com/scan?ret={$absUrl}?ean={CODE}'\" value='Scan' />";
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
