@@ -1,8 +1,8 @@
- <?php
+<?php
 
 
 /**
- * Логическо действие за присвояване на стойност
+ * Логическо действие за подаване сигнал към изход на контролер
  *
  *
  * @category  bgerp
@@ -14,21 +14,21 @@
  *
  * @since     v 0.1
  */
-class sens2_ScriptActionAssign
+class sens2_script_ActionSignal
 {
-    public $oldClassName = 'sens2_LogicActionAssign';
+    public $oldClassName = 'sens2_ScriptActionSignal';
     
     
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'sens2_ScriptActionIntf';
+    public $interfaces = 'sens2_script_ActionIntf';
     
     
     /**
      * Наименование на действието
      */
-    public $title = 'Задаване на променлива';
+    public $title = 'Изходящ сигнал';
     
     
     /**
@@ -38,28 +38,39 @@ class sens2_ScriptActionAssign
      */
     public function prepareActionForm(&$form)
     {
-        $form->FLD('varId', 'varchar', 'caption=Променлива,mandatory,oldFieldName=var,silent');
-        $form->FLD('expr', 'text(rows=2)', 'caption=Нова стойност на променливата->Израз,width=100%,mandatory');
-        $form->FLD('cond', 'text(rows=2)', 'caption=Условие за да се присвои->Израз,width=100%');
+        $form->FLD('output', 'varchar', 'caption=Изход,mandatory');
+        $form->FLD('expr', 'text(rows=2)', 'caption=Израз,width=100%,mandatory');
+        $form->FLD('cond', 'text(rows=2)', 'caption=Условие,width=100%');
         
-        $vars = sens2_ScriptDefinedVars::getContex($form->rec->scriptId);
-        foreach ($vars as $i => $v) {
-            $suggestions[$i] = $i;
-            $opt[$i] = $i;
-        }
-        
-        $inds = sens2_Indicators::getContex();
-        foreach ($inds as $i => $v) {
-            $suggestions[$i] = $i;
-        }
+        $opt = self::getOutputOpts();
         
         if (!count($opt)) {
-            redirect(array('sens2_Scripts', 'single', $vars), false, '|Моля, дефинирайте поне една променлива');
+            redirect(array('sens2_Controllers'), false, '|Моля, въведете поне един контролер с изход');
         }
-        $form->setOptions('varId', $opt);
-        asort($suggestions);
+        $form->setOptions('output', array('' => '') + $opt);
+
+        $suggestions = sens2_script_Helper::getSuggestions($form->rec->scriptId);
         $form->setSuggestions('expr', $suggestions);
         $form->setSuggestions('cond', $suggestions);
+    }
+    
+    
+    /**
+     * Връща масив с опциите за изходите
+     */
+    public static function getOutputOpts()
+    {
+        $cQuery = sens2_Controllers::getQuery();
+        while ($cRec = $cQuery->fetch("#state = 'active'")) {
+            $ports = sens2_Controllers::getActivePorts($cRec->id, 'outputs');
+            foreach ($ports as $port => $pObj) {
+                $opt[$pObj->title] = $pObj->title;
+                list($ctr, ) = explode('->', $pObj->title);
+                $opt[$ctr . '->' . $port] = $ctr . '->' . $port;
+            }
+        }
+        
+        return $opt;
     }
     
     
@@ -76,16 +87,16 @@ class sens2_ScriptActionAssign
     
     public function toVerbal($rec)
     {
-        $varId = sens2_Scripts::highliteExpr($rec->varId, $rec->scriptId);
+        $opt = self::getOutputOpts();
+        $output = sens2_Scripts::highliteExpr($rec->output, $rec->scriptId);
+        if (!isset($opt[$rec->output])) {
+            $output = "<span style='border-bottom:dashed 1px red;'>{$output}</span>";
+        }
+        
         $expr = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
         $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
         
         $res = "{$output} = {$expr}";
-        if ($rec->cond) {
-            $res .= ", ако {$cond}";
-        }
-        
-        $res = "{$varId} = {$expr}";
         if ($rec->cond) {
             $res .= ", ако {$cond}";
         }
@@ -120,9 +131,9 @@ class sens2_ScriptActionAssign
         }
         
         // Задаваме го на изхода
-        $res = sens2_ScriptDefinedVars::setValue($rec->scriptId, $rec->varId, $value);
+        $res = sens2_Controllers::setOutput($rec->output, $value);
         
-        if ($res !== false) {
+        if (is_array($res)) {
             
             return 'active';
         }

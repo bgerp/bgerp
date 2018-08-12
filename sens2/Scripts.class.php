@@ -67,7 +67,7 @@ class sens2_Scripts extends core_Master
     /**
      * Детайли на блока
      */
-    public $details = 'sens2_ScriptDefinedVars,sens2_ScriptActions';
+    public $details = 'sens2_script_DefinedVars,sens2_script_Actions';
     
     
     /**
@@ -142,7 +142,7 @@ class sens2_Scripts extends core_Master
         $query = self::getQuery();
         $query->orderBy('#order');
         while ($rec = $query->fetch("#state = 'active'")) {
-            sens2_ScriptActions::runScript($rec->id);
+            sens2_script_Actions::runScript($rec->id);
             $rec->lastRun = dt::verbal2mysql();
             self::save($rec);
         }
@@ -156,7 +156,7 @@ class sens2_Scripts extends core_Master
     {
         // Намираме и сортираме контекста
         $contex = sens2_Indicators::getContex();
-        $contex += sens2_ScriptDefinedVars::getContex($scriptId);
+        $contex += sens2_script_DefinedVars::getContex($scriptId);
         uksort($contex, 'str::sortByLengthReverse');
         
         // Заместваме променливите и индикаторите
@@ -197,7 +197,7 @@ class sens2_Scripts extends core_Master
             foreach ($inds as $name => $value) {
                 $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
             }
-            $vars = sens2_ScriptDefinedVars::getContex($scriptId);
+            $vars = sens2_script_DefinedVars::getContex($scriptId);
             foreach ($vars as $name => $value) {
                 $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
             }

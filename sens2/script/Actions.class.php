@@ -14,9 +14,9 @@
  *
  * @since     v 0.1
  */
-class sens2_ScriptActions extends core_Detail
+class sens2_script_Actions extends core_Detail
 {
-    public $oldClassName = 'sens2_LogicDetails';
+    public $oldClassName = 'sens2_ScriptActions';
     
     
     /**
@@ -88,7 +88,7 @@ class sens2_ScriptActions extends core_Detail
     {
         $this->FLD('order', 'int', 'caption=Ред №');
         $this->FLD('scriptId', 'key(mvc=sens2_Scripts,title=name)', 'caption=Блок,column=none,silent,oldFieldName=logicId');
-        $this->FLD('action', 'class(interface=sens2_ScriptActionIntf, select=title, allowEmpty)', 'caption=Действие,mandatory,silent,refreshForm');
+        $this->FLD('action', 'class(interface=sens2_script_ActionIntf, select=title, allowEmpty)', 'caption=Действие,mandatory,silent,refreshForm');
         $this->FLD('state', 'enum(active,closed,stopped)', 'caption=Състояние,input=none');
         
         $this->FLD('data', 'blob(serialize)', 'caption=Данни,input=none');

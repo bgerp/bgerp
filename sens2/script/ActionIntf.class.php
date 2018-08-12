@@ -17,9 +17,10 @@
  *
  * @since     v 0.1
  */
-class sens2_ScriptActionIntf
+class sens2_script_ActionIntf
 {
-    public $oldClassName = 'sens2_LogicActionIntf';
+
+    public $oldClassName = 'sens2_ScriptActionIntf';
     
     
     /**
@@ -58,8 +59,8 @@ class sens2_ScriptActionIntf
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
-    public function run($data)
+    public function run($rec)
     {
-        return $this->class->run($data);
+        return $this->class->run($rec);
     }
 }

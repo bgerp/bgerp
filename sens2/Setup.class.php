@@ -57,8 +57,8 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_DataLogs',
         'sens2_Controllers',
         'sens2_Scripts',
-        'sens2_ScriptActions',
-        'sens2_ScriptDefinedVars',
+        'sens2_script_Actions',
+        'sens2_script_DefinedVars',
         'sens2_IOPorts',
     );
     
@@ -81,13 +81,13 @@ class sens2_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = array(
+        'sens2_script_ActionAssign',
         'sens2_reports_DataLog',
         'sens2_MockupDrv',
         'sens2_ServMon',
-        'sens2_ScriptActionAssign',
-        'sens2_ScriptActionSignal',
-        'sens2_ScriptActionSMS',
-        'sens2_ScriptActionNotify',
+        'sens2_script_ActionSignal',
+        'sens2_script_ActionSMS',
+        'sens2_script_ActionNotify',
         'sens2_ioport_AI',
         'sens2_ioport_DI',
         'sens2_ioport_DO',
