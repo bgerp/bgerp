@@ -134,7 +134,7 @@ class rack_Racks extends core_Master
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
         $this->FLD('reserved', 'int', 'caption=Палет-места->Запазени,smartCenter,input=none');
         
-        $this->FLD('constrColumnsStep', 'int', 'caption=Брой палети между две колони->Палети,smartCenter');
+        $this->FLD('constrColumnsStep', 'int', 'caption=Брой палети на една основа->Палети,smartCenter');
         
         $this->setDbUnique('storeId,num');
     }
@@ -235,14 +235,14 @@ class rack_Racks extends core_Master
         $rec = self::fetch("#storeId = {$storeId} AND #num = {$num}");
         
         if (!$rec) {
-            $error = 'Несъществуващ номер на стилаж в този склад';
+            $error = 'Несъществуващ номер на стeлаж в този склад';
             $status = 'bad_rack_num';
             
             return false;
         }
         
         if ($row < 'A' || $row > $rec->rows) {
-            $error = 'Несъществуващ ред на стилажа';
+            $error = 'Несъществуващ ред на стeлажа';
             $status = 'bad_row';
             
             return false;
@@ -250,7 +250,7 @@ class rack_Racks extends core_Master
         
         
         if ($col < 1 || $col > $rec->columns) {
-            $error = 'Несъществуваща колона на стилажа';
+            $error = 'Несъществуваща колона на стeлажа';
             $status = 'bad_column';
             
             return false;

@@ -2758,3 +2758,26 @@ en,Нямате права да свързвате артикула,You do not h
 en,Артикулът вече е свързан с е-магазина на текущия домейн,The product is already linked with current domain e-shop
 en,Артикулът е свързан с онлайн магазина,The product is linked with e-shop
 en,Листване на артикула към е-магазина,Listing of product in the e-ahop
+en,Изчерпано,Out of stock
+en,Всички складове,All stores
+en,Хронология на движенията,Chronology of movements
+en,"Сигурни ли сте, че искате да изтриете партидната дефиниция","Do you really want to delete the batch definition"
+en,Изтриване на нова партидна дефиниция,Delete a new batch definition
+en,Добавяне на нова партидна дефиниция,Add a new batch definition
+en,Палет-места,Pallet spaces
+en,Брой палети на една основа,Number of pallets on one basis
+en,Стелажи в склад,Rack in the wharehouse
+en,Невалиден синтаксис,Non-valide syntax
+en,Несъществуващ номер на стeлаж в този склад,No rack number in this store
+en,Несъществуващ ред на стeлажа,No rack row
+en,Несъществуваща колона на стeлажа,No rack column
+en,Мястото е неизползваемо,The place is unusable
+en,Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита,All the information for reserved on unusable places outide new sizes will be deleted
+en,Запазено място,Reserved place
+en,Запазено място за,Reserved place for
+en,Очаква се палет,Expect pallet
+en,Предстои преместване,Expect moving
+en,Палетно складово стопанство,Rack storage 
+en,Връзка между ЕН-то и палетния склад,Link between document and rack storage
+en,Модел,Model
+en,Въведете IP адреса на устройството,Please input IP address of device
