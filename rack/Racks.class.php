@@ -596,13 +596,19 @@ class rack_Racks extends core_Master
     
     
     /**
-     * Зипълнява се по крон и обновява информацията за стелажите
+     * Изпълнява се по крон и обновява информацията за стелажите
      */
     public static function cron_Update()
     {
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
             self::updateRack($rec);
+        }
+        
+        $pQuery = rack_Products::getQuery();
+        $pQuery->groupBy('productId,storeId');
+        while ($rec = $pQuery->fetch()) {
+            rack_Pallets::recalc($rec->productId, $rec->storeId);
         }
     }
     
