@@ -467,14 +467,15 @@ class rack_Pallets extends core_Manager
             $uomId = cat_Products::fetch($rec->productId)->measureId;
             
             if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->state != 'closed') {
-                $addUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'palletId' => $rec->id, 'packagingId' => $uomId, 'packQuantity' => $rec->quantity, 'ret_url' => true);
+                $addUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'palletId' => $rec->id,  'ret_url' => true);
                 
                 $row->_rowTools->addLink('Преместване', $addUrl + array('movementType' => 'rack2rack'), 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет');
-                $row->_rowTools->addLink('Сваляне', $addUrl + array('movementType' => 'rack2floor'), 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода');
-                $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
-                
                 $row->label .= '&nbsp;&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2rack'), null, 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет') ;
+                
+                $row->_rowTools->addLink('Сваляне', $addUrl + array('movementType' => 'rack2floor'), 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода');
                 $row->label .= '&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2floor'), null, 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода') ;
+                
+                $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
             }
             
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
