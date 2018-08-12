@@ -64,8 +64,8 @@ class rack_Pallets extends core_Manager
     public $listFields = 'label,position,productId,uom=Мярка,quantity';
     
     public $rowToolsField = 'pallet';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -293,17 +293,17 @@ class rack_Pallets extends core_Manager
      *
      * @return stdClass $rec    - записа на палета
      */
-    public static function increment($productId, $storeId, $position, $quantity, $reverse = false, $palletId = NULL)
+    public static function increment($productId, $storeId, $position, $quantity, $reverse = false, $palletId = null)
     {
-        if($palletId && ($rec = self::fetch($palletId))) {
+        if ($palletId && ($rec = self::fetch($palletId))) {
             $rec->position = $position;
-            $rec->state    = 'active';
+            $rec->state = 'active';
             $rec->closedOn = null;
         } else {
             // Има ли палет на тази позиция
             $rec = self::fetch(array("#position = '[#1#]' AND #state != 'closed'", $position));
         }
-      
+        
         // Ако няма палет се създава нов
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position);
@@ -359,7 +359,7 @@ class rack_Pallets extends core_Manager
     /**
      * Преизчислява наличността на палети за посочения продукт
      */
-    private static function recalc($productId, $storeId = null)
+    public static function recalc($productId, $storeId = null)
     {
         // Колко от артикула има на палети
         $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
@@ -462,9 +462,8 @@ class rack_Pallets extends core_Manager
      * @param stdClass $rec Това е записа в машинно представяне
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
-    {   
+    {
         if ($fields['-list']) {
-            
             $uomId = cat_Products::fetch($rec->productId)->measureId;
             
             if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->state != 'closed') {
@@ -473,14 +472,14 @@ class rack_Pallets extends core_Manager
                 $row->_rowTools->addLink('Преместване', $addUrl + array('movementType' => 'rack2rack'), 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет');
                 $row->_rowTools->addLink('Сваляне', $addUrl + array('movementType' => 'rack2floor'), 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода');
                 $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
-
+                
                 $row->label .= '&nbsp;&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2rack'), null, 'ef_icon=img/16/arrow_switch.png,title=Преместване на палет') ;
                 $row->label .= '&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2floor'), null, 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода') ;
             }
             
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
-            $row->uom =  cat_UoM::getShortName($uomId);
-
+            $row->uom = cat_UoM::getShortName($uomId);
+            
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
             $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);

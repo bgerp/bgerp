@@ -188,7 +188,7 @@ class store_Products extends core_Detail
         if ($mvc->mandatoryStoreFilter === true) {
             $storeId = store_Stores::getCurrent();
             $data->listFilter->setDefault('storeId', $storeId);
-            $data->listFilter->setReadonly('storeId');
+            $data->listFilter->setField('storeId', 'input=hidden');
         } else {
             if (count($stores) == 1) {
                 $data->listFilter->setDefault('storeId', key($stores));

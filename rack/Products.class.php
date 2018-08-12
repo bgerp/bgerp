@@ -88,21 +88,7 @@ class rack_Products extends store_Products
         parent::description();
         
         $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->Палетирано,input=hidden,smartCenter');
-        $this->FNC('quantityNotOnPallets', 'double(maxDecimals=2)', 'caption=Количество->Непалетирано,input=hidden,smartCenter');
-    }
-    
-    
-    /**
-     * Изчисляване на функционално поле
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     *
-     * @return void|float
-     */
-    public static function on_CalcQuantityNotOnPallets(core_Mvc $mvc, $rec)
-    {
-        return $rec->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
+        $this->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)', 'caption=Количество->Непалетирано,input=hidden,smartCenter');
     }
     
     
@@ -129,7 +115,7 @@ class rack_Products extends store_Products
         
         if ($rec->quantityOnPallets > 0) {
             $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула');
-            $row->quantityOnPallets =   ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула') . '&nbsp;' . $row->quantityOnPallets;
+            $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула') . '&nbsp;' . $row->quantityOnPallets;
         }
     }
     
@@ -195,13 +181,13 @@ class rack_Products extends store_Products
      * Връща достъпните продаваеми артикули
      */
     public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
-    {   
+    {
         $storeId = store_Stores::getCurrent();
         $query = store_Products::getQuery();
         $query->groupBy('productId');
         $query->show('productId');
         $query->where("#storeId = {$storeId}");
-
+        
         if ($onlyIds) {
             if (is_array($onlyIds)) {
                 $onlyIds = implode(',', $onlyIds);
@@ -209,12 +195,12 @@ class rack_Products extends store_Products
             $onlyIds = trim($onlyIds, ',');
             $query->where("#productId IN ({$onlyIds})");
         }
-
+        
         $onlyIds = array();
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $onlyIds[$rec->productId] = $rec->productId;
         }
-     
+        
         $products = array();
         $pQuery = cat_Products::getQuery();
         
