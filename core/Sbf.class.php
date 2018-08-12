@@ -175,6 +175,7 @@ class core_Sbf extends core_Mvc
     {
         $file = getFullPath($name);
         
+        
         // Грешка. Файла липсва
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
             if (isDebug()) {
@@ -246,10 +247,7 @@ class core_Sbf extends core_Mvc
                 flush();
                 
                 // Копираме файла за директно сервиране от Apache следващия път
-                // @todo: Да се минимализират .js и .css
-                if (!isDebug()) {
-                    self::saveFile_($toSave, $name);
-                }
+                self::saveFile_($toSave, $name);
             }
         }
     }
