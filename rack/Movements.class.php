@@ -216,7 +216,7 @@ class rack_Movements extends core_Manager
                             $rec->_isCreatedClosed = true;
                         }
                         
-                        if (!empty($rec->position) && empty($rec->positionTo)) {
+                        if (!empty($rec->position) && empty(Request::get('positionTo'))) {
                             $rec->positionTo = $rec->position;
                         }
                     }
