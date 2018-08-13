@@ -2640,6 +2640,7 @@ function smartCenter() {
 
         var smartCenterWidth = [];
     	$("span.maxwidth").css('display', 'inline-block');
+        $("span.maxwidth").css('white-space', 'nowrap');
 		$("span.maxwidth").each(function() {
             if($(this).hasClass('totalCol') ){
                 var dataCol = $(this).closest('table').find('tr td:last').find('.maxwidth').attr('data-col');
@@ -2656,7 +2657,7 @@ function smartCenter() {
 
         $("span.maxwidth:not('.notcentered')").css('display', "block");
         $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
-        $("span.maxwidth:not('.notcentered')").css('white-space', "nowrap");
+        $("span.maxwidth:not('.notcentered')").css('text-align', "right");
 }
 
 
