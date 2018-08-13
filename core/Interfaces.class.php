@@ -19,7 +19,7 @@ class core_Interfaces extends core_Manager
     /**
      * Плъгини и класове за начално зареждане
      */
-    public $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools,plg_Sorting';
     
     
     /**
@@ -80,7 +80,7 @@ class core_Interfaces extends core_Manager
             }
         }
         
-        if (!$exRec || ($exRec->title != $rec->title)) {
+        if (!$exRec || ($exRec->title != $rec->title) || ($exRec->name != $rec->name)) {
             self::save($rec);
         }
         

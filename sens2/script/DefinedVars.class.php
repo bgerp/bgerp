@@ -14,9 +14,9 @@
  *
  * @since     v 0.1
  */
-class sens2_ScriptDefinedVars extends core_Detail
+class sens2_script_DefinedVars extends core_Detail
 {
-    public $oldClassName = 'sens2_LogicDefinedVars';
+    public $oldClassName = 'sens2_ScriptDefinedVars';
     
     
     /**
@@ -170,7 +170,7 @@ class sens2_ScriptDefinedVars extends core_Detail
         
         $now = dt::verbal2mysql();
         
-        $me = cls::get('sens2_ScriptDefinedVars');
+        $me = cls::get('sens2_script_DefinedVars');
         
         $table = $me->dbTableName;
         

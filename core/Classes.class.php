@@ -20,7 +20,7 @@ class core_Classes extends core_Manager
     /**
      * Списък за начално
      */
-    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools, plg_Search';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools, plg_Search,plg_Sorting';
     
     
     /**
@@ -113,11 +113,8 @@ class core_Classes extends core_Manager
     {
         $class = cls::get($class);
         
-        
-        /**
-         * Ако класът е нова версия на някой предишен, съществуващ,
-         * отразяваме този факт в таблицата с класовете
-         */
+        // Ако класът е нова версия на някой предишен, съществуващ,
+        // отразяваме този факт в таблицата с класовете
         if (isset($class->oldClassName)) {
             $newClassName = cls::getClassName($class);
             $oldClassName = $class->oldClassName;
