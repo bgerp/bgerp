@@ -31,7 +31,7 @@ class rack_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_RefreshRows, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2';
     
     
     /**
@@ -94,52 +94,26 @@ class rack_Movements extends core_Manager
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory,remember');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack,silent');
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,silent');
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,smartCenter,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent');
-        $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,smartCenter,input=none');
-        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,smartCenter,input=none');
-        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,smartCenter,input=none');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent');
+        $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
+        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
+        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=none');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
         
-        $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter,input=none');
+        $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter');
         $this->FLD('workerId', 'user', 'caption=Движение->Товарач,smartCenter,input=none');
         
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none,smartCenter');
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
-    }
-    
-    
-    /**
-     * Подготовка на бутоните на формата за добавяне/редактиране.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $res
-     * @param stdClass     $data
-     */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
-    {
-        $rec = $data->form->rec;
-        
-        if (!empty($data->form->toolbar->buttons['save'])) {
-            $data->form->toolbar->removeBtn('save');
-            $data->form->toolbar->addSbBtn('Заявка', 'save', 'id=save, order=9.99280', 'ef_icon = img/16/tick-circle-frame.png,title=Заявяване на движението');
-        }
-        
-        if ($mvc->haveRightFor('toggle', $rec)) {
-            $data->form->toolbar->addSbBtn('Започване', 'active', 'id=activate, order=9.99280', 'ef_icon = img/16/control_play.png,title=Започване на движението');
-        }
-        
-        if ($mvc->haveRightFor('done', $rec)) {
-            $data->form->toolbar->addSbBtn('Приключване', 'close', 'id=close, order=9.99280', 'ef_icon = img/16/gray-close.png,title=Приключване на движението');
-        }
     }
     
     
@@ -211,7 +185,6 @@ class rack_Movements extends core_Manager
                     
                     if (!$form->gotErrors()) {
                         $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
-                        $rec->state = ($form->cmd == 'active') ? 'active' : (($form->cmd == 'save') ? 'pending' : 'closed');
                         if ($rec->state == 'closed') {
                             $rec->_isCreatedClosed = true;
                         }
@@ -376,10 +349,6 @@ class rack_Movements extends core_Manager
         
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
-            $form->FNC('stayOnPage', 'enum(yes=Да,no=Не)', 'caption=Продължаване,input,maxRadio=2,remember');
-            $permanentName = cls::getClassName($mvc) . '_stayOnPage';
-            $permanentName = (Mode::get($permanentName)) ? Mode::get($permanentName) : 'yes';
-            $form->setDefault('stayOnPage', $permanentName);
             
             $packs = cat_Products::getPacks($rec->productId);
             $form->setOptions('packagingId', $packs);
@@ -463,23 +432,6 @@ class rack_Movements extends core_Manager
                         $form->setDefault('positionTo', $bestPos);
                     }
                     break;
-            }
-        }
-    }
-    
-    
-    /**
-     * Пренасочва URL за връщане след запис към сингъл изгледа
-     */
-    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
-    {
-        if ($data->form && $data->form->isSubmitted()) {
-            $rec = $data->form->rec;
-            
-            if ($rec->stayOnPage == 'yes') {
-                $data->retUrl = toUrl(array('rack_Movements', 'add', 'productId' => $rec->productId, 'movementType' => $rec->movementType));
-            } elseif ($data->form->cmd == 'save') {
-                $data->retUrl = toUrl(array('rack_Movements', 'list'));
             }
         }
     }
@@ -670,18 +622,33 @@ class rack_Movements extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->orderBy('#createdOn', 'DESC');
         $storeId = store_Stores::getCurrent();
-        $data->query->where("#storeId = {$storeId}");
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->query->where("#storeId = {$storeId}");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
         
         if ($palletId = Request::get('palletId', 'int')) {
             $data->query->where("#palletId = {$palletId} OR #palletToId = {$palletId}");
         }
         
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->setFieldType('state', 'enum(current=Текущи,pending=Чакащи,active=Активни,closed=Приключени,all=Всички)');
+        $data->listFilter->setField('state', 'silent,input');
+        $data->listFilter->setDefault('state', 'current');
+        $data->listFilter->input();
+        
+        $data->listFilter->showFields = 'search,state';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    
+        if($state = $data->listFilter->rec->state){
+            if($state == 'current'){
+                $data->query->where("#state = 'active' || #state = 'pending'");
+            } elseif(in_array($state, array('active', 'closed', 'pending'))){
+                $data->query->where("#state = '{$state}'");
+            }
+        }
+        
+        $data->query->orderBy('orderByState=ASC,createdOn=DESC');
     }
     
     

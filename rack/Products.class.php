@@ -105,12 +105,7 @@ class rack_Products extends store_Products
         
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            
             $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'packQuantity' => $rec->quantityNotOnPallets, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet2.png,title=Палетиране на артикул');
-            
-            $row->quantityNotOnPallets = ht::createLink('', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), false, 'ef_icon=img/16/pallet2.png,title=Палетиране на артикул') . '&nbsp;' . $row->quantityNotOnPallets ;
-            
-            //rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId, $measureId);
         }
         
         if ($rec->quantityOnPallets > 0) {
@@ -148,32 +143,6 @@ class rack_Products extends store_Products
     protected static function on_AfterPrepareListTitle($mvc, $data)
     {
         $data->masterMvc = true;
-    }
-    
-    
-    /**
-     * Наличните артикули в склада
-     *
-     * @param int $storeId
-     *
-     * @return array $options
-     */
-    public static function getInStock($storeId = null)
-    {
-        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
-        
-        $options = array();
-        $query = store_Products::getQuery();
-        $query->show('productId');
-        
-        while ($rec = $query->fetch("#storeId = {$storeId}")) {
-            if (empty($rec->productId)) {
-                continue;
-            }
-            $options[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
-        }
-        
-        return $options;
     }
     
     
