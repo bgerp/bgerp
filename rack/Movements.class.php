@@ -100,10 +100,10 @@ class rack_Movements extends core_Manager
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,smartCenter,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent');
-        $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,smartCenter,input=none');
-        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,smartCenter,input=none');
-        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,smartCenter,input=none');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent');
+        $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
+        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
+        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=none');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
