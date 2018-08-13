@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,packagingId,zones=Нагласяне,packQuantity,palletId=От,palletToId=Към,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
+    public $listFields = 'productId,packagingId,packQuantity,palletId=От,palletToId=Към,zones=Нагласяне,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
     
     
     /**
