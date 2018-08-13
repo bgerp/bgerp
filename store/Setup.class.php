@@ -125,8 +125,8 @@ class store_Setup extends core_ProtoSetup
             'description' => 'Обновяване на резервираните наличности',
             'controller' => 'store_Products',
             'action' => 'CalcReservedQuantity',
-            'period' => 5,
-            'offset' => 1,
+            'period' => 1,
+            'offset' => 0,
             'timeLimit' => 100
         ),
     );

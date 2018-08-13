@@ -581,7 +581,7 @@ class store_Transfers extends core_Master
         $dQuery->where("#transferId = {$id}");
         $dQuery->show('newProductId, quantity');
         
-        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, 'newProductId');
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, $rec->state, 'newProductId');
         
         return $warning;
     }

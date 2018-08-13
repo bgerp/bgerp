@@ -1678,7 +1678,7 @@ abstract class deals_Helper
      *
      * @return NULL|string
      */
-    public static function getWarningForNegativeQuantitiesInStore($arr, $storeId, $productFld = 'productId', $quantityFld = 'quantity')
+    public static function getWarningForNegativeQuantitiesInStore($arr, $storeId, $state, $productFld = 'productId', $quantityFld = 'quantity')
     {
         $warning = null;
         $productsWithNegativeQuantity = array();
@@ -1688,14 +1688,14 @@ abstract class deals_Helper
         }
         
         foreach ($arr as $obj) {
-            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
+            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
         }
         
         if (count($productsWithNegativeQuantity)) {
-            $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
+            $warning = 'Контирането на документа ще доведе до отрицателни количества по|*:\r\n'. implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
         }
         
         return $warning;
