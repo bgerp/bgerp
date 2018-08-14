@@ -288,22 +288,14 @@ class rack_Pallets extends core_Manager
      * @param int  $storeId   - ид на склад
      * @param int  $position  - на коя позиция?
      * @param int  $quantity  - количество от основната мярка в палета
-     * @param bool $reverse   - етикет
+     * @param bool $reverse   - дали да е наобратно движениет
      *
-     * @return stdClass $rec    - записа на палета
+     * @return stdClass $rec  - записа на палета
      */
-    public static function increment($productId, $storeId, $position, $quantity, $reverse = false, $palletId = null)
+    public static function increment($productId, $storeId, $position, $quantity, $reverse = false)
     {
-        if ($palletId && ($rec = self::fetch($palletId))) {
-            $rec->position = $position;
-            $rec->state = 'active';
-            $rec->closedOn = null;
-        } else {
-            // Има ли палет на тази позиция
-            $rec = self::fetch(array("#position = '[#1#]' AND #state != 'closed'", $position));
-        }
-        
         // Ако няма палет се създава нов
+        $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position);
         } else {

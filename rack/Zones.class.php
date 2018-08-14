@@ -326,15 +326,6 @@ class rack_Zones extends core_Master
     }
     
     
-    
-    function act_Test()
-    {
-        rack_ZoneDetails::truncate();
-        rack_RackDetails::truncate();
-        rack_Movements::truncate();
-        rack_Pallets::truncate();
-    }
-    
     /**
      * Изчистване на зоната към която е закачен документа
      * 
