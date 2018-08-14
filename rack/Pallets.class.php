@@ -73,7 +73,7 @@ class rack_Pallets extends core_Manager
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
         $this->FNC('uom', 'varchar', 'caption=Мярка,smartCenter');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
         $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
@@ -229,7 +229,7 @@ class rack_Pallets extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
-        $data->title = 'Палетизирани наличности в склад|* <b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->title = 'Палетизирани наличности в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->where("#storeId = {$storeId}");
         $data->query->orderBy('state', 'ASC');
         
@@ -463,7 +463,6 @@ class rack_Pallets extends core_Manager
     {
         if ($fields['-list']) {
             $uomId = cat_Products::fetch($rec->productId)->measureId;
-            
             if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->state != 'closed') {
                 $addUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'palletId' => $rec->id,  'ret_url' => true);
                 
@@ -476,10 +475,10 @@ class rack_Pallets extends core_Manager
                 $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
             }
             
-            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+            $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
+            $row->productId .= ht::createLink('', array('rack_Pallets', 'productId' => $rec->productId), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети');
             $row->uom = cat_UoM::getShortName($uomId);
             
-            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
             $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
             

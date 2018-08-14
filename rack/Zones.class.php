@@ -39,7 +39,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'admin,ceo,rack,store';
+    public $canEdit = 'admin,ceo,rack';
     
     
     /**
@@ -127,6 +127,12 @@ class rack_Zones extends core_Master
     }
     
     
+    /**
+     * Рендира таблицата със движения към зоната
+     * 
+     * @param stdClass $rec
+     * @return core_ET $tpl
+     */
     private function getMovementTable($rec)
     {
         $Movements = cls::get('rack_Movements');
@@ -142,18 +148,18 @@ class rack_Zones extends core_Master
         }
         
         // Рендиране на таблицата
-        $res = new core_ET("");
+        $tpl = new core_ET("");
         if(count($data->rows)){
             $tableClass = ($rec->_isSingle === true) ? 'listTable' : 'simpleTable';
             $shotThead = ($rec->_isSingle === true) ? false : true;
             $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => $shotThead));
-            $Movements->invoke('BeforeRenderListTable', array($res, &$data));
+            $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
             
-            $res->append($table->get($data->rows, $data->listFields));
-            $res->append("style='width:100%;'", 'TABLE_ATTR');
+            $tpl->append($table->get($data->rows, $data->listFields));
+            $tpl->append("style='width:100%;'", 'TABLE_ATTR');
         }
         
-        return $res;
+        return $tpl;
     }
     
     
@@ -223,7 +229,7 @@ class rack_Zones extends core_Master
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
     }
     
     
@@ -337,8 +343,6 @@ class rack_Zones extends core_Master
         $zoneRec = self::fetch("#containerId = {$containerId}");
         if (empty($zoneRec)) return;
         
-        // Затваряне на текущите записи към зоната
-        //rack_Journals::closeRecs($zoneRec->id, $containerId);
         $zoneRec->containerId = NULL;
         self::save($zoneRec);
     }
@@ -361,7 +365,6 @@ class rack_Zones extends core_Master
             if (!empty($dRec->documentQuantity) && round($dRec->documentQuantity, 4) == round($dRec->movementQuantity, 4)){
                 $ready++;
             }
-            
             $count++;
         }
         
@@ -390,6 +393,12 @@ class rack_Zones extends core_Master
     }
     
     
+    /**
+     * Кои са текущите движения в зоната
+     * 
+     * @param int $zoneId
+     * @return array $res
+     */
     public static function getCurrentMovementRecs($zoneId)
     {
         $res = array();
@@ -419,6 +428,12 @@ class rack_Zones extends core_Master
     }
     
     
+    /**
+     * Следващия номер на зона
+     * 
+     * @param int $storeId
+     * @return double number
+     */
     private function getNextNumber($storeId)
     {
         $query = $this->getQuery();

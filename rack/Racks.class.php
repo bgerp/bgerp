@@ -211,7 +211,7 @@ class rack_Racks extends core_Master
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Стелажи в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->title = 'Стелажи в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         
         $data->query->orderBy('#num', 'ASC');
     }

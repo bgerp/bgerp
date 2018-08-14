@@ -74,16 +74,8 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
-       
         $this->FLD('documentQuantity', 'double', 'caption=Документи,mandatory');
         $this->FLD('movementQuantity', 'double', 'caption=Движения,mandatory');
-        
-        
-        
-        //$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter');
-        
-        
-        
         
         $this->setDbUnique('zoneId,productId,packagingId');
     }
@@ -124,6 +116,16 @@ class rack_ZoneDetails extends core_Detail
     }
     
     
+    /**
+     * Записва движение в зоната
+     * 
+     * @param int $zoneId      - ид на зона
+     * @param int $productId   - ид на артикул
+     * @param int $packagingId - ид на опаковка
+     * @param double $quantity - количество в основна мярка
+     * 
+     * @return void
+     */
     public static function recordMovement($zoneId, $productId, $packagingId, $quantity)
     {
         $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
@@ -136,6 +138,12 @@ class rack_ZoneDetails extends core_Detail
     }
     
     
+    /**
+     * Синхронизиране на зоните с документа
+     * 
+     * @param int $zoneId
+     * @param int $containerId
+     */
     public static function syncWithDoc($zoneId, $containerId = null)
     {
         if(isset($containerId)){
