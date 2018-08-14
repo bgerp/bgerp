@@ -1695,7 +1695,7 @@ abstract class deals_Helper
         }
         
         if (count($productsWithNegativeQuantity)) {
-            $warning = 'Контирането на документа ще доведе до отрицателни количества по|*:\r\n'. implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
+            $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
         }
         
         return $warning;
