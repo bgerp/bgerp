@@ -525,7 +525,9 @@ class rack_Movements extends core_Manager
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
         
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
+        $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Търсене на палети");
+        $row->productId .= ht::createLink('', array('rack_Pallets', 'productId' => $rec->productId), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети');
         
         if (!isset($fields['-inline'])) {
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -603,7 +605,7 @@ class rack_Movements extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {   
         $storeId = store_Stores::getCurrent();
-        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->where("#storeId = {$storeId}");
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
         

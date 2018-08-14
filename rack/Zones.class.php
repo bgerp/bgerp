@@ -404,6 +404,8 @@ class rack_Zones extends core_Master
         $res = array();
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("LOCATE('|{$zoneId}|', #zoneList) AND #state != 'closed'");
+        $mQuery->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
+        $mQuery->orderBy('orderByState');
         
         while($mRec = $mQuery->fetch()){
             if(!empty($mRec->zones)){
