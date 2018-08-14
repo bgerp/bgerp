@@ -478,7 +478,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if ($rec->compare != 'no') {
             $fld->FLD('sellValueCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Продажби");
             $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта");
-          //  $fld->FLD('compare', 'double(smartRound,decimals=2)', 'smartCenter,caption=Сравнение');
+            $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
+            $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
         }
        
         
@@ -530,7 +531,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         if ($rec->compare != 'no') {
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                if (($dRec->saleValue - $dRec->sellValuePrevious) > 0 && $dRec->sellValuePrevious != 0) {
+                if (($dRec->saleValue - $dRec->sellValuePrevious) > 0) {
                     $color = 'green';
                     $marker = '+';
                 } elseif (($dRec->saleValue - $dRec->sellValuePrevious) < 0.1) {
@@ -543,15 +544,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 
                 $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
                 $row->deltaCompare= core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaPrevious);
-                if ($dRec->sellValuePrevious != 0) {
-                    $compare = ($dRec->saleValue - $dRec->sellValuePrevious) / $dRec->sellValuePrevious;
-                }
                 
-                $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
+                $row->changeSales = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->saleValue - $dRec->sellValuePrevious) . '</span>';
+                $row->changeDeltas = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta - $dRec->deltaPrevious) . '</span>';
             }
             
             if ($rec->compare == 'year') {
-                if (($dRec->saleValue - $dRec->sellValueLastYear) > 0 && $dRec->sellValueLastYear != 0) {
+                if (($dRec->saleValue - $dRec->sellValueLastYear) > 0 ) {
                     $color = 'green';
                     $marker = '+';
                 } elseif (($dRec->saleValue - $dRec->sellValueLastYear) < 0) {
@@ -564,10 +563,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 
                 $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
                 $row->deltaCompare= core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
-                if ($dRec->sellValueLastYear != 0) {
-                    $compare = ($dRec->saleValue - $dRec->sellValueLastYear) / $dRec->sellValueLastYear;
-                }
-                $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
+                
+                $row->changeSales = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->saleValue - $dRec->sellValueLastYear) . '</span>';
+                $row->changeDeltas = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta - $dRec->deltaLastYear) . '</span>';
             }
         }
         if ($dRec->totalValue) {
@@ -590,12 +588,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     $row->sellValueCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious). '</b>';
                     $row->deltaCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaPrevious). '</b>';
-                    
-                    if ($dRec->totalValuePrevious != 0) {
-                        $compare = ($dRec->totalValue - $dRec->totalValuePrevious) / $dRec->totalValuePrevious;
-                    }
-                    
-                    $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
+                    $row->changeSales = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalValuePrevious). '</b>' . '</span>';
+                    $row->changeDeltas = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaPrevious). '</b>' . '</span>';
                 }
                 
                 if ($rec->compare == 'year') {
@@ -616,7 +610,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     if ($dRec->totalValueLastYear != 0) {
                         $compare = ($dRec->totalValue - $dRec->totalValueLastYear) / $dRec->totalValueLastYear;
                     }
-                    $row->compare = "<span class= {$color}>" . $marker . cls::get('type_Percent')->toVerbal($compare) . '</span>';
+                    $row->changeSales = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalValueLastYear). '</b>' . '</span>';
+                    $row->changeDeltas = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaLastYear). '</b>' . '</span>';
                 }
             }
         }
