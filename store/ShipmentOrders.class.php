@@ -516,7 +516,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $dQuery->where("#shipmentId = {$id}");
         $dQuery->show('productId, quantity');
         
-        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
         
         return $warning;
     }

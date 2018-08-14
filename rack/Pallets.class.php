@@ -82,9 +82,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
         $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затворено на,input=none');
         
-        $this->setDbIndex('productId,storeId,state');
-        $this->setDbIndex('state');
-        $this->setDbIndex('closedOn');
+        $this->setDbIndex('productId');
     }
     
     
@@ -215,7 +213,8 @@ class rack_Pallets extends core_Manager
         }
         
         self::recalc($rec->productId, $rec->storeId);
-        
+        core_Cache::remove('UsedRacksPossitions', $rec->storeId);
+
         // Връщане на резултата от записа
         return $id;
     }
@@ -359,21 +358,35 @@ class rack_Pallets extends core_Manager
     /**
      * Преизчислява наличността на палети за посочения продукт
      */
-    public static function recalc($productId, $storeId = null)
+    public static function recalc($productId = null, $storeId = null)
     {
-        // Колко от артикула има на палети
-        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
         $query = self::getQuery();
-        $query->where("#productId = {$productId} AND #state != 'closed'");
-        $query->XPR('quantityOnPallets', 'double', 'SUM(#quantity)');
-        
+        if($productId) {
+            $query->where("#productId = {$productId}");
+        }
+        if($storeId) {
+            $query->where("$storeId = {$storeId}");
+ 
+        }
+        $query->where("#state != 'closed'");
+
+        while($rec = $query->fetch()) {
+            $res[$rec->storeId][$rec->productId] += $rec->quantity;
+        }
+      
         // Обновяване на количеството на палети
-        $sum = $query->fetch()->quantityOnPallets;
-        $storeProductId = rack_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}");
-        rack_Products::save((object) array('id' => $storeProductId, 'quantityOnPallets' => $sum), 'quantityOnPallets');
-        
-        // Премахване на кеш?
-        core_Cache::remove('UsedRacksPossitions', $storeId);
+        foreach($res as $storeId => $prodQ) {
+            foreach($prodQ as $productId => $sum) {
+                $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+                if(!$rRec) {
+                    $rRec = (object) array('storeId' => $storeId, 'productId' => $productId, 'state' => 'active', 'quantity' => 0, 'quantityOnPallets' => $sum);
+                } else {
+                    $rRec->quantityOnPallets = $sum;
+                    $rRec->state = 'active';
+                }
+                rack_Products::save($rRec);
+            }
+        }
     }
     
     

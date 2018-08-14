@@ -1519,7 +1519,7 @@ class sales_Sales extends deals_DealMaster
                 $dQuery->where("#saleId = {$rec->id} AND #canStore = 'yes'");
                 $dQuery->show('productId,quantity');
                 
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->shipmentStoreId)) {
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->shipmentStoreId, $rec->state)) {
                     $form->setWarning('action', $warning);
                 }
             }
