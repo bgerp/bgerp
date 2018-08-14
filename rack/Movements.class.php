@@ -74,7 +74,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,packagingId,packQuantity,position=От,positionTo=Към,zones=Нагласяне,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
+    public $listFields = 'productId,packagingId,packQuantity,movement=Движение,zones=Нагласяне,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
 
     
     /**
@@ -221,19 +221,22 @@ class rack_Movements extends core_Manager
      */
     private function doTransaction($transaction)
     {
+        $rMvc = cls::get('rack_Racks');
+        
         if(is_array($transaction->zonesQuantityArr)){
             foreach ($transaction->zonesQuantityArr as $obj){
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $transaction->quantity);
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity);
             }
         }
         
-        $rMvc = cls::get('rack_Racks');
-        if($transaction->from != rack_PositionType::FLOOR){
+        // Ако има начална позиция и тя не е пода обновява се палета на нея
+        if(!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR){
             rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, -1 * $transaction->quantity);
             $rMvc->updateRacks[$transaction->storeId . '-' . $transaction->from] = true;
         }
         
-        if($transaction->to != rack_PositionType::FLOOR){
+        // Ако има krajna позиция и тя не е пода обновява се палета на нея
+        if(!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR){
             $restQuantity = $transaction->quantity - $transaction->zonesQuantityTotal;
             rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->to, $restQuantity);
             $rMvc->updateRacks[$transaction->storeId . '-' . $transaction->to] = true;
@@ -538,13 +541,19 @@ class rack_Movements extends core_Manager
                 $Type->params['zone_opt'] = $zones;
                 $row->zones = $Type->toVerbal($rec->zones);
             }
+            
+            $position = $mvc->getFieldType('position')->toVerbal($rec->position);
+            $positionTo = $mvc->getFieldType('positionTo')->toVerbal($rec->positionTo);
+            $row->movement = (!empty($positionTo)) ? "{$position} » {$positionTo}" : $position;
         } else {
             $row->packQuantity = ht::styleIfNegative($row->packQuantity, $rec->packQuantity);
             $row->packQuantity = "<b>{$row->packQuantity}</b>";
             $row->packagingId = cat_UoM::getShortName($rec->packagingId);
+            
+            if(isset($rec->palletId)){
+                $row->palletId = rack_Pallets::getRecTitle($rec->palletId);
+            }
         }
-        
-        $row->palletId = isset($rec->palletId) ? rack_Pallets::getTitleById($rec->palletId) : "<span class='quiet'>" . tr('Под||Floor') . '</span>';
     }
     
     
@@ -575,6 +584,10 @@ class rack_Movements extends core_Manager
             }
         }
         
+        if ($action == 'edit' && isset($rec) && $rec->state != 'draft') {
+            $requiredRoles = 'no_one';
+        }
+        
         if ($action == 'delete' && isset($rec) && $rec->state != 'pending') {
             $requiredRoles = 'no_one';
         }
@@ -588,7 +601,7 @@ class rack_Movements extends core_Manager
      * @param stdClass  $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
+    {   
         $storeId = store_Stores::getCurrent();
         $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
         $data->query->where("#storeId = {$storeId}");
@@ -719,7 +732,7 @@ class rack_Movements extends core_Manager
             return $res;
         }
         
-        if(count($transaction->zonesQuantityArr) && $transaction->quantity < $transaction->zonesQuantityTotal){
+        if(count($transaction->zonesQuantityArr) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal)){
             $res->errors = "Недостатъчно количество за оставяне в зоните";
             $res->errorFields = 'packQuantity,zones';
             return $res;
@@ -803,7 +816,7 @@ class rack_Movements extends core_Manager
         $zoneErrors = $zoneWarnings = array();
         foreach ($transaction->zonesQuantityArr as $zone){
             $movementQuantity = $documentQuantity = null;
-            $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId != {$transaction->packagingId}");
+            $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId}");
             $movementQuantity = is_object($zRec) ? $zRec->movementQuantity : null;
             $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
             
