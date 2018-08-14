@@ -101,18 +101,18 @@ class rack_Movements extends core_Manager
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo|packQuantity,silent');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo|packQuantity,silent,smartCenter');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
-        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none');
+        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none,smartCenter');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=none');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
-        $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние,smartCenter');
-        $this->FLD('workerId', 'user', 'caption=Движение->Товарач,smartCenter,input=none');
+        $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние');
+        $this->FLD('workerId', 'user', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
         
-        $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none,smartCenter');
+        $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         
         $this->setDbIndex('storeId');
