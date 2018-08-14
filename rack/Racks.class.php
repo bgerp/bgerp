@@ -138,11 +138,7 @@ class rack_Racks extends core_Master
         
         $this->setDbUnique('storeId,num');
     }
-    function act_Test()
-    {
-        
-        cls::get('rack_Setup')->updateFloor();
-    }
+    
     
     public function act_Show()
     {
