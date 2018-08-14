@@ -154,11 +154,14 @@ class rack_Zones extends core_Master
             $shotThead = ($rec->_isSingle === true) ? false : true;
             $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => $shotThead));
             $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
-            
+            //$tableHtml = $table->get($data->rows, $data->listFields);
+            //$tableHtml = $tableHtml->g
             $tpl->append($table->get($data->rows, $data->listFields));
             $tpl->append("style='width:100%;'", 'TABLE_ATTR');
         }
         
+        $tpl->removePendings('COMMON_ROW_ATTR');
+       
         return $tpl;
     }
     

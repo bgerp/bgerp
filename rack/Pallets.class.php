@@ -63,8 +63,6 @@ class rack_Pallets extends core_Manager
      */
     public $listFields = 'label,position,productId,uom=Мярка,quantity';
     
-    public $rowToolsField = 'pallet';
-    
     
     /**
      * Описание на модела (таблицата)
@@ -95,7 +93,6 @@ class rack_Pallets extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        $rec = $form->rec;
         
         $form->setReadOnly('productId');
         $form->setField('position', 'input');
@@ -236,9 +233,7 @@ class rack_Pallets extends core_Manager
         $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
         $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('state', 'active');
-        
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,silent');
-        
         $data->listFilter->FLD('pos', 'rack_PositionType', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
         
         $data->listFilter->showFields = 'productId,pos,state';
@@ -614,6 +609,25 @@ class rack_Pallets extends core_Manager
     }
     
     
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (Mode::is('screenMode', 'narrow')) {
+            $data->listTableMvc->commonFirst = true;
+            $data->listFields['productId'] = '@Артикул';
+        }
+    }
+    
+    
+    /**
+     * Връща записа отговарящ на позицията
+     * 
+     * @param string $position
+     * @param int $storeId
+     * @return null|stdClass
+     */
     public static function getByPosition($position, $storeId)
     {
         if(empty($position)) return null;
