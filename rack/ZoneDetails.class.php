@@ -39,7 +39,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'ceo';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -162,8 +162,5 @@ class rack_ZoneDetails extends core_Detail
                 self::save($rec);
             }
         }
-        
-        
-       
     }
 }

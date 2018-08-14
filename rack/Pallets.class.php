@@ -306,7 +306,6 @@ class rack_Pallets extends core_Manager
         // Ако няма палет се създава нов
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position);
-            $msg = "Създаден нов палет на|*: <b>{$position}</b>";
         } else {
             
             // Ако има променя му се количеството
@@ -317,12 +316,6 @@ class rack_Pallets extends core_Manager
             $incrementQuantity = $sign * $quantity;
             $rec->quantity += $incrementQuantity;
             self::save($rec, 'position,quantity,state,closedOn');
-            
-            $msg = "Промяна на палет на|*: <b>{$incrementQuantity}</b>";
-        }
-        
-        if (haveRole('debug')) {
-            core_Statuses::newStatus($msg, 'warning');
         }
         
         return $rec->id;
@@ -361,15 +354,15 @@ class rack_Pallets extends core_Manager
     public static function recalc($productId = null, $storeId = null)
     {
         $query = self::getQuery();
-        if($productId) {
+        if(isset($productId)) {
             $query->where("#productId = {$productId}");
         }
-        if($storeId) {
+        if(isset($storeId)) {
             $query->where("$storeId = {$storeId}");
- 
         }
         $query->where("#state != 'closed'");
 
+        $res = array();
         while($rec = $query->fetch()) {
             $res[$rec->storeId][$rec->productId] += $rec->quantity;
         }

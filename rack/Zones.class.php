@@ -365,8 +365,10 @@ class rack_Zones extends core_Master
             $count++;
         }
         
-        $rec->readiness = $ready / $count;
-        $this->save($rec, 'readiness');
+        if($count){
+            $rec->readiness = $ready / $count;
+            $this->save($rec, 'readiness');
+        }
     }
     
     
