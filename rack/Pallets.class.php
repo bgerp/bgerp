@@ -213,7 +213,7 @@ class rack_Pallets extends core_Manager
         }
         
         self::recalc($rec->productId, $rec->storeId);
-        core_Cache::remove('UsedRacksPossitions', $storeId);
+        core_Cache::remove('UsedRacksPossitions', $rec->storeId);
 
         // Връщане на резултата от записа
         return $id;
