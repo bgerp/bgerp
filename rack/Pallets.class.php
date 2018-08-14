@@ -614,4 +614,14 @@ class rack_Pallets extends core_Manager
             $data->toolbar->addBtn('Палетиране', array('rack_Movements', 'add', 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/star_2.png,title=Добавяне на нов палет');
         }
     }
+    
+    
+    public static function getByPosition($position, $storeId)
+    {
+        if(empty($position)) return null;
+        
+        $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+        
+        return is_object($rec) ? (object)array('productId' => $rec->productId, 'quantity' => $rec->quantity) : NULL;
+    }
 }

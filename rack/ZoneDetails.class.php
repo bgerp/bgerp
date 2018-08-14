@@ -39,7 +39,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'no_one';
+    public $canAdd = 'ceo';
     
     
     /**
