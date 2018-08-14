@@ -55,7 +55,7 @@ class rack_Movements extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo';
+    public $canDelete = 'ceo,rack';
     
     
     /**
@@ -109,7 +109,7 @@ class rack_Movements extends core_Manager
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
         
-        $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter');
+        $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние,smartCenter');
         $this->FLD('workerId', 'user', 'caption=Движение->Товарач,smartCenter,input=none');
         
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none,smartCenter');
@@ -595,16 +595,16 @@ class rack_Movements extends core_Manager
         if ($action == 'toggle' && isset($rec->state)) {
             if (!in_array($rec->state, array('pending', 'active'))) {
                 $requiredRoles = 'no_one';
-            }
-            
-            if ($rec->state == 'active' && $rec->workerId != $userId) {
-                $requiredRoles = 'no_one';
+            } elseif ($rec->state == 'active' && $rec->workerId != $userId) {
+                $requiredRoles = 'ceo,rackMaster';
             }
         }
         
         if ($action == 'done' && $rec && $rec->state) {
-            if ($rec->state != 'active' || $rec->workerId != $userId) {
+            if ($rec->state != 'active') {
                 $requiredRoles = 'no_one';
+            } elseif($rec->workerId != $userId) {
+                $requiredRoles = 'ceo,rackMaster';
             }
         }
         
@@ -631,7 +631,7 @@ class rack_Movements extends core_Manager
             $data->query->where("#palletId = {$palletId} OR #palletToId = {$palletId}");
         }
         
-        $data->listFilter->setFieldType('state', 'enum(current=Текущи,pending=Чакащи,active=Активни,closed=Приключени,all=Всички)');
+        $data->listFilter->setFieldType('state', 'enum(all=Всички,pending=Чакащи,active=Активни,closed=Приключени)');
         $data->listFilter->setField('state', 'silent,input');
         $data->listFilter->setDefault('state', 'current');
         $data->listFilter->input();
@@ -641,9 +641,7 @@ class rack_Movements extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     
         if($state = $data->listFilter->rec->state){
-            if($state == 'current'){
-                $data->query->where("#state = 'active' || #state = 'pending'");
-            } elseif(in_array($state, array('active', 'closed', 'pending'))){
+            if(in_array($state, array('active', 'closed', 'pending'))){
                 $data->query->where("#state = '{$state}'");
             }
         }
