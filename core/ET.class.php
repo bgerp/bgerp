@@ -321,10 +321,10 @@ class core_ET extends core_BaseClass
     /**
      * Премахва чакащите субституции за мястото $place
      */
-    public function removePendings($place)
+    public function removePendings($place = null)
     {
         foreach ($this->pending as $id => $pending) {
-            if ($pending->place == $place) {
+            if ($pending->place == $place || is_null($place)) {
                 unset($this->pending[$id]);
             }
         }
