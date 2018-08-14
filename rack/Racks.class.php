@@ -604,12 +604,7 @@ class rack_Racks extends core_Master
         while ($rec = $query->fetch()) {
             self::updateRack($rec);
         }
-        
-        $pQuery = rack_Products::getQuery();
-        $pQuery->groupBy('productId,storeId');
-        while ($rec = $pQuery->fetch()) {
-            rack_Pallets::recalc($rec->productId, $rec->storeId);
-        }
+        rack_Pallets::recalc();
     }
     
     
