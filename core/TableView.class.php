@@ -335,7 +335,7 @@ class core_TableView extends core_BaseClass
                     }
                     
                     if($this->mvc->commonRowClass){
-                        $r['ROW_ATTR']['class'] .= ' ' . "class='{$this->mvc->commonRowClass}'";
+                        $r['ROW_ATTR']['class'] .= ' ' . $this->mvc->commonRowClass;
                     }
                     
                     foreach ($r['ROW_ATTR'] as $attrName => $attrValue) {
