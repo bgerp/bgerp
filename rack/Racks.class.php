@@ -37,12 +37,6 @@ class rack_Racks extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,rack';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,rack';
@@ -64,12 +58,6 @@ class rack_Racks extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,rack';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,rack';
     
     
     /**
@@ -102,6 +90,9 @@ class rack_Racks extends core_Master
     public $singleIcon = 'img/16/rack.png';
     
     
+    /**
+     * Поле за единичния изглед
+     */
     public $rowToolsSingleField = 'num';
     
     
@@ -117,6 +108,9 @@ class rack_Racks extends core_Master
     public $updateRacks = array();
     
     
+    /**
+     * Шаблон за заглавието
+     */
     public $recTitleTpl = '|Стелаж|* [#num#]';
     
     
@@ -347,21 +341,23 @@ class rack_Racks extends core_Master
     }
     
     
+    /**
+     * Рендиране на стелажа
+     * 
+     * @param stdClass $rec
+     * @return string
+     */
     public static function renderRack($rec)
     {
         $row = $rec->rows;
         $hlPos = Request::get('pos');
-        
-        
         $hlFullPos = "{$rec->num}-{$hlPos}";
-        
         
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
         
         $hlProdId = $used[$hlFullPos];
-        
         
         while ($row >= 'A') {
             $res .= '<tr>';
@@ -517,6 +513,7 @@ class rack_Racks extends core_Master
      */
     public static function getPalletsOnRack($storeId, $num)
     {
+        $res = array();
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#storeId = {$storeId} AND #position LIKE '{$num}-%'");
         while ($pRec = $pQuery->fetch()) {
@@ -623,7 +620,6 @@ class rack_Racks extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->clearDetails($id);
-        
         $mvc::on_AfterUpdateMaster($mvc, $res, $id);
     }
     
@@ -639,17 +635,12 @@ class rack_Racks extends core_Master
             $rec->total = $rec->columns * (ord($rec->rows) - ord('A') + 1);
             
             $dQuery = rack_RackDetails::getQuery();
-            
             $dQuery->where("#rackId = {$rec->id} && #status = 'unusable'");
-            
             $rec->total -= $dQuery->count();
             
             $dQuery = rack_RackDetails::getQuery();
-            
             $dQuery->where("#rackId = {$rec->id} && #status = 'reserved'");
-            
             $rec->reserved = $dQuery->count();
-            
             if (!$rec->used) {
                 $rec->used = 0;
             }
