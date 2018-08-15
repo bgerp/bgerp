@@ -778,7 +778,7 @@ class rack_Movements extends core_Manager
             
             // Ако има нова позиция и тя е заета от различен продукт - грешка
             if(isset($toProductId) && $toProductId != $transaction->productId){
-                $res->errors = "|* <b>[$transaction->to]</b> |е заета от артикул|*: " . cat_Products::getTitleById($toProductId, false);
+                $res->errors = "|* <b>$transaction->to</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . "</b>";
                 $res->errorFields[] = 'positionTo,productId';
                 return $res;
             }
@@ -806,7 +806,7 @@ class rack_Movements extends core_Manager
             // Ако Към позицията е запазена за друг артикул
             if (array_key_exists($transaction->to, $unusableAndReserved[1])){
                 if ($transaction->productId != $unusableAndReserved[1][$transaction->to]){
-                    $res->errors = "|*<b>{$transaction->to}</b> |е запазена за|*: " . cat_Products::getTitleById($unusableAndReserved[1][$transaction->to], false);
+                    $res->errors = "|*<b>{$transaction->to}</b> |е запазена за|*: <b>" . cat_Products::getTitleById($unusableAndReserved[1][$transaction->to], false) . "</b>";
                     $res->errorFields[] = 'positionTo';
                     return $res;
                 }
@@ -828,7 +828,7 @@ class rack_Movements extends core_Manager
             $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
             
             if($movementQuantity + $zone->quantity < 0){
-                $zoneErrors[] = rack_Zones::getTitleById($zone->zone, 'num');
+                $zoneErrors[] = rack_Zones::getVerbal($zone->zone, 'num');
             }
             
             if(!empty($documentQuantity) && $movementQuantity + $zone->quantity > $documentQuantity){
@@ -850,7 +850,8 @@ class rack_Movements extends core_Manager
         // Предупреждение: В новия палет се получава по-голямо количество от стандартното
         if(!empty($toQuantity) && !empty($quantityOnPallet)){
             if($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal > $quantityOnPallet){
-                $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното";
+                $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
+                $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}";
                 $res->warningFields[] = 'positionTo';
                 $res->warningFields[] = 'packQuantity';
                 $res->warningFields[] = 'zonesQuantityTotal';
@@ -859,7 +860,8 @@ class rack_Movements extends core_Manager
         
         // Предупреждение: В началния палет се получава по-голямо количество от стандартното
         if(!empty($fromPallet) && $transaction->quantity < 0 && ($fromQuantity - $transaction->quantity > $quantityOnPallet)){
-            $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното";
+            $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
+            $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b";
             $res->warningFields[] = 'positionTo';
             $res->warningFields[] = 'packQuantity';
             $res->warningFields[] = 'zonesQuantityTotal';
