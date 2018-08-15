@@ -60,6 +60,7 @@ class rack_Setup extends core_ProtoSetup
         'rack_Zones',
         'rack_ZoneDetails',
         'migrate::truncateOldRecs',
+        'migrate::updateFloor'
     );
     
     
@@ -134,6 +135,34 @@ class rack_Setup extends core_ProtoSetup
             $Class = cls::get($class);
             $Class->setupMvc();
             $Class->truncate();
+        }
+    }
+    
+    
+    public function updateFloor()
+    {
+        core_App::setTimeLimit(300);
+        $Movements = cls::get('rack_Movements');
+        $Movements->setupMvc();
+        
+        $query = $Movements->getQuery();
+        $query->where("#palletId IS NULL OR #palletToId IS NULL");
+        
+        while($rec = $query->fetch()){
+            $saveFields = array();
+            if(empty($rec->position)){
+                $rec->position = rack_PositionType::FLOOR;
+                $saveFields['position'] = 'position';
+            }
+            
+            if(empty($rec->positionTo)){
+                $rec->positionTo = rack_PositionType::FLOOR;
+                $saveFields['positionTo'] = 'positionTo';
+            }
+            
+            if(count($saveFields)){
+                $Movements->save_($rec, $saveFields);
+            }
         }
     }
 }

@@ -1678,7 +1678,7 @@ abstract class deals_Helper
      *
      * @return NULL|string
      */
-    public static function getWarningForNegativeQuantitiesInStore($arr, $storeId, $productFld = 'productId', $quantityFld = 'quantity')
+    public static function getWarningForNegativeQuantitiesInStore($arr, $storeId, $state, $productFld = 'productId', $quantityFld = 'quantity')
     {
         $warning = null;
         $productsWithNegativeQuantity = array();
@@ -1688,7 +1688,7 @@ abstract class deals_Helper
         }
         
         foreach ($arr as $obj) {
-            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
+            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
@@ -1713,7 +1713,7 @@ abstract class deals_Helper
      */
     public static function getAvailableQuantityAfter($productId, $storeId, $quantity)
     {
-        $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
+        $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity,reservedQuantity');
         $quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
         
         return $quantityInStore - $quantity;
