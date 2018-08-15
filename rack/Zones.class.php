@@ -135,7 +135,7 @@ class rack_Zones extends core_Master
      */
     private function getMovementTable($rec)
     {
-        $Movements = cls::get('rack_Movements');
+        $Movements = clone cls::get('rack_Movements');
         $data = (object)array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
         $data->listFields = arr::make("productId=Артикул,packQuantity=Количество,packagingId=Опаковка,palletId=Палет,workerId=Товарач", true);
         $data->recs = self::getCurrentMovementRecs($rec->id);
@@ -151,11 +151,10 @@ class rack_Zones extends core_Master
         $tpl = new core_ET("");
         if(count($data->rows)){
             $tableClass = ($rec->_isSingle === true) ? 'listTable' : 'simpleTable';
-            $shotThead = ($rec->_isSingle === true) ? false : true;
-            $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => $shotThead));
+            $showHead = ($rec->_isSingle === true) ? false : true;
+            $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => $showHead));
             $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
-            //$tableHtml = $table->get($data->rows, $data->listFields);
-            //$tableHtml = $tableHtml->g
+            
             $tpl->append($table->get($data->rows, $data->listFields));
             $tpl->append("style='width:100%;'", 'TABLE_ATTR');
         }

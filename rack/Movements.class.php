@@ -80,7 +80,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета по които да се търси
      */
-    public $searchFields = 'palletId,position,positionTo,workerId,note';
+    public $searchFields = 'productId,palletId,position,positionTo,workerId,note';
     
     
     /**
@@ -95,7 +95,7 @@ class rack_Movements extends core_Manager
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory,remember');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'tdClass=productCell nowrap,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory,remember');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack,silent');
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,silent');
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
@@ -138,6 +138,10 @@ class rack_Movements extends core_Manager
             
             if (empty($rec->packQuantity) && empty($rec->defaultPackQuantity)){
                  $form->setError('packQuantity', 'Въведете количество');
+            }
+            
+            if(empty($rec->positionTo)){
+                $rec->positionTo = $rec->position;
             }
             
             // Симулиране дали транзакцията е валидна
@@ -208,6 +212,7 @@ class rack_Movements extends core_Manager
             $mvc->save_($rec, $updateFields);
         }
         
+        // Изпълняване на транзакцията ако се активира или се отказва
         if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
             $reverse = ($rec->_canceled === true) ? true : false;
             $transaction = $mvc->getTransaction($rec, $reverse);
@@ -586,7 +591,7 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($action == 'edit' && isset($rec) && $rec->state != 'draft') {
+        if ($action == 'edit' && isset($rec) && $rec->state != 'pending') {
             $requiredRoles = 'no_one';
         }
         
