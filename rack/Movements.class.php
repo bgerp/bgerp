@@ -699,18 +699,20 @@ class rack_Movements extends core_Manager
         $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
         $res = array(0 => array(), 1 => array());
         
+        $floorValue = rack_PositionType::FLOOR;
         $query = self::getQuery();
-        $query->where("#storeId = {$storeId} AND #state != 'closed'");
+        $query->where("#storeId = {$storeId} AND #state != 'closed' AND (#position != '{$floorValue}' OR #positionTo != '{$floorValue}')");
+        
         while ($rec = $query->fetch()) {
-            if ($rec->position) {
+            if (!empty($rec->position) && $rec->position != $floorValue) {
                 $res[0][$rec->position] = $rec->productId;
             }
             
-            if ($rec->positionTo) {
+            if (!empty($rec->positionTo) && $rec->positionTo != $floorValue) {
                 $res[1][$rec->positionTo] = $rec->productId;
             }
         }
-        
+       
         return $res;
     }
     
