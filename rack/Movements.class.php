@@ -80,7 +80,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета по които да се търси
      */
-    public $searchFields = 'productId,palletId,position,positionTo,note';
+    public $searchFields = 'palletId,position,positionTo,note';
     
     
     /**
@@ -918,5 +918,15 @@ class rack_Movements extends core_Manager
             $data->listTableMvc->commonFirst = true;
             $data->listFields['productId'] = '@Артикул';
         }
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $productName = ' ' . plg_Search::normalizeText(cat_Products::getTitleById($rec->productId));
+        $res = ' ' . $res . ' ' . $productName;
     }
 }
