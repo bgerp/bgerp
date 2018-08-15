@@ -450,4 +450,13 @@ class rack_Zones extends core_Master
         
         return $num;
     }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->commonRowClass = 'zonesCommonRow';
+    }
 }
