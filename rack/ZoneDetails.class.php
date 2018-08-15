@@ -171,4 +171,16 @@ class rack_ZoneDetails extends core_Detail
             }
         }
     }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Ако няма никакви количества се изтрива
+        if(empty($rec->documentQuantity) && empty($rec->movementQuantity)){
+            self::delete($rec);
+        }
+    }
 }
