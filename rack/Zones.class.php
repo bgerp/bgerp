@@ -57,7 +57,7 @@ class rack_Zones extends core_Master
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'num,containerId,readiness,state,createdOn,createdBy,pendingHtml=@';
+    public $listFields = 'num=Зона,containerId,readiness,state,createdOn,createdBy,pendingHtml=@';
     
     
     /**
@@ -97,8 +97,8 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=100)', 'caption=Зона,mandatory,smartCenter');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember');
+        $this->FLD('num', 'int(max=100)', 'caption=Наименование,mandatory,smartCenter');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,input=none');
         $this->FLD('summaryData', 'blob(serialize, compress)', 'input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,input=none');
@@ -175,7 +175,7 @@ class rack_Zones extends core_Master
     public static function getFreeZones($storeId = NULL)
     {
         $query = self::getQuery();
-        $query->where("#state != 'closed'");
+        $query->where("#state != 'closed' AND #containerId IS NULL");
         if(isset($storeId)){
             $query->where("#storeId = {$storeId}");
         }
@@ -221,6 +221,17 @@ class rack_Zones extends core_Master
     }
     
     
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+        // По-хубаво заглавие на формата
+        $rec = $data->form->rec;
+        $data->form->title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'зона', $rec->id, tr('в'));
+    }
+        
+        
     /**
      * Добавя филтър към перата
      *
@@ -327,7 +338,7 @@ class rack_Zones extends core_Master
         }
         
         if (($action == 'delete' || $action == 'changestate') && isset($rec)){
-            if(rack_ZoneDetails::fetch("#zoneId = {$rec->id}")){
+            if(rack_ZoneDetails::fetch("#zoneId = {$rec->id}") || !empty($rec->containerId)){
                 $requiredRoles = 'no_one';
            }
         }
