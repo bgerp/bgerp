@@ -91,8 +91,8 @@ class rack_plg_Shipments extends core_Plugin
         $rec = $mvc->fetchRec($id);
         if (!in_array($rec->state, array('draft', 'pending'))) return;
         
-        if ($zoneId = rack_Zones::fetch("#containerId = {$rec->containerId}")){
-            cls::get('rack_Zones')->updateMaster($zoneId);
+        if ($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'id')){
+            rack_ZoneDetails::syncWithDoc($zoneId, $rec->containerId);
         }
     }
     

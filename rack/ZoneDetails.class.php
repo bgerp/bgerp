@@ -149,6 +149,7 @@ class rack_ZoneDetails extends core_Detail
         if(isset($containerId)){
             $document = doc_Containers::getDocument($containerId);
             $products = $document->getProductsSummary();
+            $exRecs = array();
             
             if(is_array($products)){
                 foreach ($products as $obj){
@@ -159,16 +160,38 @@ class rack_ZoneDetails extends core_Detail
                     $newRec->documentQuantity = $obj->quantity;
                     
                     self::save($newRec);
+                    $exRecs[$newRec->id] = $newRec->id;
                 }
             }
-        } else {
-            $query = self::getQuery();
-            $query->where("#zoneId = {$zoneId}");
-            $query->where("#documentQuantity IS NOT NULL");
-            while($rec = $query->fetch()){
-                $rec->documentQuantity = null;
-                self::save($rec);
+            
+            // Тези които не са се обновили се изтриват
+            if(count($exRecs)){
+                self::nullifyQuantityFromDocument($zoneId, $exRecs);
             }
+        } else {
+            self::nullifyQuantityFromDocument($zoneId);
+        }
+    }
+    
+    
+    /**
+     * Зануляване на очакваното количество по документи
+     * 
+     * @param int $zoneId
+     * @param array $notIn
+     */
+    private static function nullifyQuantityFromDocument(int $zoneId, array $notIn = array())
+    {
+        $query = self::getQuery();
+        $query->where("#zoneId = {$zoneId}");
+        $query->where("#documentQuantity IS NOT NULL");
+        if(count($notIn)){
+            $query->notIn("id", $notIn);
+        }
+        
+        while($rec = $query->fetch()){
+            $rec->documentQuantity = null;
+            self::save($rec);
         }
     }
     
