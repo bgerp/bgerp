@@ -267,7 +267,7 @@ class rack_Zones extends core_Master
         $zoneOptions = rack_Zones::getFreeZones($documentRec->{$document->storeFieldName});
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if(!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)){
-            $zoneOptions[$zoneId] = $this->getVerbal($zoneId, 'name');
+            $zoneOptions[$zoneId] = $this->getVerbal($zoneId, 'num');
         }
         $form->setOptions('zoneId', array('' => '') + $zoneOptions);
         $form->setDefault('zoneId', $zoneId);

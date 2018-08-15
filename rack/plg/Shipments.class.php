@@ -71,7 +71,6 @@ class rack_plg_Shipments extends core_Plugin
                 $dQuery = $Detail->getQuery();
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
                 
-                $dQuery->groupBy('productId');
                 while($dRec = $dQuery->fetch()){
                     $key = "{$dRec->{$Detail->productFld}}|{$dRec->packagingId}";
                     if(!array_key_exists($key, $res)){

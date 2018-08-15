@@ -156,7 +156,7 @@ class rack_ZoneDetails extends core_Detail
                     if(empty($newRec)){
                         $newRec = (object)array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
-                    $newRec->documentQuantity += $obj->quantity;
+                    $newRec->documentQuantity = $obj->quantity;
                     
                     self::save($newRec);
                 }
@@ -180,7 +180,7 @@ class rack_ZoneDetails extends core_Detail
     {
         // Ако няма никакви количества се изтрива
         if(empty($rec->documentQuantity) && empty($rec->movementQuantity)){
-            self::delete($rec);
+            self::delete($rec->id);
         }
     }
 }
