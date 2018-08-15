@@ -101,7 +101,7 @@ class rack_Movements extends core_Manager
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo|packQuantity,silent,smartCenter');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent,smartCenter');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
         $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none,smartCenter');
@@ -348,10 +348,10 @@ class rack_Movements extends core_Manager
                 $form->setField('position', 'input=hidden');
                 if ($positionId = rack_Pallets::fetchField($rec->palletId, 'position')) {
                     $form->setDefault('position', $positionId);
-                    $form->setField('positionTo', 'placeholder=Няма');
+                    $form->setField('positionTo', 'placeholder=Остава');
                 }
             } else {
-                $form->setField('positionTo', 'placeholder=Под||Floor');
+                $form->setField('positionTo', 'placeholder=Остава');
             }
             
             // Добавяне на предложения за нова позиция
