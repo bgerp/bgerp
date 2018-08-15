@@ -178,7 +178,7 @@ class rack_Racks extends core_Master
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = &$form->rec;
@@ -285,7 +285,7 @@ class rack_Racks extends core_Master
      * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -330,7 +330,7 @@ class rack_Racks extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         if ($fields['-single']) {
             $row->places = self::renderRack($rec);
@@ -620,7 +620,7 @@ class rack_Racks extends core_Master
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->clearDetails($id);
         
@@ -631,7 +631,7 @@ class rack_Racks extends core_Master
     /**
      * Обновява статистиката за стелажа
      */
-    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    protected static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         $rec = $mvc->fetch($id);
         
@@ -671,7 +671,7 @@ class rack_Racks extends core_Master
      *
      * @return bool Дали да продължи обработката на опашката от събития
      */
-    public static function on_AfterDelete($mvc, $numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, $numRows, $query, $cond)
     {
         $dR = $query->getDeletedRecs();
         
@@ -698,6 +698,36 @@ class rack_Racks extends core_Master
                     rack_rackDetails::delete($dRec->id);
                 }
             }
+        }
+    }
+    
+    /**
+     * След подготовка на записите
+     */
+    protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    {
+        // Ако няма заявка, да не се изпълнява
+        if (!$data->listSummary->query) return ;
+        
+        $data->listSummary->summary = new stdClass;
+        $data->listSummary->query->XPR('totalTotal', 'int', 'SUM(#total)');
+        $data->listSummary->query->XPR('usedTotal', 'int', 'SUM(#used)');
+        $data->listSummary->query->XPR('reservedTotal', 'int', 'SUM(#reserved)');
+        
+        $summaryRec = $data->listSummary->query->fetch();
+        $Int = core_Type::getByName('int');
+        $data->listSummary->summary->row = (object)array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal));
+    }
+    
+    
+    /**
+     * След рендиране на List Summary-то
+     */
+    protected static function on_AfterRenderListSummary($mvc, &$tpl, $data)
+    {
+        if (!empty($data->listSummary->summary->row)) {
+            $tpl = new ET(tr('|*' . getFileContent('rack/tpl/RackSummary.class.php')));
+            $tpl->placeObject($data->listSummary->summary->row);
         }
     }
 }

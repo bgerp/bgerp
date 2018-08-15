@@ -80,7 +80,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета по които да се търси
      */
-    public $searchFields = 'productId,palletId,position,positionTo,workerId,note';
+    public $searchFields = 'productId,palletId,position,positionTo,note';
     
     
     /**
