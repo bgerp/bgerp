@@ -4650,6 +4650,8 @@ div.location.public {
       color: #eeeeee !important; }
     .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) a {
       color: #aaaaaa !important; }
+    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) .iw-contextMenu a {
+      color: #222222 !important; }
   .rack_Zones .listTable > tbody > tr.zonesCommonRow {
     color: black !important;
     background: rgba(0, 0, 0, 0) !important; }
@@ -4661,8 +4663,8 @@ div.location.public {
       color: black !important; }
     .rack_Zones .listTable > tbody > tr.zonesCommonRow a {
       color: #004488 !important; }
-  .rack_Zones .listTable .iw-contextMenu a {
-    color: #333333 !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
+      color: #222222 !important; }
 
 td.rack-hl {
   background-color: red; }
