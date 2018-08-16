@@ -49,6 +49,12 @@ class rack_Zones extends core_Master
     
     
     /**
+     * Кой може да генерира нагласяния?
+     */
+    public $canOrderpickup = 'debug';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'admin,ceo,rack';
@@ -400,9 +406,9 @@ class rack_Zones extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $storeId = store_Stores::getCurrent();
-        //if (rack_Journals::haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
-           // $data->toolbar->addBtn('Нагласяне', array('rack_Journals', 'orderpickup', 'storeId' => $storeId,'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
-       // }
+        if ($mvc->haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
+            $data->toolbar->addBtn('Нагласяне', array($mvc, 'orderpickup', 'storeId' => $storeId,'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+       }
     }
     
     
@@ -468,5 +474,58 @@ class rack_Zones extends core_Master
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->commonRowClass = 'zonesCommonRow';
+    }
+    
+    
+    /**
+     * Избор на зона в документ
+     *
+     * @return void|core_ET
+     */
+    function act_Orderpickup()
+    {
+        // Проверка на права
+        $this->requireRightFor('orderpickup');
+        expect($storeId = Request::get('storeId', 'int'));
+        $this->requireRightFor('orderpickup', (object)array('storeId' => $storeId));
+        $floor = rack_PositionType::FLOOR;
+        
+        $expected = $this->getExpectedProducts($storeId);
+        foreach ($expected as $pRec){
+            
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId);
+            $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
+            $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
+            
+            $palletsArr = array();
+            foreach ($pallets as $obj){
+                $palletsArr[$obj->position] = $obj->quantity;
+            }
+            
+            $generatedMovements = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
+            bp($generatedMovements, $palletsArr);
+            
+        }
+        
+        
+    }
+    
+    
+    private function getExpectedProducts($storeId)
+    {
+        $products = array();
+        $dQuery = rack_ZoneDetails::getQuery();
+        $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+        $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
+        while($dRec = $dQuery->fetch()){
+            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            if(!array_key_exists($key, $products)){
+                $products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());
+            }
+            
+            $products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity);
+        }
+        
+        return $products;
     }
 }
