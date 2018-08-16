@@ -44,7 +44,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField = 'groupList';
     
     
     /**
@@ -66,11 +66,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,single=none,input=none');
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,mandatory,after=to');
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=dealers');
+        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна)', 'caption=Подреди по,maxRadio=3,columns=3,after=dealers');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=orderBy');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
-        $fieldset->FLD('orderBy', 'enum(saleValue=Продажби, delta=Делта,change=Промяна)','caption=Подреди по,maxRadio=3,columns=3,after=articleType');
+        
+        
+        //$fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
     }
     
     
@@ -150,7 +153,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         asort($suggestions);
         
         $form->setSuggestions('contragent', $suggestions);
-    
     }
     
     
@@ -164,8 +166,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        
         $recs = array();
+        $arr = array();
         
         $contragentsId = array();
         
@@ -257,11 +259,11 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         // избрани контрагенти
         $checkContragentsArr = keylist::toArray($rec->contragent);
-       
+        
         foreach ($checkContragentsArr as $val) {
             $contragentsId[doc_Folders::fetch($val)->coverId] = doc_Folders::fetch($val)->coverId;
         }
-       
+        
         // Синхронизира таймлимита с броя записи //
         $rec->count = $query->count();
         
@@ -276,9 +278,11 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $quantity = 0;
         
         $flag = false;
-       
+        
         while ($recPrime = $query->fetch()) {
-            $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = 0;
+            $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
+            $contragentId = $contragentClassId = $contragentClassName = 0;
+            $detClassName = $masterClassName = $masterKey = $contragentGroups = 0;
             
             $DetClass = cls::get($recPrime->detailClassId);
             
@@ -286,18 +290,22 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $detClassName = $DetClass->className;
             $masterClassName = $DetClass->Master->className;
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
-           
+            
             if (is_null($masterKey)) {
-                wp($recPrime, $detClassName,$detClassName::fetch($recPrime->detailRecId));
-            }else{
+                log_System::add(sales_reports_SalesByContragents, 'masterKey is NULL във' .$recPrime .$detClassName, null, 'notice');
+            } else {
                 $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
                 $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
-                $contragentClassName = core_Classes::fetchField($contragentClassId,'name');
+                $contragentClassName = core_Classes::fetchField($contragentClassId, 'name');
+                
+                if (is_null($contragentId) || is_null($contragentClassId)) {
+                    log_System::add(sales_reports_SalesByContragents, 'ContragentId или ContragentClassId is NULL във' .$recPrime . $masterClassName . $masterKey, null, 'notice');
+                }
             }
-           
+            
             if ($rec->contragent || $rec->crmGroup) {
                 $checkContragentsArr = array();
-               
+                
                 
                 // групите на контрагента по сделката
                 if ($contragentId) {
@@ -305,6 +313,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     
                     $contragentGroups = keylist::toArray($contragentGroups);
                 }
+                
+                $checkContragent = $checkGroup = null;
                 
                 $checkContragent = in_array($contragentId, $contragentsId);
                 
@@ -421,12 +431,13 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $totalValueLastYear += $sellValueLastYear;
         }
         
+        $totalArr = array();
+        
         if (!is_null($recs)) {
-            
             arr::sortObjects($recs, $rec->orderBy, 'desc');
         }
         
-        $recs['total'] = (object) array(
+        $totalArr['total'] = (object) array(
             'totalValue' => $totalSalleValue,
             'totalDelta' => $totalDelta,
             'totalValuePrevious' => $totalValuePrevious,
@@ -435,7 +446,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             'totalDeltaLastYear' => $totalDeltaLastYear
         );
         
-        array_unshift($recs, $recs['total']);
+        array_unshift($recs, $totalArr['total']);
         
         return $recs;
     }
@@ -465,6 +476,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
         
+        //$fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
+        
         if ($rec->compare != 'no') {
             $fld->FLD('saleValue', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
             $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
@@ -472,7 +485,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $fld->FLD('saleValue', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
             $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
         }
-         
         
         
         if ($rec->compare != 'no') {
@@ -481,7 +493,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
             $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
         }
-       
+        
         
         if ($export === true) {
             $fld->FLD('group', 'keylist(mvc=cat_groups,select=name)', 'caption=Група');
@@ -510,75 +522,32 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $groArr = array();
         
         $row = new stdClass();
+        $contragentClassName = '';
         
-        if (isset($dRec->code)) {
-            $row->code = $dRec->code;
-        }
-        if ($dRec->contragentId) {
-            
-            $contragentClassName = $dRec->contragentClassName;
-            $row->contragentId = $contragentClassName::getShortHyperlink($dRec->contragentId, true);
-        }
-        foreach (array(
-            'saleValue',
-            'delta'
-        ) as $fld) {
-            $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-            if ($dRec->{$fld} < 0) {
-                $row->{$fld} = "<span class='red'>" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld}) . '</span>';
+        try {
+            if (isset($dRec->code)) {
+                $row->code = $dRec->code;
             }
-        }
-        
-        if ($rec->compare != 'no') {
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                if (($dRec->saleValue - $dRec->sellValuePrevious) > 0) {
-                    $color = 'green';
-                    $marker = '+';
-                } elseif (($dRec->saleValue - $dRec->sellValuePrevious) < 0.1) {
-                    $color = 'red';
-                    $marker = '';
-                } else {
-                    $color = 'black';
-                    $marker = '';
+            if ($dRec->contragentId) {
+                $contragentClassName = $dRec->contragentClassName;
+                $row->contragentId = $contragentClassName::getShortHyperlink($dRec->contragentId);
+            }
+            foreach (array(
+                'saleValue',
+                'delta'
+            ) as $fld) {
+                $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
+                if ($dRec->{$fld} < 0) {
+                    $row->{$fld} = "<span class='red'>" . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld}) . '</span>';
                 }
-                
-                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
-                $row->deltaCompare= core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaPrevious);
-                
-                $row->changeSales = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->saleValue - $dRec->sellValuePrevious) . '</span>';
-                $row->changeDeltas = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta - $dRec->deltaPrevious) . '</span>';
             }
-            
-            if ($rec->compare == 'year') {
-                if (($dRec->saleValue - $dRec->sellValueLastYear) > 0 ) {
-                    $color = 'green';
-                    $marker = '+';
-                } elseif (($dRec->saleValue - $dRec->sellValueLastYear) < 0) {
-                    $color = 'red';
-                    $marker = '';
-                } else {
-                    $color = 'black';
-                    $marker = '';
-                }
-                
-                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
-                $row->deltaCompare= core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
-                
-                $row->changeSales = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->saleValue - $dRec->sellValueLastYear) . '</span>';
-                $row->changeDeltas = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta - $dRec->deltaLastYear) . '</span>';
-            }
-        }
-        if ($dRec->totalValue) {
-            $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
-            $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
-            $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
             
             if ($rec->compare != 'no') {
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    if (($dRec->totalValue - $dRec->totalValuePrevious) > 0 && $dRec->totalValuePrevious != 0) {
+                    if (($dRec->saleValue - $dRec->sellValuePrevious) > 0) {
                         $color = 'green';
                         $marker = '+';
-                    } elseif (($dRec->totalValue - $dRec->totalValuePrevious) < 0.1) {
+                    } elseif (($dRec->saleValue - $dRec->sellValuePrevious) < 0.1) {
                         $color = 'red';
                         $marker = '';
                     } else {
@@ -586,17 +555,18 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         $marker = '';
                     }
                     
-                    $row->sellValueCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious). '</b>';
-                    $row->deltaCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaPrevious). '</b>';
-                    $row->changeSales = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalValuePrevious). '</b>' . '</span>';
-                    $row->changeDeltas = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaPrevious). '</b>' . '</span>';
+                    $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
+                    $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaPrevious);
+                    
+                    $row->changeSales = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->saleValue - $dRec->sellValuePrevious) . '</span>';
+                    $row->changeDeltas = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta - $dRec->deltaPrevious) . '</span>';
                 }
                 
                 if ($rec->compare == 'year') {
-                    if (($dRec->totalValue - $dRec->totalValueLastYear) > 0 && $dRec->totalValueLastYear != 0) {
+                    if (($dRec->saleValue - $dRec->sellValueLastYear) > 0) {
                         $color = 'green';
                         $marker = '+';
-                    } elseif (($dRec->totalValue - $dRec->totalValueLastYear) < 0) {
+                    } elseif (($dRec->saleValue - $dRec->sellValueLastYear) < 0) {
                         $color = 'red';
                         $marker = '';
                     } else {
@@ -604,16 +574,65 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         $marker = '';
                     }
                     
-                    $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValueLastYear);
-                    $row->deltaCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaLastYear). '</b>';
+                    $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
+                    $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
                     
-                    if ($dRec->totalValueLastYear != 0) {
-                        $compare = ($dRec->totalValue - $dRec->totalValueLastYear) / $dRec->totalValueLastYear;
-                    }
-                    $row->changeSales = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalValueLastYear). '</b>' . '</span>';
-                    $row->changeDeltas = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaLastYear). '</b>' . '</span>';
+                    $row->changeSales = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->saleValue - $dRec->sellValueLastYear) . '</span>';
+                    $row->changeDeltas = "<span class= {$color}>" . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta - $dRec->deltaLastYear) . '</span>';
                 }
             }
+            
+            //  $row->groupList = cat_Groups::getVerbal($dRec->group, 'name');
+            
+            if ($dRec->totalValue) {
+                $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
+                $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
+                $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
+                
+                if ($rec->compare != 'no') {
+                    if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
+                        if (($dRec->totalValue - $dRec->totalValuePrevious) > 0 && $dRec->totalValuePrevious != 0) {
+                            $color = 'green';
+                            $marker = '+';
+                        } elseif (($dRec->totalValue - $dRec->totalValuePrevious) < 0.1) {
+                            $color = 'red';
+                            $marker = '';
+                        } else {
+                            $color = 'black';
+                            $marker = '';
+                        }
+                        
+                        $row->sellValueCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious). '</b>';
+                        $row->deltaCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaPrevious). '</b>';
+                        $row->changeSales = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalValuePrevious). '</b>' . '</span>';
+                        $row->changeDeltas = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaPrevious). '</b>' . '</span>';
+                    }
+                    
+                    if ($rec->compare == 'year') {
+                        if (($dRec->totalValue - $dRec->totalValueLastYear) > 0 && $dRec->totalValueLastYear != 0) {
+                            $color = 'green';
+                            $marker = '+';
+                        } elseif (($dRec->totalValue - $dRec->totalValueLastYear) < 0) {
+                            $color = 'red';
+                            $marker = '';
+                        } else {
+                            $color = 'black';
+                            $marker = '';
+                        }
+                        
+                        $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValueLastYear);
+                        $row->deltaCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaLastYear). '</b>';
+                        
+                        if ($dRec->totalValueLastYear != 0) {
+                            $compare = ($dRec->totalValue - $dRec->totalValueLastYear) / $dRec->totalValueLastYear;
+                        }
+                        $row->changeSales = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalValueLastYear). '</b>' . '</span>';
+                        $row->changeDeltas = "<span class= {$color}>" .'<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaLastYear). '</b>' . '</span>';
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            reportException($e);
         }
         
         return $row;
