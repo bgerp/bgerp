@@ -267,7 +267,14 @@ class cms_Domains extends core_Embedder
         
         // Задаваме действителния домейн, на който е намерен този
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
-        
+
+        if($rec->domain != $rec->actualDomain && $rec->domain != 'localhost' && $rec->actualDomain != 'localhost' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+            $newUrl = core_Url::change($url, array(), $rec->domain);
+
+            redirect($newUrl);
+        }
+
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
     }
     
