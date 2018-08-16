@@ -5238,6 +5238,9 @@ div.location.public {
 		a {
 			color: #aaa !important;
 		}
+		.iw-contextMenu a {
+			color: #222 !important;
+		}
 	}
 	> tbody > tr.zonesCommonRow {
 		color: #000 !important;
@@ -5254,11 +5257,11 @@ div.location.public {
 		a {
 			color: #004488 !important;
 		}
+		.iw-contextMenu a {
+			color: #222 !important;
+		}
+	}
 
-	}
-	.iw-contextMenu a {
-		color: #333 !important;
-	}
 }
 
 td.rack-hl {
