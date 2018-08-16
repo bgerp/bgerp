@@ -72,7 +72,6 @@ class rack_Pallets extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
-        $this->FNC('uom', 'varchar', 'caption=Мярка,smartCenter');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
         $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
@@ -81,6 +80,28 @@ class rack_Pallets extends core_Manager
         $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затворено на,input=none');
         
         $this->setDbIndex('productId');
+    }
+    
+    
+    /**
+     * Връща наличните палети за артикула
+     * 
+     * @param int $productId  - ид на артикул
+     * @param int $storeId    - ид на склад
+     * @return array $pallets - масив с палети
+     */
+    public static function getAvailablePallets(int $productId, int $storeId)
+    {
+        $pallets = array();
+        $query = self::getQuery();
+        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $query->show('quantity,position');
+        $query->orderBy('createdOn', 'ASC');
+        while($rec = $query->fetch()){
+            $pallets[$rec->id] = (object)array('quantity' => $rec->quantity, 'position' => $rec->position);
+        }
+        
+        return $pallets;
     }
     
     
@@ -536,12 +557,11 @@ class rack_Pallets extends core_Manager
     public static function getPalletOptions($productId, $storeId)
     {
         $options = array();
-        $query = self::getQuery();
-        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $pallets = self::getAvailablePallets($productId, $storeId);
         
         Mode::push('text', 'plain');
-        while ($rec = $query->fetch()) {
-            $options[$rec->id] = self::getRecTitle($rec, false);
+        foreach ($pallets as $id => $rec){
+            $options[$id] = self::getRecTitle($id, false);
         }
         Mode::pop('text');
         
@@ -614,6 +634,7 @@ class rack_Pallets extends core_Manager
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        $data->listTableMvc->FLD('uom', 'varchar', 'smartCenter');
         if (Mode::is('screenMode', 'narrow')) {
             $data->listTableMvc->commonFirst = true;
             $data->listFields['productId'] = '@Артикул';
