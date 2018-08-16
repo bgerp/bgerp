@@ -575,9 +575,10 @@ class eshop_Carts extends core_Master
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
             $deliveryNoVat = $rec->deliveryNoVat;
-           
+            $totalAmount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+            
             $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
-            if (!empty($settings->freeDelivery) && round($deliveryNoVat, 2) >= round($freeDelivery, 2)){
+            if (!empty($settings->freeDelivery) && round($totalAmount, 2) >= round($freeDelivery, 2)){
                 $deliveryNoVat = 0;
             }
             
