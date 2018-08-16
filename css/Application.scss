@@ -5232,8 +5232,11 @@ div.location.public {
 	> tbody > tr:not(zonesCommonRow) {
 		background: #333 !important;
 		color: #fff !important;
-		a, span {
+		span {
 			color: #eee !important;
+		}
+		a {
+			color: #aaa !important;
 		}
 	}
 	> tbody > tr.zonesCommonRow {
@@ -5245,8 +5248,11 @@ div.location.public {
 		td {
 			padding: 1% !important;
 		}
-		a, span {
+		span {
 			color: #000 !important;
+		}
+		a {
+			color: #004488 !important;
 		}
 
 	}
