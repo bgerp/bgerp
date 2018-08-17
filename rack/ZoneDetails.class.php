@@ -25,12 +25,6 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'plg_AlignDecimals2';
-    
-    
-    /**
      * Кой може да листва?
      */
     public $canList = 'no_one';
