@@ -498,14 +498,16 @@ class rack_Zones extends core_Master
             
             $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId);
             $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
-            $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
+            $pallets[$floor] = (object)array('quantity' => 0.1, 'position' => $floor);
             
             $palletsArr = array();
             foreach ($pallets as $obj){
                 $palletsArr[$obj->position] = $obj->quantity;
             }
             
-            //$allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones, true);
+            $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
+            bp($allocatedPallets);
+            
             //rack_MovementGenerator::getMovementsArr($pRec->productId, $pRec->packagingId, $storeId, $allocatedPallets);
             //bp($generatedMovements2, $pallets, $pRec);
             

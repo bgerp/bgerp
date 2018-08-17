@@ -150,6 +150,7 @@ class rack_Movements extends core_Manager
             $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
             $transaction = $mvc->getTransaction($clone);
             $transaction = $mvc->validateTransaction($transaction);
+            
             if(!empty($transaction->errors)){
                 $form->setError($transaction->errorFields, $transaction->errors);
             }
@@ -773,6 +774,13 @@ class rack_Movements extends core_Manager
         
         $toPallet = $toProductId = null;
         if(!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR){
+            
+            if(!rack_Racks::checkPosition($transaction->to, $transaction->productId, $transaction->storeId, $error)){
+                $res->errors = $error;
+                $res->errorFields[] = 'positionTo,productId';
+                return $res;
+            }
+            
             if($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId)){
                 $toProductId = $toPallet->productId;
                 $toQuantity = $toPallet->quantity;

@@ -90,7 +90,7 @@ class rack_MovementGenerator extends core_Manager
     }
     
     
-    public function mainP2Q($p, $q)
+    public static function mainP2Q($p, $q)
     {
         asort($p); asort($q);
         $variants = self::p2q($p, $q);

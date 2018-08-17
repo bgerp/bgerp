@@ -212,23 +212,26 @@ class rack_Racks extends core_Master
     
     
     /**
-     * Използваемо ли е посоченото стелажно място?
+     * Проверява съществуваща ли е позицията
+     * 
+     * @param string $position
+     * @param int $productId
+     * @param int $storeId
+     * @param string|null $error
+     * @param string|null $error
+     * @return boolean
      */
-    public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null)
+    public static function checkPosition($position, $productId, $storeId, &$error = null, &$rec = null)
     {
-        expect($position);
-        
-        if (!$storeId) {
-            $storeId = store_Stores::getCurrent();
+        list($num, $row, $col) = explode('-', $position);
+        if (!($num && $row && $col)){
+            $error = 'Невалиден синтаксис';
+            
+            return false;
         }
         
-        list($num, $row, $col) = explode('-', $position);
-        
-        expect($num && $row && $col, 'Невалиден синтаксис', $num, $row, $col);
-        
         $rec = self::fetch("#storeId = {$storeId} AND #num = {$num}");
-        
-        if (!$rec) {
+        if (empty($rec)) {
             $error = 'Несъществуващ номер на стeлаж в този склад';
             
             return false;
@@ -247,8 +250,22 @@ class rack_Racks extends core_Master
             return false;
         }
         
-        $dRec = rack_RackDetails::fetch("#rackId = {$rec->id} && #row = '{$row}' AND #col = {$col}");
+        return true;
+    }
+    
+    
+    /**
+     * Използваемо ли е посоченото стелажно място?
+     */
+    public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null)
+    {
+        expect($position);
+        $storeId = $storeId ?? store_Stores::getCurrent();
         
+        if(!self::checkPosition($position, $productId, $storeId, $error, $rec)) return;
+        list(, $row, $col) = explode('-', $position);
+        
+        $dRec = rack_RackDetails::fetch("#rackId = {$rec->id} && #row = '{$row}' AND #col = {$col}");
         if ($dRec) {
             if ($dRec->status == 'unusable') {
                 $error = 'Мястото е неизползваемо';
