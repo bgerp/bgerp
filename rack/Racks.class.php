@@ -214,7 +214,7 @@ class rack_Racks extends core_Master
     /**
      * Използваемо ли е посоченото стелажно място?
      */
-    public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null, &$status = null)
+    public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null)
     {
         expect($position);
         
@@ -230,14 +230,12 @@ class rack_Racks extends core_Master
         
         if (!$rec) {
             $error = 'Несъществуващ номер на стeлаж в този склад';
-            $status = 'bad_rack_num';
             
             return false;
         }
         
         if ($row < 'A' || $row > $rec->rows) {
             $error = 'Несъществуващ ред на стeлажа';
-            $status = 'bad_row';
             
             return false;
         }
@@ -245,7 +243,6 @@ class rack_Racks extends core_Master
         
         if ($col < 1 || $col > $rec->columns) {
             $error = 'Несъществуваща колона на стeлажа';
-            $status = 'bad_column';
             
             return false;
         }
@@ -255,7 +252,6 @@ class rack_Racks extends core_Master
         if ($dRec) {
             if ($dRec->status == 'unusable') {
                 $error = 'Мястото е неизползваемо';
-                $status = 'unusable';
                 
                 return false;
             }
@@ -263,7 +259,6 @@ class rack_Racks extends core_Master
             if ($dRec->status == 'reserved' && isset($productId) && $dRec->productId != $productId) {
                 $reservedProductName = cat_Products::getTitleById($dRec->productId);
                 $error = "Мястото е запазено за артикул|*: <b>{$reservedProductName}</b>";
-                $status = 'reserved';
                 
                 return false;
             }
