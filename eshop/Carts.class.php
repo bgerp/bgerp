@@ -349,9 +349,10 @@ class eshop_Carts extends core_Master
                     $delivery = currency_CurrencyRates::convertAmount($delivery['amount'], null, null, $settings->currencyId);
                     $rec->deliveryNoVat = $delivery;
                     $rec->totalNoVat += $rec->deliveryNoVat;
+                    $totalAmount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
                     
                     // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
-                    if (!empty($settings->freeDelivery) && round($delivery, 2) >= round($settings->freeDelivery, 2)){
+                    if (!empty($settings->freeDelivery) && round($totalAmount, 2) >= round($settings->freeDelivery, 2)){
                         $delivery = 0;
                     }
                     
@@ -574,9 +575,10 @@ class eshop_Carts extends core_Master
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
             $deliveryNoVat = $rec->deliveryNoVat;
-           
+            $totalAmount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+            
             $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
-            if (!empty($settings->freeDelivery) && round($deliveryNoVat, 2) >= round($freeDelivery, 2)){
+            if (!empty($settings->freeDelivery) && round($totalAmount, 2) >= round($freeDelivery, 2)){
                 $deliveryNoVat = 0;
             }
             
@@ -933,9 +935,10 @@ class eshop_Carts extends core_Master
             $row->deliveryAmount = $deliveryAmountV;
             $row->deliveryCaption = tr('Доставка||Shipping');
             $row->deliveryCurrencyId = $row->currencyId;
+            $totalAmount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
             
             // Ако доставката е безплатна отбелязва се
-            if(!empty($settings->freeDelivery) && $deliveryAmount >= $settings->freeDelivery){
+            if(!empty($settings->freeDelivery) && $totalAmount >= $settings->freeDelivery){
                 $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
                 unset($row->deliveryCurrencyId);
                 $row->deliveryColspan = "colspan=2";

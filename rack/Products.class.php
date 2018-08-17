@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Milen Georgiev <milen2experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -20,12 +20,6 @@ class rack_Products extends store_Products
      * Заглавие
      */
     public $title = 'Артикули в склада';
-    
-    
-    /**
-     * Плъгини за зареждане
-     */
-    //var $loadList = 'plg_Created, rack_Wrapper, plg_RowTools2';
     
     
     /**
@@ -99,13 +93,13 @@ class rack_Products extends store_Products
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         core_RowToolbar::createIfNotExists($row->_rowTools);
         
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'packQuantity' => $rec->quantityNotOnPallets, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet2.png,title=Палетиране на артикул');
+            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'packQuantity' => $rec->quantityNotOnPallets, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
         }
         
         if ($rec->quantityOnPallets > 0) {
@@ -123,7 +117,7 @@ class rack_Products extends store_Products
      * @param array         $fields
      * @param NULL|string   $mode
      */
-    public static function on_AfterSaveArray($mvc, $res, $recs)
+    protected static function on_AfterSaveArray($mvc, $res, $recs)
     {
         foreach ($recs as $rec) {
             $rec = self::fetch("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");

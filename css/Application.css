@@ -4638,6 +4638,34 @@ div.location.public {
 /*
  * rack
  */
+.rack_Zones .listTable {
+  border: none !important; }
+  .rack_Zones .listTable td,
+  .rack_Zones .listTable th {
+    border: none !important; }
+  .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) {
+    background: #333333 !important;
+    color: white !important; }
+    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) span {
+      color: #eeeeee !important; }
+    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) a {
+      color: #aaaaaa !important; }
+    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) .iw-contextMenu a {
+      color: #222222 !important; }
+  .rack_Zones .listTable > tbody > tr.zonesCommonRow {
+    color: black !important;
+    background: rgba(0, 0, 0, 0) !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow:hover {
+      background: rgba(0, 0, 0, 0) !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow td {
+      padding: 1% !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow span {
+      color: black !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow a {
+      color: #004488 !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
+      color: #222222 !important; }
+
 td.rack-hl {
   background-color: red; }
 

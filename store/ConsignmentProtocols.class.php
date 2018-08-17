@@ -523,7 +523,7 @@ class store_ConsignmentProtocols extends core_Master
         $dQuery->where("#protocolId = {$id}");
         $dQuery->show('productId, quantity');
         
-        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
         
         return $warning;
     }

@@ -227,6 +227,9 @@ class eshop_Settings extends core_Manager
             $query = self::getQuery();
             $query->in('objectId', array_keys($domainArr));
             $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'objectId');
+            if($rec->id) {
+                unset($alreadyIn[$rec->objectId]);
+            }
             $options = array_diff_key($domainArr, $alreadyIn);
             
             if(count($options)){

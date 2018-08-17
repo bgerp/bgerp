@@ -25,12 +25,6 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'plg_AlignDecimals2';
-    
-    
-    /**
      * Кой може да листва?
      */
     public $canList = 'no_one';
@@ -55,6 +49,12 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_AlignDecimals2';
+    
+    
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'zoneId';
@@ -74,16 +74,8 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
-       
         $this->FLD('documentQuantity', 'double', 'caption=Документи,mandatory');
         $this->FLD('movementQuantity', 'double', 'caption=Движения,mandatory');
-        
-        
-        
-        //$this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter');
-        
-        
-        
         
         $this->setDbUnique('zoneId,productId,packagingId');
     }
@@ -124,6 +116,16 @@ class rack_ZoneDetails extends core_Detail
     }
     
     
+    /**
+     * Записва движение в зоната
+     * 
+     * @param int $zoneId      - ид на зона
+     * @param int $productId   - ид на артикул
+     * @param int $packagingId - ид на опаковка
+     * @param double $quantity - количество в основна мярка
+     * 
+     * @return void
+     */
     public static function recordMovement($zoneId, $productId, $packagingId, $quantity)
     {
         $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
@@ -136,11 +138,18 @@ class rack_ZoneDetails extends core_Detail
     }
     
     
+    /**
+     * Синхронизиране на зоните с документа
+     * 
+     * @param int $zoneId
+     * @param int $containerId
+     */
     public static function syncWithDoc($zoneId, $containerId = null)
     {
         if(isset($containerId)){
             $document = doc_Containers::getDocument($containerId);
             $products = $document->getProductsSummary();
+            $exRecs = array();
             
             if(is_array($products)){
                 foreach ($products as $obj){
@@ -148,22 +157,53 @@ class rack_ZoneDetails extends core_Detail
                     if(empty($newRec)){
                         $newRec = (object)array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
-                    $newRec->documentQuantity += $obj->quantity;
+                    $newRec->documentQuantity = $obj->quantity;
                     
                     self::save($newRec);
+                    $exRecs[$newRec->id] = $newRec->id;
                 }
             }
-        } else {
-            $query = self::getQuery();
-            $query->where("#zoneId = {$zoneId}");
-            $query->where("#documentQuantity IS NOT NULL");
-            while($rec = $query->fetch()){
-                $rec->documentQuantity = null;
-                self::save($rec);
+            
+            // Тези които не са се обновили се изтриват
+            if(count($exRecs)){
+                self::nullifyQuantityFromDocument($zoneId, $exRecs);
             }
+        } else {
+            self::nullifyQuantityFromDocument($zoneId);
+        }
+    }
+    
+    
+    /**
+     * Зануляване на очакваното количество по документи
+     * 
+     * @param int $zoneId
+     * @param array $notIn
+     */
+    private static function nullifyQuantityFromDocument(int $zoneId, array $notIn = array())
+    {
+        $query = self::getQuery();
+        $query->where("#zoneId = {$zoneId}");
+        $query->where("#documentQuantity IS NOT NULL");
+        if(count($notIn)){
+            $query->notIn("id", $notIn);
         }
         
-        
-       
+        while($rec = $query->fetch()){
+            $rec->documentQuantity = null;
+            self::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Ако няма никакви количества се изтрива
+        if(empty($rec->documentQuantity) && empty($rec->movementQuantity)){
+            self::delete($rec->id);
+        }
     }
 }

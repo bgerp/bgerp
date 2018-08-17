@@ -336,7 +336,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'migrate::updateDeltaStates1',
-        'migrate::setContragentFieldKeylist2'
+        'migrate::setContragentFieldKeylist3'
     );
     
     
@@ -525,27 +525,35 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция за корекция на `contragent` полетата в keylist
      */
-    public static function setContragentFieldKeylist2()
+    public static function setContragentFieldKeylist3()
     {
         $Reports = cls::get('frame2_Reports');
         
         $fQuery = $Reports::getQuery();
         
-        $classId = sales_reports_SoldProductsRep::getClassId();
+        $classIds[sales_reports_SalesByContragents::getClassId()] = sales_reports_SalesByContragents::getClassId();
         
-        $fQuery->where("#driverClass = ${classId}");
+        $classIds[sales_reports_SoldProductsRep::getClassId()] = sales_reports_SoldProductsRep::getClassId();
+        
+        $fQuery-> in('driverClass', $classIds);
         
         while ($reportRec = $fQuery->fetch()) {
+            
             if (is_numeric($reportRec->driverRec['contragent']) && (!is_null($reportRec->driverRec['contragent']))) {
+                
                 $contragentId = ($reportRec->driverRec['contragent']);
                 
                 $reportRec->driverRec['contragent'] = '|' . $contragentId . '|';
                 
+                $reportRec->contragent = '|' . $contragentId . '|';
+                
                 try {
-                    $Reports->save($reportRec, 'driverRec');
+                    $Reports->save_;
                 } catch (Exception $e) {
                     reportException($e);
                 }
+                
+                
             }
         }
     }

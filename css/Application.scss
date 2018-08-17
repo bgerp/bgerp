@@ -5224,6 +5224,46 @@ div.location.public {
 
 
 /*rack*/
+.rack_Zones .listTable {
+	border: none !important;
+	td, th {
+		border: none !important;
+	}
+	> tbody > tr:not(zonesCommonRow) {
+		background: #333 !important;
+		color: #fff !important;
+		span {
+			color: #eee !important;
+		}
+		a {
+			color: #aaa !important;
+		}
+		.iw-contextMenu a {
+			color: #222 !important;
+		}
+	}
+	> tbody > tr.zonesCommonRow {
+		color: #000 !important;
+		background: transparent !important;
+		&:hover {
+			background: transparent !important;
+		}
+		td {
+			padding: 1% !important;
+		}
+		span {
+			color: #000 !important;
+		}
+		a {
+			color: #004488 !important;
+		}
+		.iw-contextMenu a {
+			color: #222 !important;
+		}
+	}
+
+}
+
 td.rack-hl {
 	background-color:red;
 }
