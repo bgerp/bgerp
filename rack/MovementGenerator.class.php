@@ -24,6 +24,12 @@ class rack_MovementGenerator extends core_Manager
     
     
     /**
+     * Генератор на движения
+     */
+    public $title = 'Генератор на движения';
+    
+    
+    /**
      * Екшън за тест
      */
     public function act_Default()
@@ -78,7 +84,9 @@ class rack_MovementGenerator extends core_Manager
             $html .= ht::mixedToHtml($mArr);
         }
         
-        return "<div style='padding:10px;'>" . $html . '</div>';
+        $html = $this->renderWrapping($html);
+        
+        return $html;
     }
     
     
