@@ -110,37 +110,39 @@ class rack_MovementGenerator extends core_Manager
             
         });
             
-            $moves = array_shift(array_slice($variants, 0, 1));
-            
-            $res = array();
-            $i   = 0;
-            foreach($moves as $m => $q) {
-                list($l, $r) = explode('=>', $m);
-                if($l == 'get') {
-                    $i++;
-                    $res[$i] = new stdClass();
-                    $o = &$res[$i];
-                    $o->pallet = $r;
-                    $o->quantity = $q;
-                    $o->zones = array();
-                }
-                if($l == $o->pallet) {
-                    $o->zones[$r] = $q;
-                }
-                if($l == 'ret') {
-                    // Ако върнатото количество е над 80% от палета, приемаме, че е по-добре да вземем
-                    // само това, което ни трябва за зоните. Тук трябва да се проеми това ограничение по зададено максимално тегло
-                    // на вземането от палета, което може да стане ръчно. Функцията трябва да получава макс количество,
-                    // при което не се взема целия палет, а само необходимата част
-                    if($q >= 0.8 * $o->quantity) {
-                        $o->quantity = array_sum($o->zones);
-                    } else {
-                        $o->ret = $q;
-                    }
-                }
+        $moves = array_shift(array_slice($variants, 0, 1));
+        $res = array();
+        
+        if(!is_array($moves)) return $res;
+        
+        $i = 0;
+        foreach($moves as $m => $q) {
+            list($l, $r) = explode('=>', $m);
+            if($l == 'get') {
+                $i++;
+                $res[$i] = new stdClass();
+                $o = &$res[$i];
+                $o->pallet = $r;
+                $o->quantity = $q;
+                $o->zones = array();
             }
+            if($l == $o->pallet) {
+                $o->zones[$r] = $q;
+            }
+            if($l == 'ret') {
+                // Ако върнатото количество е над 80% от палета, приемаме, че е по-добре да вземем
+                // само това, което ни трябва за зоните. Тук трябва да се проеми това ограничение по зададено максимално тегло
+                // на вземането от палета, което може да стане ръчно. Функцията трябва да получава макс количество,
+                // при което не се взема целия палет, а само необходимата част
+               if($q >= 0.8 * $o->quantity) {
+                    $o->quantity = array_sum($o->zones);
+               } else {
+                    $o->ret = $q;
+               }
+            }
+        }
             
-            return $res;
+        return $res;
     }
     
     

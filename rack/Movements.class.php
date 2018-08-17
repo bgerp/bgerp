@@ -800,7 +800,7 @@ class rack_Movements extends core_Manager
             }
             
             // Ако от новата позиция има чакащо движение
-            if (self::fetchField("#position = '{$transaction->to}' AND #storeId = {$transaction->storeId} AND #state = 'pending'")){
+            if (self::fetchField("#position = '{$transaction->to}' AND #storeId = {$transaction->storeId} AND #state = 'pending' AND #id != '{$transaction->id}'")){
                 $res->warnings[] = "От новата позиция|* <b>{$transaction->to}</b> |има насочено друго чакащо движение|*";
                 $res->warningFields[] = 'positionTo';
             }
