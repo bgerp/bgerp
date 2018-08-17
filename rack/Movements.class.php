@@ -660,7 +660,7 @@ class rack_Movements extends core_Manager
         // Проверка може ли транзакцията да мине
         $transaction = $this->getTransaction($rec, $reverse);
         $transaction = $this->validateTransaction($transaction);
-        
+       
         if(!empty($transaction->errors)){
             followretUrl(null, $transaction->errors, 'error');
         }
@@ -794,13 +794,13 @@ class rack_Movements extends core_Manager
             }
             
             // Ако към новата позиция има чакащо движение
-            if (self::fetchField("#positionTo = '{$transaction->to}' AND #state = 'pending' AND #id != '{$transaction->id}'")){
+            if (self::fetchField("#positionTo = '{$transaction->to}' AND #storeId = {$transaction->storeId} AND #state = 'pending' AND #id != '{$transaction->id}'")){
                 $res->warnings[] = "Към новата позиция|* <b>{$transaction->to}</b> |има насочено друго чакащо движение|*";
                 $res->warningFields[] = 'positionTo';
             }
             
             // Ако от новата позиция има чакащо движение
-            if (self::fetchField("#position = '{$transaction->to}' AND #state = 'pending'")){
+            if (self::fetchField("#position = '{$transaction->to}' AND #storeId = {$transaction->storeId} AND #state = 'pending'")){
                 $res->warnings[] = "От новата позиция|* <b>{$transaction->to}</b> |има насочено друго чакащо движение|*";
                 $res->warningFields[] = 'positionTo';
             }

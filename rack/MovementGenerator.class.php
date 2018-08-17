@@ -147,7 +147,7 @@ class rack_MovementGenerator extends core_Manager
     /**
      * Връща масив от масиви. Вторите масиви, са движения, които изчепват или P или Q
      */
-    public  static function p2q($p, $q)
+    private  static function p2q($p, $q)
     {
         $res = array();
         $z = 0;
@@ -241,7 +241,7 @@ class rack_MovementGenerator extends core_Manager
         
         foreach($combi ? $combi : array(0 => '|') as $mK => $m) {
             foreach($arr as $k => $qK) {
-                //bp( $m,  '|'. $k . '|');
+                
                 if(strpos($m,  '|'. $k . '|') === FALSE) {
                     $qnt = $mK + $qK;
                     if(!$combi[$qnt]) {
@@ -262,4 +262,44 @@ class rack_MovementGenerator extends core_Manager
         return ($a % $b) ? self::gcd($b, $a % $b) : $b;
     }
     
+    
+    public static function getMovements($allocatedArr, $productId, $packagingId, $storeId)
+    {
+        $res = array();
+        if (!is_array($allocatedArr)) return $res;
+        $cu = core_Users::getCurrent();
+        $packRec = cat_products_Packagings::getPack($productId, $packagingId);
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        
+        foreach ($allocatedArr as $obj){
+            $newRec  = (object)array('productId'      => $productId, 
+                                     'packagingId'    => $packagingId, 
+                                     'storeId'        => $storeId, 
+                                     'quantityInPack' => $quantityInPack,
+                                     'state'          => 'pending',
+                                     'workerId'       => $cu,
+                                     'quantity'       => $obj->quantity,
+                                     'position'       => $obj->pallet,
+            );
+            
+            if($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId)){
+                $newRec->palletId = $palletRec->id;
+                $newRec->palletToId = $palletRec->id;
+                $newRec->positionTo = $obj->pallet;
+            }
+            
+            expect(count($obj->zones), 'няма зони');
+            $zoneArr = array('zone' => array(), 'quantity' => array());
+            foreach ($obj->zones as $zoneId => $zoneQuantity){
+                $zoneArr['zone'][] = $zoneId;
+                $zoneArr['quantity'][] = $zoneQuantity / $quantityInPack;
+            }
+            $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
+            $newRec->zones = $TableType->fromVerbal($zoneArr);
+            
+            $res[] = $newRec;
+        }
+        
+        return $res;
+    }
 }

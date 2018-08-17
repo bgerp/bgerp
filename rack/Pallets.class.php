@@ -651,10 +651,10 @@ class rack_Pallets extends core_Manager
      */
     public static function getByPosition($position, $storeId)
     {
-        if(empty($position)) return null;
+        if(empty($position) || $position == rack_PositionType::FLOOR) return null;
         
         $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
         
-        return is_object($rec) ? (object)array('productId' => $rec->productId, 'quantity' => $rec->quantity) : NULL;
+        return is_object($rec) ? (object)array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity) : NULL;
     }
 }
