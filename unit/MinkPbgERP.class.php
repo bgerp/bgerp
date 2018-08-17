@@ -177,8 +177,8 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
         $browser->setValue('pass', unit_Setup::get('DEFAULT_USER_PASS'));
         $browser->press('Вход');
-        sleep(2);
-        set_time_limit(600);
+        sleep(3);
+        set_time_limit(800);
         
         return $browser;
     }
@@ -312,7 +312,6 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('purchase', true);
         $browser->setValue('seePrice', true);
         
-        //$browser->setValue('roleTeams[13]', '13');
         //$browser->setValue('Headquarter', '13');
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
@@ -348,22 +347,18 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('email', 'u2@abv.bg');
         $browser->setValue('roleRank', 'officer');
         $browser->press('Refresh');
-        
-        //$browser->setValue('roleTeams[13]', '13');
         $browser->setValue('Дилър', true);
         
         //Повтаряне на паролите,
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
-        
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
             
             return $this->reportErr('Дублиране на потребител', 'info');
         }
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -395,8 +390,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Дублиране на склад', 'info');
         }
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -428,8 +422,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Дублиране на банкова сметка', 'info');
         }
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -467,7 +460,6 @@ class unit_MinkPbgERP extends core_Manager
             return $this->reportErr('Дублиране на банкова сметка', 'info');
         }
         
-        //return $browser->getHtml();
     }
     
     
@@ -499,8 +491,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Дублиране на каса', 'info');
         }
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -578,8 +569,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Дублиране на категория', 'info');
         }
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -777,8 +767,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Дублиране на звено', 'info');
         }
-        
-        //return $browser->getHtml();
+      
     }
     
     
@@ -814,8 +803,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Дублиране на звено', 'info');
         }
-        
-        //return $browser->getHtml();
+    
     }
     
     
@@ -849,8 +837,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Дублиране на звено', 'info');
         }
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -884,7 +871,6 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('paramValue', '26');
         $browser->press('Запис');
         
-        //return $browser->getHtml();
     }
     
     
@@ -929,7 +915,6 @@ class unit_MinkPbgERP extends core_Manager
             $browser->press('Запис');
         }
         
-        //return $browser->getHtml();
     }
     
     
@@ -967,7 +952,6 @@ class unit_MinkPbgERP extends core_Manager
         // Създаване на папка на новата фирма
         $browser->press('Папка');
         
-        //return $browser->getHtml();
     }
     
     
@@ -998,7 +982,6 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('tel', '042222222');
         $browser->press('Запис');
         
-        //return $browser->getHtml();
     }
     
     
@@ -1023,6 +1006,7 @@ class unit_MinkPbgERP extends core_Manager
             //има такава фирма - редакция
             $browser->click($Company);
             $browser->click('Локации');
+            //return $browser->getHtml();
             $browser->click('Добавяне на нова локация');
             $browser->setValue('title', 'Офис Пловдив');
             $browser->setValue('type', 'Офис');
@@ -1109,8 +1093,7 @@ class unit_MinkPbgERP extends core_Manager
         if (strpos($browser->gettext(), $Company)) {
             $browser->press('Папка');
         }
-        
-        //return $browser->getHtml();
+      
     }
     
     
@@ -1160,8 +1143,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('packPrice', 4);
         $browser->press('Запис');
         $browser->press('Активиране');
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -1236,8 +1218,7 @@ class unit_MinkPbgERP extends core_Manager
         //$valior=strtotime("+3 Days");
         //$browser->setValue('timeEnd[d]', date('d-m-Y', $valior));
         $browser->press('Активиране');
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -1413,15 +1394,11 @@ class unit_MinkPbgERP extends core_Manager
         
         //$browser->setValue('chargeVat', "Освободено от ДДС"); //// Ако контрагентът е от България дава грешка.
         $browser->setValue('chargeVat', 'exempt');
-        
-        //$browser->setValue('chargeVat', "Без начисляване на ДДС");
         $browser->setValue('template', 'Purchase contract');
-        
         $browser->press('Чернова');
         
         // Записваме черновата на покупката
         // Добавяме артикул
-        //wp(getCurrentUrl());
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
         $browser->press('Refresh');
@@ -1518,7 +1495,6 @@ class unit_MinkPbgERP extends core_Manager
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         
-        //return $browser->getHtml();
     }
     
     
@@ -1551,6 +1527,7 @@ class unit_MinkPbgERP extends core_Manager
         $enddate = strtotime('+2 Days');
         $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
         $browser->setValue('deliveryTime[t]', '10:30');
+        $browser->setValue('shipmentStoreId', 'Склад 1');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
@@ -1582,25 +1559,27 @@ class unit_MinkPbgERP extends core_Manager
         // Записване на артикула
         $browser->press('Запис');
         
-        // Игнорираме предупреждението за липсваща стока
-        //$browser->setValue('Ignore', 1);
-        //$browser->press('Запис');
-        
         // активиране на продажбата
         $browser->press('Активиране');
+        sleep(3);
+        set_time_limit(800);
         $browser->press('Активиране/Контиране');
+        sleep(3);
+        set_time_limit(800);
+        //return $browser ->getHtml();
+       
         
-        if (strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
-        } else {
+//         if (strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
+//         } else {
             
-            return $this->reportErr('Грешно ДДС', 'warning');
-        }
-        if (strpos($browser->gettext(), 'Четиридесет и три BGN и 0,20')) {
-        } else {
+//             return $this->reportErr('Грешно ДДС', 'warning');
+//         }
+//         if (strpos($browser->gettext(), 'Четиридесет и три BGN и 0,20')) {
+//         } else {
             
-            return $this->reportErr('Грешна обща сума', 'warning');
-        }
-        
+//             return $this->reportErr('Грешна обща сума', 'warning');
+//         }
+     
         //if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
         //} else {
         //    return $this->reportErr('Грешно условие на доставка', 'warning');
@@ -1609,26 +1588,14 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Проформа');
         $browser->press('Чернова');
         $browser->press('Активиране');
-        
-        // експедиционно нареждане
-        // Когато няма автом. избиране
-        //$browser->press('Експедиране');
-        //$browser->setValue('storeId', 'Склад 1');
-        //$browser->setValue('template', 'Експедиционно нареждане с цени');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Двадесет и девет BGN и 0,99 ')) {
-        //} else {
-        //    return $this->reportErr('Грешна сума в ЕН', 'warning');
-        //}
-        
+                     
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('numlimit', '0 - 2000000');
         $dateInv = strtotime('-1 Day');
         $browser->setValue('date', date('d-m-Y', $dateInv));
         $browser->press('Чернова');
-        
+       
         //$browser->setValue('paymentType', 'По банков път');
         $browser->press('Контиране');
         if (strpos($browser->gettext(), 'ДДС 20% ДДС: BGN 7,20')) {
@@ -1656,7 +1623,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        
+        //return $browser->getHtml();
         //Проверка на статистиката
         if (strpos($browser->gettext(), '43,20 43,20 43,20 43,20')) {
         } else {
@@ -1736,7 +1703,7 @@ class unit_MinkPbgERP extends core_Manager
         
         //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
-        
+        sleep(3);
         if (strpos($browser->gettext(), 'Discount: EUR 1,68')) {
         } else {
             
@@ -1802,8 +1769,7 @@ class unit_MinkPbgERP extends core_Manager
             
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -1830,8 +1796,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('User1', true);
         $browser->press('Чернова');
         $browser->press('Активиране');
-        
-        //return $browser->getHtml();
+       
     }
     
     
@@ -1871,7 +1836,6 @@ class unit_MinkPbgERP extends core_Manager
             $browser->press('Запис');
         }
         
-        //return $browser->getHtml();
     }
     
     
@@ -1905,7 +1869,6 @@ class unit_MinkPbgERP extends core_Manager
         // Създаване на папка на лицето
         $browser->press('Папка');
         
-        //return $browser->getHtml();
     }
     
     
@@ -1933,7 +1896,7 @@ class unit_MinkPbgERP extends core_Manager
         
         // Създаване на папка на новата фирма
         //$browser->press('Папка');
-        //return $browser->getHtml();
+        
     }
     
     
