@@ -1654,7 +1654,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->setValue('number', '18');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if (strpos($browser->gettext(), 'Данъчна основа: BGN 781,73')) {
+        if (strpos($browser->gettext(), 'Данъчна основа: BGN 651,44')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
@@ -1922,8 +1922,6 @@ class unit_MinkPPurchases extends core_Manager
         
         // активиране на Покупката
         $browser->press('Активиране');
-        
-        //return $browser->getHtml();
         $browser->press('Активиране/Контиране');
         
         if (strpos($browser->gettext(), 'Отстъпка: BGN 12,00')) {
