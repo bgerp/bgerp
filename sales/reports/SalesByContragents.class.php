@@ -68,8 +68,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
-
-        // $fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
     }
 
 
@@ -110,6 +108,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
+        $suggestions = array();
         $form = $data->form;
         $rec = $form->rec;
 
@@ -163,7 +162,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $arr = array();
+        $salesWithShipArr = array();
 
         $contragentsId = array();
 
@@ -268,9 +267,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
         }
-        
+
         while ($recPrime = $query->fetch()) {
-            $sellValuePrevious = $sellValueLastYear =$quantity = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
+            $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
             $contragentId = $contragentClassId = $contragentClassName = 0;
             $detClassName = $masterClassName = $masterKey = $contragentGroups = 0;
 
@@ -367,13 +366,11 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
             if ($recPrime->valior >= $rec->from && $recPrime->valior <= $rec->to) {
                 if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-                    $quantity = (- 1) * $recPrime->quantity;
 
                     $sellValue = (- 1) * $recPrime->sellCost * $recPrime->quantity;
 
                     $delta = (- 1) * $recPrime->delta;
                 } else {
-                    $quantity = $recPrime->quantity;
 
                     $sellValue = $recPrime->sellCost * $recPrime->quantity;
 
@@ -529,8 +526,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $groArr = array();
-
         $row = new stdClass();
         $contragentClassName = '';
 
@@ -662,8 +657,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         $groArr = array();
-        $artArr = array();
-
+        
         $Date = cls::get('type_Date');
 
         $row->from = $Date->toVerbal($rec->from);
