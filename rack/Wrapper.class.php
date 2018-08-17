@@ -8,7 +8,7 @@
  *
  *
  * @category  bgerp
- * @package   pallet
+ * @package   rack
  *
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2018 Experta OOD

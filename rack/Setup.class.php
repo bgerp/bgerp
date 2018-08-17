@@ -8,7 +8,7 @@
  *
  *
  * @category  bgerp
- * @package   pallet
+ * @package   rack
  *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2016 Experta OOD

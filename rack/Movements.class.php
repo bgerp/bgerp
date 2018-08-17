@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   pallet
+ * @package   rack
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3

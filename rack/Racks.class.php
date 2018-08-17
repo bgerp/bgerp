@@ -6,10 +6,10 @@
  *
  *
  * @category  bgerp
- * @package   pallet
+ * @package   rack
  *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
