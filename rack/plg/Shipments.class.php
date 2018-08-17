@@ -104,13 +104,17 @@ class rack_plg_Shipments extends core_Plugin
     /**
      * Изпълнява се преди контиране на документа
      */
-    public static function on_BeforeConto11(core_Mvc $mvc, &$res, $id)
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        //rack_DocumentRows::checkQuantities($rec->containerId);
-        core_Statuses::newStatus('|love', 'warning');
-        
-        return false;
+        $readiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
+        if(isset($readiness)){
+            if($readiness != 1){
+                core_Statuses::newStatus('Документът не може да се контира, докато има още за нагласяне', 'error');
+                
+                return false;
+            }
+        }
     }
     
     

@@ -139,6 +139,9 @@ class rack_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Обновяване на пода
+     */
     public function updateFloor()
     {
         core_App::setTimeLimit(300);
