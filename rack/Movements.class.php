@@ -315,7 +315,7 @@ class rack_Movements extends core_Manager
             $form->setField('positionTo', 'input');
             $form->setField('packQuantity', 'input');
             
-            $zones = rack_Zones::getFreeZones($rec->storeId);
+            $zones = rack_Zones::getZones($rec->storeId);
             if (count($zones)) {
                 $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones));
                 $form->setField('zones', 'input');
@@ -543,7 +543,7 @@ class rack_Movements extends core_Manager
             
             // Ре-вербализиране на зоните, да се показват с номерата си
             if (!empty($rec->zones)) {
-                $zones = rack_Zones::getFreeZones($rec->storeId);
+                $zones = rack_Zones::getZones($rec->storeId);
                 $Type = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em)');
                 $Type->params['zone_opt'] = $zones;
                 $row->zones = $Type->toVerbal($rec->zones);

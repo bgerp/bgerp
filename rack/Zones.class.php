@@ -178,16 +178,19 @@ class rack_Zones extends core_Master
      * 
      * @return array $options
      */
-    public static function getFreeZones($storeId = NULL)
+    public static function getZones($storeId = null, $onlyFree = false)
     {
         $query = self::getQuery();
-        $query->where("#state != 'closed' AND #containerId IS NULL");
-        if(isset($storeId)){
+        $query->where("#state != 'closed'");
+        if ($onlyFree === true) {
+            $query->where("#containerId IS NULL");
+        }
+        if (isset($storeId)){
             $query->where("#storeId = {$storeId}");
         }
         
         $options = array();
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()){
             $options[$rec->id] = self::getVerbal($rec, 'num'); 
         }
        
@@ -270,7 +273,7 @@ class rack_Zones extends core_Master
         $form = cls::get('core_Form');
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
-        $zoneOptions = rack_Zones::getFreeZones($documentRec->{$document->storeFieldName});
+        $zoneOptions = rack_Zones::getZones($documentRec->{$document->storeFieldName}, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if(!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)){
             $zoneOptions[$zoneId] = $this->getVerbal($zoneId, 'num');
@@ -502,8 +505,9 @@ class rack_Zones extends core_Master
                 $palletsArr[$obj->position] = $obj->quantity;
             }
             
-            $generatedMovements = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
-            bp($generatedMovements, $palletsArr);
+            //$allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones, true);
+            //rack_MovementGenerator::getMovementsArr($pRec->productId, $pRec->packagingId, $storeId, $allocatedPallets);
+            //bp($generatedMovements2, $pallets, $pRec);
             
         }
         

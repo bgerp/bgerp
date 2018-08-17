@@ -56,12 +56,9 @@ class rack_MovementGenerator extends core_Manager
                     $q[$key] = $qArr->quantity[$i];
                 }
             }
- 
             
-            
+            $mArr2 = self::mainP2Q($p, $q, true);
             $mArr = self::mainP2Q($p, $q);
-            
-            bp($p, $q, $mArr);
         }
         
         $form->title = 'Генериране на движения по палети';
@@ -83,16 +80,24 @@ class rack_MovementGenerator extends core_Manager
             $html .= ht::mixedToHtml($mArr);
         }
 
+        if (count($mArr2)) {
+            $html .= '<h2>Движения НОВИ</h2>';
+            $html .= ht::mixedToHtml($mArr2);
+        }
+        
+        
+        
         return "<div style='padding:10px;'>" . $html . '</div>';
     }
 
 
-    public static function mainP2Q($p, $q)
+    public static function mainP2Q($p, $q, $isTest = false)
     {
         
         asort($p); asort($q);
-        $res = self::p2q($p, $q);
-
+        
+        $res = ($isTest === false) ? self::p2q($p, $q) : self::p2qTEST($p, $q);
+       
         uasort($res, function ($a, $b)  {
              if(count($a) > count($b)) return 1;
              if(count($a) == count($b)) {
@@ -112,6 +117,109 @@ class rack_MovementGenerator extends core_Manager
     }
 
 
+    public  static function p2qTEST($p, $q)
+    {
+        $res = $used = array();
+        $z = 0;
+        
+        foreach($p as $i => $iP) {
+           
+            if($iP > 0 && !$used[$iP]) {
+                $z++;
+                //if($z > 7) break;
+                $used[$iP] = true;
+                $moves = array();
+                $moves2 = array();
+                $qNext = $q; $pNext = $p;
+                $permut = array();
+                
+                $combi = self::addCombi($q);
+                $combi = self::addCombi($q, $combi);
+                $combi = self::addCombi($q, $combi);
+               
+                if($klist = $combi[$iP]) {
+                    foreach(keylist::toArray($klist) as $k) {
+                        $moves2[$i]['zones'][$k] = $qNext[$k];
+                        
+                        $moves["{$i}=>{$k}"] = $qNext[$k];
+                        $pNext[$i] -= $qNext[$k];
+                        $qNext[$k] = 0;
+                    }
+                    
+                } else {
+                    foreach($qNext as $j => $jQ) {
+                        
+                        if($jQ > 0) {
+                            
+                            $coef = (self::gcd($pNext[$i], $qNext[$j]) / $pNext[$i] + $pNext[$i] / $qNext[$j]) / 2;
+                            
+                            if($coef < 0.20) continue;
+                            if($qNext[$j] >= $pNext[$i]) {
+                                
+                                $moves2[$i]['zones'][$j] = $pNext[$i];
+                                
+                                $moves["{$i}=>{$j}"] = $pNext[$i];
+                                $qNext[$j] -= $pNext[$i];
+                                $pNext[$i] = 0;
+                            } else {
+                                
+                                $moves2[$i]['zones'][$j] = $qNext[$j];
+                                
+                                $moves["{$i}=>{$j}"] = $qNext[$j];
+                                $pNext[$i] -= $qNext[$j];
+                                $qNext[$j] = 0;
+                            }
+                        }
+                        
+                        if($pNext[$i] <= 0) break;
+                    }
+                    
+                    /*
+                     uksort($moves, function ($a, $b)  {
+                     
+                     list($pA, $gA) = explode('=>', $a);
+                     list($pB, $gB) = explode('=>', $b);
+                     if($gA > $gB) return 1;
+                     if($gA < $gB) return -1;
+                     if($gA == $gB) return 0;
+                     });*/
+                }
+                
+                if(count($moves2)) {
+                    $moves2[$i]['quantity'] = $p[$i];
+                    if($pNext[$i]) {
+                        $moves2['to'] = $i;
+                        $moves2['toQuantity'] = $pNext[$i];
+                        $moves["ret {$i} "  ] = $pNext[$i];
+                        $pNext[$i] = 0;
+                    }
+                }
+                
+                if(count($moves2)) {
+                    
+                    
+                    $nextMovesArr =  self::p2qTEST($pNext, $qNext);
+                    
+                    //bp($pNext, $qNext, $nextMovesArr);
+                    
+                    if(count($nextMovesArr)) {
+                        foreach($nextMovesArr as $m) {
+                            
+                            $res[] = $moves2 + $m;
+                        }
+                    } else {
+                        $res[] = $moves2;
+                    }
+                }
+            }
+        }
+        
+        
+        return $res;
+    }
+    
+    
+    
     /**
      * Връща масив от масиви. Вторите масиви, са движения, които изчепват или P или Q
      */
@@ -228,4 +336,16 @@ class rack_MovementGenerator extends core_Manager
         return ($a % $b) ? self::gcd($b, $a % $b) : $b;
     }
 
+    
+    public static function getMovementsArr($productId, $storeId, $packagingId, $allocatedPallets)
+    {
+        $res = array();
+        bp($productId, $storeId, $packagingId, $allocatedPallets);
+        foreach ($allocatedPallets as $obj){
+            //bp($obj);
+        }
+         
+        return $res;
+       
+    }
 }
