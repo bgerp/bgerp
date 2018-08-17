@@ -69,7 +69,7 @@ class rack_Racks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num,total,used,reserved,free=Палет-места->Свободни,rows,columns';
+    public $listFields = 'num,free=Палет-места->Свободни,rows,columns,total,used,reserved';
     
     
     /**
@@ -704,33 +704,24 @@ class rack_Racks extends core_Master
         }
     }
     
+    
     /**
-     * След подготовка на записите
+     * След рендиране на лист таблицата
      */
-    protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) return ;
+        if (!count($data->rows) || empty($data->listSummary->query)) return;
         
-        $data->listSummary->summary = new stdClass;
         $data->listSummary->query->XPR('totalTotal', 'int', 'SUM(#total)');
         $data->listSummary->query->XPR('usedTotal', 'int', 'SUM(#used)');
         $data->listSummary->query->XPR('reservedTotal', 'int', 'SUM(#reserved)');
         
         $summaryRec = $data->listSummary->query->fetch();
         $Int = core_Type::getByName('int');
-        $data->listSummary->summary->row = (object)array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal));
-    }
-    
-    
-    /**
-     * След рендиране на List Summary-то
-     */
-    protected static function on_AfterRenderListSummary($mvc, &$tpl, $data)
-    {
-        if (!empty($data->listSummary->summary->row)) {
-            $tpl = new ET(tr('|*' . getFileContent('rack/tpl/RackSummary.class.php')));
-            $tpl->placeObject($data->listSummary->summary->row);
-        }
+        $rowAfter = (object)array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal));
+        
+        $rowAfterTpl = new core_ET("<tr style='background-color:#eee;text-align:center;'><td colspan='5'></td><td><b>[#totalTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td></tr>");
+        $rowAfterTpl->placeObject($rowAfter);
+        $tpl->replace($rowAfterTpl, 'ROW_AFTER');
     }
 }
