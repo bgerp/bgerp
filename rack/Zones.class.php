@@ -410,7 +410,7 @@ class rack_Zones extends core_Master
     {
         $storeId = store_Stores::getCurrent();
         if ($mvc->haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
-            $data->toolbar->addBtn('Нагласяне', array($mvc, 'orderpickup', 'storeId' => $storeId,'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+            $data->toolbar->addBtn('Нагласяне', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
        }
     }
     
@@ -493,45 +493,71 @@ class rack_Zones extends core_Master
         $this->requireRightFor('orderpickup', (object)array('storeId' => $storeId));
         $floor = rack_PositionType::FLOOR;
         
+        // Какви са очакваните количества
         $expected = $this->getExpectedProducts($storeId);
-        foreach ($expected as $pRec){
+        
+        // Изчистване на заявките към зоните
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#state = 'pending'");
+        $mQuery->likeKeylist('zoneList', $expected->zones);
+        $mQuery->show('id');
+        while($mRec = $mQuery->fetch()){
+            rack_Movements::delete($mRec->id);
+        }
+        
+        foreach ($expected->products as $pRec){
             
+            // Какви са наличните палети за избор
             $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId);
             $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
-            $pallets[$floor] = (object)array('quantity' => 0.1, 'position' => $floor);
+            if($floorQuantity){
+               $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
+            }
             
             $palletsArr = array();
             foreach ($pallets as $obj){
                 $palletsArr[$obj->position] = $obj->quantity;
             }
             
+            if(!count($palletsArr)) continue;
+            
+            // Какво е разпределянето на палетите
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
-            bp($allocatedPallets);
             
-            //rack_MovementGenerator::getMovementsArr($pRec->productId, $pRec->packagingId, $storeId, $allocatedPallets);
-            //bp($generatedMovements2, $pallets, $pRec);
-            
+            // Ако има генерирани движения се записват
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $storeId);
+            foreach ($movements as $movementRec){
+                rack_Movements::save($movementRec);
+            }
         }
         
-        
+        followRetUrl(null, 'Движенията са генерирани успешно');
     }
     
     
+    /**
+     * Връща очакваните артикули по зони с документи
+     * 
+     * @param int $storeId
+     * @return stdClass $res
+     */
     private function getExpectedProducts($storeId)
     {
-        $products = array();
+        $res = (object)array('products' => array(), 'zones' => array());
+        
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
         $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
         while($dRec = $dQuery->fetch()){
             $key = "{$dRec->productId}|{$dRec->packagingId}";
-            if(!array_key_exists($key, $products)){
-                $products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());
+            if(!array_key_exists($key, $res->products)){
+                $res->products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());
+                $res->zones[$dRec->zoneId] = $dRec->zoneId;
             }
             
-            $products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity);
+            $res->products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity);
         }
         
-        return $products;
+        return $res;
     }
 }

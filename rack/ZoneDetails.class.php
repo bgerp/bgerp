@@ -49,6 +49,12 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_AlignDecimals2';
+    
+    
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'zoneId';
