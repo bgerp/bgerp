@@ -1571,7 +1571,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 800);
-        $browser->setValue('packPrice', 1.1124);
+        $browser->setValue('packPrice', '0,7821');
         
         // Записване на артикула
         $browser->press('Запис');
@@ -1579,8 +1579,7 @@ class unit_MinkPPurchases extends core_Manager
         // активиране на Покупката
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
-        
-        if (strpos($browser->gettext(), 'Хиляда деветдесет и осем BGN и 0,81')) {
+        if (strpos($browser->gettext(), 'Седемстотин осемдесет и един BGN и 0,73 ')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
@@ -1655,7 +1654,7 @@ class unit_MinkPPurchases extends core_Manager
         $browser->setValue('number', '18');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if (strpos($browser->gettext(), 'Данъчна основа: BGN 915,68')) {
+        if (strpos($browser->gettext(), 'Данъчна основа: BGN 651,44')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
@@ -1664,12 +1663,12 @@ class unit_MinkPPurchases extends core_Manager
         // РБД
         $browser->press('РБД');
         $browser->setValue('ownAccount', '#BG11CREX92603114548401');
-        $browser->setValue('amountDeal', '44,25');
+        $browser->setValue('amountDeal', '781,73');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
         //Проверка на статистиката
-        if (strpos($browser->gettext(), '44,25 44,25 44,25 44,25')) {
+        if (strpos($browser->gettext(), '781,73 781,73 781,73 781,73')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
@@ -1923,8 +1922,6 @@ class unit_MinkPPurchases extends core_Manager
         
         // активиране на Покупката
         $browser->press('Активиране');
-        
-        //return $browser->getHtml();
         $browser->press('Активиране/Контиране');
         
         if (strpos($browser->gettext(), 'Отстъпка: BGN 12,00')) {
