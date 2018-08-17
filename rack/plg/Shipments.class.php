@@ -55,7 +55,11 @@ class rack_plg_Shipments extends core_Plugin
         
         $rec = $data->rec;
         if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId))){
-             $data->toolbar->addBtn('Зона', array(rack_Zones, 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/bug.png,title=Събиране на документа");
+             $caption = 'Зона';
+             if ($zoneId = rack_Zones::fetch("#containerId = {$rec->containerId}")){
+                 $caption .= "|*: " . rack_Zones::getVerbal($zoneId, 'num');
+             }
+             $data->toolbar->addBtn($caption, array(rack_Zones, 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/package.png,title=Събиране на документа");
         }
     }
     

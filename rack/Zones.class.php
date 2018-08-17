@@ -338,10 +338,13 @@ class rack_Zones extends core_Master
             } else {
                 $document = doc_Containers::getDocument($rec->containerId);
                 $selectedStoreId = store_Stores::getCurrent('id', false);
-                $documentRec = $document->fetch("state,{$document->storeFieldName}");
-                
-                if(!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending')) || $documentRec->{$document->storeFieldName} != $selectedStoreId){
+                if(!rack_Zones::fetchField("#storeId = {$selectedStoreId} AND #state != 'closed'")){
                     $requiredRoles = 'no_one';
+                } else {
+                    $documentRec = $document->fetch("state,{$document->storeFieldName}");
+                    if(!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending')) || $documentRec->{$document->storeFieldName} != $selectedStoreId){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
