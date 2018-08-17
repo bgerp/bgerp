@@ -509,7 +509,7 @@ class rack_Movements extends core_Manager
             $row->_rowTools->addLink('Започване', array($mvc, 'toggle', $rec->id, 'ret_url' => true), "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
             $state .= ht::createBtn('Започни', array($mvc, 'toggle', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/control_play.png,title=Започване на движението');
         
-            if($rec->createdBy == core_Users::getCurrent()){
+            if($rec->createdBy != core_Users::getCurrent()){
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
             }
         }
