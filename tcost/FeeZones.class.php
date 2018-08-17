@@ -203,16 +203,21 @@ class tcost_FeeZones extends core_Master
         $explain = null;
         if ($fee > 0) {
             $tax = tcost_Setup::get('ADD_TAX');
+            
+            if($totalWeight){
+                $tax = $tax * $singleWeight / $totalWeight;
+            }
             $inc = tcost_Setup::get('ADD_PER_KG') * $singleWeight;
             $fee = $tax + $inc + $fee;
             
+           
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
             $explain = "{$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$tax}, ADD_PER_KG = {$inc}";
         }
         
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
-        
+       
         // Връщане на изчислената цена
         return $res;
     }

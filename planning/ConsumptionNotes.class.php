@@ -223,7 +223,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         $dQuery->where("#noteId = {$id}");
         $dQuery->show('productId, quantity');
         
-        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId);
         
         return $warning;
     }

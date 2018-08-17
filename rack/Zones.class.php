@@ -39,13 +39,19 @@ class rack_Zones extends core_Master
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'admin,ceo,rack,store';
+    public $canEdit = 'admin,ceo,rack';
     
     
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'admin,ceo,rack';
+    
+    
+    /**
+     * Кой може да генерира нагласяния?
+     */
+    public $canOrderpickup = 'debug';
     
     
     /**
@@ -57,7 +63,7 @@ class rack_Zones extends core_Master
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'num,containerId,readiness,state,createdOn,createdBy,pendingHtml=@';
+    public $listFields = 'num=Зона,containerId,readiness,state,createdOn,createdBy,pendingHtml=@';
     
     
     /**
@@ -97,8 +103,8 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=100)', 'caption=Зона,mandatory,smartCenter');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember');
+        $this->FLD('num', 'int(max=100)', 'caption=Наименование,mandatory,smartCenter');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,input=none');
         $this->FLD('summaryData', 'blob(serialize, compress)', 'input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,input=none');
@@ -127,11 +133,18 @@ class rack_Zones extends core_Master
     }
     
     
+    /**
+     * Рендира таблицата със движения към зоната
+     * 
+     * @param stdClass $rec
+     * @return core_ET $tpl
+     */
     private function getMovementTable($rec)
     {
-        $Movements = cls::get('rack_Movements');
+        $Movements = clone cls::get('rack_Movements');
         $data = (object)array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
-        $data->listFields = arr::make("productId=Артикул,packQuantity=Количество,packagingId=Опаковка,palletId=Палет,workerId=Товарач", true);
+        $data->listFields = arr::make("position=От,productId=Артикул,packQuantity=Количество,packagingId=Опаковка,workerId=Товарач", true);
+        $data->listTableMvc->setField('position', 'smartCenter');
         $data->recs = self::getCurrentMovementRecs($rec->id);
         
         foreach ($data->recs as $mRec){
@@ -142,18 +155,20 @@ class rack_Zones extends core_Master
         }
         
         // Рендиране на таблицата
-        $res = new core_ET("");
+        $tpl = new core_ET("");
         if(count($data->rows)){
             $tableClass = ($rec->_isSingle === true) ? 'listTable' : 'simpleTable';
-            $shotThead = ($rec->_isSingle === true) ? false : true;
-            $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => $shotThead));
-            $Movements->invoke('BeforeRenderListTable', array($res, &$data));
+            $showHead = ($rec->_isSingle === true) ? false : true;
+            $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => $showHead));
+            $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
             
-            $res->append($table->get($data->rows, $data->listFields));
-            $res->append("style='width:100%;'", 'TABLE_ATTR');
+            $tpl->append($table->get($data->rows, $data->listFields));
+            $tpl->append("style='width:100%;'", 'TABLE_ATTR');
         }
         
-        return $res->getContent();
+        $tpl->removePendings('COMMON_ROW_ATTR');
+       
+        return $tpl;
     }
     
     
@@ -164,16 +179,19 @@ class rack_Zones extends core_Master
      * 
      * @return array $options
      */
-    public static function getFreeZones($storeId = NULL)
+    public static function getZones($storeId = null, $onlyFree = false)
     {
         $query = self::getQuery();
         $query->where("#state != 'closed'");
-        if(isset($storeId)){
+        if ($onlyFree === true) {
+            $query->where("#containerId IS NULL");
+        }
+        if (isset($storeId)){
             $query->where("#storeId = {$storeId}");
         }
         
         $options = array();
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()){
             $options[$rec->id] = self::getVerbal($rec, 'num'); 
         }
        
@@ -214,6 +232,17 @@ class rack_Zones extends core_Master
     
     
     /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+        // По-хубаво заглавие на формата
+        $rec = $data->form->rec;
+        $data->form->title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'зона', $rec->id, tr('в склад'));
+    }
+        
+        
+    /**
      * Добавя филтър към перата
      *
      * @param acc_Items $mvc
@@ -223,7 +252,7 @@ class rack_Zones extends core_Master
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
     }
     
     
@@ -245,10 +274,10 @@ class rack_Zones extends core_Master
         $form = cls::get('core_Form');
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
-        $zoneOptions = rack_Zones::getFreeZones($documentRec->{$document->storeFieldName});
+        $zoneOptions = rack_Zones::getZones($documentRec->{$document->storeFieldName}, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if(!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)){
-            $zoneOptions[$zoneId] = $this->getVerbal($zoneId, 'name');
+            $zoneOptions[$zoneId] = $this->getVerbal($zoneId, 'num');
         }
         $form->setOptions('zoneId', array('' => '') + $zoneOptions);
         $form->setDefault('zoneId', $zoneId);
@@ -310,16 +339,19 @@ class rack_Zones extends core_Master
             } else {
                 $document = doc_Containers::getDocument($rec->containerId);
                 $selectedStoreId = store_Stores::getCurrent('id', false);
-                $documentRec = $document->fetch("state,{$document->storeFieldName}");
-                
-                if(!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending')) || $documentRec->{$document->storeFieldName} != $selectedStoreId){
+                if(!rack_Zones::fetchField("#storeId = {$selectedStoreId} AND #state != 'closed'")){
                     $requiredRoles = 'no_one';
+                } else {
+                    $documentRec = $document->fetch("state,{$document->storeFieldName}");
+                    if(!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending')) || $documentRec->{$document->storeFieldName} != $selectedStoreId){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
         
         if (($action == 'delete' || $action == 'changestate') && isset($rec)){
-            if(rack_ZoneDetails::fetch("#zoneId = {$rec->id}")){
+            if(rack_ZoneDetails::fetch("#zoneId = {$rec->id}") || !empty($rec->containerId)){
                 $requiredRoles = 'no_one';
            }
         }
@@ -337,8 +369,10 @@ class rack_Zones extends core_Master
         $zoneRec = self::fetch("#containerId = {$containerId}");
         if (empty($zoneRec)) return;
         
-        // Затваряне на текущите записи към зоната
-        //rack_Journals::closeRecs($zoneRec->id, $containerId);
+        // Затваря движенията към зоната
+        rack_Movements::closeByZoneId(array($zoneRec->id => $zoneRec->id));
+        rack_ZoneDetails::delete("#zoneId = {$zoneRec->id}");
+        
         $zoneRec->containerId = NULL;
         self::save($zoneRec);
     }
@@ -361,12 +395,13 @@ class rack_Zones extends core_Master
             if (!empty($dRec->documentQuantity) && round($dRec->documentQuantity, 4) == round($dRec->movementQuantity, 4)){
                 $ready++;
             }
-            
             $count++;
         }
         
-        $rec->readiness = $ready / $count;
-        $this->save($rec, 'readiness');
+        if($count){
+            $rec->readiness = $ready / $count;
+            $this->save($rec, 'readiness');
+        }
     }
     
     
@@ -382,17 +417,25 @@ class rack_Zones extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $storeId = store_Stores::getCurrent();
-        //if (rack_Journals::haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
-           // $data->toolbar->addBtn('Нагласяне', array('rack_Journals', 'orderpickup', 'storeId' => $storeId,'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
-       // }
+        if ($mvc->haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
+            $data->toolbar->addBtn('Нагласяне', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+       }
     }
     
     
+    /**
+     * Кои са текущите движения в зоната
+     * 
+     * @param int $zoneId
+     * @return array $res
+     */
     public static function getCurrentMovementRecs($zoneId)
     {
         $res = array();
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("LOCATE('|{$zoneId}|', #zoneList) AND #state != 'closed'");
+        $mQuery->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
+        $mQuery->orderBy('orderByState');
         
         while($mRec = $mQuery->fetch()){
             if(!empty($mRec->zones)){
@@ -417,6 +460,12 @@ class rack_Zones extends core_Master
     }
     
     
+    /**
+     * Следващия номер на зона
+     * 
+     * @param int $storeId
+     * @return double number
+     */
     private function getNextNumber($storeId)
     {
         $query = $this->getQuery();
@@ -427,5 +476,96 @@ class rack_Zones extends core_Master
         $num++;
         
         return $num;
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->commonRowClass = 'zonesCommonRow';
+    }
+    
+    
+    /**
+     * Избор на зона в документ
+     *
+     * @return void|core_ET
+     */
+    function act_Orderpickup()
+    {
+        // Проверка на права
+        $this->requireRightFor('orderpickup');
+        expect($storeId = Request::get('storeId', 'int'));
+        $this->requireRightFor('orderpickup', (object)array('storeId' => $storeId));
+        $floor = rack_PositionType::FLOOR;
+        
+        // Какви са очакваните количества
+        $expected = $this->getExpectedProducts($storeId);
+        
+        // Изчистване на заявките към зоните
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#state = 'pending'");
+        $mQuery->likeKeylist('zoneList', $expected->zones);
+        $mQuery->show('id');
+        while($mRec = $mQuery->fetch()){
+            rack_Movements::delete($mRec->id);
+        }
+        
+        foreach ($expected->products as $pRec){
+            
+            // Какви са наличните палети за избор
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId);
+            $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
+            if($floorQuantity){
+               $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
+            }
+            
+            $palletsArr = array();
+            foreach ($pallets as $obj){
+                $palletsArr[$obj->position] = $obj->quantity;
+            }
+            
+            if(!count($palletsArr)) continue;
+            
+            // Какво е разпределянето на палетите
+            $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
+            
+            // Ако има генерирани движения се записват
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $storeId);
+            foreach ($movements as $movementRec){
+                rack_Movements::save($movementRec);
+            }
+        }
+        
+        followRetUrl(null, 'Движенията са генерирани успешно');
+    }
+    
+    
+    /**
+     * Връща очакваните артикули по зони с документи
+     * 
+     * @param int $storeId
+     * @return stdClass $res
+     */
+    private function getExpectedProducts($storeId)
+    {
+        $res = (object)array('products' => array(), 'zones' => array());
+        
+        $dQuery = rack_ZoneDetails::getQuery();
+        $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+        $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
+        while($dRec = $dQuery->fetch()){
+            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            if(!array_key_exists($key, $res->products)){
+                $res->products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());
+                $res->zones[$dRec->zoneId] = $dRec->zoneId;
+            }
+            
+            $res->products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity);
+        }
+        
+        return $res;
     }
 }

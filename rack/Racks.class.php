@@ -6,10 +6,10 @@
  *
  *
  * @category  bgerp
- * @package   pallet
+ * @package   rack
  *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,12 +37,6 @@ class rack_Racks extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,rack';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,rack';
@@ -67,12 +61,6 @@ class rack_Racks extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,rack';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,rack';
@@ -81,7 +69,7 @@ class rack_Racks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num,total,used,reserved,free=Палет-места->Свободни,rows,columns';
+    public $listFields = 'num,free=Палет-места->Свободни,rows,columns,total,used,reserved';
     
     
     /**
@@ -102,6 +90,9 @@ class rack_Racks extends core_Master
     public $singleIcon = 'img/16/rack.png';
     
     
+    /**
+     * Поле за единичния изглед
+     */
     public $rowToolsSingleField = 'num';
     
     
@@ -117,6 +108,9 @@ class rack_Racks extends core_Master
     public $updateRacks = array();
     
     
+    /**
+     * Шаблон за заглавието
+     */
     public $recTitleTpl = '|Стелаж|* [#num#]';
     
     
@@ -178,7 +172,7 @@ class rack_Racks extends core_Master
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = &$form->rec;
@@ -211,39 +205,40 @@ class rack_Racks extends core_Master
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Стелажи в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->title = 'Стелажи в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         
         $data->query->orderBy('#num', 'ASC');
     }
     
     
     /**
-     * Използваемо ли е посоченото стелажно място?
+     * Проверява съществуваща ли е позицията
+     * 
+     * @param string $position
+     * @param int $productId
+     * @param int $storeId
+     * @param string|null $error
+     * @param string|null $error
+     * @return boolean
      */
-    public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null, &$status = null)
+    public static function checkPosition($position, $productId, $storeId, &$error = null, &$rec = null)
     {
-        expect($position);
-        
-        if (!$storeId) {
-            $storeId = store_Stores::getCurrent();
+        list($num, $row, $col) = explode('-', $position);
+        if (!($num && $row && $col)){
+            $error = 'Невалиден синтаксис';
+            
+            return false;
         }
         
-        list($num, $row, $col) = explode('-', $position);
-        
-        expect($num && $row && $col, 'Невалиден синтаксис', $num, $row, $col);
-        
         $rec = self::fetch("#storeId = {$storeId} AND #num = {$num}");
-        
-        if (!$rec) {
+        if (empty($rec)) {
             $error = 'Несъществуващ номер на стeлаж в този склад';
-            $status = 'bad_rack_num';
             
             return false;
         }
         
         if ($row < 'A' || $row > $rec->rows) {
             $error = 'Несъществуващ ред на стeлажа';
-            $status = 'bad_row';
             
             return false;
         }
@@ -251,17 +246,29 @@ class rack_Racks extends core_Master
         
         if ($col < 1 || $col > $rec->columns) {
             $error = 'Несъществуваща колона на стeлажа';
-            $status = 'bad_column';
             
             return false;
         }
         
-        $dRec = rack_RackDetails::fetch("#rackId = {$rec->id} && #row = '{$row}' AND #col = {$col}");
+        return true;
+    }
+    
+    
+    /**
+     * Използваемо ли е посоченото стелажно място?
+     */
+    public static function isPlaceUsable($position, $productId = null, $storeId = null, &$error = null)
+    {
+        expect($position);
+        $storeId = $storeId ?? store_Stores::getCurrent();
         
+        if(!self::checkPosition($position, $productId, $storeId, $error, $rec)) return;
+        list(, $row, $col) = explode('-', $position);
+        
+        $dRec = rack_RackDetails::fetch("#rackId = {$rec->id} && #row = '{$row}' AND #col = {$col}");
         if ($dRec) {
             if ($dRec->status == 'unusable') {
                 $error = 'Мястото е неизползваемо';
-                $status = 'unusable';
                 
                 return false;
             }
@@ -269,7 +276,6 @@ class rack_Racks extends core_Master
             if ($dRec->status == 'reserved' && isset($productId) && $dRec->productId != $productId) {
                 $reservedProductName = cat_Products::getTitleById($dRec->productId);
                 $error = "Мястото е запазено за артикул|*: <b>{$reservedProductName}</b>";
-                $status = 'reserved';
                 
                 return false;
             }
@@ -285,7 +291,7 @@ class rack_Racks extends core_Master
      * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -330,7 +336,7 @@ class rack_Racks extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         if ($fields['-single']) {
             $row->places = self::renderRack($rec);
@@ -347,21 +353,23 @@ class rack_Racks extends core_Master
     }
     
     
+    /**
+     * Рендиране на стелажа
+     * 
+     * @param stdClass $rec
+     * @return string
+     */
     public static function renderRack($rec)
     {
         $row = $rec->rows;
         $hlPos = Request::get('pos');
-        
-        
         $hlFullPos = "{$rec->num}-{$hlPos}";
-        
         
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
         
         $hlProdId = $used[$hlFullPos];
-        
         
         while ($row >= 'A') {
             $res .= '<tr>';
@@ -517,6 +525,7 @@ class rack_Racks extends core_Master
      */
     public static function getPalletsOnRack($storeId, $num)
     {
+        $res = array();
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#storeId = {$storeId} AND #position LIKE '{$num}-%'");
         while ($pRec = $pQuery->fetch()) {
@@ -604,7 +613,12 @@ class rack_Racks extends core_Master
         while ($rec = $query->fetch()) {
             self::updateRack($rec);
         }
-        rack_Pallets::recalc();
+        
+        $pQuery = rack_Products::getQuery();
+        $pQuery->groupBy('productId,storeId');
+        while ($rec = $pQuery->fetch()) {
+            rack_Pallets::recalc($rec->productId, $rec->storeId);
+        }
     }
     
     
@@ -615,10 +629,9 @@ class rack_Racks extends core_Master
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->clearDetails($id);
-        
         $mvc::on_AfterUpdateMaster($mvc, $res, $id);
     }
     
@@ -626,7 +639,7 @@ class rack_Racks extends core_Master
     /**
      * Обновява статистиката за стелажа
      */
-    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    protected static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         $rec = $mvc->fetch($id);
         
@@ -634,17 +647,12 @@ class rack_Racks extends core_Master
             $rec->total = $rec->columns * (ord($rec->rows) - ord('A') + 1);
             
             $dQuery = rack_RackDetails::getQuery();
-            
             $dQuery->where("#rackId = {$rec->id} && #status = 'unusable'");
-            
             $rec->total -= $dQuery->count();
             
             $dQuery = rack_RackDetails::getQuery();
-            
             $dQuery->where("#rackId = {$rec->id} && #status = 'reserved'");
-            
             $rec->reserved = $dQuery->count();
-            
             if (!$rec->used) {
                 $rec->used = 0;
             }
@@ -666,7 +674,7 @@ class rack_Racks extends core_Master
      *
      * @return bool Дали да продължи обработката на опашката от събития
      */
-    public static function on_AfterDelete($mvc, $numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, $numRows, $query, $cond)
     {
         $dR = $query->getDeletedRecs();
         
@@ -694,5 +702,26 @@ class rack_Racks extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * След рендиране на лист таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        if (!count($data->rows) || empty($data->listSummary->query)) return;
+        
+        $data->listSummary->query->XPR('totalTotal', 'int', 'SUM(#total)');
+        $data->listSummary->query->XPR('usedTotal', 'int', 'SUM(#used)');
+        $data->listSummary->query->XPR('reservedTotal', 'int', 'SUM(#reserved)');
+        
+        $summaryRec = $data->listSummary->query->fetch();
+        $Int = core_Type::getByName('int');
+        $rowAfter = (object)array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal));
+        
+        $rowAfterTpl = new core_ET("<tr style='background-color:#eee;text-align:center;'><td colspan='5'></td><td><b>[#totalTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td></tr>");
+        $rowAfterTpl->placeObject($rowAfter);
+        $tpl->replace($rowAfterTpl, 'ROW_AFTER');
     }
 }

@@ -55,7 +55,11 @@ class rack_plg_Shipments extends core_Plugin
         
         $rec = $data->rec;
         if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId))){
-             $data->toolbar->addBtn('Зона', array(rack_Zones, 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/bug.png,title=Събиране на документа");
+             $caption = 'Зона';
+             if ($zoneId = rack_Zones::fetch("#containerId = {$rec->containerId}")){
+                 $caption .= "|*: " . rack_Zones::getVerbal($zoneId, 'num');
+             }
+             $data->toolbar->addBtn($caption, array(rack_Zones, 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/package.png,title=Събиране на документа");
         }
     }
     
@@ -71,7 +75,6 @@ class rack_plg_Shipments extends core_Plugin
                 $dQuery = $Detail->getQuery();
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
                 
-                $dQuery->groupBy('productId');
                 while($dRec = $dQuery->fetch()){
                     $key = "{$dRec->{$Detail->productFld}}|{$dRec->packagingId}";
                     if(!array_key_exists($key, $res)){
@@ -92,8 +95,8 @@ class rack_plg_Shipments extends core_Plugin
         $rec = $mvc->fetchRec($id);
         if (!in_array($rec->state, array('draft', 'pending'))) return;
         
-        if ($zoneId = rack_Zones::fetch("#containerId = {$rec->containerId}")){
-            cls::get('rack_Zones')->updateMaster($zoneId);
+        if ($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'id')){
+            rack_ZoneDetails::syncWithDoc($zoneId, $rec->containerId);
         }
     }
     
@@ -101,13 +104,17 @@ class rack_plg_Shipments extends core_Plugin
     /**
      * Изпълнява се преди контиране на документа
      */
-    public static function on_BeforeConto11(core_Mvc $mvc, &$res, $id)
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        //rack_DocumentRows::checkQuantities($rec->containerId);
-        core_Statuses::newStatus('|love', 'warning');
-        
-        return false;
+        $readiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
+        if(isset($readiness)){
+            if($readiness != 1){
+                core_Statuses::newStatus('Документът не може да се контира, докато има още за нагласяне', 'error');
+                
+                return false;
+            }
+        }
     }
     
     

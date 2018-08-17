@@ -327,17 +327,23 @@ class core_TableView extends core_BaseClass
                 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
                 if (count($r['ROW_ATTR'])) {
-                    if($this->mvc->commonRowClass) {
-                        $attrs['class'] .= ' ' . $this->mvc->commonRowClass;
-                    }
+                    $attrs = $attrs1 = '';
 
-                    $attrs = '';
                     
                     foreach ($r['ROW_ATTR'] as $attrName => $attrValue) {
-                        $attrs .= " ${attrName}=\"{$attrValue}\"";
+                        $attrs .= " ${attrName}=\"{$attrValue}\"";                       
                     }
+                    
+                    if($this->mvc->commonRowClass){
+                        $r['ROW_ATTR']['class'] .= ' ' . $this->mvc->commonRowClass;
+                    }
+                    
+                    foreach ($r['ROW_ATTR'] as $attrName => $attrValue) {
+                        $attrs1 .= " ${attrName}=\"{$attrValue}\"";
+                    }
+                    
                     $rowTpl->replace($attrs, 'ROW_ATTR');
-                    $rowTpl->replace($attrs, 'COMMON_ROW_ATTR');
+                    $rowTpl->replace($attrs1, 'COMMON_ROW_ATTR');
                 } else {
                     $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR');
                 }

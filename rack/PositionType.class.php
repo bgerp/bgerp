@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -30,12 +30,9 @@ class rack_PositionType extends type_Varchar
     
     
     /**
-     * Клас за <td> елемент, който показва данни от този тип
+     * Константа за пода
      */
-    // var $tdClass = 'centerCol';
-    
-    
-    const FLOOR_NAME = 'Под||Floor';
+    const FLOOR = 'floor';
     
     
     /**
@@ -48,13 +45,12 @@ class rack_PositionType extends type_Varchar
             return;
         }
         
-        if($value != '1-F-4'){
-            //bp($value);
-        }
+        core_Lg::push('en');
+        $checkValue = strtolower(tr($value));
+        core_Lg::pop('en');
         
-        if($value == tr(self::FLOOR_NAME)){
-            
-            return;
+        if($checkValue == self::FLOOR){
+            return self::FLOOR;
         }
         
         $matches = array();
@@ -75,6 +71,10 @@ class rack_PositionType extends type_Varchar
      */
     public function toVerbal($value)
     {
+        if($value == self::FLOOR){
+            $value = tr('Под');
+        }
+        
         if (!strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
             
             return $value;

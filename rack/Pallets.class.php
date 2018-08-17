@@ -63,8 +63,6 @@ class rack_Pallets extends core_Manager
      */
     public $listFields = 'label,position,productId,uom=Мярка,quantity';
     
-    public $rowToolsField = 'pallet';
-    
     
     /**
      * Описание на модела (таблицата)
@@ -73,8 +71,7 @@ class rack_Pallets extends core_Manager
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory');
-        $this->FNC('uom', 'varchar', 'caption=Мярка,smartCenter');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
         $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
@@ -87,6 +84,28 @@ class rack_Pallets extends core_Manager
     
     
     /**
+     * Връща наличните палети за артикула
+     * 
+     * @param int $productId  - ид на артикул
+     * @param int $storeId    - ид на склад
+     * @return array $pallets - масив с палети
+     */
+    public static function getAvailablePallets(int $productId, int $storeId)
+    {
+        $pallets = array();
+        $query = self::getQuery();
+        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $query->show('quantity,position');
+        $query->orderBy('createdOn', 'ASC');
+        while($rec = $query->fetch()){
+            $pallets[$rec->id] = (object)array('quantity' => $rec->quantity, 'position' => $rec->position);
+        }
+        
+        return $pallets;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -95,7 +114,6 @@ class rack_Pallets extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        $rec = $form->rec;
         
         $form->setReadOnly('productId');
         $form->setField('position', 'input');
@@ -229,16 +247,14 @@ class rack_Pallets extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
-        $data->title = 'Палетизирани наличности в склад|* <b style="color:green">' . store_Stores::getTitleById($storeId) . '</b>';
+        $data->title = 'Палетизирани наличности в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->where("#storeId = {$storeId}");
         $data->query->orderBy('state', 'ASC');
         
         $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
         $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('state', 'active');
-        
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,silent');
-        
         $data->listFilter->FLD('pos', 'rack_PositionType', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
         
         $data->listFilter->showFields = 'productId,pos,state';
@@ -288,25 +304,16 @@ class rack_Pallets extends core_Manager
      * @param int  $storeId   - ид на склад
      * @param int  $position  - на коя позиция?
      * @param int  $quantity  - количество от основната мярка в палета
-     * @param bool $reverse   - етикет
+     * @param bool $reverse   - дали да е наобратно движениет
      *
-     * @return stdClass $rec    - записа на палета
+     * @return stdClass $rec  - записа на палета
      */
-    public static function increment($productId, $storeId, $position, $quantity, $reverse = false, $palletId = null)
+    public static function increment($productId, $storeId, $position, $quantity, $reverse = false)
     {
-        if ($palletId && ($rec = self::fetch($palletId))) {
-            $rec->position = $position;
-            $rec->state = 'active';
-            $rec->closedOn = null;
-        } else {
-            // Има ли палет на тази позиция
-            $rec = self::fetch(array("#position = '[#1#]' AND #state != 'closed'", $position));
-        }
-        
         // Ако няма палет се създава нов
+        $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position);
-            $msg = "Създаден нов палет на|*: <b>{$position}</b>";
         } else {
             
             // Ако има променя му се количеството
@@ -317,12 +324,6 @@ class rack_Pallets extends core_Manager
             $incrementQuantity = $sign * $quantity;
             $rec->quantity += $incrementQuantity;
             self::save($rec, 'position,quantity,state,closedOn');
-            
-            $msg = "Промяна на палет на|*: <b>{$incrementQuantity}</b>";
-        }
-        
-        if (haveRole('debug')) {
-            core_Statuses::newStatus($msg, 'warning');
         }
         
         return $rec->id;
@@ -361,15 +362,15 @@ class rack_Pallets extends core_Manager
     public static function recalc($productId = null, $storeId = null)
     {
         $query = self::getQuery();
-        if($productId) {
+        if(isset($productId)) {
             $query->where("#productId = {$productId}");
         }
-        if($storeId) {
+        if(isset($storeId)) {
             $query->where("$storeId = {$storeId}");
- 
         }
         $query->where("#state != 'closed'");
 
+        $res = array();
         while($rec = $query->fetch()) {
             $res[$rec->storeId][$rec->productId] += $rec->quantity;
         }
@@ -478,7 +479,6 @@ class rack_Pallets extends core_Manager
     {
         if ($fields['-list']) {
             $uomId = cat_Products::fetch($rec->productId)->measureId;
-            
             if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->state != 'closed') {
                 $addUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'palletId' => $rec->id,  'ret_url' => true);
                 
@@ -491,10 +491,11 @@ class rack_Pallets extends core_Manager
                 $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
             }
             
-            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+            $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
+            $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Търсене на палети");
+            $row->productId .= ht::createLink('', array('rack_Pallets', 'productId' => $rec->productId), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети');
             $row->uom = cat_UoM::getShortName($uomId);
             
-            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
             $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
             
@@ -556,12 +557,11 @@ class rack_Pallets extends core_Manager
     public static function getPalletOptions($productId, $storeId)
     {
         $options = array();
-        $query = self::getQuery();
-        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $pallets = self::getAvailablePallets($productId, $storeId);
         
         Mode::push('text', 'plain');
-        while ($rec = $query->fetch()) {
-            $options[$rec->id] = self::getRecTitle($rec, false);
+        foreach ($pallets as $id => $rec){
+            $options[$id] = self::getRecTitle($id, false);
         }
         Mode::pop('text');
         
@@ -626,5 +626,35 @@ class rack_Pallets extends core_Manager
         if (rack_Movements::haveRightFor('add')) {
             $data->toolbar->addBtn('Палетиране', array('rack_Movements', 'add', 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/star_2.png,title=Добавяне на нов палет');
         }
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->FLD('uom', 'varchar', 'smartCenter');
+        if (Mode::is('screenMode', 'narrow')) {
+            $data->listTableMvc->commonFirst = true;
+            $data->listFields['productId'] = '@Артикул';
+        }
+    }
+    
+    
+    /**
+     * Връща записа отговарящ на позицията
+     * 
+     * @param string $position
+     * @param int $storeId
+     * @return null|stdClass
+     */
+    public static function getByPosition($position, $storeId)
+    {
+        if(empty($position) || $position == rack_PositionType::FLOOR) return null;
+        
+        $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+        
+        return is_object($rec) ? (object)array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity) : NULL;
     }
 }
