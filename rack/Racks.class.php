@@ -718,10 +718,10 @@ class rack_Racks extends core_Master
         
         $summaryRec = $data->listSummary->query->fetch();
         $Int = core_Type::getByName('int');
-        $rowAfter = (object)array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal));
+        $rowBefore = (object)array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal));
         
-        $rowAfterTpl = new core_ET("<tr style='background-color:#eee;text-align:center;'><td colspan='5'></td><td><b>[#totalTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td></tr>");
-        $rowAfterTpl->placeObject($rowAfter);
-        $tpl->replace($rowAfterTpl, 'ROW_AFTER');
+        $rowBeforeTpl = new core_ET("<tr style='background-color:#aaa;color:white;text-align:center;'><td colspan='5'></td><td><b>[#totalTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td></tr>");
+        $rowBeforeTpl->placeObject($rowBefore);
+        $tpl->replace($rowBeforeTpl, 'ROW_BEFORE');
     }
 }
