@@ -36,8 +36,8 @@ class rack_MovementGenerator extends core_Manager
     {
         requireRole('debug');
         $form = cls::get('core_Form');
-        $form->FLD('pallets', 'table(columns=pallet|quantity,captions=Палет|Количество,widths=8em|8em)', 'caption=Палети');
-        $form->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони');
+        $form->FLD('pallets', 'table(columns=pallet|quantity,captions=Палет|Количество,widths=8em|8em)', 'caption=Палети,mandatory');
+        $form->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони,mandatory');
         
         $form->toolbar = cls::get('core_Toolbar');
         $form->toolbar->addSbBtn('Изпрати');
