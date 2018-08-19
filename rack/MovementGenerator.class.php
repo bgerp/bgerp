@@ -38,7 +38,7 @@ class rack_MovementGenerator extends core_Manager
         $form->FLD('pallets', 'table(columns=pallet|quantity,captions=Палет|Количество,widths=8em|8em)', 'caption=Палети,mandatory');
         $form->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони,mandatory');
         $form->FLD('smallZonesPriority', 'enum(yes=Да,no=Не)', 'caption=Приоритетност на малките количества->Избор');
-
+        
         $form->toolbar = cls::get('core_Toolbar');
         $form->toolbar->addSbBtn('Изпрати');
         
@@ -60,7 +60,7 @@ class rack_MovementGenerator extends core_Manager
                     $q[$key] = $qArr->quantity[$i];
                 }
             }
-         
+            
             
             $mArr = self::mainP2Q($p, $q, null, $rec->smallZonesPriority);
         }
@@ -89,12 +89,12 @@ class rack_MovementGenerator extends core_Manager
         return $html;
     }
     
-
+    
     /**
      * Входната точка на алгоритъма за изчисляване на движенията
      */
     public function mainP2Q($p, $z, $quantityPerPallet = null, $smallZonesPriority = false)
-    { 
+    {
         $smallZonesPriority = ($smallZonesPriority == 'yes' || $smallZonesPriority === true) ? true : false;
         
         asort($p);
@@ -103,27 +103,27 @@ class rack_MovementGenerator extends core_Manager
         $pOrg = $p;
         
         // Ако малките количества са с приоритет, в случай на недостиг - орязваме големите
-        if($smallZonesPriority) {   
+        if ($smallZonesPriority) {
             $sumP = array_sum($p);
             $sumZ = array_sum($z);
- 
-            if($sumZ > $sumP) {  
-                foreach($z as $zI => $zQ) {
+            
+            if ($sumZ > $sumP) {
+                foreach ($z as $zI => $zQ) {
                     $sumP -= $zQ;
-                    if($sumP < 0) {
+                    if ($sumP < 0) {
                         $z[$zI] += $sumP;
                         $sumP = 0;
                     }
                 }
             }
         }
-
+        
         $moves = array();
-
+        
         do {
             $fullPallets = self::getFullPallets($p, $quantityPerPallet);
-            $res = self::p2q($p, $z, $fullPallets); 
-          
+            $res = self::p2q($p, $z, $fullPallets);
+            
             $moves = arr::combine($moves, $res);
             $i++;
             if ($i > 100) {
@@ -131,10 +131,10 @@ class rack_MovementGenerator extends core_Manager
                 bp($res);
             }
         } while (count($res) > 0);
-       
- 
+        
+        
         $res = array();
-        $i = 0; 
+        $i = 0;
         foreach ($moves as $m => $q) {
             list($l, $r) = explode('=>', $m);
             if ($l == 'get') {
@@ -160,23 +160,25 @@ class rack_MovementGenerator extends core_Manager
                     
                     // Къде да е върнат палета?
                     // Първо добавяме нулевите палети
-                    foreach($pOrg as $pI => $pQ) {
-                        if(!isset($p[$pI])) {
+                    foreach ($pOrg as $pI => $pQ) {
+                        if (!isset($p[$pI])) {
                             $p[$pI] = 0;
                         }
                     }
+                    
                     // Търси палет на първия ред, който има най-малко бройки
                     foreach ($p as $pI => $pQ) {
-                        if (stripos($pI, 'a')) { 
+                        if (stripos($pI, 'a')) {
                             $qNew = $p[$pI] ? $p[$pI] : 0;
                             if (($quantityPerPallet && $quantityPerPallet > $pQ + $q) || ($pQ + $q < 1.3 * $q)) {
                                 $o->retPos = $pI;
+                                
                                 // Ако връщаме към палет, който сега има 0 количество, повече, от колкото е имал в началото,
                                 // то обединяваме движенията
-                                if($pQ == 0 && $pOrig <= $q) {
-                                    foreach($res as $id => $mv) {
-                                        if($mv->pallet == $pI) {
-                                            foreach($mv->zones as $zI => $zQ) {
+                                if ($pQ == 0 && $pOrig <= $q) {
+                                    foreach ($res as $id => $mv) {
+                                        if ($mv->pallet == $pI) {
+                                            foreach ($mv->zones as $zI => $zQ) {
                                                 $o->zones[$zI] += $zQ;
                                                 $o->ret -= $zQ;
                                             }
@@ -201,11 +203,14 @@ class rack_MovementGenerator extends core_Manager
      * Връща масив от масиви. Вторите масиви, са движения, които изчепват или P или Q
      */
     public static function p2q(&$p, &$z, $fullPallets)
-    {  
+    {
         $moves = array();
-
-        if(!count($p) || !count($z)) return $moves;
-
+        
+        if (!count($p) || !count($z)) {
+            
+            return $moves;
+        }
+        
         asort($p);
         asort($z);
         
@@ -213,7 +218,7 @@ class rack_MovementGenerator extends core_Manager
         $cnt = count($p);
         while ($cnt-- > 0 && count($pCombi) < 20000) {
             $pCombi = self::addCombi($p, $pCombi);
-         }
+        }
         
         $zCombi = array();
         $cnt = count($z);
@@ -228,8 +233,8 @@ class rack_MovementGenerator extends core_Manager
                 break;
             }
         }
-      
-        if(!count($moves)) {
+        
+        if (!count($moves)) {
             $zR = array_reverse($z, true);
             foreach ($fullPallets as $i => $pQ) {
                 if ($pQ <= 0) {
@@ -250,35 +255,37 @@ class rack_MovementGenerator extends core_Manager
             }
         }
         
-        if(!count($moves)) {
-             
+        if (!count($moves)) {
             $kZ = '';
             $t = 0;
-            $zR = array_reverse($z, true);  
+            $zR = array_reverse($z, true);
             foreach ($zR as $zI => $zQ) {
                 $zK .= ($zK == '' ? '|' : '') .$zI . '|';
                 $t += $zQ;
             }
-    
-            if ($t) {  
+            
+            if ($t) {
                 foreach ($pCombi as $pQ => $pK) {
-                    if ($pQ >= $t) break;
+                    if ($pQ >= $t) {
+                        break;
+                    }
                 }
-
+                
                 $moves = self::moveGen($p, $z, $pK, $zK);
             }
         }
-
+        
         return $moves;
     }
+    
     
     /**
      * Генерира движение на база зададени кейлистове за палети и зони до пълни изчерпване
      */
     private static function moveGen(&$p, &$z, $pK, $zK)
-    { 
+    {
         $moves = array();
-
+        
         $pK = explode('|', trim($pK, '|'));
         $zK = explode('|', trim($zK, '|'));
         
@@ -302,7 +309,7 @@ class rack_MovementGenerator extends core_Manager
                 $moves["{$pI}=>{$zI}"] = $q ;
                 $pQ = $p[$pI] -= $q;
                 $zQ = $z[$zI] -= $q;
-                 
+                
                 if ($p[$pI] == 0) {
                     unset($p[$pI]);
                 }
@@ -315,7 +322,7 @@ class rack_MovementGenerator extends core_Manager
         if ($pQ > 0) {
             $moves["ret=>{$pI}"] = $pQ;
         }
-
+        
         return $moves;
     }
     

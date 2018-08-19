@@ -589,10 +589,10 @@ class cat_Products extends embed_Manager
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if($rec->groupsInput && (!$rec->id || $mvc->fetch($rec->id)->groupsInput != $rec->groupsInput)) {
+        if ($rec->groupsInput && (!$rec->id || $mvc->fetch($rec->id)->groupsInput != $rec->groupsInput)) {
             $mvc->updateGroupsCnt = true;
         }
-
+        
         // Разпределяме свойствата в отделни полета за полесно търсене
         if ($rec->meta) {
             $metas = type_Set::toArray($rec->meta);
@@ -1166,26 +1166,26 @@ class cat_Products extends embed_Manager
             $res->productId = $rec->id;
             $res->packagingId = null;
         }
-
-        if(!$res->productId) {
+        
+        if (!$res->productId) {
             // Проверяваме имали опаковка с този код: вътрешен или баркод
-            if($catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId')) {
+            if ($catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId')) {
                 // Ако има запис намираме ид-та на продукта и опаковката
                 $res->productId = $catPack->productId;
                 $res->packagingId = $catPack->packagingId;
             }
         }
         
-        if(!$res->productId) {
+        if (!$res->productId) {
             // Търсим продукта по код, без значение на кейса
             if ($rec = self::fetch(array("#code COLLATE UTF8_GENERAL_CI = '[#1#]'", mb_strtolower($code)), 'id')) {
                 $res->productId = $rec->id;
                 $res->packagingId = null;
             }
         }
-
-        if(!$res->productId) {
-
+        
+        if (!$res->productId) {
+            
             return false;
         }
         
@@ -1291,11 +1291,11 @@ class cat_Products extends embed_Manager
     {
         $query = self::getQuery();
         $gCntArr = $query->countKeylist('groups');
-
+        
         $queryGroups = cat_Groups::getQuery();
-
-        while($rec = $queryGroups->fetch()) {
-            if($gCntArr[$rec->id] != $rec->productCnt) {
+        
+        while ($rec = $queryGroups->fetch()) {
+            if ($gCntArr[$rec->id] != $rec->productCnt) {
                 $rec->productCnt = $gCntArr[$rec->id];
                 cat_Groups::save($rec, 'productCnt');
             }

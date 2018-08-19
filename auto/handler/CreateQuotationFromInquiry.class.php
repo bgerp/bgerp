@@ -99,7 +99,7 @@ class auto_handler_CreateQuotationFromInquiry
                 
                 if (!empty($profileRec->buzTel)) {
                     $tels = drdata_PhoneType::toArray($profileRec->buzTel);
-                    if(is_object($tels[0])){
+                    if (is_object($tels[0])) {
                         $fields['tel'] = '+' . $tels[0]->countryCode . $tels[0]->areaCode . $tels[0]->number;
                     }
                 }
@@ -200,11 +200,11 @@ class auto_handler_CreateQuotationFromInquiry
         $productId = $Products->save($rec);
         $Products->logWrite('Създаване от запитване', $productId);
         doc_HiddenContainers::showOrHideDocument($rec->containerId, true, false, $marketingRec->createdBy);
-
-        // Намираме се в шътдаун. Шътдауна на cat_Products е минал, и ако очакваме да има нещо за правене от текущите действия, 
+        
+        // Намираме се в шътдаун. Шътдауна на cat_Products е минал, и ако очакваме да има нещо за правене от текущите действия,
         // то трябва да го викаме ръчно
         $Products->on_ShutDown($Products);
-
+        
         return $productId;
     }
 }
