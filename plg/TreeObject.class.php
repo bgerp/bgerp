@@ -176,6 +176,16 @@ class plg_TreeObject extends core_Plugin
     
     
     /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    public static function on_AfterGetSelectArr($mvc, &$res, $fields = null, &$where = '', $index = 'id')
+    {
+        // Подменяме предложенията с подробните
+        self::modifySelectOptions($mvc, $res);
+    }
+    
+    
+    /**
      * След извличане на записите от базата данни
      */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
