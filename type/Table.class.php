@@ -77,13 +77,14 @@ class type_Table extends type_Blob
             
             if ($this->params[$selOpt]) {
                 if (is_string($this->params[$selOpt])) {
-                    $opt = explode('|', $this->params[$selOpt]);
-                    foreach ($opt as $o) {
+                    $optArr = explode('|', $this->params[$selOpt]);
+                    foreach ($optArr as $o) {
                         $opt[$field][$o] = $o;
                     }
                 } else {
                     $opt[$field] = $this->params[$selOpt];
                 }
+                
                 $tpl .= '<td>' . ht::createSelect($attr[$field]['name'], $opt[$field], null, $attr[$field]) . '</td>';
                 $row1 .= '<td>' . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . '</td>';
             } elseif ($this->params[$suggestOpt]) {
@@ -196,10 +197,11 @@ class type_Table extends type_Blob
             return;
         }
         
-        if ($columns = $this->params['mandatory']) {
+        if (($columns = $this->params['mandatory']) && ($columns = ! 'mandatory')) {
             $value = self::toArray($value);
             $columns = explode('|', $columns);
             $errFld = array();
+            
             foreach ($value as $r => $obj) {
                 foreach ($columns as $c) {
                     if (strlen($obj->{$c}) == 0) {

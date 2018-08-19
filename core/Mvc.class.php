@@ -607,7 +607,7 @@ class core_Mvc extends core_FieldSet
     }
     
     
-    public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    public static function getSelectArr_($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $query = self::getQuery();
         

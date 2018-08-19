@@ -85,9 +85,10 @@ class rack_Pallets extends core_Manager
     
     /**
      * Връща наличните палети за артикула
-     * 
-     * @param int $productId  - ид на артикул
-     * @param int $storeId    - ид на склад
+     *
+     * @param int $productId - ид на артикул
+     * @param int $storeId   - ид на склад
+     *
      * @return array $pallets - масив с палети
      */
     public static function getAvailablePallets(int $productId, int $storeId)
@@ -97,8 +98,8 @@ class rack_Pallets extends core_Manager
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
         $query->show('quantity,position');
         $query->orderBy('createdOn', 'ASC');
-        while($rec = $query->fetch()){
-            $pallets[$rec->id] = (object)array('quantity' => $rec->quantity, 'position' => $rec->position);
+        while ($rec = $query->fetch()) {
+            $pallets[$rec->id] = (object) array('quantity' => $rec->quantity, 'position' => $rec->position);
         }
         
         return $pallets;
@@ -232,7 +233,7 @@ class rack_Pallets extends core_Manager
         
         self::recalc($rec->productId, $rec->storeId);
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
-
+        
         // Връщане на резултата от записа
         return $id;
     }
@@ -362,24 +363,24 @@ class rack_Pallets extends core_Manager
     public static function recalc($productId = null, $storeId = null)
     {
         $query = self::getQuery();
-        if(isset($productId)) {
+        if (isset($productId)) {
             $query->where("#productId = {$productId}");
         }
-        if(isset($storeId)) {
-            $query->where("$storeId = {$storeId}");
+        if (isset($storeId)) {
+            $query->where("${storeId} = {$storeId}");
         }
         $query->where("#state != 'closed'");
-
+        
         $res = array();
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $res[$rec->storeId][$rec->productId] += $rec->quantity;
         }
-      
+        
         // Обновяване на количеството на палети
-        foreach($res as $storeId => $prodQ) {
-            foreach($prodQ as $productId => $sum) {
+        foreach ($res as $storeId => $prodQ) {
+            foreach ($prodQ as $productId => $sum) {
                 $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
-                if(!$rRec) {
+                if (!$rRec) {
                     $rRec = (object) array('storeId' => $storeId, 'productId' => $productId, 'state' => 'active', 'quantity' => 0, 'quantityOnPallets' => $sum);
                 } else {
                     $rRec->quantityOnPallets = $sum;
@@ -492,8 +493,7 @@ class rack_Pallets extends core_Manager
             }
             
             $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
-            $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Търсене на палети");
-            $row->productId .= ht::createLink('', array('rack_Pallets', 'productId' => $rec->productId), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети');
+            $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
             $row->uom = cat_UoM::getShortName($uomId);
             
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -560,7 +560,7 @@ class rack_Pallets extends core_Manager
         $pallets = self::getAvailablePallets($productId, $storeId);
         
         Mode::push('text', 'plain');
-        foreach ($pallets as $id => $rec){
+        foreach ($pallets as $id => $rec) {
             $options[$id] = self::getRecTitle($id, false);
         }
         Mode::pop('text');
@@ -644,17 +644,21 @@ class rack_Pallets extends core_Manager
     
     /**
      * Връща записа отговарящ на позицията
-     * 
+     *
      * @param string $position
-     * @param int $storeId
+     * @param int    $storeId
+     *
      * @return null|stdClass
      */
     public static function getByPosition($position, $storeId)
     {
-        if(empty($position) || $position == rack_PositionType::FLOOR) return null;
+        if (empty($position) || $position == rack_PositionType::FLOOR) {
+            
+            return;
+        }
         
         $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
         
-        return is_object($rec) ? (object)array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity) : NULL;
+        return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity) : null;
     }
 }
