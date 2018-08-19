@@ -267,7 +267,7 @@ class cat_Products extends embed_Manager
     /**
      * Групи за обновяване
      */
-    protected $updateGroupsCnt = false;
+    public $updateGroupsCnt = false;
     
     
     /**
@@ -589,6 +589,10 @@ class cat_Products extends embed_Manager
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        if($rec->groupsInput && (!$rec->id || $mvc->fetch($rec->id)->groupsInput != $rec->groupsInput)) {
+            $mvc->updateGroupsCnt = true;
+        }
+
         // Разпределяме свойствата в отделни полета за полесно търсене
         if ($rec->meta) {
             $metas = type_Set::toArray($rec->meta);
@@ -1157,29 +1161,32 @@ class cat_Products extends embed_Manager
         expect($code, 'Не е зададен код', $code);
         $res = new stdClass();
         
-        // Проверяваме имали опаковка с този код: вътрешен или баркод
-        $catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId');
-        
-        if (!empty($catPack)) {
-            
-            // Ако има запис намираме ид-та на продукта и опаковката
-            $res->productId = $catPack->productId;
-            $res->packagingId = $catPack->packagingId;
-        } else {
-            
-            // Проверяваме имали продукт с такъв код
-            $rec = self::fetch(array("#code = '[#1#]'", $code), 'id');
-            if (!$rec) {
-                $rec = self::fetch(array("LOWER(#code) = LOWER('[#1#]')", $code), 'id');
+        // Проверяваме имали продукт с такъв код
+        if ($rec = self::fetch(array("#code = '[#1#]'", $code), 'id')) {
+            $res->productId = $rec->id;
+            $res->packagingId = null;
+        }
+
+        if(!$res->productId) {
+            // Проверяваме имали опаковка с този код: вътрешен или баркод
+            if($catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId')) {
+                // Ако има запис намираме ид-та на продукта и опаковката
+                $res->productId = $catPack->productId;
+                $res->packagingId = $catPack->packagingId;
             }
-            
-            if ($rec) {
+        }
+        
+        if(!$res->productId) {
+            // Търсим продукта по код, без значение на кейса
+            if ($rec = self::fetch(array("#code COLLATE UTF8_GENERAL_CI = '[#1#]'", mb_strtolower($code)), 'id')) {
                 $res->productId = $rec->id;
                 $res->packagingId = null;
-            } else {
-                
-                return false;
             }
+        }
+
+        if(!$res->productId) {
+
+            return false;
         }
         
         return $res;
@@ -1221,9 +1228,6 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if ($rec->groups) {
-            $mvc->updateGroupsCnt = true;
-        }
         Mode::setPermanent('cat_LastProductCode', $rec->code);
         
         if (isset($rec->originId)) {
@@ -1285,14 +1289,16 @@ class cat_Products extends embed_Manager
      */
     private function updateGroupsCnt()
     {
-        $query = $this->getQuery();
+        $query = self::getQuery();
         $gCntArr = $query->countKeylist('groups');
-        
-        foreach ($gCntArr as $gId => $productCnt) {
-            $grRec = new stdClass();
-            $grRec->id = $gId;
-            $grRec->productCnt = $productCnt;
-            cat_Groups::save($grRec, 'productCnt');
+
+        $queryGroups = cat_Groups::getQuery();
+
+        while($rec = $queryGroups->fetch()) {
+            if($gCntArr[$rec->id] != $rec->productCnt) {
+                $rec->productCnt = $gCntArr[$rec->id];
+                cat_Groups::save($rec, 'productCnt');
+            }
         }
     }
     
