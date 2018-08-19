@@ -200,7 +200,11 @@ class auto_handler_CreateQuotationFromInquiry
         $productId = $Products->save($rec);
         $Products->logWrite('Създаване от запитване', $productId);
         doc_HiddenContainers::showOrHideDocument($rec->containerId, true, false, $marketingRec->createdBy);
-        
+
+        // Намираме се в шътдаун. Шътдауна на cat_Products е минал, и ако очакваме да има нещо за правене от текущите действия, 
+        // то трябва да го викаме ръчно
+        $Products->on_ShutDown($Products);
+
         return $productId;
     }
 }
