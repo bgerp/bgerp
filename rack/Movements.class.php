@@ -532,8 +532,7 @@ class rack_Movements extends core_Manager
         }
         
         $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
-        $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Търсене на палети");
-        $row->productId .= ht::createLink('', array('rack_Pallets', 'productId' => $rec->productId), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети');
+        $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
         
         if (!isset($fields['-inline'])) {
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
