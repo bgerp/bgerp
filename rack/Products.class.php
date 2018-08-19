@@ -103,8 +103,8 @@ class rack_Products extends store_Products
         }
         
         if ($rec->quantityOnPallets > 0) {
-            $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула');
-            $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Търсене на палети с артикула') . '&nbsp;' . $row->quantityOnPallets;
+            $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт');
+            $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт') . '&nbsp;' . $row->quantityOnPallets;
         }
     }
     
