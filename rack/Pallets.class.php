@@ -256,7 +256,7 @@ class rack_Pallets extends core_Manager
         $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('state', 'active');
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,silent');
-        $data->listFilter->FLD('pos', 'rack_PositionType', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
+        $data->listFilter->FLD('pos', 'varchar', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
         
         $data->listFilter->showFields = 'productId,pos,state';
         $data->listFilter->view = 'horizontal';
