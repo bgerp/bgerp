@@ -597,8 +597,10 @@ class rack_Movements extends core_Manager
         if($packType != 'uom'){
             $packagingRow = str::getPlural($rec->packQuantity, $packagingRow, true);
         }
+        if(!empty($rec->packQuantity)){
+            $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
+        }
         
-        $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         $zones = self::getZoneArr($rec, $quantityInZones);
         $restQuantity = $rec->packQuantity - $quantityInZones;
         
