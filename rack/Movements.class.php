@@ -582,14 +582,19 @@ class rack_Movements extends core_Manager
         }
         
         $movementArr = array();
-        $movementArr[] = "<i>{$position} ({$packagingRow} <span {$class}>{$packQuantityRow} </span>)</i>";
+        $packType = cat_UoM::fetchField($rec->packagingId, 'type');
+        if($packType != 'uom'){
+            $packagingRow = str::getPlural($rec->packQuantity, $packagingRow, true);
+        }
+        
+        $movementArr[] = "<i>{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})</i>";
         $zones = self::getZoneArr($rec, $quantityInZones);
         $restQuantity = $rec->packQuantity - $quantityInZones;
         
         foreach ($zones as $zoneRec){
             $zoneTitle = rack_Zones::getVerbal($zoneRec->zone, 'num');
             $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
-            $movementArr[] = "<i><span class='green'>{$zoneTitle}</span> ({$zoneQuantity})</i>";
+            $movementArr[] = "<i><span class='green'>{$zoneTitle} ({$zoneQuantity})</span></i>";
         }
         
         if(!empty($positionTo) && $restQuantity){
