@@ -220,7 +220,7 @@ class rack_Zones extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
+        $form->setDefault('storeId', store_Stores::getCurrent('id', $form->rec ? $form->rec->storeId : null));
         
         // Ако има работен запис към зоната не може да се сменя склада
         if (isset($form->rec->containerId)){
