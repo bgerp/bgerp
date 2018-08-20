@@ -61,7 +61,13 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,position,productId,uom=Мярка,quantity';
+    public $listFields = 'label,position,productId,uom=Мярка,quantity,closedOn';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'closedOn';
     
     
     /**
@@ -204,9 +210,28 @@ class rack_Pallets extends core_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        $updateFields = array();
+        $saveAgain = false;
+        
+        // Затваряне ако количеството е 0
+        if ($rec->quantity <= 0) {
+            $rec->state = 'closed';
+            $rec->closedOn = dt::now();
+            $saveAgain = true;
+            $updateFields['state'] = 'state';
+            $updateFields['closedOn'] = 'closedOn';
+        }
+        
+        // Ако няма етикет се задава
         if (empty($rec->label)) {
             $rec->label = '#' . $rec->id;
-            $mvc->save_($rec, 'label');
+            $saveAgain = true;
+            $updateFields['label'] = 'label';
+        }
+        
+        // Ако има полета за обновяване, обновяват се
+        if($saveAgain === true){
+            $mvc->save_($rec, $updateFields);
         }
         
         self::recalc($rec->productId, $rec->storeId);
@@ -342,8 +367,9 @@ class rack_Pallets extends core_Manager
             $query->where("#productId = {$productId}");
         }
         if (isset($storeId)) {
-            $query->where("${storeId} = {$storeId}");
+            $query->where("#storeId = {$storeId}");
         }
+        
         $query->where("#state != 'closed'");
         
         $res = array();

@@ -28,9 +28,9 @@ class rack_RackDetails extends core_Detail
     
     
     /**
-     * Страница от менюто
+     * Активен таб
      */
-    public $pageMenu = 'Логистика';
+    public $currentTab = 'Стелажи';
     
     
     /**

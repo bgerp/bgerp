@@ -50,7 +50,7 @@ class rack_Movements extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,rack,storeWorker';
+    public $canList = 'ceo,rack';
     
     
     /**
