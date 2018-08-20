@@ -4668,6 +4668,8 @@ div.location.public {
       color: #004488 !important; }
     .rack_Zones .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
       color: #222222 !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow .red {
+      color: #cc0000 !important; }
 
 td.rack-hl {
   background-color: red; }
