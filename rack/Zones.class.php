@@ -370,7 +370,7 @@ class rack_Zones extends core_Master
         if (empty($zoneRec)) return;
         
         // Затваря движенията към зоната
-        rack_Movements::closeByZoneId(array($zoneRec->id => $zoneRec->id));
+        rack_Movements::closeByZoneId($zoneRec->id);
         rack_ZoneDetails::delete("#zoneId = {$zoneRec->id}");
         
         $zoneRec->containerId = NULL;

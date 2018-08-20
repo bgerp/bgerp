@@ -992,4 +992,21 @@ class rack_Movements extends core_Manager
         $productName = ' ' . plg_Search::normalizeText(cat_Products::getTitleById($rec->productId));
         $res = ' ' . $res . ' ' . $productName;
     }
+    
+    
+    /**
+     * Затваря всички незатворени движение към зоната
+     * 
+     * @param int $zoneId
+     * @return void
+     */
+    public static function closeByZoneId($zoneId)
+    {
+        $query = self::getQuery();
+        $query->where("LOCATE('|{$zoneId}|', #zoneList) AND #state != 'closed'");
+        while($rec = $query->fetch()){
+            $rec->state = 'closed';
+            static::save($rec, 'state');
+        }
+    }
 }
