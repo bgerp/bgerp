@@ -595,19 +595,19 @@ class rack_Movements extends core_Manager
             $packagingRow = str::getPlural($rec->packQuantity, $packagingRow, true);
         }
         
-        $movementArr[] = "<i>{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})</i>";
+        $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         $zones = self::getZoneArr($rec, $quantityInZones);
         $restQuantity = $rec->packQuantity - $quantityInZones;
         
         foreach ($zones as $zoneRec){
             $zoneTitle = rack_Zones::getVerbal($zoneRec->zone, 'num');
             $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
-            $movementArr[] = "<i><span class='green'>{$zoneTitle} ({$zoneQuantity})</span></i>";
+            $movementArr[] = "<span class='green'>{$zoneTitle} ({$zoneQuantity})</span>";
         }
         
         if(!empty($positionTo) && $restQuantity){
             $resQuantity = $Double->toVerbal($restQuantity);
-            $movementArr[] = "<i>{$positionTo} ({$resQuantity})</i>";
+            $movementArr[] = "{$positionTo} ({$resQuantity})";
         }
         
         $res = implode(' » ', $movementArr);
