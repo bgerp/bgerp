@@ -74,7 +74,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'zoneList,productId,packagingId,packQuantity,movement=Движение,zones=Нагласяне,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
 
     
     /**
@@ -260,7 +260,7 @@ class rack_Movements extends core_Manager
      * 
      * @return array $zoneArr
      */
-    private function getZoneArr($rec, &$quantityInZones)
+    private function getZoneArr($rec, &$quantityInZones = null)
     {
         $quantityInZones = 0;
         $zoneArr = array();
@@ -536,12 +536,6 @@ class rack_Movements extends core_Manager
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
         
         if (!isset($fields['-inline'])) {
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            
-            if (isset($rec->palletToId)) {
-                $row->palletToId = rack_Pallets::getTitleById($rec->palletToId);
-            }
-            
             // Ре-вербализиране на зоните, да се показват с номерата си
             if (!empty($rec->zones)) {
                 $zones = rack_Zones::getZones($rec->storeId);
@@ -550,9 +544,7 @@ class rack_Movements extends core_Manager
                 $row->zones = $Type->toVerbal($rec->zones);
             }
             
-            $position = $mvc->getFieldType('position')->toVerbal($rec->position);
-            $positionTo = $mvc->getFieldType('positionTo')->toVerbal($rec->positionTo);
-            $row->movement = (!empty($positionTo)) ? "{$position} » {$positionTo}" : $position;
+            $row->movement = $mvc->getMovementDescription($rec);
         } else {
             $row->packQuantity = ht::styleIfNegative($row->packQuantity, $rec->packQuantity);
             $row->packQuantity = "<b>{$row->packQuantity}</b>";
@@ -562,6 +554,52 @@ class rack_Movements extends core_Manager
                 $row->palletId = rack_Pallets::getRecTitle($rec->palletId);
             }
         }
+    }
+    
+    
+    /**
+     * Подробно описание на движението
+     * 
+     * @param stdClass $rec
+     * @return string $res
+     */
+    private function getMovementDescription($rec)
+    {
+        $position = $this->getFieldType('position')->toVerbal($rec->position);
+        $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
+        
+        $Double = core_Type::getByName('double(smartRound)');
+        $packagingRow = cat_UoM::getShortName($rec->packagingId);
+        $packQuantityRow = $Double->toVerbal($rec->packQuantity);
+        
+        $class = '';
+        if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
+            if($palletRec = cat_products_Packagings::getPack($rec->productId, $palletId)){
+                if($rec->quantity == $palletRec->quantity){
+                    $class = "class = 'quiet'";
+                }
+            }
+        }
+        
+        $movementArr = array();
+        $movementArr[] = "<i>{$position} ({$packagingRow} <span {$class}>{$packQuantityRow} </span>)</i>";
+        $zones = self::getZoneArr($rec, $quantityInZones);
+        $restQuantity = $rec->packQuantity - $quantityInZones;
+        
+        foreach ($zones as $zoneRec){
+            $zoneTitle = rack_Zones::getVerbal($zoneRec->zone, 'num');
+            $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
+            $movementArr[] = "<i><span class='green'>{$zoneTitle}</span> ({$zoneQuantity})</i>";
+        }
+        
+        if(!empty($positionTo) && $restQuantity){
+            $resQuantity = $Double->toVerbal($restQuantity);
+            $movementArr[] = "<i>{$positionTo} ({$resQuantity})</i>";
+        }
+        
+        $res = implode(' » ', $movementArr);
+        
+        return $res;
     }
     
     
