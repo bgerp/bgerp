@@ -74,7 +74,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,packagingId,packQuantity,movement=Движение,zones=Нагласяне,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
+    public $listFields = 'zoneList,productId,packagingId,packQuantity,movement=Движение,zones=Нагласяне,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
 
     
     /**
@@ -172,6 +172,37 @@ class rack_Movements extends core_Manager
     
     
     /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if (isset($rec->zones)) {
+            $zoneListArr = array();
+            $zoneArr = type_Table::toArray($rec->zones);
+            if (count($zoneArr)) {
+                foreach ($zoneArr as $obj) {
+                    $zoneListArr[$obj->zone] = $obj->zone;
+                }
+            }
+            
+            $rec->zoneList = (count($zoneListArr)) ? keylist::fromArray($zoneListArr) : null;
+        }
+        
+        if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
+            if (empty($rec->workerId)) {
+                $rec->workerId = core_Users::getCurrent('id', false);
+            }
+        }
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
@@ -182,37 +213,6 @@ class rack_Movements extends core_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $zoneListArr = array();
-        if (isset($rec->zones)) {
-            $zoneArr = type_Table::toArray($rec->zones);
-            if (count($zoneArr)) {
-                foreach ($zoneArr as $obj) {
-                    $zoneListArr[$obj->zone] = $obj->zone;
-                }
-            }
-        }
-        
-        $saveAgain = false;
-        $updateFields = array();
-        
-        if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
-            if (empty($rec->workerId)) {
-                $saveAgain = true;
-                $rec->workerId = core_Users::getCurrent('id', false);
-                $updateFields['workerId'] = 'workerId';
-            }
-        }
-        
-        if (empty($rec->zoneList)) {
-            $saveAgain = true;
-            $updateFields['zoneList'] = 'zoneList';
-            $rec->zoneList = (count($zoneListArr)) ? keylist::fromArray($zoneListArr) : null;
-        }
-        
-        if ($saveAgain === true && count($updateFields)) {
-            $mvc->save_($rec, $updateFields);
-        }
-        
         // Изпълняване на транзакцията ако се активира или се отказва
         if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
             $reverse = ($rec->_canceled === true) ? true : false;
@@ -304,6 +304,7 @@ class rack_Movements extends core_Manager
         
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setField('storeId', 'input=hidden');
+        $form->setField('workerId', 'input=none');
         
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
