@@ -793,12 +793,11 @@ class rack_Movements extends core_Manager
             return $res;
         }
         
-        if(count($transaction->zonesQuantityArr) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal)){
+        if(count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal)){
             $res->errors = "Недостатъчно количество за оставяне в зоните";
             $res->errorFields = 'packQuantity,zones';
             return $res;
         }
-        
         
         if(empty($transaction->quantity) && empty($transaction->zonesQuantityTotal)){
             $res->errors = "Не може да се направи празно движение";
