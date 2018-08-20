@@ -136,32 +136,40 @@ class rack_Movements extends core_Manager
                  $form->setError('packQuantity', 'Въведете количество');
             }
             
-            if(empty($rec->positionTo)){
-                $rec->positionTo = $rec->position;
-            }
-            
-            // Симулиране дали транзакцията е валидна
-            $clone = clone $rec;
-            $clone->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
-            
-            $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
-            $transaction = $mvc->getTransaction($clone);
-            $transaction = $mvc->validateTransaction($transaction);
-            
-            if(!empty($transaction->errors)){
-                $form->setError($transaction->errorFields, $transaction->errors);
-            }
-            
-            if(!empty($transaction->warnings)){
-                $form->setWarning($transaction->warningFields, implode(',', $transaction->warnings));
+            if (!empty($rec->packQuantity)){
+                if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                    $form->setError('packQuantity', $warning);
+                }
             }
             
             if (!$form->gotErrors()) {
-                $rec->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
-                $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
+                if(empty($rec->positionTo)){
+                    $rec->positionTo = $rec->position;
+                }
                 
-                if ($rec->state == 'closed') {
-                    $rec->_isCreatedClosed = true;
+                // Симулиране дали транзакцията е валидна
+                $clone = clone $rec;
+                $clone->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                
+                $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
+                $transaction = $mvc->getTransaction($clone);
+                $transaction = $mvc->validateTransaction($transaction);
+                
+                if(!empty($transaction->errors)){
+                    $form->setError($transaction->errorFields, $transaction->errors);
+                }
+                
+                if(!empty($transaction->warnings)){
+                    $form->setWarning($transaction->warningFields, implode(',', $transaction->warnings));
+                }
+                
+                if (!$form->gotErrors()) {
+                    $rec->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                    $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
+                    
+                    if ($rec->state == 'closed') {
+                        $rec->_isCreatedClosed = true;
+                    }
                 }
             }
         }
