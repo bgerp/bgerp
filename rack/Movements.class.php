@@ -347,8 +347,10 @@ class rack_Movements extends core_Manager
             
             // Показване на допустимото количество
             $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId);
-            if ($defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId)) {
-                $availableQuantity = min($availableQuantity, $defQuantity);
+            if(empty($rec->palletId)){
+                if ($defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId)) {
+                    $availableQuantity = min($availableQuantity, $defQuantity);
+                }
             }
             
             if ($availableQuantity > 0) {
