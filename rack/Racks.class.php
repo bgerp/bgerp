@@ -21,6 +21,10 @@ class rack_Racks extends core_Master
      */
     public $title = 'Стелажи';
     
+    
+    /**
+     * Единично заглавие
+     */
     public $singleTitle = 'Стелаж';
     
     

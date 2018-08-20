@@ -4635,6 +4635,9 @@ div.location.public {
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
+.newCol {
+  background-color: #eeeeee; }
+
 /*
  * rack
  */
@@ -4665,6 +4668,8 @@ div.location.public {
       color: #004488 !important; }
     .rack_Zones .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
       color: #222222 !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow .red {
+      color: #cc0000 !important; }
 
 td.rack-hl {
   background-color: red; }
@@ -6058,6 +6063,9 @@ only screen and (max-width: 320px) {
 
 .narrow .elem-holder .endTooltip {
   float: right; }
+
+.frontToolip {
+  display: inline-block; }
 
 /*
  * край на стилове за външната част при потребител контрактор

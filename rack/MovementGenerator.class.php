@@ -61,7 +61,6 @@ class rack_MovementGenerator extends core_Manager
                 }
             }
             
-            
             $mArr = self::mainP2Q($p, $q, null, $rec->smallZonesPriority);
         }
         
@@ -93,7 +92,7 @@ class rack_MovementGenerator extends core_Manager
     /**
      * Входната точка на алгоритъма за изчисляване на движенията
      */
-    public function mainP2Q($p, $z, $quantityPerPallet = null, $smallZonesPriority = false)
+    public static function mainP2Q($p, $z, $quantityPerPallet = null, $smallZonesPriority = false)
     {
         $smallZonesPriority = ($smallZonesPriority == 'yes' || $smallZonesPriority === true) ? true : false;
         
