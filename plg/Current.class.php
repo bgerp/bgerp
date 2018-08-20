@@ -238,7 +238,7 @@ class plg_Current extends core_Plugin
     /**
      * Връща ключа за запис в перманентните настройки
      */
-    private function getPermanentKey($mvc)
+    private static function getPermanentKey($mvc)
     {
         $key = 'Select-' . cls::getClassName($mvc) . '-' . core_Users::getCurrent();
 
