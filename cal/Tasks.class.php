@@ -3183,7 +3183,7 @@ class cal_Tasks extends embed_Manager
             $successMsg = 'Благодарим Ви за сигнала';
             
             if ($isReportFromStream) {
-                echo tr($successMsg);
+                echo 'OK';
                 shutdown();
             }
             

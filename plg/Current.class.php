@@ -22,7 +22,7 @@ class plg_Current extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param string   $part   поле от модела-домакин
-     * @param bool     $bForce Дали да редирект към мениджъра ако не е избран текущ обект
+     * @param bool|int $bForce Дали да редирект към мениджъра ако не е избран текущ обект. Ако е int и няма избран мениджър, автоматично се избира
      */
     public static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = true)
     {
@@ -38,29 +38,36 @@ class plg_Current extends core_Plugin
                 return;
             }
             
+            $rec = null;
             $query = $mvc->getQuery();
             $query->where("#state != 'rejected' || #state != 'closed' || #state IS NULL");
-            
-            // Генериране на събитие, нотифициращо че предстои форсиране на обекта
+            $query->limit(2);
+
+            // Генериране на събитие, преди изпълнението на заявката
             $mvc->invoke('BeforeSelectByForce', array(&$query));
             
             // Ако има точно един обект, който потребителя може да избере се избира автоматично
             if ($query->count() == 1) {
                 $rec = $query->fetch();
-                
-                // Избиране на единствения обект (ако потребителя може да го избере)
-                self::setCurrent($mvc, $res, $rec);
             }
             
             // Ако форсираме
-            if ($bForce) {
+            if ($bForce && !$rec) {
+                if(is_numeric($bForce)) {
+                    $rec = $mvc->fetch($bForce);
+                }
                 
                 // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
-                if (empty($res) && ($mvc->className != Request::get('Ctr'))) {
+                if (empty($rec) && ($mvc->className != Request::get('Ctr'))) {
                     
                     // Подканваме потребителя да избере обект от модела, като текущ
-                    redirect(array($mvc, 'list', 'ret_url' => true), false, '|Моля, изберете текущ/а|* |' . $mvc->singleTitle);
+                    redirect(array($mvc, 'SelectCurrent', 'ret_url' => true), false, '|Моля, изберете текущ/а|* |' . mb_strtolower(tr($mvc->singleTitle)));
                 }
+            }
+            
+            // Избиране на  обект, ако е намерен подходящ
+            if($rec) {
+                self::setCurrent($mvc, $res, $rec);
             }
         }
     }
@@ -94,6 +101,67 @@ class plg_Current extends core_Plugin
             
             return false;
         }
+
+        if($action == 'selectcurrent') {
+            $mvc->requireRightFor('select');
+            
+            $form = cls::get('core_Form');
+            $form->FLD('choice', "key(mvc={$mvc->className},select=name)", "caption={$mvc->singleTitle},input");
+            
+            $opt = array();
+            $query = $mvc->getQuery();
+            while($rec = $query->fetch()) {
+                if($mvc->haveRightFor('select', $rec)) {
+                    $opt[$rec->id] = $mvc->getRecTitle($rec);
+                }
+            }
+
+            $form->setOptions('choice', $opt);
+            
+            $key = self::getPermanentKey($mvc);
+
+            $lastId = core_Permanent::get($key);
+
+            if($lastId && $opt[$lastId]) {
+                $form->setDefault('choice', $lastId);
+            }
+
+            if(count($opt) == 1) {  
+                $mvc->selectCurrent(key($opt));
+                if (!Request::get('ret_url')) {
+                    $res = new Redirect(array($mvc));
+                } else {
+                    $res = new Redirect(getRetUrl());
+                }
+            }
+ 
+            $rec = $form->input();
+
+            if ($form->isSubmitted() && $rec->choice) {
+                if($mvc->haveRightFor('select', $rec)) {
+                    $rec = $mvc->fetch($rec->choice);
+                    $mvc->selectCurrent($rec);
+
+                    if (!Request::get('ret_url')) {
+                        $res = new Redirect(array($mvc));
+                    } else {
+                        $res = new Redirect(getRetUrl());
+                    }
+
+                    return false;
+                }
+            }
+
+            $form->toolbar->addSbBtn('Напред', 'choice', array('class' => 'fright'), 'ef_icon = img/16/move.png');
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+            
+            $form->title = "Избор на текущ|* " . mb_strtolower(tr($mvc->singleTitle)); 
+
+            $res = $mvc->renderWrapping($form->renderHtml());
+
+            return false;
+        }
+
     }
     
     
@@ -159,7 +227,22 @@ class plg_Current extends core_Plugin
         // Извикваме събитие за да сигнализираме, че е сменен текущия елемент
         $mvc->invoke('afterChangeCurrent', array(&$res, $rec));
         
+        $key = self::getPermanentKey($mvc);
+
+        core_Permanent::set($key, $rec->id, 10000);
+
         $res = $rec->id;
+    }
+
+
+    /**
+     * Връща ключа за запис в перманентните настройки
+     */
+    private static function getPermanentKey($mvc)
+    {
+        $key = 'Select-' . cls::getClassName($mvc) . '-' . core_Users::getCurrent();
+
+        return $key;
     }
     
     

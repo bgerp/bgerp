@@ -352,7 +352,7 @@ abstract class cash_Document extends deals_PaymentDocument
         
         // Ако не е избрана каса, показваме бутона за контиране но с грешка
         if (($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->peroCase) && $mvc->haveRightFor('conto')) {
-            $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+            $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документът не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
     }
     

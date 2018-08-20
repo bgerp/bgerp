@@ -214,7 +214,7 @@ class doc_Log extends core_Manager
     /**
      * Задаваме броя на всички елементи
      *
-     * @param oject $data
+     * @param object $data
      */
     public function setLimitAddDocDialogPager(&$data)
     {

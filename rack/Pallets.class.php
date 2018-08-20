@@ -61,7 +61,13 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,position,productId,uom=Мярка,quantity';
+    public $listFields = 'label,position,productId,uom=Мярка,quantity,closedOn';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'closedOn';
     
     
     /**
@@ -80,6 +86,9 @@ class rack_Pallets extends core_Manager
         $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затворено на,input=none');
         
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,storeId');
+        $this->setDbIndex('state');
+        $this->setDbIndex('position');
     }
     
     
@@ -194,48 +203,42 @@ class rack_Pallets extends core_Manager
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * Извиква се след успешен запис в модела
      *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
      */
-    protected static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($form->isSubmitted()) {
-            $rec = $form->rec;
-            $rec->_editLabel = true;
-        }
-    }
-    
-    
-    /**
-     * Записва редът (записа) в таблицата
-     */
-    public function save_(&$rec, $fields = null, $mode = null)
-    {
+        $updateFields = array();
+        $saveAgain = false;
+        
         // Затваряне ако количеството е 0
         if ($rec->quantity <= 0) {
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
+            $saveAgain = true;
+            $updateFields['state'] = 'state';
+            $updateFields['closedOn'] = 'closedOn';
         }
         
-        if ($rec->_editLabel === true) {
-            $fields = 'label';
-        }
-        
-        // Викане на ф-ята за запис от бащата на класа
-        $id = parent::save_($rec, $fields, $mode);
-        
-        if (!$rec->label) {
+        // Ако няма етикет се задава
+        if (empty($rec->label)) {
             $rec->label = '#' . $rec->id;
-            parent::save_($rec, 'label');
+            $saveAgain = true;
+            $updateFields['label'] = 'label';
+        }
+        
+        // Ако има полета за обновяване, обновяват се
+        if($saveAgain === true){
+            $mvc->save_($rec, $updateFields);
         }
         
         self::recalc($rec->productId, $rec->storeId);
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
-        
-        // Връщане на резултата от записа
-        return $id;
     }
     
     
@@ -256,7 +259,7 @@ class rack_Pallets extends core_Manager
         $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('state', 'active');
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,silent');
-        $data->listFilter->FLD('pos', 'rack_PositionType', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
+        $data->listFilter->FLD('pos', 'varchar', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
         
         $data->listFilter->showFields = 'productId,pos,state';
         $data->listFilter->view = 'horizontal';
@@ -360,35 +363,22 @@ class rack_Pallets extends core_Manager
     /**
      * Преизчислява наличността на палети за посочения продукт
      */
-    public static function recalc($productId = null, $storeId = null)
+    public static function recalc($productId, $storeId)
     {
         $query = self::getQuery();
-        if (isset($productId)) {
-            $query->where("#productId = {$productId}");
-        }
-        if (isset($storeId)) {
-            $query->where("${storeId} = {$storeId}");
-        }
-        $query->where("#state != 'closed'");
+        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $query->XPR('sum', 'double', 'SUM(#quantity)');
+        $rec = $query->fetch();
+        $sum = ($rec->sum) ? $rec->sum : null;
         
-        $res = array();
-        while ($rec = $query->fetch()) {
-            $res[$rec->storeId][$rec->productId] += $rec->quantity;
+        $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+        if (!$rRec) {
+            $rRec = (object) array('storeId' => $storeId, 'productId' => $productId, 'state' => 'active', 'quantity' => 0, 'quantityOnPallets' => $sum);
+        } else {
+            $rRec->quantityOnPallets = $sum;
+            $rRec->state = 'active';
         }
-        
-        // Обновяване на количеството на палети
-        foreach ($res as $storeId => $prodQ) {
-            foreach ($prodQ as $productId => $sum) {
-                $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
-                if (!$rRec) {
-                    $rRec = (object) array('storeId' => $storeId, 'productId' => $productId, 'state' => 'active', 'quantity' => 0, 'quantityOnPallets' => $sum);
-                } else {
-                    $rRec->quantityOnPallets = $sum;
-                    $rRec->state = 'active';
-                }
-                rack_Products::save($rRec);
-            }
-        }
+        rack_Products::save($rRec);
     }
     
     

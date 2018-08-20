@@ -117,7 +117,33 @@ class tcost_FeeZones extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
         $this->FLD('deliveryTime', 'time(uom=days)', 'caption=Доставка,recently,smartCenter');
         
+        $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
+        $this->FLD('addPerKg', 'double', 'caption=Надценки->За кг, autohide');
+        $this->FLD('volume2quantity', 'double', 'caption=Надценки->Обем към кг, autohide');
+        
         $this->setDbIndex('deliveryTermId');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $form->setField('volume2quantity', "placeholder=" . self::V2C);
+        $currecyId = acc_Periods::getBaseCurrencyCode();
+        
+        if($addTax = tcost_Setup::get('ADD_TAX')){
+            $form->setField('addTax', "placeholder={$addTax},unit={$currecyId}");
+        }
+        
+        if($addPerKg = tcost_Setup::get('ADD_PER_KG')){
+            $form->setField('addPerKg', "placeholder={$addPerKg},unit={$currecyId}");
+        }
     }
     
     
@@ -202,22 +228,25 @@ class tcost_FeeZones extends core_Master
         
         $explain = null;
         if ($fee > 0) {
-            $tax = tcost_Setup::get('ADD_TAX');
+            
+            // Надценките се взимат с приоритет от зоната, ако няма от глобалните настройки
+            $zoneRec = self::fetch($zoneId, 'addTax,addPerKg,volume2quantity');
+            $tax = !empty($zoneRec->addTax) ? $zoneRec->addTax : tcost_Setup::get('ADD_TAX');
+            $addPerKg = !empty($zoneRec->addPerKg) ? $zoneRec->addPerKg : tcost_Setup::get('ADD_PER_KG');
             
             if($totalWeight){
                 $tax = $tax * $singleWeight / $totalWeight;
             }
-            $inc = tcost_Setup::get('ADD_PER_KG') * $singleWeight;
+            $inc = $addPerKg * $singleWeight;
             $fee = $tax + $inc + $fee;
             
-           
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
             $explain = "{$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$tax}, ADD_PER_KG = {$inc}";
         }
         
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
-       
+        
         // Връщане на изчислената цена
         return $res;
     }

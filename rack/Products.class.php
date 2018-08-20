@@ -23,12 +23,6 @@ class rack_Products extends store_Products
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,rack';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
@@ -38,12 +32,6 @@ class rack_Products extends store_Products
      * Кой има право да добавя?
      */
     public $canAdd = 'no_one';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,rack';
     
     
     /**
@@ -149,7 +137,7 @@ class rack_Products extends store_Products
         $query = store_Products::getQuery();
         $query->groupBy('productId');
         $query->show('productId');
-        $query->where("#storeId = {$storeId}");
+        $query->where("#storeId = {$storeId} AND #quantity > 0");
         
         if ($onlyIds) {
             if (is_array($onlyIds)) {

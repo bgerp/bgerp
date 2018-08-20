@@ -107,6 +107,31 @@
             </table>
 		</div>
 	</div>
+	
+	<script>
+        // Глобален масив за popup прозорците
+        popupWindows = new Array();
+        
+        // Отваря диалогов прозорец
+        function openWindow(url, name, args) {
+            // Записваме всички popup прозорци в глобален масив
+            popupWindows[name] = window.open(url, '_blank', args);
+        
+            var popup = popupWindows[name];
+        
+            if (popup) {
+                // Ако браузърат е Chrome първо блърва главния прозорец,
+                // а след това фокусира на popUp прозореца
+                var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+                if (isChrome && popup.parent) {
+                    popup.parent.blur();
+                }
+        
+                // Фокусиране върху новия прозорец
+                popup.focus();
+            }
+        }
+    </script>
 </body>
 
 </html>

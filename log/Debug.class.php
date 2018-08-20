@@ -54,6 +54,50 @@ class log_Debug extends core_Manager
     
     
     /**
+     * Връща линк към създаване на сигнал от грешката
+     *
+     * @param string      $debugFile
+     * @param string      $btnName
+     * @param string      $icon
+     * @param NULL|string $class
+     *
+     * @return core_ET
+     */
+    public static function getReportLink($debugFile, $btnName = 'Сигнал', $icon = 'img/16/debug_bug.png', $class = null)
+    {
+        $btnName = tr($btnName);
+        
+        $urlArr = array('log_Debug', 'report', 'debugFile' => $debugFile, 'ret_url' => true);
+        
+        $url = toUrl($urlArr);
+        
+        // Ако е мобилен/тесем режим
+        if (Mode::is('screenMode', 'narrow')) {
+            // Парамтери към отварянето на прозореца
+            $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+        } else {
+            $args = 'width=450,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+        }
+        
+        $attr = array('onClick' => "openWindow('{$url}', 'bgerp_tracer_report', '{$args}'); return false;", 'title' => 'Изпращане на сигнал към разработчиците на bgERP');
+        
+        if ($icon) {
+            $attr['ef_icon'] = $icon;
+        }
+        
+        if ($class) {
+            $attr['class'] = $class;
+        }
+        
+        $attr['target'] = '_blank';
+        
+        $link = ht::createLink($btnName, $urlArr, false, $attr);
+        
+        return $link;
+    }
+    
+    
+    /**
      * Показва дебъг лога
      */
     public function act_Default()
@@ -202,6 +246,8 @@ class log_Debug extends core_Manager
         
         $tpl->append('bgERP tracer', 'PAGE_TITLE');
         
+        $this->logInAct('Листване', null, 'read');
+        
         // Показва съдъражаниете на дебъга, ако е избран файла
         if ($debugFile) {
             $fPath = $this->getDebugFilePath($debugFile);
@@ -225,7 +271,8 @@ class log_Debug extends core_Manager
             }
             
             if ($this->haveRightFor('report')) {
-                $singal = ht::createLink(tr('Сигнал'), array('log_Debug', 'report', 'debugFile' => $debugFile, 'ret_url' => true), false, array('title' => 'Изпращане на сигнал към разработчиците на bgERP', 'ef_icon' => 'img/16/debug_bug.png'));
+                $singal = $this->getReportLink($debugFile);
+                
                 $tpl->append($singal, 'SIGNAL');
             }
             
@@ -271,7 +318,7 @@ class log_Debug extends core_Manager
             $retUrl = array('Portal', 'Show');
         }
         
-        $form->toolbar->addBtn('Отказ', $retUrl, 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ, onclick=self.close();');
         
         $email = email_Inboxes::getUserEmail();
         if (!$email) {
@@ -288,6 +335,8 @@ class log_Debug extends core_Manager
         $form->setDefault('title', $_SERVER['HTTP_HOST']);
         
         $form->input();
+        
+        Mode::set('wrapper', 'page_Dialog');
         
         if ($form->isSubmitted()) {
             $dataArr = array();
@@ -322,15 +371,26 @@ class log_Debug extends core_Manager
             $url = help_Setup::get('BGERP_SUPPORT_URL', true);
             $resStr = @file_get_contents($url, false, $context);
             
-            $msg = null;
-            if ($resStr && is_string($resStr)) {
-                $msg = str::limitLen($resStr, 500);
+            
+            if ($resStr == 'OK') {
+                $tpl = new ET();
+                jquery_Jquery::run($tpl, 'self.close();');
+            } else {
+                $form->setError('description', 'Възникна грешка при изпращане на сигнала.');
+                $tpl = $form->renderHtml();
             }
             
-            return new Redirect($retUrl, $msg);
+            $this->logInAct('Изпращане на сигнал');
+        } else {
+            $tpl = $form->renderHtml();
         }
         
-        return $this->renderWrapping($form->renderHtml());
+        // Добавяме клас към бодито
+        $tpl->append('dialog-window', 'BODY_CLASS_NAME');
+        
+        $tpl->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
+        
+        return $tpl;
     }
     
     
@@ -525,13 +585,17 @@ class log_Debug extends core_Manager
         
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir), RecursiveIteratorIterator::LEAVES_ONLY);
+            
+            $iterator->setFlags(FilesystemIterator::NEW_CURRENT_AND_KEY | FilesystemIterator::SKIP_DOTS);
         } catch (ErrorException $e) {
             self::logNotice('Не може да се обходи директорията', $dir);
             
             return $fArr;
+        } catch (Throwable  $e) {
+            self::logNotice('Не може да се обходи директорията', $dir);
+            
+            return $fArr;
         }
-        
-        $iterator->setFlags(FilesystemIterator::NEW_CURRENT_AND_KEY | FilesystemIterator::SKIP_DOTS);
         
         // Намираме шаблонното име от файла
         $fNameTemplate = null;
@@ -554,40 +618,46 @@ class log_Debug extends core_Manager
         
         // Намираме всички файлове и им вземаме времето на създаване
         while ($iterator->valid()) {
-            $mTime = null;
-            $fileName = $iterator->key();
-            $path = $iterator->current()->getPath();
-            @$currentDepth = $iterator->getDepth();
-            
-            if (($currentDepth < 1) && !$iterator->isDir()) {
-                $canShow = true;
+            try {
+                $mTime = null;
+                $fileName = $iterator->key();
+                $path = $iterator->current()->getPath();
+                @$currentDepth = $iterator->getDepth();
                 
-                $search = trim($search);
-                
-                if ($search) {
-                    if (strpos($fileName, $search) === false) {
-                        $canShow = false;
+                if (($currentDepth < 1) && !$iterator->isDir()) {
+                    $canShow = true;
+                    
+                    $search = trim($search);
+                    
+                    if ($search) {
+                        if (strpos($fileName, $search) === false) {
+                            $canShow = false;
+                        }
                     }
-                }
-                
-                // Ако се търси определен файл и отговаря на изискванията - го показваме
-                if ($canShow) {
-                    $mTime = $iterator->current()->getMTime();
-                    $fArr[$fileName] = $mTime . '|' . $fileName;
-                }
-                
-                if ($fName) {
-                    if (strpos($fileName, $fNameTemplate)) {
-                        if ($fileName != $fName) {
-                            if (!isset($mTime)) {
-                                $mTime = $iterator->current()->getMTime();
+                    
+                    // Ако се търси определен файл и отговаря на изискванията - го показваме
+                    if ($canShow) {
+                        $mTime = $iterator->current()->getMTime();
+                        $fArr[$fileName] = $mTime . '|' . $fileName;
+                    }
+                    
+                    if ($fName) {
+                        if (strpos($fileName, $fNameTemplate)) {
+                            if ($fileName != $fName) {
+                                if (!isset($mTime)) {
+                                    $mTime = $iterator->current()->getMTime();
+                                }
+                                
+                                // Ако има друг файл от същия хит
+                                $otherFilesFromSameHitArr[$fileName] = $mTime . '|' . $fileName;
                             }
-                            
-                            // Ако има друг файл от същия хит
-                            $otherFilesFromSameHitArr[$fileName] = $mTime . '|' . $fileName;
                         }
                     }
                 }
+            } catch (Exception  $e) {
+                // Не правим нищо
+            } catch (Throwable  $e) {
+                // Не правим нищо
             }
             
             $iterator->next();
@@ -733,6 +803,8 @@ class log_Debug extends core_Manager
         
         $cnt = 0;
         
+        $allCnt = count($fArr);
+        
         foreach ($fArr as $fName => $cDate) {
             list($v) = explode('_', $fName, 2);
             
@@ -762,7 +834,7 @@ class log_Debug extends core_Manager
         }
         
         if ($cnt) {
-            $me->logNotice('Изтрити дебъг файлове: ' . $cnt);
+            $me->logNotice("Изтрити дебъг файлове {$cnt} от {$allCnt}");
         }
     }
     
