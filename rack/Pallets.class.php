@@ -360,36 +360,22 @@ class rack_Pallets extends core_Manager
     /**
      * Преизчислява наличността на палети за посочения продукт
      */
-    public static function recalc($productId = null, $storeId = null)
+    public static function recalc($productId, $storeId)
     {
         $query = self::getQuery();
-        if (isset($productId)) {
-            $query->where("#productId = {$productId}");
-        }
-        if (isset($storeId)) {
-            $query->where("#storeId = {$storeId}");
-        }
+        $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $query->XPR('sum', 'double', 'SUM(#quantity)');
+        $rec = $query->fetch();
+        $sum = ($rec->sum) ? $rec->sum : null;
         
-        $query->where("#state != 'closed'");
-        
-        $res = array();
-        while ($rec = $query->fetch()) {
-            $res[$rec->storeId][$rec->productId] += $rec->quantity;
+        $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+        if (!$rRec) {
+            $rRec = (object) array('storeId' => $storeId, 'productId' => $productId, 'state' => 'active', 'quantity' => 0, 'quantityOnPallets' => $sum);
+        } else {
+            $rRec->quantityOnPallets = $sum;
+            $rRec->state = 'active';
         }
-        
-        // Обновяване на количеството на палети
-        foreach ($res as $storeId => $prodQ) {
-            foreach ($prodQ as $productId => $sum) {
-                $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
-                if (!$rRec) {
-                    $rRec = (object) array('storeId' => $storeId, 'productId' => $productId, 'state' => 'active', 'quantity' => 0, 'quantityOnPallets' => $sum);
-                } else {
-                    $rRec->quantityOnPallets = $sum;
-                    $rRec->state = 'active';
-                }
-                rack_Products::save($rRec);
-            }
-        }
+        rack_Products::save($rRec);
     }
     
     
