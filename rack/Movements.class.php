@@ -875,7 +875,7 @@ class rack_Movements extends core_Manager
         }
         
         if($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal < 0){
-           $res->errors = "Недостатъчно количество за новия палет";
+           $res->errors = "Недостатъчно количество за изходящия палет";
            $res->errorFields[] = 'packQuantity,zones';
            return $res;
         }
