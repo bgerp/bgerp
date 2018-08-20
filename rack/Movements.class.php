@@ -62,13 +62,13 @@ class rack_Movements extends core_Manager
     /**
      * Кой може да приключи движение
      */
-    public $canDone = 'ceo,admin,rack,storeWorker';
+    public $canDone = 'ceo,admin,rack';
     
     
     /**
      * Кой може да заяви движение
      */
-    public $canToggle = 'ceo,admin,rack,storeWorker';
+    public $canToggle = 'ceo,admin,rack';
     
     
     /**
@@ -111,6 +111,7 @@ class rack_Movements extends core_Manager
         
         $this->setDbIndex('storeId');
         $this->setDbIndex('productId,storeId');
+        $this->setDbIndex('zoneList');
     }
     
     
@@ -187,17 +188,9 @@ class rack_Movements extends core_Manager
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (isset($rec->zones)) {
-            $zoneListArr = array();
-            $zoneArr = type_Table::toArray($rec->zones);
-            if (count($zoneArr)) {
-                foreach ($zoneArr as $obj) {
-                    $zoneListArr[$obj->zone] = $obj->zone;
-                }
-            }
-            
-            $rec->zoneList = (count($zoneListArr)) ? keylist::fromArray($zoneListArr) : null;
-        }
+        // Кеш на засегнатите зони за бързодействие
+        $zonesArr = arr::extractValuesFromArray($mvc->getZoneArr($rec), 'zone');
+        $rec->zoneList = (count($zonesArr)) ? keylist::fromArray($zonesArr) : null;
         
         if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
             if (empty($rec->workerId)) {
@@ -211,7 +204,7 @@ class rack_Movements extends core_Manager
             
             // Ако има проблем при изпълнението записа се спира
             if($result !== true){
-                core_Statuses::newStatus('Проблем при запис на движението');
+                core_Statuses::newStatus('Проблем при записа на движението');
                 return false;
             }
         }
@@ -525,7 +518,7 @@ class rack_Movements extends core_Manager
             $row->_rowTools->addLink('Започване', array($mvc, 'toggle', $rec->id, 'ret_url' => true), "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
             $state .= ht::createBtn('Започни', array($mvc, 'toggle', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/control_play.png,title=Започване на движението');
         
-            if($rec->createdBy != core_Users::getCurrent()){
+            if ($rec->createdBy != core_Users::getCurrent()){
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
             }
         }
@@ -556,14 +549,6 @@ class rack_Movements extends core_Manager
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
         
         if (!isset($fields['-inline'])) {
-            // Ре-вербализиране на зоните, да се показват с номерата си
-            if (!empty($rec->zones)) {
-                $zones = rack_Zones::getZones($rec->storeId);
-                $Type = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em)');
-                $Type->params['zone_opt'] = $zones;
-                $row->zones = $Type->toVerbal($rec->zones);
-            }
-            
             $row->movement = $mvc->getMovementDescription($rec);
         } else {
             $row->packQuantity = ht::styleIfNegative($row->packQuantity, $rec->packQuantity);
@@ -614,9 +599,9 @@ class rack_Movements extends core_Manager
         $restQuantity = $rec->packQuantity - $quantityInZones;
         
         foreach ($zones as $zoneRec){
-            $zoneTitle = rack_Zones::getVerbal($zoneRec->zone, 'num');
+            $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
             $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
-            $movementArr[] = "<span class='green'>{$zoneTitle} ({$zoneQuantity})</span>";
+            $movementArr[] = "<span>{$zoneTitle} ({$zoneQuantity})</span>";
         }
         
         if(!empty($positionTo) && $restQuantity){

@@ -81,12 +81,6 @@ class rack_Zones extends core_Master
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'num';
-    
-    
-    /**
      * Кой може да селектира документа
      */
     public $canSelectdocument = 'admin,ceo,rack';
@@ -130,6 +124,8 @@ class rack_Zones extends core_Master
         if (!empty($pendingHtml)){ 
             $row->pendingHtml = $pendingHtml;
         }
+        
+        $row->num = $mvc->getHyperlink($rec->id, true);
     }
     
     
@@ -192,7 +188,7 @@ class rack_Zones extends core_Master
         
         $options = array();
         while ($rec = $query->fetch()){
-            $options[$rec->id] = self::getVerbal($rec, 'num'); 
+            $options[$rec->id] = self::getRecTitle($rec, false); 
         }
        
         return $options;
@@ -200,14 +196,18 @@ class rack_Zones extends core_Master
     
     
     /**
-     * След като е готово вербалното представяне
+     * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    public static function getRecTitle($rec, $escaped = true)
     {
-        // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
-        if ($part == 'num') {
-            $num = "Z-{$num}";
+        $num = self::getVerbal($rec, 'num');
+        $title = "Z-{$num}";
+        
+        if ($escaped) {
+            $title = type_Varchar::escape($title);
         }
+        
+        return $title;
     }
     
     
@@ -277,7 +277,7 @@ class rack_Zones extends core_Master
         $zoneOptions = rack_Zones::getZones($documentRec->{$document->storeFieldName}, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if(!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)){
-            $zoneOptions[$zoneId] = $this->getVerbal($zoneId, 'num');
+            $zoneOptions[$zoneId] = $this->getRecTitle($zoneId);
         }
         $form->setOptions('zoneId', array('' => '') + $zoneOptions);
         $form->setDefault('zoneId', $zoneId);

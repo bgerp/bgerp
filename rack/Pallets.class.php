@@ -86,6 +86,9 @@ class rack_Pallets extends core_Manager
         $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затворено на,input=none');
         
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,storeId');
+        $this->setDbIndex('state');
+        $this->setDbIndex('position');
     }
     
     
