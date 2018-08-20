@@ -136,7 +136,9 @@ class rack_Movements extends core_Manager
                 $rec->palletId = null;
             }
             
-            if (empty($rec->packQuantity) && empty($rec->defaultPackQuantity)){
+            $quantityInZones = 0;
+            self::getZoneArr($rec, $quantityInZones);
+            if (empty($rec->packQuantity) && empty($rec->defaultPackQuantity) && $quantityInZones >= 0){
                  $form->setError('packQuantity', 'Въведете количество');
             }
             
@@ -147,6 +149,7 @@ class rack_Movements extends core_Manager
             // Симулиране дали транзакцията е валидна
             $clone = clone $rec;
             $clone->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+            
             $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
             $transaction = $mvc->getTransaction($clone);
             $transaction = $mvc->validateTransaction($transaction);
