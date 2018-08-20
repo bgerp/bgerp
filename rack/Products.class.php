@@ -137,7 +137,7 @@ class rack_Products extends store_Products
         $query = store_Products::getQuery();
         $query->groupBy('productId');
         $query->show('productId');
-        $query->where("#storeId = {$storeId}");
+        $query->where("#storeId = {$storeId} AND #quantity > 0");
         
         if ($onlyIds) {
             if (is_array($onlyIds)) {

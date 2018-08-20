@@ -74,19 +74,13 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,note=Бележка,createdOn,createdBy';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy';
 
     
     /**
      * Полета по които да се търси
      */
     public $searchFields = 'palletId,position,positionTo,note';
-    
-    
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = note;
     
     
     /**
@@ -544,6 +538,11 @@ class rack_Movements extends core_Manager
         }
         
         $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
+        if(!empty($rec->note)){
+            $notes = $mvc->getFieldType('note')->toVerbal($rec->note);
+            $row->productId .= "<br><span class='small'>{$notes}</span>";
+        }
+        
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
         
         if (!isset($fields['-inline'])) {
