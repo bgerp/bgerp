@@ -194,48 +194,23 @@ class rack_Pallets extends core_Manager
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * Извиква се след успешен запис в модела
      *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
+     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
+     * @param int          $id     Първичния ключ на направения запис
+     * @param stdClass     $rec    Всички полета, които току-що са били записани
+     * @param string|array $fields Имена на полетата, които sa записани
+     * @param string       $mode   Режим на записа: replace, ignore
      */
-    protected static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($form->isSubmitted()) {
-            $rec = $form->rec;
-            $rec->_editLabel = true;
-        }
-    }
-    
-    
-    /**
-     * Записва редът (записа) в таблицата
-     */
-    public function save_(&$rec, $fields = null, $mode = null)
-    {
-        // Затваряне ако количеството е 0
-        if ($rec->quantity <= 0) {
-            $rec->state = 'closed';
-            $rec->closedOn = dt::now();
-        }
-        
-        if ($rec->_editLabel === true) {
-            $fields = 'label';
-        }
-        
-        // Викане на ф-ята за запис от бащата на класа
-        $id = parent::save_($rec, $fields, $mode);
-        
-        if (!$rec->label) {
+        if (empty($rec->label)) {
             $rec->label = '#' . $rec->id;
-            parent::save_($rec, 'label');
+            $mvc->save_($rec, 'label');
         }
         
         self::recalc($rec->productId, $rec->storeId);
         core_Cache::remove('UsedRacksPossitions', $rec->storeId);
-        
-        // Връщане на резултата от записа
-        return $id;
     }
     
     
