@@ -6062,6 +6062,9 @@ only screen and (max-width: 320px) {
 .narrow .elem-holder .endTooltip {
   float: right; }
 
+.frontToolip {
+  display: inline-block; }
+
 /*
  * край на стилове за външната част при потребител контрактор
  */
