@@ -198,26 +198,17 @@ class rack_Movements extends core_Manager
             if (empty($rec->workerId)) {
                 $rec->workerId = core_Users::getCurrent('id', false);
             }
-        }
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc     $mvc    Мениджър, в който възниква събитието
-     * @param int          $id     Първичния ключ на направения запис
-     * @param stdClass     $rec    Всички полета, които току-що са били записани
-     * @param string|array $fields Имена на полетата, които sa записани
-     * @param string       $mode   Режим на записа: replace, ignore
-     */
-    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-        // Изпълняване на транзакцията ако се активира или се отказва
-        if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
+            
+            // Изпълнение на транзакцията
             $reverse = ($rec->_canceled === true) ? true : false;
             $transaction = $mvc->getTransaction($rec, $reverse);
-            $mvc->doTransaction($transaction);
+            $result = $mvc->doTransaction($transaction);
+            
+            // Ако има проблем при изпълнението записа се спира
+            if($result !== true){
+                core_Statuses::newStatus('Проблем при запис на движението');
+                return false;
+            }
         }
     }
     
@@ -229,26 +220,43 @@ class rack_Movements extends core_Manager
     {
         $rMvc = cls::get('rack_Racks');
         
+        // Ако има начална позиция и тя не е пода обновява се палета на нея
+        if(!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR){
+            try{
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, -1 * $transaction->quantity);
+            } catch (core_exception_Expect $e){
+                reportException($e);
+                return false;
+            }
+            $rMvc->updateRacks[$transaction->storeId . '-' . $transaction->from] = true;
+        }
+        
+        // Ако има крайна позиция и тя не е пода обновява се палета на нея
+        if(!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR){
+            
+            try{
+                $restQuantity = $transaction->quantity - $transaction->zonesQuantityTotal;
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->to, $restQuantity);
+            } catch (core_exception_Expect $e){
+                reportException($e);
+                
+                // Ако има проблем ревърт на предното движение
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity);
+                return false;
+            }
+            
+            $rMvc->updateRacks[$transaction->storeId . '-' . $transaction->to] = true;
+        }
+        
         if(is_array($transaction->zonesQuantityArr)){
             foreach ($transaction->zonesQuantityArr as $obj){
                 rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity);
             }
         }
         
-        // Ако има начална позиция и тя не е пода обновява се палета на нея
-        if(!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR){
-            rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, -1 * $transaction->quantity);
-            $rMvc->updateRacks[$transaction->storeId . '-' . $transaction->from] = true;
-        }
-        
-        // Ако има krajna позиция и тя не е пода обновява се палета на нея
-        if(!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR){
-            $restQuantity = $transaction->quantity - $transaction->zonesQuantityTotal;
-            rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->to, $restQuantity);
-            $rMvc->updateRacks[$transaction->storeId . '-' . $transaction->to] = true;
-        }
-        
         core_Cache::remove('UsedRacksPossitions', $transaction->storeId);
+        
+        return true;
     }
     
     
