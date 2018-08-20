@@ -4635,6 +4635,9 @@ div.location.public {
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
+.newCol {
+  background-color: #eeeeee; }
+
 /*
  * rack
  */
