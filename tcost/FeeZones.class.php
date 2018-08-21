@@ -232,27 +232,45 @@ class tcost_FeeZones extends core_Master
         
         $explain = null;
         if ($fee > 0) {
-            
-            // Надценките се взимат с приоритет от зоната, ако няма от глобалните настройки
-            $zoneRec = self::fetch($zoneId, 'addTax,addPerKg,volume2quantity');
-            $tax = isset($zoneRec->addTax) ? $zoneRec->addTax : tcost_Setup::get('ADD_TAX');
-            $addPerKg = isset($zoneRec->addPerKg) ? $zoneRec->addPerKg : tcost_Setup::get('ADD_PER_KG');
-            
-            if($totalWeight){
-                $tax = $tax * $singleWeight / $totalWeight;
-            }
-            $inc = $addPerKg * $singleWeight;
-            $fee = $tax + $inc + $fee;
+            $taxes = self::getTaxesByZone($zoneId, $singleWeight, $totalWeight);
+            $fee = $taxes['tax'] + $taxes['addPerKg'] + $fee;
             
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
-            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$tax}, ADD_PER_KG = {$inc}";
+            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}";
         }
         
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
-        
+       
         // Връщане на изчислената цена
         return $res;
+    }
+    
+    
+    /**
+     * Връща таксите според зоната
+     * 
+     * @param mixed $id
+     * @param float $singleWeight
+     * @param float $totalWeight
+     * @return array $taxes
+     */
+    private static function getTaxesByZone($id, $singleWeight, $totalWeight)
+    {
+        $taxes = array();
+        
+        // Надценките се взимат с приоритет от зоната, ако няма от глобалните настройки
+        $rec = self::fetchRec($id, 'addTax,addPerKg,volume2quantity');
+        $taxes['tax'] = isset($rec->addTax) ? $rec->addTax : tcost_Setup::get('ADD_TAX');
+        $taxes['addPerKg'] = isset($rec->addPerKg) ? $rec->addPerKg : tcost_Setup::get('ADD_PER_KG');
+       
+        if($totalWeight && $totalWeight > $singleWeight){
+            $taxes['tax'] = $taxes['tax'] * $singleWeight / $totalWeight;
+        }
+        
+        $taxes['addPerKg'] = $taxes['addPerKg'] * $singleWeight;
+        
+        return $taxes;
     }
     
     
@@ -295,9 +313,17 @@ class tcost_FeeZones extends core_Master
                 if ($result < 0) {
                     $form->setError('deliveryTermId,countryId,pCode', "Не може да се изчисли сума за транспорт (${result})");
                 } else {
-                    $zoneName = tcost_FeeZones::getVerbal($result[2], 'name');
-                    $form->info = 'Цената за|* <b>' . $rec->singleWeight . '</b> |на|* <b>' . $rec->totalWeight . '</b> |кг. от този пакет ще струва|* <b>'. round($result[1], 4).
-                    '</b>, |a всички|* <b>'.  $rec->totalWeight . '</b> |ще струват|* <b>' . round($result[0], 4) . '</b>. |Пратката попада в|* <b>' . $zoneName . '</b>';
+                    $taxes = self::getTaxesByZone($result[2], $rec->singleWeight, $rec->totalWeight);
+                    $finalFee = $taxes['tax'] + $taxes['addPerKg'] + $result[1];
+                    $finalFee2 = $taxes['tax'] + $taxes['addPerKg'] + $result[0];
+                    
+                    $zoneName = tcost_FeeZones::getHyperlink($result[2]);
+                    $form->info = 'Цената за|* <b>' . $rec->singleWeight . '</b> |на|* <b>' . $rec->totalWeight . 
+                    '</b> |кг. от този пакет ще струва|* <b>'. round($finalFee, 4).
+                    '</b>, |a всички|* <b>'.  $rec->totalWeight . '</b> |ще струват|* <b>' . round($finalFee2, 4) . 
+                    '</b><br>|Пратката попада в|*: <b>' . $zoneName . '</b>' .
+                    '</b><br>|Твърда надценка|*: <b>' . $taxes['tax'] . '</b>' .
+                    '</b><br>|Надценка пер кг|*: <b>' . $taxes['addPerKg'] / $rec->singleWeight . '</b>';
                     $form->info = tr($form->info);
                 }
             } catch (core_exception_Expect $e) {
