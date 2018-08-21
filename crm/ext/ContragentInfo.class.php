@@ -104,7 +104,7 @@ class crm_ext_ContragentInfo extends core_manager
      * @param int $contragentClassId - ид на класа на контрагента
      * @param int $contragentId      - ид на контрагента
      *
-     * @return NULL|date - най-ранната дата от която е клиент
+     * @return NULL|datetime - най-ранната дата от която е клиент
      */
     private static function getFirstSaleDate($contragentClassId, $contragentId)
     {
@@ -165,7 +165,7 @@ class crm_ext_ContragentInfo extends core_manager
      * @param int $contragentClassId - ид на класа на контрагента
      * @param int $contragentId      - ид на контрагента
      *
-     * @return NULL|date - най-ранната дата от която е клиент
+     * @return NULL|datetime - най-ранната дата от която е клиент
      */
     public static function getCustomerSince($contragentClassId, $contragentId)
     {
