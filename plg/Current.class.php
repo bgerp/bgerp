@@ -103,17 +103,22 @@ class plg_Current extends core_Plugin
         }
 
         if($action == 'selectcurrent') {
-            $mvc->requireRightFor('select');
-            
+           
             $form = cls::get('core_Form');
             $form->FLD('choice', "key(mvc={$mvc->className},select=name)", "caption={$mvc->singleTitle},input");
             
             $opt = array();
+            $cnt = 0;
             $query = $mvc->getQuery();
             while($rec = $query->fetch()) {
                 if($mvc->haveRightFor('select', $rec)) {
                     $opt[$rec->id] = $mvc->getRecTitle($rec);
                 }
+                $cnt++;
+            }
+
+            if(!count($opt) && $cnt) {
+                requireRole('ceo,admin');
             }
 
             $form->setOptions('choice', $opt);
