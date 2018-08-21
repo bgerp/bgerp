@@ -139,7 +139,7 @@ class rack_Zones extends core_Master
     {
         $Movements = clone cls::get('rack_Movements');
         $data = (object)array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
-        $data->listFields = arr::make("position=От,productId=Артикул,packQuantity=Количество,packagingId=Опаковка,workerId=Товарач", true);
+        $data->listFields = arr::make("movement=От,productId=Артикул,workerId=Товарач", true);
         $data->listTableMvc->setField('position', 'smartCenter');
         $data->recs = self::getCurrentMovementRecs($rec->id);
         

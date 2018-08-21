@@ -548,17 +548,8 @@ class rack_Movements extends core_Manager
         
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
         
-        if (!isset($fields['-inline'])) {
-            $row->movement = $mvc->getMovementDescription($rec);
-        } else {
-            $row->packQuantity = ht::styleIfNegative($row->packQuantity, $rec->packQuantity);
-            $row->packQuantity = "<b>{$row->packQuantity}</b>";
-            $row->packagingId = cat_UoM::getShortName($rec->packagingId);
-            
-            if(isset($rec->palletId)){
-                $row->palletId = rack_Pallets::getRecTitle($rec->palletId);
-            }
-        }
+        $skipZones = isset($fields['-inline']) ? true : false;
+        $row->movement = $mvc->getMovementDescription($rec, $skipZones);
     }
     
     
@@ -568,7 +559,7 @@ class rack_Movements extends core_Manager
      * @param stdClass $rec
      * @return string $res
      */
-    private function getMovementDescription($rec)
+    private function getMovementDescription($rec, $skipZones = false)
     {
         $position = $this->getFieldType('position')->toVerbal($rec->position);
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
@@ -592,16 +583,20 @@ class rack_Movements extends core_Manager
             $packagingRow = str::getPlural($rec->packQuantity, $packagingRow, true);
         }
         if(!empty($rec->packQuantity)){
+            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $rec->packQuantity);
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
         
-        $zones = self::getZoneArr($rec, $quantityInZones);
-        $restQuantity = $rec->packQuantity - $quantityInZones;
-        
-        foreach ($zones as $zoneRec){
-            $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
-            $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
-            $movementArr[] = "<span>{$zoneTitle} ({$zoneQuantity})</span>";
+        if($skipZones === false){
+            $zones = self::getZoneArr($rec, $quantityInZones);
+            $restQuantity = $rec->packQuantity - $quantityInZones;
+            
+            foreach ($zones as $zoneRec){
+                $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
+                $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
+                $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
+                $movementArr[] = "<span>{$zoneTitle} ({$zoneQuantity})</span>";
+            }
         }
         
         if(!empty($positionTo) && $restQuantity){
