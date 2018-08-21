@@ -5866,6 +5866,10 @@ only screen and (max-width: 320px) {
   position: relative;
   top: 2px; }
 
+.linkRefIcon {
+  position: relative;
+  top: 2px; }
+
 .vislog {
   white-space: nowrap;
   display: inline; }
