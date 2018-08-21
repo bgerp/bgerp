@@ -210,6 +210,7 @@ class tcost_FeeZones extends core_Master
         
         // Определяне на зоната на транспорт, за зададеното условие на доставка
         $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $toCountry, $toPostalCode);
+        $singleWeightOld = $singleWeight;
         $singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume, $zoneRec->volume2quantity);
         
         // Ако няма, цената няма да може да се изчисли
@@ -237,7 +238,7 @@ class tcost_FeeZones extends core_Master
             
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
-            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}";
+            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOL_WT = '{$singleWeight}', TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}, S_WT = '{$singleWeightOld}', S_VOL = '{$singleVolume}', T_WT = '{$totalWeight}', T_VOL = '{$totalVolume}'";
         }
         
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
