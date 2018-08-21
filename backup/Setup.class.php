@@ -279,8 +279,10 @@ class backup_Setup extends core_ProtoSetup
      *
      * @return NULL|string
      */
-    public function checkConfig()
+    public function checkConfig(bool $fullCheck = false)
     {
+        if (!$fullCheck) return;
+        
         $conf = core_Packs::getConfig('backup');
         
         $storage = core_Cls::get('backup_' . $conf->BACKUP_STORAGE_TYPE);
