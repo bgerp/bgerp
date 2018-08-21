@@ -231,8 +231,8 @@ class tcost_FeeZones extends core_Master
             
             // Надценките се взимат с приоритет от зоната, ако няма от глобалните настройки
             $zoneRec = self::fetch($zoneId, 'addTax,addPerKg,volume2quantity');
-            $tax = !empty($zoneRec->addTax) ? $zoneRec->addTax : tcost_Setup::get('ADD_TAX');
-            $addPerKg = !empty($zoneRec->addPerKg) ? $zoneRec->addPerKg : tcost_Setup::get('ADD_PER_KG');
+            $tax = isset($zoneRec->addTax) ? $zoneRec->addTax : tcost_Setup::get('ADD_TAX');
+            $addPerKg = isset($zoneRec->addPerKg) ? $zoneRec->addPerKg : tcost_Setup::get('ADD_PER_KG');
             
             if($totalWeight){
                 $tax = $tax * $singleWeight / $totalWeight;
