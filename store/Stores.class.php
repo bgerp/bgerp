@@ -57,6 +57,13 @@ class store_Stores extends core_Master
      */
     public $canList = 'ceo,storeWorker';
     
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canSelect = 'ceo,store,storeWorker';
+    
+
     
     /**
      * Кой може да пише
@@ -273,11 +280,10 @@ class store_Stores extends core_Master
         if ($action == 'select' && $rec) {
             
             // Ако не може да избира склада, проверяваме дали е складов работник, и имали още тази роля
-            if ($res == 'no_one') {
-                $cu = core_Users::getCurrent();
-                if (keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->getFieldType('workersIds')->getRoles())) {
-                    $res = 'ceo,storeWorker';
-                }
+
+            $cu = core_Users::getCurrent();
+            if (keylist::isIn($cu, $rec->workersIds) || keylist::isIn($cu, $rec->shared)) {
+                $res = 'ceo,storeWorker,store';
             }
         }
     }
