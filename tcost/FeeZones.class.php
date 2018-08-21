@@ -119,7 +119,7 @@ class tcost_FeeZones extends core_Master
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
         $this->FLD('addPerKg', 'double', 'caption=Надценки->За кг, autohide');
-        $this->FLD('volume2quantity', 'double', 'caption=Надценки->Обем към кг, autohide');
+        $this->FLD('volume2quantity', 'double(min=0)', 'caption=Надценки->Обем към кг, autohide');
         
         $this->setDbIndex('deliveryTermId');
     }
@@ -171,14 +171,17 @@ class tcost_FeeZones extends core_Master
      *
      * @param float $weight - Тегло на товара
      * @param float $volume - Обем  на товара
+     * @param float|null $coefficient - коефициент за отношение, null за глобалната константа
      *
      * @return float - Обемно тегло на товара
      */
-    public function getVolumicWeight($weight, $volume)
+    public function getVolumicWeight($weight, $volume, $coefficient = null)
     {
         $volumicWeight = null;
         if (!empty($weight) || !empty($volume)) {
-            $volumicWeight = max($weight, $volume * self::V2C);
+            $multiplier = !empty($coefficient) ? $coefficient : self::V2C;
+            
+            $volumicWeight = max($weight, $volume * $multiplier);
         }
         
         return $volumicWeight;
@@ -204,19 +207,20 @@ class tcost_FeeZones extends core_Master
     {
         $toCountry = $params['deliveryCountry'];
         $toPostalCode = $params['deliveryPCode'];
-        $fromCountry = $params['fromCountry'];
-        $fromPostalCode = $params['fromPostalCode'];
-        $singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume);
+        
+        // Определяне на зоната на транспорт, за зададеното условие на доставка
+        $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $toCountry, $toPostalCode);
+        $singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume, $zoneRec->volume2quantity);
         
         // Ако няма, цената няма да може да се изчисли
         if (empty($singleWeight)) {
-            
             return array('fee' => cond_TransportCalc::EMPTY_WEIGHT_ERROR);
         }
+        
         $totalWeight = $this->getVolumicWeight($totalWeight, $totalVolume);
         
         // Опит за калкулиране на цена по посочените данни
-        $fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $singleWeight);
+        $fee = tcost_Fees::calcFee($zoneRec, $totalWeight, $singleWeight);
         
         $zoneId = $fee[2];
         $deliveryTime = ($fee[3]) ? $fee[3] : null;
@@ -242,7 +246,7 @@ class tcost_FeeZones extends core_Master
             
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
-            $explain = "{$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$tax}, ADD_PER_KG = {$inc}";
+            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOLUMIC_WEIGHT = '{$singleWeight}', ADD_TAX = {$tax}, ADD_PER_KG = {$inc}";
         }
         
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
@@ -286,7 +290,8 @@ class tcost_FeeZones extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             try {
-                $result = tcost_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
+                $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($rec->deliveryTermId, $rec->countryId, $rec->pCode);
+                $result = tcost_Fees::calcFee($zoneRec, $rec->totalWeight, $rec->singleWeight);
                 if ($result < 0) {
                     $form->setError('deliveryTermId,countryId,pCode', "Не може да се изчисли сума за транспорт (${result})");
                 } else {
