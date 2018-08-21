@@ -693,7 +693,6 @@ class sales_TransportValues extends core_Manager
                         $newFee = $newFee * (1 + $vat);
                     }
                     
-                    $newFee = round($newFee, 4);
                     if ($masterRec->{$map['chargeVat']} == 'yes') {
                         $newFee = $newFee / (1 + $vat);
                     }
