@@ -74,8 +74,8 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
-        $this->FLD('documentQuantity', 'double', 'caption=Документи,mandatory');
-        $this->FLD('movementQuantity', 'double', 'caption=Движения,mandatory');
+        $this->FLD('documentQuantity', 'double', 'caption=Очаквано,mandatory');
+        $this->FLD('movementQuantity', 'double', 'caption=Нагласено,mandatory');
         
         $this->setDbUnique('zoneId,productId,packagingId');
     }
@@ -205,5 +205,14 @@ class rack_ZoneDetails extends core_Detail
         if(empty($rec->documentQuantity) && empty($rec->movementQuantity)){
             self::delete($rec->id);
         }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('documentQuantity', "DESC");
     }
 }

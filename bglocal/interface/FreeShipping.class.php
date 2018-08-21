@@ -39,10 +39,11 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      *
      * @param float $weight - Тегло на товара
      * @param float $volume - Обем  на товара
+     * @param float|null $coefficient - коефициент за отношение, null за глобалната константа
      *
      * @return float - Обемно тегло на товара
      */
-    public function getVolumicWeight($weight, $volume)
+    public function getVolumicWeight($weight, $volume, $coefficient = null)
     {
     }
     
