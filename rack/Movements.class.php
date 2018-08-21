@@ -371,6 +371,8 @@ class rack_Movements extends core_Manager
                     $form->rec->positionTo = tr('Под');
                 }
             }
+        } else {
+            $form->setField('packagingId', 'input=none');
         }
         
         // Състоянието е последното избрано от текущия потребител
