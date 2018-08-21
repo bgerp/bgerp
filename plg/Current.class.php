@@ -143,7 +143,7 @@ class plg_Current extends core_Plugin
             $rec = $form->input();
 
             if ($form->isSubmitted() && $rec->choice) {
-                if($mvc->haveRightFor('select', $rec)) {
+                if($mvc->haveRightFor('select')) {
                     $rec = $mvc->fetch($rec->choice);
                     $mvc->selectCurrent($rec);
 
