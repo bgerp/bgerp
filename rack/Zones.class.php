@@ -528,7 +528,7 @@ class rack_Zones extends core_Master
             }
             
             if(!count($palletsArr)) continue;
-            
+           
             // Какво е разпределянето на палетите
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             
@@ -556,7 +556,13 @@ class rack_Zones extends core_Master
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
         $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
+        
         while($dRec = $dQuery->fetch()){
+           
+            // Участват само тези по които се очакват още движения
+            $needed = $dRec->documentQuantity - $dRec->movementQuantity;
+            if(empty($needed) || $needed < 0) continue;
+            
             $key = "{$dRec->productId}|{$dRec->packagingId}";
             if(!array_key_exists($key, $res->products)){
                 $res->products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());
