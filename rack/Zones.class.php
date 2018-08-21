@@ -338,7 +338,7 @@ class rack_Zones extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 $document = doc_Containers::getDocument($rec->containerId);
-                $selectedStoreId = store_Stores::getCurrent('id', false);
+                $selectedStoreId = store_Stores::getCurrent('id');
                 if(!rack_Zones::fetchField("#storeId = {$selectedStoreId} AND #state != 'closed'")){
                     $requiredRoles = 'no_one';
                 } else {
