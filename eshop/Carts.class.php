@@ -488,7 +488,7 @@ class eshop_Carts extends core_Master
         $cu = core_Users::getCurrent('id', false);
         
         Mode::set('currentExternalTab', 'eshop_Carts');
-        
+        bp($rec);
         $company = null;
         $personNames = $rec->personNames;
         if ($rec->makeInvoice == 'company') {
@@ -502,6 +502,9 @@ class eshop_Carts extends core_Master
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
         } else {
+            
+            
+            
             $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
             
             // Ако папката е на фирма, добавя се нейния ват номер
