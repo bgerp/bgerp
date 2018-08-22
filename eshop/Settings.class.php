@@ -147,6 +147,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery,silent');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
+        $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,silent');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Свързване със склад->Избор');
         $this->FLD('notInStockText', 'varchar(24)', 'caption=Информация при недостатъчно количество->Текст');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри,optionsFunc=cat_Params::getPublic');
@@ -244,7 +245,7 @@ class eshop_Settings extends core_Manager
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         $form->setDefault('discountType', $mvc->getFieldType('discountType')->fromVerbal('percent'));
         
-        $ownCompany = crm_Companies::fetchOurCompany();
+        $ownCompany = crm_Companies::fetchOurCompany('id,country');
         $shouldChargeVat = crm_Companies::shouldChargeVat($ownCompany->id);
         $defaultChargeVat = ($shouldChargeVat === true) ? 'yes' : 'no';
         $form->setDefault('chargeVat', $defaultChargeVat);
@@ -287,6 +288,9 @@ class eshop_Settings extends core_Manager
         
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
         $form->setField('addToCartBtn', "placeholder={$btnPlaceholder}");
+    
+        $companyPlaceholder = $mvc->getFieldType('countries')->toVerbal(keylist::addKey('', $ownCompany->country));
+        $form->setField('countries', "placeholder={$companyPlaceholder}");
     }
     
     
@@ -367,6 +371,10 @@ class eshop_Settings extends core_Manager
             
             if (empty($settingRec->addToCartBtn)) {
                 $settingRec->addToCartBtn = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
+            }
+            
+            if (empty($settingRec->countries)) {
+                $settingRec->countries = keylist::addKey('', crm_Companies::fetchOurCompany('country')->country);
             }
         }
         
