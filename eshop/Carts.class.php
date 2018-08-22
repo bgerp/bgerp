@@ -503,7 +503,8 @@ class eshop_Carts extends core_Master
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
         } else {
-            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
+            $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
+            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
             
             // Ако папката е на фирма, добавя се нейния ват номер
             $Cover = doc_Folders::getCover($folderId);
