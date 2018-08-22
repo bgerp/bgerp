@@ -63,6 +63,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Активиране на таб с графика
+     */
+    protected $enableChartTab = false;
+    
+    
+    /**
+     * Дефолтен етикет на таба за графиката
+     */
+    protected $chartTabCaption = 'Графика';
+
+
+    /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
@@ -106,11 +118,74 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     public function renderData($rec)
     {
-        $tpl = new core_ET('[#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]');
+        $tpl = new core_ET('[#TABS#][#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]');
         
         $data = (is_object($rec->data)) ? $rec->data : new stdClass();
+        setIfNot($data->chartTabCaption, $this->chartTabCaption);
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
+        
+        if($this->enableChartTab === true){
+            $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => "frameTab"));
+            
+            $url = getCurrentUrl();
+            $url[$tabs->getUrlParam()] = "table{$rec->containerId}";
+            $tabs->TAB("table{$rec->containerId}", 'Таблица', toUrl($url));
+            
+            $url[$tabs->getUrlParam()] = "chart{$rec->containerId}";
+            $tabs->TAB("chart{$rec->containerId}", $data->chartTabCaption, toUrl($url));
+            
+            $selectedTab = $tabs->getSelected();
+            $selectedTab = ($selectedTab) ? $selectedTab : $tabs->getFirstTab();
+            
+            // Ако има избран детайл от горния таб рендираме го
+            if($selectedTab == "chart{$rec->containerId}"){
+                $dtpl = $this->renderChart($rec, $data);
+            } else {
+                $dtpl = $this->renderTable($rec, $data);
+            }
+             
+            if(!Mode::isReadOnly()){
+                $tabHtml = $tabs->renderHtml('', $selectedTab);
+                $tpl->replace($tabHtml, 'TABS');
+            }
+        } else {
+            $dtpl = $this->renderTable($rec, $data);
+        }
+        
+        $tpl->append($dtpl);
+        $tpl->removeBlocks();
+        $tpl->removePlaces();
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендиране на графиката
+     *
+     * @param stdCLass $rec
+     * @param stdCLass $data
+     * @return core_ET $tpl
+     */
+    protected function renderChart($rec, &$data)
+    {
+        $tpl = new core_ET("");
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * рендиране на таблицата
+     * 
+     * @param stdCLass $rec
+     * @param stdCLass $data
+     * @return core_ET $tpl
+     */
+    protected function renderTable($rec, &$data)
+    {
+        $tpl = new core_ET('');
         
         // Подготовка на пейджъра
         if (!Mode::isReadOnly()) {
@@ -177,10 +252,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
         
         $tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
-        $tpl->removeBlocks();
-        $tpl->removePlaces();
         
-        // Връщане на шаблона
         return $tpl;
     }
     
