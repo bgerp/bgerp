@@ -65,7 +65,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Активиране на таб с графика
      */
-    protected $enableChartTab = false;
+    protected $enableChartTab = true;
     
     
     /**
