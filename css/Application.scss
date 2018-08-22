@@ -6607,6 +6607,11 @@ row-fluid {
 	}
 }
 
+.document div.tab-control.alphabet div.tab-row .tab{
+	padding: 4px 5px 5px !important;
+	display: inline-block;
+}
+
 .logs-type-warning {
     background-color: #fae3ca;
 }
