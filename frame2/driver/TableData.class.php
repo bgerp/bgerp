@@ -65,7 +65,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * Активиране на таб с графика
      */
-    protected $enableChartTab = true;
+    protected $enableChartTab = false;
     
     
     /**
@@ -136,18 +136,21 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $tabs->TAB("chart{$rec->containerId}", $data->chartTabCaption, toUrl($url));
             
             $selectedTab = $tabs->getSelected();
-            $selectedTab = ($selectedTab) ? $selectedTab : $tabs->getFirstTab();
+            $data->selectedTab = ($selectedTab) ? $selectedTab : $tabs->getFirstTab();
             
             // Ако има избран детайл от горния таб рендираме го
-            if($selectedTab == "chart{$rec->containerId}"){
+            if($data->selectedTab == "chart{$rec->containerId}"){
                 $dtpl = $this->renderChart($rec, $data);
+                $tabCaption = $data->chartTabCaption;
             } else {
                 $dtpl = $this->renderTable($rec, $data);
             }
-             
+            
             if(!Mode::isReadOnly()){
-                $tabHtml = $tabs->renderHtml('', $selectedTab);
+                $tabHtml = $tabs->renderHtml('', $data->selectedTab);
                 $tpl->replace($tabHtml, 'TABS');
+            } elseif(isset($tabCaption)){
+                $tpl->replace("<div>{$tabCaption}</div>", 'TABS');
             }
         } else {
             $dtpl = $this->renderTable($rec, $data);
@@ -503,7 +506,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
-     * След добавени
+     * След полетата за добавяне
      *
      * @param frame2_driver_Proto $Driver   - драйвер
      * @param embed_Manager       $Embedder - ембедър
@@ -512,6 +515,28 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
     {
         $fieldset->FLD('listItemsPerPage', 'int(min=10,Max=100)', "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={$Driver->listItemsPerPage}");
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param frame2_driver_Proto $Driver   - драйвер
+     * @param embed_Manager       $Embedder - ембедър
+     * @param core_Fieldset       $fieldset - форма
+     */
+    protected static function on_BeforeRenderSingleToolbar(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, &$data)
+    {
+        if ($Driver->enableChartTab === false) return;
+        
+        // Ако е избран таба с графиката да се предава в урл-то на бутона за принтиране
+        $frameTab = Request::get('frameTab');
+        if ($frameTab == "chart{$data->rec->containerId}"){
+            $printId = plg_Printing::getPrintBtnId($Embedder, $data->rec->id);
+            if ($data->toolbar->hasBtn($printId)){
+                $data->toolbar->setUrlParam($printId, 'frameTab', $frameTab);
+            }
+        }
     }
     
     
