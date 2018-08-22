@@ -364,4 +364,21 @@ class core_Toolbar extends core_BaseClass
     {
         return isset($this->buttons[$id]);
     }
+    
+    
+    /**
+     * Задава параметър в урл-то на бутона
+     * 
+     * @param string $id    - ид на бутон
+     * @param string $param - ид на параметър
+     * @param string $value - стойност на параметъра
+     * @return void
+     */
+    public function setUrlParam($id, $param, $value)
+    {
+        expect(!empty($this->buttons[$id]));
+        if (count($this->buttons[$id]->url)){
+            $this->buttons[$id]->url[$param] = $value;
+        }
+    }
 }
