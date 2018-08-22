@@ -218,7 +218,7 @@ class core_Debug
      *
      * @return string
      */
-    public static function getTimers($timers = array())
+    public static function getTimers($timers = null)
     {
         $html = '';
         
