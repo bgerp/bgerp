@@ -6610,6 +6610,10 @@ row-fluid {
 .document div.tab-control.alphabet div.tab-row .tab{
 	padding: 4px 5px 5px !important;
 	display: inline-block;
+	background: #dddddd;
+	&.selected {
+		top: 0 !important
+	}
 }
 
 .logs-type-warning {
