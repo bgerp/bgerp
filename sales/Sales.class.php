@@ -323,23 +323,25 @@ class sales_Sales extends deals_DealMaster
      *
      * @return int|NULL $dealerId - ид на търговец
      */
-    public static function getDefaultDealerId($folderId, $locationId)
+    public static function getDefaultDealerId($folderId, $locationId = null)
     {
-        $dealerId = sales_Routes::getSalesmanId($locationId);
-        if (isset($dealerId)) {
-            
-            return $dealerId;
+        if(isset($locationId)){
+            $dealerId = sales_Routes::getSalesmanId($locationId);
+            if (isset($dealerId)) {
+                
+                return $dealerId;
+            }
         }
         
         $dealerId = doc_Folders::fetchField($folderId, 'inCharge');
         if (core_Users::haveRole('sales', $dealerId)) {
-            
+           
             return $dealerId;
         }
         
         $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', true);
         if (core_Users::haveRole('sales', $dealerId)) {
-            
+           
             return $dealerId;
         }
     }
@@ -1320,13 +1322,14 @@ class sales_Sales extends deals_DealMaster
         $this->requireRightFor('createsaleforproduct');
         expect($folderId = core_Request::get('folderId', 'int'));
         expect($productId = core_Request::get('productId', 'int'));
-        expect($productRec = cat_Products::fetch($productId));
+        expect(cat_Products::fetch($productId));
         
         $this->requireRightFor('createsaleforproduct', (object) array('folderId' => $folderId, 'productId' => $productId));
         $cover = doc_Folders::getCover($folderId);
+        $fields = array('dealerId' => sales_Sales::getDefaultDealerId($folderId));
         
         // Създаване на продажба и редирект към добавянето на артикула
-        expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that));
+        expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
         redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
     }
     
