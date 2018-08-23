@@ -1178,7 +1178,7 @@ class cat_Products extends embed_Manager
         
         if (!$res->productId) {
             // Търсим продукта по код, без значение на кейса
-            if ($rec = self::fetch(array("#code COLLATE UTF8_GENERAL_CI = '[#1#]'", mb_strtolower($code)), 'id')) {
+            if ($rec = self::fetch(array("LOWER(#code) = '[#1#]'", mb_strtolower($code)), 'id')) {
                 $res->productId = $rec->id;
                 $res->packagingId = null;
             }
