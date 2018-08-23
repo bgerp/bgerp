@@ -360,7 +360,7 @@ class core_Toolbar extends core_BaseClass
      *
      * @return bool TRUE/FALSE - имали го бутона или не
      */
-    public function hasBtn($id)
+    public function haveButton($id)
     {
         return isset($this->buttons[$id]);
     }

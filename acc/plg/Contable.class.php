@@ -202,7 +202,7 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
         }
         
-        if ($data->toolbar->hasBtn("btnRestore{$rec->containerId}")) {
+        if ($data->toolbar->haveButton("btnRestore{$rec->containerId}")) {
             if ($error = $mvc->getRestoreBtnErrStr($rec)) {
                 $data->toolbar->setError("btnRestore{$rec->containerId}", $error);
             }

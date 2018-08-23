@@ -533,7 +533,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $frameTab = Request::get('frameTab');
         if ($frameTab == "chart{$data->rec->containerId}"){
             $printId = plg_Printing::getPrintBtnId($Embedder, $data->rec->id);
-            if ($data->toolbar->hasBtn($printId)){
+            if ($data->toolbar->haveButton($printId)){
                 $data->toolbar->setUrlParam($printId, 'frameTab', $frameTab);
             }
         }
