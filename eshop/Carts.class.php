@@ -115,6 +115,7 @@ class eshop_Carts extends core_Master
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
+        $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
         $this->FLD('deliveryTime', 'time', 'caption=Общи данни->Срок на доставка,input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
@@ -335,39 +336,18 @@ class eshop_Carts extends core_Master
             return;
         }
         
+        $rec->freeDelivery = 'no';
         $rec->productCount = $rec->total = $rec->totalNoVat = 0;
         $rec->deliveryNoVat = $rec->deliveryTime = null;
         
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$rec->id}");
-        
-        // Ако има цена за доставка добавя се и тя
-        if ($dQuery->count()) {
-            if ($delivery = eshop_CartDetails::getDeliveryInfo($rec)) {
-                if ($delivery['amount'] >= 0) {
-                    $rec->deliveryTime = $delivery['deliveryTime'];
-                    $settings = cms_Domains::getSettings();
-                    $delivery = currency_CurrencyRates::convertAmount($delivery['amount'], null, null, $settings->currencyId);
-                    $rec->deliveryNoVat = $delivery;
-                    $rec->totalNoVat += $rec->deliveryNoVat;
-                    $totalAmount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
-                    
-                    // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
-                    if (!empty($settings->freeDelivery) && round($totalAmount, 2) >= round($settings->freeDelivery, 2)){
-                        $delivery = 0;
-                    }
-                    
-                    $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                    $rec->total += $delivery * (1 + cat_Products::getVat($transportId));
-                } else {
-                    $rec->deliveryNoVat = -1;
-                }
-            }
-        }
+        $count = $dQuery->count();
         
         while ($dRec = $dQuery->fetch()) {
             $rec->productCount++;
             $finalPrice = currency_CurrencyRates::convertAmount($dRec->finalPrice, null, $dRec->currencyId);
+            
             if (!$dRec->discount) {
                 $finalPrice -= $finalPrice * $dRec->discount;
             }
@@ -382,10 +362,37 @@ class eshop_Carts extends core_Master
             }
         }
         
+        // Ако има цена за доставка добавя се и тя
+        if ($count) {
+            if ($delivery = eshop_CartDetails::getDeliveryInfo($rec)) {
+                
+                if ($delivery['amount'] >= 0) {
+                    $rec->deliveryTime = $delivery['deliveryTime'];
+                    $settings = cms_Domains::getSettings();
+                    
+                    $rec->deliveryNoVat = $delivery['amount'];
+                    $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
+                    $deliveryNoVat = $rec->deliveryNoVat;
+                    
+                    // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
+                    if (!empty($settings->freeDelivery) && round($rec->total, 2) >= round($freeDelivery, 2)){
+                        $delivery = $deliveryNoVat = 0;
+                        $rec->freeDelivery = 'yes';
+                    }
+                    
+                    $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+                    $rec->totalNoVat += $deliveryNoVat;
+                    $rec->total += $deliveryNoVat * (1 + cat_Products::getVat($transportId));
+                } else {
+                    $rec->deliveryNoVat = -1;
+                }
+            }
+        }
+        
         $rec->totalNoVat = round($rec->totalNoVat, 4);
         $rec->total = round($rec->total, 4);
         
-        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime');
+        $id = $this->save_($rec, 'productCount,total,totalNoVat,deliveryNoVat,deliveryTime,freeDelivery');
         
         return $id;
     }
@@ -511,7 +518,6 @@ class eshop_Carts extends core_Master
             if ($Cover->isInstanceOf('crm_Companies')) {
                 $companyRec = crm_Companies::fetch($Cover->that);
                 $companyRec->vatId = $rec->invoiceVatNo;
-                
                 crm_Companies::save($companyRec, 'vatId');
             }
         }
@@ -576,20 +582,13 @@ class eshop_Carts extends core_Master
         // Добавяне на транспорта, ако има
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-            $deliveryNoVat = $rec->deliveryNoVat;
-            $totalAmount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
-            
-            $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
-            if (!empty($settings->freeDelivery) && round($totalAmount, 2) >= round($freeDelivery, 2)){
-                $deliveryNoVat = 0;
-            }
-            
+            $deliveryNoVat = (!empty($settings->freeDelivery) && $rec->freeDelivery == 'yes') ? 0 : $rec->deliveryNoVat;
             sales_Sales::addRow($saleId, $transportId, 1, $deliveryNoVat);
         }
         
         // Продажбата става на заявка, кошницата се активира
         $saleRec = self::makeSalePending($saleId);
-        self::activate($rec, $saleId);
+        //self::activate($rec, $saleId);
         doc_Threads::doUpdateThread($saleRec->threadId);
         
         // Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -928,22 +927,21 @@ class eshop_Carts extends core_Master
             unset($row->totalNoVat);
         }
         
-        // Ако има доставка се показва и тя
+        // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
-            $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-            $deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
-            $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
-            $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-            $row->deliveryAmount = $deliveryAmountV;
             $row->deliveryCaption = tr('Доставка||Shipping');
             $row->deliveryCurrencyId = $row->currencyId;
-            $totalAmount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
             
-            // Ако доставката е безплатна отбелязва се
-            if(!empty($settings->freeDelivery) && $totalAmount >= $settings->freeDelivery){
+            if($rec->freeDelivery != 'no'){
                 $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
                 unset($row->deliveryCurrencyId);
                 $row->deliveryColspan = "colspan=2";
+            } else {
+                $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+                $deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+                $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
+                $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+                $row->deliveryAmount = $deliveryAmountV;
             }
         }
         
