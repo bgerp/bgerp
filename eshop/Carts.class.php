@@ -1473,7 +1473,6 @@ class eshop_Carts extends core_Master
         $rec = &$form->rec;
         $cu = core_Users::getCurrent('id', false);
         $isColab = isset($cu);
-        $settings = cms_Domains::getSettings();
         
         // Ако има избрана папка се записват контрагент данните
         if (isset($folderId)) {
@@ -1486,7 +1485,8 @@ class eshop_Carts extends core_Master
                 $form->setDefault('invoiceAddress', $contragentData->address);
                 $form->countries[$contragentData->countryId] = $contragentData->countryId;
                 
-                $locations = crm_Locations::getContragentOptions('crm_Companies', $contragentData->companyId, true, $form->countries);
+                $contragentCover = doc_Folders::getCover($folderId);
+                $locations = crm_Locations::getContragentOptions($contragentCover->className, $contragentCover->that, true, $form->countries);
             }
         } else {
             if ($isColab === true) {
