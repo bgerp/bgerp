@@ -159,17 +159,7 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
-        $data->listFilter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
-        $data->listFilter->showFields .= ',point';
-        
-        // Активиране на филтъра
-        $data->listFilter->input(null, 'silent');
-        
-        if ($filter = $data->listFilter->rec) {
-            if ($filter->point) {
-                $data->query->where("#pointId = {$filter->point}");
-            }
-        }
+        pos_Points::addPointFilter($data->listFilter, $data->query);
     }
     
     
