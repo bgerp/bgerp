@@ -154,11 +154,11 @@ class toast_Toast extends core_Plugin
         // В зависимост от типа определяме времето на престой на екрана
         switch ($type) {
             case 'success':
-                $time = 7000;
+                $time = 6000;
             break;
             
             case 'notice':
-                $time = 12000;
+                $time = 8000;
             break;
             
             case 'warning':
