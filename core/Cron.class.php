@@ -327,7 +327,8 @@ class core_Cron extends core_Manager
             $maxRemain = 60;
             
             if ((($currentMinute % $rec->period) == $rec->offset) || ($rec->period > $maxRemain && $lastSchedule > $lastStarting && $maxRemain < $remainMinutes)) {
-                if ($maxRemain < $remainMinutes) {
+                if (($maxRemain < $remainMinutes) && (($currentMinute % $rec->period) != $rec->offset)) {
+                    
                     if ($mCnt-- <= 0) {
                         continue;
                     }
