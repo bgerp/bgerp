@@ -279,7 +279,7 @@ class backup_Setup extends core_ProtoSetup
      *
      * @return NULL|string
      */
-    public function checkConfig(bool $fullCheck = false)
+    public function checkConfig($fullCheck = false)
     {
         if (!$fullCheck) return;
         
