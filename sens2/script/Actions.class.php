@@ -159,11 +159,13 @@ class sens2_script_Actions extends core_Detail
     
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $action = cls::get($rec->action);
-        
-        $rec->data->scriptId = $rec->scriptId;
-        
-        $row->action = "<div style='font-family: Courier New,monospace !important; font-size:0.8em;'>" . $action->toVerbal($rec->data) . '</div>';
+        if (cls::load($rec->action, TRUE)) {
+            $action = cls::get($rec->action);
+            
+            $rec->data->scriptId = $rec->scriptId;
+            
+            $row->action = "<div style='font-family: Courier New,monospace !important; font-size:0.8em;'>" . $action->toVerbal($rec->data) . '</div>';
+        }
     }
     
     
@@ -175,6 +177,14 @@ class sens2_script_Actions extends core_Detail
         $query = self::getQuery();
         $query->orderBy('#order', 'ASC');
         while ($rec = $query->fetch("#scriptId = {$scriptId}")) {
+            
+            if (!cls::load($rec->action, TRUE)) {
+                
+                self::logWarning('Грешка с данните на екшъна', $rec->id);
+                
+                continue; 
+            }
+            
             $action = cls::get($rec->action);
             $rec->data->scriptId = $rec->scriptId;
             $exState = $rec->state;
