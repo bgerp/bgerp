@@ -111,7 +111,6 @@ class rack_Movements extends core_Manager
         
         $this->setDbIndex('storeId');
         $this->setDbIndex('productId,storeId');
-        $this->setDbIndex('zoneList');
     }
     
     
