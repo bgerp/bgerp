@@ -681,6 +681,11 @@ class distro_Actions extends embed_Manager
                 Request::forward(array('Ctr' => $mvc->className, 'Act' => 'Callback', 'id' => $rec->id));
             }
         }
+        
+        if ($rec->groupId) {
+            $DGroup = cls::get('distro_Group');
+            $DGroup->touchRec($rec->groupId);
+        }
     }
     
     
