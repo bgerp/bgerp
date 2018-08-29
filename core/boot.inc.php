@@ -279,21 +279,31 @@ function logHitState($debugCode = '200', $state = array())
         
         $state += (array)$dataArr;
         
-        $state['debugTime'] = core_Debug::$debugTime;
-        $state['timers'] = core_Debug::$timers;
+        $state['update'] = FALSE;
+        
+        $state['_debugTime'] = core_Debug::$debugTime;
+        $state['_timers'] = core_Debug::$timers;
         
         $state['_executionTime'] = $execTime;
-        
-        $state['update'] = FALSE;
         
         $state['_Ctr'] = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
         $state['_Act'] = $_GET['Act'] ? $_GET['Act'] : 'default';
         $state['_dbName'] = EF_DB_NAME;
         $state['_info'] = 'DB: ' . EF_DB_NAME . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
         $state['_debugCode'] = $debugCode;
+        $state['_cookie'] = $_COOKIE;
         
         if ($state['httpStatusCode']) {
             $state['_info'] .= ' >> Code: ' . $state['httpStatusCode'];
+        }
+        
+        // Подготовка на стека
+        if (isset($state['stack'])) {
+            list($state['_stack'], $state['_breakFile'], $state['_breakLine']) = core_Debug::analyzeStack($state['stack']);
+        }
+        
+        if (isset($state['_breakFile'], $state['_breakLine'])) {
+            $state['_code'] = core_Debug::getCodeAround($state['_breakFile'], $state['_breakLine']);
         }
         
         $data = @json_encode($state);

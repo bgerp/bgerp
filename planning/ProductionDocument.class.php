@@ -139,7 +139,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
         if ($rec->state == 'active') {
             
             // Ако има по нов документ не може да се оттегля документа
-            if ($data->toolbar->hasBtn("btnDelete{$rec->containerId}")) {
+            if ($data->toolbar->haveButton("btnDelete{$rec->containerId}")) {
                 if ($handle = $mvc->getNewerProductionDocumentHandle($rec)) {
                     $data->toolbar->setError(array("btnDelete{$rec->containerId}"), "Не може да бъде оттеглен, докато има по-нов производствен документ|* #{$handle}");
                 }
@@ -147,7 +147,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
             
             // Ако има по нов документ не може да се възстановява документа
         } elseif ($rec->state == 'rejected' && $rec->brState == 'active') {
-            if ($data->toolbar->hasBtn("btnRestore{$rec->containerId}")) {
+            if ($data->toolbar->haveButton("btnRestore{$rec->containerId}")) {
                 if ($handle = $mvc->getNewerProductionDocumentHandle($rec)) {
                     $data->toolbar->setError(array("btnRestore{$rec->containerId}"), "Не може да бъде възстановен, докато има по-нов производствен документ|* #{$handle}");
                 }

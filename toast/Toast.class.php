@@ -60,6 +60,7 @@ class toast_Toast extends core_Plugin
         
         $resStatus = array();
         
+        $bStayTime = 0;
         foreach ($notifArr as $val) {
             
             // Всеки следващ статус със закъсенине + 1 секунди
@@ -86,7 +87,7 @@ class toast_Toast extends core_Plugin
             $statusData['type'] = $val['type'];
             $statusData['timeOut'] = $timeOut;
             $statusData['isSticky'] = (int) $sticky;
-            $statusData['stayTime'] = $stayTime;
+            $statusData['stayTime'] = $stayTime + $bStayTime;
             
             $toastObj = new stdClass();
             $toastObj->func = 'showToast';
@@ -97,6 +98,8 @@ class toast_Toast extends core_Plugin
             if ($soundNotifObj = $mvc->getSoundNotifications($val['type'])) {
                 $resStatus[] = $soundNotifObj;
             }
+            
+            $bStayTime += $stayTime;
         }
         
         return false;
@@ -151,11 +154,11 @@ class toast_Toast extends core_Plugin
         // В зависимост от типа определяме времето на престой на екрана
         switch ($type) {
             case 'success':
-                $time = 7000;
+                $time = 6000;
             break;
             
             case 'notice':
-                $time = 12000;
+                $time = 8000;
             break;
             
             case 'warning':

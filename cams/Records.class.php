@@ -1011,7 +1011,7 @@ class cams_Records extends core_Master
         
         foreach ($dirs as $d => $caption) {
             if (!is_dir($d)) {
-                if (mkdir($d, 0777, true)) {
+                if (@mkdir($d, 0777, true)) {
                     $msg = "<li style='color:green;'> Директорията <b>{$d}</b> е създадена ({$caption})";
                 } else {
                     $msg = "<li style='color:red;'> Директорията <b>{$d}</b> не може да бъде създадена ({$caption})";

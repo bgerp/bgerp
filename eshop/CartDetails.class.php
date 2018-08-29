@@ -585,11 +585,13 @@ class eshop_CartDetails extends core_Detail
         $transportAmount = 0;
         foreach ($products as $p1) {
             $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total['weight'], $total['volume'], $deliveryData);
+            
+            
             if (is_array($fee)) {
                 $transportAmount += $fee['totalFee'];
             }
         }
-        
+       
         $res = array('amount' => $transportAmount);
         if (isset($fee['deliveryTime'])) {
             $res['deliveryTime'] = $fee['deliveryTime'];

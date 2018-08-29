@@ -25,9 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, doc_plg_MultiPrint, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
-    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
-                     plg_Modified';
+    public $loadList = 'plg_Created, plg_Rejected, doc_plg_MultiPrint, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,plg_Modified';
     
     
     /**
@@ -39,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state , createdOn, createdBy';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state';
     
     
     /**
@@ -133,15 +131,9 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Инстанция на детайла
-     */
-    public $pos_ReceiptDetails;
-    
-    
-    /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior,modifiedOn';
+    public $filterDateField = 'createdOn, valior, modifiedOn';
     
     
     /**
@@ -149,7 +141,7 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,input=none');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Дата,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
         $this->FLD('contragentObjectId', 'int', 'input=none');
@@ -225,7 +217,7 @@ class pos_Receipts extends core_Master
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
         if ($fields['-list']) {
-            $row->title = "{$mvc->singleTitle} №{$row->id}";
+            $row->title = "{$mvc->singleTitle} №{$rec->id}";
             $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), null, "ef_icon={$mvc->singleIcon}");
         } elseif ($fields['-single']) {
             $row->title = "{$mvc->singleTitle} <b>№{$row->id}</b>";
@@ -401,9 +393,17 @@ class pos_Receipts extends core_Master
     /**
      *  Филтрираме бележката
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('#createdOn', 'DESC');
+        pos_Points::addPointFilter($data->listFilter, $data->query);
+        $filterDateFld = $data->listFilter->rec->filterDateField;
+        $data->query->orderBy($filterDateFld, 'DESC');
+        
+        foreach (array('valior', 'createdOn', 'modifiedOn') as $fld) {
+            if($fld != $data->listFilter->rec->filterDateField){
+                unset($data->listFields[$fld]);
+            }
+        }
     }
     
     

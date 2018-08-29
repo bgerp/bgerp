@@ -247,7 +247,7 @@ class core_RowToolbar extends core_BaseClass
      *
      * @return bool TRUE/FALSE - имали го бутона или не
      */
-    public function hasBtn($id)
+    public function haveButton($id)
     {
         return isset($this->links[$id]);
     }
@@ -261,7 +261,7 @@ class core_RowToolbar extends core_BaseClass
      */
     public function replaceBtnUrl($id, $newUrl)
     {
-        if ($this->hasBtn($id)) {
+        if ($this->haveButton($id)) {
             if (is_array($this->links[$id]->url)) {
                 expect(is_array($newUrl));
                 $this->links[$id]->url = $newUrl;

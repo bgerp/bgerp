@@ -144,7 +144,7 @@ class planning_plg_StateManager extends core_Plugin
         // Бутон за заявка
         if ($mvc->haveRightFor('pending', $rec)) {
             if ($rec->state != 'pending') {
-                $r = $data->toolbar->hasBtn('btnActivate') ? 2 : 1;
+                $r = $data->toolbar->haveButton('btnActivate') ? 2 : 1;
                 $data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$r}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
             } else {
                 $data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), 'id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?', 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');

@@ -110,6 +110,10 @@ class distro_CopyDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
+        if (!$rec->repoId) {
+            $rec->repoId = $rec->sourceRepoId;
+        }
+        
         $fRec = distro_Files::fetch($rec->fileId);
         
         $FileInst = cls::get('distro_Files');
@@ -268,7 +272,12 @@ class distro_CopyDriver extends core_Mvc
     {
         if ($rec->sourceRepoId) {
             $fileName = $embeder->getFileName($rec);
-            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName;
+            
+            if ($rec->repoId) {
+                $row->Info .= ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            }
+            
             $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->sourceRepoId, 'name');
             
             if ($rec->newFileId && $rec->newFileName && ($rec->newFileName != $rec->fileName)) {

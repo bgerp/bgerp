@@ -9,19 +9,13 @@
  * @package   tcost
  *
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 class tcost_Zones extends core_Detail
 {
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'trans_Zones';
-    
-    
     /**
      * Заглавие
      */
@@ -56,12 +50,6 @@ class tcost_Zones extends core_Detail
      * Време за опресняване информацията при лист на събитията
      */
     public $refreshRowsTime = 5000;
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,tcost';
     
     
     /**
@@ -186,7 +174,7 @@ class tcost_Zones extends core_Detail
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         $rec = &$form->rec;
@@ -208,17 +196,14 @@ class tcost_Zones extends core_Detail
      * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
         if ($form->isSubmitted()) {
             
             // Намиране на всички зони за това условие на доставка
             $deliveryTermId = tcost_FeeZones::fetchField($rec->zoneId, 'deliveryTermId');
-            $zQuery = tcost_FeeZones::getQuery();
-            $zQuery->where("#deliveryTermId = {$deliveryTermId}");
-            $zonesWithSameDeliveryCode = array_map(create_function('$o', 'return $o->id;'), $zQuery->fetchAll());
-            $zonesWithSameDeliveryCode = array_values($zonesWithSameDeliveryCode);
+            $zonesWithSameDeliveryCode = self::getZonesWithSameTermId($deliveryTermId);
             
             // Не може пощенския код да присъства за една и съща държава в различни зони към едно условие на доставка
             $query = self::getQuery();
@@ -236,13 +221,28 @@ class tcost_Zones extends core_Detail
     
     
     /**
+     * Кои са групите със същия код
+     * 
+     * @param int $termId
+     * @return array
+     */
+    public static function getZonesWithSameTermId($termId)
+    {
+        $zQuery = tcost_FeeZones::getQuery();
+        $zQuery->where("#deliveryTermId = {$termId}");
+        
+        return arr::extractValuesFromArray($zQuery->fetchAll(), 'id');
+    }
+    
+    
+    /**
      * Преди извличане на записите от БД
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param stdClass $data
      */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    protected static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#countryId,#pCode');
     }

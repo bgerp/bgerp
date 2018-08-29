@@ -47,9 +47,9 @@ class fileman_webdrv_Debug extends fileman_webdrv_Txt
         // Таб за преглед
         $tabsArr['preview'] = (object)
         array(
-                'title' => 'Преглед',
-                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Преглед') . "</div> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-                'order' => 2,
+            'title' => 'Преглед',
+            'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Преглед') . "</div> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+            'order' => 2,
         );
         
         return $tabsArr;
@@ -83,7 +83,7 @@ class fileman_webdrv_Debug extends fileman_webdrv_Txt
         
         $path = fileman::extract($fileHnd);
         
-        $res = cls::get('log_Debug')->getDebuFileInfo($path);
+        $res = cls::get('log_Debug')->getDebugFileInfo($path);
         
         fileman::deleteTempPath($path);
         

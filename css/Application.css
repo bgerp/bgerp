@@ -5895,6 +5895,13 @@ only screen and (max-width: 320px) {
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-err td {
     background-color: #fad0d1 !important; }
 
+.document div.tab-control.alphabet div.tab-row .tab {
+  padding: 4px 5px 5px !important;
+  display: inline-block;
+  background: #dddddd; }
+  .document div.tab-control.alphabet div.tab-row .tab.selected {
+    top: 0 !important; }
+
 .logs-type-warning {
   background-color: #fae3ca; }
 

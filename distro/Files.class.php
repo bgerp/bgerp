@@ -131,7 +131,7 @@ class distro_Files extends core_Detail
         $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory, remember=info');
         $this->FLD('name', 'varchar', 'caption=Име, width=100%, input=none');
         $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, width=100%, input=none');
-        $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name, select2MinItems=6)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
+        $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name, select2MinItems=6)', 'caption=Хранилища, width=100%, maxColumns=3, input=input');
         $this->FLD('info', 'varchar', 'caption=Информация, width=100%');
         $this->FLD('md5', 'varchar(32)', 'caption=Хеш на файла, width=100%,input=none');
         
@@ -177,13 +177,19 @@ class distro_Files extends core_Detail
         $repoId = isset($repoId) ? $repoId : $rec->repoId;
         $groupId = isset($groupId) ? $groupId : $rec->{$this->masterKey};
         
-        $rRec = distro_Repositories::fetch((int) $repoId);
-        
-        $subDirName = $this->Master->getSubDirName($groupId);
-        
-        $name = $name ? $name : $rec->name;
-        
-        $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
+        if ($repoId) {
+            $rRec = distro_Repositories::fetch((int) $repoId);
+            
+            $subDirName = $this->Master->getSubDirName($groupId);
+            
+            $name = $name ? $name : $rec->name;
+            
+            $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
+        } else {
+            if ($rec->sourceFh) {
+                $path = fileman::extract($rec->sourceFh);
+            }
+        }
         
         return $path;
     }
@@ -254,6 +260,9 @@ class distro_Files extends core_Detail
         if ($group) {
             $query->groupBy('repoId');
         }
+        
+        $query->where('#repoId IS NOT NULL');
+        $query->where("#repoId != ''");
         
         return $query->fetchAll();
     }
@@ -676,9 +685,11 @@ class distro_Files extends core_Detail
                 $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
             }
             
-            expect(!empty($reposArr));
-            
-            $data->form->setSuggestions('repos', $reposArr);
+            if (empty($reposArr)) {
+                $data->form->setField('repos', 'input=none');
+            } else {
+                $data->form->setSuggestions('repos', $reposArr);
+            }
         }
     }
     
@@ -697,7 +708,7 @@ class distro_Files extends core_Detail
                 $rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
                 $rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
                 
-                if (!$rec->id) {
+                if (!$rec->id && $rec->repos) {
                     $rec->__addToRepo = true;
                 }
             }
@@ -751,15 +762,20 @@ class distro_Files extends core_Detail
     /**
      * Извиква се след успешен запис в модела
      *
-     * @param core_Mvc $mvc
-     * @param int      $id  първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param core_Mvc     $mvc
+     * @param int          $id     първичния ключ на направения запис
+     * @param stdClass     $rec    всички полета, които току-що са били записани
+     * @param array|string $fields
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = array())
     {
         // Сваляме файла в хранилището
         if (isset($rec->__addToRepo)) {
             distro_Actions::addToRepo($rec);
+        }
+        
+        if (!$rec->repoId && !$fields) {
+            distro_Actions::addToRepo($rec, 'distro_UploadDriver');
         }
     }
     
@@ -805,6 +821,11 @@ class distro_Files extends core_Detail
             }
         }
         
+        // Подреждаме спрямо хранилищата - да не се разместват при всяка промяна
+        if (!empty($reposAndFilesArr)) {
+            ksort($reposAndFilesArr);
+        }
+        
         // Добавяме масива
         $data->reposAndFilesArr = $reposAndFilesArr;
     }
@@ -824,10 +845,7 @@ class distro_Files extends core_Detail
             
             // Масив с вербалните данни
             $data->rowReposAndFilesArr[$repoId] = array();
-            
-            // Заглавие на хранилището
-            $repoTitle = distro_Repositories::getVerbal($repoId, 'name');
-            
+
             // Обхождаме масива с id'та
             foreach ((array) $idsArr as $id) {
                 
@@ -965,8 +983,12 @@ class distro_Files extends core_Detail
                 $tplTable->append($tplRow, 'repoRow');
             }
             
-            // Линк към хранилището
-            $repoTitleLink = distro_Repositories::getLinkToSingle($repoId, 'name');
+            if ($repoId) {
+                // Линк към хранилището
+                $repoTitleLink = distro_Repositories::getLinkToSingle($repoId, 'name');
+            } else {
+                $repoTitleLink = tr('Система');
+            }
             
             // Добавяме в шаблона
             $tplTable->append($repoTitleLink, 'repoTitle');

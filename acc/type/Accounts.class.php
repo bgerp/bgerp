@@ -47,7 +47,7 @@ class acc_type_Accounts extends type_Keylist
         }
         $mvc = cls::get($this->params['mvc']);
         $root = $this->params['root'];
-        $select = $this->params['select'];
+        $select = $this->getSelectFld();
         $regInterfaces = $this->params['regInterfaces'];
         
         $suggestions = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
