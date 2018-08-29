@@ -135,7 +135,7 @@ class draw_Designs extends core_Master
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние, input=none,notConfig');
         $this->FLD('script', 'text(rows=20)', 'caption=Скрипт');
-        
+
         $this->setDbUnique('name');
     }
     
@@ -1080,10 +1080,9 @@ class draw_Designs extends core_Master
     {
         $svg->setAttr('stroke', '#0000fe');
         $svg->setAttr('stroke-width', '0.1');
-        $svg->setAttr('font-size', 40);
         $svg->setAttr('stroke-dasharray', '');
         $svg->setAttr('stroke-opacity', '1');
-        $svg->setAttr('font-size', 40);
+        $svg->setAttr('font-size', 56);
         $svg->setAttr('font-weight', 'bold');
         $svg->setAttr('font-family', 'Arial, Sans-serif');
         cad2_MeasureLine::draw($svg, $Ax, $Ay, $Bx, $By, $dist * 6, $measureText);
