@@ -1728,8 +1728,11 @@ class cat_Products extends embed_Manager
             if ($mvc->haveRightFor('edit', $rec)) {
                 if (!Mode::isReadOnly()) {
                     $row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
+                    
                     if (haveRole('catEdit,ceo,admin')) {
-                        $row->editMetaBtn = ht::createLink('', array($mvc, 'EditMeta', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
+                        Request::setProtected('Selected');
+                        $row->editMetaBtn = ht::createLink('', array($mvc, 'changemeta', 'Selected' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
+                        Request::removeProtected('Selected');
                     }
                 }
             }
@@ -2898,40 +2901,6 @@ class cat_Products extends embed_Manager
             
             if ($fRec->groupsInput != $rec->groupsInput) {
                 $this->save((object) array('id' => $id, 'groupsInput' => $fRec->groupsInput), 'groups');
-                $this->logInAct('Редактиране', $rec);
-            }
-            
-            return followRetUrl();
-        }
-        
-        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-        
-        return $this->renderWrapping($form->renderHtml());
-    }
-    
-    
-    /**
-     * Екшън за редактиране на мета-свойствата на артикула
-     */
-    public function act_EditMeta()
-    {
-        requireRole('catEdit,ceo,admin');
-        $this->requireRightFor('edit');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('edit', $rec);
-        
-        $form = cls::get('core_Form');
-        $form->title = 'Промяна на мета-свойствата на|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
-        $form->FNC('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,input,mandatory');
-        $form->setDefault('meta', $rec->meta);
-        $form->input();
-        if ($form->isSubmitted()) {
-            $fRec = $form->rec;
-            
-            if ($fRec->meta != $rec->meta) {
-                $this->save((object) array('id' => $id, 'meta' => $fRec->meta), 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
                 $this->logInAct('Редактиране', $rec);
             }
             

@@ -165,7 +165,7 @@ class distro_Files extends core_Detail
     /**
      * Връща пълния път до файла в хранилището
      *
-     * @param stdClass|int $id
+     * @param int $id
      * @param NULL|int     $repoId
      * @param NULL|int     $groupId
      * @param NULL|string  $name
@@ -187,7 +187,7 @@ class distro_Files extends core_Detail
             $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
         } else {
             if ($rec->sourceFh) {
-                $path = fileman::extract($rec->sourceFh);
+                $path = fileman_Download::getDownloadUrl($rec->sourceFh);
             }
         }
         
@@ -910,7 +910,7 @@ class distro_Files extends core_Detail
         if ($rec->sourceFh && $rec->name) {
             
             // Вземаме линк с текущото име
-            $row->sourceFh = fileman::getLinkToSingle($rec->sourceFh, false, array(), $rec->name);
+            $row->sourceFh = fileman::getLink($rec->sourceFh, $rec->name);
         }
     }
     
@@ -958,6 +958,12 @@ class distro_Files extends core_Detail
             // Шаблон за таблица
             $tplTable = getTplFromFile('distro/tpl/FilesRepoTable.shtml');
             
+            if (Mode::isReadOnly()) {
+                $tplTable->removeBlock('Tools');
+            } else {
+                $tplTable->replace(' ', 'Tools');
+            }
+            
             // Обхождаме масива с хранилищата
             foreach ($reposArr as $repo) {
                 
@@ -967,10 +973,18 @@ class distro_Files extends core_Detail
                 // Заместваме данните
                 $tplRow->replace($repo->modified, 'modified');
                 $tplRow->replace($repo->file, 'file');
-                $tplRow->replace($repo->tools, 'tools');
+                
+                if (!Mode::isReadOnly()) {
+                    $tplRow->replace($repo->tools, 'tools');
+                }
                 
                 // Ако има информация
                 if ($info = trim($repo->info)) {
+                    if (Mode::isReadOnly()) {
+                        $tplRow->replace(2, 'colspan');
+                    } else {
+                        $tplRow->replace(3, 'colspan');
+                    }
                     
                     // Заместваме информацията
                     $tplRow->replace($info, 'fileInfo');
@@ -985,7 +999,11 @@ class distro_Files extends core_Detail
             
             if ($repoId) {
                 // Линк към хранилището
-                $repoTitleLink = distro_Repositories::getLinkToSingle($repoId, 'name');
+                if (!Mode::isReadOnly()) {
+                    $repoTitleLink = distro_Repositories::getLinkToSingle($repoId, 'name');
+                } else {
+                    $repoTitleLink = distro_Repositories::getVerbal($repoId, 'name');
+                }
             } else {
                 $repoTitleLink = tr('Система');
             }

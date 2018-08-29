@@ -401,6 +401,8 @@ class distro_Actions extends embed_Manager
      */
     public function prepareDetail_($data)
     {
+        if (Mode::isReadOnly()) return ;
+        
         $data->masterKey = $this->masterKey;
         
         // Очакваме да masterKey да е зададен
@@ -447,6 +449,8 @@ class distro_Actions extends embed_Manager
      */
     public function renderDetail_($data)
     {
+        if (Mode::isReadOnly()) return ;
+        
         if (!isset($data->listClass)) {
             $data->listClass = 'listRowsDetail';
         }
