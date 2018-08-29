@@ -689,6 +689,9 @@ class distro_Files extends core_Detail
                 $data->form->setField('repos', 'input=none');
             } else {
                 $data->form->setSuggestions('repos', $reposArr);
+                if (count($reposArr) == 1) {
+                    $data->form->setDefault('repos', '|'. key($reposArr) . '|');
+                }
             }
         }
     }
