@@ -165,7 +165,7 @@ class distro_Files extends core_Detail
     /**
      * Връща пълния път до файла в хранилището
      *
-     * @param stdClass|int $id
+     * @param int $id
      * @param NULL|int     $repoId
      * @param NULL|int     $groupId
      * @param NULL|string  $name
@@ -187,7 +187,7 @@ class distro_Files extends core_Detail
             $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
         } else {
             if ($rec->sourceFh) {
-                $path = fileman::extract($rec->sourceFh);
+                $path = fileman_Download::getDownloadUrl($rec->sourceFh);
             }
         }
         
