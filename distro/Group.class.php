@@ -127,6 +127,12 @@ class distro_Group extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $listFields = 'id, title, repos, createdOn, createdBy';
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'distro_Files, distro_Actions';
@@ -144,7 +150,7 @@ class distro_Group extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%, silent');
-        $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
+        $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, width=100%, maxColumns=3');
     }
     
     
@@ -217,20 +223,6 @@ class distro_Group extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        // Ако добавяме или променяме запис
-        if ($action == 'add' || $action == 'edit') {
-            
-            // Вземаме всички хранилища
-            $reposArr = distro_Repositories::getReposArr();
-            
-            // Ако няма достъп до някой от тях
-            if (empty($reposArr)) {
-                
-                // Никой да не може да добавя
-                $requiredRoles = 'no_one';
-            }
-        }
-        
         // Ако ще разглеждаме сингъла на документа
         if ($action == 'single') {
             
@@ -244,9 +236,15 @@ class distro_Group extends core_Master
         
         // За да може да синхронизира файловете, трябва да има права за сингъла
         if ($action == 'sync') {
-            if (!$mvc->haveRightFor('single', $rec, $userId)) {
+            $reposArr = distro_Repositories::getReposArr();
+            
+            if (!$mvc->haveRightFor('single', $rec, $userId) || empty($reposArr)) {
                 
                 // Никой да не може
+                $requiredRoles = 'no_one';
+            }
+            
+            if ($rec && (!$rec->repos || $rec->state == 'draft' || $rec->state == 'rejected')) {
                 $requiredRoles = 'no_one';
             }
         }

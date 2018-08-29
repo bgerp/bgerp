@@ -553,19 +553,22 @@ class crm_Locations extends core_Master
     /**
      * Всички локации на зададен контрагент
      *
-     * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
-     * @param int   $contragentId      първичен ключ на контрагента (в мениджъра му)
+     * @param mixed $contragentClassId - име, ид или инстанция на клас-мениджър на контрагент
+     * @param int   $contragentId      - първичен ключ на контрагента (в мениджъра му)
+     * @param int   $countries         - държави
      *
-     * @return array масив от записи crm_Locations
+     * @return array $recs
      */
-    private static function getContragentLocations($contragentClassId, $contragentId)
+    private static function getContragentLocations($contragentClassId, $contragentId, $countries = array())
     {
         expect($contragentClassId = core_Classes::getId($contragentClassId));
         
-        /* @var $query core_Query */
         $query = static::getQuery();
         $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
         $query->where("#state != 'rejected'");
+        if(count($countries)){
+            $query->in('countryId', $countries);
+        }
         
         $recs = array();
         while ($rec = $query->fetch()) {
@@ -582,12 +585,13 @@ class crm_Locations extends core_Master
      * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
      * @param int   $contragentId      първичен ключ на контрагента (в мениджъра му)
      * @param bool  $intKeys           - дали ключовите да са инт или стринг
+     * @param array  $countries        - държави
      *
      * @return array масив от наименования на локации, ключ - ид на локации
      */
-    public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true)
+    public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = true, $countries = array())
     {
-        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
+        $locationRecs = static::getContragentLocations($contragentClassId, $contragentId, $countries);
         
         foreach ($locationRecs as &$rec) {
             $rec = static::getTitleById($rec->id, false);

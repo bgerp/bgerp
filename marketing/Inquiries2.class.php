@@ -816,7 +816,6 @@ class marketing_Inquiries2 extends embed_Manager
         core_Lg::push($lang);
         
         if (count($proto)) {
-            $sort = array();
             foreach ($proto as $pId => &$name) {
                 
                 // Ако прототипа е оттеглен или затворен, маха се от списъка
@@ -1051,7 +1050,7 @@ class marketing_Inquiries2 extends embed_Manager
         if ($cu && !haveRole('powerUser')) {
             $personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
             $personRec = crm_Persons::fetch($personId);
-            $inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
+            $inCharge = marketing_Router::getInChargeUser($form->rec->place, $form->rec->country);
             
             // Ако лицето е обвързано с фирма, документа отива в нейната папка
             if ($personCompanyId = $personRec->buzCompanyId) {

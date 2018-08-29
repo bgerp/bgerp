@@ -402,8 +402,6 @@ class colab_Threads extends core_Manager
             }
             
             if ($rec->firstContainerId) {
-                $sharedUsers = colab_Folders::getSharedUsers($rec->folderId);
-                $sharedUsers[$userId] = $userId;
                 
                 // Трябва първия документ в нишката да е видим за партньори
                 $firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');

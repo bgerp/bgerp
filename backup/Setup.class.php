@@ -216,7 +216,7 @@ class backup_Setup extends core_ProtoSetup
         // Отключваме процеса, ако не е бил легално отключен
         backup_Start::unLock();
         
-        $cfgRes = $this->checkConfig();
+        $cfgRes = $this->checkConfig(true);
         
         // Имаме грешка в конфигурацията - не добавяме задачите на крона
         if (!is_null($cfgRes)) {
@@ -279,7 +279,7 @@ class backup_Setup extends core_ProtoSetup
      *
      * @return NULL|string
      */
-    public function checkConfig(bool $fullCheck = false)
+    public function checkConfig($fullCheck = false)
     {
         if (!$fullCheck) return;
         

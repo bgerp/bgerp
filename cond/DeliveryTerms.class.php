@@ -122,7 +122,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('address', 'enum(none=Без,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-        $this->FLD('allowCmr', 'enum(yes=Да,no=Не)', 'caption=Документи->ЧМР', 'notNull,value=yes');
+        $this->FLD('allowCmr', 'enum(yes=Да,no=Не)', 'caption=Документи->ЧМР', 'notNull,value=yes,tdClass=centered');
         
         $this->setDbUnique('codeName');
     }

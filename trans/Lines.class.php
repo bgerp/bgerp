@@ -227,7 +227,7 @@ class trans_Lines extends core_Master
     {
         $rec = $data->rec;
         
-        if ($data->toolbar->hasBtn('btnClose')) {
+        if ($data->toolbar->haveButton('btnClose')) {
             if (self::countDocumentsByState($rec->id, 'draft')) {
                 $data->toolbar->setError('btnClose', 'Линията не може да бъде затворена докато има чернови документи към нея|*!');
             }
@@ -238,7 +238,7 @@ class trans_Lines extends core_Master
             $data->toolbar->addBtn('Печат (Детайли)', $url, 'target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
         }
         
-        if (!$data->toolbar->hasBtn('btnActivate')) {
+        if (!$data->toolbar->haveButton('btnActivate')) {
             if (self::countDocumentsByState($rec->id, 'pending,draft,rejected')) {
                 $data->toolbar->addBtn('Активиране', array(), false, 'error=В линията има неконтирани документи|*!,ef_icon = img/16/lightning.png,title=Активиране на документа');
             }

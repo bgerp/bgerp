@@ -132,10 +132,8 @@ class cat_plg_Grouping extends core_Plugin
                     $obj->id = $id;
                     $obj->meta = $rec->meta;
                     
-                    if ($groups != $rec->meta) {
-                        $mvc->save($obj, 'meta');
-                        $changed = 1;
-                    }
+                    $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
+                    $changed = 1;
                 } else {
                     foreach ($selArr as $id) {
                         $exGroups = $groups = type_Set::toArray($mvc->fetchField($id, 'meta'));
@@ -148,7 +146,7 @@ class cat_plg_Grouping extends core_Plugin
                         $obj->meta = cls::get('type_Set')->fromVerbal($groups);
                         
                         if ($groups != $exGroups) {
-                            $mvc->save($obj, 'meta');
+                            $mvc->save($obj, 'meta,canSell,canBuy,canStore,canConvert,fixedAsset,canManifacture');
                             $changed++;
                         }
                     }

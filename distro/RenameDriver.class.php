@@ -89,6 +89,11 @@ class distro_RenameDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
+        if (!$rec->repoId) {
+            
+            return '';
+        }
+        
         if (!$rec->RenameFile) {
             
             return 'mv --help';
@@ -249,6 +254,10 @@ class distro_RenameDriver extends core_Mvc
             $fileName .= ' (' . tr('старо име') . ' "' . type_Varchar::escape($rec->oldFileName) . '"' . ')';
         }
         
-        $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+        $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName;
+        
+        if ($rec->repoId) {
+            $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+        }
     }
 }

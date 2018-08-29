@@ -522,18 +522,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     
     
     /**
-     *
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    }
-    
-    
-    /**
      * Връща следващите три дати, когато да се актуализира справката
      *
      * @param stdClass $rec

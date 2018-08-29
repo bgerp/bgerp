@@ -192,16 +192,10 @@ class core_Debug
         $html = '';
         
         if (count(self::$debugTime)) {
-            if (!Mode::is('showDebug')) {
-                self::log('Край ' . core_DateTime::now());
-            }
-            
-            if ($dExTime = Mode::get('debugExecutionTime')) {
-                $dExTime = ' - ' . tr('време за изпълнение') . ': ' . $dExTime;
-            }
+            self::log('Край ' . core_DateTime::now());
             
             $html .= "\n<div class='debug_block' style=''>" .
-            "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log{$dExTime}</div><ul><li style='padding:15px 0px 15px 0px;'>";
+            "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul><li style='padding:15px 0px 15px 0px;'>";
             
             $html .= core_Html::mixedToHtml($_COOKIE) . '</li>';
             
@@ -219,18 +213,26 @@ class core_Debug
     
     /**
      * Връща измерванията на таймерите
+     *
+     * @params null|array $timers
+     *
+     * @return string
      */
-    private static function getTimers()
+    public static function getTimers($timers = null)
     {
         $html = '';
         
-        if (count(self::$timers)) {
+        if (!isset($timers)) {
+            $timers = self::$timers;
+        }
+        
+        if (count($timers)) {
             $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:table;color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
             
-            arsort(self::$timers);
+            arsort($timers);
             
-            foreach (self::$timers as $name => $t) {
+            foreach ($timers as $name => $t) {
                 $html .= "\n<li> '{$name}' => " . number_format($t->workingTime, 5) . ' sec.';
             }
             
@@ -496,7 +498,7 @@ class core_Debug
      *
      * @return array [$stack, $breakFile, $breakLine]
      */
-    private static function analyzeStack($stack)
+    public static function analyzeStack($stack)
     {
         // Вътрешни функции, чрез които може да се генерира прекъсване
         $intFunc = array(

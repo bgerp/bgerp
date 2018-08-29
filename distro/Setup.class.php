@@ -59,6 +59,7 @@ class distro_Setup extends core_ProtoSetup
         'distro_DeleteDriver',
         'distro_CopyDriver',
         'distro_AbsorbDriver',
+        'distro_UploadDriver',
         'distro_ArchiveDriver',
     );
     

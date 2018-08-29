@@ -286,4 +286,27 @@ class pos_Points extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Добавя филтър по точка към тулбар
+     * 
+     * @param core_Fieldset $filter
+     * @param core_Query $query
+     * @param string $pointFld
+     */
+    public static function addPointFilter(core_Fieldset &$filter,core_Query &$query, $pointFld = 'pointId')
+    {
+        $filter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
+        $filter->showFields .= ',point';
+        
+        // Активиране на филтъра
+        $filter->input(null, 'silent');
+        
+        if ($filterRec = $filter->rec) {
+            if ($filterRec->point) {
+                $query->where("#{$pointFld} = {$filterRec->point}");
+            }
+        }
+    }
 }

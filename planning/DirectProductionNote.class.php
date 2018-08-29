@@ -647,7 +647,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
         }
         
-        if ($data->toolbar->hasBtn('btnConto')) {
+        if ($data->toolbar->haveButton('btnConto')) {
             if ($mvc->haveRightFor('adddebitamount', $rec)) {
                 $data->toolbar->removeBtn('btnConto');
                 $attr = (!haveRole('seePrice') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документът не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));

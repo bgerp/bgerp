@@ -144,6 +144,13 @@ class tcost_FeeZones extends core_Master
         if($addPerKg = tcost_Setup::get('ADD_PER_KG')){
             $form->setField('addPerKg', "placeholder={$addPerKg},unit={$currecyId}");
         }
+        
+        // Забрана за смяна на условие на доставка, ако има детайли
+        if(isset($form->rec->id)){
+            if(tcost_Fees::fetchField("#feeId = {$form->rec->id}") || tcost_Zones::fetchField("#zoneId = {$form->rec->id}")){
+                $form->setReadOnly('deliveryTermId');
+            }
+        }
     }
     
     

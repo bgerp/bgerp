@@ -54,6 +54,18 @@ class log_Debug extends core_Manager
     
     
     /**
+     * При дъмп - колко нива преглеждаме
+     */
+    protected $dumpOpenLevels = 3;
+    
+    
+    /**
+     * При дъмп - колко нива са отворени
+     */
+    protected $dumpViewLevels = 5;
+    
+    
+    /**
      * Връща линк към създаване на сигнал от грешката
      *
      * @param string      $debugFile
@@ -258,7 +270,7 @@ class log_Debug extends core_Manager
                     $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
                 }
                 
-                $tpl->replace($this->getDebuFileInfo($fPath, $rArr), 'ERR_FILE');
+                $tpl->replace($this->getDebugFileInfo($fPath, $rArr), 'ERR_FILE');
                 $tpl->replace($rArr['_info'], 'SHOW_DEBUG_INFO');
                 
                 if (is_file($fPath) && is_readable($fPath)) {
@@ -400,7 +412,7 @@ class log_Debug extends core_Manager
      * @param string $fPath
      * @param array  $rArr
      */
-    public function getDebuFileInfo($fPath, &$rArr = array())
+    public function getDebugFileInfo($fPath, &$rArr = array())
     {
         expect($fPath);
         
@@ -421,18 +433,6 @@ class log_Debug extends core_Manager
                 $rArr = (array) $rArr;
                 
                 $rArr['update'] = false;
-                
-                $bDebugTime = null;
-                if ($rArr['debugTime']) {
-                    $bDebugTime = core_Debug::$debugTime;
-                    core_Debug::$debugTime = $rArr['debugTime'];
-                }
-                
-                $bTimers = null;
-                if ($rArr['timers']) {
-                    $bTimers = core_Debug::$timers;
-                    core_Debug::$timers = (array) $rArr['timers'];
-                }
                 
                 if (!$rArr['contex']) {
                     $rArr['contex'] = (object) $rArr['SERVER'];
@@ -483,19 +483,7 @@ class log_Debug extends core_Manager
                 
                 $rArr['_showDownloadUrl'] = false;
                 
-                Mode::set('debugExecutionTime', $rArr['_executionTime']);
-                Mode::set('showDebug', true);
-                $res = core_Debug::getDebugPage($rArr);
-                Mode::set('showDebug', false);
-                Mode::set('debugExecutionTime', null);
-                
-                if (isset($bDebugTime)) {
-                    core_Debug::$debugTime = $bDebugTime;
-                }
-                
-                if (isset($bTimers)) {
-                    core_Debug::$timers = $bTimers;
-                }
+                $res = $this->getDebugPage($rArr);
             }
         }
         
@@ -504,6 +492,169 @@ class log_Debug extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Подготвя HTML страница с дебъг информация за съответното състояние
+     *
+     * @param array $state
+     *
+     * @return ET
+     */
+    protected function getDebugPage($state)
+    {
+        require_once(EF_APP_PATH . '/core/NT.class.php');
+        require_once(EF_APP_PATH . '/core/ET.class.php');
+        require_once(EF_APP_PATH . '/core/Sbf.class.php');
+        require_once(EF_APP_PATH . '/core/Html.class.php');
+        
+        $data = array();
+        
+        $data['tabContent'] = $data['tabNav'] = '';
+        
+        // Дъмп
+        if (!empty($state['dump'])) {
+            $data['tabNav'] .= ' <li><a href="#">Дъмп</a></li>';
+            $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Html::arrayToHtml($state['dump'], $this->dumpOpenLevels, $this->dumpViewLevels) . '</div>';
+        }
+        
+        // Подготовка на стека
+        if (isset($state['_stack'])) {
+            $data['tabNav'] .= ' <li><a href="#">Стек</a></li>';
+            $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Debug::getTraceAsHtml($state['_stack']) . '</div>';
+        }
+        
+        if ($state['_code']) {
+            $data['code'] = $state['_code'];
+        }
+        
+        // Контекст
+        if (isset($state['contex'])) {
+            $data['tabNav'] .= ' <li><a href="#">Контекст</a></li>';
+            $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Html::mixedToHtml($state['contex']) . '</div>';
+        }
+        
+        // Лог
+        if ($wpLog = $this->getwpLog($state['_debugTime'], $state['_executionTime'], $state['_cookie'])) {
+            $data['tabNav'] .= ' <li><a href="#">Лог</a></li>';
+            $data['tabContent'] .= '<div class="simpleTabsContent">' . $wpLog . '</div>';
+        }
+        
+        // Времена
+        if ($timers = core_Debug::getTimers((array) $state['_timers'])) {
+            $data['tabNav'] .= ' <li><a href="#">Времена</a></li>';
+            $data['tabContent'] .= '<div class="simpleTabsContent">' . $timers . '</div>';
+        }
+        
+        $data['httpStatusCode'] = $state['httpStatusCode'];
+        $data['httpStatusMsg'] = $state['httpStatusMsg'];
+        $data['background'] = $state['background'];
+        
+        if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
+            $state['errTitle'] = substr($state['errTitle'], 1);
+        }
+        
+        if (isset($state['errTitle'])) {
+            $data['errTitle'] = $state['errTitle'];
+        }
+        
+        $lineHtml = core_Debug::getEditLink($state['_breakFile'], $state['_breakLine'], $state['_breakLine']);
+        $fileHtml = core_Debug::getEditLink($state['_breakFile']);
+        
+        if (!$state['headerCls']) {
+            $data['headerCls'] = 'errorMsg';
+        } else {
+            $data['headerCls'] = $state['headerCls'];
+        }
+        
+        if (isset($state['header'])) {
+            $data['header'] = $state['header'];
+        } else {
+            $data['header'] = $state['errType'];
+            if ($state['_breakLine'] && !strpos($fileHtml, "eval()'d code")) {
+                $data['header'] .= " на линия <i>{$lineHtml}</i>";
+            }
+            if ($state['_breakFile']) {
+                $data['header'] .= " в <i>{$fileHtml}</i>";
+            }
+        }
+        
+        // Показваме линковете за работа със сигнала
+        if ($state['_debugFileName']) {
+            $bName = basename($state['_debugFileName'], '.debug');
+            
+            if ($bName) {
+                $data['errTitle'] .= "<span class = 'errTitleLink'>";
+                
+                $canList = log_Debug::haveRightFor('list');
+                $canReport = log_Debug::haveRightFor('report');
+                
+                if ($canList || $canReport) {
+                    $data['errTitle'] .= ' - ';
+                }
+                
+                if ($canList) {
+                    $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
+                    
+                    $dUrl = fileman_Download::getDownloadUrl($state['_debugFileName'], 1, 'path');
+                    if ($dUrl) {
+                        $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
+                    }
+                }
+                
+                if ($canReport) {
+                    if ($canList) {
+                        $data['errTitle'] .= '|';
+                    }
+                    
+                    $data['errTitle'] .= log_Debug::getReportLink($bName, 'сигнал', false);
+                }
+                
+                $data['errTitle'] .= '</span>';
+            }
+        }
+        
+        $tpl = new core_NT(getFileContent('core/tpl/Debug.shtml'));
+        
+        $res = $tpl->render($data);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща watch point лога
+     *
+     * @param array      $tArr
+     * @param null|float $dExTime
+     * @param null|array $cookie
+     *
+     * @return string
+     */
+    private static function getWpLog($tArr = array(), $dExTime = null, $cookie = null)
+    {
+        $html = '';
+        
+        if (!empty($tArr)) {
+            if ($dExTime) {
+                $dExTime = ' - ' . tr('време за изпълнение') . ': ' . $dExTime;
+            }
+            
+            $html .= "\n<div class='debug_block' style=''>" .
+                            "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log{$dExTime}</div><ul><li style='padding:15px 0px 15px 0px;'>";
+            
+            $html .= core_Html::mixedToHtml($cookie) . '</li>';
+            
+            foreach ($tArr as $rec) {
+                $rec->name = core_ET::escape($rec->name);
+                $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start), 5) . ': ' . @htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
+            }
+            
+            $html .= "\n</ul></div>";
+        }
+        
+        return $html;
     }
     
     
