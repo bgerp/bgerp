@@ -128,7 +128,6 @@ class distro_CopyDriver extends core_Mvc
         }
         
         $destFilePath = escapeshellarg($destFilePath);
-        $destFilePath = str_replace(' ', '\\ ', $destFilePath);
         
         $hostParams = distro_Repositories::getHostParams($rec->sourceRepoId);
         
@@ -139,11 +138,16 @@ class distro_CopyDriver extends core_Mvc
         
         $copyExec = '';
         
-        if ($this->useSSHPass) {
-            $copyExec .= "sshpass -p {$pass} ";
+        if (!$fRec->repoId) {
+            $copyExec .= "wget -q --no-check-certificate -O {$destFilePath} {$srcFilePath}";
+        } else {
+            if ($this->useSSHPass) {
+                $copyExec .= "sshpass -p {$pass} ";
+            }
+            
+            $destFilePath = str_replace(' ', '\\ ', $destFilePath);
+            $copyExec .= "scp -o StrictHostKeyChecking=no -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
         }
-        
-        $copyExec .= "scp -o StrictHostKeyChecking=no -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
         
         return $copyExec;
     }
