@@ -46,15 +46,23 @@ class plg_Current extends core_Plugin
             // Генериране на събитие, преди изпълнението на заявката
             $mvc->invoke('BeforeSelectByForce', array(&$query));
             
-            // Ако има точно един обект, който потребителя може да избере се избира автоматично
-            if ($query->count() == 1) {
-                $rec = $query->fetch();
+            try {
+                // Ако има точно един обект, който потребителя може да избере се избира автоматично
+                if ($query->count() == 1) {
+                    $rec = $query->fetch();
+                }
+            } catch (core_exception_Db $e) {
+                reportException($e);
             }
             
             // Ако форсираме
             if ($bForce && !$rec) {
                 if(is_numeric($bForce)) {
-                    $rec = $mvc->fetch($bForce);
+                    try {
+                        $rec = $mvc->fetch($bForce);
+                    } catch (core_exception_Db $e) {
+                        reportException($e);
+                    }
                 }
                 
                 // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
