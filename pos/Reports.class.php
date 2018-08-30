@@ -367,7 +367,7 @@ class pos_Reports extends core_Master
     {
         if (!empty($data->form->toolbar->buttons['save'])) {
             $data->form->toolbar->removeBtn('save');
-            $data->form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/disk.png, title = Контиране на документа');
+            $data->form->toolbar->addSbBtn('Контиране', 'save', 'warning=Наистина ли желаете да контирате отчета|*?,ef_icon = img/16/disk.png,order=9.99985, title = Контиране на документа');
         }
     }
     
