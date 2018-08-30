@@ -120,6 +120,12 @@ class tracking_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'tracking_reports_VehiclesMonitoring';
+    
+    
+    /**
      * Роли за достъп до модула
      */
     public $roles = 'tracking';
