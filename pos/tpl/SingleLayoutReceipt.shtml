@@ -9,19 +9,9 @@
 	
 		<table class='report-info'>
 			<tr>
-				<td>|Създаване на|*: </td>
+				<td>|Създаване|*</td>
 				<td></td>
-				<td><b>[#createdOn#]</b></td>
-			</tr>
-			<tr>
-				<td>|Създаване от|*: </td>
-				<td></td>
-				<td><b>[#createdBy#]</b></td>
-			</tr>
-			<tr>
-				<td>|Касиер|*: </td>
-				<td></td>
-				<td><b>[#cashier#]</b></td>
+				<td>[#createdOn#] |от|* [#createdBy#]</td>
 			</tr>
 			<tr>
 				<td>|Точка на продажба|*:</td>
@@ -71,7 +61,6 @@
 				<td class = 'summary-right'><b>[#change#]</b></td>
 			</tr>
 		</table>
-	<span>|Създаден|* <!--ET_BEGIN createdDate-->|на|* <b>[#createdDate#]</b><!--ET_END createdDate--> |от|* <b>[#createdBy#]</b></span>
 	<br /><br />
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
