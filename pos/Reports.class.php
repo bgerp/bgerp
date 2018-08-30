@@ -562,13 +562,8 @@ class pos_Reports extends core_Master
     protected static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
         if ($rec->state != 'draft' && $rec->state != 'closed') {
-            if ($rec->state == 'active') {
-                $nextState = 'closed';
-                $msg = 'Приключени';
-            } else {
-                $nextState = 'waiting';
-                $msg = 'Активирани';
-            }
+            $nextState = ($rec->state == 'active') ? 'closed' : 'waiting';
+            $msg = ($rec->state == 'active') ? 'Приключени' : 'Активирани';
             
             // Всяка бележка в репорта се "затваря"
             $count = 0;
@@ -578,8 +573,10 @@ class pos_Reports extends core_Master
                     continue;
                 }
                 
+                $receiptRec->modifiedBy = core_Users::getCurrent();
+                $receiptRec->modifiedOn = dt::now();
                 $receiptRec->state = $nextState;
-                pos_Receipts::save($receiptRec, 'state');
+                pos_Receipts::save($receiptRec, 'state,modifiedOn,modifiedBy');
                 $count++;
             }
             
