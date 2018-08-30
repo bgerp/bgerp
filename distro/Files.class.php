@@ -1071,4 +1071,79 @@ class distro_Files extends core_Detail
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
     }
+    
+    
+    /**
+     * Екшън за качване на файл от нерегистирирани потребители
+     */
+    function act_UploadFile()
+    {
+        $cId = Request::get('c', 'int');
+        $mId = Request::get('m');
+        
+        expect($cId && $mId);
+        
+        $cRec = doc_Containers::fetch($cId);
+        
+        expect($cRec && $cRec->state != 'rejected');
+        
+        expect(doclog_Documents::opened($cId, $mId));
+        
+        $gDoc = doc_Containers::getDocument($cId);
+        
+        expect($gDoc && $gDoc->instance instanceof distro_Group);
+        
+        $gRec = $gDoc->fetch();
+        
+        expect($gRec && $gRec->state != 'rejected');
+        
+        $retUrl = array('L', 'S', $cId, 'm' => $mid);
+        
+        $form = $this->getForm();
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ, onclick=self.close();');
+        
+        $form->title = 'Качване на файл';
+        
+        $form->setDefault('groupId', $gRec->id);
+        $form->setField('groupId', 'input=none');
+        
+        $reposArr = array();
+        
+        // Вземаме масива с хранилищата, които са зададени в мастера
+        $reposArr = $this->Master->getReposArr($gRec->id);
+        
+        if (empty($reposArr)) {
+            $form->setField('repos', 'input=none');
+        } else {
+            $form->setSuggestions('repos', $reposArr);
+            if (count($reposArr) == 1) {
+                $form->setDefault('repos', '|'. key($reposArr) . '|');
+            }
+        }
+        
+        $form->input();
+        
+        Mode::set('wrapper', 'page_Dialog');
+        
+        if ($form->isSubmitted()) {
+            $tpl = new ET();
+            jquery_Jquery::run($tpl, 'self.close();');
+            $tpl->append("window.opener.distroUploadFile{$gRec->id}()", 'SCRIPTS');
+            
+            $this->save($form->rec);
+            
+            $this->logInAct('Добавяне на файл', $form->rec);
+        } else {
+            $tpl = $form->renderHtml();
+        }
+        
+        // Добавяме клас към бодито
+        $tpl->append('dialog-window', 'BODY_CLASS_NAME');
+        
+        $tpl->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
+        
+        return $tpl;
+    }
 }
