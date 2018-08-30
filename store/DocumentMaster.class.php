@@ -618,8 +618,10 @@ abstract class store_DocumentMaster extends core_Master
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
      * 		varchar|NULL  ['ourReff']      - наш реф
+     * 		double|NULL   ['totalWeight']  - общо тегло
+     * 		double|NULL   ['totalVolume']  - общ обем
      */
-    public function getLogisticData($rec)
+    public function getLogisticData_($rec)
     {
         $rec = $this->fetchRec($rec);
         $ownCompany = crm_Companies::fetchOurCompany();
@@ -642,6 +644,7 @@ abstract class store_DocumentMaster extends core_Master
         $contrPart = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
         
         // Подготвяне на данните за разтоварване
+        $res = array();
         $res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'commonName');
         
         if (isset($storeLocation)) {
@@ -676,6 +679,9 @@ abstract class store_DocumentMaster extends core_Master
         
         $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
         $res['ourReff'] = '#' . $this->getHandle($rec);
+        
+        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
+        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
         
         return $res;
     }

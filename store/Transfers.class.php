@@ -498,6 +498,8 @@ class store_Transfers extends core_Master
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
      * 		varchar|NULL  ['ourReff']      - наш реф
+     *  	double|NULL   ['totalWeight']  - общо тегло
+     * 		double|NULL   ['totalVolume']  - общ обем
      */
     public function getLogisticData($rec)
     {

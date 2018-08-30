@@ -2028,6 +2028,8 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
      *		varchar|NULL  ['ourReff']      - наш реф
+     * 		double|NULL   ['totalWeight']  - общо тегло
+     * 		double|NULL   ['totalVolume']  - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -2056,6 +2058,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
         $contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
         
+        $res = array();
         $res["{$ownPart}Country"] = $ownCountry;
         if (isset($storeLocation)) {
             $res["{$ownPart}PCode"] = !empty($storeLocation->pCode) ? $storeLocation->pCode : null;
