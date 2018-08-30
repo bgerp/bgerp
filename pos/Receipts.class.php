@@ -742,17 +742,17 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         
-        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въведи')), 'INPUT_FLD');
+        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане')), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
         $block->append(ht::createFnBtn('Код', null, null, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
-        $block->append(ht::createFnBtn('К-во', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
+        $block->append(ht::createFnBtn('К-во', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промяна на количество')), 'FIRST_TOOLS_ROW');
         
         if (pos_Setup::get('SHOW_DISCOUNT_BTN') == 'yes') {
-            $block->append(ht::createFnBtn('|Отстъпка|* %', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+            $block->append(ht::createFnBtn('|Отстъпка|* %', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задаване на отстъпка')), 'FIRST_TOOLS_ROW');
         }
         
-        $block->append(ht::createFnBtn('*', null, null, array('class' => 'buttonForm tools-sign', 'title' => 'Умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
+        $block->append(ht::createFnBtn('*', null, null, array('class' => 'buttonForm tools-sign', 'title' => 'Знак за умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
         
         return $block;
     }
@@ -1105,14 +1105,14 @@ class pos_Receipts extends core_Master
         }
         
         $disClass = ($recUrl) ? '' : 'disabledBtn';
-        $block->append(ht::createBtn('Касов бон', $recUrl, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'CLOSE_BTNS');
+        $block->append(ht::createBtn('Касов бон', $recUrl, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка')), 'CLOSE_BTNS');
         
         if ($this->haveRightFor('close', $rec)) {
             $contoUrl = array('pos_Receipts', 'close', $rec->id);
-            $hint = tr('Приключи продажбата');
+            $hint = tr('Приключване на продажбата');
         } else {
             $contoUrl = null;
-            $hint = $hintInv = tr('Не може да приключите бележката, докато не е платена');
+            $hint = tr('Не може да приключите бележката, докато не е платена');
         }
         
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
