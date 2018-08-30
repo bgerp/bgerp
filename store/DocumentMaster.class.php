@@ -621,7 +621,7 @@ abstract class store_DocumentMaster extends core_Master
      * 		double|NULL   ['totalWeight']  - общо тегло
      * 		double|NULL   ['totalVolume']  - общ обем
      */
-    public function getLogisticData_($rec)
+    public function getLogisticData($rec)
     {
         $rec = $this->fetchRec($rec);
         $ownCompany = crm_Companies::fetchOurCompany();
