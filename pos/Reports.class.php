@@ -404,7 +404,7 @@ class pos_Reports extends core_Master
             // Ако детайла е плащане
             $row->pack = $currencyCode;
             $value = ($obj->value != -1) ? cond_Payments::getTitleById($obj->value) : tr('В брой');
-            $row->value = tr('Плащания') . ": &nbsp;<i>{$value}</i>";
+            $row->value = "<b>" . tr('Плащане') . "</b>: &nbsp;<i>{$value}</i>";
             $row->ROW_ATTR['class'] = 'report-payment';
             unset($row->quantity);
         }
