@@ -590,6 +590,39 @@ class store_Products extends core_Detail
             $queue[] = $reserved;
         }
         
+        // Добавят се и запазените от бележки в POS-а
+        if(core_Packs::isInstalled('pos')){
+            $receiptQuery = pos_Receipts::getQuery();
+            $receiptQuery->EXT('storeId', 'pos_Points', 'externalName=storeId,externalKey=pointId');
+            $receiptQuery->where("#state = 'waiting'");
+            $receiptQuery->show('storeId,modifiedOn');
+            while($receiptRec = $receiptQuery->fetch()){
+                $reserved = core_Permanent::get("reserved_receipts_{$receiptRec->id}", $receiptRec->modifiedOn);
+                
+                // Ако няма кеширани к-ва
+                if (!isset($reserved)) {
+                    $reserved = array();
+                    
+                    $rQuery = pos_ReceiptDetails::getQuery();
+                    $rQuery->where("#receiptId = {$receiptRec->id}");
+                    $rQuery->where("#action LIKE '%sale%'");
+                    
+                    while ($rd = $rQuery->fetch()) {
+                        $packRec = cat_products_Packagings::getPack($rd->productId, $rd->value);
+                        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+                        $quantity = $quantityInPack * $rd->quantity;
+                        
+                        $key = "{$receiptRec->storeId}|{$rd->productId}";
+                        $reserved[$key] = array('sId' => $receiptRec->storeId, 'pId' => $rd->productId, 'q' => $quantity);
+                    }
+                    
+                    core_Permanent::set("reserved_receipts_{$receiptRec->id}", $reserved, 4320);
+                }
+                
+                $queue[] = $reserved;
+            }
+        }
+        
         // Сумиране на к-та
         foreach ($queue as $arr) {
             foreach ($arr as $key => $obj) {
@@ -600,7 +633,7 @@ class store_Products extends core_Detail
                 }
             }
         }
-        
+       
         // Извличане на всички стари записи
         $storeQuery = static::getQuery();
         $old = $storeQuery->fetchAll();
@@ -681,6 +714,20 @@ class store_Products extends core_Detail
                 }
             }
         }
+        
+        // Бележките в които е участвало
+        $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
+        $receiptQuery->EXT('storeId', 'pos_Points', "externalName=storeId,externalKey=pointId");
+        $receiptQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
+        $receiptQuery->where("#productId = {$rec->productId} AND #state = 'waiting' AND #action LIKE '%sale%'");
+        $receiptQuery->groupBy('receiptId');
+        $receiptQuery->show('receiptId');
+        while ($receiptRec = $receiptQuery->fetch()) {
+            $docs["receipt{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
+        }
+        
+        $dQuery->where("#storeId = {$rec->storeId}");
         
         $links = '';
         foreach ($docs as $link) {
