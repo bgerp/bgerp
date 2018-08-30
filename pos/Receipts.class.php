@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -212,7 +212,7 @@ class pos_Receipts extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
@@ -1668,10 +1668,23 @@ class pos_Receipts extends core_Master
     /**
      * Преди изтриване
      */
-    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
         }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $valiorVerbal = self::getVerbal($rec, 'valior');
+        $pointIdVerbal = self::getVerbal($rec, 'pointId');
+        $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
+        
+        return $title;
     }
 }
