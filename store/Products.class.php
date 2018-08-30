@@ -716,18 +716,19 @@ class store_Products extends core_Detail
         }
         
         // Бележките в които е участвало
-        $receiptQuery = pos_ReceiptDetails::getQuery();
-        $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
-        $receiptQuery->EXT('storeId', 'pos_Points', "externalName=storeId,externalKey=pointId");
-        $receiptQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
-        $receiptQuery->where("#productId = {$rec->productId} AND #state = 'waiting' AND #action LIKE '%sale%'");
-        $receiptQuery->groupBy('receiptId');
-        $receiptQuery->show('receiptId');
-        while ($receiptRec = $receiptQuery->fetch()) {
-            $docs["receipt{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
+        if(core_Packs::isInstalled('pos')){
+            $receiptQuery = pos_ReceiptDetails::getQuery();
+            $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
+            $receiptQuery->EXT('storeId', 'pos_Points', "externalName=storeId,externalKey=pointId");
+            $receiptQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
+            $receiptQuery->where("#productId = {$rec->productId} AND #state = 'waiting' AND #action LIKE '%sale%'");
+            $receiptQuery->where("#storeId = {$rec->storeId}");
+            $receiptQuery->groupBy('receiptId');
+            $receiptQuery->show('receiptId');
+            while ($receiptRec = $receiptQuery->fetch()) {
+                $docs["receipt{$receiptRec->receiptId}"] = pos_Receipts::getHyperlink($receiptRec->receiptId, true);
+            }
         }
-        
-        $dQuery->where("#storeId = {$rec->storeId}");
         
         $links = '';
         foreach ($docs as $link) {
