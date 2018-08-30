@@ -600,11 +600,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaPrevious);
                     
                     $changeSales = $dRec->totalValue - $dRec->totalPrimeCostPrevious;
-                    $row->changeSales = '<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
+                    $row->changeSales = '<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
                     $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
                     
                     $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaPrevious;
-                    $row->changeDeltas = '<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
+                    $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
                 if ($rec->compare == 'year') {
@@ -615,11 +615,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaLastYear);
                     
                     $changeSales = $dRec->totalValue - $dRec->totalPrimeCostLastYear;
-                    $row->changeSales = "<span class= {$color}>" . '<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalPrimeCostLastYear) . '</b>' . '</span>';
+                    $row->changeSales = '<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue - $dRec->totalPrimeCostLastYear) . '</b>';
                     $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
                     
                     $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaLastYear;
-                    $row->changeDeltas = "<span class= {$color}>" . '<b>' . $marker . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaLastYear) . '</b>' . '</span>';
+                    $row->changeDeltas =  '<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaLastYear) . '</b>';
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
             }
