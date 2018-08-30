@@ -269,14 +269,14 @@ class plg_Current extends core_Plugin
     
     
     /**
-     * Добавя функционално поле 'currentPlg'
-     *
-     * @param $mvc
+     * Преди рендиране на таблицата
      */
-    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listFields['currentPlg'] = 'Текущ';
-        $mvc->FNC('currentPlg', 'varchar', 'caption=Терминал,tdClass=centerCol');
+        if(!Mode::is('printing')){
+            $data->listFields['currentPlg'] = 'Текущ';
+            $data->listTableMvc->FNC('currentPlg', 'varchar', 'tdClass=centerCol');
+        }
     }
     
     
