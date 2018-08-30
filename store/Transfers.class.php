@@ -520,6 +520,9 @@ class store_Transfers extends core_Master
             }
         }
         
+        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
+        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+        
         return $res;
     }
     
