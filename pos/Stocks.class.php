@@ -57,7 +57,7 @@ class pos_Stocks extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productId,storeId,quantity,lastUpdated,state';
+    public $listFields = 'id,productId,storeId,quantity,state';
     
     
     /**
@@ -74,7 +74,6 @@ class pos_Stocks extends core_Manager
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,remember=info');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
-        $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Последен ъпдейт,input=none');
         $this->FLD('state', 'enum(active=Активирано,closed=Затворено)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
@@ -187,7 +186,6 @@ class pos_Stocks extends core_Manager
             $rec = new stdClass();
             $rec->storeId = $receiptRec->storeId;
             $rec->productId = $receiptRec->productId;
-            $rec->lastUpdated = dt::now();
         }
         
         $rec->quantity -= $receiptRec->quantity * $receiptRec->quantityInPack;

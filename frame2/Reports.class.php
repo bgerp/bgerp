@@ -496,7 +496,7 @@ class frame2_Reports extends embed_Manager
         
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
-            $tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
+            $tpl->replace($Driver->renderData($rec), 'DRIVER_DATA');
         } else {
             $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на отчета') . '</b></span>', 'DRIVER_DATA');
         }

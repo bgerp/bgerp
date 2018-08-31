@@ -24,9 +24,13 @@ class transsrv_plg_CreateAuction extends core_Plugin
     {
         $rec = $data->rec;
         
+        $d = $mvc->getLogisticData($rec);
+       
         if ($systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'))) {
             if ($mvc->haveRightFor('createauction', $rec)) {
                 $d = $mvc->getLogisticData($rec);
+                $d['maxWeight'] = $d['totalWeight'];
+                $d['maxVolume'] = $d['totalVolume'];
                 $d = base64_encode(gzcompress(json_encode($d)));
                 
                 //$url = array('transbid_Auctions', 'Add', 'd' => $d);

@@ -367,7 +367,7 @@ class pos_Reports extends core_Master
     {
         if (!empty($data->form->toolbar->buttons['save'])) {
             $data->form->toolbar->removeBtn('save');
-            $data->form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/disk.png, title = Контиране на документа');
+            $data->form->toolbar->addSbBtn('Контиране', 'save', 'warning=Наистина ли желаете да контирате отчета|*?,ef_icon = img/16/disk.png,order=9.99985, title = Контиране на документа');
         }
     }
     
@@ -404,7 +404,7 @@ class pos_Reports extends core_Master
             // Ако детайла е плащане
             $row->pack = $currencyCode;
             $value = ($obj->value != -1) ? cond_Payments::getTitleById($obj->value) : tr('В брой');
-            $row->value = tr('Плащания') . ": &nbsp;<i>{$value}</i>";
+            $row->value = "<b>" . tr('Плащане') . "</b>: &nbsp;<i>{$value}</i>";
             $row->ROW_ATTR['class'] = 'report-payment';
             unset($row->quantity);
         }
@@ -562,13 +562,8 @@ class pos_Reports extends core_Master
     protected static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
         if ($rec->state != 'draft' && $rec->state != 'closed') {
-            if ($rec->state == 'active') {
-                $nextState = 'closed';
-                $msg = 'Приключени';
-            } else {
-                $nextState = 'waiting';
-                $msg = 'Активирани';
-            }
+            $nextState = ($rec->state == 'active') ? 'closed' : 'waiting';
+            $msg = ($rec->state == 'active') ? 'Приключени' : 'Активирани';
             
             // Всяка бележка в репорта се "затваря"
             $count = 0;
@@ -578,8 +573,10 @@ class pos_Reports extends core_Master
                     continue;
                 }
                 
+                $receiptRec->modifiedBy = core_Users::getCurrent();
+                $receiptRec->modifiedOn = dt::now();
                 $receiptRec->state = $nextState;
-                pos_Receipts::save($receiptRec, 'state');
+                pos_Receipts::save($receiptRec, 'state,modifiedOn,modifiedBy');
                 $count++;
             }
             
