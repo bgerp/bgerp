@@ -121,9 +121,14 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         
         $query = tracking_Log::getQuery();
         
-        $query->where("(#createdOn  >= '{$rec->from}' AND #createdOn  <= '{$rec->to}')");
+        $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+        
+        $vehicleArr = keylist::toArray($rec->vehicle);
+        
+        $query->in('vehicleId', $vehicleArr);
         
         while ($vehicle = $query->fetch()) {
+          
             $parseData['latitude'] = $parseData['longitude'] = 0;
             
             $id = $vehicle->vehicleId;
@@ -143,21 +148,19 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $values[$id] = core_Array::combine($values[$id], array(
                 'info' => $vehicleData->number));
             
-                $recs[$id] = (object) array(
-                    
-                    'number' =>$vehicleData->number,
-                    'make' =>$vehicleData->make,
-                    'model' =>$vehicleData->model,
-                    'personId' =>$vehicleData->personId,
-                    'trackerId' =>$vehicleData->trackerId,
-                    
-                );
-           
+            $recs[$id] = (object) array(
+                
+                'number' => $vehicleData->number,
+                'make' => $vehicleData->make,
+                'model' => $vehicleData->model,
+                'personId' => $vehicleData->personId,
+                'trackerId' => $vehicleData->trackerId,
+            
+            );
         }
         
-        $recs["values"] = $values;
-      
-   
+        $recs['values'] = $values;
+        
         return $recs;
     }
     
@@ -171,10 +174,13 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-        
         $values = $data->recs['values'];
        
-        $tpl = location_Paths::renderView($values);
+        if (is_array($values)) {
+            $tpl = location_Paths::renderView($values);
+        } else {
+            $tpl = 'Липсват данни';
+        }
         
         return $tpl;
     }
@@ -226,15 +232,14 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $groArr = array();
         $row = new stdClass();
         
-        if (is_object($dRec)){
-        
-        $row->number = $dRec->number;
-        $row->make = $dRec->make;
-        $row->model = $dRec->model;
-        $row->personId = $dRec->personId;
-        $row->trackerId = $dRec->trackerId;
-        
+        if (is_object($dRec)) {
+            $row->number = $dRec->number;
+            $row->make = $dRec->make;
+            $row->model = $dRec->model;
+            $row->personId = $dRec->personId;
+            $row->trackerId = $dRec->trackerId;
         }
+        
         return $row;
     }
 }
