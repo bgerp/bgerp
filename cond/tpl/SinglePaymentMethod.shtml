@@ -4,6 +4,9 @@
         <h2 style="line-height:30px" class=" [#STATE_CLASS#]">[#SingleTitle#]</h2>
         <!--ET_BEGIN type-->
         <div>|Вид|*: <b>[#type#]</b></div>
+        <!--ET_BEGIN onlinePaymentDriver-->
+        <div>|Онлайн плащане|*: <b>[#onlinePaymentDriver#]</b></div>
+        <!--ET_END onlinePaymentDriver-->
         <!--ET_END type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Авансово плащане|*</legend>
