@@ -134,25 +134,30 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             
             $coords[] = array($parseData['latitude'],$parseData['longitude']);
             
-            $recs[$id] = array(
+            $values[$id] = array(
                 'coords' => $coords
             );
             
-            $recs[$id] = core_Array::combine($recs[$id], array(
-                'info' => tracking_Vehicles::fetchField($id, 'number')));
-
-//             $recs[$id]= core_Array::combine($recs[$id], array(
-//                 "number" => tracking_Vehicles::fetchField($id,'number')));
-//             $recs[$id]= core_Array::combine($recs[$id], array(
-//                 "make" => tracking_Vehicles::fetchField($id,'make')));
-//             $recs[$id]= core_Array::combine($recs[$id], array(
-//                 "model" => tracking_Vehicles::fetchField($id,'model')));
-//             $recs[id]= core_Array::combine($recs[$id], array(
-//                 "personId" => tracking_Vehicles::fetchField($id,'personId')));
-//             $recs[$id]= core_Array::combine($recs[$id], array(
-//                 "trackerId" => tracking_Vehicles::fetchField($id,'trackerId')));
+            $vehicleData = tracking_Vehicles::fetch($id);
+            
+            $values[$id] = core_Array::combine($values[$id], array(
+                'info' => $vehicleData->number));
+            
+                $recs[$id] = (object) array(
+                    
+                    'number' =>$vehicleData->number,
+                    'make' =>$vehicleData->make,
+                    'model' =>$vehicleData->model,
+                    'personId' =>$vehicleData->personId,
+                    'trackerId' =>$vehicleData->trackerId,
+                    
+                );
+           
         }
         
+        $recs["values"] = $values;
+      
+   
         return $recs;
     }
     
@@ -166,7 +171,10 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-        $tpl = location_Paths::renderView($data->recs);
+        
+        $values = $data->recs['values'];
+       
+        $tpl = location_Paths::renderView($values);
         
         return $tpl;
     }
@@ -218,8 +226,15 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $groArr = array();
         $row = new stdClass();
         
-        $row->vehicle = '<b>' . 'Превозно средство' . '</b>';
+        if (is_object($dRec)){
         
+        $row->number = $dRec->number;
+        $row->make = $dRec->make;
+        $row->model = $dRec->model;
+        $row->personId = $dRec->personId;
+        $row->trackerId = $dRec->trackerId;
+        
+        }
         return $row;
     }
 }
