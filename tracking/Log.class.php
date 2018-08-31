@@ -221,7 +221,7 @@ class tracking_Log extends core_Master
      *
      * @return array с елементи от GPRMS
      */
-    private static function parseTrackingData($data)
+    public static function parseTrackingData($data)
     {
         // Взимаме GPRMC sentence
         $res['dataTracking'] = substr($data, 0, strpos($data, '*')); // до този знак е изречението, 2 знака след това - CRC-то
@@ -252,7 +252,7 @@ class tracking_Log extends core_Master
      *
      * @return float - decimal degrees
      */
-    private static function DMSToDD($data)
+    public static function DMSToDD($data)
     {
         // Махаме последния символ
         $sign = substr($data, -1);

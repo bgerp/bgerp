@@ -857,7 +857,7 @@ class type_Keylist extends core_Type
      */
     protected function getSelectFld()
     {
-        if (core_Lg::getCurrent() == 'bg' && $this->params['selectBg']) {
+        if ($this->params['selectBg'] && core_Lg::getCurrent() == 'bg') {
             
             return $this->params['selectBg'];
         }

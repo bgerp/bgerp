@@ -499,22 +499,12 @@ class pos_ReceiptDetails extends core_Detail
         }
         
         $row->code = $Varchar->toVerbal($productInfo->productRec->code);
-        if ($productInfo->productRec->measureId) {
-            $row->uomId = cat_UoM::getShortName($productInfo->productRec->measureId);
-        }
-        
-        $row->perPack = $Double->toVerbal($perPack);
         
         if ($rec->value) {
-            $row->value = cat_UoM::getTitleById($rec->value);
+            $row->value = tr(cat_UoM::getTitleById($rec->value));
+            deals_Helper::getPackInfo($row->value, $rec->productId, $rec->value, $perPack);
         } else {
-            if ($fields['-list']) {
-                $row->value = cat_UoM::getTitleById($productInfo->productRec->measureId);
-            } else {
-                $row->value = $row->uomId;
-            }
-            
-            unset($row->uomId);
+            $row->value = tr(cat_UoM::getTitleById($productInfo->productRec->measureId));
         }
         
         // Ако отстъпката е нула да не се показва
@@ -522,12 +512,7 @@ class pos_ReceiptDetails extends core_Detail
             unset($row->discountPercent);
         }
         
-        if ($fields['-list']) {
-            $row->value .= " <small class='quiet'>" . $row->perPack  . $row->uomId .  '</span>';
-            $row->productId = cat_Products::getHyperLink($rec->productId, true);
-        } else {
-            $row->productId = cat_Products::getTitleById($rec->productId, true);
-        }
+        $row->productId = ($fields['-list']) ? cat_Products::getHyperLink($rec->productId, true) : cat_Products::getTitleById($rec->productId, true);
     }
     
     

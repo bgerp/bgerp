@@ -82,7 +82,7 @@ class tcost_Zones extends core_Detail
     public function description()
     {
         $this->FLD('zoneId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
-        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = commonName)', 'caption=Държава, mandatory,smartCenter');
+        $this->FLD('countryId', 'key(mvc = drdata_Countries, select=commonName, selectBg=commonNameBg)', 'caption=Държава, mandatory,smartCenter');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
     }
     
