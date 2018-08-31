@@ -25,7 +25,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'sysId, title, lastUsedOn=Последно, state, createdBy,createdOn';
+    public $listFields = 'title, sysId, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
