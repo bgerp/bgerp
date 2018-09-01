@@ -1064,7 +1064,7 @@ class crm_Profiles extends core_Master
             if ($profRec && $profRec->stateDateFrom) {
                 $dateFrom = strstr($profRec->stateDateFrom, ' ', true);
                 $dateTo = strstr($profRec->stateDateTo, ' ', true);
-                $nextWorkingDay = strstr(cal_Calendar::nextWorkingDay(), ' ', true);
+                $nextWorkingDay = strstr(cal_Calendar::nextWorkingDay(null, 0), ' ', true);
                 $today = dt::now(false);
                 
                 if ($dateFrom <= $today && $today <= $dateTo) {

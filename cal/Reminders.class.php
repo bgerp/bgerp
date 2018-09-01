@@ -309,7 +309,7 @@ class cal_Reminders extends core_Master
         
         if (!$data->form->rec->id) {
             $cu = core_Users::getCurrent();
-            $nextWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(1));
+            $nextWorkDay = cal_Calendar::nextWorkingDay();
             
             $time = strstr($nextWorkDay, ' ', true). ' 08:00';
             

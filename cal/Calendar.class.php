@@ -166,7 +166,8 @@ class cal_Calendar extends core_Master
         $this->FLD('allDay', 'enum(yes=Да,no=Не)', 'caption=Цял ден?');
         
         // Индекси
-         $this->setDbUnique('key');
+        $this->setDbUnique('key');
+        $this->setDbIndex('time');
     }
     
     
@@ -796,18 +797,47 @@ class cal_Calendar extends core_Master
     /**
      * Намира първият работен ден, започвайки от посочения и
      * движейки се напред (1) или назад (-1)
+     * 
+     * @param string $date Датата след/преди която се търси ден
+     * @param int $userId Потребителят за когото се проверява. Ако не е посочен се отчитат само общите почивни дни
+     * @param string $direction Посока на търсене : +1 - следващ ден, -1 - предишен ден
+     * @param string $country Двубуквен код на дъжавата в контекста на която се търси
+     *
+     * @return string датата, която се явява първата възможна и е работна
      */
-    static function nextWorkingDay($date = NULL, $direction = 1, $country = 'bg')
+    public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg')
     {
-        if (!$date) {
-            $date = dt::addDays($direction);
+        if($userId === null) {
+            $userId = core_Users::getCurrent();
         }
-        
-        while (self::isHoliday($date)) {
+
+        do {
             $date = dt::addDays($direction, $date);
-        }
+        } while(self::isHoliday($date, $country) || self::isAbsent($date, $userId));
         
+        list($date, $time) = explode(' ', $date);
+
         return $date;
+    }
+
+
+    /**
+     * Връща дали дадения служител ще отсъства на уречената дата
+     */
+    public static function isAbsent($date, $userId)
+    {
+        // Системните и анонимните потребители не отсъстват
+        if($userId <= 0) return false;
+
+        list($date, $time) = explode(' ', $date);
+        $fromTime = $date . ' 00:00:00';
+        $toTime   = $date   . ' 23:59:59';
+
+        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND (#type = 'leaves' OR #type = 'sick')");
+
+        if($rec) return true;
+
+        return false;
     }
     
     
