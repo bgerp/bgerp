@@ -1605,4 +1605,41 @@ class crm_Profiles extends core_Master
             unset($mvc->details[$remotePackKey]);
         }
     }
+
+
+    /**
+     * Връща потребителя към дадена визитка на човек. Възможно е да няма такъв
+     *
+     * @param int $peronId
+     *
+     * @return int $userId
+     */
+    public static function getUserByPerson($personId)
+    {
+        $rec = self::fetch("#personId = {$personId}");
+        if($rec) {
+
+            return $rec->userId;
+        }
+    }
+   
+    
+    /**
+     * Връща id на визитка към потребител
+     *
+     * @param int $userId
+     *
+     * @return int $peronId
+     */
+    public static function getPersonByUser($userId)
+    {
+        $rec = self::fetch("#userId = {$userId}");
+        if($rec) {
+
+            return $rec->peronId;
+        }
+    }
+
+
+    
 }
