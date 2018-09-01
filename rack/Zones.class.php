@@ -139,7 +139,7 @@ class rack_Zones extends core_Master
     {
         $Movements = clone cls::get('rack_Movements');
         $data = (object)array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
-        $data->listFields = arr::make("position=От,productId=Артикул,packQuantity=Количество,packagingId=Опаковка,workerId=Товарач", true);
+        $data->listFields = arr::make("movement=От,productId=Артикул,workerId=Товарач", true);
         $data->listTableMvc->setField('position', 'smartCenter');
         $data->recs = self::getCurrentMovementRecs($rec->id);
         
@@ -338,7 +338,7 @@ class rack_Zones extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 $document = doc_Containers::getDocument($rec->containerId);
-                $selectedStoreId = store_Stores::getCurrent('id', false);
+                $selectedStoreId = store_Stores::getCurrent('id');
                 if(!rack_Zones::fetchField("#storeId = {$selectedStoreId} AND #state != 'closed'")){
                     $requiredRoles = 'no_one';
                 } else {
@@ -528,7 +528,7 @@ class rack_Zones extends core_Master
             }
             
             if(!count($palletsArr)) continue;
-            
+           
             // Какво е разпределянето на палетите
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             
@@ -556,7 +556,13 @@ class rack_Zones extends core_Master
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
         $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
+        
         while($dRec = $dQuery->fetch()){
+           
+            // Участват само тези по които се очакват още движения
+            $needed = $dRec->documentQuantity - $dRec->movementQuantity;
+            if(empty($needed) || $needed < 0) continue;
+            
             $key = "{$dRec->productId}|{$dRec->packagingId}";
             if(!array_key_exists($key, $res->products)){
                 $res->products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array());

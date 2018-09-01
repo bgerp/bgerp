@@ -498,6 +498,8 @@ class store_Transfers extends core_Master
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
      * 		varchar|NULL  ['ourReff']      - наш реф
+     *  	double|NULL   ['totalWeight']  - общо тегло
+     * 		double|NULL   ['totalVolume']  - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -517,6 +519,9 @@ class store_Transfers extends core_Master
                 $res["{$part}Person"] = !empty($location->mol) ? $location->mol : null;
             }
         }
+        
+        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
+        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
         
         return $res;
     }

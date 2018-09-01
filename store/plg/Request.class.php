@@ -39,7 +39,7 @@ class store_plg_Request extends core_Plugin
         
         // Подмяна на бутона за клониране към такъв с остатък
         $rec = $data->rec;
-        if ($data->toolbar->hasBtn("clone{$rec->containerId}") && $rec->state == 'active') {
+        if ($data->toolbar->haveButton("clone{$rec->containerId}") && $rec->state == 'active') {
             $Detail = cls::get($mvc->mainDetail);
             $undelivered = $Detail->getUndeliveredDetails($rec->id);
             

@@ -131,7 +131,7 @@ class distro_Files extends core_Detail
         $this->FLD('sourceFh', 'fileman_FileType(bucket=' . distro_Group::$bucket . ')', 'caption=Файл, mandatory, remember=info');
         $this->FLD('name', 'varchar', 'caption=Име, width=100%, input=none');
         $this->FLD('repoId', 'key(mvc=distro_Repositories, select=name)', 'caption=Хранилище, width=100%, input=none');
-        $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name, select2MinItems=6)', 'caption=Хранилища, width=100%, maxColumns=3, mandatory, input=input');
+        $this->FNC('repos', 'keylist(mvc=distro_Repositories, select=name, select2MinItems=6)', 'caption=Хранилища, width=100%, maxColumns=3, input=input');
         $this->FLD('info', 'varchar', 'caption=Информация, width=100%');
         $this->FLD('md5', 'varchar(32)', 'caption=Хеш на файла, width=100%,input=none');
         
@@ -165,7 +165,7 @@ class distro_Files extends core_Detail
     /**
      * Връща пълния път до файла в хранилището
      *
-     * @param stdClass|int $id
+     * @param int $id
      * @param NULL|int     $repoId
      * @param NULL|int     $groupId
      * @param NULL|string  $name
@@ -177,13 +177,19 @@ class distro_Files extends core_Detail
         $repoId = isset($repoId) ? $repoId : $rec->repoId;
         $groupId = isset($groupId) ? $groupId : $rec->{$this->masterKey};
         
-        $rRec = distro_Repositories::fetch((int) $repoId);
-        
-        $subDirName = $this->Master->getSubDirName($groupId);
-        
-        $name = $name ? $name : $rec->name;
-        
-        $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
+        if ($repoId) {
+            $rRec = distro_Repositories::fetch((int) $repoId);
+            
+            $subDirName = $this->Master->getSubDirName($groupId);
+            
+            $name = $name ? $name : $rec->name;
+            
+            $path = rtrim($rRec->path, '/') . '/' . $subDirName . '/' . $name;
+        } else {
+            if ($rec->sourceFh) {
+                $path = fileman_Download::getDownloadUrl($rec->sourceFh);
+            }
+        }
         
         return $path;
     }
@@ -254,6 +260,9 @@ class distro_Files extends core_Detail
         if ($group) {
             $query->groupBy('repoId');
         }
+        
+        $query->where('#repoId IS NOT NULL');
+        $query->where("#repoId != ''");
         
         return $query->fetchAll();
     }
@@ -556,7 +565,10 @@ class distro_Files extends core_Detail
             $nRec->createdOn = $date;
         }
         
-        $this->save($nRec, null, 'IGNORE');
+        $sId = $this->save($nRec, null, 'IGNORE');
+        if ($sId) {
+            distro_Actions::addNotifications($nRec->groupId);
+        }
         
         return $nRec->id;
     }
@@ -676,9 +688,14 @@ class distro_Files extends core_Detail
                 $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
             }
             
-            expect(!empty($reposArr));
-            
-            $data->form->setSuggestions('repos', $reposArr);
+            if (empty($reposArr)) {
+                $data->form->setField('repos', 'input=none');
+            } else {
+                $data->form->setSuggestions('repos', $reposArr);
+                if (count($reposArr) == 1) {
+                    $data->form->setDefault('repos', '|'. key($reposArr) . '|');
+                }
+            }
         }
     }
     
@@ -697,7 +714,7 @@ class distro_Files extends core_Detail
                 $rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
                 $rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
                 
-                if (!$rec->id) {
+                if (!$rec->id && $rec->repos) {
                     $rec->__addToRepo = true;
                 }
             }
@@ -751,15 +768,20 @@ class distro_Files extends core_Detail
     /**
      * Извиква се след успешен запис в модела
      *
-     * @param core_Mvc $mvc
-     * @param int      $id  първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param core_Mvc     $mvc
+     * @param int          $id     първичния ключ на направения запис
+     * @param stdClass     $rec    всички полета, които току-що са били записани
+     * @param array|string $fields
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = array())
     {
         // Сваляме файла в хранилището
         if (isset($rec->__addToRepo)) {
             distro_Actions::addToRepo($rec);
+        }
+        
+        if (!$rec->repoId && !$fields) {
+            distro_Actions::addToRepo($rec, 'distro_UploadDriver');
         }
     }
     
@@ -805,6 +827,11 @@ class distro_Files extends core_Detail
             }
         }
         
+        // Подреждаме спрямо хранилищата - да не се разместват при всяка промяна
+        if (!empty($reposAndFilesArr)) {
+            ksort($reposAndFilesArr);
+        }
+        
         // Добавяме масива
         $data->reposAndFilesArr = $reposAndFilesArr;
     }
@@ -824,10 +851,7 @@ class distro_Files extends core_Detail
             
             // Масив с вербалните данни
             $data->rowReposAndFilesArr[$repoId] = array();
-            
-            // Заглавие на хранилището
-            $repoTitle = distro_Repositories::getVerbal($repoId, 'name');
-            
+
             // Обхождаме масива с id'та
             foreach ((array) $idsArr as $id) {
                 
@@ -892,7 +916,7 @@ class distro_Files extends core_Detail
         if ($rec->sourceFh && $rec->name) {
             
             // Вземаме линк с текущото име
-            $row->sourceFh = fileman::getLinkToSingle($rec->sourceFh, false, array(), $rec->name);
+            $row->sourceFh = fileman::getLink($rec->sourceFh, $rec->name);
         }
     }
     
@@ -940,6 +964,12 @@ class distro_Files extends core_Detail
             // Шаблон за таблица
             $tplTable = getTplFromFile('distro/tpl/FilesRepoTable.shtml');
             
+            if (Mode::isReadOnly()) {
+                $tplTable->removeBlock('Tools');
+            } else {
+                $tplTable->replace(' ', 'Tools');
+            }
+            
             // Обхождаме масива с хранилищата
             foreach ($reposArr as $repo) {
                 
@@ -949,10 +979,18 @@ class distro_Files extends core_Detail
                 // Заместваме данните
                 $tplRow->replace($repo->modified, 'modified');
                 $tplRow->replace($repo->file, 'file');
-                $tplRow->replace($repo->tools, 'tools');
+                
+                if (!Mode::isReadOnly()) {
+                    $tplRow->replace($repo->tools, 'tools');
+                }
                 
                 // Ако има информация
                 if ($info = trim($repo->info)) {
+                    if (Mode::isReadOnly()) {
+                        $tplRow->replace(2, 'colspan');
+                    } else {
+                        $tplRow->replace(3, 'colspan');
+                    }
                     
                     // Заместваме информацията
                     $tplRow->replace($info, 'fileInfo');
@@ -965,8 +1003,16 @@ class distro_Files extends core_Detail
                 $tplTable->append($tplRow, 'repoRow');
             }
             
-            // Линк към хранилището
-            $repoTitleLink = distro_Repositories::getLinkToSingle($repoId, 'name');
+            if ($repoId) {
+                // Линк към хранилището
+                if (!Mode::isReadOnly()) {
+                    $repoTitleLink = distro_Repositories::getLinkToSingle($repoId, 'name');
+                } else {
+                    $repoTitleLink = distro_Repositories::getVerbal($repoId, 'name');
+                }
+            } else {
+                $repoTitleLink = tr('Система');
+            }
             
             // Добавяме в шаблона
             $tplTable->append($repoTitleLink, 'repoTitle');
@@ -1027,5 +1073,80 @@ class distro_Files extends core_Detail
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
+    }
+    
+    
+    /**
+     * Екшън за качване на файл от нерегистирирани потребители
+     */
+    function act_UploadFile()
+    {
+        $cId = Request::get('c', 'int');
+        $mId = Request::get('m');
+        
+        expect($cId && $mId);
+        
+        $cRec = doc_Containers::fetch($cId);
+        
+        expect($cRec && $cRec->state != 'rejected');
+        
+        expect(doclog_Documents::opened($cId, $mId));
+        
+        $gDoc = doc_Containers::getDocument($cId);
+        
+        expect($gDoc && $gDoc->instance instanceof distro_Group);
+        
+        $gRec = $gDoc->fetch();
+        
+        expect($gRec && $gRec->state != 'rejected');
+        
+        $retUrl = array('L', 'S', $cId, 'm' => $mid);
+        
+        $form = $this->getForm();
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ, onclick=self.close();');
+        
+        $form->title = 'Качване на файл';
+        
+        $form->setDefault('groupId', $gRec->id);
+        $form->setField('groupId', 'input=none');
+        
+        $reposArr = array();
+        
+        // Вземаме масива с хранилищата, които са зададени в мастера
+        $reposArr = $this->Master->getReposArr($gRec->id);
+        
+        if (empty($reposArr)) {
+            $form->setField('repos', 'input=none');
+        } else {
+            $form->setSuggestions('repos', $reposArr);
+            if (count($reposArr) == 1) {
+                $form->setDefault('repos', '|'. key($reposArr) . '|');
+            }
+        }
+        
+        $form->input();
+        
+        Mode::set('wrapper', 'page_Dialog');
+        
+        if ($form->isSubmitted()) {
+            $tpl = new ET();
+            jquery_Jquery::run($tpl, 'self.close();');
+            $tpl->append("window.opener.distroUploadFile{$gRec->id}()", 'SCRIPTS');
+            
+            $this->save($form->rec);
+            
+            $this->logInAct('Добавяне на файл', $form->rec);
+        } else {
+            $tpl = $form->renderHtml();
+        }
+        
+        // Добавяме клас към бодито
+        $tpl->append('dialog-window', 'BODY_CLASS_NAME');
+        
+        $tpl->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
+        
+        return $tpl;
     }
 }

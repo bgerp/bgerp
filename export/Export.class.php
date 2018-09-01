@@ -132,8 +132,7 @@ class export_Export extends core_Mvc
         $inst->requireRightFor('exportdoc', $dRec);
         
         $form = $this->getForm();
-        
-        $form->title = 'Експортиране на документ';
+        $form->title = 'Експортиране на|*' . $inst->getFormTitleLink($docId);
         
         $retUrl = getRetUrl();
         

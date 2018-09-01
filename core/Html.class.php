@@ -916,8 +916,8 @@ class core_Html
     {
         // Ако има зададена иконка в линка, слагаме я преди заглавието
         if (is_array($attr) && isset($attr['ef_icon'])) {
-            $icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], '')));
-            $title = "{$icon} {$title}";
+            $icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], ''), 'class' => 'linkRefIcon'));
+            $title = "{$icon} <span class = 'linkRefText'>{$title}</span>";
             unset($attr['ef_icon']);
         }
         

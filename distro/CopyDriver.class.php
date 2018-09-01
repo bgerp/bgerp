@@ -110,6 +110,10 @@ class distro_CopyDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
+        if (!$rec->repoId) {
+            $rec->repoId = $rec->sourceRepoId;
+        }
+        
         $fRec = distro_Files::fetch($rec->fileId);
         
         $FileInst = cls::get('distro_Files');
@@ -124,7 +128,6 @@ class distro_CopyDriver extends core_Mvc
         }
         
         $destFilePath = escapeshellarg($destFilePath);
-        $destFilePath = str_replace(' ', '\\ ', $destFilePath);
         
         $hostParams = distro_Repositories::getHostParams($rec->sourceRepoId);
         
@@ -135,11 +138,16 @@ class distro_CopyDriver extends core_Mvc
         
         $copyExec = '';
         
-        if ($this->useSSHPass) {
-            $copyExec .= "sshpass -p {$pass} ";
+        if (!$fRec->repoId) {
+            $copyExec .= "wget -q --no-check-certificate -O {$destFilePath} {$srcFilePath}";
+        } else {
+            if ($this->useSSHPass) {
+                $copyExec .= "sshpass -p {$pass} ";
+            }
+            
+            $destFilePath = str_replace(' ', '\\ ', $destFilePath);
+            $copyExec .= "scp -o StrictHostKeyChecking=no -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
         }
-        
-        $copyExec .= "scp -o StrictHostKeyChecking=no -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
         
         return $copyExec;
     }
@@ -268,7 +276,12 @@ class distro_CopyDriver extends core_Mvc
     {
         if ($rec->sourceRepoId) {
             $fileName = $embeder->getFileName($rec);
-            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName;
+            
+            if ($rec->repoId) {
+                $row->Info .= ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            }
+            
             $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->sourceRepoId, 'name');
             
             if ($rec->newFileId && $rec->newFileName && ($rec->newFileName != $rec->fileName)) {

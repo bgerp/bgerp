@@ -163,7 +163,7 @@ class distro_Actions extends embed_Manager
      *
      * @param stdClass $fRec
      * @param string   $driverName
-     * @param bollean  $onlyCallback
+     * @param bool     $onlyCallback
      */
     public static function addToRepo($fRec, $driverName = 'distro_AbsorbDriver', $onlyCallback = false)
     {
@@ -190,7 +190,7 @@ class distro_Actions extends embed_Manager
     /**
      * Връща линк към файла или името му
      *
-     * @param stdObjec $rec
+     * @param object $rec
      *
      * @return string
      */
@@ -401,6 +401,8 @@ class distro_Actions extends embed_Manager
      */
     public function prepareDetail_($data)
     {
+        if (Mode::isReadOnly()) return ;
+        
         $data->masterKey = $this->masterKey;
         
         // Очакваме да masterKey да е зададен
@@ -447,6 +449,8 @@ class distro_Actions extends embed_Manager
      */
     public function renderDetail_($data)
     {
+        if (Mode::isReadOnly()) return ;
+        
         if (!isset($data->listClass)) {
             $data->listClass = 'listRowsDetail';
         }
@@ -635,44 +639,77 @@ class distro_Actions extends embed_Manager
                 $driverInst = $mvc->getDriver($rec);
                 if ($driverInst) {
                     $command = $driverInst->getActionStr($rec);
-                    
-                    $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
-                    
-                    // Ако преди всяка заявка ще се създава директорията, ако липсва
-                    if ($mvc->checkAndCreateDir) {
-                        $subDirName = distro_Group::getSubDirName($rec->groupId);
-                        $mkDir = distro_Repositories::getMkdirExec($rec->repoId, $subDirName);
+                    if ($rec->repoId) {
+                        $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
                         
-                        $command = $mkDir . '; ' . $command;
-                    }
-                    
-                    if ($errExec) {
-                        $command = '(' . $command . ') ' . $errExec;
-                    }
-                    
-                    $ssh = distro_Repositories::connectToRepo($rec->repoId);
-                    
-                    if (!$ssh) {
-                        $mvc->notifyErr($rec);
+                        // Ако преди всяка заявка ще се създава директорията, ако липсва
+                        if ($mvc->checkAndCreateDir) {
+                            $subDirName = distro_Group::getSubDirName($rec->groupId);
+                            $mkDir = distro_Repositories::getMkdirExec($rec->repoId, $subDirName);
+                            
+                            $command = $mkDir . '; ' . $command;
+                        }
                         
-                        return ;
-                    }
-                    
-                    $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), true);
-                    
-                    $mvc->logDebug("Стартирана команда: {$command}", $rec->id);
-                    
-                    $ssh->exec($command, $output, $errors, $callBackUrl);
-                    
-                    if ($eTrim = trim($errors)) {
-                        $mvc->notifyErr($rec);
-                        $mvc->logWarning($errors, $rec->id);
+                        if ($errExec) {
+                            $command = '(' . $command . ') ' . $errExec;
+                        }
+                        
+                        $ssh = distro_Repositories::connectToRepo($rec->repoId);
+                        
+                        if (!$ssh) {
+                            $mvc->notifyErr($rec);
+                            
+                            return ;
+                        }
+                        
+                        $callBackUrl = toUrl(array($mvc, 'Callback', $rec->id), true);
+                        
+                        $mvc->logDebug("Стартирана команда: {$command}", $rec->id);
+                        
+                        $ssh->exec($command, $output, $errors, $callBackUrl);
+                        
+                        if ($eTrim = trim($errors)) {
+                            $mvc->notifyErr($rec);
+                            $mvc->logWarning($errors, $rec->id);
+                        }
                     }
                 }
-            } else {
-                
+            }
+            
+            if ($rec->OnlyCallback || !$rec->repoId) {
                 // Ако трябва да се извика само калбек функцията
                 Request::forward(array('Ctr' => $mvc->className, 'Act' => 'Callback', 'id' => $rec->id));
+            }
+        }
+        
+        if ($rec->groupId) {
+            $DGroup = cls::get('distro_Group');
+            $DGroup->touchRec($rec->groupId);
+            
+            if (!$rec->StopExec) {
+                $mvc->addNotifications($rec->groupId);
+            }
+        }
+    }
+    
+    
+    /**
+     * Праща нотификация към абонираните към нишката
+     * 
+     * @param integer $groupId
+     */
+    public static function addNotifications($groupId)
+    {
+        if (!$groupId) return ;
+        
+        $DGroup = cls::get('distro_Group');
+        
+        $gRec = $DGroup->fetch($groupId);
+        if ($gRec->containerId) {
+            $sArr = doc_Containers::getSubscribedUsers($gRec->containerId, true, true);
+            if (!empty($sArr)) {
+                $cRec = doc_Containers::fetch($gRec->containerId);
+                doc_Containers::addNotifications($sArr, $DGroup, $cRec, 'обнови');
             }
         }
     }
@@ -718,6 +755,10 @@ class distro_Actions extends embed_Manager
         
         $file = $mvc->getFileName($rec);
         
-        $row->Info = tr($driver->title) . ' ' . tr('на') . ' ' . $file . ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+        $row->Info = tr($driver->title) . ' ' . tr('на') . ' ' . $file;
+        
+        if ($rec->repoId) {
+            $row->Info .= ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+        }
     }
 }

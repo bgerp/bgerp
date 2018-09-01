@@ -46,15 +46,23 @@ class plg_Current extends core_Plugin
             // Генериране на събитие, преди изпълнението на заявката
             $mvc->invoke('BeforeSelectByForce', array(&$query));
             
-            // Ако има точно един обект, който потребителя може да избере се избира автоматично
-            if ($query->count() == 1) {
-                $rec = $query->fetch();
+            try {
+                // Ако има точно един обект, който потребителя може да избере се избира автоматично
+                if ($query->count() == 1) {
+                    $rec = $query->fetch();
+                }
+            } catch (core_exception_Db $e) {
+                reportException($e);
             }
             
             // Ако форсираме
             if ($bForce && !$rec) {
                 if(is_numeric($bForce)) {
-                    $rec = $mvc->fetch($bForce);
+                    try {
+                        $rec = $mvc->fetch($bForce);
+                    } catch (core_exception_Db $e) {
+                        reportException($e);
+                    }
                 }
                 
                 // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
@@ -259,14 +267,14 @@ class plg_Current extends core_Plugin
     
     
     /**
-     * Добавя функционално поле 'currentPlg'
-     *
-     * @param $mvc
+     * Преди рендиране на таблицата
      */
-    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listFields['currentPlg'] = 'Текущ';
-        $mvc->FNC('currentPlg', 'varchar', 'caption=Терминал,tdClass=centerCol');
+        if(!Mode::is('printing')){
+            $data->listFields['currentPlg'] = 'Текущ';
+            $data->listTableMvc->FNC('currentPlg', 'varchar', 'tdClass=centerCol');
+        }
     }
     
     

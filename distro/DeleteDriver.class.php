@@ -87,6 +87,11 @@ class distro_DeleteDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
+        if (!$rec->repoId) {
+            
+            return '';
+        }
+        
         $DFiles = cls::get('distro_Files');
         
         $fPath = $DFiles->getRealPathOfFile($rec->fileId, $rec->repoId);
@@ -162,7 +167,11 @@ class distro_DeleteDriver extends core_Mvc
                 $fileName = fileman::getLinkToSingle($rec->delSourceFh, false, array(), $rec->name);
             }
             
-            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName . ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName;
+            
+            if ($rec->repoId) {
+                $row->Info .= ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
+            }
         }
     }
 }

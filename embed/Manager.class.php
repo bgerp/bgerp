@@ -323,6 +323,7 @@ class embed_Manager extends core_Master
                 case 'afterrendersingletitle':
                 case 'afterrendersingletoolbar':
                 case 'beforerendersinglelayout':
+                case 'beforerendersingletoolbar':
                 case 'beforerendersingle':
                 case 'afterrendersingle':
                 case 'beforerendersingle':

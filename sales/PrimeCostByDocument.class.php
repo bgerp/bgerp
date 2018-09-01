@@ -150,16 +150,16 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (isset($fields['-list'])) {
-            $row->ROW_ATTR['class'] = "state-{$rec->state}";
-            
-            $row->productId = cat_Products::getHyperlink($rec->productId, true);
-            try {
-                $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
-            } catch (core_exception_Expect $e) {
-                $row->containerId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
-            }
+        $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        try {
+             $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+        } catch (core_exception_Expect $e) {
+             $row->containerId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
         }
+        
+        $row->delta = ht::styleIfNegative($row->delta, $rec->delta);
     }
     
     

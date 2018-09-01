@@ -596,4 +596,27 @@ class drdata_Countries extends core_Manager
             $countryGroupsInst->saveArray($saveArr);
         }
     }
+    
+    
+    /**
+     * Връща опции за избор на държава
+     * 
+     * @param mixed $countries
+     * @return array $options
+     */
+    public static function getOptionsArr($countries)
+    {
+        $options = array();
+        $countriesArr = keylist::toArray($countries);
+        $lg = core_Lg::getCurrent();
+        
+        $query = self::getQuery();
+        $query->in('id', $countriesArr);
+        while($rec = $query->fetch()){
+             $name = ($lg == 'bg') ? $rec->commonNameBg : $rec->commonName;
+             $options[$rec->id]  =core_Type::getByName('varchar')->toVerbal($name);
+        }
+        
+        return $options;
+    }
 }

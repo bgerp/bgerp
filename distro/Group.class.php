@@ -127,6 +127,12 @@ class distro_Group extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $listFields = 'id, title, repos, createdOn, createdBy';
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'distro_Files, distro_Actions';
@@ -144,7 +150,7 @@ class distro_Group extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%, silent');
-        $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
+        $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, width=100%, maxColumns=3');
     }
     
     
@@ -217,20 +223,6 @@ class distro_Group extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        // Ако добавяме или променяме запис
-        if ($action == 'add' || $action == 'edit') {
-            
-            // Вземаме всички хранилища
-            $reposArr = distro_Repositories::getReposArr();
-            
-            // Ако няма достъп до някой от тях
-            if (empty($reposArr)) {
-                
-                // Никой да не може да добавя
-                $requiredRoles = 'no_one';
-            }
-        }
-        
         // Ако ще разглеждаме сингъла на документа
         if ($action == 'single') {
             
@@ -244,9 +236,15 @@ class distro_Group extends core_Master
         
         // За да може да синхронизира файловете, трябва да има права за сингъла
         if ($action == 'sync') {
-            if (!$mvc->haveRightFor('single', $rec, $userId)) {
+            $reposArr = distro_Repositories::getReposArr();
+            
+            if (!$mvc->haveRightFor('single', $rec, $userId) || empty($reposArr)) {
                 
                 // Никой да не може
+                $requiredRoles = 'no_one';
+            }
+            
+            if ($rec && (!$rec->repos || $rec->state == 'draft' || $rec->state == 'rejected')) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -513,6 +511,8 @@ class distro_Group extends core_Master
     {
         $resArr = array();
         
+        $rec = $this->fetchRec($rec);
+        
         if (!$rec->id) {
             
             return $resArr;
@@ -690,6 +690,47 @@ class distro_Group extends core_Master
     public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', null, '300 MB', 'user', 'user');
+        $res .= fileman_Buckets::createBucket(self::$bucket, 'Качени файлове в дистрибутива', null, '300 MB', 'every_one', 'every_one');
+    }
+    
+    
+    /**
+     *
+     *
+     * @param email_Outgoings $mvc
+     * @param core_Et         $tpl
+     * @param object          $data
+     */
+    public function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if (Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && ($data->rec->state == 'active')) {
+            
+            $urlArr = array('distro_Files', 'uploadFile', 'c' => Request::get('id'), 'm' => Request::get('m'));
+            $url = toUrl($urlArr);
+            
+            // Ако е мобилен/тесем режим
+            if (Mode::is('screenMode', 'narrow')) {
+                // Парамтери към отварянето на прозореца
+                $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            } else {
+                $args = 'width=450,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            }
+            
+            $attr = array('onClick' => "openWindow('{$url}', 'distro_upload_file', '{$args}'); return false;");
+            $attr['ef_icon'] = 'img/16/attach_2.png';
+            $attr['title'] = 'Качване на файл';
+            $attr['class'] = 'button';
+            
+            $btn = ht::createBtn('Нов файл', $urlArr, false, false, $attr);
+            $tpl->append($btn, 'DETAILS');
+            
+            // JS функцията за рефрешване на страницата
+            $callback = "function distroUploadFile{$data->rec->id}() {
+                location.reload();
+            }";
+            
+            // Добавяме скрипта
+            $tpl->appendOnce($callback, 'SCRIPTS');
+        }
     }
 }

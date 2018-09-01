@@ -129,7 +129,7 @@ class type_Keylist extends core_Type
         if ($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
             
-            if (($part = $this->params['select']) && $part != '*') {
+            if (($part = $this->getSelectFld()) && $part != '*') {
                 if (!$rec = $mvc->fetch($k)) {
                     
                     return '???';
@@ -444,7 +444,7 @@ class type_Keylist extends core_Type
         
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
         
-        if ($select = $this->params['select']) {
+        if ($select = $this->getSelectFld()) {
             $mvc = &cls::get($this->params['mvc']);
             $query = $mvc->getQuery();
             
@@ -849,5 +849,19 @@ class type_Keylist extends core_Type
         $list = '|' . implode('|', $arr) . '|';
         
         return $list;
+    }
+    
+    
+    /**
+     * Инициализиране на типа
+     */
+    protected function getSelectFld()
+    {
+        if ($this->params['selectBg'] && core_Lg::getCurrent() == 'bg') {
+            
+            return $this->params['selectBg'];
+        }
+        
+        return $this->params['select'];
     }
 }

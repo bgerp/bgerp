@@ -864,6 +864,9 @@ class distro_Repositories extends core_Master
     {
         $rec = $mvc->fetchRec($id);
         
+        $sysDir = $mvc->createDir($rec->id, self::$systemPath . '/');
+        $errDir = $mvc->createDir($rec->id, self::$systemPath . '/' . self::$errPath . '/');
+        
         $sshObj = self::connectToRepo($rec);
         
         if ($sshObj === false) {

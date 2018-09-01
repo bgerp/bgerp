@@ -159,9 +159,7 @@ class tcost_Fees extends core_Detail
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
      *
-     * @param int    $deliveryTermId - ид на условието на доставка
-     * @param int    $countryId      - id на съотверната държава
-     * @param string $pCode          - пощенски код
+     * @param null|stdClass $zone    - запис на зона или NULL ако не е намерена 
      * @param float  $totalWeight    - Посоченото тегло
      * @param int    $singleWeight
      *
@@ -171,15 +169,11 @@ class tcost_Fees extends core_Detail
      *                   [2] - Id на зоната
      *                   [3] - Срока на доставка з
      */
-    public static function calcFee($deliveryTermId, $countryId, $pCode, $totalWeight, $singleWeight = 1)
+    public static function calcFee($zone, $totalWeight, $singleWeight = 1)
     {
         // Общото тегло не трябва да е по-малко от еденичното
         $totalWeight = max($totalWeight, $singleWeight);
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
-        
-        // Определяне на зоната на транспорт, за зададеното условие на доставка
-        $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
-        
         
         // Ако не се намери зона се връща 0
         if (is_null($zone)) {
@@ -207,19 +201,14 @@ class tcost_Fees extends core_Detail
         }
         
         // дотук имаме масив Тегло -> Сума
-        
-        
-        
         //Създаваме вече индексиран масив от ключовете на по горния асоциативен маскив
         $indexedArray = array_keys($arrayOfWeightPrice);
         
         // Разглеждаме 4 случая
         // Търсеното тегло е по-малко от най-малкото в масива. Тогава Общата цена е най-малката
-        
-        
         $minWeight = min($indexedArray);
         $maxWeight = max($indexedArray);
-        $totalWeight = round($totalWeight);
+        $totalWeight = round($totalWeight, 2);
         
         if ($totalWeight < $minWeight) {
             $finalPrice = $arrayOfWeightPrice[$minWeight];

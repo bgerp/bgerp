@@ -508,6 +508,10 @@ class doc_Linked extends core_Manager
         $form->input();
         
         if ($form->cmd != 'refresh') {
+            doc_Linked::showLinkedInForm($form, $originFId, $type);
+        }
+        
+        if ($form->cmd != 'refresh') {
             if ($type == 'file') {
                 doc_DocumentPlg::showOriginalFile($rec, $form);
             } elseif ($type == 'doc') {
@@ -597,10 +601,6 @@ class doc_Linked extends core_Manager
                 
                 $form->layout->append($tpl);
             }
-        }
-        
-        if ($form->cmd != 'refresh') {
-            doc_Linked::showLinkedInForm($form, $originFId, $type);
         }
         
         $form->title = 'Свързване на файлове и документи с|* ' . $clsInst->getLinkToSingle($fId);

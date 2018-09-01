@@ -588,7 +588,7 @@ class planning_Jobs extends core_Master
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието');
         }
         
-        if ($data->toolbar->hasBtn('btnActivate')) {
+        if ($data->toolbar->haveButton('btnActivate')) {
             if (self::fetchField("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
                 $data->toolbar->setWarning('btnActivate', 'В момента има активно задание, желаете ли да създадете още едно?');
             }

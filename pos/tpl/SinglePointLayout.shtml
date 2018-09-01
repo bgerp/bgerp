@@ -17,15 +17,14 @@
 								<td>[#storeId#]</td>
 							</tr>
 							<tr>
+								<td class='dt'>|Контрагент|*:</td>
+								<td>[#contragent#]</td>
+							</tr>
+							
+							<tr>
 								<td class='dt'>|Политика|*:</td>
 								<td>[#policyId#]</td>
 							</tr>
-							<!--ET_BEGIN CloseTime-->
-							<tr>
-								<td class='dt'>|Затваряне на нишките|*:</td>
-								<td>|Автоматично след|* [#CloseTime#]</td>
-							</tr>
-							<!--ET_END CloseTime-->
 						</table>
 				</div>
 			</fieldset>

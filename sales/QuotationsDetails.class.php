@@ -1106,7 +1106,7 @@ class sales_QuotationsDetails extends doc_Detail
     {
         // Синхронизиране на сумата на транспорта
         if ($rec->syncFee === true) {
-            sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
+            sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
         }
     }
     

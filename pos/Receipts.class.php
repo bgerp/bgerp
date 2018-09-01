@@ -9,7 +9,7 @@
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -25,9 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, doc_plg_MultiPrint, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
-    				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
-                     plg_Modified';
+    public $loadList = 'plg_Created, plg_Rejected, doc_plg_MultiPrint, plg_Printing, acc_plg_DocumentSummary, plg_Printing,plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,plg_Modified';
     
     
     /**
@@ -39,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state , createdOn, createdBy';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state';
     
     
     /**
@@ -133,15 +131,9 @@ class pos_Receipts extends core_Master
     
     
     /**
-     * Инстанция на детайла
-     */
-    public $pos_ReceiptDetails;
-    
-    
-    /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, valior,modifiedOn';
+    public $filterDateField = 'createdOn, valior, modifiedOn';
     
     
     /**
@@ -149,7 +141,7 @@ class pos_Receipts extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,input=none');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Дата,input=none');
         $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
         $this->FLD('contragentObjectId', 'int', 'input=none');
@@ -220,12 +212,12 @@ class pos_Receipts extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
         if ($fields['-list']) {
-            $row->title = "{$mvc->singleTitle} №{$row->id}";
+            $row->title = "{$mvc->singleTitle} №{$rec->id}";
             $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), null, "ef_icon={$mvc->singleIcon}");
         } elseif ($fields['-single']) {
             $row->title = "{$mvc->singleTitle} <b>№{$row->id}</b>";
@@ -401,9 +393,17 @@ class pos_Receipts extends core_Master
     /**
      *  Филтрираме бележката
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('#createdOn', 'DESC');
+        pos_Points::addPointFilter($data->listFilter, $data->query);
+        $filterDateFld = $data->listFilter->rec->filterDateField;
+        $data->query->orderBy($filterDateFld, 'DESC');
+        
+        foreach (array('valior', 'createdOn', 'modifiedOn') as $fld) {
+            if($fld != $data->listFilter->rec->filterDateField){
+                unset($data->listFields[$fld]);
+            }
+        }
     }
     
     
@@ -742,17 +742,17 @@ class pos_Receipts extends core_Master
             $block->append($htmlScan, 'FIRST_TOOLS_ROW');
         }
         
-        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въведи')), 'INPUT_FLD');
+        $block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => 'Въвеждане')), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
         $block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
         $block->append(ht::createFnBtn('Код', null, null, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
-        $block->append(ht::createFnBtn('К-во', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
+        $block->append(ht::createFnBtn('К-во', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промяна на количество')), 'FIRST_TOOLS_ROW');
         
         if (pos_Setup::get('SHOW_DISCOUNT_BTN') == 'yes') {
-            $block->append(ht::createFnBtn('|Отстъпка|* %', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+            $block->append(ht::createFnBtn('|Отстъпка|* %', null, null, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задаване на отстъпка')), 'FIRST_TOOLS_ROW');
         }
         
-        $block->append(ht::createFnBtn('*', null, null, array('class' => 'buttonForm tools-sign', 'title' => 'Умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
+        $block->append(ht::createFnBtn('*', null, null, array('class' => 'buttonForm tools-sign', 'title' => 'Знак за умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
         
         return $block;
     }
@@ -1105,14 +1105,14 @@ class pos_Receipts extends core_Master
         }
         
         $disClass = ($recUrl) ? '' : 'disabledBtn';
-        $block->append(ht::createBtn('Касов бон', $recUrl, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'CLOSE_BTNS');
+        $block->append(ht::createBtn('Касов бон', $recUrl, null, null, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издаване на касова бележка')), 'CLOSE_BTNS');
         
         if ($this->haveRightFor('close', $rec)) {
             $contoUrl = array('pos_Receipts', 'close', $rec->id);
-            $hint = tr('Приключи продажбата');
+            $hint = tr('Приключване на продажбата');
         } else {
             $contoUrl = null;
-            $hint = $hintInv = tr('Не може да приключите бележката, докато не е платена');
+            $hint = tr('Не може да приключите бележката, докато не е платена');
         }
         
         $disClass = ($contoUrl) ? '' : 'disabledBtn';
@@ -1668,10 +1668,23 @@ class pos_Receipts extends core_Master
     /**
      * Преди изтриване
      */
-    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
         }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $valiorVerbal = self::getVerbal($rec, 'valior');
+        $pointIdVerbal = self::getVerbal($rec, 'pointId');
+        $title = "{$pointIdVerbal}/{$rec->id}/{$valiorVerbal}";
+        
+        return $title;
     }
 }

@@ -2,18 +2,18 @@
 
 
 /**
- * Абсорбиране на файлове в хранилище
+ * Качване на файлове в системата
  *
  * @category  bgerp
  * @package   distro
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class distro_AbsorbDriver extends core_Mvc
+class distro_UploadDriver extends core_Mvc
 {
     /**
      * Поддържа интерфейса за драйвер
@@ -24,7 +24,7 @@ class distro_AbsorbDriver extends core_Mvc
     /**
      * Заглавие на драйвера
      */
-    public $title = 'Абсорбиране';
+    public $title = 'Качване';
     
     
     /**
@@ -35,7 +35,7 @@ class distro_AbsorbDriver extends core_Mvc
     
     /**
      * Добавя полетата на драйвера към Fieldset
-     *
+     * 
      * @param core_Fieldset $fieldset
      */
     public function addFields(core_Fieldset &$fieldset)
@@ -96,33 +96,9 @@ class distro_AbsorbDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
-        $fRec = distro_Files::fetch($rec->fileId);
-        if (!$fRec->sourceFh || !$rec->repoId) {
-            
-            return '';
-        }
+        $rec->OnlyCallback = TRUE;
         
-        $fUrl = fileman_Download::getDownloadUrl($fRec->sourceFh);
-        $fUrl = escapeshellarg($fUrl);
-        
-        $FileInst = cls::get('distro_Files');
-        
-        $destFilePath = $FileInst->getUniqFileName($rec->fileId, $rec->sourceRepoId);
-        $destFilePathE = escapeshellarg($destFilePath);
-        
-        if ($rec->fileId) {
-            $fRec = distro_Files::fetch($rec->fileId);
-            $nName = pathinfo($destFilePath, PATHINFO_BASENAME);
-            
-            if (($nName) && $nName != $fRec->name) {
-                $fRec->name = $nName;
-                distro_Files::save($fRec, 'name');
-            }
-        }
-        
-        $absorbExec = "wget -q -O {$destFilePathE} --no-check-certificate {$fUrl}";
-        
-        return $absorbExec;
+        return '';
     }
     
     

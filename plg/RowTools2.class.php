@@ -222,7 +222,7 @@ class plg_RowTools2 extends core_Plugin
                 $tools = &$row->_rowTools;
                 
                 // Ако е оказано поле за линк към сингъла, и имаме само бутон за сингъл
-                if (isset($mvc->rowToolsSingleField) && $tools->hasBtn("single{$rec->id}") && $tools->count() == 1) {
+                if (isset($mvc->rowToolsSingleField) && $tools->haveButton("single{$rec->id}") && $tools->count() == 1) {
                     
                     // Махаме го
                     $tools->removeBtn("single{$rec->id}");

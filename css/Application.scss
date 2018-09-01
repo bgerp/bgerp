@@ -6570,6 +6570,10 @@ row-fluid {
 	top: 2px;
 }
 
+.linkRefIcon {
+	position: relative;
+	top: 2px;
+}
 
 .vislog {
 	white-space:nowrap;
@@ -6600,6 +6604,15 @@ row-fluid {
 	}
 	.logs-type-err td {
 	    background-color: #fad0d1 !important;
+	}
+}
+
+.document div.tab-control.alphabet div.tab-row .tab{
+	padding: 4px 5px 5px !important;
+	display: inline-block;
+	background: #dddddd;
+	&.selected {
+		top: 0 !important
 	}
 }
 
