@@ -88,11 +88,15 @@ class bgerp_plg_FLB extends core_Plugin
      *
      * @return bool
      */
-    public static function canUse($mvc, $rec, $userId, $action = 'activate')
+    public static function canUse($mvc, $rec, $userId = null, $action = 'activate')
     {
         // Инстанциране на класа при нужда
         if (!is_object($mvc)) {
             $mvc = cls::get($mvc);
+        }
+        
+        if($userId === null) {
+            $userId = core_Users::getCurrent();
         }
         
         expect($mvc->hasPlugin('bgerp_plg_FLB'), "'{$mvc->className}' не поддържа 'bgerp_plg_FLB'");
