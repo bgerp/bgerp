@@ -164,7 +164,7 @@ class bgerp_plg_FLB extends core_Plugin
         if ($action == 'select') {
             // По подразбиране, който може да актоивира документ в обекта, той може и да избира обекта
             if(empty($res)) {
-                $res = $mvc->getRequiredRoles('activate', null, $userId);
+                $res = $mvc->canActivate;
             }
             if (isset($rec) && !self::canUse($mvc, $rec, $userId, 'activate')) {
                 $res = 'no_one';
