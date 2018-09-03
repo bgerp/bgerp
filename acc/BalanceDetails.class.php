@@ -131,6 +131,9 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума,tdClass=ballance-field');
         $this->FLD('blQuantity', 'double(maxDecimals=3)', 'caption=Салдо->Количество,tdClass=ballance-field');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума,tdClass=ballance-field');
+        
+        $this->setDbIndex('balanceId');
+        $this->setDbIndex('accountId');
     }
     
     
@@ -839,7 +842,7 @@ class acc_BalanceDetails extends core_Detail
         if ($mvc->isDetailed()) {
             $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
             $url = array('acc_BalanceHistory', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
-            $row->history = ht::createLink($histImg, $url, null, 'title=Хронология на сметката по тези пера'); 
+            $row->history = ht::createLink($histImg, $url, null, 'title=Хронология на сметката по тези пера');
             $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
             
             foreach (range(1, 3) as $i) {
@@ -873,6 +876,7 @@ class acc_BalanceDetails extends core_Detail
     public function saveBalance($balanceId)
     {
         $toSave = array();
+        $toDelete = array();
         if (count($this->balance)) {
             foreach ($this->balance as $accId => $l0) {
                 foreach ($l0 as $ent1 => $l1) {
@@ -881,7 +885,7 @@ class acc_BalanceDetails extends core_Detail
                             
                             // Детайлите на текущия баланс ги записваме под системно ид -1
                             // След като всички данни са записани, ще се ъпдейтне индекса
-                            $rec['balanceId'] = '-1';
+                            $rec['balanceId'] = $balanceId;
                             
                             // Ако има сума закръгляме я до втория знак преди запис
                             foreach (array('blAmount', 'baseAmount') as $fld) {
@@ -899,44 +903,58 @@ class acc_BalanceDetails extends core_Detail
                                 }
                             }
                             
-                            $toSave[] = (object) $rec;
+                            $key = $rec['accountId'] . '|' . $rec['ent1Id'] . '|' . $rec['ent2Id'] . '|' . $rec['ent3Id'];
+                            
+                            $toSave[$key] = (object) $rec;
                         }
                     }
                 }
             }
         }
         
-        $res = true;
+        //Прочитаме всички текущи записи за този баланс
+        $query = self::getQuery();
+        while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
+            $key = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
+            
+            if ($newRec = $toSave[$key]) {
+                if ($newRec->blAmount != $rec->blAmount || $newRec->baseAmount != $rec->baseAmount ||
+                    $newRec->blQuantity != $rec->blQuantity || $newRec->baseQuantity != $rec->baseQuantity ||
+                    $newRec->debitQuantity != $rec->debitQuantity || $newRec->debitAmount != $rec->debitAmount ||
+                    $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount != $rec->creditAmount) {
+                    $toSave[$key]->id = $rec->id;
+                }
+                unset($toSave[$key]);
+            } else {
+                $toDelete[$rec->id] = $rec->id;
+            }
+        }
         
-        $sum = self::getCheckSum($balanceId);
-        
-        // Изтриваме всякакви записи за баланс с id == -1
-        $this->delete('#balanceId = -1');
-        
-        // Записваме всички данни наведнъж
-        $this->saveArray($toSave);
-        
-        // Изтриваме запаметените изчислени данни
-        unset($this->balance, $this->strategies);
+        $res = false;
         
         // Заключваме показването на информацията от баланса в кориците и документи
         core_Locks::get(acc_Balances::saveLockKey);
         
-        // Изтриваме старите данни за текущия баланс
-        $this->delete("#balanceId = {$balanceId}");
         
-        // Ъпдейтваме данните за баланс -1 да са към текущия баланс
-        // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
-        // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
-        $balanceIdColName = str::phpToMysqlName('balanceId');
-        $this->db->query("UPDATE {$this->dbTableName} SET {$balanceIdColName} = {$balanceId} WHERE {$balanceIdColName} = '-1'");
+        // Записваме новите данни
+        if (count($toSave)) {
+            $this->saveArray($toSave);
+            $res = true;
+        }
+        
+        
+        // Изтриваме старите записи, които не се срещат в новия
+        if (count($toDelete)) {
+            $idList = implode(',', $toDelete);
+            $this->delete("#id IN ({$idList})");
+            $res = true;
+        }
+        
+        // Изтриваме запаметените изчислени данни
+        unset($this->balance, $this->strategies);
         
         // Освобождаваме заключването
         core_Locks::release(acc_Balances::saveLockKey);
-        
-        if ($sum == self::getCheckSum($balanceId)) {
-            $res = false;
-        }
         
         return $res;
     }
