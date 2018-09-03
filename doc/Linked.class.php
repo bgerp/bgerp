@@ -263,7 +263,7 @@ class doc_Linked extends core_Manager
         
         $form->layout = $form->renderLayout();
         
-        $conStr = "<div class='preview-holder {$className}' style='padding-top: 25px;'>" . tr('Свързани документи и файлове') . " <a href=\"javascript:toggleDisplay('linkedView')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+        $conStr = "<div class='preview-holder {$className}' style='padding-top: 25px;'>" . tr('Свързани документи и файлове') . " <a href=\"javascript:toggleDisplay('linkedView')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn"> </a>';
         
         $hashParams = str::addHash($outType . '_' . $outVal . '_' . core_Users::getCurrent(), 8);
         
@@ -285,8 +285,6 @@ class doc_Linked extends core_Manager
             } catch (core_exception_Expect $e) {
             }
         }
-        
-        $style = "style='display:none;'";
         
         $conStr .= "<div id='linkedView'{$style}><ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;' onchange=\"getEfae().process({url: '{$renderViewUrl}'}, {rId: $('input[name=linkedRadio]:checked').val()});\">";
         

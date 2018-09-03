@@ -350,7 +350,12 @@ class core_Lg extends core_Manager
         
         if (!$lg) {
             if (!haveRole('user')) {
-                $lg = cms_Content::getLang();
+                try {
+                    $lg = cms_Content::getLang();
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+                
             } else {
                 $lg = self::getDefaultLang();
             }
