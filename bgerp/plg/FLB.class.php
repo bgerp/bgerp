@@ -89,7 +89,7 @@ class bgerp_plg_FLB extends core_Plugin
      * @return bool
      */
     public static function canUse($mvc, $rec, $userId = null, $action = 'activate')
-    { return true;
+    {
         // Инстанциране на класа при нужда
         if (!is_object($mvc)) {
             $mvc = cls::get($mvc);
