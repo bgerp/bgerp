@@ -923,8 +923,9 @@ class acc_BalanceDetails extends core_Detail
                     $newRec->debitQuantity != $rec->debitQuantity || $newRec->debitAmount != $rec->debitAmount ||
                     $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount != $rec->creditAmount) {
                     $toSave[$key]->id = $rec->id;
+                } else {
+                   unset($toSave[$key]);
                 }
-                // unset($toSave[$key]);
             } else {
                 $toDelete[$rec->id] = $rec->id;
             }
