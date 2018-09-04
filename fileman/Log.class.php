@@ -459,14 +459,10 @@ class fileman_Log extends core_Manager
                 // Хифенираме името на файла
                 $fileNameVerb = hyphen_Plugin::getHyphenWord($fileNameVerb);
                 
-                // Масив за вземане на уникалното id
-                $attrId = array();
-                
-                // Вземаме уникалното id
-                ht::setUniqId($attrId);
+                $id = 'last_' . $rec->id;
                 
                 // Атрибутите на линковете
-                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
+                $attr = array('onclick' => "flashDocInterpolation('{$id}'); if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
                 
                 // Името на файла да е линк с посочените атрибути
                 $fileNameLink = ht::createLink($fileNameVerb, '#', null, $attr);
@@ -487,7 +483,8 @@ class fileman_Log extends core_Manager
                 $data->rows[$key]->Name = $nameLink;
                 
                 // Добавяме id в атрибутите на файла
-                $data->rows[$key]->ROW_ATTR['id'] = $attrId['id'];
+                $data->rows[$key]->ROW_ATTR['id'] = $id;
+                $data->rows[$key]->ROW_ATTR['class'] = 'filemanLastLog';
             }
             
             // Да не се извикат останалите
@@ -506,7 +503,7 @@ class fileman_Log extends core_Manager
     /**
      * Връща иконата за подадения файл
      *
-     * @param fileHnd $fh   - Манупулатор на файла
+     * @param string  $fh   - Манупулатор на файла
      * @param int     $size - Размер на файла
      */
     public static function getIcon($fh, $size = 48)
