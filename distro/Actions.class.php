@@ -685,6 +685,32 @@ class distro_Actions extends embed_Manager
         if ($rec->groupId) {
             $DGroup = cls::get('distro_Group');
             $DGroup->touchRec($rec->groupId);
+            
+            if (!$rec->StopExec) {
+                $mvc->addNotifications($rec->groupId);
+            }
+        }
+    }
+    
+    
+    /**
+     * Праща нотификация към абонираните към нишката
+     * 
+     * @param integer $groupId
+     */
+    public static function addNotifications($groupId)
+    {
+        if (!$groupId) return ;
+        
+        $DGroup = cls::get('distro_Group');
+        
+        $gRec = $DGroup->fetch($groupId);
+        if ($gRec->containerId) {
+            $sArr = doc_Containers::getSubscribedUsers($gRec->containerId, true, true);
+            if (!empty($sArr)) {
+                $cRec = doc_Containers::fetch($gRec->containerId);
+                doc_Containers::addNotifications($sArr, $DGroup, $cRec, 'обнови');
+            }
         }
     }
     

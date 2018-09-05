@@ -808,11 +808,17 @@ class email_Incomings extends core_Master
                     $row->files = '';
                     
                     foreach ($vals as $keyD) {
-                        $dId = fileman::fetchField($keyD, 'dataId');
-                        if ($ourImgArr[$dId]) {
+                        $fRec = fileman::fetch($keyD);
+                        
+                        if ($ourImgArr[$fRec->dataId]) {
                             continue;
                         }
-                        $row->files .= fileman_Files::getLinkById($keyD);
+                        
+                        $url = null;
+                        if (!Mode::isReadOnly()) {
+                            $url = array($mvc, 'viewFile', $rec->id, 'fileHnd' => $fRec->fileHnd);
+                        }
+                        $row->files .= fileman_Files::getLink($fRec->fileHnd, null, $url);
                     }
                 } else {
                     $row->files = '';
@@ -983,6 +989,86 @@ class email_Incomings extends core_Master
                 $row->inReplyToOrigin = doc_Containers::getLinkForSingle($rec->originId);
             }
         }
+    }
+    
+    
+    /**
+     * Помощен екшън за добавяне на предишен и следващ във файла
+     *
+     * @return Redirect
+     */
+    public function act_ViewFile()
+    {
+        $id = Request::get('id', 'int');
+        
+        expect($rec = $this->fetch($id));
+        
+        $this->requireRightFor('single', $rec);
+        
+        $fh = Request::get('fileHnd');
+        
+        if ($rec->files) {
+            $vals = keylist::toArray($rec->files);
+            
+            if ($rec->htmlFile) {
+                unset($vals[$rec->htmlFile]);
+            }
+            
+            if (count($vals)) {
+                $ourImgArr = core_Permanent::get('ourImgEmailArr');
+                
+                $fileNavArr = Mode::get('fileNavArr');
+                
+                $haveChangeFileNavArr = false;
+                
+                $prevFile = null;
+                $allFRecArr = array();
+                foreach ($vals as $keyD) {
+                    $fRec = fileman::fetch($keyD);
+                    
+                    if ($ourImgArr[$fRec->dataId]) {
+                        continue;
+                    }
+                    
+                    $allFRecArr[$keyD] = $fRec;
+                    
+                    $haveChangeFileNavArr = true;
+                    
+                    // Записваме следващия файл, спрямо текущия
+                    if ($prevFile) {
+                        $fileNavArr[$fRec->fileHnd]['prev'] = array($this, 'viewFile', $rec->id, 'fileHnd' => $prevFile);
+                    } else {
+                        $fileNavArr[$fRec->fileHnd]['prev'] = null;
+                    }
+                    
+                    $prevFile = $fRec->fileHnd;
+                }
+                
+                // Записваме предишния файл, спрямо текущия
+                if (!empty($allFRecArr)) {
+                    $allFRecArr = array_reverse($allFRecArr);
+                    $nextFile = null;
+                    
+                    foreach ($allFRecArr as $fRec) {
+                        $haveChangeFileNavArr = true;
+                        
+                        if ($nextFile) {
+                            $fileNavArr[$fRec->fileHnd]['next'] = array($this, 'viewFile', $rec->id, 'fileHnd' => $nextFile);
+                        } else {
+                            $fileNavArr[$fRec->fileHnd]['next'] = null;
+                        }
+                        
+                        $nextFile = $fRec->fileHnd;
+                    }
+                }
+                
+                if ($haveChangeFileNavArr) {
+                    Mode::setPermanent('fileNavArr', $fileNavArr);
+                }
+            }
+        }
+        
+        return new Redirect(array('fileman_Files', 'single', $fh));
     }
     
     

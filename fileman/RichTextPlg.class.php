@@ -47,7 +47,7 @@ class fileman_RichTextPlg extends core_Plugin
             
             $bucketId = fileman_Buckets::fetchField("#name = '" . $mvc->params['bucket'] . "'", 'id');
             $url = fileman_Files::getUrLForAddFile($bucketId, $callbackName);
-            $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+            $js = "localStorage.removeItem('disabledRowАrr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
             
             // Ако е регистриран потребител
             if (haveRole('user')) {

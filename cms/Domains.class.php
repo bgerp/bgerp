@@ -31,7 +31,7 @@ class cms_Domains extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created,plg_Current';
+    public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created, plg_Current';
     
     
     /**
@@ -63,9 +63,16 @@ class cms_Domains extends core_Embedder
      */
     public $canList = 'ceo, cms, admin';
     
+
+    /**
+     * Кой може да избира текущ домейн
+     */
     public $canSelect = 'powerUser';
     
-    // Админа може да редактира и изтрива създадените от системата записи
+
+    /**
+     *    Админа може да редактира и изтрива създадените от системата записи
+     */
     public $canEditsysdata = 'admin';
     
     
@@ -506,6 +513,16 @@ class cms_Domains extends core_Embedder
                 $requiredRoles = 'no_one';
             }
         }
+
+        if ($action == 'select') {
+            $requiredRoles = 'ceo,admin,cms';
+            if(isset($rec)) {
+                if(!keylist::isIn($userId, $rec->shared)) {
+                    $requiredRoles = 'ceo,admin';
+                }
+            }
+        }
+
     }
     
     

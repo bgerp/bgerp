@@ -46,23 +46,15 @@ class plg_Current extends core_Plugin
             // Генериране на събитие, преди изпълнението на заявката
             $mvc->invoke('BeforeSelectByForce', array(&$query));
             
-            try {
-                // Ако има точно един обект, който потребителя може да избере се избира автоматично
-                if ($query->count() == 1) {
-                    $rec = $query->fetch();
-                }
-            } catch (core_exception_Db $e) {
-                reportException($e);
+            // Ако има точно един обект, който потребителя може да избере се избира автоматично
+            if ($query->count() == 1) {
+                $rec = $query->fetch();
             }
             
             // Ако форсираме
             if ($bForce && !$rec) {
                 if(is_numeric($bForce)) {
-                    try {
-                        $rec = $mvc->fetch($bForce);
-                    } catch (core_exception_Db $e) {
-                        reportException($e);
-                    }
+                    $rec = $mvc->fetch($bForce);
                 }
                 
                 // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
@@ -125,48 +117,46 @@ class plg_Current extends core_Plugin
                 $cnt++;
             }
 
+            $retUrl = getRetUrl();
+            if(!$resUrl || !count($retUrl) || $retUrl['Ctr'] == $mvc->className) {
+                $retUrl = array('Portal', 'Show');
+            }
+
             if(!count($opt) && $cnt) {
-                requireRole('ceo,admin');
-            }
+                $form->setField('choice', 'input=none');
+                $form->info = "<div style='padding:10px; background-color:yellow;'>" . tr("Липсват достъпни за избор") . " " . mb_strtolower(tr($mvc->title)) . "</div>";
+            } else {
 
-            $form->setOptions('choice', $opt);
-            
-            $key = self::getPermanentKey($mvc);
+                $form->setOptions('choice', $opt);
+                
+                $key = self::getPermanentKey($mvc);
 
-            $lastId = core_Permanent::get($key);
+                $lastId = core_Permanent::get($key);
 
-            if($lastId && $opt[$lastId]) {
-                $form->setDefault('choice', $lastId);
-            }
-
-            if(count($opt) == 1) {  
-                $mvc->selectCurrent(key($opt));
-                if (!Request::get('ret_url')) {
-                    $res = new Redirect(array($mvc));
-                } else {
-                    $res = new Redirect(getRetUrl());
+                if($lastId && $opt[$lastId]) {
+                    $form->setDefault('choice', $lastId);
                 }
-            }
- 
-            $rec = $form->input();
+     
+                $rec = $form->input();
 
-            if ($form->isSubmitted() && $rec->choice) {
-                if($mvc->haveRightFor('select')) {
-                    $rec = $mvc->fetch($rec->choice);
-                    $mvc->selectCurrent($rec);
+                if(count($opt) == 1) {  
+                    $rec->choice = key($opt);
+                }
 
-                    if (!Request::get('ret_url')) {
-                        $res = new Redirect(array($mvc));
-                    } else {
+                if ($rec->choice && ($form->isSubmitted() || count($opt) == 1)) {
+                    if($mvc->haveRightFor('select')) {
+                        $rec = $mvc->fetch($rec->choice);
+                        $mvc->selectCurrent($rec);
                         $res = new Redirect(getRetUrl());
-                    }
 
-                    return false;
+                        return false;
+                    }
                 }
+
+                $form->toolbar->addSbBtn('Напред', 'choice', array('class' => 'fright'), 'ef_icon = img/16/move.png');
             }
 
-            $form->toolbar->addSbBtn('Напред', 'choice', array('class' => 'fright'), 'ef_icon = img/16/move.png');
-            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
             
             $form->title = "Избор на текущ|* " . mb_strtolower(tr($mvc->singleTitle)); 
 

@@ -110,7 +110,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      * @param object $fRec  - Записите за файла
      * @param int    $index - Номера на файлам, който ще се екстрактва
      *
-     * @return fileHandler - Манипулатор на файл
+     * @return string - Манипулатор на файл
      */
     public static function uploadFileFromArchive($fRec, $index)
     {
@@ -119,6 +119,109 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         
         // Качваме съответния файл
         $fh = $inst->getFile($index);
+        
+        $fileNavArr = Mode::get('fileNavArr');
+        
+        // Намираме предишния и следващия файл
+        try {
+            // Вземаме съдържанието
+            $entriesArr = $inst->getEntries();
+            
+            if (!empty($entriesArr)) {
+                $eCnt = count($entriesArr);
+                
+                $prev = null;
+                $cnt = 0;
+                while (true) {
+                    $cnt++;
+                    
+                    $pIndex = $index - $cnt;
+                    
+                    if ($pIndex <= -1) {
+                        break;
+                    }
+                    
+                    $entry = $entriesArr[$pIndex];
+                    
+                    if (!$entry) {
+                        break ;
+                    }
+                    
+                    $size = $entry->getSize();
+                    
+                    if ($size && ($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT)) {
+                        $prev = $pIndex;
+                        
+                        break;
+                    }
+                }
+                
+                $next = null;
+                $cnt = 0;
+                while (true) {
+                    $cnt++;
+                    
+                    $nIndex = $index + $cnt;
+                    
+                    if ($nIndex > $eCnt) {
+                        break;
+                    }
+                    
+                    $entry = $entriesArr[$nIndex];
+                    
+                    if (!$entry) {
+                        break ;
+                    }
+                    
+                    $size = $entry->getSize();
+                    
+                    if ($size && ($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT)) {
+                        $next = $nIndex;
+                        
+                        break;
+                    }
+                }
+                
+                // Добавяме и пътя на файла в архива
+                if ($entriesArr[$index]) {
+                    $ePath = $entriesArr[$index]->getPath();
+                    
+                    if ($ePath) {
+                        $eDirName = trim(dirname($ePath));
+                        if ($eDirName && $eDirName != '.') {
+                            $fileNavArr[$fh]['srcDirName'] = $eDirName;
+                        } else {
+                            $fileNavArr[$fh]['srcDirName'] = null;
+                        }
+                    }
+                }
+            }
+            
+            // Предишния файл в архива
+            if ($prev !== $index) {
+                if (isset($prev)) {
+                    $fileNavArr[$fh]['prev'] = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $prev);
+                } else {
+                    $fileNavArr[$fh]['prev'] = null;
+                }
+            }
+            
+            // Следващия файл в архива
+            if ($next !== $index) {
+                if (isset($next)) {
+                    $fileNavArr[$fh]['next'] = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $next);
+                } else {
+                    $fileNavArr[$fh]['next'] = null;
+                }
+            }
+            
+            // Добавяме източника на файла
+            $fileNavArr[$fh]['src'] = $fRec->fileHnd;
+            
+            Mode::setPermanent('fileNavArr', $fileNavArr);
+        } catch (ErrorException $e) {
+            // Не правим нищо
+        }
         
         // Изтриваме временните файлове
         $inst->deleteTempPath();
