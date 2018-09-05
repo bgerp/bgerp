@@ -677,6 +677,8 @@ class core_DateTime
         
         while (dt::isHoliday($date)) {
             $date = dt::addDays($direction, $date);
+            
+            if ($maxCnt++ > 10000) break;
         }
         
         return $date;
