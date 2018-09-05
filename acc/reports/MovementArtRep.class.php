@@ -118,7 +118,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         $productArr = $query->fetchAll();
         
-        $maxTimeLimit = 1.2 * count($productArr);
+        $maxTimeLimit = 3 * count($productArr);
         $maxTimeLimit = max(array($maxTimeLimit, 300));
         
         // задаваме лимит пропорционален на бр. извадени продукти

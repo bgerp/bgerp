@@ -565,7 +565,10 @@ class distro_Files extends core_Detail
             $nRec->createdOn = $date;
         }
         
-        $this->save($nRec, null, 'IGNORE');
+        $sId = $this->save($nRec, null, 'IGNORE');
+        if ($sId) {
+            distro_Actions::addNotifications($nRec->groupId);
+        }
         
         return $nRec->id;
     }

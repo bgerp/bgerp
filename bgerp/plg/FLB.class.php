@@ -37,7 +37,7 @@ class bgerp_plg_FLB extends core_Plugin
             $mvc->FLD($mvc->canActivateRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Контиране на документи->Екипи,after={$mvc->canActivateUserFld}");
         }
         
-        // Поле, в които се указват потребителите, които могат да контират документи с обекта
+        // Поле, в които се указват потребителите, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectUserFld, false)) {
             $mvc->FLD($mvc->canSelectUserFld, 'userList', "caption=Използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
         }
@@ -88,11 +88,15 @@ class bgerp_plg_FLB extends core_Plugin
      *
      * @return bool
      */
-    public static function canUse($mvc, $rec, $userId, $action = 'activate')
+    public static function canUse($mvc, $rec, $userId = null, $action = 'activate')
     {
         // Инстанциране на класа при нужда
         if (!is_object($mvc)) {
             $mvc = cls::get($mvc);
+        }
+        
+        if($userId === null) {
+            $userId = core_Users::getCurrent();
         }
         
         expect($mvc->hasPlugin('bgerp_plg_FLB'), "'{$mvc->className}' не поддържа 'bgerp_plg_FLB'");
@@ -117,7 +121,7 @@ class bgerp_plg_FLB extends core_Plugin
             return true;
         }
         
-        // Ако потребителя е изрично избран че може да селектира или активира
+        // Ако потребителя е изрично избран да може да селектира или активира
         if ($rec->{$userFld}) {
             if (keylist::isIn($userId, $rec->{$userFld})) {
                 
@@ -157,10 +161,12 @@ class bgerp_plg_FLB extends core_Plugin
         
         // Ако се проверява за избор, допълнително се проверява
         // дали потребителя може да контира документи с обекта
-        if ($action == 'select' && isset($rec)) {
-            if (self::canUse($mvc, $rec, $userId, 'activate')) {
-                $res = $mvc->canActivate;
-            } else {
+        if ($action == 'select') {
+            // По подразбиране, който може да актоивира документ в обекта, той може и да избира обекта
+            
+            $res = $mvc->canActivate;
+            
+            if (isset($rec) && !self::canUse($mvc, $rec, $userId, 'activate')) {
                 $res = 'no_one';
             }
         }

@@ -1398,7 +1398,7 @@ class fileman_Files extends core_Master
     /**
      * Ако имаме права за сваляне връща html <а> линк за сваляне на файла.
      */
-    public static function getLink($fh, $title = null)
+    public static function getLink($fh, $title = null, $url = null)
     {
         $conf = core_Packs::getConfig('fileman');
         
@@ -1470,8 +1470,10 @@ class fileman_Files extends core_Master
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
             
-            //Генерираме връзката
-            $url = static::generateUrl($fh, $isAbsolute);
+            if (!isset($url)) {
+                //Генерираме връзката
+                $url = static::generateUrl($fh, $isAbsolute);
+            }
             
             // Ако сме в текстов режим
             if (Mode::is('text', 'plain')) {
@@ -1907,7 +1909,7 @@ class fileman_Files extends core_Master
     /**
      * Екшън за преглед на файла (pdf) в браузъра
      */
-    function act_PreviewFile()
+    public function act_PreviewFile()
     {
         $this->requireRightFor('single');
         expect($id = Request::get('id', 'int'));
@@ -2180,6 +2182,17 @@ class fileman_Files extends core_Master
         // Добавяме линка след името на файла
         $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
         
+        $fileNavArr = Mode::get('fileNavArr');
+        
+        // Показваме и източника на файла
+        if ($fileNavArr[$rec->fileHnd]['src']) {
+            if ($fileNavArr[$rec->fileHnd]['srcDirName']) {
+                $row->fileName .= ' « ' . type_Varchar::escape($fileNavArr[$rec->fileHnd]['srcDirName']);
+            }
+            
+            $row->fileName .= ' « ' . self::getLink($fileNavArr[$rec->fileHnd]['src']);
+        }
+        
         // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
         $pathArr = static::getFirstContainerLinks($rec);
         
@@ -2194,6 +2207,14 @@ class fileman_Files extends core_Master
             
             // Пред името на файла добаваме папката и документа, къде е използван
             $row->fileName .= $path;
+        }
+        
+        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
+            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
+        }
+        
+        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
+            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
         }
         
         // Версиите на файла

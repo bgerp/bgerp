@@ -5321,6 +5321,17 @@ function focusOnce(id, rand) {
 
 
 /**
+ * Кокусиране върху заглавията, при дабъклик върху H2 заглавие
+ */
+function focusOnHeader() {
+    $("h2").dblclick(function(e) {
+        window.location.hash = $(this).attr("id");
+        e.preventDefault();
+    });
+}
+
+
+/**
  * Fix за IE7
  * implement JSON.parse de-serialization
  *
@@ -5335,3 +5346,4 @@ JSON.parse = JSON.parse || function (str) {
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
+runOnLoad(focusOnHeader);
