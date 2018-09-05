@@ -384,7 +384,7 @@ class planning_Jobs extends core_Master
         $transRec = sales_TransportValues::fetch("#docClassId = {$saleClassId} AND #docId = {$saleId}", 'deliveryTime');
         $subtractTime = 3 * 24 * 60 * 60 + $transRec->deliveryTime;
         $dueDate = dt::addSecs(-1 * $subtractTime, $deliveryDate);
-        $dueDate = dt::nextWorkingDay($dueDate, null, -1);
+        $dueDate = cal_Calendar::nextWorkingDay($dueDate, null, -1);
         $dueDate = dt::verbal2mysql($dueDate, false);
         
         return $dueDate;

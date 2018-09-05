@@ -66,7 +66,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('vehicle', 'keylist(mvc=tracking_Vehicles,select=number,)', 'caption=Превозно средство,single=none,after=title');
+        $fieldset->FLD('vehicle', 'keylist(mvc=tracking_Vehicles,select=number,)', 'caption=Превозно средство,after=title');
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
     }
@@ -122,14 +122,16 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $query = tracking_Log::getQuery();
         
      $query-> where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
-       
-        $vehicleArr = keylist::toArray($rec->vehicle);
+    
+     if ($rec->vehicle) {
+     $vehicleArr = keylist::toArray($rec->vehicle);
         
         $query->in('vehicleId', $vehicleArr);
-        
-        while ($vehicle = $query->fetch()) {
+     }
+     while ($vehicle = $query->fetch()) {
           
             $parseData['latitude'] = $parseData['longitude'] = 0;
+            $time = null;
             
             $id = $vehicle->id;
             
@@ -137,17 +139,17 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $parseData['latitude'] = tracking_Log::DMSToDD($parseData['latitude']);
             $parseData['longitude'] = tracking_Log::DMSToDD($parseData['longitude']);
             
-            $coords[] = array($parseData['latitude'],$parseData['longitude']);
+            $coords[] = array($parseData['latitude'],$parseData['longitude'],array('info' => 'str'));
             
-            $values[$id] = array(
+            $values[$vehicle->vehicleId] = array(
                 'coords' => $coords
             );
             
             $vehicleData = tracking_Vehicles::fetch($vehicle->vehicleId);
             
-            
-            $values[$id] = core_Array::combine($values[$id], array(
-                'info' => $vehicleData->number));
+            $time = dt::mysql2verbal($vehicle->fixTime,$mask = 'd.m.y H:i:s');
+            $values[$vehicle->vehicleId] = core_Array::combine($values[$vehicle->vehicleId], array(
+                'info' => $vehicleData->number.' » '.$time));
             
             $recs[$id] = (object) array(
                 
@@ -158,14 +160,14 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
                 'longitude' => $parseData['longitude'],
                 'speed' => $parseData['speed'],
                 'heading'=> $parseData['heading'],
-                'time'=> $parseData['time'],
+                'time'=> $vehicle->fixTime,
                 'personId' => $vehicleData->personId,
                 'trackerId' => $vehicleData->trackerId,
                 'createdOn' => $vehicle->createdOn,
             
             );
         }
-      
+     
         $recs['values'] = $values;
    
         return $recs;
@@ -184,7 +186,27 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $values = $data->recs['values'];
        
         if (is_array($values)) {
+        
+//             $pointsLimit = count($values)-250;
            
+//             if ($pointsLimit > 0){
+                 
+//                 $step = ceil(count($values) /100);
+//                 $counter = 0;
+                
+//                 foreach ($values as $k=>$v){
+                    
+//                     $counter ++;
+                    
+//                     if (($counter !=1) && ($counter % $step) != 0){
+                        
+//                         unset($values[$k]);
+                        
+                        
+//                     }
+//                 }
+//             }
+            
             $tpl = location_Paths::renderView($values);
        
             Mode::set('saveJS', true);
@@ -252,7 +274,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $row->speed = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->speed);
             $row->heading = core_Type::getByName('int')->toVerbal($dRec->heading);
             $row->personId = $dRec->personId;
-            $row->time = dt::mysql2verbal($dRec->time);
+            $row->time = dt::mysql2verbal($dRec->time,$mask = 'd.m.y H:i:s');
         }
         
         return $row;
