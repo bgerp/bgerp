@@ -2182,6 +2182,17 @@ class fileman_Files extends core_Master
         // Добавяме линка след името на файла
         $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
         
+        $fileNavArr = Mode::get('fileNavArr');
+        
+        // Показваме и източника на файла
+        if ($fileNavArr[$rec->fileHnd]['src']) {
+            if ($fileNavArr[$rec->fileHnd]['srcDirName']) {
+                $row->fileName .= ' « ' . type_Varchar::escape($fileNavArr[$rec->fileHnd]['srcDirName']);
+            }
+            
+            $row->fileName .= ' « ' . self::getLink($fileNavArr[$rec->fileHnd]['src']);
+        }
+        
         // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
         $pathArr = static::getFirstContainerLinks($rec);
         
@@ -2198,14 +2209,17 @@ class fileman_Files extends core_Master
             $row->fileName .= $path;
         }
         
-        $fileNavArr = Mode::get('fileNavArr');
-        
         if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
-            $row->fileName .= "<span style='margin-right:3px;'>" . ht::createLink('<<' . tr('Предишен'), $prevUrl) . '</span>';
+            $row->fileName .= "<span style='margin-left:3px;'>" . ht::createLink('<<', $prevUrl) . '</span>';
         }
         
         if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
-            $row->fileName .= "<span style='margin-left:3px;'>" . ht::createLink(tr('Следващ') . '>>', $nextUrl) . '</span>';
+            if ($prevUrl) {
+                $row->fileName .= ' | <span>';
+            } else {
+                $row->fileName .= "<span style='margin-left:3px;'>";
+            }
+            $row->fileName .= ht::createLink('>>', $nextUrl) . '</span>';
         }
         
         // Версиите на файла
