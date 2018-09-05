@@ -2210,11 +2210,11 @@ class fileman_Files extends core_Master
         }
         
         if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
-            $row->fileName .= ht::createLink('', $prevUrl, null, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
+            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
         }
         
         if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
-            $row->fileName .= ht::createLink('', $nextUrl, null, 'ef_icon=img/16/next.png,style=margin-left:6px;');
+            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
         }
         
         // Версиите на файла
