@@ -810,9 +810,13 @@ class cal_Calendar extends core_Master
         if($userId === null) {
             $userId = core_Users::getCurrent();
         }
-
+        
+        expect($direction);
+        
         do {
             $date = dt::addDays($direction, $date);
+            
+            if ($maxCnt++ > 100000) break;
         } while(self::isHoliday($date, $country) || self::isAbsent($date, $userId));
         
         list($date, $time) = explode(' ', $date);
