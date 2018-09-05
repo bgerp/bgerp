@@ -1,7 +1,6 @@
 var desabledRows = "";
 function lastUsedActions()
 {
-    console.log(localStorage.getItem('disabledRowАrr'));
     if (localStorage.getItem('disabledRowАrr')) {
         desabledRows =  localStorage.getItem('disabledRowАrr').split(',');
         $.each(desabledRows, function( index, value ) {
@@ -15,18 +14,9 @@ function lastUsedActions()
         var row = $(this).closest('tr');
         if(!$(row).hasClass('disabledRow')){
             $(row).addClass('disabledRow');
-            desabledRows+=$(row).attr('id') + ',';
+            desabledRows += (row).attr('id') + ',';
             $(el).removeAttr('onclick');
             localStorage.setItem('disabledRowАrr', desabledRows);
-            console.log(localStorage.getItem('disabledRowАrr'));
         }
     });
-
-    $(window).bind('beforeunload', function() {
-        alert();
-        //localStorage.removeItem('disabledRowАrr');
-    } );
-
-
-
 }
