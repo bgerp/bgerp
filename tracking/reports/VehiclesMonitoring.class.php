@@ -139,7 +139,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $parseData['latitude'] = tracking_Log::DMSToDD($parseData['latitude']);
             $parseData['longitude'] = tracking_Log::DMSToDD($parseData['longitude']);
             
-            $coords[] = array($parseData['latitude'],$parseData['longitude']);
+            $coords[] = array($parseData['latitude'],$parseData['longitude'],array('info' => 'str'));
             
             $values[$vehicle->vehicleId] = array(
                 'coords' => $coords
