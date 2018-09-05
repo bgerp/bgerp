@@ -183,7 +183,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-        $values = $data->recs['values'];bp($values);
+        $values = $data->recs['values'];
        
         if (is_array($values)) {
         
