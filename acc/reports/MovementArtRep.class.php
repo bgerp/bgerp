@@ -170,6 +170,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         $recs = array();
         
+        log_System::add(get_called_class(), 'jRecsCnt: ' . count($jRecs) . ', producsCnt' . count($productArr), null, 'debug', 1);
+        
         // за всеки един продукт, се изчисляват търсените количествата
         foreach ($productArr as $productRec) {
             if ($itemId = $productItems[$productRec->id]) {
