@@ -14,7 +14,7 @@ function lastUsedActions()
         var row = $(this).closest('tr');
         if(!$(row).hasClass('disabledRow')){
             $(row).addClass('disabledRow');
-            desabledRows += (row).attr('id') + ',';
+            desabledRows += $(row).attr('id') + ',';
             $(el).removeAttr('onclick');
             localStorage.setItem('disabledRowАrr', desabledRows);
         }
