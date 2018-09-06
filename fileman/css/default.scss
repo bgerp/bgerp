@@ -170,7 +170,8 @@
 	   margin-bottom: 10px !important;
 	}
 	.listTable{
-		width:100%;
+		width:99%;
+		min-width: 0;
 		th {
 			display: none;
 			border: none;
