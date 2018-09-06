@@ -113,7 +113,11 @@ class Archive_7z
      */
     public function setCli($path)
     {
-        $this->cli = str_replace('\\', '/', realpath($path));
+        if(is_executable($path)) {
+           $this->cli = $path;
+        } else {
+            $this->cli = str_replace('\\', '/', realpath($path));
+        }
  
         if (!$this->cli || (is_executable($this->cli) === false)) {
 
