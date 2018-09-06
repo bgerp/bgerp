@@ -153,7 +153,8 @@
   .dialog-window .fileman_Log .horizontal .formToolbar {
     margin-bottom: 10px !important; }
   .dialog-window .fileman_Log .listTable {
-    width: 100%; }
+    width: 99%;
+    min-width: 0; }
     .dialog-window .fileman_Log .listTable th {
       display: none;
       border: none;

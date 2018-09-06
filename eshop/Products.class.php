@@ -1194,7 +1194,7 @@ class eshop_Products extends core_Master
         
         $tpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
         foreach ($array as $paramId => $value) {
-             $paramBlock = new core_ET('<tr><td>&bull; <b>[#caption#]<b>:</td><td>[#value#]</td></tr>');
+             $paramBlock = new core_ET('<tr><td nowrap><b>&bull; [#caption#]:<b></td><td>[#value#]</td></tr>');
              $paramBlock->placeArray(array('caption' => cat_Params::getTitleById($paramId), 'value' => $value));
              $paramBlock->removeBlocks();
              $paramBlock->removePlaces();
