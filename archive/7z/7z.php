@@ -117,7 +117,7 @@ class Archive_7z
  
         if (!$this->cli || (is_executable($this->cli) === false)) {
 
-            throw new Archive_7z_Exception('Cli is not available');
+            throw new Archive_7z_Exception('Cli is not available ' . $this->cli);
         }
   
         return $this;
