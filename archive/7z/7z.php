@@ -113,15 +113,15 @@ class Archive_7z
      */
     public function setCli($path)
     {
-        if(is_executable($path)) {
+        if($path == '7z') {
            $this->cli = $path;
         } else {
             $this->cli = str_replace('\\', '/', realpath($path));
-        }
- 
-        if (!$this->cli || (is_executable($this->cli) === false)) {
+        
+            if (!$this->cli || (is_executable($this->cli) === false)) {
 
-            throw new Archive_7z_Exception('Cli is not available-' . $this->cli . '-' . $path);
+                throw new Archive_7z_Exception('Cli is not available-' . $this->cli . '-' . $path);
+            }
         }
   
         return $this;
