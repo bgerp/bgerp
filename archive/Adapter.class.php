@@ -163,7 +163,7 @@ class archive_Adapter
         // Обхождаме масива
         foreach ($entriesArr as $e) {
             
-            // Минаваме пътя през изчисване на името
+            // Минаваме пътя през изчистване на името
             $e->path = i18n_Charset::convertToUtf8($e->path);
         }
         

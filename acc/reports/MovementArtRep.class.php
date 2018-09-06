@@ -118,7 +118,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         
         $productArr = $query->fetchAll();
         
-        $maxTimeLimit = 1.2 * count($productArr);
+        $maxTimeLimit = 10 * count($productArr);
         $maxTimeLimit = max(array($maxTimeLimit, 300));
         
         // задаваме лимит пропорционален на бр. извадени продукти
@@ -169,6 +169,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $jRecs = $jQuery->fetchAll();
         
         $recs = array();
+        
+        log_System::add(get_called_class(), 'jRecsCnt: ' . count($jRecs) . ', producsCnt: ' . count($productArr), null, 'debug', 1);
         
         // за всеки един продукт, се изчисляват търсените количествата
         foreach ($productArr as $productRec) {

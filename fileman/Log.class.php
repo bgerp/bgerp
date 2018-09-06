@@ -209,6 +209,9 @@ class fileman_Log extends core_Manager
         
         // Вземаме шаблона
         $tpl = $this->getTpl();
+
+        $tpl->push('fileman/js/lastUsed.js', 'JS');
+        jquery_Jquery::run($tpl, 'lastUsedActions();');
         
         // Рендираме диалоговия прозорец
 //        return $this->renderDialog($tpl);
@@ -462,7 +465,7 @@ class fileman_Log extends core_Manager
                 $id = 'last_' . $rec->id;
                 
                 // Атрибутите на линковете
-                $attr = array('onclick' => "flashDocInterpolation('{$id}'); if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
+                $attr = array('onclick' => "if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
                 
                 // Името на файла да е линк с посочените атрибути
                 $fileNameLink = ht::createLink($fileNameVerb, '#', null, $attr);

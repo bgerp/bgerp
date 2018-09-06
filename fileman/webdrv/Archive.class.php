@@ -120,6 +120,8 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         // Качваме съответния файл
         $fh = $inst->getFile($index);
         
+        $fileNavArr = Mode::get('fileNavArr');
+        
         // Намираме предишния и следващия файл
         try {
             // Вземаме съдържанието
@@ -179,34 +181,44 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                         break;
                     }
                 }
+                
+                // Добавяме и пътя на файла в архива
+                if ($entriesArr[$index]) {
+                    $ePath = $entriesArr[$index]->getPath();
+                    
+                    if ($ePath) {
+                        $eDirName = trim(dirname($ePath));
+                        if ($eDirName && $eDirName != '.') {
+                            $fileNavArr[$fh]['srcDirName'] = $eDirName;
+                        } else {
+                            $fileNavArr[$fh]['srcDirName'] = null;
+                        }
+                    }
+                }
             }
             
-            $haveChanges = false;
-            $fileNavArr = Mode::get('fileNavArr');
-            
+            // Предишния файл в архива
             if ($prev !== $index) {
                 if (isset($prev)) {
                     $fileNavArr[$fh]['prev'] = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $prev);
                 } else {
                     $fileNavArr[$fh]['prev'] = null;
                 }
-                
-                $haveChanges = true;
             }
             
+            // Следващия файл в архива
             if ($next !== $index) {
                 if (isset($next)) {
                     $fileNavArr[$fh]['next'] = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $next);
                 } else {
                     $fileNavArr[$fh]['next'] = null;
                 }
-                
-                $haveChanges = true;
             }
             
-            if ($haveChanges) {
-                Mode::setPermanent('fileNavArr', $fileNavArr);
-            }
+            // Добавяме източника на файла
+            $fileNavArr[$fh]['src'] = $fRec->fileHnd;
+            
+            Mode::setPermanent('fileNavArr', $fileNavArr);
         } catch (ErrorException $e) {
             // Не правим нищо
         }

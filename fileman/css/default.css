@@ -153,7 +153,8 @@
   .dialog-window .fileman_Log .horizontal .formToolbar {
     margin-bottom: 10px !important; }
   .dialog-window .fileman_Log .listTable {
-    width: 100%; }
+    width: 99%;
+    min-width: 0; }
     .dialog-window .fileman_Log .listTable th {
       display: none;
       border: none;
@@ -230,4 +231,16 @@
 
 .btn-ulfile {
   background-image: url('../../img/16/paper_clip.png'); }
+
+.disabledRow {
+  background-color: #e0e0e0 !important;
+  color: #666666; }
+  .disabledRow .file-log-link {
+    color: #666666 !important; }
+    .disabledRow .file-log-link:hover {
+      cursor: auto; }
+  .disabledRow span {
+    color: #666666 !important; }
+  .disabledRow .anchor-arrow {
+    cursor: pointer; }
 
