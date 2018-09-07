@@ -124,6 +124,9 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         
         $query-> orderBy('vehicleId');
         
+        $query-> orderBy('fixTime');
+        
+      
         if ($rec->vehicle) {
             $vehicleArr = keylist::toArray($rec->vehicle);
             
@@ -145,7 +148,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $time = dt::mysql2verbal($vehicle->fixTime, $mask = 'd.m.y H:i:s');
             
             
-            $coords[] = array($parseData['latitude'],$parseData['longitude'],array('info' => "{$vehicleData->number} » ${time}"));
+            $coords[] = array($parseData['latitude'],$parseData['longitude'],'info' => "{$vehicleData->number} » ${time}");
             
             $values[$vehicle->vehicleId] = array(
                 'coords' => $coords
