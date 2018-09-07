@@ -65,7 +65,7 @@ class refactor_Token
     /**
      * Конструктор
      */
-    public function refactor_Token($type, $typeVerbal, string $str)
+    public function __construct($type, $typeVerbal, string $str)
     {
         $this->type = $type;
         $this->typeVerbal = $typeVerbal;
