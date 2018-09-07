@@ -57,7 +57,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да генерира нагласяния?
      */
-    public $canOrderpickup = 'debug';
+    public $canOrderpickup = 'admin,ceo,rack';
     
     
     /**
