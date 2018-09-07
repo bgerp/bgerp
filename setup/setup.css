@@ -96,10 +96,15 @@ input[type=submit]:hover {
     background-color:#f6f6f6;
 }
 
- input[type=submit]:active {
+input[type=submit]:active {
     position:relative;
     top:1px;
 }
+
+input[type=submit]:focus {
+    border:1px solid #333;
+}
+
 .answer {
 	margin-top:10px;margin-left:10px;
 }
@@ -145,3 +150,6 @@ input[type=checkbox] + label {
 	    border: 2px solid #bbb;
     }
 }
+
+#buttons { overflow: hidden; }
+#buttons input { float: right; }

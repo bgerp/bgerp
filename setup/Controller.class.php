@@ -61,7 +61,7 @@ class setup_Controller
         
         $res->title = 'Вид на инсталацията';
         $res->question = 'Какъв тип инсталация желаете?';
-        $res->body = $this->createRadio('installationType', array('new' => 'Нова инсталация', 'update' => 'Обновяване на текущата', 'recovery' => 'Възстановяване от бекъп'));
+        $res->body = $this->createRadio('installationType', array('new' => 'Нова инсталация',   'recovery' => 'Възстановяване от бекъп'));
     }
     
     
@@ -363,13 +363,18 @@ class setup_Controller
                 $res['back'] = '« Предишен';
             }
             if ($res['back']) {
-                $res['back'] = "<input type='submit' name='Cmd_Back' style='font-size:14px;margin:3px;color:black' value='" . $res['back'] . "'>";
+                if (!$res['next']) {
+                    $autofocus = "autofocus='on' ";
+                } else {
+                    $autofocus = '';
+                }
+                $res['back'] = "<input {$autofocus}type='submit' name='Cmd_Back' style='font-size:14px;margin:3px;color:black' value='" . $res['back'] . "'>";
             }
             if (!isset($res['next'])) {
                 $res['next'] = 'Следващ »';
             }
             if ($res['next']) {
-                $res['next'] = "<input type='submit' name='Cmd_Next' style='font-size:14px;margin:3px;color:black' value='" . $res['next'] . "'>";
+                $res['next'] = "<input autofocus='on' type='submit' name='Cmd_Next' style='font-size:14px;margin:3px;color:black' value='" . $res['next'] . "'>";
             }
             
             $res['title'] = $res['title'];
@@ -436,8 +441,8 @@ class setup_Controller
                 </td></tr></tbody></table>
 
                 <input name='Step' value='{$current}' type='hidden'>
-                <div class='formFooter'>
-                    [#back#][#next#]
+                <div  class='formFooter centeredContent'>
+                    <center id='buttons'>[#next#][#back#]</center>
                 </div>
             </form>
         </div>
