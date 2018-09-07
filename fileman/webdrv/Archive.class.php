@@ -149,7 +149,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                     
                     $size = $entry->getSize();
                     
-                    if ($size && ($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT)) {
+                    if ($size && ($size < archive_Setup::get('MAX_LEN'))) {
                         $prev = $pIndex;
                         
                         break;
@@ -175,7 +175,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                     
                     $size = $entry->getSize();
                     
-                    if ($size && ($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT)) {
+                    if ($size && ($size < archive_Setup::get('MAX_LEN'))) {
                         $next = $nIndex;
                         
                         break;
@@ -284,7 +284,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             }
         }
         
-        $maxArchiveLen = fileman_Setup::get('FILEINFO_MAX_ARCHIVE_LEN', true);
+        $maxArchiveLen = archive_Setup::get('MAX_LEN');
         
         $text = '';
         
@@ -306,7 +306,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 
                 // Гледаме размера след разархивиране да не е много голям
                 // Защита от "бомби" - от препълване на сървъра
-                if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) {
+                if ($size > archive_Setup::get('MAX_LEN')) {
                     continue;
                 }
                 
