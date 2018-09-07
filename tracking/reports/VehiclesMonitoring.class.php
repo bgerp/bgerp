@@ -117,12 +117,12 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $values = array();
-        $parseData = array();
         
         $query = tracking_Log::getQuery();
         
         $query-> where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
+        
+        $query-> orderBy('vehicleId');
         
         if ($rec->vehicle) {
             $vehicleArr = keylist::toArray($rec->vehicle);
@@ -134,7 +134,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         while ($vehicle = $query->fetch()) {
             $parseData['latitude'] = $parseData['longitude'] = 0;
             $time = null;
-            $i++;
+            
             
             $id = $vehicle->id;
             
@@ -185,8 +185,8 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-       $values = $data->recs['values'];
-       
+        $values = $data->recs['values'];
+        
         if (is_array($values)) {
             $tpl = location_Paths::renderView($values);
             
@@ -247,7 +247,6 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $row = new stdClass();
         
         if (is_object($dRec)) {
-            
             $row->number = $dRec->number. "<span class= 'fright'><span class= ''>" . 'Водач :' . crm_Persons::getVerbal($dRec->personId, 'name') . '</span>';
             $row->latitude = core_Type::getByName('double(decimals=8)')->toVerbal($dRec->latitude);
             $row->longitude = core_Type::getByName('double(decimals=8)')->toVerbal($dRec->longitude);
@@ -255,7 +254,6 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $row->heading = core_Type::getByName('int')->toVerbal($dRec->heading);
             $row->personId = $dRec->personId;
             $row->time = dt::mysql2verbal($dRec->time, $mask = 'd.m.y H:i:s');
-      
         }
         
         return $row;
