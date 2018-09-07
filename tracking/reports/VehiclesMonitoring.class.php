@@ -126,7 +126,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         
         $query-> orderBy('fixTime');
         
-      
+        
         if ($rec->vehicle) {
             $vehicleArr = keylist::toArray($rec->vehicle);
             
@@ -134,29 +134,25 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         }
         
         
-        while ($vehicle = $query->fetch()) {
+        while ($point = $query->fetch()) {
             $parseData['latitude'] = $parseData['longitude'] = 0;
             $time = null;
             
+            $id = $point->id;
             
-            $id = $vehicle->id;
-            
-            $parseData = tracking_Log::parseTrackingData($vehicle->data);
+            $parseData = tracking_Log::parseTrackingData($point->data);
             $parseData['latitude'] = tracking_Log::DMSToDD($parseData['latitude']);
             $parseData['longitude'] = tracking_Log::DMSToDD($parseData['longitude']);
-            $vehicleData = tracking_Vehicles::fetch($vehicle->vehicleId);
-            $time = dt::mysql2verbal($vehicle->fixTime, $mask = 'd.m.y H:i:s');
+            $vehicleData = tracking_Vehicles::fetch($point->vehicleId);
+            $time = dt::mysql2verbal($point->fixTime, $mask = 'd.m.y H:i:s');
             
             
             $coords[] = array($parseData['latitude'],$parseData['longitude'],'info' => "{$vehicleData->number} » ${time}");
             
-            $values[$vehicle->vehicleId] = array(
-                'coords' => $coords
+            $values[$point->vehicleId] = array(
+                'coords' => $coords,
+                'info' => $vehicleData->number.' » '.$time
             );
-            
-            
-            $values[$vehicle->vehicleId] = core_Array::combine($values[$vehicle->vehicleId], array(
-                'info' => $vehicleData->number.' » '.$time));
             
             $recs[$id] = (object) array(
                 
@@ -165,15 +161,19 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
                 'longitude' => $parseData['longitude'],
                 'speed' => $parseData['speed'],
                 'heading' => $parseData['heading'],
-                'time' => $vehicle->fixTime,
+                'time' => $point->fixTime,
                 'personId' => $vehicleData->personId,
                 'trackerId' => $vehicleData->trackerId,
-                'createdOn' => $vehicle->createdOn,
+                'createdOn' => $point->createdOn,
             
             );
         }
         
-        $recs['values'] = $values;
+        foreach ($values as $key => $val) {
+            $renumValues[] = $val;
+        }
+        
+        $recs['values'] = $renumValues;
         
         return $recs;
     }
