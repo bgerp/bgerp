@@ -23,12 +23,12 @@ function generatePath(data,el){
 		var val = {};
 	    // брой координати
 		var coords = nCoord.coords;
-		
+
 	    var points = nCoord.coords.length;
 	    // координати от предната точка, за да можем да съставим път
 	    var oldCoord;
-	    // изненение на цвета спрямо бр. точки
-	    var color = colors[index];
+	    // вземане на цвят от масива
+	    var color= colors[index % colors.length];
 
 	    // генерираме структурата за пътя
 	    for (var i=1; i < points; i++) {
@@ -36,30 +36,30 @@ function generatePath(data,el){
 	    	// двойки точки, между който ще правим линия
 	    	oldCoord = coords[i-1];
 	    	value = coords[i];
-	    	
+
 	    	if (!oldCoord) {
 	    		oldCoord = value;
 	    	}
-	    	
+
 	    	// генерираме необходимата ни структура
 	    	path = {}, options = {};
-			console.log(color);
-	    	options.strokeColor = "#" +  color;
+	    	options.strokeColor = "#" + color;
 	    	options.path = [[oldCoord[0],oldCoord[1]],  [value[0],value[1]]];
 	    	path.options = options;
 	    	allPaths.push(path);
 	    }
 
 	    currentPath += points - 1;
-	    
+
 	    // записваме координатите на последната точка от всеки път и поставяме маркер с информацията за нея
-	    if(value.info){
+	    if(nCoord.info && typeof value !== 'undefined'){
 	    	val.latLng = [value[0],value[1]];
-			val.data = value.info;
-			markers.push(val);
+	 	    val.data = nCoord.info;
+	 		markers.push(val);
 	    }
 
 	});
+
 	// генерираме картата
     $(el).gmap3({marker:{
         values:markers,
@@ -74,7 +74,7 @@ function generatePath(data,el){
                   } else {
                     $(this).gmap3({
                       infowindow:{
-                        anchor:marker, 
+                        anchor:marker,
                         options:{content: context.data}
                       }
                     });
