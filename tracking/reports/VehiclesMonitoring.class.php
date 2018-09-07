@@ -130,7 +130,6 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $query->in('vehicleId', $vehicleArr);
         }
         
-        static $i = 0;
         
         while ($vehicle = $query->fetch()) {
             $parseData['latitude'] = $parseData['longitude'] = 0;
@@ -148,12 +147,12 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             
             $coords[] = array($parseData['latitude'],$parseData['longitude'],array('info' => "{$vehicleData->number} » ${time}"));
             
-            $values[$i] = array(
+            $values[$vehicle->vehicleId] = array(
                 'coords' => $coords
             );
             
             
-            $values[$i] = core_Array::combine($values[$i], array(
+            $values[$vehicle->vehicleId] = core_Array::combine($values[$vehicle->vehicleId], array(
                 'info' => $vehicleData->number.' » '.$time));
             
             $recs[$id] = (object) array(
