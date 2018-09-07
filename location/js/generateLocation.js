@@ -6,7 +6,7 @@
 function generatePath(data,el){
 	// масив, който ще записваме пътищата, заедно с необходимите опции
 	var allPaths = [];
-	
+
 	// номер на поредния път
 	var currentPath = 0;
 	var markers = [];
@@ -23,7 +23,7 @@ function generatePath(data,el){
 		var val = {};
 	    // брой координати
 		var coords = nCoord.coords;
-
+		var value = nCoord.coords[0];
 	    var points = nCoord.coords.length;
 	    // координати от предната точка, за да можем да съставим път
 	    var oldCoord;
@@ -43,7 +43,7 @@ function generatePath(data,el){
 
 	    	// генерираме необходимата ни структура
 	    	path = {}, options = {};
-	    	options.strokeColor = "#" + color;
+	    	options.strokeColor ="#" + color;
 	    	options.path = [[oldCoord[0],oldCoord[1]],  [value[0],value[1]]];
 	    	path.options = options;
 	    	allPaths.push(path);
@@ -52,7 +52,7 @@ function generatePath(data,el){
 	    currentPath += points - 1;
 
 	    // записваме координатите на последната точка от всеки път и поставяме маркер с информацията за нея
-	    if(nCoord.info && typeof value !== 'undefined'){
+	    if(nCoord.info){
 	    	val.latLng = [value[0],value[1]];
 	 	    val.data = nCoord.info;
 	 		markers.push(val);
