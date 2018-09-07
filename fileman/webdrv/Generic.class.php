@@ -1544,4 +1544,18 @@ class fileman_webdrv_Generic extends core_Manager
         
         return $fileType;
     }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * Тук нямаме обект - предефинираме я за да се излиза коректно име в лог-а на класа
+     *
+     * @param int $objId
+     *
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        return new ET(get_called_class());
+    }
 }
