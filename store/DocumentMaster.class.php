@@ -102,13 +102,13 @@ abstract class store_DocumentMaster extends core_Master
     protected static function setDocFields(core_Master &$mvc)
     {
         $mvc->FLD('valior', 'date', 'caption=Дата');
-        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
+        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута,smartCenter');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=ДДС,input=hidden');
         
-        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено->Сума,input=none,summary=amount'); // Сумата на доставената стока
-        $mvc->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено->ДДС,input=none,summary=amount');
+        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено->Сума,input=none,summary=amount,smartCenter'); // Сумата на доставената стока
+        $mvc->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено->ДДС,input=none,summary=amount,smartCenter');
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         
         // Контрагент
@@ -382,7 +382,7 @@ abstract class store_DocumentMaster extends core_Master
         
         if (isset($fields['-list'])) {
             if ($rec->amountDelivered) {
-                $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
+                $row->amountDelivered = "{$row->amountDelivered}";
             } else {
                 $row->amountDelivered = "<span class='quiet'>0.00</span>";
             }

@@ -2,6 +2,13 @@
 
 
 /**
+ * Максимален размер на архивите, които ще се обработват - разглеждане и разархивиране
+ * 200 mB
+ */
+defIfNot('ARCHIVE_MAX_LEN', 209715200);
+
+
+/**
  * Клас 'archive_Setup'
  *
  * Исталиране/деинсталиране на Apachetika
@@ -35,4 +42,12 @@ class archive_Setup extends core_ProtoSetup
      * Пакет без инсталация
      */
     public $noInstall = true;
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'ARCHIVE_MAX_LEN' => array('fileman_FileSize', 'caption=Максимален размер на архивите|*&comma;| които ще се обработват->Размер, suggestions=100 MB|200 MB|500 MB'),
+    );
 }

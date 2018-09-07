@@ -1035,12 +1035,10 @@ class fileman_webdrv_Generic extends core_Manager
         // Инстанция на архива
         $zip = self::getArchiveInst($fRec);
         
-        $conf = core_Packs::getConfig('fileman');
-        
         $stat = $zip->statIndex($index);
         
         // Очакваме размера да е в допустимите граници
-        expect($stat['size'] < $conf->FILEINFO_MAX_ARCHIVE_LEN, tr('Размера след разархивиране е над допустимия'));
+        expect($stat['size'] < archive_Setup::get('MAX_LEN'), tr('Размера след разархивиране е над допустимия'));
         
         // Вземаме съдържанието на файла
         $fileContent = $zip->getFromIndex($index);
@@ -1216,8 +1214,6 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function prepareFilesInArchive($filesArr, $fileHnd, $sizeContentArr = null)
     {
-        $conf = core_Packs::getConfig('fileman');
-        
         // Обхождаме вски файлове в текущата директория
         foreach ($filesArr as $file => $index) {
             
@@ -1236,7 +1232,7 @@ class fileman_webdrv_Generic extends core_Manager
             $sbfIcon = sbf($icon, '');
             
             // Ако размера след разархивиране е под допустимия
-            if ($sizeContentArr[$index] < $conf->FILEINFO_MAX_ARCHIVE_LEN) {
+            if ($sizeContentArr[$index] < archive_Setup::get('MAX_LEN')) {
                 $url = array(get_called_class(), 'absorbFileInArchive', $fileHnd, 'index' => $index);
             } else {
                 $url = false;
@@ -1335,9 +1331,6 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function checkArchiveLen($dataId)
     {
-        // Конфигурационните константи
-        $conf = core_Packs::getConfig('fileman');
-        
         // Записите за файла
         $dataRec = fileman_Data::fetch($dataId);
         
@@ -1345,14 +1338,14 @@ class fileman_webdrv_Generic extends core_Manager
         $fLen = $dataRec->fileLen;
         
         // Ако дължината на файла е по голяма от максимално допустимата
-        if ($fLen >= $conf->FILEINFO_MAX_ARCHIVE_LEN) {
+        if ($fLen >= archive_Setup::get('MAX_LEN')) {
             
             // Инстанция на класа
             $fileSizeInst = cls::get('fileman_FileSize');
             
             // Създаваме съобщение за грешка
             $text = tr('Архивът е много голям|*: ') . fileman_Data::getVerbal($dataRec, 'fileLen');
-            $text .= "\n" . tr('Допустимият размер е|*: ') . $fileSizeInst->toVerbal($conf->FILEINFO_MAX_ARCHIVE_LEN);
+            $text .= "\n" . tr('Допустимият размер е|*: ') . $fileSizeInst->toVerbal(archive_Setup::get('MAX_LEN'));
             
             // Очакваме да не сме влезли тука
             throw new fileman_Exception($text);
@@ -1550,5 +1543,19 @@ class fileman_webdrv_Generic extends core_Manager
         expect(in_array($fileType, array('handler', 'string', 'path')));
         
         return $fileType;
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * Тук нямаме обект - предефинираме я за да се излиза коректно име в лог-а на класа
+     *
+     * @param int $objId
+     *
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        return new ET(get_called_class());
     }
 }

@@ -43,6 +43,12 @@ class rack_Zones extends core_Master
     
     
     /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'admin,ceo,rack';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'admin,ceo,rack';
@@ -51,7 +57,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да генерира нагласяния?
      */
-    public $canOrderpickup = 'debug';
+    public $canOrderpickup = 'admin,ceo,rack';
     
     
     /**
