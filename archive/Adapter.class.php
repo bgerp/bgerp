@@ -14,13 +14,6 @@ defIfNot('ARCHIVE_7Z_PATH', '7z');
 
 
 /**
- * Максималната големина след разархивиране на един файл
- * 100 mB
- */
-defIfNot('ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT', 104857600);
-
-
-/**
  * Адаптер за разглеждане и разархивиране на архиви
  *
  * @category  vendors
@@ -110,7 +103,7 @@ class archive_Adapter
             $size = $entry->getSize();
             
             // Ако има размер
-            if ($size && ($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT)) {
+            if ($size && ($size < archive_Setup::get('MAX_LEN'))) {
                 $urlPath = $url;
                 
                 // Индекса да е ключа
@@ -138,7 +131,7 @@ class archive_Adapter
     
     /**
      * Връща масив от обекти със информацията за съдържанието на файла
-     *
+     *Portal/Show/
      * @param int $entry - Индекса на файла от архива
      *
      * @return mixed - Ако е подаден индекс, връща обект с информация за съответния файл/папка
@@ -187,7 +180,7 @@ class archive_Adapter
             $size = $entry->getSize();
             
             // Очакваме размера след декомпресия да е в допустимите граници
-            expect($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT);
+            expect($size < archive_Setup::get('MAX_LEN'));
         } catch (ErrorException $e) {
             // Ако възникне грешка
             expect(false, 'Възникна грешка при свалянето на файла');
