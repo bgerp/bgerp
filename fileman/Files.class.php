@@ -1882,6 +1882,10 @@ class fileman_Files extends core_Master
             // Преименува файла
             self::renameFile($fRec, $form->rec->name, true);
             
+            $fileNavArr = Mode::get('fileNavArr');
+            $fileNavArr[$fRec->fileHnd] = null;
+            Mode::setPermanent('fileNavArr', $fileNavArr);
+            
             // Редиректваме
             return new Redirect($retUrl);
         }
@@ -2162,8 +2166,37 @@ class fileman_Files extends core_Master
             $dangerFileClass .= ' dangerFile';
         }
         
-        // Вербалното име на файла
-        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">' . $mvc->getVerbal($rec, 'name') . '</span>';
+        $fileNavArr = Mode::get('fileNavArr');
+        
+        $prevUrl = $fileNavArr[$rec->fileHnd]['prev'];
+        $nextUrl = $fileNavArr[$rec->fileHnd]['next'];
+        
+        // Показваме селект с всички файлове
+        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && count($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
+            $form = cls::get('core_Form');
+            $form->fnc('selectFile', 'enum()', 'input=input');
+            
+            $form->addAttr('selectFile', array('onchange' => 'document.location = this.options[this.selectedIndex].value;'));
+            
+            $form->view = 'horizontal';
+            
+            $form->layout = "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
+            
+            foreach ($fileNavArr[$rec->fileHnd]['allFilesArr'] as $fUrl => $fName) {
+                if ($fileNavArr[$rec->fileHnd]['current'] == $fUrl) {
+                    $fName = basename($fName);
+                }
+                $eArr[$fUrl] = str::limitLen($fName, 32);
+            }
+            
+            $form->setOptions('selectFile', $eArr);
+            $form->setDefault('selectFile', $fileNavArr[$rec->fileHnd]['current']);
+            
+            $row->fileName = $form->renderHtml();
+        } else {
+            // Вербалното име на файла
+            $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">' . $mvc->getVerbal($rec, 'name') . '</span>';
+        }
         
         // Иконата за редактиране
         $editImg = '<img src=' . sbf('img/16/edit-icon.png') . '>';
@@ -2182,7 +2215,13 @@ class fileman_Files extends core_Master
         // Добавяме линка след името на файла
         $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
         
-        $fileNavArr = Mode::get('fileNavArr');
+        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
+            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
+        }
+        
+        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
+            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
+        }
         
         // Показваме и източника на файла
         if ($fileNavArr[$rec->fileHnd]['src']) {
@@ -2207,14 +2246,6 @@ class fileman_Files extends core_Master
             
             // Пред името на файла добаваме папката и документа, къде е използван
             $row->fileName .= $path;
-        }
-        
-        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
-            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
-        }
-        
-        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
-            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
         }
         
         // Версиите на файла

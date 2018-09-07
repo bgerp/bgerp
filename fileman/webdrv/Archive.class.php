@@ -127,95 +127,64 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             // Вземаме съдържанието
             $entriesArr = $inst->getEntries();
             
+            $prev = null;
+            $iPrev = null;
+            $next = null;
+            $findNext = false;
+            $allArhiveArr = array();
+            $srcDirName = null;
+            $cUrlStr = null;
+            
             if (!empty($entriesArr)) {
                 $eCnt = count($entriesArr);
                 
-                $prev = null;
-                $cnt = 0;
-                while (true) {
-                    $cnt++;
-                    
-                    $pIndex = $index - $cnt;
-                    
-                    if ($pIndex <= -1) {
-                        break;
-                    }
-                    
-                    $entry = $entriesArr[$pIndex];
-                    
-                    if (!$entry) {
-                        break ;
-                    }
-                    
+                foreach ($entriesArr as $eIndex => $entry) {
                     $size = $entry->getSize();
                     
                     if ($size && ($size < archive_Setup::get('MAX_LEN'))) {
-                        $prev = $pIndex;
+                        $ePath = $entriesArr[$eIndex]->getPath();
+                        $eUrl = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $eIndex);
                         
-                        break;
-                    }
-                }
-                
-                $next = null;
-                $cnt = 0;
-                while (true) {
-                    $cnt++;
-                    
-                    $nIndex = $index + $cnt;
-                    
-                    if ($nIndex > $eCnt) {
-                        break;
-                    }
-                    
-                    $entry = $entriesArr[$nIndex];
-                    
-                    if (!$entry) {
-                        break ;
-                    }
-                    
-                    $size = $entry->getSize();
-                    
-                    if ($size && ($size < archive_Setup::get('MAX_LEN'))) {
-                        $next = $nIndex;
+                        $urlStr = toUrl($eUrl);
                         
-                        break;
-                    }
-                }
-                
-                // Добавяме и пътя на файла в архива
-                if ($entriesArr[$index]) {
-                    $ePath = $entriesArr[$index]->getPath();
-                    
-                    if ($ePath) {
-                        $eDirName = trim(dirname($ePath));
-                        if ($eDirName && $eDirName != '.') {
-                            $fileNavArr[$fh]['srcDirName'] = $eDirName;
-                        } else {
-                            $fileNavArr[$fh]['srcDirName'] = null;
+                        $allArhiveArr[$urlStr] = $ePath;
+                        
+                        if ($eIndex == $index) {
+                            $cUrlStr = $urlStr;
+                            if ($ePath) {
+                                $eDirName = trim(dirname($ePath));
+                                if ($eDirName && $eDirName != '.') {
+                                    $srcDirName = $eDirName;
+                                } else {
+                                    $srcDirName = null;
+                                }
+                            }
+                            
+                            // Ако сме намерили предишния
+                            if (!isset($prev) && isset($iPrev)) {
+                                $prev = $iPrev;
+                            }
+                            $findNext = true;
+                            
+                            continue;
+                        }
+                        
+                        $iPrev = $eUrl;
+                        
+                        // Ако сме намерили следващия
+                        if ($findNext && !isset($next)) {
+                            $next = $eUrl;
                         }
                     }
                 }
             }
             
-            // Предишния файл в архива
-            if ($prev !== $index) {
-                if (isset($prev)) {
-                    $fileNavArr[$fh]['prev'] = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $prev);
-                } else {
-                    $fileNavArr[$fh]['prev'] = null;
-                }
-            }
-            
-            // Следващия файл в архива
-            if ($next !== $index) {
-                if (isset($next)) {
-                    $fileNavArr[$fh]['next'] = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $next);
-                } else {
-                    $fileNavArr[$fh]['next'] = null;
-                }
-            }
-            
-            // Добавяме източника на файла
+            // Добавяме  новите стойности
+            $fileNavArr[$fh]['prev'] = $prev;
+            $fileNavArr[$fh]['next'] = $next;
+            $fileNavArr[$fh]['srcDirName'] = $srcDirName;
+            $fileNavArr[$fh]['allFilesArr'] = $allArhiveArr;
+            $fileNavArr[$fh]['current'] = $cUrlStr;
             $fileNavArr[$fh]['src'] = $fRec->fileHnd;
             
             Mode::setPermanent('fileNavArr', $fileNavArr);
@@ -303,6 +272,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             
             // Всички файлове в архива
             foreach ($entriesArr as $key => $entry) {
+                $size = $entry->getSize();
                 
                 // Гледаме размера след разархивиране да не е много голям
                 // Защита от "бомби" - от препълване на сървъра
