@@ -33,6 +33,7 @@ form {
 	background-color:#ddd;
 	margin: 0 auto;
 	padding:0px;
+    position:relative;
 }
 .header {
 	padding:5px;
@@ -42,9 +43,13 @@ form {
 }
 
 #bodyCnt {
-	max-height:235px;
+	max-height:390px;
 	overflow:auto;
 	padding:10px
+}
+
+pre{
+    white-space: pre-wrap;
 }
 
 .centeredContent {
@@ -53,7 +58,6 @@ form {
 }
 
 #bodyTd {
-    height:235px;
     border-top: 1px solid #bbb;
     border-bottom: 1px solid #bbb;
     padding:5px;  
@@ -124,32 +128,35 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 input[type=checkbox] + label {
     bottom: 2px;
 }
+
 .question {
 	font-size:1.1em;
     margin-bottom: 15px;
     font-weight: bold;
 }
 
-@media (min-height: 525px) {
-    #bodyCnt {
-        max-height:380px;
-    }
-    #bodyTd {
-        height:400px;
-    }
-    #container { 
-        border-top: 1px solid #bbb; 
-        border-bottom: 1px solid #bbb;
-    }
-}
+ 
 
-@media (min-width: 820px) and (min-height: 360px) {
-    #container {
+#container {
 	    border-radius: 5px;
 	    box-shadow: 0 0 5px rgba(0,0,0,0.15);
 	    border: 2px solid #bbb;
+        height:525px !important;
+}
+
+@media (max-height: 525px) {
+    #container {
+        height:100vh  !important;
+        border-radius: 0px;
     }
 }
 
+@media (max-width: 820px)  {
+    #container {
+	    border-radius: 0px;
+    }
+}
+
+ 
 #buttons { overflow: hidden; }
 #buttons input { float: right; }

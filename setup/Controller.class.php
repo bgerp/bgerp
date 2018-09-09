@@ -59,6 +59,12 @@ class setup_Controller
             $this->state['installationType'] = 'update';
         }
         
+        $db = cls::get('core_Db');
+        if ($db->getDBInfo('ROWS') > 0) {
+            
+            return false;
+        }
+        
         $res->title = 'Вид на инсталацията';
         $res->question = 'Какъв тип инсталация желаете?';
         $res->body = $this->createRadio('installationType', array('new' => 'Нова инсталация',   'recovery' => 'Възстановяване от бекъп'));
@@ -91,7 +97,7 @@ class setup_Controller
             return false;
         }
         
-        $res->title = 'Проверка за обновяване';
+        $res->title = 'Проверка за обновления';
         $res->question = 'Да проверя ли за нови версии на bgERP?';
         $res->body = $this->createRadio('checkForUpdates', array('yes' => 'Да, провери сега', 'recovery' => 'Не, пропусни'));
     }
@@ -413,41 +419,45 @@ class setup_Controller
         $tpl = '<!DOCTYPE html>
         <html>
             <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
                 <title>Setup - bgERP</title>
-
                 <style>' . file_get_contents(__DIR__ . '/setup.css') . "</style>
-                
                 <link href='{$icon}' rel='icon' type='image/x-icon'>
         </head>
 
         <body style='background-color:#000 !important; background-image: url(\"{$background}\");'>
         <table class='center' border='0'><tbody><tr><td class='center'>
 
-        <div id='container'>
             <form method='POST'>
-                <div class='header'>
+                <table width=100% id='container'>
+                <tr class='header'  id='titleRow'>
+                    <td>
                     <span style='background:url(\"{$icon}\") left center no-repeat; padding-left:22px'>
-                        bgERP: [#title#]
+                        bgERP Настройчик » [#title#]
                     </span>
-                </div>
+                    </td>
+                </tr>
 
-                <table  class='center'><tbody><tr><td class='center' id='bodyTd'>
+                <tr><td class='center' id='bodyTd'>
                     <div class='centeredContent'>
                         <div id='bodyCnt'>
                             <div class='question'>[#question#]</div>
                             [#body#]
                         </div>
                     </div>
-                </td></tr></tbody></table>
-
+                </td></tr>
+                
+                <tr> <td id='buttonsRow'>
                 <input name='Step' value='{$current}' type='hidden'>
                 <div  class='formFooter centeredContent'>
                     <center id='buttons'>[#next#][#back#]</center>
                 </div>
-            </form>
-        </div>
+                </td></tr>
+            </table>
+            </form> 
 
         </td></tr></tbody></table>
+
         </body>
         </html>";
         
