@@ -2644,11 +2644,14 @@ class fileman_Files extends core_Master
         
         // Статистика за БД
         if (haveRole('ceo, admin, debug')) {
-            $sqlInfo = core_Db::getDBInfo();
+            $db = cls::get('core_Db');
+            
+            $sqlInfo = $db->getDBInfo();
             
             if ($sqlInfo) {
-                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['Size']);
-                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['Rows']);
+                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
+                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
+                $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
             }
         }
     }
