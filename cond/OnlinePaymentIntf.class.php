@@ -40,8 +40,8 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
      * 
      * @return string $button        - бутон за онлайн плащане
      */
-    public function getPaymentUrl($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
+    public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
-        return $this->class->getPaymentUrl($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems);
+        return $this->class->getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems);
     }
 }
