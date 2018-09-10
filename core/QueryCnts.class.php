@@ -109,6 +109,10 @@ class core_QueryCnts extends core_Manager
      */
     public function on_Shutdown()
     {
+        $slowQueryDelimiter = 3; // По подразбиране да ги разделя на 3 групи
+        $divorceSearchMin = 100000; // Когато id-то е над 100К - тогава да сработва
+        $divorceSearchMax = 1000000; // Ако записите са над 1М - да ги разделя спрямо бройката, като мин е 3
+        
         foreach ($this->queries as $hash => $qCnt) {
             $lastRec = self::getFromChache($hash, null);
             $cnt = false;
@@ -122,7 +126,57 @@ class core_QueryCnts extends core_Manager
             self::set($hash, $cnt);
             
             $start = time();
-            $cnt = $qCnt->count();
+            
+            // Разделяме заявката на интервали - за да не блокира SELECT заявките със същия приоритет
+            $haveCnt = false;
+            if ($qCnt->isSlowQuery && !haveRole('debug')) {
+                if ($qCnt->mvc) {
+                    $q = $qCnt->mvc->getQuery();
+                    $q->XPR('maxId', 'int', 'max(#id)');
+                    $q->show('maxId');
+                    $qRec = $q->fetch();
+                    
+                    if ($qRec) {
+                        $maxId = $qRec->maxId;
+                        if ($maxId && ($maxId > $divorceSearchMin)) {
+                            if ($maxId > $divorceSearchMax) {
+                                $slowQueryDelimiterTmp = floor($maxId / $divorceSearchMax);
+                                $slowQueryDelimiter = max($slowQueryDelimiterTmp, $slowQueryDelimiter);
+                            }
+                            
+                            $sDelim = (int) ($maxId / $slowQueryDelimiter);
+                            $cnt = 0;
+                            $haveCnt = true;
+                            for ($i = 1; $i <= $slowQueryDelimiter; $i++) {
+                                $cQuery = clone $qCnt;
+                                $sDelimTmp = $sDelim * $i;
+                                if ($i == 1) {
+                                    $cQuery->where("#id < {$sDelim}");
+                                } elseif ($i != $slowQueryDelimiter) {
+                                    $sDelimTmp = $sDelim * $i;
+                                    $cQuery->where("#id >= {$sDelimTmpFrom}");
+                                    $cQuery->where("#id < {$sDelimTmp}");
+                                } else {
+                                    $cQuery->where("#id >= {$sDelimTmpFrom}");
+                                }
+                                
+                                $sDelimTmpFrom = $sDelimTmp;
+                                
+                                $cnt += $cQuery->count();
+                                
+                                // 0.1-0.5 сек
+                                $ms = rand(100000, 500000);
+                                usleep($ms);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (!$haveCnt) {
+                $cnt = $qCnt->count();
+            }
+            
             self::set($hash, $cnt, $start);
         }
     }
