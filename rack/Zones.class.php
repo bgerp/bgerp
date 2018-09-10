@@ -399,7 +399,7 @@ class rack_Zones extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 if(rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL OR #movementQuantity = 0)")){
-                    //$requiredRoles = 'no_one';
+                    $requiredRoles = 'no_one';
                 }
             }
         }
