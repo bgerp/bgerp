@@ -5231,8 +5231,7 @@ function setFilemanPreviewSize()
  */
 function calcFilemanSize(){
     if (!$('.wide .webdrvFieldset').length) return;
-
-    var width = $(window).outerWidth() - $('.sidemenu-open').length * $('.sidemenu-open').width() - 50;
+    var width = $(window).outerWidth() - $('.sidemenu-open').length * $('.sidemenu-open').width() - 4*parseInt($('#packWrapper').css('padding-left'));
     var offset = $('.webdrvFieldset').offset();
     var height = $(window).outerHeight() - parseInt(offset.top, 10) - 45;
 
