@@ -5214,6 +5214,39 @@ function copyFileToLast(fh)
     }
 }
 
+/**
+ * Извиква функцията за изчисляване при зареждане и смяна на размери на прозореца
+ */
+function setFilemanPreviewSize()
+{
+    calcFilemanSize();
+    $( window ).resize(function() {
+        calcFilemanSize();
+    });
+}
+
+
+/**
+ * Изчисляване на размерите на привюто на файловете
+ */
+function calcFilemanSize(){
+    if (!$('.wide .webdrvFieldset').length) return;
+
+    var width = $(window).outerWidth() - $('.sidemenu-open').length * $('.sidemenu-open').width() - 50;
+    var offset = $('.webdrvFieldset').offset();
+    var height = $(window).outerHeight() - parseInt(offset.top, 10) - 45;
+
+    $('.webdrvFieldset').css('width', width);
+    $('.webdrvFieldset').css('height', height);
+    $('.webdrvFieldset').css('overflow-y', 'auto');
+
+    $('.webdrvIframe').css('min-height', height - 5);
+
+    $("#imgIframe").load(function() {
+        $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
+    });
+}
+
 
 /**
  * Fix за IE8

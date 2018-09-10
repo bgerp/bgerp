@@ -2282,6 +2282,8 @@ class fileman_Files extends core_Master
         // Добавяме табовете в шаблона
         $tpl->append($fileInfo, 'fileDetail');
 
+        jquery_Jquery::run($tpl, 'setFilemanPreviewSize()');
+
         // Отбелязваме като разгледан
         fileman_Log::updateLogInfo($fh, 'preview');
     }

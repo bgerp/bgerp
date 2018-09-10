@@ -4072,7 +4072,6 @@ table .eshop-btn {
 /*стилове за fileman*/
 .webdrvTabBody {
 	min-width: 800px;
-	min-height: 612px;
 	top: 10px;
 	position: relative;
 }
@@ -4105,7 +4104,6 @@ table .eshop-btn {
 	@include border-radius(5px);
 	box-shadow: 0 0 5px rgba(0,0,0,0.2) inset;
 	> div {
-		max-width: 880px;
 		overflow: auto;
 	}
 	> .dtree {
@@ -4114,7 +4112,7 @@ table .eshop-btn {
 	> .mejs-container {
 		overflow: hidden;
 	}
-	pre.richtext {
+	.richtext {
 		max-width: 865px;
 		margin-bottom:0;
 		margin-top:0;
@@ -4129,10 +4127,11 @@ table .eshop-btn {
 	position:relative;
 }
 
-.webdrvFieldset .legend {
+.webdrvTabBody .legend {
 	position: absolute;
 	top:-10px;
 	left: 10px;
+	z-index: 1000;
 	background-color: #fff;
 	padding: 0 5px;
 	margin: 0 15px;
