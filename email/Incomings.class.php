@@ -1014,15 +1014,17 @@ class email_Incomings extends core_Master
                 unset($vals[$rec->htmlFile]);
             }
             
+            $prev = null;
+            $iPrev = null;
+            $allFileArr = array();
+            $cUrlStr = null;
+            $findNext = false;
+            
             if (count($vals)) {
                 $ourImgArr = core_Permanent::get('ourImgEmailArr');
                 
                 $fileNavArr = Mode::get('fileNavArr');
                 
-                $haveChangeFileNavArr = false;
-                
-                $prevFile = null;
-                $allFRecArr = array();
                 foreach ($vals as $keyD) {
                     $fRec = fileman::fetch($keyD);
                     
@@ -1030,42 +1032,39 @@ class email_Incomings extends core_Master
                         continue;
                     }
                     
-                    $allFRecArr[$keyD] = $fRec;
+                    $eUrl = array($this, 'viewFile', $rec->id, 'fileHnd' => $fRec->fileHnd);
                     
-                    $haveChangeFileNavArr = true;
+                    $urlStr = toUrl($eUrl);
                     
-                    // Записваме следващия файл, спрямо текущия
-                    if ($prevFile) {
-                        $fileNavArr[$fRec->fileHnd]['prev'] = array($this, 'viewFile', $rec->id, 'fileHnd' => $prevFile);
-                    } else {
-                        $fileNavArr[$fRec->fileHnd]['prev'] = null;
-                    }
+                    $allFileArr[$urlStr] = $fRec->name;
                     
-                    $prevFile = $fRec->fileHnd;
-                }
-                
-                // Записваме предишния файл, спрямо текущия
-                if (!empty($allFRecArr)) {
-                    $allFRecArr = array_reverse($allFRecArr);
-                    $nextFile = null;
-                    
-                    foreach ($allFRecArr as $fRec) {
-                        $haveChangeFileNavArr = true;
+                    if ($fh == $fRec->fileHnd) {
+                        $cUrlStr = $urlStr;
                         
-                        if ($nextFile) {
-                            $fileNavArr[$fRec->fileHnd]['next'] = array($this, 'viewFile', $rec->id, 'fileHnd' => $nextFile);
-                        } else {
-                            $fileNavArr[$fRec->fileHnd]['next'] = null;
+                        // Ако сме намерили предишния
+                        if (!isset($prev) && isset($iPrev)) {
+                            $prev = $iPrev;
                         }
+                        $findNext = true;
                         
-                        $nextFile = $fRec->fileHnd;
+                        continue;
                     }
-                }
-                
-                if ($haveChangeFileNavArr) {
-                    Mode::setPermanent('fileNavArr', $fileNavArr);
+                    
+                    $iPrev = $eUrl;
+                    
+                    // Ако сме намерили следващия
+                    if ($findNext && !isset($next)) {
+                        $next = $eUrl;
+                    }
                 }
             }
+            
+            // Добавяме новите стойности
+            $fileNavArr[$fh]['prev'] = $prev;
+            $fileNavArr[$fh]['next'] = $next;
+            $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
+            $fileNavArr[$fh]['current'] = $cUrlStr;
+            Mode::setPermanent('fileNavArr', $fileNavArr);
         }
         
         return new Redirect(array('fileman_Files', 'single', $fh));

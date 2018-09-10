@@ -16,8 +16,6 @@
  */
 class rack_ZoneDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -90,11 +88,11 @@ class rack_ZoneDetails extends core_Detail
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             
-            if(isset($rec->movementQuantity)){
+            if (isset($rec->movementQuantity)) {
                 $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
             }
             
-            if(isset($rec->documentQuantity)){
+            if (isset($rec->documentQuantity)) {
                 $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
             }
         }
@@ -110,7 +108,7 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $row->ROW_ATTR['class'] = 'row-added';
     }
@@ -118,19 +116,19 @@ class rack_ZoneDetails extends core_Detail
     
     /**
      * Записва движение в зоната
-     * 
-     * @param int $zoneId      - ид на зона
-     * @param int $productId   - ид на артикул
-     * @param int $packagingId - ид на опаковка
-     * @param double $quantity - количество в основна мярка
-     * 
+     *
+     * @param int   $zoneId      - ид на зона
+     * @param int   $productId   - ид на артикул
+     * @param int   $packagingId - ид на опаковка
+     * @param float $quantity    - количество в основна мярка
+     *
      * @return void
      */
     public static function recordMovement($zoneId, $productId, $packagingId, $quantity)
     {
         $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
-        if(empty($newRec)){
-            $newRec = (object)array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null);
+        if (empty($newRec)) {
+            $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null);
         }
         $newRec->movementQuantity += $quantity;
         
@@ -140,22 +138,22 @@ class rack_ZoneDetails extends core_Detail
     
     /**
      * Синхронизиране на зоните с документа
-     * 
+     *
      * @param int $zoneId
      * @param int $containerId
      */
     public static function syncWithDoc($zoneId, $containerId = null)
     {
-        if(isset($containerId)){
+        if (isset($containerId)) {
             $document = doc_Containers::getDocument($containerId);
             $products = $document->getProductsSummary();
             $exRecs = array();
             
-            if(is_array($products)){
-                foreach ($products as $obj){
+            if (is_array($products)) {
+                foreach ($products as $obj) {
                     $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId}");
-                    if(empty($newRec)){
-                        $newRec = (object)array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'movementQuantity' => null, 'documentQuantity' => 0);
+                    if (empty($newRec)) {
+                        $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
                     $newRec->documentQuantity = $obj->quantity;
                     
@@ -165,7 +163,7 @@ class rack_ZoneDetails extends core_Detail
             }
             
             // Тези които не са се обновили се изтриват
-            if(count($exRecs)){
+            if (count($exRecs)) {
                 self::nullifyQuantityFromDocument($zoneId, $exRecs);
             }
         } else {
@@ -176,23 +174,41 @@ class rack_ZoneDetails extends core_Detail
     
     /**
      * Зануляване на очакваното количество по документи
-     * 
-     * @param int $zoneId
+     *
+     * @param int   $zoneId
      * @param array $notIn
      */
     private static function nullifyQuantityFromDocument(int $zoneId, array $notIn = array())
     {
         $query = self::getQuery();
         $query->where("#zoneId = {$zoneId}");
-        $query->where("#documentQuantity IS NOT NULL");
-        if(count($notIn)){
-            $query->notIn("id", $notIn);
+        $query->where('#documentQuantity IS NOT NULL');
+        if (count($notIn)) {
+            $query->notIn('id', $notIn);
         }
         
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $rec->documentQuantity = null;
             self::save($rec);
         }
+    }
+    
+    
+    /**
+     * Изчислява какво количество от даден продукт е налично в зоните
+     */
+    public static function calcProductQuantityOnZones($productId)
+    {
+        $query = self::getQuery();
+        $query->XPR('sum', 'double', 'sum(#movementQuantity)');
+        $query->where("#productId = {$productId}");
+        $rec = $query->fetch();
+        $res = 0;
+        if ($rec) {
+            $res = $rec->sum;
+        }
+        
+        return $res;
     }
     
     
@@ -202,8 +218,17 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Ако няма никакви количества се изтрива
-        if(empty($rec->documentQuantity) && empty($rec->movementQuantity)){
+        if (empty($rec->documentQuantity) && empty($rec->movementQuantity)) {
             self::delete($rec->id);
+        }
+        
+        // Обновяване на информацията за количествата от продукта в зоните
+        $storeId = store_Stores::getCurrent();
+        $storeProductRec = rack_Products::fetch("#productId = {$rec->productId} AND #storeId = {$storeId}");
+        if(is_object($storeProductRec)){
+            $productQuantityOnZones = self::calcProductQuantityOnZones($rec->productId);
+            $storeProductRec->quantityOnZones = $productQuantityOnZones;
+            rack_Products::save($storeProductRec, 'quantityOnZones');
         }
     }
     
@@ -213,6 +238,6 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('documentQuantity', "DESC");
+        $data->query->orderBy('documentQuantity', 'DESC');
     }
 }

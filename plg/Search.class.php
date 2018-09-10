@@ -185,6 +185,9 @@ class plg_Search extends core_Plugin
         if ($words = static::parseQuery($search)) {
             usort($words, 'plg_Search::sortLength');
             
+            $stopWordsCnt = $notStopWordsCnt = $shortWordsCnt = $longWordsCnt = 0;
+            $shortWordLen = 4;
+            
             foreach ($words as $w) {
                 $w = trim($w);
                 
@@ -266,7 +269,23 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
+                    $isStopWord = self::isStopWord($w);
+                    
+                    if ($isStopWord) {
+                        $stopWordsCnt++;
+                    } else {
+                        $notStopWordsCnt++;
+                    }
+                    
+                    $wLen = strlen($w);
+                    
+                    if ($wLen < $shortWordLen) {
+                        $shortWordsCnt++;
+                    } else {
+                        $longWordsCnt++;
+                    }
+                    
+                    if ($isStopWord || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
                         if ($limit > 0 && $like == 'LIKE') {
                             $field1 = "LEFT(#{$field}, {$limit})";
                         } else {
@@ -285,6 +304,10 @@ class plg_Search extends core_Plugin
                         }
                     }
                 }
+            }
+            
+            if (($stopWordsCnt >= 2) || ($shortWordsCnt && !$longWordsCnt)) {
+                $query->isSlowQuery = true;
             }
         }
     }

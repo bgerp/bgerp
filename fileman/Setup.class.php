@@ -59,13 +59,6 @@ defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 3145728);
 
 
 /**
- * Максималната големина на архивите, за които ще се визуализира информация
- * 100 mB
- */
-defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
-
-
-/**
  * Разширения на файловете, в които няма да се търси баркод
  */
 defIfNot('FILEINFO_EXCLUDE_FILE_EXT_BARCODE', '');
@@ -172,8 +165,6 @@ class fileman_Setup extends core_ProtoSetup
         'FILEMAN_PREVIEW_HEIGHT_NARROW' => array('int', 'caption=Размер на изгледа в мобилен режим->Височина,unit=pix'),
         
         'LINK_NARROW_MIN_FILELEN_SHOW' => array('fileman_FileSize', 'caption=Показване размера на файла в мобилен режим при големина->Повече от, suggestions=50 KB|100 KB|200 KB|300 KB'),
-        
-        'FILEINFO_MAX_ARCHIVE_LEN' => array('fileman_FileSize', 'caption=Максимален размер на архивите|*&comma;| за които ще се визуализира информация->Размер, suggestions=50 MB|100 MB|200 MB|300 MB'),
         
         'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
         

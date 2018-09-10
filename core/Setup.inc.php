@@ -1506,6 +1506,7 @@ function setupUnlock()
 function setupProcess()
 {
     if (@file_exists(EF_TEMP_PATH . '/setupLock.tmp')) {
+
         return true;
     }
 
@@ -1526,15 +1527,18 @@ function setupKeyValid()
     try {
         $DB->connect(false);
     } catch (core_exception_Expect $e) {
+
         return true;
     }
     
-    if ($DB->databaseEmpty() && !setupProcess()) {
+    if (($DB->getDBInfo('Rows') == 0) && !setupProcess()) {
+
         return true;
     }
     
     // Ако има setup cookie и има пуснат сетъп процес връща валиден ключ
     if (isset($_COOKIE['setup']) && setupProcess()) {
+
         return true;
     }
 
@@ -1544,6 +1548,7 @@ function setupKeyValid()
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
     $key = $_GET['SetupKey'];
     if ($key == BGERP_SETUP_KEY && $isLocal) {
+
         return true;
     }
     

@@ -73,7 +73,7 @@ class rack_Racks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num,free=Палет-места->Свободни,rows,columns,total,used,reserved';
+    public $listFields = 'num,free=Палет-места->Свободни,used,reserved,total,rows,columns';
     
     
     /**
@@ -217,18 +217,19 @@ class rack_Racks extends core_Master
     
     /**
      * Проверява съществуваща ли е позицията
-     * 
-     * @param string $position
-     * @param int $productId
-     * @param int $storeId
+     *
+     * @param string      $position
+     * @param int         $productId
+     * @param int         $storeId
      * @param string|null $error
      * @param string|null $error
-     * @return boolean
+     *
+     * @return bool
      */
     public static function checkPosition($position, $productId, $storeId, &$error = null, &$rec = null)
     {
         list($num, $row, $col) = explode('-', $position);
-        if (!($num && $row && $col)){
+        if (!($num && $row && $col)) {
             $error = 'Невалиден синтаксис';
             
             return false;
@@ -236,20 +237,20 @@ class rack_Racks extends core_Master
         
         $rec = self::fetch("#storeId = {$storeId} AND #num = {$num}");
         if (empty($rec)) {
-            $error = 'Несъществуващ номер на стeлаж в този склад';
+            $error = 'Несъществуващ номер на стелаж в този склад';
             
             return false;
         }
         
         if ($row < 'A' || $row > $rec->rows) {
-            $error = 'Несъществуващ ред на стeлажа';
+            $error = 'Несъществуващ ред на стелажа';
             
             return false;
         }
         
         
         if ($col < 1 || $col > $rec->columns) {
-            $error = 'Несъществуваща колона на стeлажа';
+            $error = 'Несъществуваща колона на стелажа';
             
             return false;
         }
@@ -266,7 +267,10 @@ class rack_Racks extends core_Master
         expect($position);
         $storeId = $storeId ?? store_Stores::getCurrent();
         
-        if(!self::checkPosition($position, $productId, $storeId, $error, $rec)) return;
+        if (!self::checkPosition($position, $productId, $storeId, $error, $rec)) {
+            
+            return;
+        }
         list(, $row, $col) = explode('-', $position);
         
         $dRec = rack_RackDetails::fetch("#rackId = {$rec->id} && #row = '{$row}' AND #col = {$col}");
@@ -359,8 +363,9 @@ class rack_Racks extends core_Master
     
     /**
      * Рендиране на стелажа
-     * 
+     *
      * @param stdClass $rec
+     *
      * @return string
      */
     public static function renderRack($rec)
@@ -714,7 +719,10 @@ class rack_Racks extends core_Master
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        if (!count($data->rows) || empty($data->listSummary->query)) return;
+        if (!count($data->rows) || empty($data->listSummary->query)) {
+            
+            return;
+        }
         
         $data->listSummary->query->XPR('totalTotal', 'int', 'SUM(#total)');
         $data->listSummary->query->XPR('usedTotal', 'int', 'SUM(#used)');
@@ -722,9 +730,9 @@ class rack_Racks extends core_Master
         
         $summaryRec = $data->listSummary->query->fetch();
         $Int = core_Type::getByName('int');
-        $rowBefore = (object)array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal));
+        $rowBefore = (object) array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal), 'freeTotal' => $Int->toVerbal($summaryRec->totalTotal - $summaryRec->usedTotal - $summaryRec->reservedTotal));
         
-        $rowBeforeTpl = new core_ET("<tr style='background-color:#aaa;color:white;text-align:center;'><td colspan='5'></td><td><b>[#totalTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td></tr>");
+        $rowBeforeTpl = new core_ET("<tr style='background-color:#aaa;color:white;text-align:center;'><td colspan='2'></td><td><b>[#freeTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td><td><b>[#totalTotal#]</b></td><td colspan='2'></td></tr>");
         $rowBeforeTpl->placeObject($rowBefore);
         $tpl->replace($rowBeforeTpl, 'ROW_BEFORE');
     }

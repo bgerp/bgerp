@@ -92,7 +92,7 @@ class fileman_webdrv_Kmz extends fileman_webdrv_Kml
                     
                     // Гледаме размера след разархивиране да не е много голям
                     // Защита от "бомби" - от препълване на сървъра
-                    if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) {
+                    if ($size > archive_Setup::get('MAX_LEN')) {
                         continue;
                     }
                     

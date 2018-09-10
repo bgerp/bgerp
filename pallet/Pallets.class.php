@@ -550,15 +550,12 @@ class pallet_Pallets extends core_Manager
     protected static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
         if ($rec->newRec == true) {
-            /* Change product quantity on pallets */
-            $recProducts = store_Products::fetch($rec->productId);
             
+            // Обновяване информацията за количеството от продукта в зоните
+            $recProducts = store_Products::fetch($rec->productId);
             $productQuantityOnPallets = pallet_Pallets::calcProductQuantityOnPalletes($rec->productId);
             $recProducts->quantityOnPallets = $productQuantityOnPallets;
-            
-            store_Products::save($recProducts);
-            
-            /* ENDOF Change product quantity on pallets */
+            store_Products::save($recProducts, 'quantityOnPallets');
             
             $recMovements = new stdClass();
             

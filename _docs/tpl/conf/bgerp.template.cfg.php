@@ -1348,8 +1348,8 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
 
 
 // Максималната дължина на архивите, за които ще се визуализира информация
-// 100 mB
- # defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
+// 200 mB
+# defIfNot('ARCHIVE_MAX_LEN', 209715200);
 
 
 // Пътя до gs файла

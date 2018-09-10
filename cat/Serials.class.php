@@ -111,7 +111,6 @@ class cat_Serials extends core_Manager
     {
         expect((empty($sourceClassId) && empty($sourceObjectId)) || (!empty($sourceClassId) && !empty($sourceObjectId)));
         if (isset($sourceClassId)) {
-            expect(cls::haveInterface('label_SequenceIntf', $sourceClassId));
             $sourceClassId = cls::get($sourceClassId)->getClassId();
         }
         
