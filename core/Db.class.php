@@ -119,6 +119,10 @@ class core_Db extends core_BaseClass
      */
     const MYSQLI_UNKNOWN_COLUMN = 1054;
     
+    
+    /**
+     * Конструктор на класа
+     */
     public function __construct()
     {
         $this->init();
@@ -175,10 +179,6 @@ class core_Db extends core_BaseClass
             unset($this->dbPass);
             
             $sqlMode = "SQL_MODE = ''";
-
-//             if (BGERP_GIT_BRANCH == 'dev') {
-//                 $sqlMode = "SQL_MODE = 'strict_trans_tables'";
-//             }
             
             if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== false)) {
                 $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
@@ -233,13 +233,11 @@ class core_Db extends core_BaseClass
         DEBUG::startTimer('DB::query()');
         DEBUG::log("${sqlQuery}");
         
-        
         $link = $this->connect();
         $this->query = $sqlQuery;
         $dbRes = $link->query($sqlQuery);
         
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
-        
         DEBUG::stopTimer('DB::query()');
         
         return $dbRes;
@@ -444,7 +442,6 @@ class core_Db extends core_BaseClass
             
             return false;
         }
-        
         
         // Правим допълнителните параметри към заявката
         $params = 'ENGINE = ' . $params['ENGINE'] . ' CHARACTER SET =' . $params['CHARACTER'] . ' COLLATE ' . $params['COLLATION'] . ';';
@@ -812,63 +809,71 @@ class core_Db extends core_BaseClass
     
     
     /**
-     * Празна ли е базата данни?
-     *
-     * @return bool
+     * Връща информация за посочената таблица
      */
-    public static function databaseEmpty()
+    public function getTableInfo($tableName, $part = null)
     {
-        $db = new core_Db();
-        
-        $dbRes = $db->query("SELECT SUM(TABLE_ROWS) AS RECS
-                                    FROM INFORMATION_SCHEMA.TABLES 
-                                    WHERE TABLE_SCHEMA = '" . $db->escape($db->dbName) ."'", true);
+        $dbRes = $this->query("SELECT *
+                               FROM INFORMATION_SCHEMA.TABLES 
+                                WHERE TABLE_SCHEMA = '" . $this->escape($this->dbName) ."' AND TABLE_NAME='{$tableName}'", true);
         
         if (!is_object($dbRes) || !$dbRes->num_rows) {
             
-            return true;
+            return false;
         }
         
-        // Извличаме резултата
-        $rows = $db->fetchObject($dbRes);
+        $res = $this->fetchArray($dbRes);
+        $this->freeResult($dbRes);
         
-        $db->freeResult($dbRes);
+        $res = array_change_key_case($res, CASE_UPPER);
         
-        if (!$rows->RECS) {
+        if ($part) {
+            $part = strtoupper($part);
+            expect(array_key_exists($part, $res));
             
-            return true;
+            $res = $res[$part];
         }
         
-        return false;
+        return $res;
     }
     
     
     /**
      * Връща информация за таблиците в БД
      *
-     * @return array|FALSE
-     *                     ['Name'] - dbName
-     *                     ['Rows'] - брой редове
-     *                     ['Size'] - размер
+     * @param string $part Коя част от резултата да се върне. Ако не е посочена, връща масив с всички
+     *
+     * @return array|int|false
+     *                         o ['Name'] - dbName
+     *                         o ['Rows'] - брой редове
+     *                         o ['Size'] - размер
      */
-    public static function getDBInfo()
+    public function getDBInfo($part = null)
     {
-        $db = cls::get('core_Db');
-        
-        $dbRes = $db->query("SELECT table_schema 'Name', Sum(table_rows) 'Rows',
-        					 Sum(data_length + index_length) 'Size'
-        					 FROM information_schema.tables
-        					 WHERE table_schema = '{$db->dbName}'", true);
+        $dbRes = $this->query("SELECT 
+                                  `table_schema` as 'Name', 
+                                   SUM(1) as `TABLES`, SUM(`TABLE_ROWS`) as 'ROWS',
+        					       SUM(`DATA_LENGTH` + `INDEX_LENGTH`) as 'SIZE'
+        					   FROM `information_schema`.`tables`
+        					   WHERE `table_schema` = '" . $this->escape($this->dbName) ."'", true);
         
         if (!is_object($dbRes)) {
             
             return false;
         }
         
-        $resArr = $db->fetchArray($dbRes);
+        $res = $this->fetchArray($dbRes);
+        $this->freeResult($dbRes);
         
-        $db->freeResult($dbRes);
+        $res = array_change_key_case($res, CASE_UPPER);
         
-        return $resArr;
+        if ($part) {
+            $part = strtoupper($part);
+            expect(array_key_exists($part, $res));
+            
+            $res = $res[$part];
+        }
+        
+        return $res;
     }
 }

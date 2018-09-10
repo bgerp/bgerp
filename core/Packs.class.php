@@ -1194,7 +1194,7 @@ class core_Packs extends core_Manager
             if (self::isInstalled($packName)) {
                 $setupClass = $packName . '_Setup';
                 if ($setupClass::INIT_AFTER_CONFIG) {
-                    $msg .= '<br>' . self::setupPack($packName, $rec->version, true, true, false);
+                    $msg .= '<br>' . $this->setupPack($packName, $rec->version, true, true, false);
                 }
             }
             

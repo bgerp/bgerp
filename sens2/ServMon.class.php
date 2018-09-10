@@ -29,26 +29,22 @@ class sens2_ServMon extends sens2_ProtoDriver
     public $interfaces = 'sens2_ControllerIntf';
     
     
-    public function getInputPorts($config = null)
-    {
-        return array(
-            'freeRam' => (object) array('caption' => 'Свободна RAM', 'uom' => '%'),
-            'freeDir1' => (object) array('caption' => 'Свободна памет в Dir1', 'uom' => 'B'),
-            'freeDir2' => (object) array('caption' => 'Свободна памет в Dir2', 'uom' => 'B'),
-            'mysqlCnt' => (object) array('caption' => 'MySQL връзки'),
-            
-            'proc1cnt' => (object) array('caption' => 'Стартирани Proc1'),
-            'proc2cnt' => (object) array('caption' => 'Стартирани Proc2'),
-            'proc3cnt' => (object) array('caption' => 'Стартирани Proc3'),
-            
-            'conn1' => (object) array('caption' => 'Връзка до conn1'),
-            'conn2' => (object) array('caption' => 'Връзка до conn2'),
-            'conn3' => (object) array('caption' => 'Връзка до conn3'),
-            
-            'cpuLoad' => (object) array('caption' => 'Натоварване процесор'),
+    public $inputs = array(
+        'freeRam' => array('caption' => 'Свободна RAM', 'uom' => '%'),
+        'freeDir1' => array('caption' => 'Свободна памет в Dir1', 'uom' => 'B'),
+        'freeDir2' => array('caption' => 'Свободна памет в Dir2', 'uom' => 'B'),
+        'mysqlCnt' => array('caption' => 'MySQL връзки'),
         
-        );
-    }
+        'proc1cnt' => array('caption' => 'Стартирани Proc1'),
+        'proc2cnt' => array('caption' => 'Стартирани Proc2'),
+        'proc3cnt' => array('caption' => 'Стартирани Proc3'),
+        
+        'conn1' => array('caption' => 'Връзка до conn1'),
+        'conn2' => array('caption' => 'Връзка до conn2'),
+        'conn3' => array('caption' => 'Връзка до conn3'),
+        
+        'cpuLoad' => array('caption' => 'Натоварване процесор'),
+    );
     
     
     public function prepareConfigForm($form)
@@ -139,7 +135,7 @@ class sens2_ServMon extends sens2_ProtoDriver
         if (stristr(PHP_OS, 'win')) {
             exec('wmic cpu get LoadPercentage', $p);
             
-            return $p[2];
+            return $p[1];
         }
         
         $sysLoad = sys_getloadavg();

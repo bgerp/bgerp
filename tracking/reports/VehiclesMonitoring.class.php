@@ -44,7 +44,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField = 'number';
     
     
     /**
@@ -66,7 +66,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('vehicle', 'keylist(mvc=tracking_Vehicles,select=number,)', 'caption=Превозно средство,single=none,after=title');
+        $fieldset->FLD('vehicle', 'keylist(mvc=tracking_Vehicles,select=number,)', 'caption=Превозно средство,after=title');
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
     }
@@ -118,48 +118,62 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
     {
         $recs = array();
         
-        
         $query = tracking_Log::getQuery();
         
-        $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+        $query-> where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
         
-        $vehicleArr = keylist::toArray($rec->vehicle);
+        $query-> orderBy('vehicleId');
         
-        $query->in('vehicleId', $vehicleArr);
+        $query-> orderBy('fixTime');
         
-        while ($vehicle = $query->fetch()) {
-          
+        
+        if ($rec->vehicle) {
+            $vehicleArr = keylist::toArray($rec->vehicle);
+            
+            $query->in('vehicleId', $vehicleArr);
+        }
+        
+        
+        while ($point = $query->fetch()) {
             $parseData['latitude'] = $parseData['longitude'] = 0;
+            $time = null;
             
-            $id = $vehicle->vehicleId;
+            $id = $point->id;
             
-            $parseData = tracking_Log::parseTrackingData($vehicle->data);
+            $parseData = tracking_Log::parseTrackingData($point->data);
             $parseData['latitude'] = tracking_Log::DMSToDD($parseData['latitude']);
             $parseData['longitude'] = tracking_Log::DMSToDD($parseData['longitude']);
+            $vehicleData = tracking_Vehicles::fetch($point->vehicleId);
+            $time = dt::mysql2verbal($point->fixTime, $mask = 'd.m.y H:i:s');
             
-            $coords[] = array($parseData['latitude'],$parseData['longitude']);
             
-            $values[$id] = array(
-                'coords' => $coords
+            $coords[] = array($parseData['latitude'],$parseData['longitude'],'info' => "{$vehicleData->number} » ${time}");
+            
+            $values[$point->vehicleId] = array(
+                'coords' => $coords,
+                'info' => $vehicleData->number.' » '.$time
             );
-            
-            $vehicleData = tracking_Vehicles::fetch($id);
-            
-            $values[$id] = core_Array::combine($values[$id], array(
-                'info' => $vehicleData->number));
             
             $recs[$id] = (object) array(
                 
                 'number' => $vehicleData->number,
-                'make' => $vehicleData->make,
-                'model' => $vehicleData->model,
+                'latitude' => $parseData['latitude'],
+                'longitude' => $parseData['longitude'],
+                'speed' => $parseData['speed'],
+                'heading' => $parseData['heading'],
+                'time' => $point->fixTime,
                 'personId' => $vehicleData->personId,
                 'trackerId' => $vehicleData->trackerId,
+                'createdOn' => $point->createdOn,
             
             );
         }
         
-        $recs['values'] = $values;
+        foreach ($values as $key => $val) {
+            $renumValues[] = $val;
+        }
+        
+        $recs['values'] = $renumValues;
         
         return $recs;
     }
@@ -175,9 +189,11 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
     protected function renderChart($rec, &$data)
     {
         $values = $data->recs['values'];
-       
+        
         if (is_array($values)) {
             $tpl = location_Paths::renderView($values);
+            
+            Mode::set('saveJS', true);
         } else {
             $tpl = 'Липсват данни';
         }
@@ -203,10 +219,11 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         
         if ($export === false) {
             $fld->FLD('number', 'varchar(10)', 'smartCenter,caption=Регистрационен номер');
-            $fld->FLD('make', 'varchar(12)', 'smartCenter,caption=Марка');
-            $fld->FLD('model', 'varchar(12)', 'smartCenter,caption=Модел');
-            $fld->FLD('personId', 'varchar', 'caption=Водач');
-            $fld->FLD('trackerId', 'varchar(12)', 'caption=Тракер Id');
+            $fld->FLD('time', 'varchar', 'caption=Време');
+            $fld->FLD('latitude', 'double(smartRound,decimals=2)', 'smartCenter,caption=Ширина');
+            $fld->FLD('longitude', 'double(smartRound,decimals=8)', 'smartCenter,caption=Дължина');
+            $fld->FLD('speed', 'double(smartRound,decimals=2)', 'smartCenter,caption=Скорост');
+            $fld->FLD('heading', 'double(smartRound,decimals=2)', 'smartCenter,caption=Посока');
         }
         
         return $fld;
@@ -233,11 +250,13 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $row = new stdClass();
         
         if (is_object($dRec)) {
-            $row->number = $dRec->number;
-            $row->make = $dRec->make;
-            $row->model = $dRec->model;
+            $row->number = $dRec->number. "<span class= 'fright'><span class= ''>" . 'Водач :' . crm_Persons::getVerbal($dRec->personId, 'name') . '</span>';
+            $row->latitude = core_Type::getByName('double(decimals=8)')->toVerbal($dRec->latitude);
+            $row->longitude = core_Type::getByName('double(decimals=8)')->toVerbal($dRec->longitude);
+            $row->speed = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->speed);
+            $row->heading = core_Type::getByName('int')->toVerbal($dRec->heading);
             $row->personId = $dRec->personId;
-            $row->trackerId = $dRec->trackerId;
+            $row->time = dt::mysql2verbal($dRec->time, $mask = 'd.m.y H:i:s');
         }
         
         return $row;

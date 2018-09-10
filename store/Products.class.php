@@ -359,7 +359,7 @@ class store_Products extends core_Detail
             $rec->quantity = 0;
             
             // Обновяване на записа
-            static::save($rec);
+            static::save($rec, 'state,quantity');
         }
     }
     

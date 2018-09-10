@@ -496,10 +496,21 @@ class frame2_Reports extends embed_Manager
         
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
-            $tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
-        } else {
-            $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на отчета') . '</b></span>', 'DRIVER_DATA');
-        }
+            
+            $tpl1 = $Driver->renderData($rec);
+            
+            if (Mode::is('saveJS')) {
+                
+                $tpl->replace($tpl1, 'DRIVER_DATA');
+                
+            }else{
+           
+                $tpl->replace($tpl1->getContent(), 'DRIVER_DATA');
+            }
+        
+            } else {
+                $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на отчета') . '</b></span>', 'DRIVER_DATA');
+            }
         
         // Връщане на оригиналния рек ако е пушнат
         if (isset($data->originalRec)) {

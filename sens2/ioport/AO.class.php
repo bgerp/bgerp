@@ -20,4 +20,20 @@ class sens2_ioport_AO extends sens2_ioport_Abstract
      * Типът слотове за сензорите от този вид
      */
     const SLOT_TYPES = 'AO';
+    
+    
+    /**
+     * Описание на порта
+     */
+    protected $description = array(
+        'ao' => array(
+            'subname' => null,
+            'uom' => null,
+            'options' => null,
+            'min' => 0,
+            'max' => 10,
+            'readable' => false,
+            'writable' => true,
+        ),
+    );
 }

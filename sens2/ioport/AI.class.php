@@ -20,4 +20,19 @@ class sens2_ioport_AI extends sens2_ioport_Abstract
      * Типът слотове за сензорите от този вид
      */
     const SLOT_TYPES = 'AI';
+    
+    
+    /**
+     * Описание на порта
+     */
+    protected $description = array(
+        'AI' => array(
+            'name' => null,
+            'uomDef' => 'V',
+            'minDef' => 0,
+            'maxDef' => 10,
+            'readable' => true,
+            'writable' => false,
+        ),
+    );
 }

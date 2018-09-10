@@ -102,7 +102,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $sQuery->where("#state != 'rejected'");
         
         while ($sRec = $sQuery->fetch()) {
-            if (bgerp_plg_FLB::canUse('bank_OwnAccounts', $sRec, $cu, select)) {
+            if (bgerp_plg_FLB::canUse('bank_OwnAccounts', $sRec, $cu, 'select')) {
                 $res[$sRec->id] = bank_OwnAccounts::getTitleById($sRec->id, FdocumentALSE);
             }
         }
@@ -125,7 +125,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $sQuery = cash_Cases::getQuery();
         $sQuery->where("#state != 'rejected'");
         while ($sRec = $sQuery->fetch()) {
-            if (bgerp_plg_FLB::canUse('cash_Cases', $sRec, $cu, select)) {
+            if (bgerp_plg_FLB::canUse('cash_Cases', $sRec, $cu, 'select')) {
                 $res[$sRec->id] = cash_Cases::getTitleById($sRec->id, false);
             }
         }

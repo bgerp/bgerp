@@ -40,7 +40,6 @@ class Archive_7z
      */
     const OVERWRITE_MODE_T = '-aot';
 
-
     /**
      * @var string
      */
@@ -88,9 +87,21 @@ class Archive_7z
      */
     public function __construct($filename)
     {
-        $this->setFilename($filename)->setCli(
-            substr(PHP_OS, 0, 3) === 'WIN' ? $this->cliWin : $this->cliNix
-        );
+        if(substr(PHP_OS, 0, 3) === 'WIN') {
+            if(defined('ARCHIVE_7Z_PATH') && ARCHIVE_7Z_PATH != '7z') {
+                $cli = ARCHIVE_7Z_PATH;
+            } else {
+                $cli = $this->cliWin;
+            }
+        } else {
+            if(defined('ARCHIVE_7Z_PATH')) {
+                $cli = ARCHIVE_7Z_PATH;
+            } else {
+                $cli = $this->cliNix;
+            }
+        }
+
+        $this->setFilename($filename)->setCli($cli);
     }
 
 
@@ -102,14 +113,17 @@ class Archive_7z
      */
     public function setCli($path)
     {
-        $this->cli = str_replace('\\', '/', realpath($path));
-
-        if ($this->cli && is_executable($this->cli) === false) {
-            throw new Archive_7z_Exception('Cli is not available');
-        }
+        if($path == '7z') {
+           $this->cli = $path;
+        } else {
+            $this->cli = str_replace('\\', '/', realpath($path));
         
-        $this->cli = ARCHIVE_7Z_PATH;
+            if (!$this->cli || (is_executable($this->cli) === false)) {
 
+                throw new Archive_7z_Exception('Cli is not available-' . $this->cli . '-' . $path);
+            }
+        }
+  
         return $this;
     }
 
@@ -241,7 +255,15 @@ class Archive_7z
      */
     private function getCmdPrefix()
     {
-        return '"' . escapeshellcmd($this->cli) . '"'; // fix for windows
+        $res = '';
+
+        if(substr(PHP_OS, 0, 3) != 'WIN') {
+            $res .= 'LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 ';
+        }
+
+        $res .= '"' . escapeshellcmd($this->cli) . '"'; // fix for windows
+ 
+        return $res;
     }
 
 
@@ -264,7 +286,7 @@ class Archive_7z
      */
     public function extract()
     {
-        $cmd = 'LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 ' . $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
+        $cmd = $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
             $this->overwriteMode
         ) . ' -o' . escapeshellarg($this->outputDirectory) . ' ' . $this->getCmdPostfix();
 
@@ -283,7 +305,7 @@ class Archive_7z
      */
     public function extractEntry($file)
     {
-        $cmd = 'LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 ' . $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
+        $cmd = $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' ' . escapeshellcmd(
             $this->overwriteMode
         ) . ' -o' . escapeshellarg($this->outputDirectory) . ' ' . $this->getCmdPostfix() . ' ' . escapeshellarg(
             $file
@@ -305,7 +327,7 @@ class Archive_7z
      */
     public function getContent($file)
     {
-        $cmd = 'LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 ' . $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' -so ' . escapeshellarg($file) . ' '
+        $cmd = $this->getCmdPrefix() . ' x ' . escapeshellarg($this->filename) . ' -so ' . escapeshellarg($file) . ' '
             . $this->getCmdPostfix();
 
         $out = shell_exec($cmd);
@@ -324,7 +346,7 @@ class Archive_7z
      */
     public function getEntries()
     {
-        $cmd = 'LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 ' . $this->getCmdPrefix() . ' l ' . escapeshellarg($this->filename) . ' -slt ' . $this->getCmdPostfix();
+        $cmd = $this->getCmdPrefix() . ' l ' . escapeshellarg($this->filename) . ' -slt ' . $this->getCmdPostfix();
 
         exec($cmd, $out, $rv);
 

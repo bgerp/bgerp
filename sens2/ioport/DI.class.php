@@ -20,4 +20,20 @@ class sens2_ioport_DI extends sens2_ioport_Abstract
      * Типът слотове за сензорите от този вид
      */
     const SLOT_TYPES = 'DI';
+    
+    
+    /**
+     * Описание на порта
+     */
+    protected $description = array(
+        'di' => array(
+            'subname' => null,
+            'uom' => null,
+            'options' => array(0,1),
+            'min' => 0,
+            'max' => 1,
+            'readable' => true,
+            'writable' => false,
+        ),
+    );
 }

@@ -21,6 +21,26 @@ class sens2_ControllerIntf
     
     
     /**
+     * Връша информация за наличните портове
+     *
+     * @return array масив с обекти имащи следните полета:
+     *               o name     - име на променливата
+     *               о slot     - име на слота
+     *               о suffix   - стринг, който се изписва след променливата (%, V, W, ...)
+     *               o prefix   - стринг, който се изписва преди променливата
+     *               о options  - масив с възможни стоийнисти
+     *               о min      - минимална стойност
+     *               о max      - максимална стойност
+     *               о readable - дали порта може да се чете
+     *               о writable - дали порта може да се записва
+     */
+    public function discovery()
+    {
+        return $this->class->discovery();
+    }
+    
+    
+    /**
      * Информация за входните портове на устройството
      *
      * @param stdClass $config Конфигурация на контролера
@@ -124,8 +144,21 @@ class sens2_ControllerIntf
      *
      * @return array
      */
-    public function getSlots()
+    public function getSlotsCnt()
     {
-        return $this->class->getSlots();
+        return $this->class->getSlotsCnt();
+    }
+    
+    
+    /**
+     * Колко максимално порта могат да се вържат на посочения тип слот
+     *
+     * @param string $slotType
+     *
+     * @return int
+     */
+    public function getMaxPortsPerSlot($slotType)
+    {
+        return $this->class->getMaxPortsPerSlot($slotType);
     }
 }

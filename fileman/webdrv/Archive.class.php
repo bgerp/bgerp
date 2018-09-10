@@ -110,7 +110,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
      * @param object $fRec  - Записите за файла
      * @param int    $index - Номера на файлам, който ще се екстрактва
      *
-     * @return fileHandler - Манипулатор на файл
+     * @return string - Манипулатор на файл
      */
     public static function uploadFileFromArchive($fRec, $index)
     {
@@ -119,6 +119,78 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         
         // Качваме съответния файл
         $fh = $inst->getFile($index);
+        
+        $fileNavArr = Mode::get('fileNavArr');
+        
+        // Намираме предишния и следващия файл
+        try {
+            // Вземаме съдържанието
+            $entriesArr = $inst->getEntries();
+            
+            $prev = null;
+            $iPrev = null;
+            $next = null;
+            $findNext = false;
+            $allArhiveArr = array();
+            $srcDirName = null;
+            $cUrlStr = null;
+            
+            if (!empty($entriesArr)) {
+                $eCnt = count($entriesArr);
+                
+                foreach ($entriesArr as $eIndex => $entry) {
+                    $size = $entry->getSize();
+                    
+                    if ($size && ($size < archive_Setup::get('MAX_LEN'))) {
+                        $ePath = $entriesArr[$eIndex]->getPath();
+                        $eUrl = array('fileman_webdrv_Archive', 'absorbFileInArchive', $fRec->fileHnd, 'index' => $eIndex);
+                        
+                        $urlStr = toUrl($eUrl);
+                        
+                        $allArhiveArr[$urlStr] = $ePath;
+                        
+                        if ($eIndex == $index) {
+                            $cUrlStr = $urlStr;
+                            if ($ePath) {
+                                $eDirName = trim(dirname($ePath));
+                                if ($eDirName && $eDirName != '.') {
+                                    $srcDirName = $eDirName;
+                                } else {
+                                    $srcDirName = null;
+                                }
+                            }
+                            
+                            // Ако сме намерили предишния
+                            if (!isset($prev) && isset($iPrev)) {
+                                $prev = $iPrev;
+                            }
+                            $findNext = true;
+                            
+                            continue;
+                        }
+                        
+                        $iPrev = $eUrl;
+                        
+                        // Ако сме намерили следващия
+                        if ($findNext && !isset($next)) {
+                            $next = $eUrl;
+                        }
+                    }
+                }
+            }
+            
+            // Добавяме  новите стойности
+            $fileNavArr[$fh]['prev'] = $prev;
+            $fileNavArr[$fh]['next'] = $next;
+            $fileNavArr[$fh]['srcDirName'] = $srcDirName;
+            $fileNavArr[$fh]['allFilesArr'] = $allArhiveArr;
+            $fileNavArr[$fh]['current'] = $cUrlStr;
+            $fileNavArr[$fh]['src'] = $fRec->fileHnd;
+            
+            Mode::setPermanent('fileNavArr', $fileNavArr);
+        } catch (ErrorException $e) {
+            // Не правим нищо
+        }
         
         // Изтриваме временните файлове
         $inst->deleteTempPath();
@@ -181,7 +253,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             }
         }
         
-        $maxArchiveLen = fileman_Setup::get('FILEINFO_MAX_ARCHIVE_LEN', true);
+        $maxArchiveLen = archive_Setup::get('MAX_LEN');
         
         $text = '';
         
@@ -200,10 +272,11 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             
             // Всички файлове в архива
             foreach ($entriesArr as $key => $entry) {
+                $size = $entry->getSize();
                 
                 // Гледаме размера след разархивиране да не е много голям
                 // Защита от "бомби" - от препълване на сървъра
-                if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) {
+                if ($size > archive_Setup::get('MAX_LEN')) {
                     continue;
                 }
                 

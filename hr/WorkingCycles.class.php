@@ -640,6 +640,10 @@ class hr_WorkingCycles extends core_Master
     }
     
     
+    /**
+     * Записва в модела crm_Profiles първото очаквано събитие (отпуска, болничен, командировка) за всички потребители
+     * Изпълнява се по Cron
+     */
     public static function colectPersonDaysType()
     {
         $now = dt::today();
@@ -651,91 +655,26 @@ class hr_WorkingCycles extends core_Master
         $next2weeks = dt::addDays(14, dt::today());
         
         $querySick = hr_Sickdays::getQuery();
-        $querySick->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}')) AND #state = 'active'");
+        $querySick->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
         
         $queryTrip = hr_Trips::getQuery();
-        $queryTrip->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #toDate <= '{$next2weeks}')) AND #state = 'active'");
+        $queryTrip->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
         
         $queryLeave = hr_Leaves::getQuery();
         $queryLeave->where("((#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') OR (#leaveFrom >= '{$now}' AND #leaveFrom <= '{$next2weeks}')) AND #state = 'active'");
         
         // добавяме болничните
         while ($recSick = $querySick->fetch()) {
+            
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recSick->personId;
             
             // масив за проверка
-            $chekArr[$id][] =
-            (object) array('stateInfo' => 'sickDay',
-                'stateDateFrom' => $recSick->startDate,
-                'stateDateTo' => $recSick->toDate,
-            );
-            
-            // правим масив с всички служители
-            if (!array_key_exists($id, $persons)) {
-                // ако двете дати са в миналото, това събитие не ни интересува
-                if ($recSick->startDate <= $now || $recSick->toDate <= $now) {
-                }
-                
-                // ако двете са в бъдещето, търсим по-малката от двете
-                if ($recSick->startDate >= $now && $recSick->toDate >= $now) {
-                    $date = ($recSick->startDate >= $recSick->toDate) ? $recSick->startDate :  $recSick->toDate;
-                
-                // началната дата след днес ли е?
-                } elseif ($recSick->startDate >= $now) {
-                    $date = $recSick->startDate;
-                
-                // а крайната?
-                } else {
-                    $date = $recSick->toDate;
-                }
-                
-                // добавяме в масива събитието
-                $persons[$id] =
-                (object) array('stateInfo' => 'sickDay',
+            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recSick->startDate) {
+                $persons[$id] = (object) array('stateInfo' => 'sickDay',
                     'stateDateFrom' => $recSick->startDate,
                     'stateDateTo' => $recSick->toDate,
-                    'date' => $date
                 );
-            
-            // в противен случай го ъпдейтваме
-            } else {
-                $obj = &$persons[$id];
-                
-                // ако двете дати са в миналото, това събитие не ни интересува
-                if ($recSick->startDate <= $now || $recSick->toDate <= $now) {
-                }
-                
-                // ако двете са в бъдещето, търсим по-малката от двете
-                if ($recSick->startDate >= $now && $recSick->toDate >= $now) {
-                    $newDate = ($recSick->startDate >= $recSick->toDate) ? $recSick->startDate :  $recSick->toDate;
-                
-                // началната дата след днес ли е?
-                } elseif ($recSick->startDate >= $now) {
-                    $newDate = $recSick->startDate;
-                
-                // а крайната?
-                } else {
-                    $newDate = $recSick->toDate;
-                }
-                
-                // новата дата на събитието по-малак ли е от текущата дата?
-                if ($newDate <= $obj->date) {
-                    
-                    //ъпдейтване на събитието
-                    $obj->stateInfo = 'sickDay';
-                    $obj->stateDateFrom = $recSick->startDate;
-                    $obj->stateDateTo = $recSick->toDate;
-                    $obj->date = $newDate;
-                }
-                
-                // ако има събитие 2 последователни събития, то ги обединяваме
-                if (dt::daysBetween(strstr($newDate, ' ', true), strstr($obj->date, ' ', true))) {
-                    //ъпдейтване на събитието
-                    $obj->stateInfo = 'sickDay';
-                    $obj->stateDateTo = $recSick->toDate;
-                    $obj->date = $newDate;
-                }
             }
         }
         
@@ -744,156 +683,25 @@ class hr_WorkingCycles extends core_Master
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recTrip->personId;
             
-            $chekArr[$id][] =
-            (object) array('stateInfo' => 'tripDay',
-                'stateDateFrom' => $recTrip->startDate,
-                'stateDateTo' => $recTrip->toDate,
-            );
-            
-            // правим масив с всички служители
-            if (!array_key_exists($id, $persons)) {
-                // ако двете дати са в миналото, това събитие не ни интересува
-                if ($recTrip->startDate <= $now || $recTrip->toDate <= $now) {
-                }
-                
-                // ако двете са в бъдещето, търсим по-малката от двете
-                if ($recTrip->startDate >= $now && $recTrip->toDate >= $now) {
-                    $date = ($recTrip->startDate >= $recTrip->toDate) ? $recTrip->startDate :  $recTrip->toDate;
-                
-                // началната дата след днес ли е?
-                } elseif ($recTrip->startDate >= $now) {
-                    $date = $recTrip->startDate;
-                
-                // а крайната?
-                } else {
-                    $date = $recTrip->toDate;
-                }
-                
-                // добавяме в масива събитието
-                $persons[$id] =
-                (object) array('stateInfo' => 'tripDay',
+            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recTrip->startDate) {
+                $persons[$id] = (object) array('stateInfo' => 'tripDay',
                     'stateDateFrom' => $recTrip->startDate,
                     'stateDateTo' => $recTrip->toDate,
-                    'date' => $date
                 );
-            
-            // в противен случай го ъпдейтваме
-            } else {
-                $obj = &$persons[$id];
-                
-                // ако двете дати са в миналото, това събитие не ни интересува
-                if ($recTrip->startDate <= $now || $recTrip->toDate <= $now) {
-                }
-                
-                // ако двете са в бъдещето, търсим по-малката от двете
-                if ($recTrip->startDate >= $now && $recTrip->toDate >= $now) {
-                    $newDate = ($recTrip->startDate >= $recTrip->toDate) ? $recTrip->startDate :  $recTrip->toDate;
-                
-                // началната дата след днес ли е?
-                } elseif ($recTrip->startDate >= $now) {
-                    $newDate = $recTrip->startDate;
-                
-                // а крайната?
-                } else {
-                    $newDate = $recTrip->toDate;
-                }
-                
-                // новата дата на събитието по-малак ли е от текущата дата?
-                if ($newDate <= $obj->date) {
-                    
-                    //ъпдейтване на събитието
-                    $obj->stateInfo = 'tripDay';
-                    $obj->stateDateFrom = $recTrip->startDate;
-                    $obj->stateDateTo = $recTrip->toDate;
-                    $obj->date = $newDate;
-                }
-                
-                // ако има събитие 2 последователни събития, то ги обединяваме
-                if (dt::daysBetween(strstr($newDate, ' ', true), strstr($obj->date, ' ', true))) {
-                    //ъпдейтване на събитието
-                    $obj->stateInfo = 'tripDay';
-                    $obj->stateDateTo = $recTrip->toDate;
-                    $obj->date = $newDate;
-                }
             }
         }
         
         // добавяме и отпуските
         while ($recLeave = $queryLeave->fetch()) {
+            
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recLeave->personId;
             
-            $chekArr[$id][] =
-            (object) array('stateInfo' => 'leaveDay',
-                'stateDateFrom' => $recLeave->leaveFrom,
-                'stateDateTo' => $recLeave->leaveTo,
-            );
-            
-            // правим масив с всички служители
-            if (!array_key_exists($id, $persons)) {
-                // ако двете дати са в миналото, това събитие не ни интересува
-                if ($recLeave->leaveFrom <= $now || $recLeave->leaveTo <= $now) {
-                }
-                
-                // ако двете са в бъдещето, търсим по-малката от двете
-                if ($recLeave->leaveFrom >= $now && $recLeave->leaveTo >= $now) {
-                    $date = ($recLeave->leaveFrom >= $recLeave->leaveTo) ?  $recLeave->leaveFrom :  $recLeave->leaveTo;
-                
-                // началната дата след днес ли е?
-                } elseif ($recLeave->leaveFrom >= $now) {
-                    $date = $recLeave->leaveFrom;
-                
-                // а крайната?
-                } else {
-                    $date = $recLeave->leaveTo;
-                }
-                
-                // добавяме в масива събитието
-                $persons[$id] =
-                (object) array('stateInfo' => 'leaveDay',
+            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
+                $persons[$id] = (object) array('stateInfo' => 'leaveDay',
                     'stateDateFrom' => $recLeave->leaveFrom,
                     'stateDateTo' => $recLeave->leaveTo,
-                    'date' => $date
                 );
-            
-            // в противен случай го ъпдейтваме
-            } else {
-                $obj = &$persons[$id];
-                
-                // ако двете дати са в миналото, това събитие не ни интересува
-                if ($recLeave->leaveFrom <= $now || $recLeave->leaveTo <= $now) {
-                }
-                
-                // ако двете са в бъдещето, търсим по-малката от двете
-                if ($recLeave->leaveFrom >= $now && $recLeave->leaveTo >= $now) {
-                    $newDate = ($recLeave->leaveFrom >= $recLeave->leaveTo) ? $recLeave->leaveFrom :  $recLeave->leaveTo;
-                
-                // началната дата след днес ли е?
-                } elseif ($recLeave->leaveFrom >= $now) {
-                    $newDate = $recLeave->leaveFrom;
-                
-                // а крайната?
-                } else {
-                    $newDate = $recLeave->leaveTo;
-                }
-                
-                // новата дата на събитието по-малак ли е от текущата дата?
-                if ($newDate <= $obj->date) {
-                    
-                    //ъпдейтване на събитието
-                    $obj->stateInfo = 'leaveDay';
-                    $obj->stateDateFrom = $recLeave->leaveFrom;
-                    $obj->stateDateTo = $recLeave->leaveTo;
-                    $obj->date = $newDate;
-                }
-                
-                // ако има събитие 2 последователни събития, то ги обединяваме
-                if (dt::daysBetween(strstr($newDate, ' ', true), strstr($obj->date, ' ', true))) {
-                    //ъпдейтване на събитието
-                    $obj->stateInfo = 'leaveDay';
-                    $obj->stateDateTo = $recLeave->leaveTo;
-                    $obj->date = $newDate;
-                }
             }
         }
         
@@ -904,19 +712,26 @@ class hr_WorkingCycles extends core_Master
         $query->where("#state = 'active'");
         
         while ($rec = $query->fetch()) {
+            if (!is_object($persons[$rec->personId])) {
+                $persons[$rec->personId] = (object) array('stateInfo' => null, 'stateDateFrom' => null, 'stateDateTo' => null);
+            }
+            if ($rec->stateInfo == $persons[$rec->personId]->stateInfo &&
+                $rec->stateDateFrom == $persons[$rec->personId]->stateDateFrom &&
+                $rec->stateDateTo = - $persons[$rec->personId]->stateDateTo) {
+                continue;
+            }
             
-            // добавяме полетата
-            //тип на деня
+            // тип на деня
             $rec->stateInfo = $persons[$rec->personId]->stateInfo;
             
-            //от дата
+            // от дата
             $rec->stateDateFrom = $persons[$rec->personId]->stateDateFrom;
             
             // до дата
             $rec->stateDateTo = $persons[$rec->personId]->stateDateTo;
             
             // и ги записваме на съответния профил
-            crm_Profiles::save($rec, 'personId,stateInfo,stateDateFrom,stateDateTo');
+            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo');
         }
     }
     

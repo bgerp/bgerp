@@ -49,7 +49,7 @@ class rack_Products extends store_Products
     /**
      * Полета за листовия изглед?
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantityOnPallets,quantityNotOnPallets,quantity=Количество->Общо';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantityOnPallets,quantityOnZones,quantityNotOnPallets,quantity=Количество->Общо';
     
     
     /**
@@ -69,8 +69,9 @@ class rack_Products extends store_Products
         $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
         
-        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->Палетирано,input=hidden,smartCenter');
-        $this->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)', 'caption=Количество->Непалетирано,input=hidden,smartCenter');
+        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На стелажи,input=hidden,smartCenter');
+        $this->FLD('quantityOnZones', 'double(maxDecimals=2)', 'caption=Количество->В зони,input=hidden,smartCenter');
+        $this->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)- IFNULL(#quantityOnZones, 0)', 'caption=Количество->На пода,input=hidden,smartCenter');
     }
     
     
@@ -87,7 +88,9 @@ class rack_Products extends store_Products
         
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'packQuantity' => $rec->quantityNotOnPallets, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
+            
+            // ОТ URL е махнато количеството, защото (1) винаги предлага с това количество палет; (2) Неща, които ги има в базата, не трябва да се предават в URL
+            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
         }
         
         if ($rec->quantityOnPallets > 0) {

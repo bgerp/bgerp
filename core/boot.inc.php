@@ -129,7 +129,8 @@ try {
             
             // Ако базата е абсолютно празна - ще се отиде направо към инициализирането
             // Ако има поне един файл, няма да се отиде към инициализиране
-            if (core_Db::databaseEmpty()) {
+            $db = new core_Db();
+            if ($db->getDBInfo('ROWS') == 0) {
                 redirect(array('Index', 'SetupKey' => setupKey()));
             }
             

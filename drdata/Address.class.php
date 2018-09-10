@@ -804,7 +804,7 @@ class drdata_Address extends core_MVC
         
         if (is_array($maxBlock) && count($maxBlock)) {
             if (is_array($maxBlock['company']) && count($maxBlock['company'])) {
-                $res->company = trim($maxBlock['company'][0], '*;,-#$<> \t\n\r');
+                $res->company = trim($maxBlock['company'][0], "*;,-#$<> \t\n\r");
             }
             if (is_array($maxBlock['tel']) && count($maxBlock['tel'])) {
                 $res->tel = implode(', ', $maxBlock['tel']);
@@ -831,7 +831,7 @@ class drdata_Address extends core_MVC
                 $res->web = $maxBlock['web'][0];
             }
             if (is_array($maxBlock['name']) && count($maxBlock['name'])) {
-                $res->person = trim($maxBlock['name'][0], '*;,-#$<> \t\n\r');
+                $res->person = trim($maxBlock['name'][0], "*;,-#$<> \t\n\r");
             }
             if (is_array($maxBlock['mob']) && count($maxBlock['mob'])) {
                 $res->mob = implode(', ', $maxBlock['mob']);
@@ -901,13 +901,7 @@ class drdata_Address extends core_MVC
         return $res;
     }
     
-    public function act_test()
-    {
-        $str = 'Great Britain, M1 1AH';
-        $r = self::parsePlace($str);
-        bp($r);
-    }
-    
+
     
     /**
      * Парсира място, като се опитва да извлече държава и код

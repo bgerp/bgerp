@@ -117,6 +117,7 @@ class sens2_Indicators extends core_Manager
                     $opt[$port] = $pRec->caption;
                 }
             }
+            
             $form->setOptions('port', $opt);
         }
     }

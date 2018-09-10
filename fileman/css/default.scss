@@ -170,7 +170,8 @@
 	   margin-bottom: 10px !important;
 	}
 	.listTable{
-		width:100%;
+		width:99%;
+		min-width: 0;
 		th {
 			display: none;
 			border: none;
@@ -262,4 +263,21 @@
 
 .btn-ulfile {
 	background-image: url('../../img/16/paper_clip.png');
+}
+
+.disabledRow {
+	background-color: #e0e0e0 !important;
+	color: #666;
+	.file-log-link {
+		color: #666 !important;
+		&:hover {
+			cursor: auto;
+		}
+	}
+	span {
+		color: #666 !important;
+	}
+	.anchor-arrow {
+		cursor: pointer;
+	}
 }
