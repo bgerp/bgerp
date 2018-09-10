@@ -913,7 +913,7 @@ class core_ET extends core_BaseClass
      */
     public static function loadFilesRecursivelyFromString($content)
     {
-        $pathArr = self::getTeplatePlaceholders($content);
+        $pathArr = self::getTemplatePlaceholders($content);
         
         if ($pathArr) {
             foreach ($pathArr as $path) {
@@ -934,7 +934,7 @@ class core_ET extends core_BaseClass
      *
      * @return array
      */
-    protected static function getTeplatePlaceholders($str)
+    protected static function getTemplatePlaceholders($str)
     {
         preg_match_all('/\[#((\w*(\/|\.)+\w*)*)#\]/', $str, $matches);
         
