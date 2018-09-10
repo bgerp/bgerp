@@ -36,7 +36,7 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
             
             $tabsArr['barcodes'] = new stdClass();
             $tabsArr['barcodes']->title = 'Баркодове';
-            $tabsArr['barcodes']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Баркодове') . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>";
+            $tabsArr['barcodes']->html = "<div class='webdrvTabBody'><div class='legend'>" . tr('Баркодове') . "</div> <div class='webdrvFieldset'><iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>";
             $tabsArr['barcodes']->order = 6;
         }
         

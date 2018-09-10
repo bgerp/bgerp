@@ -25,7 +25,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'sysId, title, lastUsedOn=Последно, state, createdBy,createdOn';
+    public $listFields = 'title, sysId, lastUsedOn=Последно, state, createdBy,createdOn';
     
     
     /**
@@ -107,13 +107,10 @@ class cond_PaymentMethods extends core_Master
     {
         // Съкратено име на плащането
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
-        
-        // Име на метода за плащане
         $this->FLD('name', 'varchar', 'caption=Наименование');
-        
-        // Текстово описание
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
         $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Вид плащане');
+        $this->FLD('onlinePaymentDriver', 'class(interface=cond_OnlinePaymentIntf,allowEmpty,select=title)', 'caption=Онлайн плащане');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');

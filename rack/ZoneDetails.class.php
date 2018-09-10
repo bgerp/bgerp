@@ -224,11 +224,12 @@ class rack_ZoneDetails extends core_Detail
         
         // Обновяване на информацията за количествата от продукта в зоните
         $storeId = store_Stores::getCurrent();
-        $recProducts = rack_Products::fetch("#productId = {$rec->productId} AND #storeId = {$storeId}");
-        
-        $productQuantityOnZones = self::calcProductQuantityOnZones($rec->productId);
-        $recProducts->quantityOnZones = $productQuantityOnZones;
-        rack_Products::save($recProducts, 'quantityOnZones');
+        $storeProductRec = rack_Products::fetch("#productId = {$rec->productId} AND #storeId = {$storeId}");
+        if(is_object($storeProductRec)){
+            $productQuantityOnZones = self::calcProductQuantityOnZones($rec->productId);
+            $storeProductRec->quantityOnZones = $productQuantityOnZones;
+            rack_Products::save($storeProductRec, 'quantityOnZones');
+        }
     }
     
     

@@ -546,17 +546,21 @@ class cal_Tasks extends embed_Manager
         // Подготвяме полетата за показване
         $data->listFields = 'groupDate,title,progress';
         
-        $now = dt::verbal2mysql();
-        
         if (Mode::is('listTasks', 'by')) {
             $data->query->where("#createdBy = ${userId}");
         } else {
             $data->query->like('assign', "|{$userId}|");
         }
         
+        // Вадим 3 работни дни
         $now = dt::now();
-        $before = dt::addDays(-1 * self::$taskShowPeriod, $now);
-        $after = dt::addDays(self::$taskShowPeriod, $now);
+        $before = $after = dt::now(false);
+        while (self::$taskShowPeriod--) {
+            $before = cal_Calendar::nextWorkingDay($before, null, -1);
+            $after = cal_Calendar::nextWorkingDay($after, null, 1);
+        }
+        $before .= ' 00:00:00';
+        $after .= ' 23:59:59';
         
         $data->query->where("#state = 'active'");
         $data->query->orWhere("#state = 'wakeup'");

@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,zoneId=Зона,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,documentHtml=@';
     
     
     /**
@@ -57,7 +57,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml';
+    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,zoneId';
     
     
     /**
@@ -286,9 +286,17 @@ class trans_LineDetails extends doc_Detail
         if ($mvc->haveRightFor('remove', $rec)) {
             $row->_rowTools->addLink('Изключване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/delete.png', 'title' => 'Изключване от транспортната линия'));
         }
+        
+        if($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId} AND #readiness > 0")){
+           $readiness = str_replace('&nbsp;', ' ', rack_Zones::getVerbal($zoneRec, 'readiness'));
+           $row->zoneId = rack_Zones::getHyperlink($zoneRec, true) . " ({$readiness})";
+        }
     }
     
     
+    /**
+     * Екшън за премахване на документ
+     */
     public function act_Remove()
     {
         $this->requireRightFor('remove');
@@ -318,6 +326,7 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('volume', 'cat_type_Volume');
         $data->listTableMvc->FNC('collection', 'double');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
+        $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter');
     }
     
     

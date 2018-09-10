@@ -31,13 +31,13 @@ class rack_Zones extends core_Master
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'admin,ceo,rack';
+    public $canAdd = 'admin,ceo';
     
     
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'admin,ceo,rack';
+    public $canEdit = 'admin,ceo';
     
     
     /**
@@ -49,7 +49,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'admin,ceo,rack';
+    public $canDelete = 'admin';
     
     
     /**
@@ -67,7 +67,7 @@ class rack_Zones extends core_Master
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'num=Зона,containerId,readiness,state,createdOn,createdBy,pendingHtml=@';
+    public $listFields = 'num=Зона,containerId,readiness,folderId=Папка,lineId=Линия,pendingHtml=@';
     
     
     /**
@@ -91,9 +91,21 @@ class rack_Zones extends core_Master
     
     
     /**
+     * Кой може да премахва докумнета от зоната
+     */
+    public $canRemovedocument = 'admin,ceo,rack';
+    
+    
+    /**
      * Файл с шаблон за единичен изглед на статия
      */
     public $singleLayoutFile = 'rack/tpl/SingleLayoutZone.shtml';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'num';
     
     
     /**
@@ -130,6 +142,25 @@ class rack_Zones extends core_Master
         }
         
         $row->num = $mvc->getHyperlink($rec->id, true);
+        
+        if(isset($rec->containerId)){
+            $document = doc_Containers::getDocument($rec->containerId);
+            $documentRec = $document->fetch();
+            $row->folderId = doc_Folders::getFolderTitle($documentRec->folderId);
+            
+            if(isset($documentRec->{$document->lineFieldName})){
+                $row->lineId = trans_Lines::getLink($documentRec->{$document->lineFieldName}, 0);
+            }
+        }
+        
+        if(isset($fields['-list'])){
+            if($mvc->haveRightFor('removedocument', $rec->id)){
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
+            }
+            
+            $row->ROW_ATTR['id'] = self::getRecTitle($rec);
+        }
     }
     
     
@@ -190,6 +221,7 @@ class rack_Zones extends core_Master
         if (isset($storeId)) {
             $query->where("#storeId = {$storeId}");
         }
+        $query->orderBy('num', 'DESC');
         
         $options = array();
         while ($rec = $query->fetch()) {
@@ -286,6 +318,7 @@ class rack_Zones extends core_Master
         }
         $form->setOptions('zoneId', array('' => '') + $zoneOptions);
         $form->setDefault('zoneId', $zoneId);
+        $form->setDefault('zoneId', key($zoneOptions));
         $form->input();
         
         // Изпращане на формата
@@ -314,7 +347,7 @@ class rack_Zones extends core_Master
             
             // Ако е избрана зона редирект към нея, иначе се остава в документа
             if (isset($fRec->zoneId)) {
-                redirect(array('rack_Zones', 'single', $fRec->zoneId));
+                redirect(array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($fRec->zoneId)));
             }
             
             followRetUrl();
@@ -356,8 +389,18 @@ class rack_Zones extends core_Master
         }
         
         if (($action == 'delete' || $action == 'changestate') && isset($rec)) {
-            if (rack_ZoneDetails::fetch("#zoneId = {$rec->id}") || !empty($rec->containerId)) {
+            if (rack_ZoneDetails::fetch("#zoneId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
+            }
+        }
+        
+        if($action == 'removedocument' && isset($rec->id)){
+            if(empty($rec->containerId)){
+                $requiredRoles = 'no_one';
+            } else {
+                if(rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL OR #movementQuantity = 0)")){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -444,8 +487,7 @@ class rack_Zones extends core_Master
         $res = array();
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("LOCATE('|{$zoneId}|', #zoneList) AND #state != 'closed'");
-        $mQuery->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
-        $mQuery->orderBy('orderByState');
+        $mQuery->orderBy('id', 'DESC');
         
         while ($mRec = $mQuery->fetch()) {
             if (!empty($mRec->zones)) {
@@ -553,6 +595,27 @@ class rack_Zones extends core_Master
         }
         
         followRetUrl(null, 'Движенията са генерирани успешно');
+    }
+    
+    
+    /**
+     * Премахване на документ от зоната
+     *
+     * @return void
+     */
+    public function act_Removedocument()
+    {
+        // Проверка на права
+        $this->requireRightFor('removedocument');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('removedocument', $rec);
+        
+        $rec->containerId = null;
+        $this->save($rec);
+        $this->updateMaster($rec);
+        
+        followRetUrl(null, 'Документа е премахнат от зоната');
     }
     
     
