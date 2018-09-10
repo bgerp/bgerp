@@ -48,7 +48,7 @@ class fileman_webdrv_Ics extends fileman_webdrv_Code
         $tabsArr['events'] = (object)
             array(
                 'title' => 'Събития',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Събития') . "</div>{$events}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Събития') . "</div><div class='webdrvFieldset'>{$events}</div></div>",
                 'order' => 3,
                 'tpl' => $events,
             );

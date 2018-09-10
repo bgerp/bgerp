@@ -43,12 +43,12 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         // URL за показване на преглед на файловете
         $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd), true);
-        
+
         // Таб за преглед
         $tabsArr['preview'] = (object)
             array(
                 'title' => 'Преглед',
-                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Преглед') . "</div> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Преглед') . "</div><div class='webdrvFieldset'> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe' id='imgIframe'></iframe></div></div>",
                 'order' => 2,
             );
         
@@ -59,7 +59,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             // Таб за текстовата част
             $tabsArr['text'] = new stdClass();
             $tabsArr['text']->title = 'Текст';
-            $tabsArr['text']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Текст') . "</div><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></div></iframe></div>";
+            $tabsArr['text']->html = "<div class='webdrvTabBody'><div class='legend'>" . tr('Текст') . "</div><div class='webdrvFieldset'><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></div></iframe></div>";
             $tabsArr['text']->order = 4;
         }
         

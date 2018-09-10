@@ -48,7 +48,7 @@ class fileman_webdrv_Tnef extends fileman_webdrv_Generic
         $tabsArr['content'] = (object)
             array(
                 'title' => 'Съдържание',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Съдържание') . "</div>{$contentStr}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Съдържание') . "</div><div class='webdrvFieldset'>{$contentStr}</div></div>",
                 'order' => 7,
                 'tpl' => $contentStr,
             );

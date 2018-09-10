@@ -98,7 +98,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['text'] = (object)
                 array(
                     'title' => 'Текст',
-                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'><div class='legend'>" . tr('Текстовата част на имейла') . "</div>{$textPart}</div></div>",
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='legend'>" . tr('Текстовата част на имейла') . "</div><div class='webdrvFieldset'>{$textPart}</div></div>",
                     'order' => 4,
                 );
         }
@@ -110,7 +110,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $tabsArr['files'] = (object)
                 array(
                     'title' => 'Файлове',
-                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='webdrvFieldset'><div class='legend'>" . tr('Прикачените файлове') . "</div>{$filesStr}</div></div>",
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-line;'><div class='legend'>" . tr('Прикачените файлове') . "</div><div class='webdrvFieldset'>{$filesStr}</div></div>",
                     'order' => 5,
                 );
         }
@@ -119,7 +119,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['headers'] = (object)
             array(
                 'title' => 'Хедъри',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Хедърите на имейла') . "</div>{$headersStr}</div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Хедърите на имейла') . "</div><div class='webdrvFieldset'>{$headersStr}</div></div>",
                 'order' => 8,
             );
         
@@ -127,7 +127,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr['source'] = (object)
             array(
                 'title' => 'Сорс',
-                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Изходен код на имейла') . "</div>{$sourceShow}</div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Изходен код на имейла') . "</div><div class='webdrvFieldset'>{$sourceShow}</div></div>",
                 'order' => 9,
             );
         
