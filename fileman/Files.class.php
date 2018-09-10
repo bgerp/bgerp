@@ -1701,7 +1701,7 @@ class fileman_Files extends core_Master
             $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
-        return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+        return "localStorage.removeItem('disabledRowАrr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
     
     
@@ -2250,7 +2250,7 @@ class fileman_Files extends core_Master
         
         // Добавяме табовете в шаблона
         $tpl->append($fileInfo, 'fileDetail');
-        
+
         // Отбелязваме като разгледан
         fileman_Log::updateLogInfo($fh, 'preview');
     }
