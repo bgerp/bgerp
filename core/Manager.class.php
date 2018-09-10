@@ -87,6 +87,12 @@ class core_Manager extends core_Mvc
     public $listAddBtn = true;
     
     
+    /**
+     * Дали в листовия изглед да се показват заглавията на колоните на таблицата
+     */
+    public $listTableHideHeaders = false;
+    
+    
     /****************************************************************************************
      *                                                                                      *
      *       ПРЕДЕФИНИРАНИ ДЕЙСТВИЯ (ЕКШЪНИ) НА МЕНИДЖЪРА                                   *
@@ -844,7 +850,8 @@ class core_Manager extends core_Mvc
     public function renderListTable_($data)
     {
         setIfNot($data->listTableMvc, $this);
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
+        setIfNot($data->listTableHideHeaders, $this->listTableHideHeaders);
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders));
         
         if ($data->action == 'list') {
             $table->tableClass = 'listTable listAction';
