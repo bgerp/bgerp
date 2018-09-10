@@ -20,6 +20,12 @@
 class unipi_Neuron extends sens2_ProtoDriver
 {
     /**
+     * От кой номер започва броенето на слотовете
+     */
+    const FIRST_SLOT_NO = 1;
+    
+    
+    /**
      * Интерфейси, поддържани от всички наследници
      */
     public $interfaces = 'sens2_ControllerIntf';
@@ -32,9 +38,21 @@ class unipi_Neuron extends sens2_ProtoDriver
     
     
     /**
-     * съответствие между позиция и тип на входа/изхода
+     * Съответствие между позиция и тип на входа/изхода
      */
-    public $mapIOType = array('DI', 'DO', 'RO', 'AI', 'AO', 'RS485', '1WIRE');
+    public $mapIOType = array('DI', 'DO', 'RO', 'AI', 'AO', 'ModBus', '1WIRE');
+    
+    
+    /**
+     * Инстанция на evoc API класа
+     */
+    public $evoc;
+    
+    
+    /**
+     * Дали драйверът има детайл
+     */
+    public $hasDetail = true;
     
     
     /**
@@ -66,37 +84,9 @@ class unipi_Neuron extends sens2_ProtoDriver
     
     
     /**
-     *  Информация за входните портове на устройството
-     *
-     * @see  sens2_ControllerIntf
-     *
-     * @return array
+     * Максимален брой устройства според вида на слота
      */
-    public function getInputPorts($config = null)
-    {
-        $res = array();
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Информация за изходните портове на устройството
-     *
-     * @see  sens2_ControllerIntf
-     *
-     * @return array
-     */
-    public function getOutputPorts($config = null)
-    {
-        $res = array();
-        
-        if ($config) {
-            //
-        }
-        
-        return $res;
-    }
+    private $maxPortsPerSlotArr = array('DI' => 1, 'DO' => 1, 'RO' => 1, 'AI' => 1, 'AO' => 1, 'ModBus' => 250, '1WIRE' => 12);
     
     
     /**
@@ -136,6 +126,48 @@ class unipi_Neuron extends sens2_ProtoDriver
      */
     public function readInputs($inputs, $config, &$persistentState)
     {
+        $this->evoc = new unipi_Evoc($config->ip, $config->port);
+        
+        $ports = $this->discovery();
+        
+        $slotDrvArr = array();
+        $controllerId = $this->driverRec->id;
+        $pQuery = sens2_IOPorts::getQuery();
+        
+        foreach ($ports as $p) {
+            if (!$inputs[$p->name]) {
+                continue;
+            }
+            $inPorts[$p->slot][$p->portIdent][] = $p->lName;
+        }
+      
+        // Прочитаме състоянието от контролера
+        $this->evoc->update();
+        
+        while ($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
+            $nameArr = $inPorts[$pRec->slot]["{$pRec->portIdent}"];
+            
+            if (!$nameArr) {
+                continue;
+            }
+            
+            $pDrv = sens2_IOPorts::getDriver($pRec);
+            
+            list($slotType, $slotNumber) = explode('-', $pRec->slot);
+            
+            // Продготвяне на стойността за порта
+            $prepareMethod = 'prepare' . $slotType;
+            
+            $data = $this->{$prepareMethod}($slotNumber, $pRec->portIdent);
+             
+            // Конвертиране на стойността на порта
+            foreach ($nameArr as $name) {
+                $val = $pDrv->convert($data, $name, $pRec);
+                $res[$pRec->name . ($name ? '.':'') . $name] = $val;
+            }
+        }
+        
+        return $res;
     }
     
     
@@ -162,15 +194,6 @@ class unipi_Neuron extends sens2_ProtoDriver
     
     
     /**
-     * Връща детайлите за единичния изглед
-     */
-    public function getDetails($config)
-    {
-        return arr::make('unipi_Synapses', true);
-    }
-    
-    
-    /**
      * Връща масив със портовете на устройството
      *
      * @return array
@@ -180,7 +203,7 @@ class unipi_Neuron extends sens2_ProtoDriver
         $config = $this->driverRec->config;
         $model = $this->models[$config->model];
         
-        $extension = $this->extensions[$config->extension] ?? array();
+        $extension = $this->extensions[$config->extension] ? $this->extensions[$config->extension] : array();
         
         $res = array();
         foreach ($this->mapIOType as $id => $type) {
@@ -188,5 +211,74 @@ class unipi_Neuron extends sens2_ProtoDriver
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Колко максимално порта могат да се вържат на посочения тип слот
+     *
+     * @param string $slotType
+     *
+     * @return int
+     */
+    public function getMaxPortsPerSlot($slotType)
+    {
+        return $this->maxPortsPerSlotArr[$slotType];
+    }
+    
+    
+    /**
+     * Подготвя данните извлечени от дадения слот и unitId
+     */
+    public function prepareModBus($slotNo, $portIdent)
+    {
+        $data = $this->evoc->getUartData($slotNo, $portIdent);
+        
+        return $data;
+    }
+    
+    
+    /**
+     * Подготвя данните извлечени от дадения слот и unitId
+     */
+    public function prepare1WIRE($slotNo, $portIdent)
+    {
+    }
+    
+    
+    /**
+     * Подготвя данните извлечени от дадения слот и unitId
+     */
+    public function prepareDI($slotNo, $portIdent)
+    {
+    }
+    
+    
+    /**
+     * Подготвя данните извлечени от дадения слот и unitId
+     */
+    public function prepareDO($slotNo, $portIdent)
+    {
+    }
+    
+    
+    /**
+     * Подготвя данните извлечени от дадения слот и unitId
+     */
+    public function prepareAI($slotNo, $portIdent)
+    {
+        $inputAddr = str_pad($slotNo, 2, "0", STR_PAD_LEFT);
+        
+        $res = $this->evoc->searchValues('1_' . $inputAddr, 'ai');
+ 
+        return $res[0];
+    }
+    
+    
+    /**
+     * Подготвя данните извлечени от дадения слот и unitId
+     */
+    public function prepareAO($slotNo, $portIdent)
+    {
     }
 }

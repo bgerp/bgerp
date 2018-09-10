@@ -40,4 +40,13 @@ class sens2_IOPortIntf extends embed_DriverIntf
     {
         return $this->class->canSelectDriver($userId = null);
     }
+    
+    
+    /**
+     * Връща допълнителен идентификатор за порта, който е базиран на данните в драйвера
+     */
+    public function getPortIdent($rec)
+    {
+        return $this->class->getPortIdent($rec);
+    }
 }

@@ -125,17 +125,20 @@ class setup_Controller
         $log = array();
         
         //$newVer = core_Git::gitHasNewVersion($repo1Path, $log, $repo1Branch);
+        $repos = core_App::getRepos();
         
+        foreach ($repos as $r) {
+            $r = basename($r);
+            $opt[$r] = $r;
+        }
         
         
         $res->title = 'Обновяване на избраното';
         $res->question = 'Желаете ли обновяване на:';
         $res->body = $this->createCheckbox(
             'updates',
-                array('bgerp' => 'bgerp (от 12.12.2009)',
-                    'experta' => 'experta (12.12.2011)',
-                ),
-            array('bgerp', 'experta')
+            $opt,
+            $opt
         );
     }
     
