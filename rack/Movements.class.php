@@ -209,6 +209,16 @@ class rack_Movements extends core_Manager
         }
     }
     
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if($rec->state == 'closed'){
+           // rack_ZoneDetails::recordMovement($rec->, $productId, $packagingId, $quantity)
+        }
+    }
+    
     
     /**
      * Изпълнява посоченото движение
@@ -538,7 +548,7 @@ class rack_Movements extends core_Manager
         }
         
         if (!empty($state)) {
-            $row->workerId .= ' ' . $state;
+            $row->workerId = "{$state} {$row->workerId}";
         }
         
         if (!empty($rec->note)) {
@@ -552,9 +562,7 @@ class rack_Movements extends core_Manager
         }
         
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
-        
-        $skipZones = isset($fields['-inline']) ? true : false;
-        $row->movement = $mvc->getMovementDescription($rec, $skipZones);
+        $row->movement = $mvc->getMovementDescription($rec);
     }
     
     
