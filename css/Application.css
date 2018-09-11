@@ -4673,6 +4673,8 @@ div.location.public {
         color: #222222 !important; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow .red {
         color: #cc0000 !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow .inline-workerId {
+        width: 250px; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow table {
         margin-bottom: 0;
         width: 100%; }
