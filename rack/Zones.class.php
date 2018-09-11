@@ -277,6 +277,7 @@ class rack_Zones extends core_Master
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
+        $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($documentRec->{$document->storeFieldName}, true);
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона,mandatory');
         $zoneOptions = rack_Zones::getZones($documentRec->{$document->storeFieldName}, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');

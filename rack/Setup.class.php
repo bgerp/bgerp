@@ -87,6 +87,7 @@ class rack_Setup extends core_ProtoSetup
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Връзка между ЕН-то и палетния склад', 'rack_plg_Shipments', 'store_ShipmentOrders', 'private');
+        $html .= $Plugins->installPlugin('Връзка между МСТ-то и палетния склад', 'rack_plg_Shipments', 'store_Transfers', 'private');
         
         // Залагаме в cron
         $rec = new stdClass();

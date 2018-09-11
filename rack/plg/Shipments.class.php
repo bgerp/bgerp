@@ -61,10 +61,12 @@ class rack_plg_Shipments extends core_Plugin
     
     
     /**
+     * Обобщение на артикулите в документа
      * 
-     * @param unknown $mvc
-     * @param unknown $res
-     * @param unknown $rec
+     * @param core_Mvc $mvc
+     * @param array $res
+     * @param stdClass $rec
+     * @return void
      */
     public static function on_AfterGetProductsSummary($mvc, &$res, $rec)
     {
