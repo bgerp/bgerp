@@ -73,10 +73,10 @@ class rack_ZoneDetails extends core_Detail
     {
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell leftCol wrap');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
-        $this->FNC('status', 'varchar', 'smartCenter');
+        $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
         
         $this->setDbUnique('zoneId,productId,packagingId');
     }
