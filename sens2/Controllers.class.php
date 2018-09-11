@@ -349,7 +349,7 @@ class sens2_Controllers extends core_Master
         $drv = self::getDriver($id);
 
         $ports = $drv->getInputPorts($rec->config);
-        
+
         foreach ($ports as $name => $def) {
             if ($def->readPeriod > 0) {
                 $force[$name] = $name;
@@ -375,8 +375,6 @@ class sens2_Controllers extends core_Master
         $save = true;
 
         expect($rec = self::fetch($id));
-        
-        $config = (array) $rec->config;
         
         $Driver = self::getDriver($id);
         
