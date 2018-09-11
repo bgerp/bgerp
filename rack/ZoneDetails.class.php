@@ -107,7 +107,11 @@ class rack_ZoneDetails extends core_Detail
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->status = tr('|*' . $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity) . " |от|* " . $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity));
+        $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
+        $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
+        $moveStatusColor = ($rec->movementQuantity < $rec->documentQuantity) ? 'red' : (($rec->movementQuantity == $rec->documentQuantity) ? 'black' : 'blue');
+        
+        $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
     }
     
     
