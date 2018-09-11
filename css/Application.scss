@@ -5226,47 +5226,76 @@ div.location.public {
 }
 
 /*rack*/
-.rack_Zones .listTable {
-	border: none !important;
-	td, th {
+.rack_Zones  {
+	display: block;
+	.listTable {
 		border: none !important;
-	}
-	> tbody > tr:not(zonesCommonRow) {
-		background: #333 !important;
-		color: #fff !important;
-		span {
-			color: #eee !important;
+		td, th {
+			border: none !important;
 		}
-		a {
-			color: #aaa !important;
+		> tbody > tr:not(zonesCommonRow) {
+			background: #333;
+			color: #fff !important;
+			&:hover {
+				background: #444 !important;
+			}
+			span {
+				color: #eee !important;
+			}
+			a {
+				color: #aaa !important;
+			}
+			.iw-contextMenu a {
+				color: #222 !important;
+			}
 		}
-		.iw-contextMenu a {
-			color: #222 !important;
-		}
-	}
-	> tbody > tr.zonesCommonRow {
-		color: #000 !important;
-		background: transparent !important;
-		&:hover {
-			background: transparent !important;
-		}
-		td {
-			padding: 1% !important;
-		}
-		span {
-			color: #000 !important;
-		}
-		a {
-			color: #004488 !important;
-		}
-		.iw-contextMenu a {
-			color: #222 !important;
-		}
-		.red {
-			color: #cc0000 !important;
-		}
-	}
 
+		> tbody > tr.zonesCommonRow {
+			color: #000 !important;
+			background: #f1f1f1 !important;
+			&:hover {
+				background: #f1f1f1 !important;
+			}
+			td {
+				padding: 0.5% !important;
+			}
+			span {
+				color: #000 !important;
+			}
+			a {
+				color: #004488 !important;
+			}
+			.iw-contextMenu a {
+				color: #222 !important;
+			}
+			.red {
+				color: #cc0000 !important;
+			}
+			table {
+				margin-bottom: 0;
+				width: 100%;
+				tr {
+					&.state-active {
+						background-color: #ffeedd;
+						background-color: rgba(250, 221, 187, 0.7);
+						color: #000 !important;
+						&:hover {
+							background: rgba(247, 197, 139, 0.5) !important;
+						}
+					}
+					&.state-pending {
+						background-color: #eeccff;
+						background-color: rgba(238, 204, 255, 0.7);
+						color: #000 !important;
+						&:hover {
+							background-color: #e6b3ff !important;
+						}
+					}
+				}
+
+			}
+		}
+	}
 }
 
 td.rack-hl {
