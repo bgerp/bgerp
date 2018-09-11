@@ -435,28 +435,19 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Има ли възможност за онлайн плаюане
+     * Кой е драйвера за онлайн плащането
      *
      * @param int $id
-     *
-     * @return bool
+     * @return cond_OnlinePaymentIntf|false
      */
-    public static function doRequireOnlinePayment($id)
+    public static function getOnlinePaymentDriver($id)
     {
-        //@todo
+        $onlinePaymentDriver = self::fetchField($id, 'onlinePaymentDriver');
+        if(!empty($onlinePaymentDriver) && cls::load($onlinePaymentDriver, true)){
+            
+            return cls::getInterface('cond_OnlinePaymentIntf', $onlinePaymentDriver);
+        }
+        
         return false;
-    }
-    
-    
-    /**
-     * Какво е урл-то за онлайн плащане
-     *
-     * @param int $id
-     *
-     * @return array
-     */
-    public static function getOnlinePaymentUrl($id)
-    {
-        return array();
     }
 }
