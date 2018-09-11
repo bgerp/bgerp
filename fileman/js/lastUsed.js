@@ -1,6 +1,11 @@
 var desabledRows = "";
+/**
+ * записваме и маркираме добавените от последно файлове
+ */
 function lastUsedActions()
 {
+    $('.narrow.dialog-window .listRows').height($(window).height() - 173);
+
     if (localStorage.getItem('disabledRowАrr')) {
         desabledRows =  localStorage.getItem('disabledRowАrr').split(',');
         $.each(desabledRows, function( index, value ) {

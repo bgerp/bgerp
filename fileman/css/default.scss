@@ -178,8 +178,8 @@
 			vertical-align: top !important;
 	    }
 		tr > td:first-child{
-			width:48px;
-			height:48px;
+			width:46px;
+			height:46px;
 			padding: 3px ;
 			.file-log-link{
 				width:48px;
@@ -199,6 +199,18 @@
 			}
 		}
 	}
+}
+
+.narrow.dialog-window .listRows  {
+	overflow-y: auto;
+}
+
+.narrow.dialog-window .pages {
+	margin: 10px 2px;
+}
+
+.narrow.dialog-window .filemanUpload ul {
+	margin: 10px 0;
 }
 
 .narrow .fileman_Log.switching-display{
