@@ -59,6 +59,12 @@ class rack_Zones extends core_Master
     
     
     /**
+     * Работен кеш
+     */
+    protected static $movementCache = array();
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'admin,ceo,rack';
@@ -135,10 +141,12 @@ class rack_Zones extends core_Master
             $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
         }
         
-        $rec->_isSingle = (isset($fields['-single'])) ? true : false;
-        $pendingHtml = self::getMovementTable($rec);
-        if (!empty($pendingHtml)) {
-            $row->pendingHtml = $pendingHtml;
+        if(isset($fields['-list'])){
+            $rec->_isSingle = false;
+            $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc);
+            if (!empty($pendingHtml)) {
+                $row->pendingHtml = $pendingHtml;
+            }
         }
         
         $row->num = $mvc->getHyperlink($rec->id, true);
@@ -162,47 +170,6 @@ class rack_Zones extends core_Master
             $row->ROW_ATTR['id'] = self::getRecTitle($rec);
         }
     }
-    
-    
-    /**
-     * Рендира таблицата със движения към зоната
-     *
-     * @param stdClass $rec
-     *
-     * @return core_ET $tpl
-     */
-    private function getMovementTable($rec)
-    {
-        $Movements = clone cls::get('rack_Movements');
-        $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
-        $data->listFields = arr::make('movement=От,productId=Артикул,workerId=Товарач', true);
-        $data->listTableMvc->setField('position', 'smartCenter');
-        $data->recs = self::getCurrentMovementRecs($rec->id);
-        
-        foreach ($data->recs as $mRec) {
-            $fields = $Movements->selectFields();
-            $fields['-list'] = true;
-            $fields['-inline'] = true;
-            $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
-        }
-        
-        // Рендиране на таблицата
-        $tpl = new core_ET('');
-        if (count($data->rows)) {
-            $tableClass = ($rec->_isSingle === true) ? 'listTable' : 'simpleTable';
-            $showHead = ($rec->_isSingle === true) ? false : true;
-            $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => $showHead));
-            $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
-            
-            $tpl->append($table->get($data->rows, $data->listFields));
-            $tpl->append("style='width:100%;'", 'TABLE_ATTR');
-        }
-        
-        $tpl->removePendings('COMMON_ROW_ATTR');
-        
-        return $tpl;
-    }
-    
     
     /**
      * Връща зоните към подадения склад
@@ -479,36 +446,42 @@ class rack_Zones extends core_Master
      * Кои са текущите движения в зоната
      *
      * @param int $zoneId
+     * @param boolean $skipClosed
      *
      * @return array $res
      */
-    public static function getCurrentMovementRecs($zoneId)
+    public static function getCurrentMovementRecs($zoneId, $skipClosed = true)
     {
-        $res = array();
-        $mQuery = rack_Movements::getQuery();
-        $mQuery->where("LOCATE('|{$zoneId}|', #zoneList) AND #state != 'closed'");
-        $mQuery->orderBy('id', 'DESC');
-        
-        while ($mRec = $mQuery->fetch()) {
-            if (!empty($mRec->zones)) {
-                $zones = type_Table::toArray($mRec->zones);
-                $quantity = null;
-                foreach ($zones as $zObject) {
-                    if ($zObject->zone == $zoneId) {
-                        $quantity = $zObject->quantity;
-                        break;
+        if(!isset(self::$movementCache[$zoneId])){
+            self::$movementCache[$zoneId] = array();
+            $mQuery = rack_Movements::getQuery();
+            $mQuery->where("LOCATE('|{$zoneId}|', #zoneList)");
+            if($skipClosed === true){
+                $mQuery->where("#state != 'closed'");
+            }
+            $mQuery->orderBy('id', 'DESC');
+            
+            while ($mRec = $mQuery->fetch()) {
+                if (!empty($mRec->zones)) {
+                    $zones = type_Table::toArray($mRec->zones);
+                    $quantity = null;
+                    foreach ($zones as $zObject) {
+                        if ($zObject->zone == $zoneId) {
+                            $quantity = $zObject->quantity;
+                            break;
+                        }
                     }
+                    
+                    $clone = clone $mRec;
+                    $clone->quantity = $quantity;
+                    $clone->packQuantity = $clone->quantity;
+                    
+                    self::$movementCache[$zoneId][$mRec->id] = $clone;
                 }
-                
-                $clone = clone $mRec;
-                $clone->quantity = $quantity;
-                $clone->packQuantity = $clone->quantity;
-                
-                $res[$mRec->id] = $clone;
             }
         }
         
-        return $res;
+        return self::$movementCache[$zoneId];
     }
     
     

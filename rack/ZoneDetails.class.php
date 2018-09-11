@@ -47,21 +47,23 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'plg_AlignDecimals2';
-    
-    
-    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'zoneId';
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'movementsHtml';
+    
+    
+    /**
      * Полета в листовия изглед
      */
-    public $listFields = 'productId, packagingId, documentQuantity, movementQuantity';
+    public $listFields = 'productId, packagingId, status=Състояние,movementsHtml=@';
     
     
     /**
@@ -71,9 +73,10 @@ class rack_ZoneDetails extends core_Detail
     {
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell leftCol wrap');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
-        $this->FLD('documentQuantity', 'double', 'caption=Очаквано,mandatory');
-        $this->FLD('movementQuantity', 'double', 'caption=Нагласено,mandatory');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
+        $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
+        $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
+        $this->FNC('status', 'varchar', 'smartCenter');
         
         $this->setDbUnique('zoneId,productId,packagingId');
     }
@@ -87,14 +90,8 @@ class rack_ZoneDetails extends core_Detail
         if (is_object($rec)) {
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
-            
-            if (isset($rec->movementQuantity)) {
-                $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
-            }
-            
-            if (isset($rec->documentQuantity)) {
-                $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
-            }
+            $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
+            $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
         }
     }
     
@@ -110,7 +107,29 @@ class rack_ZoneDetails extends core_Detail
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->ROW_ATTR['class'] = 'row-added';
+        $row->status = tr('|*' . $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity) . " |от|* " . $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity));
+    }
+    
+    
+    /**
+     * След рендиране на детайлите се скриват ценовите данни от резултатите
+     * ако потребителя няма права
+     */
+    protected static function on_AfterPrepareDetail($mvc, $res, &$data)
+    {
+        if(!count($data->rows)) return;
+        setIfNot($data->masterData->rec->_isSingle, true);
+        
+        // Допълнително обикаляне на записите
+        foreach ($data->rows as $id => &$row){
+            $rec = $data->recs[$id];
+            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
+            if(!empty($movementsHtml)){
+                $row->movementsHtml = $movementsHtml;
+            }
+            
+            $row->ROW_ATTR['class'] = ($data->masterData->rec->_isSingle === false) ? 'row-added' : 'row-added zonesCommonRow';
+        }
     }
     
     
@@ -239,5 +258,70 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('documentQuantity', 'DESC');
+    }
+    
+    
+    /**
+     * Рендиране на детайла накуп
+     * 
+     * @param stdClass $masterRec
+     * @param core_Mvc $masterMvc
+     * @return core_ET
+     */
+    public static function renderInlineDetail($masterRec, $masterMvc)
+    {
+        $tpl = new core_ET();
+        
+        $me = cls::get(get_called_class());
+        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => $masterRec->_isSingle);
+        $dData = $me->prepareDetail($dData);
+        if(!count($dData->recs)) return $tpl;
+        
+        $tpl = $me->renderDetail($dData);
+        $tpl->removePlaces();
+        $tpl->removeBlocks();
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендира таблицата със движения към зоната
+     *
+     * @param stdClass $rec
+     * @return core_ET $tpl
+     */
+    private function getInlineMovements($rec, $masterRec)
+    {
+        $Movements = clone cls::get('rack_Movements');
+        $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
+        $data->listFields = arr::make('movement=Движение,workerId=Работник', true);
+        $Movements->setField('workerId', "tdClass=inline-workerId");
+        $skipClosed = ($masterRec->_isSingle === true) ? false : true;
+        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
+        list($productId, $packagingId) = array($rec->productId, $rec->packagingId);
+        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId){return $o->productId == $productId && $o->packagingId == $packagingId;});
+        
+        foreach ($data->recs as $mRec) {
+            $fields = $Movements->selectFields();
+            $fields['-list'] = true;
+            $fields['-inline'] = true;
+            $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
+        }
+       
+        // Рендиране на таблицата
+        $tpl = new core_ET('');
+        if (count($data->rows)) {
+            $tableClass = ($masterRec->_isSingle === true) ? 'listTable' : 'simpleTable';
+            $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => true));
+            $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
+            
+            $tpl->append($table->get($data->rows, $data->listFields));
+            $tpl->append("style='width:100%;'", 'TABLE_ATTR');
+        }
+        
+        $tpl->removePendings('COMMON_ROW_ATTR');
+        
+        return $tpl;
     }
 }
