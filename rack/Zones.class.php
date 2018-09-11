@@ -277,7 +277,7 @@ class rack_Zones extends core_Master
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
-        $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
+        $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона,mandatory');
         $zoneOptions = rack_Zones::getZones($documentRec->{$document->storeFieldName}, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if (!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)) {
@@ -622,6 +622,43 @@ class rack_Zones extends core_Master
             }
             
             $res->products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity);
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Данни за бутона за зоната
+     *
+     * @param int $containerId
+     * @return stdClass $res
+     */
+    public static function getBtnToZone($containerId)
+    {
+        $res = (object)array('caption' => 'Зона', 'url' => array(), 'attr' => '');
+        $document = doc_Containers::getDocument($containerId);
+        
+        if ($zoneRec = rack_Zones::fetch("#containerId = {$containerId}")){
+            $readiness = str_replace('&nbsp;', ' ', rack_Zones::getVerbal($zoneRec, 'readiness'));
+            $res->caption .= "|* " . rack_Zones::getTitleById($zoneRec) . " {$readiness}";
+        }
+        
+        if(empty($zoneRec)){
+            $zoneOptions = rack_Zones::getZones($document->fetch()->{$document->storeFieldName}, true);
+            if(rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $containerId))){
+                $res->url = array(rack_Zones, 'selectdocument', 'containerId' => $containerId, 'ret_url' => true);
+                $res->attr = "ef_icon=img/16/hand-point.png,title=Избор на зона за нагласяне";
+            }
+            if(empty($zoneOptions)){
+                $res->attr .= ',error=Няма свободни зони в склада|*!';
+            }
+            
+        } else{
+            if (rack_Zones::haveRightFor('list')){
+                $res->url = array(rack_Zones, 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
+                $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
+            }
         }
         
         return $res;

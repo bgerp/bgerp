@@ -53,18 +53,19 @@ class rack_plg_Shipments extends core_Plugin
         $currentStoreId = store_Stores::getCurrent('id', false);
         if (empty($currentStoreId)) return;
         
-        $rec = $data->rec;
-        if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId))){
-             $caption = 'Зона';
-             if ($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}")){
-                 $readiness = str_replace('&nbsp;', ' ', rack_Zones::getVerbal($zoneRec, 'readiness'));
-                 $caption .= "|* " . rack_Zones::getTitleById($zoneRec) . " {$readiness}";
-             }
-             $data->toolbar->addBtn($caption, array(rack_Zones, 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/package.png,title=Нагласяне в зона");
+        $btnData = rack_Zones::getBtnToZone($data->rec->containerId);
+        if(count($btnData->url)){
+            $data->toolbar->addBtn($btnData->caption, $btnData->url, $btnData->attr);
         }
     }
     
     
+    /**
+     * 
+     * @param unknown $mvc
+     * @param unknown $res
+     * @param unknown $rec
+     */
     public static function on_AfterGetProductsSummary($mvc, &$res, $rec)
     {
         if(!isset($res)){

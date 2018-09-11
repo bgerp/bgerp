@@ -118,7 +118,8 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
         if(!count($data->rows)) return;
-        setIfNot($data->masterData->rec->_isSingle, true);
+        setIfNot($data->inlineDetail, false);
+        setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
@@ -128,7 +129,7 @@ class rack_ZoneDetails extends core_Detail
                 $row->movementsHtml = $movementsHtml;
             }
             
-            $row->ROW_ATTR['class'] = ($data->masterData->rec->_isSingle === false) ? 'row-added' : 'row-added zonesCommonRow';
+            $row->ROW_ATTR['class'] = ($data->masterData->rec->_isSingle === true) ? 'row-added' : 'row-added zonesCommonRow';
         }
     }
     
@@ -273,7 +274,7 @@ class rack_ZoneDetails extends core_Detail
         $tpl = new core_ET();
         
         $me = cls::get(get_called_class());
-        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => $masterRec->_isSingle);
+        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => true);
         $dData = $me->prepareDetail($dData);
         if(!count($dData->recs)) return $tpl;
         
