@@ -137,10 +137,15 @@ class rack_ZoneDetails extends core_Detail
             
             // Ако няма движения и к-та са 0, реда се маркира
             if(empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)){
-                $row->ROW_ATTR['class'] = 'state-rejected';
+                if($data->masterData->rec->_isSingle === true){
+                    $row->ROW_ATTR['class'] = 'state-rejected';
+                } else {
+                    unset($data->rows[$id]);
+                }
             }
         }
     }
+    
     
     /**
      * Записва движение в зоната
