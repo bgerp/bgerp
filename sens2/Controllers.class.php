@@ -149,7 +149,6 @@ class sens2_Controllers extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-        
         $exFields = $form->selectFields();
         
         if ($rec->driver) {
@@ -192,7 +191,7 @@ class sens2_Controllers extends core_Master
             $ap[$controllerId . '_' . $type] = array();
             $rec = self::fetch($controllerId);
             $drv = self::getDriver($controllerId);
-            
+
             $ports = array();
             
             if ($type != 'outputs') {
@@ -235,7 +234,11 @@ class sens2_Controllers extends core_Master
      */
     public static function prepareConfigForm($form, $rec)
     {
-        $drv = self::getDriver($rec->id);
+        if (!$rec->id && $rec->driver) {
+            $drv = cls::get($rec->driver);
+        } else {
+            $drv = self::getDriver($rec->id);
+        }
         
         $drv->prepareConfigForm($form);
         
@@ -344,7 +347,7 @@ class sens2_Controllers extends core_Master
         expect($rec = self::fetch($id));
         
         $drv = self::getDriver($id);
-        
+
         $ports = $drv->getInputPorts($rec->config);
         
         foreach ($ports as $name => $def) {
@@ -354,7 +357,7 @@ class sens2_Controllers extends core_Master
         }
         
         $res = $this->updateInputs($id, $force, false);
-        
+
         return new Redirect(array($this, 'Single', $id), "|Обновени са|* <b>{$res}</b> |входа на контролера");
     }
     
@@ -399,7 +402,7 @@ class sens2_Controllers extends core_Master
                 }
             }
         }
- 
+
         if (is_array($inputs) && count($inputs)) {
             
             // Прочитаме състоянието на входовете от драйвера

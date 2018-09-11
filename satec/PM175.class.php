@@ -50,7 +50,12 @@ class satec_PM175 extends sens2_ProtoDriver
     public function getInputPorts($config = null)
     {
         foreach ($this->inputs as $name => $params) {
-            $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
+            $res[$name] = (object) array (
+                'caption'     => $params['caption'],
+                'uom'         => $params['uom'],
+                'readPeriod'  => $config->{$name . '_update'},
+                'logPeriod'   => $config->{$name . '_log'}
+            );
         }
         
         return $res;
