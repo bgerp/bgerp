@@ -81,7 +81,7 @@ class rack_Zones extends core_Master
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'pendingHtml';
+    public $hideListFieldsIfEmpty = 'pendingHtml,folderId,lineId';
     
     
     /**
