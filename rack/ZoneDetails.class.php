@@ -287,7 +287,7 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
-     * Рендира таблицата със движения към зоната
+     * Рендира таблицата със движения към детайла на зоната
      *
      * @param stdClass $rec
      * @return core_ET $tpl
@@ -295,6 +295,8 @@ class rack_ZoneDetails extends core_Detail
     private function getInlineMovements($rec, $masterRec)
     {
         $Movements = clone cls::get('rack_Movements');
+        $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
+        
         $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
         $data->listFields = arr::make('movement=Движение,workerId=Работник', true);
         $Movements->setField('workerId', "tdClass=inline-workerId");
@@ -312,8 +314,8 @@ class rack_ZoneDetails extends core_Detail
        
         // Рендиране на таблицата
         $tpl = new core_ET('');
-        if (count($data->rows)) {
-            $tableClass = ($masterRec->_isSingle === true) ? 'listTable' : 'simpleTable';
+        if (count($data->rows) || $masterRec->_isSingle === true) {
+            $tableClass = ($masterRec->_isSingle === true && count($data->rows)) ? 'listTable' : 'simpleTable';
             $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => true));
             $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
             
