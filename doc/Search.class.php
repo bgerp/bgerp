@@ -126,7 +126,6 @@ class doc_Search extends core_Manager
         !empty($filterRec->search) ||
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
-        !empty($filterRec->fromDate) ||
         !empty($filterRec->withMe) ||
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
@@ -162,6 +161,12 @@ class doc_Search extends core_Manager
                 
                 // Сетваме грешката
                 $data->listFilter->setError('fromDate', 'Не може да се търси в бъдеще');
+            }
+        }
+        
+        if ($data->query->isSlowQuery && !$data->listFilter->ignore) {
+            if (!$filterRec->fromDate || !$filterRec->toDate) {
+                $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
             }
         }
         

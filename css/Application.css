@@ -3581,7 +3581,6 @@ table .eshop-btn {
  */
 .webdrvTabBody {
   min-width: 800px;
-  min-height: 612px;
   top: 10px;
   position: relative; }
 
@@ -3613,13 +3612,12 @@ table .eshop-btn {
   border-radius: 5px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
   .wide .webdrvFieldset > div {
-    max-width: 880px;
     overflow: auto; }
   .wide .webdrvFieldset > .dtree {
     overflow: visible; }
   .wide .webdrvFieldset > .mejs-container {
     overflow: hidden; }
-  .wide .webdrvFieldset pre.richtext {
+  .wide .webdrvFieldset .richtext {
     max-width: 865px;
     margin-bottom: 0;
     margin-top: 0; }
@@ -3631,10 +3629,11 @@ table .eshop-btn {
 .webdrvFieldset {
   position: relative; }
 
-.webdrvFieldset .legend {
+.webdrvTabBody .legend {
   position: absolute;
   top: -10px;
   left: 10px;
+  z-index: 1000;
   background-color: white;
   padding: 0 5px;
   margin: 0 15px; }
