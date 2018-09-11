@@ -4675,6 +4675,12 @@ div.location.public {
         color: #cc0000 !important; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow .inline-workerId {
         width: 250px; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow .zone-product-status {
+        width: 100px;
+        text-align: right;
+        padding-right: 10px !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow .nowrap {
+        width: 40px; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow table {
         margin-bottom: 0;
         width: 100%; }
