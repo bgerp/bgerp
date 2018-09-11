@@ -4664,7 +4664,7 @@ div.location.public {
       .rack_Zones .listTable > tbody > tr.zonesCommonRow:hover {
         background: #f1f1f1 !important; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow td {
-        padding: 0.5% !important; }
+        padding: 5px !important; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow span {
         color: black !important; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow a {
@@ -4673,14 +4673,8 @@ div.location.public {
         color: #222222 !important; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow .red {
         color: #cc0000 !important; }
-      .rack_Zones .listTable > tbody > tr.zonesCommonRow .inline-workerId {
-        width: 250px; }
-      .rack_Zones .listTable > tbody > tr.zonesCommonRow .zone-product-status {
-        width: 100px;
-        text-align: right;
-        padding-right: 10px !important; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow .nowrap {
-        width: 40px; }
+        width: 50px; }
       .rack_Zones .listTable > tbody > tr.zonesCommonRow table {
         margin-bottom: 0;
         width: 100%; }
@@ -4696,6 +4690,14 @@ div.location.public {
             color: black !important; }
             .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-pending:hover {
               background-color: #e6b3ff !important; }
+
+.zone-product-status {
+  width: 100px;
+  text-align: right;
+  padding-right: 10px !important; }
+
+.inline-workerId {
+  width: 250px; }
 
 td.rack-hl {
   background-color: red; }

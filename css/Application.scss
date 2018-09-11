@@ -5257,7 +5257,7 @@ div.location.public {
 				background: #f1f1f1 !important;
 			}
 			td {
-				padding: 0.5% !important;
+				padding: 5px !important;
 			}
 			span {
 				color: #000 !important;
@@ -5271,16 +5271,8 @@ div.location.public {
 			.red {
 				color: #cc0000 !important;
 			}
-			.inline-workerId {
-				width: 250px;
-			}
-			.zone-product-status {
-				width: 100px;
-				text-align: right;
-				padding-right: 10px !important;
-			}
 			.nowrap {
-				width: 40px;
+				width: 50px;
 			}
 			table {
 				margin-bottom: 0;
@@ -5309,6 +5301,14 @@ div.location.public {
 	}
 }
 
+.zone-product-status {
+	width: 100px;
+	text-align: right;
+	padding-right: 10px !important;
+}
+.inline-workerId {
+	width: 250px;
+}
 td.rack-hl {
 	background-color:red;
 }
