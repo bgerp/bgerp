@@ -383,10 +383,7 @@ class rack_Zones extends core_Master
     {
         // Към коя зона е в момента закачен документа
         $zoneRec = self::fetch("#containerId = {$containerId}");
-        if (empty($zoneRec)) {
-            
-            return;
-        }
+        if (empty($zoneRec)) return;
         
         // Затваря движенията към зоната
         rack_Movements::closeByZoneId($zoneRec->id);
@@ -530,8 +527,22 @@ class rack_Zones extends core_Master
         $this->requireRightFor('orderpickup');
         expect($storeId = Request::get('storeId', 'int'));
         $this->requireRightFor('orderpickup', (object) array('storeId' => $storeId));
-        $floor = rack_PositionType::FLOOR;
         
+        // Генериране на всички очаквани движения
+        self::pickupOrder($storeId);
+        
+        followRetUrl(null, 'Движенията са генерирани успешно');
+    }
+    
+    
+    /**
+     * Генерира очакваните движения за зоните в склада
+     * 
+     * @param int $storeId - ид на склад
+     * @param array|null $zoneIds - ид-та само на избраните зони
+     */
+    private function pickupOrder($storeId, $zoneIds = null)
+    {
         // Какви са очакваните количества
         $expected = $this->getExpectedProducts($storeId);
         
@@ -544,6 +555,7 @@ class rack_Zones extends core_Master
             rack_Movements::delete($mRec->id);
         }
         
+        $floor = rack_PositionType::FLOOR;
         foreach ($expected->products as $pRec) {
             
             // Какви са наличните палети за избор
@@ -571,8 +583,6 @@ class rack_Zones extends core_Master
                 rack_Movements::save($movementRec);
             }
         }
-        
-        followRetUrl(null, 'Движенията са генерирани успешно');
     }
     
     
