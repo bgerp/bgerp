@@ -84,7 +84,7 @@ class fileman_Log extends core_Manager
     /**
      * Броя на записите при странициране в диалоговия прозорец - в мобилен
      */
-    const DIALOG_LIST_ITEMS_PER_PAGE_MOBILE = 30;
+    const DIALOG_LIST_ITEMS_PER_PAGE_MOBILE = 50;
     
     
     public $listFields = 'fileId=Линк, action, lastOn';
