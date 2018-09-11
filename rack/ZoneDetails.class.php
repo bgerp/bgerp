@@ -243,7 +243,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Извиква се след успешен запис в модела
      */
-    protected static function (core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Обновяване на информацията за количествата от продукта в зоните
         $storeId = store_Stores::getCurrent();
