@@ -209,13 +209,18 @@ class rack_Movements extends core_Manager
         }
     }
     
+    
     /**
      * Извиква се след успешен запис в модела
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if($rec->state == 'closed'){
-           // rack_ZoneDetails::recordMovement($rec->, $productId, $packagingId, $quantity)
+        // Ако се създава запис в чернова със зони, в зоните се създава празен запис
+        if($rec->state == 'pending' && $rec->_canceled !== true){
+            $zonesQuantityArr = self::getZoneArr($rec);
+            foreach ($zonesQuantityArr as $zoneRec){
+                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0);
+            }
         }
     }
     
@@ -891,7 +896,7 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal < 0) {
+        if (isset($toQuantity) && $toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal < 0) {
             $res->errors = 'Недостатъчно количество за изходящия палет';
             $res->errorFields[] = 'packQuantity,zones';
             

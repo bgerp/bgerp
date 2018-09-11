@@ -128,15 +128,19 @@ class rack_ZoneDetails extends core_Detail
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
+            
+            $row->ROW_ATTR['class'] = ($data->masterData->rec->_isSingle === true) ? 'row-added' : 'row-added zonesCommonRow';
             $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;
             }
             
-            $row->ROW_ATTR['class'] = ($data->masterData->rec->_isSingle === true) ? 'row-added' : 'row-added zonesCommonRow';
+            // Ако няма движения и к-та са 0, реда се маркира
+            if(empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)){
+                $row->ROW_ATTR['class'] = 'state-rejected';
+            }
         }
     }
-    
     
     /**
      * Записва движение в зоната
@@ -239,13 +243,8 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Извиква се след успешен запис в модела
      */
-    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function (core_Mvc $mvc, &$id, $rec)
     {
-        // Ако няма никакви количества се изтрива
-        if (empty($rec->documentQuantity) && empty($rec->movementQuantity)) {
-            self::delete($rec->id);
-        }
-        
         // Обновяване на информацията за количествата от продукта в зоните
         $storeId = store_Stores::getCurrent();
         $storeProductRec = rack_Products::fetch("#productId = {$rec->productId} AND #storeId = {$storeId}");
@@ -296,7 +295,7 @@ class rack_ZoneDetails extends core_Detail
      * @param stdClass $rec
      * @return core_ET $tpl
      */
-    private function getInlineMovements($rec, $masterRec)
+    private function getInlineMovements(&$rec, $masterRec)
     {
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
@@ -308,6 +307,7 @@ class rack_ZoneDetails extends core_Detail
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
         list($productId, $packagingId) = array($rec->productId, $rec->packagingId);
         $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId){return $o->productId == $productId && $o->packagingId == $packagingId;});
+        $rec->_movements = $data->recs;
         
         foreach ($data->recs as $mRec) {
             $fields = $Movements->selectFields();

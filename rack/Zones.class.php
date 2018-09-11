@@ -415,7 +415,10 @@ class rack_Zones extends core_Master
             if (!empty($dRec->documentQuantity) && round($dRec->documentQuantity, 4) == round($dRec->movementQuantity, 4)) {
                 $ready++;
             }
-            $count++;
+            
+            if (!empty($dRec->documentQuantity) || !empty($dRec->movementQuantity)){
+                $count++;
+            }
         }
         
         if ($count) {
