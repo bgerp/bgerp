@@ -273,13 +273,14 @@ class rack_Zones extends core_Master
         expect($document = doc_Containers::getDocument($containerId));
         $this->requireRightFor('selectdocument', (object) array('containerId' => $containerId));
         $documentRec = $document->fetch();
+        $storeId = $documentRec->{$document->storeFieldName};
         
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
-        $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($documentRec->{$document->storeFieldName}, true);
+        $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона,mandatory');
-        $zoneOptions = rack_Zones::getZones($documentRec->{$document->storeFieldName}, true);
+        $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if (!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)) {
             $zoneOptions[$zoneId] = $this->getRecTitle($zoneId);
@@ -299,8 +300,12 @@ class rack_Zones extends core_Master
                 $zoneRec->containerId = $containerId;
                 $this->save($zoneRec);
                 
+                // Синхронизиране с детайла на зоната
                 rack_ZoneDetails::syncWithDoc($zoneRec->id, $containerId);
                 $this->updateMaster($zoneRec);
+                
+                // Генериране на движенията за нагласяне
+                self::pickupOrder($storeId, $zoneRec->id);
             }
             
             // Старата зона се отчуждава от документа
@@ -553,7 +558,7 @@ class rack_Zones extends core_Master
     private function pickupOrder($storeId, $zoneIds = null)
     {
         // Какви са очакваните количества
-        $expected = $this->getExpectedProducts($storeId);
+        $expected = $this->getExpectedProducts($storeId, $zoneIds);
         
         // Изчистване на заявките към зоните
         $mQuery = rack_Movements::getQuery();
@@ -620,16 +625,21 @@ class rack_Zones extends core_Master
      * Връща очакваните артикули по зони с документи
      *
      * @param int $storeId
+     * @param array|null $zoneIds - ид-та само на избраните зони
      *
      * @return stdClass $res
      */
-    private function getExpectedProducts($storeId)
+    private function getExpectedProducts($storeId, $zoneIds = null)
     {
         $res = (object) array('products' => array(), 'zones' => array());
         
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
         $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
+        if(isset($zoneIds)){
+            $zoneIds = arr::make($zoneIds, true);
+            $dQuery->in('zoneId', $zoneIds);
+        }
         
         while ($dRec = $dQuery->fetch()) {
             
