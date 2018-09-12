@@ -555,10 +555,10 @@ class rack_Zones extends core_Master
      * @param int $storeId - ид на склад
      * @param array|null $zoneIds - ид-та само на избраните зони
      */
-    private function pickupOrder($storeId, $zoneIds = null)
+    private static function pickupOrder($storeId, $zoneIds = null)
     {
         // Какви са очакваните количества
-        $expected = $this->getExpectedProducts($storeId, $zoneIds);
+        $expected = self::getExpectedProducts($storeId, $zoneIds);
         
         // Изчистване на заявките към зоните
         $mQuery = rack_Movements::getQuery();
@@ -629,9 +629,9 @@ class rack_Zones extends core_Master
      *
      * @return stdClass $res
      */
-    private function getExpectedProducts($storeId, $zoneIds = null)
+    private static function getExpectedProducts($storeId, $zoneIds = null)
     {
-        $res = (object) array('products' => array(), 'zones' => array());
+        $res = (object)array('products' => array(), 'zones' => array());
         
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
