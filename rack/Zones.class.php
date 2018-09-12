@@ -188,7 +188,7 @@ class rack_Zones extends core_Master
         if (isset($storeId)) {
             $query->where("#storeId = {$storeId}");
         }
-        $query->orderBy('num', 'DESC');
+        $query->orderBy('num', 'ASC');
         
         $options = array();
         while ($rec = $query->fetch()) {
@@ -418,10 +418,8 @@ class rack_Zones extends core_Master
             }
         }
         
-        if ($count) {
-            $rec->readiness = $ready / $count;
-            $this->save($rec, 'readiness');
-        }
+        $rec->readiness = ($count) ? $ready / $count : null;
+        $this->save($rec, 'readiness');
     }
     
     
