@@ -414,6 +414,7 @@ class rack_Movements extends core_Manager
                 case 'rack2floor':
                     $form->setField('zones', 'input=none');
                     $form->setReadOnly('palletId');
+                    $form->setReadOnly('productId');
                     $form->setField('positionTo', 'input=hidden');
                     $form->setField('palletId', 'caption=Сваляне на пода->Палет');
                     $form->setField('note', 'caption=Сваляне на пода->Забележка');
@@ -421,6 +422,7 @@ class rack_Movements extends core_Manager
                     break;
                 case 'rack2rack':
                     $form->setField('zones', 'input=none');
+                    $form->setReadOnly('productId');
                     $form->setReadOnly('palletId');
                     $form->setField('palletId', 'caption=Преместване на нова позиция->Палет');
                     $form->setField('positionTo', 'caption=Преместване на нова позиция->Позиция');
@@ -832,7 +834,6 @@ class rack_Movements extends core_Manager
                 return $res;
             }
             
-            //    bp($fromPallet, $transaction);
             $fromQuantity = $fromPallet->quantity;
             if ($fromPallet->quantity - $transaction->quantity < 0) {
                 $res->errors = 'Няма достатъчна наличност на изходящия палет';
