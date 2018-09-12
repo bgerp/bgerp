@@ -132,7 +132,20 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
+        rack_Zones::clearZone($rec->containerId);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
         rack_Zones::clearZone($rec->containerId);
     }
 }
