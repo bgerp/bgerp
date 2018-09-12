@@ -795,7 +795,6 @@ class rack_Movements extends core_Manager
     private function validateTransaction($transaction)
     {
         $res = (object) array('transaction' => $transaction, 'errors' => array(), 'errorFields' => array(), 'warnings' => array(), 'warningFields' => array());
-        $quantityOnPallet = rack_Pallets::getDefaultQuantity($transaction->productId, $transaction->storeId);
         
         if ($transaction->from == $transaction->to && empty($transaction->zonesQuantityTotal)) {
             $res->errors = 'Не може да се направи празно движение';
@@ -824,6 +823,8 @@ class rack_Movements extends core_Manager
             
             return $res;
         }
+        
+        $quantityOnPallet = rack_Pallets::getDefaultQuantity($transaction->productId, $transaction->storeId, $transaction->from);
         
         $fromPallet = $fromQuantity = $toQuantity = null;
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
