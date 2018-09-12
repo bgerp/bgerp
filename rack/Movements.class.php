@@ -949,7 +949,7 @@ class rack_Movements extends core_Manager
         // Предупреждение: В началния палет се получава по-голямо количество от стандартното
         if (!empty($fromPallet) && $transaction->quantity < 0 && ($fromQuantity - $transaction->quantity > $quantityOnPallet)) {
             $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
-            $res->warnings[] = "В началния палет палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
+            $res->warnings[] = "В началния палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
             $res->warningFields[] = 'positionTo';
             $res->warningFields[] = 'packQuantity';
             $res->warningFields[] = 'zonesQuantityTotal';
