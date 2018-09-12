@@ -250,14 +250,8 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        // Обновяване на информацията за количествата от продукта в зоните
-        $storeId = store_Stores::getCurrent();
-        $storeProductRec = rack_Products::fetch("#productId = {$rec->productId} AND #storeId = {$storeId}");
-        if(is_object($storeProductRec)){
-            $productQuantityOnZones = self::calcProductQuantityOnZones($rec->productId);
-            $storeProductRec->quantityOnZones = $productQuantityOnZones;
-            rack_Products::save($storeProductRec, 'quantityOnZones');
-        }
+        // Рекалкулира какво е количеството по зони на артикула в склад-а
+        rack_Products::recalcQuantityOnZones($rec->productId);
     }
     
     

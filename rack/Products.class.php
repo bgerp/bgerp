@@ -113,7 +113,7 @@ class rack_Products extends store_Products
         foreach ($recs as $rec) {
             $rec = self::fetch("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
             if ($rec) {
-                rack_Pallets::recalc($rec->id);
+                rack_Pallets::recalc($rec->id, $rec->storeId);
             }
         }
     }
@@ -203,5 +203,29 @@ class rack_Products extends store_Products
         }
        
         return $products;
+    }
+    
+    
+    /**
+     * Рекалкулира какво количество има по зони
+     * 
+     * @param int|array $productArr - ид на артикул или масив от ид-та на артикули
+     * @param int $storeId          - избрания склад
+     * @return void
+     */
+    public static function recalcQuantityOnZones($productArr, $storeId = null)
+    {
+        $productArr = arr::make($productArr, true);
+        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
+        
+        $saveArr = array();
+        $query = self::getQuery("#storeId = {$storeId}");
+        $query->in("productId", $productArr);
+        while($rec = $query->fetch()){
+            $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId);
+            $saveArr[$rec->id] = $rec;
+        }
+        
+        self::saveArray($saveArr, 'id,quantityOnZones');
     }
 }

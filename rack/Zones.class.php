@@ -387,7 +387,17 @@ class rack_Zones extends core_Master
         
         // Затваря движенията към зоната
         rack_Movements::closeByZoneId($zoneRec->id);
-        rack_ZoneDetails::delete("#zoneId = {$zoneRec->id}");
+        
+        // Рекалкулира к-та по зони на артикула
+        $productArr = array();
+        $dQuery = rack_ZoneDetails::getQuery();
+        $dQuery->where("#zoneId = {$zoneRec->id}");
+        while($dRec = $dQuery->fetch()){
+            rack_ZoneDetails::delete($dRec->id);
+            $productArr[$dRec->productId] = $dRec->productId;
+        }
+        
+        rack_Products::recalcQuantityOnZones($productArr, $zoneRec->storeId);
         
         $zoneRec->containerId = null;
         self::save($zoneRec);
