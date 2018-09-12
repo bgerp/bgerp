@@ -111,7 +111,7 @@ class rack_Products extends store_Products
     protected static function on_AfterSaveArray($mvc, $res, $recs)
     {
         foreach ($recs as $rec) {
-            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = '{$rec->storeId}'");
             if ($rec) {
                 rack_Pallets::recalc($rec->id, $rec->storeId);
             }
