@@ -4641,7 +4641,8 @@ div.location.public {
  * rack
  */
 .rack_Zones {
-  display: block; }
+  display: block;
+  max-width: 1200px; }
   .rack_Zones .listTable {
     border: none !important; }
     .rack_Zones .listTable td,
@@ -4680,13 +4681,11 @@ div.location.public {
         width: 100%; }
           .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-active {
             background-color: #ffeedd;
-            background-color: rgba(250, 221, 187, 0.7);
             color: black !important; }
             .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-active:hover {
-              background: rgba(247, 197, 139, 0.5) !important; }
+              background: #f7c58b !important; }
           .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-pending {
             background-color: #eeccff;
-            background-color: rgba(238, 204, 255, 0.7);
             color: black !important; }
             .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-pending:hover {
               background-color: #e6b3ff !important; }

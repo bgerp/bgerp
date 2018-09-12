@@ -105,11 +105,11 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        $row->productId = cat_Products::getShortHyperlink($rec->productId);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
-        $moveStatusColor = ($rec->movementQuantity < $rec->documentQuantity) ? 'red' : (($rec->movementQuantity == $rec->documentQuantity) ? 'black' : 'blue');
+        $moveStatusColor = ($rec->movementQuantity < $rec->documentQuantity) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
     }
@@ -129,7 +129,7 @@ class rack_ZoneDetails extends core_Detail
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
             
-            $row->ROW_ATTR['class'] = ($data->masterData->rec->_isSingle === true) ? 'row-added' : 'row-added zonesCommonRow';
+            $row->ROW_ATTR['class'] = 'row-added';
             $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;

@@ -5228,6 +5228,7 @@ div.location.public {
 /*rack*/
 .rack_Zones  {
 	display: block;
+	max-width: 1200px;
 	.listTable {
 		border: none !important;
 		td, th {
@@ -5257,7 +5258,7 @@ div.location.public {
 				background: #f1f1f1 !important;
 			}
 			td {
-				padding: 5px !important;
+				padding: 5px!important;
 			}
 			span {
 				color: #000 !important;
@@ -5280,15 +5281,13 @@ div.location.public {
 				tr {
 					&.state-active {
 						background-color: #ffeedd;
-						background-color: rgba(250, 221, 187, 0.7);
 						color: #000 !important;
 						&:hover {
-							background: rgba(247, 197, 139, 0.5) !important;
+							background: rgba(247, 197, 139, 1) !important;
 						}
 					}
 					&.state-pending {
 						background-color: #eeccff;
-						background-color: rgba(238, 204, 255, 0.7);
 						color: #000 !important;
 						&:hover {
 							background-color: #e6b3ff !important;
