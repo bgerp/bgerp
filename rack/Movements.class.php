@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy';
+    public $listFields = 'id,productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy';
     
     
     /**
@@ -582,12 +582,13 @@ class rack_Movements extends core_Manager
      */
     private function getMovementDescription($rec, $skipZones = false)
     {
+        $packQuantity = isset($rec->_originalPackQuantity) ? $rec->_originalPackQuantity : $rec->packQuantity;
         $position = $this->getFieldType('position')->toVerbal($rec->position);
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
         
         $Double = core_Type::getByName('double(smartRound)');
         $packagingRow = cat_UoM::getShortName($rec->packagingId);
-        $packQuantityRow = $Double->toVerbal($rec->packQuantity);
+        $packQuantityRow = $Double->toVerbal($packQuantity);
         
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
@@ -601,16 +602,16 @@ class rack_Movements extends core_Manager
         $movementArr = array();
         $packType = cat_UoM::fetchField($rec->packagingId, 'type');
         if ($packType != 'uom') {
-            $packagingRow = str::getPlural($rec->packQuantity, $packagingRow, true);
+            $packagingRow = str::getPlural($packQuantity, $packagingRow, true);
         }
-        if (!empty($rec->packQuantity)) {
+        if (!empty($packQuantity)) {
             $packQuantityRow = ht::styleIfNegative($packQuantityRow, $rec->packQuantity);
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
         
         if ($skipZones === false) {
             $zones = self::getZoneArr($rec, $quantityInZones);
-            $restQuantity = $rec->packQuantity - $quantityInZones;
+            $restQuantity = $packQuantity - $quantityInZones;
             
             foreach ($zones as $zoneRec) {
                 $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
