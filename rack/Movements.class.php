@@ -938,7 +938,7 @@ class rack_Movements extends core_Manager
         if (!empty($toQuantity) && !empty($quantityOnPallet)) {
             if ($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal > $quantityOnPallet) {
                 $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
-                $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}";
+                $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
                 $res->warningFields[] = 'positionTo';
                 $res->warningFields[] = 'packQuantity';
                 $res->warningFields[] = 'zonesQuantityTotal';
@@ -948,7 +948,7 @@ class rack_Movements extends core_Manager
         // Предупреждение: В началния палет се получава по-голямо количество от стандартното
         if (!empty($fromPallet) && $transaction->quantity < 0 && ($fromQuantity - $transaction->quantity > $quantityOnPallet)) {
             $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
-            $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b";
+            $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
             $res->warningFields[] = 'positionTo';
             $res->warningFields[] = 'packQuantity';
             $res->warningFields[] = 'zonesQuantityTotal';
