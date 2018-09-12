@@ -651,4 +651,23 @@ class rack_Pallets extends core_Manager
         
         return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity) : null;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'edit' && isset($rec)){
+            if($rec->state == 'closed'){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }
