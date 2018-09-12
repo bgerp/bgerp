@@ -438,7 +438,7 @@ class rack_Zones extends core_Master
     {
         $storeId = store_Stores::getCurrent();
         if ($mvc->haveRightFor('orderpickup', (object) array('storeId' => $storeId))) {
-            $data->toolbar->addBtn('Нагласяне', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+            $data->toolbar->addBtn('Генериране на движения', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
         }
     }
     
