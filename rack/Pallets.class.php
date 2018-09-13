@@ -327,6 +327,8 @@ class rack_Pallets extends core_Manager
             $sign = ($reverse === false) ? 1 : -1;
             $incrementQuantity = $sign * $quantity;
             $rec->quantity += $incrementQuantity;
+            $rec->quantity = round($rec->quantity, 5);
+            
             self::save($rec, 'position,quantity,state,closedOn');
         }
         
