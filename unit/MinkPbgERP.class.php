@@ -858,6 +858,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('name', 'Чувал голям 50 L');
         $browser->setValue('code', 'smet50big');
         $browser->setValue('measureId', 'брой');
+        $browser->setValue('Ценова група » Промоция', true);
         $browser->setValue('info', 'черен');
         $browser->setValue('meta_canBuy', 'canBuy');
         $browser->press('Запис');
@@ -1254,6 +1255,8 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
         $browser->setValue('dealerId', 'User1');
+        $valior=strtotime("-7 Days");
+        $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('chargeVat', 'Отделен ред за ДДС');
         $browser->press('Чернова');
         
@@ -1391,6 +1394,8 @@ class unit_MinkPbgERP extends core_Manager
         $browser->setValue('deliveryTermId', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', 'До 3 дни след фактуриране');
+        $valior=strtotime("-7 Days");
+        $browser->setValue('valior', date('d-m-Y', $valior));
         
         //$browser->setValue('chargeVat', "Освободено от ДДС"); //// Ако контрагентът е от България дава грешка.
         $browser->setValue('chargeVat', 'exempt');
@@ -1561,24 +1566,18 @@ class unit_MinkPbgERP extends core_Manager
         
         // активиране на продажбата
         $browser->press('Активиране');
-        sleep(3);
-        set_time_limit(800);
         $browser->press('Активиране/Контиране');
-        sleep(3);
-        set_time_limit(800);
-        //return $browser ->getHtml();
-       
         
-//         if (strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
-//         } else {
+        if (strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
+        } else {
             
-//             return $this->reportErr('Грешно ДДС', 'warning');
-//         }
-//         if (strpos($browser->gettext(), 'Четиридесет и три BGN и 0,20')) {
-//         } else {
+            return $this->reportErr('Грешно ДДС', 'warning');
+        }
+        if (strpos($browser->gettext(), 'Четиридесет и три BGN и 0,20')) {
+        } else {
             
-//             return $this->reportErr('Грешна обща сума', 'warning');
-//         }
+            return $this->reportErr('Грешна обща сума', 'warning');
+        }
      
         //if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
         //} else {
@@ -1700,10 +1699,8 @@ class unit_MinkPbgERP extends core_Manager
         
         // активиране на продажбата
         $browser->press('Активиране');
-        
-        //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
-        sleep(3);
+        //sleep(3);
         if (strpos($browser->gettext(), 'Discount: EUR 1,68')) {
         } else {
             
