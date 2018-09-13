@@ -97,10 +97,10 @@ class rack_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Delete movements',
-            'description' => 'Изтриване на остарели движения',
+            'systemId' => 'Delete movements and pallets',
+            'description' => 'Изтриване на остарели движения и палети',
             'controller' => 'rack_Movements',
-            'action' => 'DeleteOldMovements',
+            'action' => 'DeleteOldMovementsAndPallets',
             'period' => 1440,
             'offset' => 90,
             'timeLimit' => 100

@@ -1043,7 +1043,7 @@ class rack_Movements extends core_Manager
     /**
      * Изтриване на стари движения по разписание
      */
-    public function cron_DeleteOldMovements()
+    public function cron_DeleteOldMovementsAndPallets()
     {
         $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
         if(empty($olderThan)) return;
