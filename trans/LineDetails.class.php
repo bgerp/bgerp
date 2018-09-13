@@ -287,11 +287,11 @@ class trans_LineDetails extends doc_Detail
             $row->_rowTools->addLink('Изключване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/delete.png', 'title' => 'Изключване от транспортната линия'));
         }
         
-        if(core_Packs::isInstalled('rack')){
-            $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
-            if(count($zoneBtn->url)){
-                $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
-            }
+        if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
+           $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
+           if(count($zoneBtn->url)){
+              $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
+           }
         }
     }
     

@@ -98,7 +98,7 @@ class rack_Movements extends core_Manager
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
         $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none,smartCenter');
-        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=none');
+        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden,silent');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
@@ -366,7 +366,6 @@ class rack_Movements extends core_Manager
             
             if ($availableQuantity > 0) {
                 $availableQuantity /= $rec->quantityInPack;
-                $availableQuantityV = core_Type::getByName('double(decimals=2)')->toVerbal($availableQuantity);
                 $form->setField('packQuantity', "placeholder={$availableQuantity}");
                 $form->rec->defaultPackQuantity = $availableQuantity;
             }
@@ -605,7 +604,7 @@ class rack_Movements extends core_Manager
             $packagingRow = str::getPlural($packQuantity, $packagingRow, true);
         }
         if (!empty($packQuantity)) {
-            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $rec->packQuantity);
+            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $packQuantity);
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
         
@@ -810,7 +809,7 @@ class rack_Movements extends core_Manager
             return $res;
         }
         
-        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal)) {
+        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal) && $transaction->zonesQuantityTotal > 0) {
             $res->errors = 'Недостатъчно количество за оставяне в зоните';
             $res->errorFields = 'packQuantity,zones';
             
@@ -913,25 +912,26 @@ class rack_Movements extends core_Manager
             $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId}");
             $movementQuantity = is_object($zRec) ? $zRec->movementQuantity : null;
             $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
+            $diff = round($movementQuantity, 4) + round($zone->quantity, 4);
             
-            if ($movementQuantity + $zone->quantity < 0) {
-                $zoneErrors[] = rack_Zones::getVerbal($zone->zone, 'num');
+            if ($diff < 0) {
+                $zoneErrors[] = rack_Zones::getHyperlink($zone->zone, false);
             }
             
-            if (!empty($documentQuantity) && $movementQuantity + $zone->quantity > $documentQuantity) {
-                $zoneWarnings[] = rack_Zones::getVerbal($zone->zone, 'num');
+            if (!empty($documentQuantity) && $diff > $documentQuantity) {
+                $zoneWarnings[] = rack_Zones::getHyperlink($zone->zone, false);
             }
         }
         
         if (count($zoneErrors)) {
-            $res->errors = 'В зони|* <b>' . implode(', ', $zoneErrors) . '</b> |се получава отрицателно количество|*';
+            $res->errors = 'В зони|*: <b>' . implode(', ', $zoneErrors) . '</b> |се получава отрицателно количество|*';
             $res->errorFields[] = 'zones';
             
             return $res;
         }
         
         if (count($zoneWarnings)) {
-            $res->warnings[] = 'В зони|* <b>' . implode(', ', $zoneWarnings) . '</b> |се получава по-голямо количество от необходимото|*';
+            $res->warnings[] = 'В зони|*: <b>' . implode(', ', $zoneWarnings) . '</b> |се получава по-голямо количество от необходимото|*';
             $res->warningFields[] = 'zones';
         }
         

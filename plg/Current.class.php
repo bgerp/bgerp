@@ -67,11 +67,11 @@ class plg_Current extends core_Plugin
             
             // Избиране на  обект, ако е намерен подходящ
             if ($rec) {
-                $res = self::setCurrent($mvc, $res, $rec);
+                $currRes = self::setCurrent($mvc, $res, $rec);
             }
             
             // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
-            if (($res === false) && ($bForce)) {
+            if (($currRes === false) && ($bForce)) {
                 
                 // Подканваме потребителя да избере обект от модела, като текущ
                 redirect(array($mvc, 'SelectCurrent', 'ret_url' => true), false, '|Нямате права за избор на|* |' . mb_strtolower(tr($mvc->singleTitle)));
