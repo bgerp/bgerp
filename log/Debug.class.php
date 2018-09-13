@@ -165,7 +165,7 @@ class log_Debug extends core_Manager
         }
         
         // Вземаме файловете, които да се показват
-        $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search);
+        $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search, $allFArrCnt);
         
         if ($oDebugFileName != $debugFileName) {
             list($debugFile) = explode('.', $debugFileName);
@@ -298,8 +298,9 @@ class log_Debug extends core_Manager
             return  $tpl;
         }
         
-        $allFArr = $this->getDebugFilesArr();
-        $tpl->prepend(tr('Общо файлове') . ': ' . count($allFArr));
+        if ($allFArrCnt) {
+            $tpl->prepend(tr('Общо файлове') . ': ' . $allFArrCnt);
+        }
         
         // Рендираме страницата
         return  $this->renderWrapping($tpl);
@@ -723,10 +724,11 @@ class log_Debug extends core_Manager
      * @param NULL|int    $after
      * @param array       $otherFilesFromSameHitArr
      * @param NULL|string $search
+     * @param NULL|int    $fArrCnt
      *
      * @return array
      */
-    protected static function getDebugFilesArr(&$fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $search = null)
+    protected static function getDebugFilesArr(&$fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $search = null, &$fArrCnt = null)
     {
         $fArr = array();
         
@@ -845,15 +847,13 @@ class log_Debug extends core_Manager
             }
         }
         
-        
+        $fArrCnt = count($fArr);
         if (!empty($fArr)) {
             if (($before || $after)) {
                 if ($fName) {
                     asort($fArr);
                     
                     $aPos = array_search($fName, array_keys($fArr));
-                    
-                    $fArrCnt = count($fArr);
                     
                     $nArr = $fArr;
                     
