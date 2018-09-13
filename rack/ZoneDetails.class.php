@@ -16,8 +16,6 @@
  */
 class rack_ZoneDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
@@ -49,21 +47,23 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'plg_AlignDecimals2';
-    
-    
-    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'zoneId';
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'movementsHtml';
+    
+    
+    /**
      * Полета в листовия изглед
      */
-    public $listFields = 'productId, packagingId, documentQuantity, movementQuantity';
+    public $listFields = 'productId, packagingId, status=Състояние,movementsHtml=@';
     
     
     /**
@@ -73,9 +73,10 @@ class rack_ZoneDetails extends core_Detail
     {
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell leftCol wrap');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
-        $this->FLD('documentQuantity', 'double', 'caption=Очаквано,mandatory');
-        $this->FLD('movementQuantity', 'double', 'caption=Нагласено,mandatory');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap');
+        $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
+        $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
+        $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
         
         $this->setDbUnique('zoneId,productId,packagingId');
     }
@@ -89,14 +90,8 @@ class rack_ZoneDetails extends core_Detail
         if (is_object($rec)) {
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
-            
-            if(isset($rec->movementQuantity)){
-                $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
-            }
-            
-            if(isset($rec->documentQuantity)){
-                $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
-            }
+            $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
+            $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
         }
     }
     
@@ -110,27 +105,63 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+        $row->productId = cat_Products::getShortHyperlink($rec->productId);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->ROW_ATTR['class'] = 'row-added';
+        $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
+        $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
+        $moveStatusColor = ($rec->movementQuantity < $rec->documentQuantity) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
+        
+        $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
+    }
+    
+    
+    /**
+     * След рендиране на детайлите се скриват ценовите данни от резултатите
+     * ако потребителя няма права
+     */
+    protected static function on_AfterPrepareDetail($mvc, $res, &$data)
+    {
+        if(!count($data->rows)) return;
+        setIfNot($data->inlineDetail, false);
+        setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
+        
+        // Допълнително обикаляне на записите
+        foreach ($data->rows as $id => &$row){
+            $rec = $data->recs[$id];
+            
+            $row->ROW_ATTR['class'] = 'row-added';
+            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
+            if(!empty($movementsHtml)){
+                $row->movementsHtml = $movementsHtml;
+            }
+            
+            // Ако няма движения и к-та са 0, реда се маркира
+            if(empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)){
+                if($data->masterData->rec->_isSingle === true){
+                    $row->ROW_ATTR['class'] = 'state-rejected';
+                } else {
+                    unset($data->rows[$id]);
+                }
+            }
+        }
     }
     
     
     /**
      * Записва движение в зоната
-     * 
-     * @param int $zoneId      - ид на зона
-     * @param int $productId   - ид на артикул
-     * @param int $packagingId - ид на опаковка
-     * @param double $quantity - количество в основна мярка
-     * 
+     *
+     * @param int   $zoneId      - ид на зона
+     * @param int   $productId   - ид на артикул
+     * @param int   $packagingId - ид на опаковка
+     * @param float $quantity    - количество в основна мярка
+     *
      * @return void
      */
     public static function recordMovement($zoneId, $productId, $packagingId, $quantity)
     {
         $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
-        if(empty($newRec)){
-            $newRec = (object)array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null);
+        if (empty($newRec)) {
+            $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null);
         }
         $newRec->movementQuantity += $quantity;
         
@@ -140,22 +171,22 @@ class rack_ZoneDetails extends core_Detail
     
     /**
      * Синхронизиране на зоните с документа
-     * 
+     *
      * @param int $zoneId
      * @param int $containerId
      */
     public static function syncWithDoc($zoneId, $containerId = null)
     {
-        if(isset($containerId)){
+        if (isset($containerId)) {
             $document = doc_Containers::getDocument($containerId);
             $products = $document->getProductsSummary();
             $exRecs = array();
             
-            if(is_array($products)){
-                foreach ($products as $obj){
+            if (is_array($products)) {
+                foreach ($products as $obj) {
                     $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId}");
-                    if(empty($newRec)){
-                        $newRec = (object)array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'movementQuantity' => null, 'documentQuantity' => 0);
+                    if (empty($newRec)) {
+                        $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
                     $newRec->documentQuantity = $obj->quantity;
                     
@@ -165,7 +196,7 @@ class rack_ZoneDetails extends core_Detail
             }
             
             // Тези които не са се обновили се изтриват
-            if(count($exRecs)){
+            if (count($exRecs)) {
                 self::nullifyQuantityFromDocument($zoneId, $exRecs);
             }
         } else {
@@ -176,23 +207,41 @@ class rack_ZoneDetails extends core_Detail
     
     /**
      * Зануляване на очакваното количество по документи
-     * 
-     * @param int $zoneId
+     *
+     * @param int   $zoneId
      * @param array $notIn
      */
     private static function nullifyQuantityFromDocument(int $zoneId, array $notIn = array())
     {
         $query = self::getQuery();
         $query->where("#zoneId = {$zoneId}");
-        $query->where("#documentQuantity IS NOT NULL");
-        if(count($notIn)){
-            $query->notIn("id", $notIn);
+        $query->where('#documentQuantity IS NOT NULL');
+        if (count($notIn)) {
+            $query->notIn('id', $notIn);
         }
         
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             $rec->documentQuantity = null;
             self::save($rec);
         }
+    }
+    
+    
+    /**
+     * Изчислява какво количество от даден продукт е налично в зоните
+     */
+    public static function calcProductQuantityOnZones($productId)
+    {
+        $query = self::getQuery();
+        $query->XPR('sum', 'double', 'sum(#movementQuantity)');
+        $query->where("#productId = {$productId}");
+        $rec = $query->fetch();
+        $res = 0;
+        if ($rec) {
+            $res = $rec->sum;
+        }
+        
+        return $res;
     }
     
     
@@ -201,10 +250,8 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        // Ако няма никакви количества се изтрива
-        if(empty($rec->documentQuantity) && empty($rec->movementQuantity)){
-            self::delete($rec->id);
-        }
+        // Рекалкулира какво е количеството по зони на артикула в склад-а
+        rack_Products::recalcQuantityOnZones($rec->productId);
     }
     
     
@@ -213,6 +260,74 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('documentQuantity', "DESC");
+        $data->query->orderBy('documentQuantity', 'DESC');
+    }
+    
+    
+    /**
+     * Рендиране на детайла накуп
+     * 
+     * @param stdClass $masterRec
+     * @param core_Mvc $masterMvc
+     * @return core_ET
+     */
+    public static function renderInlineDetail($masterRec, $masterMvc)
+    {
+        $tpl = new core_ET();
+        
+        $me = cls::get(get_called_class());
+        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => true);
+        $dData = $me->prepareDetail($dData);
+        if(!count($dData->recs)) return $tpl;
+        
+        $tpl = $me->renderDetail($dData);
+        $tpl->removePlaces();
+        $tpl->removeBlocks();
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендира таблицата със движения към детайла на зоната
+     *
+     * @param stdClass $rec
+     * @return core_ET $tpl
+     */
+    private function getInlineMovements(&$rec, $masterRec)
+    {
+        $Movements = clone cls::get('rack_Movements');
+        $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
+        
+        $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
+        $data->listFields = arr::make('movement=Движение,workerId=Работник', true);
+        $Movements->setField('workerId', "tdClass=inline-workerId");
+        $skipClosed = ($masterRec->_isSingle === true) ? false : true;
+        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
+        list($productId, $packagingId) = array($rec->productId, $rec->packagingId);
+        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId){return $o->productId == $productId && $o->packagingId == $packagingId;});
+        $rec->_movements = $data->recs;
+        
+        foreach ($data->recs as $mRec) {
+            $fields = $Movements->selectFields();
+            $fields['-list'] = true;
+            $fields['-inline'] = true;
+            $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
+        }
+       
+        // Рендиране на таблицата
+        $tpl = new core_ET('');
+        if (count($data->rows) || $masterRec->_isSingle === true) {
+            $tableClass = ($masterRec->_isSingle === true && count($data->rows)) ? 'listTable' : 'simpleTable';
+            $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => true));
+            $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
+            
+            $tpl->append($table->get($data->rows, $data->listFields));
+            $tpl->append("style='width:100%;'", 'TABLE_ATTR');
+        }
+        
+        $tpl->removePendings('COMMON_ROW_ATTR');
+        
+        return $tpl;
     }
 }

@@ -48,7 +48,7 @@ class fileman_webdrv_Debug extends fileman_webdrv_Txt
         $tabsArr['preview'] = (object)
         array(
             'title' => 'Преглед',
-            'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Преглед') . "</div> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+            'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Преглед') . "</div> <div class='webdrvFieldset'><iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
             'order' => 2,
         );
         

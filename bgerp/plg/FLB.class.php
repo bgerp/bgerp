@@ -84,7 +84,7 @@ class bgerp_plg_FLB extends core_Plugin
      * @param core_Master     $mvc
      * @param stdClass        $rec
      * @param int             $userId
-     * @param activate|select $action
+     * @param string $action
      *
      * @return bool
      */

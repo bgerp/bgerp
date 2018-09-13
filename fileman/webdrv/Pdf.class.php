@@ -117,7 +117,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
             $tabsArr['barcodes'] = (object)
             array(
                 'title' => 'Баркодове',
-                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr('Баркодове') . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Баркодове') . "</div><div class='webdrvFieldset'> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 6,
             );
         }

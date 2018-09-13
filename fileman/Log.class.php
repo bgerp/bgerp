@@ -81,6 +81,12 @@ class fileman_Log extends core_Manager
     const DIALOG_LIST_ITEMS_PER_PAGE = 5;
     
     
+    /**
+     * Броя на записите при странициране в диалоговия прозорец - в мобилен
+     */
+    const DIALOG_LIST_ITEMS_PER_PAGE_MOBILE = 50;
+    
+    
     public $listFields = 'fileId=Линк, action, lastOn';
     
     
@@ -209,7 +215,7 @@ class fileman_Log extends core_Manager
         
         // Вземаме шаблона
         $tpl = $this->getTpl();
-
+        
         $tpl->push('fileman/js/lastUsed.js', 'JS');
         jquery_Jquery::run($tpl, 'lastUsedActions();');
         
@@ -388,7 +394,11 @@ class fileman_Log extends core_Manager
         if (Mode::get('dialogOpened')) {
             
             // Задаваме броя на елементите в страница
-            $mvc->listItemsPerPage = static::DIALOG_LIST_ITEMS_PER_PAGE;
+            if (Mode::is('screenMode', 'narrow')) {
+                $mvc->listItemsPerPage = static::DIALOG_LIST_ITEMS_PER_PAGE_MOBILE;
+            } else {
+                $mvc->listItemsPerPage = static::DIALOG_LIST_ITEMS_PER_PAGE;
+            }
         }
     }
     
@@ -506,8 +516,8 @@ class fileman_Log extends core_Manager
     /**
      * Връща иконата за подадения файл
      *
-     * @param string  $fh   - Манупулатор на файла
-     * @param int     $size - Размер на файла
+     * @param string $fh   - Манупулатор на файла
+     * @param int    $size - Размер на файла
      */
     public static function getIcon($fh, $size = 48)
     {

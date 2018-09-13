@@ -57,7 +57,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml';
+    public $hideListFieldsIfEmpty = 'weight,collection,volume,notes,address,documentHtml,zoneId';
     
     
     /**
@@ -286,9 +286,19 @@ class trans_LineDetails extends doc_Detail
         if ($mvc->haveRightFor('remove', $rec)) {
             $row->_rowTools->addLink('Изключване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/delete.png', 'title' => 'Изключване от транспортната линия'));
         }
+        
+        if(core_Packs::isInstalled('rack')){
+            $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
+            if(count($zoneBtn->url)){
+                $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
+            }
+        }
     }
     
     
+    /**
+     * Екшън за премахване на документ
+     */
     public function act_Remove()
     {
         $this->requireRightFor('remove');
@@ -318,6 +328,7 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('volume', 'cat_type_Volume');
         $data->listTableMvc->FNC('collection', 'double');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
+        $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter');
     }
     
     

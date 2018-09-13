@@ -34,13 +34,4 @@
                 [#rack_ZoneDetails#]
                 </div>
             </fieldset>
-            
-            <!--ET_BEGIN pendingHtml-->
-            <fieldset class="detail-info">
-            	<legend class="groupTitle">|Движения|*</legend>
-                <div class="groupList">
-                [#pendingHtml#]
-                </div>
-            </fieldset>
-            <!--ET_END pendingHtml-->
 </div>

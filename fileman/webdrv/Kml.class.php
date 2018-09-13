@@ -48,7 +48,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         $tabsArr['preview'] = (object)
             array(
                 'title' => 'Изглед',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Преглед') . "</div>{$view}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Преглед') . "</div><div class='webdrvFieldset'>{$view}</div></div>",
                 'order' => 6,
                 'tpl' => $view,
             );

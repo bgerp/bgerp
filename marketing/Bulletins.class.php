@@ -305,6 +305,8 @@ class marketing_Bulletins extends core_Master
     {
         $bRec = self::fetch($id);
         
+        $isLocal = (boolean) (strpos($bRec->domain, 'localhost/') === 0);
+        
         if ($bRec->lg) {
             core_Lg::push($bRec->lg);
         }
@@ -333,15 +335,19 @@ class marketing_Bulletins extends core_Master
             $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => true));
             
             $logoUrl = $thmb->getUrl('deferred');
-            
+            $logoUrl = preg_replace("/^https?\:\/\//", '//', $logoUrl, 1);
+            $logoUrl = addslashes($logoUrl);
+            $logoUrl = self::prepareUrlForHostName($logoUrl, $isLocal);
             list($logoWidth, $logoHeight) = $thmb->getSize();
             
             if ($logoHeight > $logoWidth) {
                 $jsTpl->replace($logoUrl, 'logoLeft');
                 $jsTpl->replace($formTitle, 'formTitleRight');
+                $jsTpl->replace(' ', 'logoLeftD');
             } else {
                 $jsTpl->replace($logoUrl, 'logoUp');
                 $jsTpl->replace($formTitle, 'formTitle');
+                $jsTpl->replace(' ', 'logoUpD');
             }
         } else {
             $jsTpl->replace($formTitle, 'formTitle');
@@ -378,18 +384,23 @@ class marketing_Bulletins extends core_Master
         // Линк за показване на формата
         $showFormUrl = self::getLinkForShowForm($id);
         $showFormUrl = addslashes($showFormUrl);
+        $showFormUrl = self::prepareUrlForHostName($showFormUrl, $isLocal);
         $jsTpl->replace($showFormUrl, 'showFormUrl');
         
         // Линк за img за регистрация
         $formActionUrl = self::getLinkForShowImg($id);
         $formActionUrl = addslashes($formActionUrl);
+        $formActionUrl = self::prepareUrlForHostName($formActionUrl, $isLocal);
         $jsTpl->replace($formActionUrl, 'formAction');
         
         $cookieKey = self::getCookieName($id);
         $cookieKey = addslashes($cookieKey);
         $jsTpl->replace($cookieKey, 'cookieKey');
         
-        $jsTpl->replace(self::getCssLink($id), 'CSS_URL');
+        $cssUrl = self::getCssLink($id);
+        $cssUrl = addslashes($cssUrl);
+        $cssUrl = self::prepareUrlForHostName($cssUrl, $isLocal);
+        $jsTpl->replace($cssUrl, 'CSS_URL');
         
         $js = $jsTpl->getContent();
         
@@ -400,6 +411,26 @@ class marketing_Bulletins extends core_Master
         $js = minify_Js::process($js);
         
         return $js;
+    }
+    
+    
+    /**
+     * Помощна функция за промяна на URL
+     *
+     * @param string $url
+     * @param bool   $isLocal
+     *
+     * @return string
+     */
+    protected static function prepareUrlForHostName($url, $isLocal)
+    {
+        if ($isLocal) {
+            $url = "checkUrlHostName('{$url}')";
+        } else {
+            $url = "'{$url}'";
+        }
+        
+        return $url;
     }
     
     

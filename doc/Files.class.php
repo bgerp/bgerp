@@ -340,7 +340,6 @@ class doc_Files extends core_Manager
         
         // Обхождаме всички линкнати файлове
         foreach ($linked as $fh => $name) {
-            
             // Данните за файла
             $dataId = fileman_Files::fetchByFh($fh, 'dataId');
             
@@ -387,12 +386,12 @@ class doc_Files extends core_Manager
     /**
      * Връща контейнерите с документи, в които се използва съответния файл
      *
-     * @param intger      $dataId
-     * @param intger|NULL $clsId
-     * @param int         $resLimit
-     * @param int         $qLimit
-     * @param bool        $restrictAccess
-     * @param bool        $restricViewAccess
+     * @param int      $dataId
+     * @param int|NULL $clsId
+     * @param int      $resLimit
+     * @param int      $qLimit
+     * @param bool     $restrictAccess
+     * @param bool     $restricViewAccess
      *
      * @return array
      */
@@ -620,9 +619,7 @@ class doc_Files extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Името на файла да е линк към сингъл изгледа му
-        $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
-        
+        $url = null;
         if ($rec->containerId) {
             try {
                 // Документа
@@ -662,7 +659,17 @@ class doc_Files extends core_Manager
             } catch (ErrorException $e) {
                 // Не се прави нищо
             }
+            
+            if ($doc) {
+                $fRec = fileman::fetchByFh($rec->fileHnd);
+                if ($doc && $fRec && fileman::haveRightFor('single', $fRec) && $doc->haveRightFor('single')) {
+                    $url = array($doc, 'viewFile', $rec->containerId, 'fh' => $fRec->fileHnd);
+                }
+            }
         }
+        
+        // Името на файла да е линк към сингъл изгледа му
+        $row->fileHnd = fileman_Files::getLink($rec->fileHnd, null, $url);
     }
     
     

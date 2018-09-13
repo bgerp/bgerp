@@ -41,23 +41,6 @@ class satec_PM175 extends sens2_ProtoDriver
     
     
     /**
-     *  Информация за входните портове на устройството
-     *
-     * @see  sens2_ControllerIntf
-     *
-     * @return array
-     */
-    public function getInputPorts($config = null)
-    {
-        foreach ($this->inputs as $name => $params) {
-            $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
      * @see  sens2_ControllerIntf

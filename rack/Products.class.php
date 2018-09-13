@@ -2,7 +2,7 @@
 
 
 /**
- * Зони в палетния склад
+ * Наличности в палетния склад
  *
  *
  * @category  bgerp
@@ -49,7 +49,7 @@ class rack_Products extends store_Products
     /**
      * Полета за листовия изглед?
      */
-    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantityOnPallets,quantityNotOnPallets,quantity=Количество->Общо';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantityOnPallets,quantityOnZones,quantityNotOnPallets,quantity=Количество->Общо';
     
     
     /**
@@ -69,8 +69,9 @@ class rack_Products extends store_Products
         $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
         
-        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->Палетирано,input=hidden,smartCenter');
-        $this->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)', 'caption=Количество->Непалетирано,input=hidden,smartCenter');
+        $this->FLD('quantityOnPallets', 'double(maxDecimals=2)', 'caption=Количество->На стелажи,input=hidden,smartCenter');
+        $this->FLD('quantityOnZones', 'double(maxDecimals=2)', 'caption=Количество->В зони,input=hidden,smartCenter');
+        $this->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)- IFNULL(#quantityOnZones, 0)', 'caption=Количество->На пода,input=hidden,smartCenter');
     }
     
     
@@ -87,7 +88,9 @@ class rack_Products extends store_Products
         
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->quantityNotOnPallets > 0) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'packQuantity' => $rec->quantityNotOnPallets, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
+            
+            // ОТ URL е махнато количеството, защото (1) винаги предлага с това количество палет; (2) Неща, които ги има в базата, не трябва да се предават в URL
+            $row->_rowTools->addLink('Палетиране', array('rack_Movements', 'add', 'productId' => $rec->productId, 'packagingId' => $measureId, 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
         }
         
         if ($rec->quantityOnPallets > 0) {
@@ -108,9 +111,9 @@ class rack_Products extends store_Products
     protected static function on_AfterSaveArray($mvc, $res, $recs)
     {
         foreach ($recs as $rec) {
-            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = '{$rec->storeId}'");
             if ($rec) {
-                rack_Pallets::recalc($rec->id);
+                rack_Pallets::recalc($rec->id, $rec->storeId);
             }
         }
     }
@@ -133,11 +136,9 @@ class rack_Products extends store_Products
      */
     public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $storeId = store_Stores::getCurrent();
         $query = store_Products::getQuery();
         $query->groupBy('productId');
         $query->show('productId');
-        $query->where("#storeId = {$storeId} AND #quantity > 0");
         
         if ($onlyIds) {
             if (is_array($onlyIds)) {
@@ -145,28 +146,31 @@ class rack_Products extends store_Products
             }
             $onlyIds = trim($onlyIds, ',');
             $query->where("#productId IN ({$onlyIds})");
+        } else {
+            $storeId = store_Stores::getCurrent();
+            $query->where("#storeId = {$storeId} AND #quantity > 0");
         }
         
-        $onlyIds = array();
+        $inIds = array();
         while ($rec = $query->fetch()) {
-            $onlyIds[$rec->productId] = $rec->productId;
+            $inIds[$rec->productId] = $rec->productId;
         }
         
         $products = array();
         $pQuery = cat_Products::getQuery();
         
-        if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+        if (is_array($inIds)) {
+            if (!count($inIds)) {
                 
                 return array();
             }
-            $ids = implode(',', $onlyIds);
+            $ids = implode(',', $inIds);
             $ids = trim($ids, ',');
-            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $inIds);
             $pQuery->where("#id IN (${ids})");
-        } elseif (ctype_digit("{$onlyIds}")) {
+        } elseif (ctype_digit("{$inIds}")) {
             $pQuery->where("#id = ${onlyIds}");
-        } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
+        } elseif (preg_match("/^[0-9\,]+$/", $inIds)) {
             $pQuery->where("#id IN (${onlyIds})");
         }
         
@@ -197,7 +201,31 @@ class rack_Products extends store_Products
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }
-        
+       
         return $products;
+    }
+    
+    
+    /**
+     * Рекалкулира какво количество има по зони
+     * 
+     * @param int|array $productArr - ид на артикул или масив от ид-та на артикули
+     * @param int $storeId          - избрания склад
+     * @return void
+     */
+    public static function recalcQuantityOnZones($productArr, $storeId = null)
+    {
+        $productArr = arr::make($productArr, true);
+        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
+        
+        $saveArr = array();
+        $query = self::getQuery("#storeId = {$storeId}");
+        $query->in("productId", $productArr);
+        while($rec = $query->fetch()){
+            $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId);
+            $saveArr[$rec->id] = $rec;
+        }
+        
+        self::saveArray($saveArr, 'id,quantityOnZones');
     }
 }

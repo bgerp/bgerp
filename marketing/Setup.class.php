@@ -68,6 +68,7 @@ class marketing_Setup extends core_ProtoSetup
         'marketing_Inquiries2',
         'marketing_Bulletins',
         'marketing_BulletinSubscribers',
+        'migrate::regenerateBulletins',
     );
     
     
@@ -100,5 +101,17 @@ class marketing_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
+    }
+    
+    
+    /**
+     * Миграция за обновява всички записи, за да се обнови кеша
+     */
+    public static function regenerateBulletins()
+    {
+        $query = marketing_Bulletins::getQuery();
+        while ($rec = $query->fetch()) {
+            marketing_Bulletins::save($rec);
+        }
     }
 }

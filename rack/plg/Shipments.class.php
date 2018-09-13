@@ -53,17 +53,21 @@ class rack_plg_Shipments extends core_Plugin
         $currentStoreId = store_Stores::getCurrent('id', false);
         if (empty($currentStoreId)) return;
         
-        $rec = $data->rec;
-        if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId))){
-             $caption = 'Зона';
-             if ($zoneId = rack_Zones::fetch("#containerId = {$rec->containerId}")){
-                 $caption .= "|*: " . rack_Zones::getTitleById($zoneId);
-             }
-             $data->toolbar->addBtn($caption, array(rack_Zones, 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/package.png,title=Нагласяне в зона");
+        $btnData = rack_Zones::getBtnToZone($data->rec->containerId);
+        if(count($btnData->url)){
+            $data->toolbar->addBtn($btnData->caption, $btnData->url, $btnData->attr);
         }
     }
     
     
+    /**
+     * Обобщение на артикулите в документа
+     * 
+     * @param core_Mvc $mvc
+     * @param array $res
+     * @param stdClass $rec
+     * @return void
+     */
     public static function on_AfterGetProductsSummary($mvc, &$res, $rec)
     {
         if(!isset($res)){
@@ -128,7 +132,20 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
+        rack_Zones::clearZone($rec->containerId);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
         rack_Zones::clearZone($rec->containerId);
     }
 }

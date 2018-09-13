@@ -1470,9 +1470,9 @@ class fileman_Files extends core_Master
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
             
+            $gUrl = static::generateUrl($fh, $isAbsolute);
             if (!isset($url)) {
-                //Генерираме връзката
-                $url = static::generateUrl($fh, $isAbsolute);
+                $url = $gUrl;
             }
             
             // Ако сме в текстов режим
@@ -1701,7 +1701,7 @@ class fileman_Files extends core_Master
             $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
-        return "localStorage.removeItem('disabledRowАrr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+        return "localStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
     
     
@@ -2162,27 +2162,45 @@ class fileman_Files extends core_Master
             $dangerFileClass .= ' dangerFile';
         }
         
-        // Вербалното име на файла
-        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">' . $mvc->getVerbal($rec, 'name') . '</span>';
-        
-        // Иконата за редактиране
-        $editImg = '<img src=' . sbf('img/16/edit-icon.png') . '>';
-        
-        // URL' то където ще препрати линка
-        $editUrl = array(
-            $mvc,
-            'editFile',
-            'id' => $rec->fileHnd,
-            'ret_url' => true
-        );
-        
-        // Създаваме линка
-        $editLink = ht::createLink($editImg, $editUrl);
-        
-        // Добавяме линка след името на файла
-        $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
-        
         $fileNavArr = Mode::get('fileNavArr');
+        
+        $prevUrl = $fileNavArr[$rec->fileHnd]['prev'];
+        $nextUrl = $fileNavArr[$rec->fileHnd]['next'];
+        
+        // Показваме селект с всички файлове
+        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && count($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
+            $form = cls::get('core_Form');
+            $form->fnc('selectFile', 'enum()', 'input=input');
+            
+            $form->addAttr('selectFile', array('onchange' => 'document.location = this.options[this.selectedIndex].value;'));
+            
+            $form->view = 'horizontal';
+            
+            $form->layout = "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
+            
+            foreach ($fileNavArr[$rec->fileHnd]['allFilesArr'] as $fUrl => $fName) {
+                if ($fileNavArr[$rec->fileHnd]['current'] == $fUrl) {
+                    $fName = type_Varchar::escape($data->rec->name);
+                }
+                $eArr[$fUrl] = str::limitLen($fName, 32);
+            }
+            
+            $form->setOptions('selectFile', $eArr);
+            $form->setDefault('selectFile', $fileNavArr[$rec->fileHnd]['current']);
+            
+            $row->fileName = $form->renderHtml();
+        } else {
+            // Вербалното име на файла
+            $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">' . $mvc->getVerbal($rec, 'name') . '</span>';
+        }
+        
+        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
+            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
+        }
+        
+        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
+            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
+        }
         
         // Показваме и източника на файла
         if ($fileNavArr[$rec->fileHnd]['src']) {
@@ -2207,14 +2225,6 @@ class fileman_Files extends core_Master
             
             // Пред името на файла добаваме папката и документа, къде е използван
             $row->fileName .= $path;
-        }
-        
-        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
-            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
-        }
-        
-        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
-            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
         }
         
         // Версиите на файла
@@ -2250,7 +2260,9 @@ class fileman_Files extends core_Master
         
         // Добавяме табовете в шаблона
         $tpl->append($fileInfo, 'fileDetail');
-
+        
+        jquery_Jquery::run($tpl, 'setFilemanPreviewSize()');
+        
         // Отбелязваме като разгледан
         fileman_Log::updateLogInfo($fh, 'preview');
     }
@@ -2355,6 +2367,10 @@ class fileman_Files extends core_Master
                     }
                 }
             }
+        }
+        
+        if ($mvc->haveRightFor('single', $data->rec->id)) {
+            $data->toolbar->addBtn('Преименуване', array($mvc, 'editFile', $data->rec->fileHnd, 'ret_url' => true), 'id=btn-rename', 'ef_icon = img/16/edit-icon.png, title=Преименуване на файла, row=2');
         }
     }
     
@@ -2613,11 +2629,14 @@ class fileman_Files extends core_Master
         
         // Статистика за БД
         if (haveRole('ceo, admin, debug')) {
-            $sqlInfo = core_Db::getDBInfo();
+            $db = cls::get('core_Db');
+            
+            $sqlInfo = $db->getDBInfo();
             
             if ($sqlInfo) {
-                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['Size']);
-                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['Rows']);
+                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
+                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
+                $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
             }
         }
     }

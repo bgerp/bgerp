@@ -839,7 +839,7 @@ abstract class deals_Helper
             }
             
             // Ако има избран обект и потребителя не може да го избере връщаме FALSE
-            if (isset($rec->{$objectIdField}) && !$ObjectManager::haveRightFor('select', $rec->{$objectIdField})) {
+            if (isset($rec->{$objectIdField}) && !bgerp_plg_FLB::canUse($ObjectManager, $rec->{$objectIdField})) {
                 
                 return false;
             }

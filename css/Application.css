@@ -3581,7 +3581,6 @@ table .eshop-btn {
  */
 .webdrvTabBody {
   min-width: 800px;
-  min-height: 612px;
   top: 10px;
   position: relative; }
 
@@ -3613,13 +3612,12 @@ table .eshop-btn {
   border-radius: 5px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
   .wide .webdrvFieldset > div {
-    max-width: 880px;
     overflow: auto; }
   .wide .webdrvFieldset > .dtree {
     overflow: visible; }
   .wide .webdrvFieldset > .mejs-container {
     overflow: hidden; }
-  .wide .webdrvFieldset pre.richtext {
+  .wide .webdrvFieldset .richtext {
     max-width: 865px;
     margin-bottom: 0;
     margin-top: 0; }
@@ -3631,10 +3629,11 @@ table .eshop-btn {
 .webdrvFieldset {
   position: relative; }
 
-.webdrvFieldset .legend {
+.webdrvTabBody .legend {
   position: absolute;
   top: -10px;
   left: 10px;
+  z-index: 10;
   background-color: white;
   padding: 0 5px;
   margin: 0 15px; }
@@ -4641,35 +4640,63 @@ div.location.public {
 /*
  * rack
  */
-.rack_Zones .listTable {
-  border: none !important; }
-  .rack_Zones .listTable td,
-  .rack_Zones .listTable th {
+.rack_Zones {
+  display: block;
+  max-width: 1200px; }
+  .rack_Zones .listTable {
     border: none !important; }
-  .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) {
-    background: #333333 !important;
-    color: white !important; }
-    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) span {
-      color: #eeeeee !important; }
-    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) a {
-      color: #aaaaaa !important; }
-    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) .iw-contextMenu a {
-      color: #222222 !important; }
-  .rack_Zones .listTable > tbody > tr.zonesCommonRow {
-    color: black !important;
-    background: rgba(0, 0, 0, 0) !important; }
-    .rack_Zones .listTable > tbody > tr.zonesCommonRow:hover {
-      background: rgba(0, 0, 0, 0) !important; }
-    .rack_Zones .listTable > tbody > tr.zonesCommonRow td {
-      padding: 1% !important; }
-    .rack_Zones .listTable > tbody > tr.zonesCommonRow span {
-      color: black !important; }
-    .rack_Zones .listTable > tbody > tr.zonesCommonRow a {
-      color: #004488 !important; }
-    .rack_Zones .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
-      color: #222222 !important; }
-    .rack_Zones .listTable > tbody > tr.zonesCommonRow .red {
-      color: #cc0000 !important; }
+    .rack_Zones .listTable td,
+    .rack_Zones .listTable th {
+      border: none !important; }
+    .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) {
+      background: #333333;
+      color: white !important; }
+      .rack_Zones .listTable > tbody > tr:not(zonesCommonRow):hover {
+        background: #444444 !important; }
+      .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) span {
+        color: #eeeeee !important; }
+      .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) a {
+        color: #aaaaaa !important; }
+      .rack_Zones .listTable > tbody > tr:not(zonesCommonRow) .iw-contextMenu a {
+        color: #222222 !important; }
+    .rack_Zones .listTable > tbody > tr.zonesCommonRow {
+      color: black !important;
+      background: #f1f1f1 !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow:hover {
+        background: #f1f1f1 !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow td {
+        padding: 5px !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow span {
+        color: black !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow a {
+        color: #004488 !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
+        color: #222222 !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow .red {
+        color: #cc0000 !important; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow .nowrap {
+        width: 50px; }
+      .rack_Zones .listTable > tbody > tr.zonesCommonRow table {
+        margin-bottom: 0;
+        width: 100%; }
+          .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-active {
+            background-color: #ffeedd;
+            color: black !important; }
+            .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-active:hover {
+              background: #f7c58b !important; }
+          .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-pending {
+            background-color: #eeccff;
+            color: black !important; }
+            .rack_Zones .listTable > tbody > tr.zonesCommonRow table tr.state-pending:hover {
+              background-color: #e6b3ff !important; }
+
+.zone-product-status {
+  width: 100px;
+  text-align: right;
+  padding-right: 10px !important; }
+
+.inline-workerId {
+  width: 250px; }
 
 td.rack-hl {
   background-color: red; }

@@ -145,15 +145,14 @@ class sens2_Controllers extends core_Master
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditform($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
         $rec = $form->rec;
-        
         $exFields = $form->selectFields();
         
         if ($rec->driver) {
-            self::prepareConfigForm($form, $rec->driver);
+            self::prepareConfigForm($form, $rec);
         }
         
         if ($rec->id) {
@@ -192,7 +191,7 @@ class sens2_Controllers extends core_Master
             $ap[$controllerId . '_' . $type] = array();
             $rec = self::fetch($controllerId);
             $drv = self::getDriver($controllerId);
-            
+
             $ports = array();
             
             if ($type != 'outputs') {
@@ -211,12 +210,18 @@ class sens2_Controllers extends core_Master
                     $title = '$' . $rec->name . '->' . $config->{$partName};
                 } else {
                     $caption = new stdClass();
-                    $caption->title = $port . ' ('. $params->caption . ')';
+                    $caption->title = $port;
+                    if ($port != $params->caption) {
+                        $caption->title .= ' ('. $params->caption . ')';
+                    }
                     $caption->attr = array('style' => 'color:#999;');
                     $title = '$' . $rec->name . '->' . $port;
                 }
                 $partUom = $port . '_uom';
-                $ap[$controllerId . '_' . $type][$port] = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
+                $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
+                setIfNot($res->uom, $params->uom);
+                
+                $ap[$controllerId . '_' . $type][$port] = $res;
             }
         }
         
@@ -227,45 +232,52 @@ class sens2_Controllers extends core_Master
     /**
      * Подготвя конфигурационната форма на посочения драйвер
      */
-    public static function prepareConfigForm($form, $driver)
+    public static function prepareConfigForm($form, $rec)
     {
-        $drv = cls::get($driver);
+        if (!$rec->id && $rec->driver) {
+            $drv = cls::get($rec->driver);
+        } else {
+            $drv = self::getDriver($rec->id);
+        }
+        
         $drv->prepareConfigForm($form);
         
-        $ports = $drv->getInputPorts();
-        
-        if (!$ports) {
-            $ports = array();
-        }
-        
-        expect(is_array($ports));
-        
-        foreach ($ports as $port => $params) {
-            $prefix = $port . ($params->caption ? " ({$params->caption})" : '');
+        if (!$drv->hasDetail) {
+            $ports = $drv->getInputPorts();
             
-            $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
-            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
-            $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
-            $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
-            if (trim($params->uom)) {
-                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, true)));
+            if (!$ports) {
+                $ports = array();
             }
-        }
-        
-        $ports = $drv->getOutputPorts();
-        
-        if (!$ports) {
-            $ports = array();
-        }
-        
-        foreach ($ports as $port => $params) {
-            $prefix = $port . ($params->caption ? " ({$params->caption})" : '');
             
-            $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
-            if (trim($params->uom)) {
-                $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, true)));
+            expect(is_array($ports));
+            
+            foreach ($ports as $port => $params) {
+                $prefix = $port . ($params->caption ? " ({$params->caption})" : '');
+                
+                $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
+                $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
+                $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
+                $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
+                $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
+                if (trim($params->uom)) {
+                    $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, true)));
+                }
+            }
+            
+            $ports = $drv->getOutputPorts();
+            
+            if (!$ports) {
+                $ports = array();
+            }
+            
+            foreach ($ports as $port => $params) {
+                $prefix = $port . ($params->caption ? " ({$params->caption})" : '');
+                
+                $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
+                $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
+                if (trim($params->uom)) {
+                    $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, true)));
+                }
             }
         }
     }
@@ -335,18 +347,17 @@ class sens2_Controllers extends core_Master
         expect($rec = self::fetch($id));
         
         $drv = self::getDriver($id);
-        
+
         $ports = $drv->getInputPorts($rec->config);
-        
+
         foreach ($ports as $name => $def) {
-            $part = "{$name}_update";
-            if ($rec->config->{$part} > 0) {
+            if ($def->readPeriod > 0) {
                 $force[$name] = $name;
             }
         }
         
         $res = $this->updateInputs($id, $force, false);
-        
+
         return new Redirect(array($this, 'Single', $id), "|Обновени са|* <b>{$res}</b> |входа на контролера");
     }
     
@@ -360,10 +371,10 @@ class sens2_Controllers extends core_Master
      * @param $sav      bool   Дали да се запишат стойностите в dataLog
      */
     public function updateInputs($id, $force = array(), $save = true)
-    {
+    {   
+        $save = true;
+
         expect($rec = self::fetch($id));
-        
-        $config = (array) $rec->config;
         
         $Driver = self::getDriver($id);
         
@@ -377,20 +388,19 @@ class sens2_Controllers extends core_Master
         
         if (is_array($ports)) {
             foreach ($ports as $port => $params) {
-                $updateMinutes = abs(round($config[$port . '_update'] / 60));
+                $updateMinutes = abs(round($params->readPeriod / 60));
                 if ($updateMinutes && ($nowMinutes % $updateMinutes) == 0) {
                     $inputs[$port] = $port;
                 }
                 
-                $logMinutes = abs(round($config[$port . '_log'] / 60));
+                $logMinutes = abs(round($params->logPeriod / 60));  
                 if ($logMinutes && ($nowMinutes % $logMinutes) == 0) {
                     $inputs[$port] = $port;
                     $log[$port] = $port;
                 }
             }
         }
-        
-        
+
         if (is_array($inputs) && count($inputs)) {
             
             // Прочитаме състоянието на входовете от драйвера
@@ -407,7 +417,7 @@ class sens2_Controllers extends core_Master
             
             // Текущото време
             $time = dt::now();
-            
+           
             foreach ($inputs as $port) {
                 if (is_array($values)) {
                     $value = $values[$port];
@@ -418,7 +428,7 @@ class sens2_Controllers extends core_Master
                 }
                 
                 // Скалиране на стойността
-                if (($expr = $config[$port . '_scale']) && is_numeric($value)) {
+                if (($expr = $ports[$port]->scale) && is_numeric($value)) {
                     $expr = str_replace('X', $value, $expr);
                     $value = str::calcMathExpr($expr);
                 }

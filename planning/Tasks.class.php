@@ -192,6 +192,12 @@ class planning_Tasks extends core_Master
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'expectedTimeStart';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1007,29 +1013,17 @@ class planning_Tasks extends core_Master
         $data->listFilter->input('assetId');
         
         // Филтър по всички налични департаменти
-        $departmentOptions = hr_Departments::makeArray4Select('name', "type = 'workshop' AND #state != 'rejected'");
-        
-        if (count($departmentOptions)) {
-            $data->listFilter->FLD('departmentId', 'int', 'caption=Департамент');
-            $data->listFilter->setOptions('departmentId', array('' => '') + $departmentOptions);
-            $data->listFilter->showFields .= ',departmentId';
-            
-            // Ако потребителя е служител и има само един департамент, той ще е избран по дефолт
-            $cPersonId = crm_Profiles::getProfile(core_Users::getCurrent())->id;
-            $departments = planning_Hr::fetchField("#personId = {$cPersonId}", 'departments');
-            $departments = keylist::toArray($departments);
-            
-            if (count($departments) == 1) {
-                $defaultDepartment = key($departments);
-                $data->listFilter->setDefault('departmentId', $defaultDepartment);
-            }
-            
-            $data->listFilter->input('departmentId');
+        $folders = doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf');
+       
+        if (count($folders)) {
+            $data->listFilter->setField('folderId', 'input');
+            $data->listFilter->setOptions('folderId', array('' => '') + $folders);
+            $data->listFilter->showFields .= ',folderId';
+            $data->listFilter->input('folderId');
         }
         
         // Филтър по департамент
-        if ($departmentFolderId = $data->listFilter->rec->departmentId) {
-            $folderId = hr_Departments::fetchField($departmentFolderId, 'folderId');
+        if ($folderId = $data->listFilter->rec->folderId) {
             $data->query->where("#folderId = {$folderId}");
             unset($data->listFields['folderId']);
         }

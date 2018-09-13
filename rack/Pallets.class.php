@@ -583,7 +583,7 @@ class rack_Pallets extends core_Manager
      *
      * @return null|float - дефолтно к-во
      */
-    public static function getDefaultQuantity($productId, $storeId)
+    public static function getDefaultQuantity($productId, $storeId, $excludePosition = null)
     {
         $quantity = null;
         
@@ -593,11 +593,15 @@ class rack_Pallets extends core_Manager
         }
         
         if (empty($quantity)) {
+            
             $query = rack_Pallets::getQuery();
             $query->where("#productId = {$productId} AND #storeId = {$storeId}");
+            if(isset($excludePosition)){
+                $query->where("#position != '{$excludePosition}'");
+            }
+            
             $query->XPR('max', 'double', 'max(#quantity)');
             $quantity = $query->fetch()->max;
-            
             $quantity = empty($quantity) ? null : $quantity;
         }
         
@@ -650,5 +654,24 @@ class rack_Pallets extends core_Manager
         $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
         
         return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity) : null;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'edit' && isset($rec)){
+            if($rec->state == 'closed'){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }
