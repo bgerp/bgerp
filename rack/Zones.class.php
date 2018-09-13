@@ -257,6 +257,7 @@ class rack_Zones extends core_Master
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+        $data->query->orderBy('num', 'asc');
     }
     
     
