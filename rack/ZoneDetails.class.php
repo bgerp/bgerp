@@ -72,7 +72,7 @@ class rack_ZoneDetails extends core_Detail
     public function description()
     {
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell leftCol wrap');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell nowrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
@@ -121,7 +121,7 @@ class rack_ZoneDetails extends core_Detail
             $zonesDefault = array('zone' => array('0' => (string)$rec->zoneId), 'quantity' => array('0' => (string)$overQuantity));
             $zonesDefault = $ZoneType->fromVerbal($zonesDefault);
             
-            $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'zones' => $zonesDefault), false, 'ef_icon=img/16/minus-black.png,title=Връщане на нагласено количество') . $row->status;
+            $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'zones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
         }
     }
     
@@ -184,12 +184,12 @@ class rack_ZoneDetails extends core_Detail
      */
     public static function syncWithDoc($zoneId, $containerId = null)
     {
+        $notIn = array();
         if (isset($containerId)) {
             $document = doc_Containers::getDocument($containerId);
             $products = $document->getProductsSummary();
-            $exRecs = array();
             
-            if (is_array($products)) {
+            if (count($products)) {
                 foreach ($products as $obj) {
                     $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId}");
                     if (empty($newRec)) {
@@ -198,17 +198,13 @@ class rack_ZoneDetails extends core_Detail
                     $newRec->documentQuantity = $obj->quantity;
                     
                     self::save($newRec);
-                    $exRecs[$newRec->id] = $newRec->id;
+                    $notIn[$newRec->id] = $newRec->id;
                 }
             }
-            
-            // Тези които не са се обновили се изтриват
-            if (count($exRecs)) {
-                self::nullifyQuantityFromDocument($zoneId, $exRecs);
-            }
-        } else {
-            self::nullifyQuantityFromDocument($zoneId);
         }
+        
+        // Зануляват се к-та от документ освен на променените записи
+        self::nullifyQuantityFromDocument($zoneId, $notIn);
     }
     
     

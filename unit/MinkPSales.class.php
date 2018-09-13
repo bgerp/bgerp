@@ -3402,8 +3402,9 @@ class unit_MinkPSales extends core_Manager
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
         if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
-            $browser->setValue('Ignore', '1');
-            $browser->press('Активиране/Контиране');
+            //$browser->setValue('Ignore', '1');
+            //$browser->press('Активиране/Контиране');
+            $browser->press('Отказ');
         } else {
             
             return unit_MinkPbgERP::reportErr('Не дава грешка за отрицателно количество', 'warning');

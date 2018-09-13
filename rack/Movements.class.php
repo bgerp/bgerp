@@ -1038,4 +1038,45 @@ class rack_Movements extends core_Manager
             static::save($rec, 'state');
         }
     }
+    
+    
+    /**
+     * Изтриване на стари движения по разписание
+     */
+    public function cron_DeleteOldMovementsAndPallets()
+    {
+        $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
+        if(empty($olderThan)) return;
+        
+        // Всички движения преди X време
+        $createdBefore = dt::addSecs(-1 * $olderThan);
+        $movementQuery = rack_Movements::getQuery();
+        $movementQuery->where("#createdOn <= '{$createdBefore}'");
+        
+        while($mRec = $movementQuery->fetch()){
+            $delete = true;
+            
+            // Ако началния палет е активен, не се изтрива
+            if(isset($mRec->palletId)){
+                $fromPalletState = rack_Pallets::fetchField($mRec->palletId, 'state');
+                if($fromPalletState == 'active'){
+                   $delete = false;
+                }
+            }
+            
+            // Ако има крайна дестинация и тя в момента е заета от активен палет за същия артикул, не се изтрива
+            if(!empty($mRec->positionTo) && $delete === $delete){
+                if($toPalletRec = rack_Pallets::getByPosition($mRec->positionTo, $mRec->storeId)){
+                    if($toPalletRec->productId == $mRec->productId && $toPalletRec->state == 'active'){
+                        $delete = false;
+                    }
+                }
+            }
+            
+            // Движението се изтрива, ако отговаря на условията
+            if($delete === true){
+                rack_Movements::delete($mRec->id);
+            }
+        }
+    }
 }

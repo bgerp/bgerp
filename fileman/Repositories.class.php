@@ -900,7 +900,7 @@ class fileman_Repositories extends core_Master
                 if (!static::isForIgnore($repoRec->ignore, $fileName)) {
                     
                     // Вземаме времето
-                    $mTime = $iterator->current()->getMTime();
+                    $mTime = @$iterator->current()->getMTime();
                     
                     // Добавяме в резултатите пътя и името на файла
                     $res[$path]['files'][$fileName] = $mTime;
