@@ -343,7 +343,7 @@ class core_page_InternalModern extends core_page_Active
         }
         
         if (isDebug()) {
-            if (log_Debug::haveRightFor('list')) {
+            if (log_Debug::haveRightFor('list') && defined('DEBUG_FATAL_ERRORS_FILE')) {
                 $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
                 $fileName .= '_x';
                 $fileName = log_Debug::getDebugLogFile('2x', $fileName, false, false);

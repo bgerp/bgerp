@@ -79,6 +79,21 @@ class rack_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings1111111111 = array(
+        array(
+            'systemId' => 'Delete movements',
+            'description' => 'Изтриване на остарели движения',
+            'controller' => 'rack_Movements',
+            'action' => 'DeleteOldMovements',
+            'period' => 1440,
+            'offset' => 90,
+            'timeLimit' => 100
+        ));
+        
+
+    /**
      * Инсталиране на пакета
      */
     public function install()
