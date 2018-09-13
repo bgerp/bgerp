@@ -217,7 +217,7 @@ class rack_Pallets extends core_Manager
         $saveAgain = false;
         
         // Затваряне ако количеството е 0
-        if ($rec->quantity <= 0) {
+        if (round($rec->quantity, 5) <= 0) {
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
             $saveAgain = true;
