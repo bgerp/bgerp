@@ -155,10 +155,9 @@ class core_Debug
      */
     public static function log($name)
     {
-        // Функцията работи само в режим DEBUG
-        if ((!isDebug() && !defined('DEBUG_FATAL_ERRORS_FILE')) || !core_Debug::$isLogging) {
+        if (!defined('DEBUG_FATAL_ERRORS_FILE') && (!isDebug() || !core_Debug::$isLogging)) {
             
-            return;
+            return ;
         }
         
         self::init();
