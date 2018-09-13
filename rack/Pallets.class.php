@@ -618,7 +618,7 @@ class rack_Pallets extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (rack_Movements::haveRightFor('add')) {
-            $data->toolbar->addBtn('Палетиране', array('rack_Movements', 'add', 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/star_2.png,title=Добавяне на нов палет');
+            $data->toolbar->addBtn('Палетиране', array('rack_Movements', 'add', 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/arrow_up.png,title=Палетиране от под-а');
         }
     }
     
