@@ -233,8 +233,12 @@ class rack_Zones extends core_Master
         
         $form->setDefault('num', $mvc->getNextNumber($form->rec->storeId));
     }
-    
-    
+
+    protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        $tpl->push('rack/css/style.css', 'CSS');
+    }
+
     /**
      * След подготовката на заглавието на формата
      */
