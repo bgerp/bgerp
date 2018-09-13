@@ -184,12 +184,12 @@ class rack_ZoneDetails extends core_Detail
      */
     public static function syncWithDoc($zoneId, $containerId = null)
     {
+        $notIn = array();
         if (isset($containerId)) {
             $document = doc_Containers::getDocument($containerId);
             $products = $document->getProductsSummary();
-            $exRecs = array();
             
-            if (is_array($products)) {
+            if (count($products)) {
                 foreach ($products as $obj) {
                     $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId}");
                     if (empty($newRec)) {
@@ -198,17 +198,13 @@ class rack_ZoneDetails extends core_Detail
                     $newRec->documentQuantity = $obj->quantity;
                     
                     self::save($newRec);
-                    $exRecs[$newRec->id] = $newRec->id;
+                    $notIn[$newRec->id] = $newRec->id;
                 }
             }
-            
-            // Тези които не са се обновили се изтриват
-            if (count($exRecs)) {
-                self::nullifyQuantityFromDocument($zoneId, $exRecs);
-            }
-        } else {
-            self::nullifyQuantityFromDocument($zoneId);
         }
+        
+        // Зануляват се к-та от документ освен на променените записи
+        self::nullifyQuantityFromDocument($zoneId, $notIn);
     }
     
     
