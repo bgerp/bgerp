@@ -604,7 +604,7 @@ class rack_Movements extends core_Manager
             $packagingRow = str::getPlural($packQuantity, $packagingRow, true);
         }
         if (!empty($packQuantity)) {
-            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $rec->packQuantity);
+            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $packQuantity);
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
         
