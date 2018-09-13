@@ -814,35 +814,38 @@ class log_Debug extends core_Manager
             $iterator->next();
         }
         
+        if (($before || $after)) {
+            if ($fName && !empty($otherFilesFromSameHitArr)) {
+                // Премахваме файловете от същия хит - за да ги добавим по-късно
+                $pregPattern = '/^' . preg_quote($fName, '/') . '$/';
+                
+                $pregPattern = str_replace('x', '.+', $pregPattern);
+                
+                $foundFName = false;
+                
+                if ($fArr[$fName]) {
+                    $foundFName = true;
+                }
+                
+                foreach ($otherFilesFromSameHitArr as $sameFName => $time) {
+                    // Ако в името има неизвестни стойности, намираме файла от системата
+                    if (!$foundFName && preg_match($pregPattern, $sameFName)) {
+                        $fName = $sameFName;
+                        $fArr[$fName] = $time;
+                        $foundFName = true;
+                        unset($otherFilesFromSameHitArr[$fName]);
+                        continue;
+                    }
+                    
+                    unset($fArr[$sameFName]);
+                }
+            }
+        }
+        
+        
         if (!empty($fArr)) {
             if (($before || $after)) {
                 if ($fName) {
-                    // Премахваме файловете от същия хит - за да ги добавим по-късно
-                    if (!empty($otherFilesFromSameHitArr)) {
-                        $pregPattern = '/^' . preg_quote($fName, '/') . '$/';
-                        
-                        $pregPattern = str_replace('x', '.+', $pregPattern);
-                        
-                        $foundFName = false;
-                        
-                        if ($fArr[$fName]) {
-                            $foundFName = true;
-                        }
-                        
-                        foreach ($otherFilesFromSameHitArr as $sameFName => $time) {
-                            // Ако в името има неизвестни стойности, намираме файла от системата
-                            if (!$foundFName && preg_match($pregPattern, $sameFName)) {
-                                $fName = $sameFName;
-                                $fArr[$fName] = $time;
-                                $foundFName = true;
-                                unset($otherFilesFromSameHitArr[$fName]);
-                                continue;
-                            }
-                            
-                            unset($fArr[$sameFName]);
-                        }
-                    }
-                    
                     asort($fArr);
                     
                     $aPos = array_search($fName, array_keys($fArr));
