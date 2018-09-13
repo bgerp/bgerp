@@ -165,7 +165,7 @@ class log_Debug extends core_Manager
         }
         
         // Вземаме файловете, които да се показват
-        $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search, $allFArrCnt);
+        $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search);
         
         if ($oDebugFileName != $debugFileName) {
             list($debugFile) = explode('.', $debugFileName);
@@ -298,9 +298,8 @@ class log_Debug extends core_Manager
             return  $tpl;
         }
         
-        if ($allFArrCnt) {
-            $tpl->prepend(tr('Общо файлове') . ': ' . $allFArrCnt);
-        }
+        $allFArr = $this->getDebugFilesArr();
+        $tpl->prepend(tr('Общо файлове') . ': ' . count($allFArr));
         
         // Рендираме страницата
         return  $this->renderWrapping($tpl);
@@ -724,11 +723,10 @@ class log_Debug extends core_Manager
      * @param NULL|int    $after
      * @param array       $otherFilesFromSameHitArr
      * @param NULL|string $search
-     * @param NULL|int    $fArrCnt
      *
      * @return array
      */
-    protected static function getDebugFilesArr(&$fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $search = null, &$fArrCnt = null)
+    protected static function getDebugFilesArr(&$fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $search = null)
     {
         $fArr = array();
         
@@ -772,6 +770,8 @@ class log_Debug extends core_Manager
             $fNameTemplate = implode('_', $fNameTemplateArr);
         }
         
+        $sameFileArr = array();
+        
         // Намираме всички файлове и им вземаме времето на създаване
         while ($iterator->valid()) {
             try {
@@ -799,13 +799,15 @@ class log_Debug extends core_Manager
                     
                     if ($fName) {
                         if (strpos($fileName, $fNameTemplate)) {
+                            if (!isset($mTime)) {
+                                $mTime = @$iterator->current()->getMTime();
+                            }
+                            
                             if ($fileName != $fName) {
-                                if (!isset($mTime)) {
-                                    $mTime = @$iterator->current()->getMTime();
-                                }
-                                
                                 // Ако има друг файл от същия хит
                                 $otherFilesFromSameHitArr[$fileName] = $mTime . '|' . $fileName;
+                            } else {
+                                $sameFileArr[$fileName] = $mTime . '|' . $fileName;
                             }
                         }
                     }
@@ -847,41 +849,53 @@ class log_Debug extends core_Manager
             }
         }
         
-        $fArrCnt = count($fArr);
+        $aPos = false;
         if (!empty($fArr)) {
             if (($before || $after)) {
+                $limit = $before + $after;
+                asort($fArr);
+                $slice = true;
                 if ($fName) {
-                    asort($fArr);
-                    
                     $aPos = array_search($fName, array_keys($fArr));
                     
-                    $nArr = $fArr;
-                    
-                    if ($fArrCnt > ($before + $after)) {
-                        if ($fArrCnt > ($aPos + $before)) {
-                            $bPos = $aPos - $before;
-                        } else {
-                            $bPos = $fArrCnt - $after - $before;
-                        }
+                    if ($aPos !== false) {
+                        $slice = false;
+                        $nArr = $fArr;
                         
-                        $bPos = max(0, $bPos);
-                        $nArr = array_slice($fArr, $bPos, $after + $before);
+                        $fArrCnt = count($fArr);
+                        if ($fArrCnt > ($limit)) {
+                            if ($fArrCnt > ($aPos + $before)) {
+                                $bPos = $aPos - $before;
+                            } else {
+                                $bPos = $fArrCnt - $after - $before;
+                            }
+                            
+                            $bPos = max(0, $bPos);
+                            $nArr = array_slice($fArr, $bPos, $limit);
+                        }
                     }
-                    
-                    // Добавяме файловете от същия хит
-                    if (!empty($otherFilesFromSameHitArr)) {
-                        $nArr += $otherFilesFromSameHitArr;
-                        asort($nArr);
-                    }
-                } else {
-                    asort($fArr);
-                    
+                }
+                
+                if ($slice) {
                     // Ако няма зададен файл, показваме по ограничение
-                    $nArr = array_slice($fArr, -1 * ($before + $after));
+                    $nArr = array_slice($fArr, -1 * ($limit));
+                }
+                
+                // Добавяме файловете от същия хит
+                if ($fName && !empty($otherFilesFromSameHitArr)) {
+                    $nArr += $otherFilesFromSameHitArr;
                 }
                 
                 $fArr = $nArr;
             }
+        }
+        
+        if (($aPos === false) && !empty($sameFileArr)) {
+            $fArr += $sameFileArr;
+        }
+        
+        if (!empty($fArr)) {
+            asort($fArr);
         }
         
         return $fArr;
