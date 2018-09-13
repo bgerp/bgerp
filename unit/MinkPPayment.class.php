@@ -350,7 +350,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме нов артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010,0+03*08');//34
         $browser->setValue('packPrice', '01,00+3*0.8');//3.4
@@ -452,7 +452,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме нов артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*08');//34
         $browser->setValue('packPrice', '016-3*0.8');//13,6
@@ -586,7 +586,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*04');//22
         $browser->setValue('packPrice', '01+3*0.4');//2.2
@@ -686,7 +686,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме нов артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*04');//22
         $browser->setValue('packPrice', '01+3*0.4');//2.2
@@ -786,7 +786,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме нов артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*08');//34
         $browser->setValue('packPrice', '010+3*0.8');//12.4
@@ -886,7 +886,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме нов артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+02*09');//28
         $browser->setValue('packPrice', '080-3*0.8');//77,6
@@ -990,7 +990,7 @@ class unit_MinkPPayment extends core_Manager
         // Добавяме артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Други продукти');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010,0+03*08');//34
         $browser->setValue('packPrice', '01,00+3*0.8');//3.4
