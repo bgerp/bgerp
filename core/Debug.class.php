@@ -114,7 +114,7 @@ class core_Debug
     public static function startTimer($name)
     {
         // Функцията работи само в режим DEBUG
-        if (!isDebug()) {
+        if (!isDebug() && !defined('DEBUG_FATAL_ERRORS_FILE')) {
             
             return;
         }
@@ -135,7 +135,7 @@ class core_Debug
     public static function stopTimer($name)
     {
         // Функцията работи само в режим DEBUG
-        if (!isDebug()) {
+        if (!isDebug() && !defined('DEBUG_FATAL_ERRORS_FILE')) {
             
             return;
         }
@@ -156,7 +156,7 @@ class core_Debug
     public static function log($name)
     {
         // Функцията работи само в режим DEBUG
-        if (!isDebug() || !core_Debug::$isLogging) {
+        if ((!isDebug() && !defined('DEBUG_FATAL_ERRORS_FILE')) || !core_Debug::$isLogging) {
             
             return;
         }
