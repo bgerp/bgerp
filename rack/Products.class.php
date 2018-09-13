@@ -2,7 +2,7 @@
 
 
 /**
- * Зони в палетния склад
+ * Наличности в палетния склад
  *
  *
  * @category  bgerp
@@ -111,9 +111,9 @@ class rack_Products extends store_Products
     protected static function on_AfterSaveArray($mvc, $res, $recs)
     {
         foreach ($recs as $rec) {
-            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = '{$rec->storeId}'");
             if ($rec) {
-                rack_Pallets::recalc($rec->id);
+                rack_Pallets::recalc($rec->id, $rec->storeId);
             }
         }
     }
@@ -136,11 +136,9 @@ class rack_Products extends store_Products
      */
     public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $storeId = store_Stores::getCurrent();
         $query = store_Products::getQuery();
         $query->groupBy('productId');
         $query->show('productId');
-        $query->where("#storeId = {$storeId} AND #quantity > 0");
         
         if ($onlyIds) {
             if (is_array($onlyIds)) {
@@ -148,28 +146,31 @@ class rack_Products extends store_Products
             }
             $onlyIds = trim($onlyIds, ',');
             $query->where("#productId IN ({$onlyIds})");
+        } else {
+            $storeId = store_Stores::getCurrent();
+            $query->where("#storeId = {$storeId} AND #quantity > 0");
         }
         
-        $onlyIds = array();
+        $inIds = array();
         while ($rec = $query->fetch()) {
-            $onlyIds[$rec->productId] = $rec->productId;
+            $inIds[$rec->productId] = $rec->productId;
         }
         
         $products = array();
         $pQuery = cat_Products::getQuery();
         
-        if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+        if (is_array($inIds)) {
+            if (!count($inIds)) {
                 
                 return array();
             }
-            $ids = implode(',', $onlyIds);
+            $ids = implode(',', $inIds);
             $ids = trim($ids, ',');
-            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $inIds);
             $pQuery->where("#id IN (${ids})");
-        } elseif (ctype_digit("{$onlyIds}")) {
+        } elseif (ctype_digit("{$inIds}")) {
             $pQuery->where("#id = ${onlyIds}");
-        } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
+        } elseif (preg_match("/^[0-9\,]+$/", $inIds)) {
             $pQuery->where("#id IN (${onlyIds})");
         }
         
@@ -200,7 +201,31 @@ class rack_Products extends store_Products
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }
-        
+       
         return $products;
+    }
+    
+    
+    /**
+     * Рекалкулира какво количество има по зони
+     * 
+     * @param int|array $productArr - ид на артикул или масив от ид-та на артикули
+     * @param int $storeId          - избрания склад
+     * @return void
+     */
+    public static function recalcQuantityOnZones($productArr, $storeId = null)
+    {
+        $productArr = arr::make($productArr, true);
+        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
+        
+        $saveArr = array();
+        $query = self::getQuery("#storeId = {$storeId}");
+        $query->in("productId", $productArr);
+        while($rec = $query->fetch()){
+            $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId);
+            $saveArr[$rec->id] = $rec;
+        }
+        
+        self::saveArray($saveArr, 'id,quantityOnZones');
     }
 }

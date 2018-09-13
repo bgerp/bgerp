@@ -55,9 +55,10 @@
 					other.click();
 				}
 			}
-			
+
 			// при промяна на менютата променяме бисквитката
 			setMenuCookie();
+			calcFilemanSize();
 		});
 		
 		// при рисайз

@@ -1366,6 +1366,74 @@ class doc_DocumentPlg extends core_Plugin
             
             return false;
         }
+        
+        // Екшън за разглеждане на файлове - добавя файловете в група и редикретва към сингъла му
+        if ($action == 'viewfile') {
+            $id = Request::get('id', 'int');
+            
+            $fh = Request::get('fh');
+            
+            $doc = doc_Containers::getDocument($id);
+            
+            $prev = $next = $cUrlStr = $findNext = $iPrev = null;
+            $allFileArr = $fileNavArr = array();
+            
+            if ($doc && $doc->haveRightFor('single') && !Mode::isReadOnly()) {
+                $dRec = $doc->fetch();
+                
+                $linkedFilesArr = $doc->getLinkedFiles();
+                
+                if (!empty($linkedFilesArr)) {
+                    $ourImgArr = core_Permanent::get('ourImgEmailArr');
+                    
+                    $fileNavArr = Mode::get('fileNavArr');
+                    
+                    foreach ($linkedFilesArr as $linkedFh => $name) {
+                        $fRec = fileman::fetchByFh($linkedFh);
+                        
+                        if ($ourImgArr[$fRec->dataId]) {
+                            continue;
+                        }
+                        
+                        $eUrl = array($doc, 'viewFile', $dRec->containerId, 'fh' => $fRec->fileHnd);
+                        
+                        $urlStr = toUrl($eUrl);
+                        
+                        $allFileArr[$urlStr] = $fRec->name;
+                        
+                        if ($fh == $fRec->fileHnd) {
+                            $cUrlStr = $urlStr;
+                            
+                            // Ако сме намерили предишния
+                            if (!isset($prev) && isset($iPrev)) {
+                                $prev = $iPrev;
+                            }
+                            $findNext = true;
+                            
+                            continue;
+                        }
+                        
+                        $iPrev = $eUrl;
+                        
+                        // Ако сме намерили следващия
+                        if ($findNext && !isset($next)) {
+                            $next = $eUrl;
+                        }
+                    }
+                }
+            }
+            
+            // Добавяме новите стойности
+            $fileNavArr[$fh]['prev'] = $prev;
+            $fileNavArr[$fh]['next'] = $next;
+            $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
+            $fileNavArr[$fh]['current'] = $cUrlStr;
+            Mode::setPermanent('fileNavArr', $fileNavArr);
+            
+            $res = new Redirect(array('fileman_Files', 'single', $fh));
+            
+            return false;
+        }
     }
     
     

@@ -1,8 +1,13 @@
 var desabledRows = "";
+/**
+ * записваме и маркираме добавените от последно файлове
+ */
 function lastUsedActions()
 {
-    if (localStorage.getItem('disabledRowАrr')) {
-        desabledRows =  localStorage.getItem('disabledRowАrr').split(',');
+    $('.narrow.dialog-window .listRows').height($(window).height() - 173);
+
+    if (localStorage.getItem('disabledRowArr')) {
+        desabledRows =  localStorage.getItem('disabledRowArr').split(',');
         $.each(desabledRows, function( index, value ) {
             $('#' + value).addClass('disabledRow');
             $('#' + value).find('a').removeAttr('onclick');
@@ -16,7 +21,7 @@ function lastUsedActions()
             $(row).addClass('disabledRow');
             desabledRows += $(row).attr('id') + ',';
             $(el).removeAttr('onclick');
-            localStorage.setItem('disabledRowАrr', desabledRows);
+            localStorage.setItem('disabledRowArr', desabledRows);
         }
     });
 }

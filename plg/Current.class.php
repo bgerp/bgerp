@@ -42,7 +42,7 @@ class plg_Current extends core_Plugin
             $query = $mvc->getQuery();
             $query->where("#state != 'rejected' || #state != 'closed' || #state IS NULL");
             $query->limit(2);
-
+            
             // Генериране на събитие, преди изпълнението на заявката
             $mvc->invoke('BeforeSelectByForce', array(&$query));
             
@@ -53,7 +53,7 @@ class plg_Current extends core_Plugin
             
             // Ако форсираме
             if ($bForce && !$rec) {
-                if(is_numeric($bForce)) {
+                if (is_numeric($bForce)) {
                     $rec = $mvc->fetch($bForce);
                 }
                 
@@ -66,8 +66,15 @@ class plg_Current extends core_Plugin
             }
             
             // Избиране на  обект, ако е намерен подходящ
-            if($rec) {
-                self::setCurrent($mvc, $res, $rec);
+            if ($rec) {
+                $res = self::setCurrent($mvc, $res, $rec);
+            }
+            
+            // Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
+            if (($res === false) && ($bForce)) {
+                
+                // Подканваме потребителя да избере обект от модела, като текущ
+                redirect(array($mvc, 'SelectCurrent', 'ret_url' => true), false, '|Нямате права за избор на|* |' . mb_strtolower(tr($mvc->singleTitle)));
             }
         }
     }
@@ -101,70 +108,67 @@ class plg_Current extends core_Plugin
             
             return false;
         }
-
-        if($action == 'selectcurrent') {
-           
+        
+        if ($action == 'selectcurrent') {
             $form = cls::get('core_Form');
             $form->FLD('choice', "key(mvc={$mvc->className},select=name)", "caption={$mvc->singleTitle},input");
             
             $opt = array();
             $cnt = 0;
             $query = $mvc->getQuery();
-            while($rec = $query->fetch()) {
-                if($mvc->haveRightFor('select', $rec)) {
+            while ($rec = $query->fetch()) {
+                if ($mvc->haveRightFor('select', $rec)) {
                     $opt[$rec->id] = $mvc->getRecTitle($rec);
                 }
                 $cnt++;
             }
-
+            
             $retUrl = getRetUrl();
-            if(!$resUrl || !count($retUrl) || $retUrl['Ctr'] == $mvc->className) {
+            if (!$resUrl || !count($retUrl) || $retUrl['Ctr'] == $mvc->className) {
                 $retUrl = array('Portal', 'Show');
             }
-
-            if(!count($opt) && $cnt) {
+            
+            if (!count($opt) && $cnt) {
                 $form->setField('choice', 'input=none');
-                $form->info = "<div style='padding:10px; background-color:yellow;'>" . tr("Липсват достъпни за избор") . " " . mb_strtolower(tr($mvc->title)) . "</div>";
+                $form->info = "<div style='padding:10px; background-color:yellow;'>" . tr('Липсват достъпни за избор') . ' ' . mb_strtolower(tr($mvc->title)) . '</div>';
             } else {
-
                 $form->setOptions('choice', $opt);
                 
                 $key = self::getPermanentKey($mvc);
-
+                
                 $lastId = core_Permanent::get($key);
-
-                if($lastId && $opt[$lastId]) {
+                
+                if ($lastId && $opt[$lastId]) {
                     $form->setDefault('choice', $lastId);
                 }
-     
+                
                 $rec = $form->input();
-
-                if(count($opt) == 1) {  
+                
+                if (count($opt) == 1) {
                     $rec->choice = key($opt);
                 }
-
+                
                 if ($rec->choice && ($form->isSubmitted() || count($opt) == 1)) {
-                    if($mvc->haveRightFor('select')) {
+                    if ($mvc->haveRightFor('select')) {
                         $rec = $mvc->fetch($rec->choice);
                         $mvc->selectCurrent($rec);
                         $res = new Redirect(getRetUrl());
-
+                        
                         return false;
                     }
                 }
-
+                
                 $form->toolbar->addSbBtn('Напред', 'choice', array('class' => 'fright'), 'ef_icon = img/16/move.png');
             }
-
+            
             $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
             
-            $form->title = "Избор на текущ|* " . mb_strtolower(tr($mvc->singleTitle)); 
-
+            $form->title = 'Избор на текущ|* ' . mb_strtolower(tr($mvc->singleTitle));
+            
             $res = $mvc->renderWrapping($form->renderHtml());
-
+            
             return false;
         }
-
     }
     
     
@@ -204,14 +208,14 @@ class plg_Current extends core_Plugin
      * @param stdClass $res
      * @param stdClass $rec
      *
-     * @return void
+     * @return null|false
      */
     private static function setCurrent($mvc, &$res, &$rec)
     {
         // Ако текущия потребител няма права - не правим избор
         if (!$mvc->haveRightFor('select', $rec)) {
             
-            return;
+            return false;
         }
         
         $className = cls::getClassName($mvc);
@@ -231,20 +235,20 @@ class plg_Current extends core_Plugin
         $mvc->invoke('afterChangeCurrent', array(&$res, $rec));
         
         $key = self::getPermanentKey($mvc);
-
+        
         core_Permanent::set($key, $rec->id, 10000);
-
+        
         $res = $rec->id;
     }
-
-
+    
+    
     /**
      * Връща ключа за запис в перманентните настройки
      */
     private static function getPermanentKey($mvc)
     {
         $key = 'Select-' . cls::getClassName($mvc) . '-' . core_Users::getCurrent();
-
+        
         return $key;
     }
     
@@ -263,7 +267,7 @@ class plg_Current extends core_Plugin
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if(!Mode::is('printing')){
+        if (!Mode::is('printing')) {
             $data->listFields['currentPlg'] = 'Текущ';
             $data->listTableMvc->FNC('currentPlg', 'varchar', 'tdClass=centerCol');
         }

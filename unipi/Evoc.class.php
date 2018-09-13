@@ -131,7 +131,7 @@ class unipi_Evoc
      */
     public function getUartData($uart, $devId)
     {
-        $circuit = 'UART_' . $uart. '_' . $devId . '_';
+        $circuit = 'UART_' . ($devId - 1) . '_' . $devId . '_';
 
         $res = array();
 
@@ -207,11 +207,11 @@ class unipi_Evoc
     public function update()
     {  
         try {
-            $responce =  fileman::getContent('Y1pGw5');
+            $response =  fileman::getContent('Y1pGw5');
         } catch (core_exception_Expect $e) {
         }
         
-        if(!strlen($responce)) {
+        if(!strlen($response)) {
 
             // Init CURL object.
             $ch = curl_init();
@@ -226,7 +226,7 @@ class unipi_Evoc
                 CURLOPT_CUSTOMREQUEST => "GET",
             ));
             // Get response.
-            $response = curl_exec($ch);
+            $response = curl_exec($ch); 
             // Get error.
             $err = curl_error($ch);
             // Clear CURL object.
@@ -238,7 +238,7 @@ class unipi_Evoc
         }
 
         // Convert to JSON.
-        $this->json_data = json_decode($responce, true);
+        $this->json_data = json_decode($response, true);
     }
 
 

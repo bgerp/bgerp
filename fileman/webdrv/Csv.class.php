@@ -48,7 +48,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         $tabsArr['view'] = (object)
         array(
             'title' => 'Изглед',
-            'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr('Съдържание') . "</div>{$view}</div></div>",
+            'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Съдържание') . "</div><div class='webdrvFieldset'>{$view}</div></div>",
             'order' => 6,
             'tpl' => $view,
         );

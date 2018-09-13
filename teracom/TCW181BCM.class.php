@@ -45,23 +45,6 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
     
     
     /**
-     *  Информация за входните портове на устройството
-     *
-     * @see  sens2_ControllerIntf
-     *
-     * @return array
-     */
-    public function getInputPorts($config = null)
-    {
-        foreach ($this->inputs as $name => $params) {
-            $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
      * Информация за изходните портове на устройството
      *
      * @see  sens2_ControllerIntf
