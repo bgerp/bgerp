@@ -298,6 +298,9 @@ class log_Debug extends core_Manager
             return  $tpl;
         }
         
+        $allFArr = $this->getDebugFilesArr();
+        $tpl->prepend(tr('Общо файлове') . ': ' . count($allFArr));
+        
         // Рендираме страницата
         return  $this->renderWrapping($tpl);
     }
