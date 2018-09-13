@@ -791,7 +791,7 @@ class log_Debug extends core_Manager
                     
                     // Ако се търси определен файл и отговаря на изискванията - го показваме
                     if ($canShow) {
-                        $mTime = $iterator->current()->getMTime();
+                        $mTime = @$iterator->current()->getMTime();
                         $fArr[$fileName] = $mTime . '|' . $fileName;
                     }
                     
@@ -799,7 +799,7 @@ class log_Debug extends core_Manager
                         if (strpos($fileName, $fNameTemplate)) {
                             if ($fileName != $fName) {
                                 if (!isset($mTime)) {
-                                    $mTime = $iterator->current()->getMTime();
+                                    $mTime = @$iterator->current()->getMTime();
                                 }
                                 
                                 // Ако има друг файл от същия хит
