@@ -2,6 +2,12 @@
 
 
 /**
+ * Колко време след като е направено движението да се изтрие
+ */
+defIfNot('RACK_DELETE_MOVEMENTS_OLDER_THAN', '');
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -79,14 +85,22 @@ class rack_Setup extends core_ProtoSetup
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'RACK_DELETE_MOVEMENTS_OLDER_THAN' => array('time(suggestions=1 месец|2 месеца|3 месеца|6 месеца)', 'caption=Изтриване на минали движения->От преди'),
+    );
+    
+    
+    /**
      * Настройки за Cron
      */
-    public $cronSettings1111111111 = array(
+    public $cronSettings = array(
         array(
-            'systemId' => 'Delete movements',
-            'description' => 'Изтриване на остарели движения',
+            'systemId' => 'Delete movements and pallets',
+            'description' => 'Изтриване на остарели движения и палети',
             'controller' => 'rack_Movements',
-            'action' => 'DeleteOldMovements',
+            'action' => 'DeleteOldMovementsAndPallets',
             'period' => 1440,
             'offset' => 90,
             'timeLimit' => 100
