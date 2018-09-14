@@ -171,6 +171,23 @@ class rack_Zones extends core_Master
         }
     }
     
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return bool|null
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        if($mvc->haveRightFor('removedocument', $data->rec->id)){
+            $data->toolbar->addBtn('Премахване', array($mvc, 'removeDocument', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
+        }
+    }
+    
+    
     /**
      * Връща зоните към подадения склад
      *
@@ -376,7 +393,7 @@ class rack_Zones extends core_Master
             if(empty($rec->containerId)){
                 $requiredRoles = 'no_one';
             } else {
-                if(rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL OR #movementQuantity = 0)")){
+                if(rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL AND #movementQuantity != 0)")){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -620,9 +637,10 @@ class rack_Zones extends core_Master
         
         $rec->containerId = null;
         $this->save($rec);
+        rack_ZoneDetails::syncWithDoc($rec->id);
         $this->updateMaster($rec);
         
-        followRetUrl(null, 'Документа е премахнат от зоната');
+        followRetUrl(null, 'Документът е премахнат от зоната');
     }
     
     
