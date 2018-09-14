@@ -2,6 +2,12 @@
 
 
 /**
+ * Колко време след като е направено движението да се изтрие
+ */
+defIfNot('RACK_DELETE_MOVEMENTS_OLDER_THAN', '');
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -79,6 +85,29 @@ class rack_Setup extends core_ProtoSetup
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'RACK_DELETE_MOVEMENTS_OLDER_THAN' => array('time(suggestions=1 месец|2 месеца|3 месеца|6 месеца)', 'caption=Изтриване на минали движения->От преди'),
+    );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Delete movements and pallets',
+            'description' => 'Изтриване на остарели движения и палети',
+            'controller' => 'rack_Movements',
+            'action' => 'DeleteOldMovementsAndPallets',
+            'period' => 1440,
+            'offset' => 90,
+            'timeLimit' => 100
+        ));
+        
+
+    /**
      * Инсталиране на пакета
      */
     public function install()
@@ -87,6 +116,7 @@ class rack_Setup extends core_ProtoSetup
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Връзка между ЕН-то и палетния склад', 'rack_plg_Shipments', 'store_ShipmentOrders', 'private');
+        $html .= $Plugins->installPlugin('Връзка между МСТ-то и палетния склад', 'rack_plg_Shipments', 'store_Transfers', 'private');
         
         // Залагаме в cron
         $rec = new stdClass();

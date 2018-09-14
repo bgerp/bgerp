@@ -1470,9 +1470,9 @@ class fileman_Files extends core_Master
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
             
+            $gUrl = static::generateUrl($fh, $isAbsolute);
             if (!isset($url)) {
-                //Генерираме връзката
-                $url = static::generateUrl($fh, $isAbsolute);
+                $url = $gUrl;
             }
             
             // Ако сме в текстов режим
@@ -1701,7 +1701,7 @@ class fileman_Files extends core_Master
             $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
-        return "localStorage.removeItem('disabledRowАrr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+        return "localStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
     
     
@@ -1881,10 +1881,6 @@ class fileman_Files extends core_Master
             
             // Преименува файла
             self::renameFile($fRec, $form->rec->name, true);
-            
-            $fileNavArr = Mode::get('fileNavArr');
-            $fileNavArr[$fRec->fileHnd] = null;
-            Mode::setPermanent('fileNavArr', $fileNavArr);
             
             // Редиректваме
             return new Redirect($retUrl);
@@ -2184,7 +2180,7 @@ class fileman_Files extends core_Master
             
             foreach ($fileNavArr[$rec->fileHnd]['allFilesArr'] as $fUrl => $fName) {
                 if ($fileNavArr[$rec->fileHnd]['current'] == $fUrl) {
-                    $fName = basename($fName);
+                    $fName = type_Varchar::escape($data->rec->name);
                 }
                 $eArr[$fUrl] = str::limitLen($fName, 32);
             }
@@ -2197,23 +2193,6 @@ class fileman_Files extends core_Master
             // Вербалното име на файла
             $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">' . $mvc->getVerbal($rec, 'name') . '</span>';
         }
-        
-        // Иконата за редактиране
-        $editImg = '<img src=' . sbf('img/16/edit-icon.png') . '>';
-        
-        // URL' то където ще препрати линка
-        $editUrl = array(
-            $mvc,
-            'editFile',
-            'id' => $rec->fileHnd,
-            'ret_url' => true
-        );
-        
-        // Създаваме линка
-        $editLink = ht::createLink($editImg, $editUrl);
-        
-        // Добавяме линка след името на файла
-        $row->fileName .= "<span style='margin-left:3px;'>{$editLink}</span>";
         
         if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
             $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
@@ -2281,9 +2260,9 @@ class fileman_Files extends core_Master
         
         // Добавяме табовете в шаблона
         $tpl->append($fileInfo, 'fileDetail');
-
+        
         jquery_Jquery::run($tpl, 'setFilemanPreviewSize()');
-
+        
         // Отбелязваме като разгледан
         fileman_Log::updateLogInfo($fh, 'preview');
     }
@@ -2388,6 +2367,10 @@ class fileman_Files extends core_Master
                     }
                 }
             }
+        }
+        
+        if ($mvc->haveRightFor('single', $data->rec->id)) {
+            $data->toolbar->addBtn('Преименуване', array($mvc, 'editFile', $data->rec->fileHnd, 'ret_url' => true), 'id=btn-rename', 'ef_icon = img/16/edit-icon.png, title=Преименуване на файла, row=2');
         }
     }
     

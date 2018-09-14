@@ -4131,7 +4131,7 @@ table .eshop-btn {
 	position: absolute;
 	top:-10px;
 	left: 10px;
-	z-index: 1000;
+	z-index: 10;
 	background-color: #fff;
 	padding: 0 5px;
 	margin: 0 15px;
@@ -5226,49 +5226,88 @@ div.location.public {
 }
 
 /*rack*/
-.rack_Zones .listTable {
-	border: none !important;
-	td, th {
+.rack_Zones  {
+	display: block;
+	max-width: 1200px;
+	.listTable {
 		border: none !important;
-	}
-	> tbody > tr:not(zonesCommonRow) {
-		background: #333 !important;
-		color: #fff !important;
-		span {
-			color: #eee !important;
+		td, th {
+			border: none !important;
 		}
-		a {
-			color: #aaa !important;
+		> tbody > tr:not(zonesCommonRow) {
+			background: #333;
+			color: #fff !important;
+			&:hover {
+				background: #444 !important;
+			}
+			span {
+				color: #eee !important;
+			}
+			a {
+				color: #aaa !important;
+			}
+			.iw-contextMenu a {
+				color: #222 !important;
+			}
 		}
-		.iw-contextMenu a {
-			color: #222 !important;
-		}
-	}
-	> tbody > tr.zonesCommonRow {
-		color: #000 !important;
-		background: transparent !important;
-		&:hover {
-			background: transparent !important;
-		}
-		td {
-			padding: 1% !important;
-		}
-		span {
-			color: #000 !important;
-		}
-		a {
-			color: #004488 !important;
-		}
-		.iw-contextMenu a {
-			color: #222 !important;
-		}
-		.red {
-			color: #cc0000 !important;
-		}
-	}
 
+		> tbody > tr.zonesCommonRow {
+			color: #000 !important;
+			background: #f1f1f1 !important;
+			&:hover {
+				background: #f1f1f1 !important;
+			}
+			td {
+				padding: 5px!important;
+			}
+			span {
+				color: #000 !important;
+			}
+			a {
+				color: #004488 !important;
+			}
+			.iw-contextMenu a {
+				color: #222 !important;
+			}
+			.red {
+				color: #cc0000 !important;
+			}
+			.nowrap {
+				width: 50px;
+			}
+			table {
+				margin-bottom: 0;
+				width: 100%;
+				tr {
+					&.state-active {
+						background-color: #ffeedd;
+						color: #000 !important;
+						&:hover {
+							background: rgba(247, 197, 139, 1) !important;
+						}
+					}
+					&.state-pending {
+						background-color: #eeccff;
+						color: #000 !important;
+						&:hover {
+							background-color: #e6b3ff !important;
+						}
+					}
+				}
+
+			}
+		}
+	}
 }
 
+.zone-product-status {
+	width: 100px;
+	text-align: right;
+	padding-right: 10px !important;
+}
+.inline-workerId {
+	width: 250px;
+}
 td.rack-hl {
 	background-color:red;
 }

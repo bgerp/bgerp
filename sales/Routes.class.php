@@ -452,7 +452,7 @@ class sales_Routes extends core_Manager
         
         // Намираме и подреждаме всички маршрути към локацията
         $query = self::getQuery();
-        $query->where("#locationId = '{$locationId}'");
+        $query->where("#locationId = '{$locationId}' AND #state != 'closed'");
         $query->orderBy('createdOn', 'DESC');
         
         // За всяка

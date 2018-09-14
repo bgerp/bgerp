@@ -10,12 +10,8 @@ function generatePath(data,el){
 	// номер на поредния път
 	var currentPath = 0;
 	var markers = [];
-	var colors = ['f0f8ff', '9966cc', 'faebd7', '00ffff', '7fffd4', 'f0ffff',
-		'8a2be2', 'a52a2a', 'deb887', '7fff00', 'd2691e', 'ff7f50', '5f9ea0',
-		'6495ed', 'fff8dc', 'dc143c', '00ffff', '00008b', '008b8b', 'f5f5dc',
-		'b8860b', 'a9a9a9', '006400', 'bdb76b', '8b008b', '556b2f', '00ced1',
-		'ff8c00', '9932cc', '8b0000', 'e9967a', '8fbc8f', '483d8b', '2f4f4f',
-		'ff1493', '00bfff', '696969', '1e90ff', 'd19275', 'b22222', '9400d3'
+	var colors = [ '00ced1', '8b008b', '00008b', 'a52a2a', '6495ed', '797979',
+		 '7fffd4', '7fff00', '5f9ea0', '9966cc', '2f4f4f', 'ff8c00', '483d8b'
 	];
 
 
@@ -57,7 +53,6 @@ function generatePath(data,el){
 	 	    val.data = nCoord.info;
 	 		markers.push(val);
 	    }
-
 	});
 
 	// генерираме картата

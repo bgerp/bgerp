@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,storeId=Складове,zoneId=Зона,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,documentHtml=@';
+    public $listFields = 'containerId=Документ,storeId=Складове,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,collection=Инкасиране,status,notes=@,documentHtml=@';
     
     
     /**
@@ -287,9 +287,11 @@ class trans_LineDetails extends doc_Detail
             $row->_rowTools->addLink('Изключване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/delete.png', 'title' => 'Изключване от транспортната линия'));
         }
         
-        if($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId} AND #readiness > 0")){
-           $readiness = str_replace('&nbsp;', ' ', rack_Zones::getVerbal($zoneRec, 'readiness'));
-           $row->zoneId = rack_Zones::getHyperlink($zoneRec, true) . " ({$readiness})";
+        if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
+           $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
+           if(count($zoneBtn->url)){
+              $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
+           }
         }
     }
     

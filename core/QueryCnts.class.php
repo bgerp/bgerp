@@ -129,7 +129,7 @@ class core_QueryCnts extends core_Manager
             
             // Разделяме заявката на интервали - за да не блокира SELECT заявките със същия приоритет
             $haveCnt = false;
-            if ($qCnt->isSlowQuery && !haveRole('debug')) {
+            if ($qCnt->isSlowQuery) {
                 if ($qCnt->mvc) {
                     $q = $qCnt->mvc->getQuery();
                     $q->XPR('maxId', 'int', 'max(#id)');
@@ -164,8 +164,14 @@ class core_QueryCnts extends core_Manager
                                 
                                 $cnt += $cQuery->count();
                                 
-                                // 0.1-0.5 сек
-                                $ms = rand(100000, 500000);
+                                if (haveRole('debug')) {
+                                    // 0.01-0.05 сек
+                                    $ms = rand(10000, 50000);
+                                } else {
+                                    // 0.1-0.5 сек
+                                    $ms = rand(100000, 500000);
+                                }
+                                
                                 usleep($ms);
                             }
                         }

@@ -1,0 +1,106 @@
+.rack_Zones table.listTable > tbody > tr > td.productCell {
+    max-width: none;
+}
+
+/*rack*/
+.rack_Zones  .listTable {
+    border: none !important;
+}
+
+.rack_Zones  .listTable td, .rack_Zones  .listTable th {
+    border: none !important;
+    width : auto;
+    max-width: fit-content;
+    max-width:-webkit-fit-content;
+    max-width:  -moz-max-content;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) {
+    background: #333;
+    color: #fff !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow):hover {
+     background: #444 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) span {
+    color: #eee !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) a {
+    color: #aaa !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) .iw-contextMenu a {
+    color: #222 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow {
+    color: #000 !important;
+    background: #f1f1f1 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow:hover {
+     background: #f1f1f1 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow td {
+    padding: 5px!important;
+}
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow span {
+    color: #000 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow a {
+    color: #004488 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
+    color: #222 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow .nowrap {
+    width: 50px;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-active {
+    background-color: #ffeedd !important;
+    color: #000 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-active:hover {
+     background: rgba(247, 197, 139, 1) !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending {
+    background-color: #eeccff;
+    color: #000 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending:hover {
+     background-color: #e6b3ff !important;
+}
+
+.zone-product-status {
+    width: 100px;
+    text-align: right;
+    padding-right: 10px !important;
+}
+
+.inline-workerId {
+    width: 250px;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow  .anchor-arrow img {
+    filter: invert(100%);
+}
+
+.minusImg {
+    margin: 0 10px;
+}

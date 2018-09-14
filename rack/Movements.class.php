@@ -98,7 +98,7 @@ class rack_Movements extends core_Manager
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
         $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none,smartCenter');
-        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=none');
+        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden,silent');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
@@ -205,6 +205,21 @@ class rack_Movements extends core_Manager
                 core_Statuses::newStatus('Проблем при записа на движението');
                 
                 return false;
+            }
+        }
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Ако се създава запис в чернова със зони, в зоните се създава празен запис
+        if($rec->state == 'pending' && $rec->_canceled !== true){
+            $zonesQuantityArr = self::getZoneArr($rec);
+            foreach ($zonesQuantityArr as $zoneRec){
+                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0);
             }
         }
     }
@@ -351,7 +366,6 @@ class rack_Movements extends core_Manager
             
             if ($availableQuantity > 0) {
                 $availableQuantity /= $rec->quantityInPack;
-                $availableQuantityV = core_Type::getByName('double(decimals=2)')->toVerbal($availableQuantity);
                 $form->setField('packQuantity', "placeholder={$availableQuantity}");
                 $form->rec->defaultPackQuantity = $availableQuantity;
             }
@@ -399,6 +413,7 @@ class rack_Movements extends core_Manager
                 case 'rack2floor':
                     $form->setField('zones', 'input=none');
                     $form->setReadOnly('palletId');
+                    $form->setReadOnly('productId');
                     $form->setField('positionTo', 'input=hidden');
                     $form->setField('palletId', 'caption=Сваляне на пода->Палет');
                     $form->setField('note', 'caption=Сваляне на пода->Забележка');
@@ -406,6 +421,7 @@ class rack_Movements extends core_Manager
                     break;
                 case 'rack2rack':
                     $form->setField('zones', 'input=none');
+                    $form->setReadOnly('productId');
                     $form->setReadOnly('palletId');
                     $form->setField('palletId', 'caption=Преместване на нова позиция->Палет');
                     $form->setField('positionTo', 'caption=Преместване на нова позиция->Позиция');
@@ -538,7 +554,7 @@ class rack_Movements extends core_Manager
         }
         
         if (!empty($state)) {
-            $row->workerId .= ' ' . $state;
+            $row->workerId = "{$state} {$row->workerId}";
         }
         
         if (!empty($rec->note)) {
@@ -552,9 +568,7 @@ class rack_Movements extends core_Manager
         }
         
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
-        
-        $skipZones = isset($fields['-inline']) ? true : false;
-        $row->movement = $mvc->getMovementDescription($rec, $skipZones);
+        $row->movement = $mvc->getMovementDescription($rec);
     }
     
     
@@ -567,12 +581,13 @@ class rack_Movements extends core_Manager
      */
     private function getMovementDescription($rec, $skipZones = false)
     {
+        $packQuantity = isset($rec->_originalPackQuantity) ? $rec->_originalPackQuantity : $rec->packQuantity;
         $position = $this->getFieldType('position')->toVerbal($rec->position);
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
         
         $Double = core_Type::getByName('double(smartRound)');
         $packagingRow = cat_UoM::getShortName($rec->packagingId);
-        $packQuantityRow = $Double->toVerbal($rec->packQuantity);
+        $packQuantityRow = $Double->toVerbal($packQuantity);
         
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
@@ -586,16 +601,16 @@ class rack_Movements extends core_Manager
         $movementArr = array();
         $packType = cat_UoM::fetchField($rec->packagingId, 'type');
         if ($packType != 'uom') {
-            $packagingRow = str::getPlural($rec->packQuantity, $packagingRow, true);
+            $packagingRow = str::getPlural($packQuantity, $packagingRow, true);
         }
-        if (!empty($rec->packQuantity)) {
-            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $rec->packQuantity);
+        if (!empty($packQuantity)) {
+            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $packQuantity);
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
         
         if ($skipZones === false) {
             $zones = self::getZoneArr($rec, $quantityInZones);
-            $restQuantity = $rec->packQuantity - $quantityInZones;
+            $restQuantity = $packQuantity - $quantityInZones;
             
             foreach ($zones as $zoneRec) {
                 $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
@@ -779,7 +794,6 @@ class rack_Movements extends core_Manager
     private function validateTransaction($transaction)
     {
         $res = (object) array('transaction' => $transaction, 'errors' => array(), 'errorFields' => array(), 'warnings' => array(), 'warningFields' => array());
-        $quantityOnPallet = rack_Pallets::getDefaultQuantity($transaction->productId, $transaction->storeId);
         
         if ($transaction->from == $transaction->to && empty($transaction->zonesQuantityTotal)) {
             $res->errors = 'Не може да се направи празно движение';
@@ -795,7 +809,7 @@ class rack_Movements extends core_Manager
             return $res;
         }
         
-        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal)) {
+        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal) && $transaction->zonesQuantityTotal > 0) {
             $res->errors = 'Недостатъчно количество за оставяне в зоните';
             $res->errorFields = 'packQuantity,zones';
             
@@ -809,6 +823,8 @@ class rack_Movements extends core_Manager
             return $res;
         }
         
+        $quantityOnPallet = rack_Pallets::getDefaultQuantity($transaction->productId, $transaction->storeId, $transaction->from);
+        
         $fromPallet = $fromQuantity = $toQuantity = null;
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
             $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId);
@@ -819,7 +835,6 @@ class rack_Movements extends core_Manager
                 return $res;
             }
             
-            //    bp($fromPallet, $transaction);
             $fromQuantity = $fromPallet->quantity;
             if ($fromPallet->quantity - $transaction->quantity < 0) {
                 $res->errors = 'Няма достатъчна наличност на изходящия палет';
@@ -883,7 +898,7 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal < 0) {
+        if (isset($toQuantity) && $toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal < 0) {
             $res->errors = 'Недостатъчно количество за изходящия палет';
             $res->errorFields[] = 'packQuantity,zones';
             
@@ -897,33 +912,34 @@ class rack_Movements extends core_Manager
             $zRec = rack_ZoneDetails::fetch("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId}");
             $movementQuantity = is_object($zRec) ? $zRec->movementQuantity : null;
             $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
+            $diff = round($movementQuantity, 4) + round($zone->quantity, 4);
             
-            if ($movementQuantity + $zone->quantity < 0) {
-                $zoneErrors[] = rack_Zones::getVerbal($zone->zone, 'num');
+            if ($diff < 0) {
+                $zoneErrors[] = rack_Zones::getHyperlink($zone->zone, false);
             }
             
-            if (!empty($documentQuantity) && $movementQuantity + $zone->quantity > $documentQuantity) {
-                $zoneWarnings[] = rack_Zones::getVerbal($zone->zone, 'num');
+            if (!empty($documentQuantity) && $diff > $documentQuantity) {
+                $zoneWarnings[] = rack_Zones::getHyperlink($zone->zone, false);
             }
         }
         
         if (count($zoneErrors)) {
-            $res->errors = 'В зони|* <b>' . implode(', ', $zoneErrors) . '</b> |се получава отрицателно количество|*';
+            $res->errors = 'В зони|*: <b>' . implode(', ', $zoneErrors) . '</b> |се получава отрицателно количество|*';
             $res->errorFields[] = 'zones';
             
             return $res;
         }
         
         if (count($zoneWarnings)) {
-            $res->warnings[] = 'В зони|* <b>' . implode(', ', $zoneWarnings) . '</b> |се получава по-голямо количество от необходимото|*';
+            $res->warnings[] = 'В зони|*: <b>' . implode(', ', $zoneWarnings) . '</b> |се получава по-голямо количество от необходимото|*';
             $res->warningFields[] = 'zones';
         }
         
         // Предупреждение: В новия палет се получава по-голямо количество от стандартното
-        if (!empty($toQuantity) && !empty($quantityOnPallet)) {
+        if (!empty($toPallet) && $transaction->from != $transaction->to && !empty($toQuantity) && !empty($quantityOnPallet)) {
             if ($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal > $quantityOnPallet) {
                 $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
-                $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}";
+                $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
                 $res->warningFields[] = 'positionTo';
                 $res->warningFields[] = 'packQuantity';
                 $res->warningFields[] = 'zonesQuantityTotal';
@@ -933,7 +949,7 @@ class rack_Movements extends core_Manager
         // Предупреждение: В началния палет се получава по-голямо количество от стандартното
         if (!empty($fromPallet) && $transaction->quantity < 0 && ($fromQuantity - $transaction->quantity > $quantityOnPallet)) {
             $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
-            $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b";
+            $res->warnings[] = "В началния палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
             $res->warningFields[] = 'positionTo';
             $res->warningFields[] = 'packQuantity';
             $res->warningFields[] = 'zonesQuantityTotal';
@@ -1020,6 +1036,47 @@ class rack_Movements extends core_Manager
         while ($rec = $query->fetch()) {
             $rec->state = 'closed';
             static::save($rec, 'state');
+        }
+    }
+    
+    
+    /**
+     * Изтриване на стари движения по разписание
+     */
+    public function cron_DeleteOldMovementsAndPallets()
+    {
+        $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
+        if(empty($olderThan)) return;
+        
+        // Всички движения преди X време
+        $createdBefore = dt::addSecs(-1 * $olderThan);
+        $movementQuery = rack_Movements::getQuery();
+        $movementQuery->where("#createdOn <= '{$createdBefore}'");
+        
+        while($mRec = $movementQuery->fetch()){
+            $delete = true;
+            
+            // Ако началния палет е активен, не се изтрива
+            if(isset($mRec->palletId)){
+                $fromPalletState = rack_Pallets::fetchField($mRec->palletId, 'state');
+                if($fromPalletState == 'active'){
+                   $delete = false;
+                }
+            }
+            
+            // Ако има крайна дестинация и тя в момента е заета от активен палет за същия артикул, не се изтрива
+            if(!empty($mRec->positionTo) && $delete === $delete){
+                if($toPalletRec = rack_Pallets::getByPosition($mRec->positionTo, $mRec->storeId)){
+                    if($toPalletRec->productId == $mRec->productId && $toPalletRec->state == 'active'){
+                        $delete = false;
+                    }
+                }
+            }
+            
+            // Движението се изтрива, ако отговаря на условията
+            if($delete === true){
+                rack_Movements::delete($mRec->id);
+            }
         }
     }
 }

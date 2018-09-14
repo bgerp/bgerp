@@ -27,6 +27,19 @@ class bgerp_plg_File extends core_Plugin
             // Добавяме файла към списъка
             if ($cId = Mode::get('saveObjectsToCid')) {
                 doc_UsedInDocs::addObject(array($fh => $fRec->name), $cId, 'files');
+                
+                if (!Mode::isReadOnly()) {
+                    try {
+                        $doc = doc_Containers::getDocument($cId);
+                        
+                        if ($doc && $fRec && fileman::haveRightFor('single', $fRec) && $doc->haveRightFor('single')) {
+                            $res = array($doc, 'viewFile', $cId, 'fh' => $fh);
+                            
+                            return false;
+                        }
+                    } catch (core_Exception_Expect $e) {
+                    }
+                }
             }
         }
         

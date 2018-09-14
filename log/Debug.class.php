@@ -298,6 +298,9 @@ class log_Debug extends core_Manager
             return  $tpl;
         }
         
+        $allFArr = $this->getDebugFilesArr();
+        $tpl->prepend(tr('Общо файлове') . ': ' . count($allFArr));
+        
         // Рендираме страницата
         return  $this->renderWrapping($tpl);
     }
@@ -767,6 +770,8 @@ class log_Debug extends core_Manager
             $fNameTemplate = implode('_', $fNameTemplateArr);
         }
         
+        $sameFileArr = array();
+        
         // Намираме всички файлове и им вземаме времето на създаване
         while ($iterator->valid()) {
             try {
@@ -788,19 +793,21 @@ class log_Debug extends core_Manager
                     
                     // Ако се търси определен файл и отговаря на изискванията - го показваме
                     if ($canShow) {
-                        $mTime = $iterator->current()->getMTime();
+                        $mTime = @$iterator->current()->getMTime();
                         $fArr[$fileName] = $mTime . '|' . $fileName;
                     }
                     
                     if ($fName) {
                         if (strpos($fileName, $fNameTemplate)) {
+                            if (!isset($mTime)) {
+                                $mTime = @$iterator->current()->getMTime();
+                            }
+                            
                             if ($fileName != $fName) {
-                                if (!isset($mTime)) {
-                                    $mTime = $iterator->current()->getMTime();
-                                }
-                                
                                 // Ако има друг файл от същия хит
                                 $otherFilesFromSameHitArr[$fileName] = $mTime . '|' . $fileName;
+                            } else {
+                                $sameFileArr[$fileName] = $mTime . '|' . $fileName;
                             }
                         }
                     }
@@ -814,68 +821,81 @@ class log_Debug extends core_Manager
             $iterator->next();
         }
         
+        if (($before || $after)) {
+            if ($fName && !empty($otherFilesFromSameHitArr)) {
+                // Премахваме файловете от същия хит - за да ги добавим по-късно
+                $pregPattern = '/^' . preg_quote($fName, '/') . '$/';
+                
+                $pregPattern = str_replace('x', '.+', $pregPattern);
+                
+                $foundFName = false;
+                
+                if ($fArr[$fName]) {
+                    $foundFName = true;
+                }
+                
+                foreach ($otherFilesFromSameHitArr as $sameFName => $time) {
+                    // Ако в името има неизвестни стойности, намираме файла от системата
+                    if (!$foundFName && preg_match($pregPattern, $sameFName)) {
+                        $fName = $sameFName;
+                        $fArr[$fName] = $time;
+                        $foundFName = true;
+                        unset($otherFilesFromSameHitArr[$fName]);
+                        continue;
+                    }
+                    
+                    unset($fArr[$sameFName]);
+                }
+            }
+        }
+        
+        $aPos = false;
         if (!empty($fArr)) {
             if (($before || $after)) {
+                $limit = $before + $after;
+                asort($fArr);
+                $slice = true;
                 if ($fName) {
-                    // Премахваме файловете от същия хит - за да ги добавим по-късно
-                    if (!empty($otherFilesFromSameHitArr)) {
-                        $pregPattern = '/^' . preg_quote($fName, '/') . '$/';
-                        
-                        $pregPattern = str_replace('x', '.+', $pregPattern);
-                        
-                        $foundFName = false;
-                        
-                        if ($fArr[$fName]) {
-                            $foundFName = true;
-                        }
-                        
-                        foreach ($otherFilesFromSameHitArr as $sameFName => $time) {
-                            // Ако в името има неизвестни стойности, намираме файла от системата
-                            if (!$foundFName && preg_match($pregPattern, $sameFName)) {
-                                $fName = $sameFName;
-                                $fArr[$fName] = $time;
-                                $foundFName = true;
-                                unset($otherFilesFromSameHitArr[$fName]);
-                                continue;
-                            }
-                            
-                            unset($fArr[$sameFName]);
-                        }
-                    }
-                    
-                    asort($fArr);
-                    
                     $aPos = array_search($fName, array_keys($fArr));
                     
-                    $fArrCnt = count($fArr);
-                    
-                    $nArr = $fArr;
-                    
-                    if ($fArrCnt > ($before + $after)) {
-                        if ($fArrCnt > ($aPos + $before)) {
-                            $bPos = $aPos - $before;
-                        } else {
-                            $bPos = $fArrCnt - $after - $before;
-                        }
+                    if ($aPos !== false) {
+                        $slice = false;
+                        $nArr = $fArr;
                         
-                        $bPos = max(0, $bPos);
-                        $nArr = array_slice($fArr, $bPos, $after + $before);
+                        $fArrCnt = count($fArr);
+                        if ($fArrCnt > ($limit)) {
+                            if ($fArrCnt > ($aPos + $before)) {
+                                $bPos = $aPos - $before;
+                            } else {
+                                $bPos = $fArrCnt - $after - $before;
+                            }
+                            
+                            $bPos = max(0, $bPos);
+                            $nArr = array_slice($fArr, $bPos, $limit);
+                        }
                     }
-                    
-                    // Добавяме файловете от същия хит
-                    if (!empty($otherFilesFromSameHitArr)) {
-                        $nArr += $otherFilesFromSameHitArr;
-                        asort($nArr);
-                    }
-                } else {
-                    asort($fArr);
-                    
+                }
+                
+                if ($slice) {
                     // Ако няма зададен файл, показваме по ограничение
-                    $nArr = array_slice($fArr, -1 * ($before + $after));
+                    $nArr = array_slice($fArr, -1 * ($limit));
+                }
+                
+                // Добавяме файловете от същия хит
+                if ($fName && !empty($otherFilesFromSameHitArr)) {
+                    $nArr += $otherFilesFromSameHitArr;
                 }
                 
                 $fArr = $nArr;
             }
+        }
+        
+        if (($aPos === false) && !empty($sameFileArr)) {
+            $fArr += $sameFileArr;
+        }
+        
+        if (!empty($fArr)) {
+            asort($fArr);
         }
         
         return $fArr;

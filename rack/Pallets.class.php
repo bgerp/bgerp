@@ -217,7 +217,7 @@ class rack_Pallets extends core_Manager
         $saveAgain = false;
         
         // Затваряне ако количеството е 0
-        if ($rec->quantity <= 0) {
+        if (round($rec->quantity, 5) <= 0) {
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
             $saveAgain = true;
@@ -327,6 +327,8 @@ class rack_Pallets extends core_Manager
             $sign = ($reverse === false) ? 1 : -1;
             $incrementQuantity = $sign * $quantity;
             $rec->quantity += $incrementQuantity;
+            $rec->quantity = round($rec->quantity, 5);
+            
             self::save($rec, 'position,quantity,state,closedOn');
         }
         
@@ -583,7 +585,7 @@ class rack_Pallets extends core_Manager
      *
      * @return null|float - дефолтно к-во
      */
-    public static function getDefaultQuantity($productId, $storeId)
+    public static function getDefaultQuantity($productId, $storeId, $excludePosition = null)
     {
         $quantity = null;
         
@@ -593,11 +595,15 @@ class rack_Pallets extends core_Manager
         }
         
         if (empty($quantity)) {
+            
             $query = rack_Pallets::getQuery();
             $query->where("#productId = {$productId} AND #storeId = {$storeId}");
+            if(isset($excludePosition)){
+                $query->where("#position != '{$excludePosition}'");
+            }
+            
             $query->XPR('max', 'double', 'max(#quantity)');
             $quantity = $query->fetch()->max;
-            
             $quantity = empty($quantity) ? null : $quantity;
         }
         
@@ -614,7 +620,7 @@ class rack_Pallets extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (rack_Movements::haveRightFor('add')) {
-            $data->toolbar->addBtn('Палетиране', array('rack_Movements', 'add', 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/star_2.png,title=Добавяне на нов палет');
+            $data->toolbar->addBtn('Палетиране', array('rack_Movements', 'add', 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/arrow_up.png,title=Палетиране от под-а');
         }
     }
     
@@ -649,6 +655,25 @@ class rack_Pallets extends core_Manager
         
         $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
         
-        return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity) : null;
+        return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'edit' && isset($rec)){
+            if($rec->state == 'closed'){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }
