@@ -57,7 +57,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой може да създава продажба към отговорника на склада?
      */
-    public $canMakesale = 'ceo,sales,inventory';
+    public $canMakesale = 'ceo,sales';
     
     
     /**
@@ -225,6 +225,10 @@ class store_InventoryNotes extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+        
+        if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
+            $requiredRoles = 'no_one';
         }
     }
     

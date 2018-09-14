@@ -62,7 +62,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кой има право да променя начисляването?
      */
-    public $canSetresponsibleperson = 'ceo, storeMaster';
+    public $canSetresponsibleperson = 'ceo, storeMaster, inventory';
     
     
     /**
@@ -213,7 +213,7 @@ class store_InventoryNoteSummary extends doc_Detail
         if (!isset($rec->quantity) && !Mode::is('printing')) {
             $row->ROW_ATTR['class'] = ' note-product-row-no-quantity';
             
-            if (store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
+           if (store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
                 $row->quantity = ht::createLink('', array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
             }
         }

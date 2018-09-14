@@ -50,31 +50,31 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, storeMaster';
+    public $canEdit = 'ceo, storeMaster,inventory';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'ceo, storeMaster';
+    public $canEditsysdata = 'ceo, storeMaster,inventory';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    public $canDeletesysdata = 'ceo, storeMaster';
+    public $canDeletesysdata = 'ceo, storeMaster,inventory';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, storeMaster';
+    public $canAdd = 'ceo, storeMaster,inventory';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, storeMaster';
+    public $canDelete = 'ceo, storeMaster,inventory';
     
     
     /**
