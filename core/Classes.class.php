@@ -354,6 +354,9 @@ class core_Classes extends core_Manager
      */
     public static function on_AfterDbTableUpdated($mvc)
     {
+        // Ако в момента се изпълнява обновлението на таблицата с класове - не изтриваме кеша
+        if(Mode::is('RebuildingClasses')) return;
+
         self::$classes = array();
         $cache = cls::get('core_Cache');
         $cache->deleteData(md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . self::$classHashName));
@@ -386,6 +389,7 @@ class core_Classes extends core_Manager
         $query = self::getQuery();
         $res = '<li>Обновяване на информацията за класовете</li>';
         
+        Mode::set('RebuildingClasses', true);
         while ($rec = $query->fetch("#state = 'active'")) {
             $load = cls::load($rec->name, true);
             if ($load) {
@@ -403,7 +407,9 @@ class core_Classes extends core_Manager
                 core_Classes::add($rec->name);
             }
         }
-        
+        Mode::set('RebuildingClasses', false);
+        self::on_AfterDbTableUpdated($query->mvc);
+
         return $res;
     }
     
