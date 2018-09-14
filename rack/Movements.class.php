@@ -383,7 +383,7 @@ class rack_Movements extends core_Manager
             
             // Добавяне на предложения за нова позиция
             if ($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)) {
-                $form->setSuggestions('positionTo', array(tr('Под') => tr('Под'), $bestPos => $bestPos));
+                $form->setSuggestions('positionTo', array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos));
                 if ($form->rec->positionTo == rack_PositionType::FLOOR) {
                     $form->rec->positionTo = tr('Под');
                 }
