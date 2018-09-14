@@ -222,7 +222,7 @@ class rack_Products extends store_Products
         $query = self::getQuery("#storeId = {$storeId}");
         $query->in("productId", $productArr);
         while($rec = $query->fetch()){
-            $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId);
+            $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $storeId);
             $saveArr[$rec->id] = $rec;
         }
         
