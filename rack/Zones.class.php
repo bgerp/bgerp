@@ -643,6 +643,14 @@ class rack_Zones extends core_Master
         $rec->containerId = null;
         $this->save($rec);
         rack_ZoneDetails::syncWithDoc($rec->id);
+        
+        // Изтриване на всички заявки към зоната
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("LOCATE('|{$rec->id}|', #zoneList) AND #state = 'pending'");
+        while($mRec = $mQuery->fetch()){
+            rack_Movements::delete($mRec->id);
+        }
+        
         $this->updateMaster($rec);
         
         followRetUrl(null, 'Документът е премахнат от зоната');
