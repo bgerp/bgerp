@@ -658,11 +658,11 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($action == 'edit' && isset($rec) && $rec->state != 'pending') {
+        if ($action == 'edit' && isset($rec->state) && $rec->state != 'pending') {
             $requiredRoles = 'no_one';
         }
         
-        if ($action == 'delete' && isset($rec) && $rec->state != 'pending') {
+        if ($action == 'delete' && isset($rec->state) && $rec->state != 'pending') {
             $requiredRoles = 'no_one';
         }
     }
