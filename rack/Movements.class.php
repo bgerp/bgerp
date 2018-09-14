@@ -102,7 +102,7 @@ class rack_Movements extends core_Manager
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
-        $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние');
+        $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние,silent');
         $this->FLD('workerId', 'user', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
         
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
