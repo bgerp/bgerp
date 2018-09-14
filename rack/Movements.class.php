@@ -94,10 +94,9 @@ class rack_Movements extends core_Manager
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
-        $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
-        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
-        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none,smartCenter');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
+        $this->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
+        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden,silent');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
@@ -682,7 +681,7 @@ class rack_Movements extends core_Manager
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
         
         if ($palletId = Request::get('palletId', 'int')) {
-            $data->query->where("#palletId = {$palletId} OR #palletToId = {$palletId}");
+            $data->query->where("#palletId = {$palletId}");
         }
         
         $data->listFilter->setFieldType('state', 'enum(all=Всички,pending=Чакащи,active=Активни,closed=Приключени)');
