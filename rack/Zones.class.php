@@ -119,10 +119,10 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=100)', 'caption=Наименование,mandatory');
+        $this->FLD('num', 'int(max=100)', 'caption=Номер,mandatory');
+        $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,smartCenter,input=none');
-        $this->FLD('summaryData', 'blob(serialize, compress)', 'input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,smartCenter,input=none');
         
         $this->setDbUnique('num,storeId');
@@ -149,7 +149,7 @@ class rack_Zones extends core_Master
             }
         }
         
-        $row->num = $mvc->getHyperlink($rec->id, true);
+        $row->num = $mvc->getHyperlink($rec->id);
         
         if(isset($rec->containerId)){
             $document = doc_Containers::getDocument($rec->containerId);
@@ -168,6 +168,11 @@ class rack_Zones extends core_Master
             }
             
             $row->ROW_ATTR['id'] = self::getRecTitle($rec);
+        }
+        
+        if(!empty($rec->description)){
+            $description = $mvc->getVerbal($rec, 'description');
+            $row->num = ht::createHint($row->num, $description);
         }
     }
     
