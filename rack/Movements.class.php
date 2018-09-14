@@ -94,7 +94,7 @@ class rack_Movements extends core_Manager
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent,smartCenter');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
         $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none,smartCenter');
