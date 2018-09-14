@@ -148,4 +148,26 @@ class rack_plg_Shipments extends core_Plugin
         $rec = $mvc->fetchRec($id);
         rack_Zones::clearZone($rec->containerId);
     }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        // Има ли нагласени количества за артикула в зоната?
+        $zQuery = rack_ZoneDetails::getQuery();
+        $zQuery->EXT('containerId', 'rack_Zones', 'externalName=containerId,externalKey=zoneId');
+        $zQuery->where("#containerId = {$rec->containerId} AND (#documentQuantity IS NOT NULL OR #documentQuantity != 0)");
+        $zQuery->show('id');
+        $zQuery->limit(1);
+        
+        // Ако има, се спира оттеглянето
+        if($zQuery->fetch()){
+            core_Statuses::newStatus('Документа не може да се оттегли, докато има нагласени количества в зоната', 'error');
+            return false;
+        }
+    }
 }
