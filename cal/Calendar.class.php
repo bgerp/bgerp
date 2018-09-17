@@ -810,7 +810,7 @@ class cal_Calendar extends core_Master
         if($userId === null) {
             $userId = core_Users::getCurrent();
         }
-        
+
         expect($direction);
         
         do {

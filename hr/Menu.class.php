@@ -151,7 +151,7 @@ class hr_Menu extends core_Master
         $this->FLD('sum', 'double', 'caption=Оферта->Цена, summary=amount');
         $this->FLD('date', 'date', 'caption=Оферта->Дата');
         $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
-        $this->FLD('document', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ');
+        $this->FLD('doc', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ,oldFieldName=document');
     }
     
     

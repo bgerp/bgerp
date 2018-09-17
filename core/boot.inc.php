@@ -265,6 +265,10 @@ function reportException($e, $update = null, $supressShowing = true)
 function logHitState($debugCode = '200', $state = array())
 {
     if (defined('DEBUG_FATAL_ERRORS_FILE') && @!Mode::is('stopLoggingDebug')) {
+        
+        // Максимална стойност за дебъг времената
+        $maxDebugTimeCnt = 3000;
+        
         $execTime = core_Debug::getExecutionTime();
         
         $data = @file_get_contents(DEBUG_FATAL_ERRORS_FILE);
@@ -282,7 +286,42 @@ function logHitState($debugCode = '200', $state = array())
         
         $state['update'] = FALSE;
         
-        $state['_debugTime'] = core_Debug::$debugTime;
+        // Ако броя на дебъг времената е над допустимите оставяме тези в края и в началото
+        $debugTimeArr = (array)core_Debug::$debugTime;
+        $debugTimeCnt = count(core_Debug::$debugTime);
+        if ($debugTimeCnt > $maxDebugTimeCnt) {
+            
+            $half = (int) ($maxDebugTimeCnt/2);
+            array_slice($debugTimeArr, 0, $half);
+            
+            $aBegin = (array) array_slice($debugTimeArr, 0, $half, TRUE);
+            $aEnd = (array) array_slice($debugTimeArr, $debugTimeCnt - $half, $half, TRUE);
+            
+            $nDebugTime = array();
+            if (!empty($aBegin) && !empty($aEnd)) {
+                $moreCnt = $debugTimeCnt - (2*$half);
+                
+                // Вземаме времето на следващата заявка
+                end($aBegin);
+                $eKey = key($aBegin);
+                $eKey++;
+                if ($nElem = $debugTimeArr[$eKey]) {
+                    $start = -1;
+                    if ($nElem && $nElem->start) {
+                        $start = $nElem->start;
+                    }
+                }
+                
+                $nDebugTime =  $aBegin + array('more' => (object) array('name' => "+++++ More {$moreCnt} +++++", 'start' => $start)) + $aEnd;
+            }
+            
+            if (!empty($nDebugTime)) {
+                $debugTimeArr = $nDebugTime;
+            }
+        }
+        
+        $state['_debugTime'] = $debugTimeArr;
+        
         $state['_timers'] = core_Debug::$timers;
         
         $state['_executionTime'] = $execTime;

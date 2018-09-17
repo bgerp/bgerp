@@ -307,6 +307,19 @@ class log_Debug extends core_Manager
     
     
     /**
+     * Вика act_Default
+     *
+     * @see core_Manager::act_List()
+     */
+    public function act_List()
+    {
+        $res = $this->act_Default();
+        
+        return $res;
+    }
+    
+    
+    /**
      * Екшън за репортване на грешката
      *
      * @return Redirect|ET
