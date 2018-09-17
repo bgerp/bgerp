@@ -670,7 +670,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * След изтриване на запис
      */
-    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $id => $rec) {
             $Document = doc_Containers::getDocument($rec->containerId);
