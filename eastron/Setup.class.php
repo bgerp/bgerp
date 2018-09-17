@@ -39,5 +39,6 @@ class eastron_Setup extends core_ProtoSetup
      */
     public $defClasses = array(
         'eastron_SDM120',
+        'eastron_SDM630',
     );
 }

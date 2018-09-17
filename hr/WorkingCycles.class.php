@@ -673,7 +673,7 @@ class hr_WorkingCycles extends core_Master
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recSick->startDate) {
                 $persons[$id] = (object) array('stateInfo' => 'sickDay',
                     'stateDateFrom' => $recSick->startDate,
-                    'stateDateTo' => $recSick->toDate,
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recSick->toDate, crm_Profiles::getUserByPerson($id))),
                 );
             }
         }
@@ -683,10 +683,10 @@ class hr_WorkingCycles extends core_Master
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recTrip->personId;
             
-            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recTrip->startDate) {
+            if (!isset($persons[$id]) || ($persons[$id]->stateDateFrom > $recTrip->startDate)) {
                 $persons[$id] = (object) array('stateInfo' => 'tripDay',
                     'stateDateFrom' => $recTrip->startDate,
-                    'stateDateTo' => $recTrip->toDate,
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recTrip->toDate, crm_Profiles::getUserByPerson($id))),
                 );
             }
         }
@@ -700,7 +700,7 @@ class hr_WorkingCycles extends core_Master
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
                 $persons[$id] = (object) array('stateInfo' => 'leaveDay',
                     'stateDateFrom' => $recLeave->leaveFrom,
-                    'stateDateTo' => $recLeave->leaveTo,
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
                 );
             }
         }
@@ -717,7 +717,7 @@ class hr_WorkingCycles extends core_Master
             }
             if ($rec->stateInfo == $persons[$rec->personId]->stateInfo &&
                 $rec->stateDateFrom == $persons[$rec->personId]->stateDateFrom &&
-                $rec->stateDateTo = - $persons[$rec->personId]->stateDateTo) {
+                $rec->stateDateTo == $persons[$rec->personId]->stateDateTo) {
                 continue;
             }
             
@@ -729,7 +729,9 @@ class hr_WorkingCycles extends core_Master
             
             // до дата
             $rec->stateDateTo = $persons[$rec->personId]->stateDateTo;
-            
+
+            $res[] = $rec;
+
             // и ги записваме на съответния профил
             crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo');
         }

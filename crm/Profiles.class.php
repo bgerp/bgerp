@@ -1064,9 +1064,9 @@ class crm_Profiles extends core_Master
             if ($profRec && $profRec->stateDateFrom) {
                 $dateFrom = strstr($profRec->stateDateFrom, ' ', true);
                 $dateTo = strstr($profRec->stateDateTo, ' ', true);
-                $nextWorkingDay = strstr(cal_Calendar::nextWorkingDay(null, 0), ' ', true);
+                $nextWorkingDay =  cal_Calendar::nextWorkingDay(null, 0);
                 $today = dt::now(false);
-                
+              
                 if ($dateFrom <= $today && $today <= $dateTo) {
                     $attr['class'] .= ' profile-state';
                 } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
@@ -1128,6 +1128,11 @@ class crm_Profiles extends core_Master
         return $cacheArr[$key];
     }
     
+
+    public function act_Test()
+    {
+        bp(cal_Calendar::nextWorkingDay());
+    }
     
     /**
      * Обработва ника на потребителя, така, че да изглежда добре

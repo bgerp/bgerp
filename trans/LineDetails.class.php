@@ -249,7 +249,7 @@ class trans_LineDetails extends doc_Detail
             $volume = "<span class='quiet'>N/A</span>";
         }
         
-        $row->measures = "{$weight} <b>/</b> {$volume}";
+        $row->measures = "{$weight} / {$volume}";
         
         if (!empty($transportInfo['amount'])) {
             $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;

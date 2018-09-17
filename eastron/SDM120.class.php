@@ -17,14 +17,8 @@
  *
  * @see       https://bg-etech.de/download/manual/SDM120CT-Modbus.pdf
  */
-class eastron_SDM120 extends sens2_ioport_Abstract
+class eastron_SDM120 extends modbus_IOPort
 {
-    /**
-     * Типът слотове за сензорите от този вид
-     */
-    const SLOT_TYPES = 'ModBus';
-    
-    
     /**
      * Заглавие на драйвера
      */
@@ -32,21 +26,10 @@ class eastron_SDM120 extends sens2_ioport_Abstract
     
     
     /**
-     * Интерфейс за входно-изходен порт
-     */
-    public $intefaces = 'sens2_ioport_Intf';
-    
-    
-    /**
-     * Колко максимално порта могат да се вържат на един слот
-     */
-    public $maxUnitPerSlot = 250;
-    
-    
-    /**
-     * Описание на входовете
+     * Описание на портовете на устройството
      */
     public $inputs = array(
+
         'Voltage' => array('caption' => 'Напрежение', 'uom' => 'V', 'addr' => array(0, 1)),
         'Current' => array('caption' => 'Ток', 'uom' => 'A', 'addr' => array(6,7)),
         'ActivePower' => array('caption' => 'Активна енергия', 'uom' => 'W', 'addr' => array(12,13)),
@@ -58,107 +41,14 @@ class eastron_SDM120 extends sens2_ioport_Abstract
         'ExportActiveEnergy' => array('caption' => 'Изх. акт. енергия', 'uom' => 'KWh', 'addr' => array(74,75)),
         'ImportReactiveEnergy' => array('caption' => 'Вх. реакт. енергия', 'uom' => 'kvarh', 'addr' => array(76,77)),
         'ExportReactiveEnergy' => array('caption' => 'Изх. реакт. енергия', 'uom' => 'kvarh', 'addr' => array(78,79)),
+        'TotalSystemPowerDemand' => array('caption' => 'Енергия за собствени нужди', 'uom' => 'W', 'addr' => array(86, 86)),
+        'MaximumTotalSystemPowerDemand' => array('caption' => 'Максимална енергия за собствени нужди', 'uom' => 'W', 'addr' => array(88, 89)),
+        'TotalActiveEnergy' => array('caption' => 'Сумарна активна енергия', 'uom' => 'kVArh', 'addr' => array(343, 344)),
     );
-    
-    
+
+
     /**
-     * Връша информация за портовете, които това устройство показва
-     *
-     * @return array масив с обекти имащи следните полета:
-     *               o subname  - подчинено на променливата, може да е ''
-     *               о suffix   - стринг, който се изписва след променливата (%, V, W, ...)
-     *               o prefix   - стринг, който се изписва преди променливата
-     *               о options  - масив с възможни стоийнисти
-     *               о min      - минимална стойност
-     *               о max      - максимална стойност
-     *               о readable - дали порта може да се чете
-     *               о writable - дали порта може да се записва
+     * Масив със стойности в описанието на портовете, които не се променят
      */
-    public function discovery()
-    {
-        $res = array();
-        if (is_array($this->inputs)) {
-            foreach ($this->inputs as $key => $inputInfo) {
-                $portInfo = array(
-                    'name' => $key,
-                    'uom' => $inputInfo['uom'],
-                    'readable' => true,
-                );
-                if (is_array($this->driverRec->{$key})) {
-                    foreach ($this->driverRec->{$key} as $prop => $val) {
-                        $portInfo[$prop] = $val;
-                    }
-                }
-                $res[] = (object) $portInfo;
-            }
-        }
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Добавя полетата на драйвера към Fieldset
-     *
-     * @param core_Fieldset $fieldset
-     */
-    public function addFields(core_Fieldset &$fieldset)
-    {
-        $fieldset->FLD('unitId', 'int(min=0,max=255)', 'caption=Unit ID,mandatory');
-        parent::addFields($fieldset);
-    }
-    
-    
-    /**
-     * Връща допълнителен идентификатор за порта, който е базиран на данните в драйвера
-     */
-    public function getPortIdent($rec)
-    {
-        return $rec->unitId;
-    }
-    
-    
-    /**
-     * Конвертира извлечената стойност в масив от Име => Стойност
-     */
-    public function convert($data, $name, $pRec)
-    {
-        $addr = $this->inputs[$name]['addr'];
-        
-        $v1 = $data[$addr[0]];
-        $v2 = $data[$addr[1]];
-        
-        $res = self::registersToFlaot($v1, $v2);
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Convert two registers to float.
-     *
-     * @param int $reg_value1 Register 1.
-     * @param int $reg_value2 Register 2.
-     *
-     * @return float Value from two registers.
-     */
-    private static function registersToFlaot($reg_value1, $reg_value2)
-    {
-        /** @var array Packet binary data. $bin_data */
-        $bin_data = null;
-        
-        
-        /** @var float Unpacked float value. $value */
-        $value = NAN;
-        if (isset($reg_value1)) {
-            if (isset($reg_value2)) {
-                $bin_data = pack('nn', $reg_value1, $reg_value2);
-            }
-        }
-        if ($bin_data != null) {
-            $value = unpack('G', $bin_data)[1];
-        }
-        
-        return $value;
-    }
+    public $staticInfo = array('readable' => true, 'writable' => false, 'type' => 'float');
 }

@@ -330,7 +330,7 @@ class sens2_Controllers extends core_Master
     public function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if ($mvc->haveRightFor('update', $data->rec)) {
-            $data->toolbar->addBtn('Обновяване', array($mvc, 'updateInputs', $data->rec->id));
+            $data->toolbar->addBtn('Обновяване', array($mvc, 'updateInputs', $data->rec->id), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на състоянието');
         }
     }
     

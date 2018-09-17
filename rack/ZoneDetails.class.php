@@ -232,17 +232,23 @@ class rack_ZoneDetails extends core_Detail
     
     /**
      * Изчислява какво количество от даден продукт е налично в зоните
+     * 
+     * @param int $productId
+     * @param int $storeId
+     * @return number $res
      */
-    public static function calcProductQuantityOnZones($productId)
+    public static function calcProductQuantityOnZones($productId, $storeId = null)
     {
         $query = self::getQuery();
+        $query->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
         $query->XPR('sum', 'double', 'sum(#movementQuantity)');
         $query->where("#productId = {$productId}");
-        $rec = $query->fetch();
-        $res = 0;
-        if ($rec) {
-            $res = $rec->sum;
+        if(isset($storeId)){
+            $query->where("#storeId = {$storeId}");
         }
+        
+        $rec = $query->fetch();
+        $res =  ($rec) ? $rec->sum : 0;
         
         return $res;
     }
@@ -253,8 +259,10 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        $storeId = rack_Zones::fetchField($rec->zoneId, 'storeId');
+        
         // Рекалкулира какво е количеството по зони на артикула в склад-а
-        rack_Products::recalcQuantityOnZones($rec->productId);
+        rack_Products::recalcQuantityOnZones($rec->productId, $storeId);
     }
     
     

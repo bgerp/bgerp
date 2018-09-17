@@ -119,10 +119,10 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=100)', 'caption=Наименование,mandatory');
+        $this->FLD('num', 'int(max=100)', 'caption=Номер,mandatory');
+        $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,smartCenter,input=none');
-        $this->FLD('summaryData', 'blob(serialize, compress)', 'input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,smartCenter,input=none');
         
         $this->setDbUnique('num,storeId');
@@ -149,7 +149,7 @@ class rack_Zones extends core_Master
             }
         }
         
-        $row->num = $mvc->getHyperlink($rec->id, true);
+        $row->num = $mvc->getHyperlink($rec->id);
         
         if(isset($rec->containerId)){
             $document = doc_Containers::getDocument($rec->containerId);
@@ -157,7 +157,7 @@ class rack_Zones extends core_Master
             $row->folderId = doc_Folders::getFolderTitle($documentRec->folderId);
             
             if(isset($documentRec->{$document->lineFieldName})){
-                $row->lineId = trans_Lines::getLink($documentRec->{$document->lineFieldName}, 0);
+                $row->lineId = trans_Lines::getHyperlink($documentRec->{$document->lineFieldName}, 0);
             }
         }
         
@@ -169,7 +169,29 @@ class rack_Zones extends core_Master
             
             $row->ROW_ATTR['id'] = self::getRecTitle($rec);
         }
+        
+        if(!empty($rec->description)){
+            $description = $mvc->getVerbal($rec, 'description');
+            $row->num = ht::createHint($row->num, $description);
+        }
     }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return bool|null
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        if($mvc->haveRightFor('removedocument', $data->rec->id)){
+            $data->toolbar->addBtn('Премахване', array($mvc, 'removeDocument', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
+        }
+    }
+    
     
     /**
      * Връща зоните към подадения склад
@@ -376,7 +398,7 @@ class rack_Zones extends core_Master
             if(empty($rec->containerId)){
                 $requiredRoles = 'no_one';
             } else {
-                if(rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL OR #movementQuantity = 0)")){
+                if(rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL AND #movementQuantity != 0)")){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -620,9 +642,18 @@ class rack_Zones extends core_Master
         
         $rec->containerId = null;
         $this->save($rec);
+        rack_ZoneDetails::syncWithDoc($rec->id);
+        
+        // Изтриване на всички заявки към зоната
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("LOCATE('|{$rec->id}|', #zoneList) AND #state = 'pending'");
+        while($mRec = $mQuery->fetch()){
+            rack_Movements::delete($mRec->id);
+        }
+        
         $this->updateMaster($rec);
         
-        followRetUrl(null, 'Документа е премахнат от зоната');
+        followRetUrl(null, 'Документът е премахнат от зоната');
     }
     
     
