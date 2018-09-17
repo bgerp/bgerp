@@ -259,8 +259,10 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        $storeId = rack_Zones::fetchField($rec->zoneId, 'storeId');
+        
         // Рекалкулира какво е количеството по зони на артикула в склад-а
-        rack_Products::recalcQuantityOnZones($rec->productId);
+        rack_Products::recalcQuantityOnZones($rec->productId, $storeId);
     }
     
     
