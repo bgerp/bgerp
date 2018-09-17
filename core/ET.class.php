@@ -196,7 +196,7 @@ class core_ET extends core_BaseClass
             $this->content,
             
             $mp->beginStop,
-                $mp->endStart - $mp->beginStop
+            $mp->endStart - $mp->beginStop
         
         ));
         $newTemplate->master = & $this;
