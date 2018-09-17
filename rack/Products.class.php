@@ -219,8 +219,10 @@ class rack_Products extends store_Products
         $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent();
         
         $saveArr = array();
-        $query = self::getQuery("#storeId = {$storeId}");
+        $query = self::getQuery();
+        $query->where("#storeId = {$storeId}");
         $query->in("productId", $productArr);
+        
         while($rec = $query->fetch()){
             $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $storeId);
             $saveArr[$rec->id] = $rec;
