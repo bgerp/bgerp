@@ -157,7 +157,7 @@ class rack_Zones extends core_Master
             $row->folderId = doc_Folders::getFolderTitle($documentRec->folderId);
             
             if(isset($documentRec->{$document->lineFieldName})){
-                $row->lineId = trans_Lines::getLink($documentRec->{$document->lineFieldName}, 0);
+                $row->lineId = trans_Lines::getHyperlink($documentRec->{$document->lineFieldName}, 0);
             }
         }
         
