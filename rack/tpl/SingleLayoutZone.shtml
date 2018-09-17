@@ -6,24 +6,30 @@
             <fieldset class="detail-info">
                 <div class="groupList">
                     <table>
-                    	<!--ET_BEGIN storeId-->
+                   <!--ET_BEGIN storeId-->
                         <tr>
-                            <td class='dt'>|Склад|*</td>
+                            <td style='text-align:left' class='quiet'>|Склад|*</td>
                             <td> [#storeId#]</td>
                         </tr>
                         <!--ET_END storeId-->
                         <!--ET_BEGIN containerId-->
                         <tr>
-                            <td class='dt'>|Документ|*:</td>
+                            <td style='text-align:left' class='quiet'>|Документ|*:</td>
                             <td>[#containerId#]</td>
                         </tr>
                         <!--ET_END containerId-->
                         <!--ET_BEGIN readiness-->
                         <tr>
-                            <td class='dt'>|Готовност|*:</td>
+                            <td style='text-align:left' class='quiet'>|Готовност|*:</td>
                             <td>[#readiness#]</td>
                         </tr>
                         <!--ET_END readiness-->
+                        <!--ET_BEGIN description-->
+                        <tr>
+                            <td style='text-align:left' class='quiet'>|Описание|*</td>
+                            <td >[#description#]</td>
+                        </tr>
+                    <!--ET_END description-->
                     </table>
                 </div>
             </fieldset>

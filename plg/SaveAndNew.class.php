@@ -70,9 +70,15 @@ class plg_SaveAndNew extends core_Plugin
                 if (count($fields)) {
                     foreach ($fields as $name => $fld) {
                         $permanentName = cls::getClassName($mvc) . '_' . $name;
+                        $captionArr = explode('->', $fld->caption);
+                        if (count($captionArr) == 2) {
+                            $caption = tr($captionArr[0]) . '->' . tr($captionArr[1]);
+                        } else {
+                            $caption = tr($fld->caption);
+                        }
                         
                         if (($value = core_Type::escape(Mode::get($permanentName))) && $name != 'id') {
-                            $info .= "<p>{$fld->caption}: <b>{$value}</b></p>";
+                            $info .= "<p>{$caption}: <b>{$value}</b></p>";
                         }
                         if ($name == 'id') {
                             $id = $value;

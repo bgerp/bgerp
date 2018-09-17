@@ -196,12 +196,11 @@ class trans_Lines extends core_Master
         $start = dt::mysql2verbal($rec->start, 'd.m.Y H:i');
         $start = str_replace(' 00:00', '', $start);
         
-        if (count($titleArr) == 2) {
-            
-            return "{$start}/{$titleArr[1]} ({$rec->countReady}/{$rec->countTotal})";
-        }
+        $title = (count($titleArr) == 2) ? $titleArr[1] : $rec->title;
+        $title = str::limitLen($title, 32);
+        $recTitle = "{$start}/{$title} ({$rec->countReady}/{$rec->countTotal})";
         
-        return "{$start}/{$rec->title} ({$rec->countReady}/{$rec->countTotal})";
+        return $recTitle;
     }
     
     

@@ -94,15 +94,14 @@ class rack_Movements extends core_Manager
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,silent,smartCenter');
-        $this->FLD('position', 'rack_PositionType', 'caption=Движение->Позиция,input=none');
-        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Нова,input=none');
-        $this->FLD('palletToId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->Палет към,input=none,smartCenter');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
+        $this->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
+        $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden,silent');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
-        $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние');
+        $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние,silent');
         $this->FLD('workerId', 'user', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
         
         $this->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
@@ -383,7 +382,7 @@ class rack_Movements extends core_Manager
             
             // Добавяне на предложения за нова позиция
             if ($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)) {
-                $form->setSuggestions('positionTo', array(tr('Под') => tr('Под'), $bestPos => $bestPos));
+                $form->setSuggestions('positionTo', array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos));
                 if ($form->rec->positionTo == rack_PositionType::FLOOR) {
                     $form->rec->positionTo = tr('Под');
                 }
@@ -658,11 +657,11 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($action == 'edit' && isset($rec) && $rec->state != 'pending') {
+        if ($action == 'edit' && isset($rec->state) && $rec->state != 'pending') {
             $requiredRoles = 'no_one';
         }
         
-        if ($action == 'delete' && isset($rec) && $rec->state != 'pending') {
+        if ($action == 'delete' && isset($rec->state) && $rec->state != 'pending') {
             $requiredRoles = 'no_one';
         }
     }
@@ -682,7 +681,7 @@ class rack_Movements extends core_Manager
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
         
         if ($palletId = Request::get('palletId', 'int')) {
-            $data->query->where("#palletId = {$palletId} OR #palletToId = {$palletId}");
+            $data->query->where("#palletId = {$palletId}");
         }
         
         $data->listFilter->setFieldType('state', 'enum(all=Всички,pending=Чакащи,active=Активни,closed=Приключени)');
