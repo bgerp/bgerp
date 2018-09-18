@@ -63,7 +63,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'productId, packagingId, status=Състояние,movementsHtml=@';
+    public $listFields = 'productId, status=Състояние,movementsHtml=@, packagingId';
     
     
     /**

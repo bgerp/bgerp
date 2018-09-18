@@ -127,3 +127,17 @@
 .rack_ZoneDetails .red , .rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending .red{
    color: red !important;
 }
+
+
+@media handheld , only screen and (max-device-width: 1280px) {
+    .rack_Zones .listTable {
+        font-size: 1.1em;
+    }
+
+    .rack_Zones .toolbar-btn {
+        margin: 0;
+        padding: 5px;
+        width: 16px;
+        height: 13px;
+    }
+}
