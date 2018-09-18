@@ -94,7 +94,7 @@
 }
 
 .inline-workerId {
-    width: 250px;
+    width: 250px !important;
 }
 
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow  .anchor-arrow img {
