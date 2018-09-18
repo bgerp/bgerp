@@ -116,7 +116,7 @@
     margin: 0 10px;
 }
 
-.rack_ZoneDetails .minusImg {
+.singleView .rack_ZoneDetails .minusImg {
     filter: invert(90%);
 }
 
