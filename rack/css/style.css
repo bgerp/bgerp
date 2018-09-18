@@ -84,7 +84,6 @@
 }
 
 .zone-product-status {
-    width: 100px;
     text-align: right;
     padding-right: 10px !important;
 }
@@ -102,16 +101,29 @@
     width: 1% !important;
 }
 
-.rack-quantity {
+.rack_Zones .rack-quantity {
     width: 200px !important;
     text-align: center;
     max-width: none !important;
 }
 
-.zone-product-status {
+.rack_Zones .zone-product-status {
     width: 140px !important;
     max-width: none !important;
 }
+
 .minusImg {
     margin: 0 10px;
+}
+
+.rack_ZoneDetails .minusImg {
+    filter: invert(90%);
+}
+
+.wide .singleView .rack_ZoneDetails table.listTable {
+    max-width: none !important;
+}
+
+.rack_ZoneDetails .red , .rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending .red{
+   color: red !important;
 }
