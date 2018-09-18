@@ -97,7 +97,7 @@ class rack_Movements extends core_Manager
         $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
-        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden,silent');
+        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
@@ -329,6 +329,8 @@ class rack_Movements extends core_Manager
         $form->setField('storeId', 'input=hidden');
         $form->setField('workerId', 'input=none');
         
+        $defZones = Request::get('defaultZones', 'varchar');
+        
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
             
@@ -344,6 +346,9 @@ class rack_Movements extends core_Manager
             if (count($zones)) {
                 $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones));
                 $form->setField('zones', 'input');
+                if(!empty($defZones)){
+                    $form->setDefault('zones', $defZones);
+                }
             } else {
                 $form->setField('zones', 'input=none');
             }
