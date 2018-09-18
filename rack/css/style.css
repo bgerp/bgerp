@@ -60,10 +60,6 @@
     color: #222 !important;
 }
 
-.rack_Zones  .listTable > tbody > tr.zonesCommonRow .nowrap {
-    width: 50px;
-}
-
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow table {
     margin-bottom: 0;
     width: 100%;
@@ -101,6 +97,18 @@
     filter: invert(100%);
 }
 
+.rack_Zones .small-field {
+    width: 1% !important;
+}
+
+.rack-quantity, .zone-product-status {
+    width: 200px !important;
+    text-align: center;
+}
+
+.zone-product-status {
+    width: 100px !important;
+}
 .minusImg {
     margin: 0 10px;
 }
