@@ -684,16 +684,15 @@ class rack_Movements extends core_Manager
             $data->query->where("#palletId = {$palletId}");
         }
         
-        $data->listFilter->setFieldType('state', 'enum(all=Всички,pending=Чакащи,active=Активни,closed=Приключени)');
-        $data->listFilter->setField('state', 'silent,input');
-        $data->listFilter->setDefault('state', 'current');
+        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)');
+        $data->listFilter->setField('state1', 'placeholder=Всички');
         $data->listFilter->input();
         
-        $data->listFilter->showFields = 'search,state';
+        $data->listFilter->showFields = 'search,state1';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        if ($state = $data->listFilter->rec->state) {
+        if ($state = $data->listFilter->rec->state1) {
             if (in_array($state, array('active', 'closed', 'pending'))) {
                 $data->query->where("#state = '{$state}'");
             }
