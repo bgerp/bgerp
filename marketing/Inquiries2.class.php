@@ -803,13 +803,17 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $cu = core_Users::getCurrent('id', false);
         Mode::set('showBulletin', false);
-        Request::setProtected('drvId,protos,moq,lg,measureId');
+        Request::setProtected('classId, objectId');
+        expect($classId = Request::get('classId', 'int'));
+        expect($objectId = Request::get('objectId', 'int'));
+        $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
+        $sourceData = $Source->getInquiryData($objectId);
         
         $this->requireRightFor('new');
-        expect($drvId = Request::get('drvId', 'int'));
-        $proto = Request::get('protos', 'varchar(10000)');
+        expect($drvId = $sourceData['drvId']);
+        $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
-        $title = Request::get('title');
+        $title = $sourceData['title'];
         
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
@@ -830,11 +834,6 @@ class marketing_Inquiries2 extends embed_Manager
         
         asort($proto);
         
-        if ($lg = Request::get('Lg')) {
-            cms_Content::setLang($lg);
-            core_Lg::push($lg);
-        }
-        
         $form = $this->prepareForm($drvId);
         
         // Рефрешване на формата ако потребителя се логне докато е в нея
@@ -846,6 +845,11 @@ class marketing_Inquiries2 extends embed_Manager
         $form->FLD('drvId', 'class', 'input=hidden,silent');
         $form->FLD('quantityCount', 'double', 'input=hidden,silent');
         $form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
+        
+        foreach (array('measureId', 'moq', 'drvId', 'quantityCount', 'protos') as $fld){
+            $form->setDefault($fld, $sourceData[$fld]);
+        }
+        
         if (empty($cu)) {
             $form->setDefault('title', $title);
         }
@@ -894,8 +898,9 @@ class marketing_Inquiries2 extends embed_Manager
             $this->invoke('AfterInputEditForm', array(&$form));
         }
         
-        $form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($title)}</b>";
-        vislog_History::add('Форма за ' . $form->getFieldType('title')->toVerbal($title));
+        $titleVerbal = $form->getFieldType('title')->toVerbal($title);
+        $form->title = "|Запитване за|* <b>{$titleVerbal}</b>";
+        vislog_History::add("Форма за {$titleVerbal}");
         
         if (isset($form->rec->title) && !isset($cu)) {
             $form->setField('title', 'input=hidden');
@@ -961,10 +966,6 @@ class marketing_Inquiries2 extends embed_Manager
         
         // Поставяме шаблона за външен изглед
         Mode::set('wrapper', 'cms_page_External');
-        
-        if ($lg) {
-            core_Lg::pop();
-        }
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
