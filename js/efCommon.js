@@ -5099,7 +5099,7 @@ function mailServerSettings() {
 		    	protocol.value = "imap";
 		    	security.value = "tls";
 		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.mail.bg:25";
+		    	smtpServer.value = "smtp.mail.bg:465";
 		    	smtpSecure.value = "tls";
 		    	smtpAuth.value = "LOGIN";
 		    	user.value = email.value;
