@@ -256,11 +256,25 @@ class rack_Zones extends core_Master
         $form->setDefault('num', $mvc->getNextNumber($form->rec->storeId));
     }
 
+    
+    /**
+     * След рендиране на лист таблицата
+     */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         $tpl->push('rack/css/style.css', 'CSS');
     }
 
+    
+    /**
+     * След рендиране на singyla
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        $tpl->push('rack/css/style.css', 'CSS');
+    }
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
