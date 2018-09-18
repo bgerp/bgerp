@@ -58,7 +58,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dueDate,quantity,notes,tolerance,sharedUsers';
+    public $changableFields = 'dueDate,packQuantity,notes,tolerance,sharedUsers';
     
     
     /**
@@ -358,7 +358,7 @@ class planning_Jobs extends core_Master
      * @param int $productId - ид на артикул
      * @param int $saleId    - ид на сделка
      *
-     * @return NULL|date - дефолтния падеж
+     * @return NULL|datetime - дефолтния падеж
      */
     private static function getDefaultDueDate($productId, $saleId, &$deliveryDate)
     {
