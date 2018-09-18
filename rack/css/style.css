@@ -91,6 +91,7 @@
 
 .inline-workerId {
     width: 250px !important;
+    max-width: none !important;
 }
 
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow  .anchor-arrow img {
@@ -101,13 +102,15 @@
     width: 1% !important;
 }
 
-.rack-quantity, .zone-product-status {
+.rack-quantity {
     width: 200px !important;
     text-align: center;
+    max-width: none !important;
 }
 
 .zone-product-status {
     width: 100px !important;
+    max-width: none !important;
 }
 .minusImg {
     margin: 0 10px;
