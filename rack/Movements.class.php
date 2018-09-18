@@ -1040,11 +1040,13 @@ class rack_Movements extends core_Manager
     
     
     /**
-     * Изтриване на стари движения по разписание
+     * Изтриване на минали движения
+     *
+     * @param datetime $olderThan
+     * @return void
      */
-    public function cron_DeleteOldMovementsAndPallets()
+    private function deleteOldMovements($olderThan)
     {
-        $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
         if(empty($olderThan)) return;
         
         // Всички движения преди X време
@@ -1059,7 +1061,7 @@ class rack_Movements extends core_Manager
             if(isset($mRec->palletId)){
                 $fromPalletState = rack_Pallets::fetchField($mRec->palletId, 'state');
                 if($fromPalletState == 'active'){
-                   $delete = false;
+                    $delete = false;
                 }
             }
             
@@ -1077,5 +1079,54 @@ class rack_Movements extends core_Manager
                 rack_Movements::delete($mRec->id);
             }
         }
+    }
+    
+    
+    /**
+     * Изтриване на затворени палети
+     * 
+     * @param datetime $olderThan
+     * @return void
+     */
+    private function deleteClosedPallets($olderThan)
+    {
+        if(empty($olderThan)) return;
+        
+        $closedBefore = dt::addSecs(-1 * $olderThan);
+        
+        // Кои палети са затворени преди указаното време
+        $pQuery = rack_Pallets::getQuery();
+        $pQuery->where("#state = 'closed'");
+        $pQuery->where("#closedOn <= '{$closedBefore}'");
+        $pQuery->show('id');
+        $palletsToDelete = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+        if(!count($palletsToDelete)) return;
+        
+        // От тези палети, кои от тх все още участват в движения
+        $query = rack_Movements::getQuery();
+        $query->in('palletId', $palletsToDelete);
+        $query->show('palletId');
+        $palletsInMovements = arr::extractValuesFromArray($query->fetchAll(), 'palletId');
+        
+        // Изтриват се тези палети, към които вече няма движения
+        $palletsLeftToDelete = array_diff_key($palletsToDelete, $palletsInMovements);
+        foreach ($palletsLeftToDelete as $palletId) {
+            rack_Pallets::delete($palletId);
+        }
+    }
+    
+    
+    /**
+     * Изтриване на стари движения по разписание
+     */
+    public function cron_DeleteOldMovementsAndPallets()
+    {
+        // Изтриване на старите движения
+        $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
+        $this->deleteOldMovements($olderThan);
+        
+        // Изтриване на затворените палети
+        $palletsOlderThan = rack_Setup::get('DELETE_CLOSED_PALLETS_OLDER_THAN');
+        $this->deleteClosedPallets($palletsOlderThan);
     }
 }
