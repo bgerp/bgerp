@@ -514,9 +514,9 @@ class rack_Zones extends core_Master
                     }
                     
                     $clone = clone $mRec;
+                    $clone->_originalPackQuantity = $mRec->packQuantity;
                     $clone->quantity = $quantity;
                     $clone->packQuantity = $clone->quantity;
-                    $clone->_originalPackQuantity = $mRec->quantity;
                     
                     self::$movementCache[$zoneId][$mRec->id] = $clone;
                 }
