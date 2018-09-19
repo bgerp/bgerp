@@ -837,4 +837,24 @@ class rack_Zones extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Функция по подразбиране, за връщане на хеша на резултата
+     *
+     * @param core_Mvc $mvc
+     * @param string   $res
+     * @param string   $status
+     */
+    protected function on_AfterGetContentHash($mvc, &$res, &$status)
+    {
+        $storeId = store_Stores::getCurrent();
+        
+        // Хеша е датата на последна модификация на движенията
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#storeId = {$storeId}");
+        $mQuery->orderBy('modifiedOn', 'DESC');
+        $mQuery->show('modifiedOn');
+        $res = md5(trim($mQuery->fetch()->modifiedOn));
+    }
 }
