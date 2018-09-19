@@ -46,7 +46,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальора ще бъде датата на контиране');
+        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальора ще бъде записан при контиране|*!');
     }
     
     

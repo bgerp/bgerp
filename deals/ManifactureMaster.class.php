@@ -81,8 +81,6 @@ abstract class deals_ManifactureMaster extends core_Master
             }
         }
         
-        $row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
-        
         if ($fields['-single']) {
             if (isset($rec->storeId)) {
                 $storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
