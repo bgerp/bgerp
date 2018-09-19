@@ -136,6 +136,7 @@ class rack_ZoneDetails extends core_Detail
         if(!count($data->rows)) return;
         setIfNot($data->inlineDetail, false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
+        $requestedProductId = Request::get('productId', 'int');
         
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
@@ -150,7 +151,7 @@ class rack_ZoneDetails extends core_Detail
             }
             
             // Ако няма движения и к-та са 0, реда се маркира
-            if(empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)){
+            if((empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)) || (isset($requestedProductId) && $rec->productId != $requestedProductId)){
                 unset($data->rows[$id]);
             }
         }
@@ -323,8 +324,11 @@ class rack_ZoneDetails extends core_Detail
         list($productId, $packagingId) = array($rec->productId, $rec->packagingId);
         $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId){return $o->productId == $productId && $o->packagingId == $packagingId;});
         $rec->_movements = $data->recs;
+        $requestedProductId = Request::get('productId', 'int');
         
         foreach ($data->recs as $mRec) {
+            if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
+            
             $fields = $Movements->selectFields();
             $fields['-list'] = true;
             $fields['-inline'] = true;

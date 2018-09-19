@@ -298,6 +298,84 @@ class rack_Zones extends core_Master
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->orderBy('num', 'asc');
+        
+        // Добавяне на филтър по артикулите
+        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'productId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input('productId');
+        
+        // Ако се филтрира по артикул
+        if($productId = $data->listFilter->rec->productId){
+            
+            // Оставят се само тези зони където се среща артикула
+            $dQuery = rack_ZoneDetails::getQuery();
+            $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+            $dQuery->where("#productId={$productId} AND #storeId = {$storeId}");
+            $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
+            if(count($zoneIdsWithProduct)){
+                $data->query->in('id', $zoneIdsWithProduct);
+            } else {
+                $data->query->where("1=2");
+            }
+        }
+    }
+    
+    
+    /**
+     * Филтър по артикулите в зоните
+     */
+    public static function getProductsInZones($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $dQuery = rack_ZoneDetails::getQuery();
+        $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+        $dQuery->EXT('searchKeywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
+        $dQuery->where("#storeId = {$params['storeId']}");
+        $dQuery->groupBy('productId');
+        
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) return array();
+            
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            
+            $dQuery->where("#productId IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $dQuery->where("#productId = ${onlyIds}");
+        }
+        
+        if ($q) {
+            if ($q{0} == '"') {
+                $strict = true;
+            }
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            
+            if ($strict) {
+                $qArr = array(str_replace(' ', '.*', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $dQuery->where(array("#searchKeywords REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+        
+        if ($limit) {
+            $dQuery->limit($limit);
+        }
+        
+        $dQuery->show('productId');
+        
+        $res = array();
+        while ($rec = $dQuery->fetch()) {
+            $res[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
+        }
+        
+        return $res;
     }
     
     
