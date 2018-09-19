@@ -152,7 +152,7 @@ class log_Debug extends core_Manager
         }
         
         $data->listFilter->setOptions('user', $uArr);
-        $data->listFilter->setDefault('user', core_Users::getCurrent());
+        $defUser = PHP_INT_MAX;
         
         $data->listFilter->showFields = 'search, user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';
         
@@ -164,17 +164,20 @@ class log_Debug extends core_Manager
         
         $data->listFilter->view = 'horizontal';
         
+        $debugFileName = null;
+        if ($debugFile = Request::get('debugFile')) {
+            Mode::set('stopLoggingDebug', true);
+            $debugFileName = $debugFile . '.debug';
+            $defUser = core_Users::getCurrent();
+        }
+        
+        $data->listFilter->setDefault('user', $defUser);
+        
         $data->listFilter->input(null, true);
         
         $tplList->append($this->renderListFilter($data), 'ListFilter');
         
         $otherFilesFromSameHit = array();
-        
-        $debugFileName = null;
-        if ($debugFile = Request::get('debugFile')) {
-            Mode::set('stopLoggingDebug', true);
-            $debugFileName = $debugFile . '.debug';
-        }
         
         $before = 25;
         $after = 25;
