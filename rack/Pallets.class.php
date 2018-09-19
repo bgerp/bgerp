@@ -95,12 +95,13 @@ class rack_Pallets extends core_Manager
     /**
      * Връща наличните палети за артикула
      *
-     * @param int $productId - ид на артикул
-     * @param int $storeId   - ид на склад
+     * @param int $productId                   - ид на артикул
+     * @param int $storeId                     - ид на склад
+     * @param boolean $withoutPendingMovements - към които да има или няма чакащи движения
      *
      * @return array $pallets - масив с палети
      */
-    public static function getAvailablePallets(int $productId, int $storeId)
+    public static function getAvailablePallets($productId, $storeId, $withoutPendingMovements = false)
     {
         $pallets = array();
         $query = self::getQuery();
@@ -108,6 +109,12 @@ class rack_Pallets extends core_Manager
         $query->show('quantity,position');
         $query->orderBy('createdOn', 'ASC');
         while ($rec = $query->fetch()) {
+            
+            // Ако се изискват само палети, към които няма чакащи движения, другите се пропускат
+            if($withoutPendingMovements === true){
+                if(rack_Movements::fetchField("#palletId = {$rec->id} AND #state = 'pending'")) continue;
+            }
+            
             $pallets[$rec->id] = (object) array('quantity' => $rec->quantity, 'position' => $rec->position);
         }
         
