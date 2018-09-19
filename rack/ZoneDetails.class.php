@@ -318,6 +318,11 @@ class rack_ZoneDetails extends core_Detail
         
         $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
         $data->listFields = arr::make('movement=Движение,workerId=Работник', true);
+        if($masterRec->_isSingle === true){
+            $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
+            $data->listFields['modifiedBy'] = 'Модифициране||Modified->От||By';
+        }
+        
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $skipClosed = ($masterRec->_isSingle === true) ? false : true;
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
