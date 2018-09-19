@@ -140,6 +140,8 @@ class rack_ZoneDetails extends core_Detail
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
+            $productCode = cat_Products::fetchField($rec->productId, 'code');
+            $row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
             
             $row->ROW_ATTR['class'] = 'row-added';
             $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
@@ -152,6 +154,8 @@ class rack_ZoneDetails extends core_Detail
                 unset($data->rows[$id]);
             }
         }
+        
+        arr::sortObjects($data->rows, '_code', 'asc', 'natural');
     }
     
     
