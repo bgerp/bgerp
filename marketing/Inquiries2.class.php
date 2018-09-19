@@ -900,7 +900,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         $titleVerbal = $form->getFieldType('title')->toVerbal($title);
         $form->title = "|Запитване за|* <b>{$titleVerbal}</b>";
-        vislog_History::add("Форма за {$titleVerbal}");
+        vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($sourceData['title']));
         
         if (isset($form->rec->title) && !isset($cu)) {
             $form->setField('title', 'input=hidden');
