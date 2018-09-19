@@ -60,10 +60,6 @@
     color: #222 !important;
 }
 
-.rack_Zones  .listTable > tbody > tr.zonesCommonRow .nowrap {
-    width: 50px;
-}
-
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow table {
     margin-bottom: 0;
     width: 100%;
@@ -88,19 +84,60 @@
 }
 
 .zone-product-status {
-    width: 100px;
     text-align: right;
     padding-right: 10px !important;
 }
 
 .inline-workerId {
-    width: 250px;
+    width: 250px !important;
+    max-width: none !important;
 }
 
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow  .anchor-arrow img {
     filter: invert(100%);
 }
 
+.rack_Zones .small-field {
+    width: 1% !important;
+}
+
+.rack_Zones .rack-quantity {
+    width: 200px !important;
+    text-align: center;
+    max-width: none !important;
+}
+
+.rack_Zones .zone-product-status {
+    width: 140px !important;
+    max-width: none !important;
+}
+
 .minusImg {
     margin: 0 10px;
+}
+
+.singleView .rack_ZoneDetails .minusImg {
+    filter: invert(90%);
+}
+
+.wide .singleView .rack_ZoneDetails table.listTable {
+    max-width: none !important;
+}
+
+.rack_ZoneDetails .red , .rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending .red{
+   color: red !important;
+}
+
+
+@media handheld , only screen and (max-device-width: 1280px) {
+    .rack_Zones .listTable {
+        font-size: 1.1em;
+    }
+
+    .rack_Zones .toolbar-btn {
+        margin: 0;
+        padding: 5px;
+        width: 16px;
+        height: 13px;
+    }
 }

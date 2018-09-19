@@ -77,16 +77,42 @@ class backup_Restore extends core_Manager
     {
         $backup = json_encode(self::BGERP_RESTORE_ORIGIN); // това трябва да идва като параметър от ВЕБ или на ф-
         $backup = json_decode($backup);
-        $confFileName = $backup->prefix . '_' . EF_DB_NAME . '_META';
+        
         $storage = core_Cls::get('backup_' . $backup->type);
-        $storage->getFile($confFileName,EF_TEMP_PATH . "/" . $confFileName);
-        $meta = file_get_contents(EF_TEMP_PATH . "/" . $confFileName);
+        // Взимаме конфиг. файла
+        $confFileName = $backup->prefix . '_' . EF_DB_NAME . '_conf.tar.gz';
+        $storage->getFile($confFileName, EF_TEMP_PATH . "/" . $confFileName);
+        $searchConsts = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
+        try {
+            $phar = new PharData(EF_TEMP_PATH . "/" . $confFileName);
+            foreach (new RecursiveIteratorIterator($phar) as $file) {
+                echo $file . "<br />";
+                $confRows = file($file);
+                foreach ($confRows as $row) {
+                    foreach ($searchConsts as $const) {
+                        if (strpos($row, $const) !== false) {
+                            $consts[] = $row;
+                        }
+                    }
+                    
+                }
+            }
+        } catch (Exception $e) {
+            bp($e->getMessage());
+        }
+        // в $consts[] са редовете, които трябва да се добавят в новия conf файл 
+        
+        // Взимаме МЕТА файла
+        $metaFileName = $backup->prefix . '_' . EF_DB_NAME . '_META';
+        $storage->getFile($metaFileName, EF_TEMP_PATH . "/" . $metaFileName);
+        $meta = file_get_contents(EF_TEMP_PATH . "/" . $metaFileName);
         $metaArr = unserialize($meta);
         // Махаме служебната за mySQL информация
         unset($metaArr['logNames']);
         
+        // Взимаме последния бекъп
         $restoreArr = array_reverse($metaArr['backup'])[0];;
-        //bp ($r);
+        bp($restoreArr);
         
         return $backup;
     }

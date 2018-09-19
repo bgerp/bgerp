@@ -1528,4 +1528,15 @@ class sales_Sales extends deals_DealMaster
             }
         }
     }
+    
+    
+    /**
+     * Функция, която прихваща след активирането на документа
+     * Ако офертата е базирана на чернова  артикула, активираме и нея
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        $groupId = crm_Groups::force('Клиенти » Продажби');
+        cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
+    }
 }

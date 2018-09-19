@@ -25,7 +25,7 @@ class rack_Zones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2';
+    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows';
     
     
     /**
@@ -112,6 +112,12 @@ class rack_Zones extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'num';
+    
+    
+    /**
+     * На колко време да се рефрешва лист изгледа
+     */
+    public $refreshRowsTime = 5000;
     
     
     /**
@@ -256,11 +262,25 @@ class rack_Zones extends core_Master
         $form->setDefault('num', $mvc->getNextNumber($form->rec->storeId));
     }
 
+    
+    /**
+     * След рендиране на лист таблицата
+     */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         $tpl->push('rack/css/style.css', 'CSS');
     }
 
+    
+    /**
+     * След рендиране на singyla
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        $tpl->push('rack/css/style.css', 'CSS');
+    }
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
@@ -284,6 +304,84 @@ class rack_Zones extends core_Master
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->orderBy('num', 'asc');
+        
+        // Добавяне на филтър по артикулите
+        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'productId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input('productId');
+        
+        // Ако се филтрира по артикул
+        if($productId = $data->listFilter->rec->productId){
+            
+            // Оставят се само тези зони където се среща артикула
+            $dQuery = rack_ZoneDetails::getQuery();
+            $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+            $dQuery->where("#productId={$productId} AND #storeId = {$storeId}");
+            $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
+            if(count($zoneIdsWithProduct)){
+                $data->query->in('id', $zoneIdsWithProduct);
+            } else {
+                $data->query->where("1=2");
+            }
+        }
+    }
+    
+    
+    /**
+     * Филтър по артикулите в зоните
+     */
+    public static function getProductsInZones($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $dQuery = rack_ZoneDetails::getQuery();
+        $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+        $dQuery->EXT('searchKeywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
+        $dQuery->where("#storeId = {$params['storeId']}");
+        $dQuery->groupBy('productId');
+        
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) return array();
+            
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            
+            $dQuery->where("#productId IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $dQuery->where("#productId = ${onlyIds}");
+        }
+        
+        if ($q) {
+            if ($q{0} == '"') {
+                $strict = true;
+            }
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
+            
+            if ($strict) {
+                $qArr = array(str_replace(' ', '.*', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach ($qArr as $w) {
+                $dQuery->where(array("#searchKeywords REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+        
+        if ($limit) {
+            $dQuery->limit($limit);
+        }
+        
+        $dQuery->show('productId');
+        
+        $res = array();
+        while ($rec = $dQuery->fetch()) {
+            $res[$rec->productId] = cat_Products::getTitleById($rec->productId, false);
+        }
+        
+        return $res;
     }
     
     
@@ -514,9 +612,9 @@ class rack_Zones extends core_Master
                     }
                     
                     $clone = clone $mRec;
+                    $clone->_originalPackQuantity = $mRec->packQuantity;
                     $clone->quantity = $quantity;
                     $clone->packQuantity = $clone->quantity;
-                    $clone->_originalPackQuantity = $mRec->quantity;
                     
                     self::$movementCache[$zoneId][$mRec->id] = $clone;
                 }
@@ -600,10 +698,16 @@ class rack_Zones extends core_Master
         foreach ($expected->products as $pRec) {
             
             // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId);
-            $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
-            if ($floorQuantity) {
-                $pallets[$floor] = (object) array('quantity' => $floorQuantity, 'position' => $floor);
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, true3);
+            $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
+            $requiredQuantityOnZones = array_sum($pRec->zones);
+            
+            // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
+            if($quantityOnPallets < $requiredQuantityOnZones){
+                $floorQuantity = rack_Pallets::getAvailableQuantity(null, $pRec->productId, $storeId);
+                if ($floorQuantity) {
+                    $pallets[$floor] = (object) array('quantity' => $floorQuantity, 'position' => $floor);
+                }
             }
             
             $palletsArr = array();
@@ -732,5 +836,25 @@ class rack_Zones extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Функция по подразбиране, за връщане на хеша на резултата
+     *
+     * @param core_Mvc $mvc
+     * @param string   $res
+     * @param string   $status
+     */
+    protected function on_AfterGetContentHash($mvc, &$res, &$status)
+    {
+        $storeId = store_Stores::getCurrent();
+        
+        // Хеша е датата на последна модификация на движенията
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#storeId = {$storeId}");
+        $mQuery->orderBy('modifiedOn', 'DESC');
+        $mQuery->show('modifiedOn');
+        $res = md5(trim($mQuery->fetch()->modifiedOn));
     }
 }

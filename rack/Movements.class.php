@@ -31,7 +31,7 @@ class rack_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2,plg_Modified';
     
     
     /**
@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy';
     
     
     /**
@@ -97,7 +97,7 @@ class rack_Movements extends core_Manager
         $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
-        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden,silent');
+        $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
@@ -123,7 +123,9 @@ class rack_Movements extends core_Manager
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            if (empty($rec->position)) {
+            if(isset($rec->palletId)){
+                $rec->position = rack_Pallets::fetchField($rec->palletId, 'position');
+            } else {
                 $rec->position = rack_PositionType::FLOOR;
                 $rec->palletId = null;
             }
@@ -287,7 +289,8 @@ class rack_Movements extends core_Manager
         if (isset($rec->zones)) {
             $zoneArr = type_Table::toArray($rec->zones);
             if (count($zoneArr)) {
-                foreach ($zoneArr as $obj) {
+                foreach ($zoneArr as &$obj) {
+                    $obj->quantity = core_Type::getByName('double')->fromVerbal($obj->quantity);
                     $quantityInZones += $obj->quantity;
                 }
             }
@@ -329,6 +332,8 @@ class rack_Movements extends core_Manager
         $form->setField('storeId', 'input=hidden');
         $form->setField('workerId', 'input=none');
         
+        $defZones = Request::get('defaultZones', 'varchar');
+        
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
             
@@ -344,6 +349,9 @@ class rack_Movements extends core_Manager
             if (count($zones)) {
                 $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones));
                 $form->setField('zones', 'input');
+                if(!empty($defZones)){
+                    $form->setDefault('zones', $defZones);
+                }
             } else {
                 $form->setField('zones', 'input=none');
             }
@@ -371,11 +379,7 @@ class rack_Movements extends core_Manager
             
             // На коя позиция е палета?
             if (isset($rec->palletId)) {
-                $form->setField('position', 'input=hidden');
-                if ($positionId = rack_Pallets::fetchField($rec->palletId, 'position')) {
-                    $form->setDefault('position', $positionId);
-                    $form->setField('positionTo', 'placeholder=Остава');
-                }
+                $form->setField('positionTo', 'placeholder=Остава');
             } else {
                 $form->setField('positionTo', 'placeholder=Остава');
             }
@@ -684,16 +688,15 @@ class rack_Movements extends core_Manager
             $data->query->where("#palletId = {$palletId}");
         }
         
-        $data->listFilter->setFieldType('state', 'enum(all=Всички,pending=Чакащи,active=Активни,closed=Приключени)');
-        $data->listFilter->setField('state', 'silent,input');
-        $data->listFilter->setDefault('state', 'current');
+        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)');
+        $data->listFilter->setField('state1', 'placeholder=Всички');
         $data->listFilter->input();
         
-        $data->listFilter->showFields = 'search,state';
+        $data->listFilter->showFields = 'search,state1';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        if ($state = $data->listFilter->rec->state) {
+        if ($state = $data->listFilter->rec->state1) {
             if (in_array($state, array('active', 'closed', 'pending'))) {
                 $data->query->where("#state = '{$state}'");
             }
@@ -731,7 +734,7 @@ class rack_Movements extends core_Manager
         }
         
         $rec->workerId = core_Users::getCurrent();
-        $this->save($rec, 'state,workerId');
+        $this->save($rec, 'state,workerId,modifiedOn,modifiedBy');
         
         $msg = (count($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
         $type = (count($transaction->warnings)) ? 'warning' : 'notice';
@@ -751,7 +754,7 @@ class rack_Movements extends core_Manager
         $this->requireRightFor('done', $rec);
         
         $rec->state = 'closed';
-        $this->save($rec, 'state');
+        $this->save($rec, 'state,modifiedOn,modifiedBy');
         
         followretUrl(array($this));
     }
@@ -1040,11 +1043,13 @@ class rack_Movements extends core_Manager
     
     
     /**
-     * Изтриване на стари движения по разписание
+     * Изтриване на минали движения
+     *
+     * @param datetime $olderThan
+     * @return void
      */
-    public function cron_DeleteOldMovementsAndPallets()
+    private function deleteOldMovements($olderThan)
     {
-        $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
         if(empty($olderThan)) return;
         
         // Всички движения преди X време
@@ -1059,7 +1064,7 @@ class rack_Movements extends core_Manager
             if(isset($mRec->palletId)){
                 $fromPalletState = rack_Pallets::fetchField($mRec->palletId, 'state');
                 if($fromPalletState == 'active'){
-                   $delete = false;
+                    $delete = false;
                 }
             }
             
@@ -1077,5 +1082,54 @@ class rack_Movements extends core_Manager
                 rack_Movements::delete($mRec->id);
             }
         }
+    }
+    
+    
+    /**
+     * Изтриване на затворени палети
+     * 
+     * @param datetime $olderThan
+     * @return void
+     */
+    private function deleteClosedPallets($olderThan)
+    {
+        if(empty($olderThan)) return;
+        
+        $closedBefore = dt::addSecs(-1 * $olderThan);
+        
+        // Кои палети са затворени преди указаното време
+        $pQuery = rack_Pallets::getQuery();
+        $pQuery->where("#state = 'closed'");
+        $pQuery->where("#closedOn <= '{$closedBefore}'");
+        $pQuery->show('id');
+        $palletsToDelete = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+        if(!count($palletsToDelete)) return;
+        
+        // От тези палети, кои от тх все още участват в движения
+        $query = rack_Movements::getQuery();
+        $query->in('palletId', $palletsToDelete);
+        $query->show('palletId');
+        $palletsInMovements = arr::extractValuesFromArray($query->fetchAll(), 'palletId');
+        
+        // Изтриват се тези палети, към които вече няма движения
+        $palletsLeftToDelete = array_diff_key($palletsToDelete, $palletsInMovements);
+        foreach ($palletsLeftToDelete as $palletId) {
+            rack_Pallets::delete($palletId);
+        }
+    }
+    
+    
+    /**
+     * Изтриване на стари движения по разписание
+     */
+    public function cron_DeleteOldMovementsAndPallets()
+    {
+        // Изтриване на старите движения
+        $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
+        $this->deleteOldMovements($olderThan);
+        
+        // Изтриване на затворените палети
+        $palletsOlderThan = rack_Setup::get('DELETE_CLOSED_PALLETS_OLDER_THAN');
+        $this->deleteClosedPallets($palletsOlderThan);
     }
 }

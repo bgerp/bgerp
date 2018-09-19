@@ -47,6 +47,12 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'marketing_InquirySourceIntf';
+    
+    
+    /**
      * Икона за единичен изглед
      */
     public $singleIcon = 'img/16/wooden-box.png';
@@ -246,6 +252,29 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Колко е МКП, то
+     * 
+     * @param stdClass $rec
+     * @return NULL|double $moq
+     */
+    private function getMoq($rec)
+    {
+        $moq = $rec->coMoq;
+        if (empty($moq) && isset($rec->coDriver)) {
+            if (cls::load($rec->coDriver, true)) {
+                if ($Driver = cls::get($rec->coDriver)) {
+                    $moq = $Driver->getMoq();
+                }
+            }
+        }
+        
+        $moq = !empty($moq) ? $moq : null;
+        
+        return $moq;
+    }
+    
+    
+    /**
      * След обработка на вербалните стойностти
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
@@ -253,17 +282,7 @@ class eshop_Products extends core_Master
         $row->name = tr($row->name);
         
         $uomId = self::getUomId($rec);
-        
-        // Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
-        if (empty($rec->coMoq) && isset($rec->coDriver)) {
-            if (cls::load($rec->coDriver, true)) {
-                if ($Driver = cls::get($rec->coDriver)) {
-                    if ($moq = $Driver->getMoq()) {
-                        $rec->coMoq = $moq;
-                    }
-                }
-            }
-        }
+        $rec->coMoq = $mvc->getMoq($rec);
         
         // Определяме, ако има мярката на продукта
         $uom = tr(cat_UoM::getShortName($uomId));
@@ -279,15 +298,12 @@ class eshop_Products extends core_Master
         
         if ($rec->coDriver) {
             if (marketing_Inquiries2::haveRightFor('new')) {
-                $title = 'Изпратете запитване за|* ' . tr($rec->name);
-                $lg = cms_Content::getLang();
                 if (cls::load($rec->coDriver, true)) {
-                    Request::setProtected('drvId,protos,moq,lg,measureId');
-                    $quantityCount = empty($rec->quantityCount) ? 0 : $rec->quantityCount;
-                    $url = array('marketing_Inquiries2', 'new', 'title' => $rec->name, 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $quantityCount, 'moq' => $rec->coMoq, 'ret_url' => true);
-                    $url['measureId'] = $uomId;
+                    $title = 'Изпратете запитване за|* ' . tr($rec->name);
+                    Request::setProtected('classId,objectId');
+                    $url = array('marketing_Inquiries2', 'new', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true);
                     $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn");
-                    Request::removeProtected('drvId,protos,moq,lg,measureId');
+                    Request::removeProtected('classId,objectId');
                 }
             }
         }
@@ -309,6 +325,39 @@ class eshop_Products extends core_Master
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
+    }
+    
+    
+    
+    /**
+     * Какви са дефолтните данни за създаване на запитване
+     * 
+     * @param mixed $id - ид или запис
+     * @return array $res
+     *          ['title']         - заглавие
+     *          ['drvId']         - ид на драйвер
+     *          ['lg']            - език
+     *          ['protos']        - списък от прототипни артикули
+     *          ['quantityCount'] - опционален брой количества
+     *          ['moq']           - МКП
+     *          ['measureId']     - основна мярка
+     *                                                       
+     */
+    public function getInquiryData($id)
+    {
+        $rec = $this->fetchRec($id);
+        
+        $res = array('title'         => $rec->name, 
+                     'drvId'         => $rec->coDriver, 
+                     'lg'            => cms_Content::getLang(), 
+                     'protos'        => $rec->proto, 
+                     'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount, 
+                     'moq'           => $this->getMoq($rec),
+                     'measureId'     => self::getUomId($rec),
+            
+        );
+        
+        return $res;
     }
     
     

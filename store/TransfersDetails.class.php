@@ -123,7 +123,7 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('newProductId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
         $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=none,tdClass=small-field nowrap');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input,mandatory');
@@ -219,6 +219,10 @@ class store_TransfersDetails extends doc_Detail
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        
+        if(empty($rec->newProductId)){
+            $form->setField('packagingId', 'input=none');
+        }
         
         if (empty($rec->id)) {
             $products = cat_Products::getByProperty('canStore');
