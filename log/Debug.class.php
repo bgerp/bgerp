@@ -128,9 +128,33 @@ class log_Debug extends core_Manager
         $data->listFilter->layout = "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
         
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
+        $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent, refreshForm');
+        $data->listFilter->FNC('execTime', 'enum(,fast=Бързо,slow=Бавно,verySlow=Много бавно)', 'caption=Изпълнение, input, silent, refreshForm');
+        $data->listFilter->FNC('execSize', 'enum(,small=Малко, big=Голямо, veryBig=Много голямо)', 'caption=Размер, input, silent, refreshForm');
+        $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, refreshForm, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
+        $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, refreshForm, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
+        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent, refreshForm');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
-        $data->listFilter->showFields = 'search, debugFile';
+        $uArr = core_Cache::get('log_Debug', 'users', 1000, 'core_Users');
+        if (!$uArr) {
+            // Опциите за потребители
+            $uArr = array();
+            $uQuery = core_Users::getQuery();
+            $uQuery->show('id, nick, names');
+            $uArr[PHP_INT_MAX] = tr('Всички потребители');
+            while ($uRec = $uQuery->fetch()) {
+                $uArr[$uRec->id] = $uRec->nick . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
+            }
+            $uArr[-1] = core_Users::fetchField(-1, 'nick');
+            $uArr[0] = core_Users::fetchField(0, 'nick');
+            core_Cache::set('log_Debug', 'users', $uArr, 1000, 'core_Users');
+        }
+        
+        $data->listFilter->setOptions('user', $uArr);
+        $data->listFilter->setDefault('user', core_Users::getCurrent());
+        
+        $data->listFilter->showFields = 'search, user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';
         
         $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
         
@@ -164,8 +188,14 @@ class log_Debug extends core_Manager
             $debugFileName = 'x_' . $dFileNameArr[1] . '_x.debug';
         }
         
+        $sArr = array();
+        $searchArr = arr::make($data->listFilter->showFields);
+        foreach ($searchArr as $fName) {
+            $sArr[$fName] = $data->listFilter->rec->{$fName};
+        }
+        
         // Вземаме файловете, които да се показват
-        $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $data->listFilter->rec->search);
+        $fArr = $this->getDebugFilesArr($debugFileName, $before, $after, $otherFilesFromSameHit, $sArr);
         
         if ($oDebugFileName != $debugFileName) {
             list($debugFile) = explode('.', $debugFileName);
@@ -194,6 +224,7 @@ class log_Debug extends core_Manager
                         if ($fNameBefore['name']) {
                             $bLinkArr = $otherLinkUrl;
                             $bLinkArr['debugFile'] = $fNameBefore['name'];
+                            $bLinkArr += $sArr;
                         }
                     }
                 }
@@ -212,6 +243,7 @@ class log_Debug extends core_Manager
                             if ($fNameAfter['name']) {
                                 $aLinkArr = $otherLinkUrl;
                                 $aLinkArr['debugFile'] = $fNameAfter['name'];
+                                $aLinkArr += $sArr;
                             }
                         }
                     }
@@ -233,6 +265,7 @@ class log_Debug extends core_Manager
             $cls = 'debugLink';
             
             $linkUrl = array($this, 'Default', 'debugFile' => $fName);
+            $linkUrl += $sArr;
             
             if ($data->listFilter->rec->search) {
                 $linkUrl['search'] = $data->listFilter->rec->search;
@@ -270,7 +303,9 @@ class log_Debug extends core_Manager
                     $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
                 }
                 
-                $tpl->replace($this->getDebugFileInfo($fPath, $rArr), 'ERR_FILE');
+                $tpl->replace("<iframe style='float: left' width=1100 height=900 src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
+                
+                $rArr = $this->getDebugFileInfoArr($fPath, $rArr);
                 $tpl->replace($rArr['_info'], 'SHOW_DEBUG_INFO');
                 
                 if (is_file($fPath) && is_readable($fPath)) {
@@ -303,6 +338,29 @@ class log_Debug extends core_Manager
         
         // Рендираме страницата
         return  $this->renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Показва дебъг страницата
+     */
+    public function act_ShowDebug()
+    {
+        $this->requireRightFor('list');
+        
+        $debugFile = Request::get('debugFile');
+        
+        expect($debugFile);
+        
+        Mode::set('stopLoggingDebug', true);
+        
+        $fPath = $this->getDebugFilePath($debugFile);
+        
+        $dFile = $this->getDebugFileInfo($fPath);
+        
+        echo $dFile;
+        
+        shutdown();
     }
     
     
@@ -423,16 +481,18 @@ class log_Debug extends core_Manager
     
     
     /**
-     * Показва дебъг страницата
+     * Връща масив с данните
      *
      * @param string $fPath
-     * @param array  $rArr
+     *
+     * @return array|mixed
      */
-    public function getDebugFileInfo($fPath, &$rArr = array())
+    protected static function getDebugFileInfoArr($fPath)
     {
         expect($fPath);
         
-        // Рендираме лога
+        $rArr = array();
+        
         if (is_file($fPath) && is_readable($fPath)) {
             $content = @file_get_contents($fPath);
             
@@ -447,60 +507,80 @@ class log_Debug extends core_Manager
             
             if ($rArr) {
                 $rArr = (array) $rArr;
-                
-                $rArr['update'] = false;
-                
-                if (!$rArr['contex']) {
-                    $rArr['contex'] = (object) $rArr['SERVER'];
-                } else {
-                    $rArr['contex'] = (object) $rArr['contex'];
-                    if ($rArr['SERVER']) {
-                        $rArr['contex']->_SERVER = $rArr['SERVER'];
-                    }
-                }
-                
-                if ($rArr['GET']) {
-                    $rArr['contex']->_GET = $rArr['GET'];
-                }
-                
-                if ($rArr['POST']) {
-                    $rArr['contex']->_POST = $rArr['POST'];
-                }
-                
-                if (!$rArr['errType']) {
-                    if ($rArr['_debugCode']) {
-                        $rArr['header'] .= $rArr['_debugCode'];
-                    }
-                    
-                    if ($rArr['_Ctr']) {
-                        $rArr['header'] .= ' ' . $rArr['_Ctr'];
-                    }
-                    
-                    if ($rArr['_Act']) {
-                        $rArr['header'] .= ' » ' . $rArr['_Act'];
-                    }
-                    
-                    if ($rArr['_executionTime']) {
-                        $rArr['header'] .= ' (' . number_format($rArr['_executionTime'], 2) . ' s)';
-                    }
-                    
-                    if (!trim($rArr['header'])) {
-                        if ($rArr['GET']) {
-                            $rArr['header'] = $rArr['GET']->virtual_url;
-                        }
-                    }
-                    
-                    if ($rArr['_debugCode'] && ($rArr['_debugCode']{0} == 2 || $rArr['_debugCode']{0} == 8)) {
-                        $rArr['headerCls'] = 'okMsg';
-                    } else {
-                        $rArr['headerCls'] = 'warningMsg';
-                    }
-                }
-                
-                $rArr['_showDownloadUrl'] = false;
-                
-                $res = $this->getDebugPage($rArr);
             }
+        }
+        
+        return $rArr;
+    }
+    
+    
+    /**
+     * Показва дебъг страницата
+     *
+     * @param string $fPath
+     * @param array  $rArr
+     */
+    public function getDebugFileInfo($fPath)
+    {
+        $rArr = $this->getDebugFileInfoArr($fPath);
+        expect($fPath);
+        
+        // Рендираме лога
+        if (!empty($rArr)) {
+            $rArr = (array) $rArr;
+            
+            $rArr['update'] = false;
+            
+            if (!$rArr['contex']) {
+                $rArr['contex'] = (object) $rArr['SERVER'];
+            } else {
+                $rArr['contex'] = (object) $rArr['contex'];
+                if ($rArr['SERVER']) {
+                    $rArr['contex']->_SERVER = $rArr['SERVER'];
+                }
+            }
+            
+            if ($rArr['GET']) {
+                $rArr['contex']->_GET = $rArr['GET'];
+            }
+            
+            if ($rArr['POST']) {
+                $rArr['contex']->_POST = $rArr['POST'];
+            }
+            
+            if (!$rArr['errType']) {
+                if ($rArr['_debugCode']) {
+                    $rArr['header'] .= $rArr['_debugCode'];
+                }
+                
+                if ($rArr['_Ctr']) {
+                    $rArr['header'] .= ' ' . $rArr['_Ctr'];
+                }
+                
+                if ($rArr['_Act']) {
+                    $rArr['header'] .= ' » ' . $rArr['_Act'];
+                }
+                
+                if ($rArr['_executionTime']) {
+                    $rArr['header'] .= ' (' . number_format($rArr['_executionTime'], 2) . ' s)';
+                }
+                
+                if (!trim($rArr['header'])) {
+                    if ($rArr['GET']) {
+                        $rArr['header'] = $rArr['GET']->virtual_url;
+                    }
+                }
+                
+                if ($rArr['_debugCode'] && ($rArr['_debugCode']{0} == 2 || $rArr['_debugCode']{0} == 8)) {
+                    $rArr['headerCls'] = 'okMsg';
+                } else {
+                    $rArr['headerCls'] = 'warningMsg';
+                }
+            }
+            
+            $rArr['_showDownloadUrl'] = false;
+            
+            $res = $this->getDebugPage($rArr);
         }
         
         if (!$res) {
@@ -735,11 +815,11 @@ class log_Debug extends core_Manager
      * @param NULL|int    $before
      * @param NULL|int    $after
      * @param array       $otherFilesFromSameHitArr
-     * @param NULL|string $search
+     * @param array       $searchArr
      *
      * @return array
      */
-    protected static function getDebugFilesArr(&$fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $search = null)
+    protected static function getDebugFilesArr(&$fName = null, $before = null, $after = null, &$otherFilesFromSameHitArr = array(), $searchArr = array())
     {
         $fArr = array();
         
@@ -785,6 +865,86 @@ class log_Debug extends core_Manager
         
         $sameFileArr = array();
         
+        // Стойността на търсенето
+        $search = trim($searchArr['search']);
+        
+        // Ако се филтрира по потребител
+        $searchUser = null;
+        if (isset($searchArr['user']) && ($searchArr['user'] != PHP_INT_MAX)) {
+            $searchUser = $searchArr['user'];
+            $searchUser = '_' . str_pad($searchUser, 5, '0', STR_PAD_LEFT) . '_';
+        }
+        
+        // Ако се филтрира по бързина на изпълнение
+        $searchTimeArr = array();
+        if (isset($searchArr['execTime'])) {
+            $eTimeArr = array();
+            if ($searchArr['execTime'] == 'fast') {
+                $eTimeArr[] = 0;
+            } elseif ($searchArr['execTime'] == 'slow') {
+                $eTimeArr[] = 5;
+            } elseif ($searchArr['execTime'] == 'verySlow') {
+                $eTimeArr[] = 20;
+                $eTimeArr[] = 50;
+            }
+            
+            foreach (array(2,8) as $eCode) {
+                foreach ($eTimeArr as $eTime) {
+                    $eTime = str_pad($eTime, 2, '0', STR_PAD_LEFT);
+                    $searchTimeArr[] = $eCode . $eTime . '_';
+                }
+            }
+        }
+        
+        // Ако се филтрира по размер
+        $execSizeFrom = 0;
+        $execSizeTo = 0;
+        if (isset($searchArr['execSize'])) {
+            if ($searchArr['execSize'] == 'small') {
+                $execSizeTo = 100000;
+            } elseif ($searchArr['execSize'] == 'big') {
+                $execSizeFrom = 100000;
+                $execSizeTo = 300000;
+            } elseif ($searchArr['execSize'] == 'veryBig') {
+                $execSizeFrom = 300000;
+            }
+        }
+        
+        // Ако се филтрира по време
+        if (isset($searchArr['execTimeFrom']) || isset($searchArr['execTimeTo'])) {
+            $eTimePeriodArr = array();
+            foreach (array('execTimeFrom' => $searchArr['execTimeFrom'], 'execTimeTo' => $searchArr['execTimeTo']) as $execFiledName => $fVal) {
+                if (!$fVal) {
+                    continue ;
+                }
+                
+                $eArr = explode(':', $fVal);
+                
+                setIfNot($eArr[1], '00');
+                setIfNot($eArr[2], '00');
+                $fVal = implode('', $eArr);
+                $eTimePeriodArr[$execFiledName] = $fVal;
+            }
+            
+            if (count($eTimePeriodArr) == 2) {
+                if ($eTimePeriodArr['execTimeFrom'] > $eTimePeriodArr['execTimeTo']) {
+                    $eTimePeriodArr['tmp'] = $eTimePeriodArr['execTimeFrom'];
+                    $eTimePeriodArr['execTimeFrom'] = $eTimePeriodArr['execTimeTo'];
+                    $eTimePeriodArr['execTimeTo'] = $eTimePeriodArr['tmp'];
+                    unset($eTimePeriodArr['tmp']);
+                }
+            }
+        }
+        
+        // Ако се филтрира по статус
+        $statusPattern = '';
+        if (isset($searchArr['status'])) {
+            $statusPattern = $searchArr['status'];
+            
+            $statusPattern = str_replace('x', '[0-9]', $statusPattern);
+            $statusPattern = "/^({$statusPattern})\_/";
+        }
+        
         // Намираме всички файлове и им вземаме времето на създаване
         while ($iterator->valid()) {
             try {
@@ -796,10 +956,68 @@ class log_Debug extends core_Manager
                 if (($currentDepth < 1) && !$iterator->isDir()) {
                     $canShow = true;
                     
-                    $search = trim($search);
-                    
+                    // Филтрираме по търсене
                     if ($search) {
                         if (strpos($fileName, $search) === false) {
+                            $canShow = false;
+                        }
+                    }
+                    
+                    // Филтрираме по потребител
+                    if ($canShow && isset($searchUser)) {
+                        if (strpos($fileName, $searchUser) === false) {
+                            $canShow = false;
+                        }
+                    }
+                    
+                    // Филтрираме по време на изпълненени
+                    if ($canShow && !empty($searchTimeArr)) {
+                        $exist = false;
+                        foreach ($searchTimeArr as $searchTime) {
+                            if (strpos($fileName, $searchTime) === 0) {
+                                $exist = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!$exist) {
+                            $canShow = false;
+                        }
+                    }
+                    
+                    // Филтрираме по размер
+                    if ($canShow && ($execSizeFrom || $execSizeTo)) {
+                        if (preg_match("/_(?'execSize'[0-9]+)\.debug$/i", $fileName, $matches)) {
+                            if ($matches['execSize']) {
+                                if ($execSizeFrom && ($matches['execSize'] < $execSizeFrom)) {
+                                    $canShow = false;
+                                }
+                                
+                                if ($canShow && $execSizeTo && ($matches['execSize'] > $execSizeTo)) {
+                                    $canShow = false;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Филтрираме по време на създаване
+                    if ($canShow && !empty($eTimePeriodArr)) {
+                        if (preg_match("/_(?'h'[0-9]{2})_(?'m'[0-9]{2})_(?'s'[0-9]{2})_/", $fileName, $matches)) {
+                            $t = $matches['h'] . $matches['m'] . $matches['s'];
+                            
+                            if ($eTimePeriodArr['execTimeFrom'] && ($t < $eTimePeriodArr['execTimeFrom'])) {
+                                $canShow = false;
+                            }
+                            
+                            if ($canShow && $eTimePeriodArr['execTimeTo'] && ($t > $eTimePeriodArr['execTimeTo'])) {
+                                $canShow = false;
+                            }
+                        }
+                    }
+                    
+                    // Филтрираме по статус
+                    if ($canShow && $statusPattern) {
+                        if (!preg_match($statusPattern, $fileName)) {
                             $canShow = false;
                         }
                     }
