@@ -287,7 +287,8 @@ class rack_Movements extends core_Manager
         if (isset($rec->zones)) {
             $zoneArr = type_Table::toArray($rec->zones);
             if (count($zoneArr)) {
-                foreach ($zoneArr as $obj) {
+                foreach ($zoneArr as &$obj) {
+                    $obj->quantity = core_Type::getByName('double')->fromVerbal($obj->quantity);
                     $quantityInZones += $obj->quantity;
                 }
             }
