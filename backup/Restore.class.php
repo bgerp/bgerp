@@ -82,23 +82,25 @@ class backup_Restore extends core_Manager
         // Взимаме конфиг. файла
         $confFileName = $backup->prefix . '_' . EF_DB_NAME . '_conf.tar.gz';
         $storage->getFile($confFileName, EF_TEMP_PATH . "/" . $confFileName);
-        //eval ("DEFINE('C','444');"); echo (C); die;
-        $consts = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
+        $searchConsts = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
         try {
             $phar = new PharData(EF_TEMP_PATH . "/" . $confFileName);
             foreach (new RecursiveIteratorIterator($phar) as $file) {
                 echo $file . "<br />";
-                echo ('<pre>');
-                print_r(file($file)); die;
-                //echo "<pre>" . htmlspecialchars(file_get_contents($file)) . "</pre>";
-                //eval (file_get_contents($file)); echo (EF_USERS_HASH_FACTOR); die;
+                $confRows = file($file);
+                foreach ($confRows as $row) {
+                    foreach ($searchConsts as $const) {
+                        if (strpos($row, $const) !== false) {
+                            $consts[] = $row;
+                        }
+                    }
+                    
+                }
             }
-            
-            // if ($phar->current()->isDir());
-            //$phar->extractTo(EF_TEMP_PATH, array()); // extract all files
         } catch (Exception $e) {
             bp($e->getMessage());
         }
+        // в $consts[] са редовете, които трябва да се добавят в новия conf файл 
         
         // Взимаме МЕТА файла
         $metaFileName = $backup->prefix . '_' . EF_DB_NAME . '_META';
