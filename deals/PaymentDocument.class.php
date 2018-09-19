@@ -70,15 +70,6 @@ abstract class deals_PaymentDocument extends core_Master
     
     
     /**
-     *  Обработки по вербалното представяне на данните
-     */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        $row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
-    }
-    
-    
-    /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     public function getDocumentRow($id)

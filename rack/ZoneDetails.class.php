@@ -63,7 +63,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'productId, packagingId, status=Състояние,movementsHtml=@';
+    public $listFields = 'productId, status=Състояние,movementsHtml=@, packagingId';
     
     
     /**
@@ -73,7 +73,7 @@ class rack_ZoneDetails extends core_Detail
     {
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell nowrap');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap rack-quantity');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
@@ -112,7 +112,7 @@ class rack_ZoneDetails extends core_Detail
         $moveStatusColor = ($rec->movementQuantity < $rec->documentQuantity) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
-    
+   
         // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
         $overQuantity = $rec->movementQuantity - $rec->documentQuantity;
         if($overQuantity > 0){
@@ -121,7 +121,8 @@ class rack_ZoneDetails extends core_Detail
             $zonesDefault = array('zone' => array('0' => (string)$rec->zoneId), 'quantity' => array('0' => (string)$overQuantity));
             $zonesDefault = $ZoneType->fromVerbal($zonesDefault);
             
-            $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'zones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
+            $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
+            
         }
     }
     
@@ -135,10 +136,13 @@ class rack_ZoneDetails extends core_Detail
         if(!count($data->rows)) return;
         setIfNot($data->inlineDetail, false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
+        $requestedProductId = Request::get('productId', 'int');
         
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
+            $productCode = cat_Products::fetchField($rec->productId, 'code');
+            $row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
             
             $row->ROW_ATTR['class'] = 'row-added';
             $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
@@ -147,10 +151,12 @@ class rack_ZoneDetails extends core_Detail
             }
             
             // Ако няма движения и к-та са 0, реда се маркира
-            if(empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)){
+            if((empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)) || (isset($requestedProductId) && $rec->productId != $requestedProductId)){
                 unset($data->rows[$id]);
             }
         }
+        
+        arr::sortObjects($data->rows, '_code', 'asc', 'natural');
     }
     
     
@@ -312,14 +318,22 @@ class rack_ZoneDetails extends core_Detail
         
         $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
         $data->listFields = arr::make('movement=Движение,workerId=Работник', true);
+        if($masterRec->_isSingle === true){
+            $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
+            $data->listFields['modifiedBy'] = 'Модифициране||Modified->От||By';
+        }
+        
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $skipClosed = ($masterRec->_isSingle === true) ? false : true;
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
         list($productId, $packagingId) = array($rec->productId, $rec->packagingId);
         $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId){return $o->productId == $productId && $o->packagingId == $packagingId;});
         $rec->_movements = $data->recs;
+        $requestedProductId = Request::get('productId', 'int');
         
         foreach ($data->recs as $mRec) {
+            if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
+            
             $fields = $Movements->selectFields();
             $fields['-list'] = true;
             $fields['-inline'] = true;

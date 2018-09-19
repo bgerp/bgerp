@@ -626,7 +626,9 @@ class rack_Racks extends core_Master
         $pQuery = rack_Products::getQuery();
         $pQuery->groupBy('productId,storeId');
         while ($rec = $pQuery->fetch()) {
-            rack_Pallets::recalc($rec->productId, $rec->storeId);
+            if(isset($rec->productId)){
+                rack_Pallets::recalc($rec->productId, $rec->storeId);
+            }
         }
     }
     

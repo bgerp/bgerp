@@ -168,6 +168,11 @@ class distro_Group extends core_Master
      */
     public function getGroupIdFromFolder($path)
     {
+        if (!$path) {
+            
+            return ;
+        }
+        
         $handleArr = doc_Containers::parseHandle($path);
         
         if ($handleArr && (strtolower($handleArr['abbr']) == 'dst') && $handleArr['id']) {
@@ -376,12 +381,10 @@ class distro_Group extends core_Master
             
             $clsName = $abbrArr[$abbr];
             
-            if ($clsName && cls::load($clsName, true)) {
-                if ($mId && $clsName::fetch((int) $mId)) {
-                    $haveAbbr = true;
-                    
-                    break;
-                }
+            if ($clsName && cls::load($clsName, true) && $mId && is_numeric($mId)) {
+                $haveAbbr = true;
+                
+                break;
             }
         }
         
@@ -704,7 +707,6 @@ class distro_Group extends core_Master
     public function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if (Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && ($data->rec->state == 'active')) {
-            
             $urlArr = array('distro_Files', 'uploadFile', 'c' => Request::get('id'), 'm' => Request::get('m'));
             $url = toUrl($urlArr);
             

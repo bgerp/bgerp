@@ -165,10 +165,10 @@ class distro_Files extends core_Detail
     /**
      * Връща пълния път до файла в хранилището
      *
-     * @param int $id
-     * @param NULL|int     $repoId
-     * @param NULL|int     $groupId
-     * @param NULL|string  $name
+     * @param int         $id
+     * @param NULL|int    $repoId
+     * @param NULL|int    $groupId
+     * @param NULL|string $name
      */
     public function getRealPathOfFile($id, $repoId = null, $groupId = null, $name = null)
     {
@@ -409,6 +409,10 @@ class distro_Files extends core_Detail
             $repoActArr = array();
             
             foreach ($linesArr as $lArr) {
+                if (!$lArr) {
+                    continue ;
+                }
+                
                 if (isset($repoLineHash[$repoId])) {
                     
                     // Вече сме достигнали до тази обработка
@@ -851,7 +855,7 @@ class distro_Files extends core_Detail
             
             // Масив с вербалните данни
             $data->rowReposAndFilesArr[$repoId] = array();
-
+            
             // Обхождаме масива с id'та
             foreach ((array) $idsArr as $id) {
                 
@@ -1079,7 +1083,7 @@ class distro_Files extends core_Detail
     /**
      * Екшън за качване на файл от нерегистирирани потребители
      */
-    function act_UploadFile()
+    public function act_UploadFile()
     {
         $cId = Request::get('c', 'int');
         $mId = Request::get('m');
