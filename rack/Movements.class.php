@@ -123,7 +123,9 @@ class rack_Movements extends core_Manager
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            if (empty($rec->position)) {
+            if(isset($rec->palletId)){
+                $rec->position = rack_Pallets::fetchField($rec->palletId, 'position');
+            } else {
                 $rec->position = rack_PositionType::FLOOR;
                 $rec->palletId = null;
             }
@@ -377,11 +379,7 @@ class rack_Movements extends core_Manager
             
             // На коя позиция е палета?
             if (isset($rec->palletId)) {
-                $form->setField('position', 'input=hidden');
-                if ($positionId = rack_Pallets::fetchField($rec->palletId, 'position')) {
-                    $form->setDefault('position', $positionId);
-                    $form->setField('positionTo', 'placeholder=Остава');
-                }
+                $form->setField('positionTo', 'placeholder=Остава');
             } else {
                 $form->setField('positionTo', 'placeholder=Остава');
             }
