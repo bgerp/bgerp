@@ -125,7 +125,13 @@ body.wide {
     height: 1000px;
     overflow: auto;
 }
-
+.hFormField {
+    position: relative;
+    input, select, .select2-container--default .select2-selection--single{
+        border: none;
+        outline: none;
+    }
+}
 .listFilter {
     display: block;
     margin: 10px;
