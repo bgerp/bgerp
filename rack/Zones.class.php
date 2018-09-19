@@ -698,7 +698,7 @@ class rack_Zones extends core_Master
         foreach ($expected->products as $pRec) {
             
             // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, true3);
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, true);
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
             
