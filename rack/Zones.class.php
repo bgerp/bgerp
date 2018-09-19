@@ -306,7 +306,7 @@ class rack_Zones extends core_Master
         $data->query->orderBy('num', 'asc');
         
         // Добавяне на филтър по артикулите
-        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул');
+        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'productId';
         $data->listFilter->view = 'horizontal';
