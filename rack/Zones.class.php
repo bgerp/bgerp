@@ -25,7 +25,7 @@ class rack_Zones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2';
+    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows';
     
     
     /**
@@ -112,6 +112,12 @@ class rack_Zones extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'num';
+    
+    
+    /**
+     * На колко време да се рефрешва лист изгледа
+     */
+    public $refreshRowsTime = 5000;
     
     
     /**
