@@ -31,7 +31,7 @@ class rack_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_Search,plg_AlignDecimals2,plg_Modified';
     
     
     /**
@@ -73,7 +73,7 @@ class rack_Movements extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy';
     
     
     /**
@@ -734,7 +734,7 @@ class rack_Movements extends core_Manager
         }
         
         $rec->workerId = core_Users::getCurrent();
-        $this->save($rec, 'state,workerId');
+        $this->save($rec, 'state,workerId,modifiedOn,modifiedBy');
         
         $msg = (count($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
         $type = (count($transaction->warnings)) ? 'warning' : 'notice';
@@ -754,7 +754,7 @@ class rack_Movements extends core_Manager
         $this->requireRightFor('done', $rec);
         
         $rec->state = 'closed';
-        $this->save($rec, 'state');
+        $this->save($rec, 'state,modifiedOn,modifiedBy');
         
         followretUrl(array($this));
     }
