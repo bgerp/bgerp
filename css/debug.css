@@ -11,7 +11,8 @@ body.wide {
       opacity: 0.8; }
 
 .wide form {
-  width: 220px;
+  width: 230px;
+  margin-left: 5px;
   overflow: hidden; }
 
 .narrow .debugPreview,
@@ -68,7 +69,7 @@ body.wide {
 .debugLink {
   display: block;
   padding: 5px 5px 5px 20px;
-  font-size: 0.85em;
+  font-size: 0.8em;
   color: #cccccc !important;
   position: relative;
   border-top: 1px dotted #666666; }
@@ -108,7 +109,8 @@ body.wide {
   overflow: auto; }
 
 .hFormField {
-  position: relative; }
+  position: relative;
+  width: 100%; }
   .hFormField input,
   .hFormField select,
   .hFormField .select2-container--default .select2-selection--single {
@@ -119,7 +121,7 @@ body.wide {
   display: block;
   margin: 10px; }
   .listFilter input {
-    width: 180px;
+    width: 193px;
     background-color: white !important;
     border-radius: 2px;
     border: none !important;
@@ -156,4 +158,19 @@ body.wide {
   float: right;
   text-align: right;
   display: inline-block; }
+
+.debugHolder .select2-container {
+  min-width: 230px; }
+
+.debugHolder .debugOpt {
+  width: 100% !important; }
+
+  .search-fields .hFormField {
+    width: auto; }
+
+.other-fileds {
+  display: none; }
+  .other-fileds .hFormField .debugField {
+    width: 100% !important;
+    float: none; }
 

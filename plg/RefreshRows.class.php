@@ -48,7 +48,7 @@ class plg_RefreshRows extends core_Plugin
             $content = static::getContent($tpl);
             
             // Добавяме текста в див с уникално id
-            $tpl->prepend("<div id='{$attr['id']}'>");
+            $tpl->prepend("<div id='{$attr['id']}' class='rowsContainerClass'>");
             $tpl->append('</div>');
             
             // URL, което ще се вика по AJAX

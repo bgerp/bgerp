@@ -154,7 +154,7 @@ class pos_Favourites extends core_Manager
             $query->where("#state = 'active'");
             while ($rec = $query->fetch()) {
                 $obj = $this->prepareProductObject($rec);
-                $obj->name = $varchar->toVerbal($obj->name);
+                $obj->name = tr($varchar->toVerbal($obj->name));
                 $obj->productId = $rec->productId;
                 $obj->packagingId = $rec->packagingId;
                 $cache[$rec->id] = $obj;

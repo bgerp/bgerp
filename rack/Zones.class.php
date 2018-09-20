@@ -269,6 +269,9 @@ class rack_Zones extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         $tpl->push('rack/css/style.css', 'CSS');
+        
+        $tpl->push('rack/js/ZoneScripts.js', 'JS');
+        jquery_Jquery::run($tpl, 'zoneActions();');
     }
 
     
@@ -306,7 +309,7 @@ class rack_Zones extends core_Master
         $data->query->orderBy('num', 'asc');
         
         // Добавяне на филтър по артикулите
-        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул');
+        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'productId';
         $data->listFilter->view = 'horizontal';
@@ -650,7 +653,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listTableMvc->commonRowClass = 'zonesCommonRow';
+        $data->listTableMvc->commonRowClass = 'zonesCommonRow zoneLighter';
         $data->listTableMvc->setFieldType('num', 'varchar');
     }
     
@@ -698,7 +701,7 @@ class rack_Zones extends core_Master
         foreach ($expected->products as $pRec) {
             
             // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, true3);
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, true);
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
             
