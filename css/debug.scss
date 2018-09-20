@@ -14,7 +14,8 @@ body.wide {
 }
 
 .wide form {
-    width: 220px;
+    width: 230px;
+    margin-left: 5px;
     overflow: hidden;
 }
 
@@ -80,7 +81,7 @@ body.wide {
 .debugLink {
     display: block;
     padding: 5px 5px 5px 20px;
-    font-size: 0.85em;
+    font-size: 0.8em;
     color: #ccc !important;
     position: relative;
     border-top: 1px dotted #666;
@@ -127,6 +128,7 @@ body.wide {
 }
 .hFormField {
     position: relative;
+    width: 100%;
     input, select, .select2-container--default .select2-selection--single{
         border: none;
         outline: none;
@@ -136,7 +138,7 @@ body.wide {
     display: block;
     margin: 10px;
     input {
-        width: 180px;
+        width: 193px;
         background-color: #fff !important;
         border-radius: 2px;
         border: none !important;
@@ -179,4 +181,26 @@ body.wide {
     float: right;
     text-align: right;
     display: inline-block;
+}
+
+.debugHolder .select2-container {
+    min-width: 230px;
+}
+
+.debugHolder .debugOpt {
+    width: 100% !important;
+}
+
+.search-fields {
+    .hFormField {
+        width: auto;
+    }
+}
+
+.other-fileds {
+    display: none;
+    .hFormField .debugField{
+        width: 100% !important;
+        float: none;
+    }
 }
