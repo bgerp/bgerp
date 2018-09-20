@@ -149,12 +149,12 @@ class log_Debug extends core_Manager
             $data->listFilter->layout->prepend($data->listFilter->renderToolbar(), 'FORM_FIELDS');
         }
         
-        $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent, refreshForm');
-        $data->listFilter->FNC('execTime', 'enum(,fast=Бързо,slow=Бавно,verySlow=Много бавно)', 'caption=Изпълнение, input, silent, refreshForm');
-        $data->listFilter->FNC('execSize', 'enum(,small=Малък, big=Голям, veryBig=Много голям)', 'caption=Размер, input, silent, refreshForm');
-        $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, refreshForm, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
-        $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, refreshForm, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
-        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent, refreshForm');
+        $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent');
+        $data->listFilter->FNC('execTime', 'enum(,fast=Бързо,slow=Бавно,verySlow=Много бавно)', 'caption=Изпълнение, input, silent');
+        $data->listFilter->FNC('execSize', 'enum(,small=Малък, big=Голям, veryBig=Много голям)', 'caption=Размер, input, silent');
+        $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
+        $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
+        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
         $data->listFilter->showFields = 'user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';
