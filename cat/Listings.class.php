@@ -18,6 +18,12 @@
 class cat_Listings extends core_Master
 {
     /**
+     * Дали се очаква в документа да има файлове
+     */
+    public $expectFiles = false;
+    
+    
+    /**
      * Заглавие
      */
     public $title = 'Листвания на артикули';
