@@ -269,6 +269,9 @@ class rack_Zones extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         $tpl->push('rack/css/style.css', 'CSS');
+        
+        $tpl->push('rack/js/ZoneScripts.js', 'JS');
+        jquery_Jquery::run($tpl, 'zoneActions();');
     }
 
     

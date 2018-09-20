@@ -108,6 +108,7 @@ class rack_Movements extends core_Manager
         $this->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         
         $this->setDbIndex('storeId');
+        $this->setDbIndex('palletId');
         $this->setDbIndex('productId,storeId');
     }
     
@@ -540,20 +541,32 @@ class rack_Movements extends core_Manager
         
         if ($mvc->haveRightFor('toggle', $rec) && $rec->state != 'active') {
             $row->_rowTools->addLink('Започване', array($mvc, 'toggle', $rec->id, 'ret_url' => true), "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
-            $state .= ht::createBtn('Започни', array($mvc, 'toggle', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/control_play.png,title=Започване на движението');
             
             if ($rec->createdBy != core_Users::getCurrent()) {
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
+            }
+            
+            if($fields['-inline']){
+                $startUrl = toUrl(array($mvc, 'toggle', $rec->id, 'ret_url' => true), 'local');
+                $state .= ht::createFnBtn('Започни', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
+            } else {
+                $state .= ht::createBtn('Започни', array($mvc, 'toggle', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/control_play.png,title=Започване на движението');
             }
         }
         
         if ($mvc->haveRightFor('done', $rec)) {
             $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
-            $state .= ht::createBtn('Приключи', array($mvc, 'done', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
+            
+            if($fields['-inline']){
+                $startUrl = toUrl(array($mvc, 'done', $rec->id, 'ret_url' => true), 'local');
+                $state .= ht::createFnBtn('Приключи', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+            } else {
+                $state .= ht::createBtn('Приключи', array($mvc, 'done', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
+            }
         }
         
         if ($mvc->haveRightFor('toggle', $rec) && $rec->state != 'pending') {
-            $row->_rowTools->addLink('Отказване', array($mvc, 'toggle', $rec->id, 'ret_url' => true), 'warning=Наистина ли искате да откажете движението|*?,ef_icon=img/16/reject.png,title=Отказ на движението');
+            $row->_rowTools->addLink('Отказване', array($mvc, 'toggle', $rec->id, 'ret_url' => true), 'warning=Наистина ли искате да откажете движението|*?,ef_icon=img/16/reject.png,title=Отказване на движението');
         }
         
         if (!empty($state)) {
@@ -711,10 +724,28 @@ class rack_Movements extends core_Manager
      */
     public function act_Toggle()
     {
-        $this->requireRightFor('toggle');
+        $ajaxMode = Request::get('ajax_mode');
+        if($ajaxMode){
+            if(!$this->haveRightFor('toggle')){
+                core_Statuses::newStatus('|Нямате права|*!', 'error');
+                return status_Messages::returnStatusesArray();
+            }
+        } else {
+            $this->requireRightFor('toggle');
+        }
+        
         $id = Request::get('id', 'int');
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('toggle', $rec);
+        $rec = $this->fetch($id);
+        
+        if($ajaxMode){
+            if(!$this->haveRightFor('toggle', $rec)){
+                core_Statuses::newStatus('|Нямате права|*!', 'error');
+                return status_Messages::returnStatusesArray();
+            }
+        } else {
+            $this->requireRightFor('toggle', $rec);
+        }
+        
         $oldState = $rec->state;
         
         $reverse = false;
@@ -730,16 +761,49 @@ class rack_Movements extends core_Manager
         $transaction = $this->validateTransaction($transaction);
         
         if (!empty($transaction->errors)) {
-            followretUrl(null, $transaction->errors, 'error');
+            if($ajaxMode){
+                core_Statuses::newStatus($transaction->errors, 'error');
+                return status_Messages::returnStatusesArray();
+            } else {
+                followretUrl(null, $transaction->errors, 'error');
+            }
         }
         
+        // Записва се служителя и се обновява движението
         $rec->workerId = core_Users::getCurrent();
         $this->save($rec, 'state,workerId,modifiedOn,modifiedBy');
         
         $msg = (count($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
         $type = (count($transaction->warnings)) ? 'warning' : 'notice';
         
+        // Ако се обновява по Ajax
+        if($ajaxMode){
+            
+            return self::forwardRefreshUrl();
+        }
+        
         followretUrl(null, $msg, $type);
+    }
+    
+    
+    /**
+     * Форуърд на рефрешването на урл-то
+     * 
+     * @return array $res
+     */
+    private static function forwardRefreshUrl()
+    {
+        $refreshUrl = array('Ctr' => 'rack_Zones', 'Act' => 'default');
+        $refreshUrlLocal = toUrl($refreshUrl, 'local');
+        $divId = Request::get('divId');
+        
+        // Зануляване на ид-то за да не се обърква Forward-а
+        Request::push(array('id' => false));
+        
+        // Форсира се обновяването на записите
+        $res = Request::forward(array('Ctr' => 'rack_Zones', 'Act' => 'ajaxrefreshrows', 'divId' => $divId, 'refreshUrl' => $refreshUrlLocal));
+    
+        return $res;
     }
     
     
@@ -748,13 +812,37 @@ class rack_Movements extends core_Manager
      */
     public function act_Done()
     {
-        $this->requireRightFor('done');
+        $ajaxMode = Request::get('ajax_mode');
+        
+        if($ajaxMode){
+            if(!$this->haveRightFor('done')){
+                core_Statuses::newStatus('|Нямате права|*!', 'error');
+                return status_Messages::returnStatusesArray();
+            }
+        } else {
+            $this->requireRightFor('done');
+        }
+        
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
-        $this->requireRightFor('done', $rec);
+        
+        if($ajaxMode){
+            if(!$this->haveRightFor('done', $rec)){
+                core_Statuses::newStatus('|Нямате права|*!', 'error');
+                return status_Messages::returnStatusesArray();
+            }
+        } else {
+            $this->requireRightFor('done', $rec);
+        }
         
         $rec->state = 'closed';
         $this->save($rec, 'state,modifiedOn,modifiedBy');
+        
+        // Ако се обновява по Ajax
+        if($ajaxMode){
+            
+            return self::forwardRefreshUrl();
+        }
         
         followretUrl(array($this));
     }
