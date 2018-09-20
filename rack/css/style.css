@@ -84,6 +84,7 @@
 }
 
 .zone-product-status {
+    white-space: nowrap;
     text-align: right;
     padding-right: 10px !important;
 }
@@ -114,6 +115,7 @@
 
 .minusImg {
     margin: 0 10px;
+    opacity: 0.9;
 }
 
 .singleView .rack_ZoneDetails .minusImg {
