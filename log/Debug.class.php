@@ -121,24 +121,52 @@ class log_Debug extends core_Manager
             $tpl = new ET(tr('|*<div class="headerLine">[#SHOW_DEBUG_INFO#]<!--ET_BEGIN CREATED_DATE--><span>[#CREATED_DATE#]</span><!--ET_END CREATED_DATE--><div class="aright"><span class="debugActions"> [#SIGNAL#]</span> <span class="debugActions"> [#DOWNLOAD_FILE#]</span> <span class="debugActions">[#BEFORE_LINK#]</span><span class="debugActions">[#AFTER_LINK#] </span></div><div style="clear: both;"></div></div><div class="debugList">[#LIST_FILE#]</div><div class="debugPreview">[#ERR_FILE#]</div>'));
         }
         
+        $defUser = PHP_INT_MAX;
+        $debugFileName = null;
+        if ($debugFile = Request::get('debugFile')) {
+            Mode::set('stopLoggingDebug', true);
+            $debugFileName = $debugFile . '.debug';
+            $defUser = core_Users::getCurrent();
+        }
+        
         // Подготвяме листовия изглед за избор на дебъг файл
         $data = new stdClass();
         $data->query = $this->getQuery();
         $this->prepareListFilter($data);
-        $data->listFilter->layout = "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
+        $data->listFilter->layout = new ET("<form [#FORM_ATTR#]><div class='search-fields'>[#FORM_SEARCH_FIELD#]</div><div class='other-fileds'>[#FORM_FIELDS#]</div>[#FORM_HIDDEN#]</form>\n");
         
+        $data->listFilter->view = 'horizontal';
+        
+        // Рендираме бутона за търсене и полета, за да са заедно в отделен див
         $data->listFilter->FNC('search', 'varchar', 'caption=Файл, input, silent');
-        $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent, refreshForm');
-        $data->listFilter->FNC('execTime', 'enum(,fast=Бързо,slow=Бавно,verySlow=Много бавно)', 'caption=Изпълнение, input, silent, refreshForm');
-        $data->listFilter->FNC('execSize', 'enum(,small=Малко, big=Голямо, veryBig=Много голямо)', 'caption=Размер, input, silent, refreshForm');
-        $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, refreshForm, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
-        $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, refreshForm, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00');
-        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent, refreshForm');
+        $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
+        
+        if ($debugFile) {
+            $data->listFilter->input('search', true);
+            $data->listFilter->layout->append($data->listFilter->renderFields(), 'FORM_SEARCH_FIELD');
+            $data->listFilter->layout->append($data->listFilter->renderToolbar(), 'FORM_SEARCH_FIELD');
+        } else {
+            $data->listFilter->layout->prepend($data->listFilter->renderToolbar(), 'FORM_FIELDS');
+        }
+        
+        $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent,class=debugField');
+        $data->listFilter->FNC('execTime', 'enum(,fast=Бързо,slow=Бавно,verySlow=Много бавно)', 'caption=Изпълнение, input, silent,class=debugField');
+        $data->listFilter->FNC('execSize', 'enum(,small=Малък, big=Голям, veryBig=Много голям)', 'caption=Размер, input, silent,class=debugField');
+        $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
+        $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
+        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent,class=debugField');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
+        $data->listFilter->showFields = 'user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';
+        
+        if (!$debugFile) {
+            // Добавяме полето за търсене
+            $data->listFilter->showFields = 'search, ' . $data->listFilter->showFields;
+        }
+        
+        // Опциите за потребители
         $uArr = core_Cache::get('log_Debug', 'users', 1000, 'core_Users');
         if (!$uArr) {
-            // Опциите за потребители
             $uArr = array();
             $uQuery = core_Users::getQuery();
             $uQuery->show('id, nick, names');
@@ -150,32 +178,21 @@ class log_Debug extends core_Manager
             $uArr[0] = core_Users::fetchField(0, 'nick');
             core_Cache::set('log_Debug', 'users', $uArr, 1000, 'core_Users');
         }
-        
         $data->listFilter->setOptions('user', $uArr);
-        $defUser = PHP_INT_MAX;
-        
-        $data->listFilter->showFields = 'search, user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';
-        
-        $data->listFilter->toolbar->addSbBtn(' ', 'default', 'id=filter', 'ef_icon = img/16/find.png');
-        
-        $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div class="linksGroup">[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         
         $data->listFilter->title = 'Дебъг';
-        
-        $data->listFilter->view = 'horizontal';
-        
-        $debugFileName = null;
-        if ($debugFile = Request::get('debugFile')) {
-            Mode::set('stopLoggingDebug', true);
-            $debugFileName = $debugFile . '.debug';
-            $defUser = core_Users::getCurrent();
-        }
         
         $data->listFilter->setDefault('user', $defUser);
         
         $data->listFilter->input(null, true);
         
+        $tplList = new ET(tr('|*[#ListFilter#]<!--ET_BEGIN DEBUG_LINK--><div class="linksGroup">[#DEBUG_LINK#]</div><!--ET_END DEBUG_LINK-->'));
         $tplList->append($this->renderListFilter($data), 'ListFilter');
+        
+        if ($debugFile) {
+            // Добавяме полето за търсене, което липсва за да не се рендира повторно
+            $data->listFilter->showFields = 'search, ' . $data->listFilter->showFields;
+        }
         
         $otherFilesFromSameHit = array();
         
@@ -308,7 +325,7 @@ class log_Debug extends core_Manager
                 
                 $tpl->replace("<iframe style='width:100%; height: 100%' src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
                 
-                $rArr = $this->getDebugFileInfoArr($fPath, $rArr);
+                $rArr = $this->getDebugFileInfoArr($fPath);
                 $tpl->replace($rArr['_info'], 'SHOW_DEBUG_INFO');
                 
                 if (is_file($fPath) && is_readable($fPath)) {

@@ -37,12 +37,16 @@
 }
 
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow {
-    color: #000 !important;
+    color: #333 !important;
     background: #f1f1f1 !important;
 }
 
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow:hover {
      background: #f1f1f1 !important;
+}
+
+.rack_Zones .listTable > tbody > tr.zonesCommonRow.zoneLighter .row-added{
+    background-color: #555 !important;
 }
 
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow td {
@@ -84,6 +88,7 @@
 }
 
 .zone-product-status {
+    white-space: nowrap;
     text-align: right;
     padding-right: 10px !important;
 }
@@ -114,6 +119,7 @@
 
 .minusImg {
     margin: 0 10px;
+    opacity: 0.9;
 }
 
 .singleView .rack_ZoneDetails .minusImg {

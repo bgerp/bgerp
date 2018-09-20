@@ -1137,7 +1137,7 @@ div.acc-detail {
     width: 100% !important;
     border: none;
     font-size: 0.9em;
-    line-height: 1.1em;
+    line-height: 1.1em !important;
     margin-bottom: 0; }
     .portal table.listTable td {
       border: none !important;
