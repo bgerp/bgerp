@@ -3335,6 +3335,15 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterGetLinkedFiles($mvc, &$res, $rec)
     {
+        if (!isset($res)) {
+            $res = array();
+        }
+        
+        if ($mvc->expectFiles === false) {
+            
+            return ;
+        }
+        
         if (!is_object($rec)) {
             $rec = $mvc->fetch($rec);
         }
@@ -3382,10 +3391,6 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             Mode::pop('saveObjectsToCid');
-        }
-        
-        if (!isset($res)) {
-            $res = array();
         }
         
         doc_UsedInDocs::flushArr();
