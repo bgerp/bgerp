@@ -5009,6 +5009,14 @@ function debugLayout() {
     }
     $('.search-fields input').on('click', function(){
         $('.other-fileds').slideDown();
+
+        $('.other-fileds').find('input.combo').each(function(){
+            var idComboBox = $(this).attr('id');
+            if(!comboBoxInited[idComboBox]){
+                comboBoxInit(idComboBox, idComboBox + "_cs");
+                comboBoxInited[idComboBox] = true;
+            }
+        });
     });
 
 
