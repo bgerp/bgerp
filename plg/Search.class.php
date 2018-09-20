@@ -269,23 +269,25 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    $isStopWord = self::isStopWord($w);
                     
-                    if ($isStopWord) {
-                        $stopWordsCnt++;
-                    } else {
-                        $notStopWordsCnt++;
+                    // Разделяме думите по интервал и тогава ги приброяваме
+                    $wArr = explode(' ', $w);
+                    foreach ($wArr as $wIn) {
+                        if (self::isStopWord($wIn)) {
+                            $stopWordsCnt++;
+                        } else {
+                            $notStopWordsCnt++;
+                        }
+                        
+                        $wLen = strlen($wIn);
+                        if ($wLen < $shortWordLen) {
+                            $shortWordsCnt++;
+                        } else {
+                            $longWordsCnt++;
+                        }
                     }
                     
-                    $wLen = strlen($w);
-                    
-                    if ($wLen < $shortWordLen) {
-                        $shortWordsCnt++;
-                    } else {
-                        $longWordsCnt++;
-                    }
-                    
-                    if ($isStopWord || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
+                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
                         if ($limit > 0 && $like == 'LIKE') {
                             $field1 = "LEFT(#{$field}, {$limit})";
                         } else {
