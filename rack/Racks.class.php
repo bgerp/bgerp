@@ -622,28 +622,6 @@ class rack_Racks extends core_Master
         while ($rec = $query->fetch()) {
             self::updateRack($rec);
         }
-        
-        $Products = cls::get('rack_Products');
-        $pQuery = $Products->getQuery();
-        $pQuery->where('#productId IS NOT NULL AND #storeId IS NOT NULL');
-        $pQuery->groupBy('productId,storeId');
-        $pQuery->show('productId,storeId');
-        
-        // Опресняване на палетираното
-        $toUpdate = array();
-        while ($rec = $pQuery->fetch()) {
-            $palletQuery = rack_Pallets::getQuery();
-            $palletQuery->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #state != 'closed'");
-            $palletQuery->XPR('sum', 'double', 'SUM(#quantity)');
-            $palletQuery->show('sum');
-            $sum = $palletQuery->fetch()->sum;
-            
-            $rec->quantityOnPallets = ($sum) ? $sum : null;
-            
-            $toUpdate[$rec->id] = $rec;
-        }
-        
-        $Products->saveArray($toUpdate, 'id,quantityOnPallets');
     }
     
     
