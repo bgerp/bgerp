@@ -1,5 +1,16 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
- 	<h3>[#title#]</h3>
- 	<div>|Вид|*: [#type#]</div>
+ 	<fieldset class='top-tab-content' style='margin-bottom:15px;'>
+		<legend><b>[#title#]</b></legend>
+		<table>
+			<tr>
+				<td class='quiet'>|Вид|*:</td>
+				<td>[#type#]</td>
+			</tr>
+			<tr>
+				<td class='quiet'>|Публичен|*:</td>
+				<td>[#isPublic#]</td>
+			</tr>
+		</table>
+	</fieldset>
     [#cat_ListingDetails#]
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
