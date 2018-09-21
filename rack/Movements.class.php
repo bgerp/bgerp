@@ -348,7 +348,7 @@ class rack_Movements extends core_Manager
             
             $zones = rack_Zones::getZones($rec->storeId);
             if (count($zones)) {
-                $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones));
+                $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones, 'packagingId' => $rec->packagingId));
                 $form->setField('zones', 'input');
                 if(!empty($defZones)){
                     $form->setDefault('zones', $defZones);
@@ -457,6 +457,7 @@ class rack_Movements extends core_Manager
         }
         
         $res = $zones = $error = $errorFields = array();
+        $packagingId = $Type->params['packagingId'];
         
         foreach ($tableData['zone'] as $key => $zone) {
             if (!empty($zone) && empty($tableData['quantity'][$key])) {
@@ -488,6 +489,11 @@ class rack_Movements extends core_Manager
             if (!$q2) {
                 $error[] = 'Невалидно количество';
                 $errorFields['quantity'][$key] = 'Невалидно количество';
+            } else {
+                if(!deals_Helper::checkQuantity($packagingId, $q2, $warning)){
+                    $error[] = $warning;
+                    $errorFields['quantity'][$key] = $warning;
+                }
             }
         }
         
