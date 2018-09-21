@@ -554,10 +554,10 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($mvc->haveRightFor('done', $rec) && !isset($fields['-inline-single'])) {
+        if ($mvc->haveRightFor('done', $rec)) {
             $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
             
-            if($fields['-inline']){
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl(array($mvc, 'done', $rec->id, 'ret_url' => true), 'local');
                 $state .= ht::createFnBtn('Приключи', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
