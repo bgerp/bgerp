@@ -605,9 +605,9 @@ class rack_Racks extends core_Master
         // Изчисляваме заетите палети
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#storeId = {$rec->storeId} AND #position LIKE '{$rec->num}-%' AND #state = 'active'");
-        $usedCnt = $pQuery->count();
+        $pQuery->XPR('count', 'int', 'count(#id)');
         
-        $rec->used = $usedCnt;
+        $rec->used = $pQuery->fetch()->count;
         $rR = cls::get('rack_Racks');
         $rR->save_($rec, 'used');
     }
@@ -623,13 +623,27 @@ class rack_Racks extends core_Master
             self::updateRack($rec);
         }
         
-        $pQuery = rack_Products::getQuery();
+        $Products = cls::get('rack_Products');
+        $pQuery = $Products->getQuery();
+        $pQuery->where('#productId IS NOT NULL AND #storeId IS NOT NULL');
         $pQuery->groupBy('productId,storeId');
+        $pQuery->show('productId,storeId');
+        
+        // Опресняване на палетираното
+        $toUpdate = array();
         while ($rec = $pQuery->fetch()) {
-            if(isset($rec->productId)){
-                rack_Pallets::recalc($rec->productId, $rec->storeId);
-            }
+            $palletQuery = rack_Pallets::getQuery();
+            $palletQuery->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #state != 'closed'");
+            $palletQuery->XPR('sum', 'double', 'SUM(#quantity)');
+            $palletQuery->show('sum');
+            $sum = $palletQuery->fetch()->sum;
+            
+            $rec->quantityOnPallets = ($sum) ? $sum : null;
+            
+            $toUpdate[$rec->id] = $rec;
         }
+        
+        $Products->saveArray($toUpdate, 'id,quantityOnPallets');
     }
     
     
