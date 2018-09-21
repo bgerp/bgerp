@@ -1101,7 +1101,7 @@ class rack_Movements extends core_Manager
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (Mode::is('screenMode', 'narrow')) {
+        if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->commonFirst = true;
             $data->listFields['productId'] = '@Артикул';
         }
