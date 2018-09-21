@@ -101,6 +101,7 @@ class label_CounterItems extends core_Detail
         
         $this->setDbIndex('number, counterId');
         $this->setDbIndex('counterId, printId');
+        $this->setDbIndex('counterId');
     }
     
     
