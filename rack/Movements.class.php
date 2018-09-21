@@ -100,7 +100,7 @@ class rack_Movements extends core_Manager
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
-        $this->FLD('quantityInPack', 'double', 'input=none');
+        $this->FLD('quantityInPack', 'double', 'input=hidden');
         $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние,silent');
         $this->FLD('workerId', 'user', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
         
