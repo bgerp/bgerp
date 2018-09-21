@@ -632,7 +632,7 @@ class rack_Movements extends core_Manager
         
         if ($skipZones === false) {
             $zones = self::getZoneArr($rec, $quantityInZones);
-            $restQuantity = $packQuantity - $quantityInZones;
+            $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
             
             foreach ($zones as $zoneRec) {
                 $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
