@@ -32,7 +32,7 @@ class core_Plugins extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    public $loadList = 'plg_SystemWrapper,plg_RowTools2,plg_State';
+    public $loadList = 'plg_SystemWrapper,plg_RowTools2,plg_State,plg_Sorting';
     
     
     /**
