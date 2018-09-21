@@ -177,6 +177,7 @@ class rack_ZoneDetails extends core_Detail
             $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null);
         }
         $newRec->movementQuantity += $quantity;
+        $newRec->movementQuantity = round($newRec->movementQuantity, 6);
         
         self::save($newRec);
     }
