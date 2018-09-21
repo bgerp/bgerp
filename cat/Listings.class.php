@@ -74,7 +74,7 @@ class cat_Listings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'doc=Документ,title, folderId, createdOn, createdBy';
+    public $listFields = 'doc=Документ,title, folderId, modifiedOn,modifiedBy';
     
     
     /**
@@ -153,7 +153,7 @@ class cat_Listings extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar', 'mandatory,caption=Заглавие,ci');
-        $this->FLD('type', 'enum(canSell=Продаваеми,canBuy=Купуваеми)', 'mandatory,caption=Артикули,notNull,value=canSell');
+        $this->FLD('type', 'enum(canSell=Продаваеми артикули,canBuy=Купуваеми артикули)', 'mandatory,caption=Артикули,notNull,value=canSell');
         $this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
         $this->FLD('sysId', 'varchar', 'input=none');
         
@@ -226,16 +226,16 @@ class cat_Listings extends core_Master
     
     
     /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $rec
+     * Извиква се след успешен запис в модела
      */
-    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if (isset($rec->folderId)) {
             $Cover = doc_Folders::getCover($rec->folderId);
-            $rec->isPublic = ($Cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
+            $isPublic = ($Cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
+            if($rec->isPublic != $isPublic){
+                $mvc->save_($rec, 'isPublic');
+            }
         }
     }
     
@@ -368,21 +368,6 @@ class cat_Listings extends core_Master
         
         // Сортиране на записите по num
         $data->query->orderBy('id');
-    }
-    
-    
-    /**
-     * Обновява данни в мастъра
-     *
-     * @param int $id първичен ключ на статия
-     *
-     * @return int $id ид-то на обновения запис
-     */
-    public function updateMaster_($id)
-    {
-        $rec = $this->fetchRec($id);
-        
-        return $this->save($rec);
     }
     
     
