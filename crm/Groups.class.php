@@ -1016,4 +1016,18 @@ class crm_Groups extends core_Master
         
         return $tpl;
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на ключа
+     *
+     * @param int  $id
+     * @param bool $escaped
+     *
+     * @return null|string|ET
+     */
+    public static function getTitleById($id, $escaped = true)
+    {
+        return self::getVerbal($id, 'name');
+    }
 }
