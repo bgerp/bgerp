@@ -56,6 +56,7 @@ class label_Setup extends core_ProtoSetup
         'label_Counters',
         'label_CounterItems',
         'label_Prints',
+        'migrate::removeEmptyCounterItems'
     );
     
     
@@ -93,5 +94,29 @@ class label_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за премахване на празните записи
+     */
+    public static function removeEmptyCounterItems()
+    {
+        // Изтриваме всички празни записи без максималната стойност - за да няма дублиране
+        $query = label_CounterItems::getQuery();
+        $query->XPR('maxVal', 'int', 'MAX(#number)');
+        $query->groupBy('counterId');
+        $query->show('counterId, maxVal');
+        
+        $dQuery = '';
+        while ($rec = $query->fetch()) {
+            $dQuery .= $dQuery ? ' OR ' : '';
+            $dQuery .= "(#counterId = '{$rec->counterId}' AND #number != '{$rec->maxVal}')";
+        }
+        if ($dQuery) {
+            $dQuery = " AND ({$dQuery})";
+        }
+        
+        label_CounterItems::delete("(#printId IS NULL || #printId = ''){$dQuery}");
     }
 }
