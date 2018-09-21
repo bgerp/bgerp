@@ -546,7 +546,7 @@ class rack_Movements extends core_Manager
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
             }
             
-            if($fields['-inline']){
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl(array($mvc, 'toggle', $rec->id, 'ret_url' => true), 'local');
                 $state .= ht::createFnBtn('Започни', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
@@ -554,7 +554,7 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($mvc->haveRightFor('done', $rec)) {
+        if ($mvc->haveRightFor('done', $rec) && !isset($fields['-inline-single'])) {
             $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
             
             if($fields['-inline']){

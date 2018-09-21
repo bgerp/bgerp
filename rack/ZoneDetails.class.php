@@ -337,6 +337,9 @@ class rack_ZoneDetails extends core_Detail
             $fields = $Movements->selectFields();
             $fields['-list'] = true;
             $fields['-inline'] = true;
+            if($masterRec->_isSingle === true){
+                $fields['-inline-single'] = true;
+            }
             $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
         }
        
