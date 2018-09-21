@@ -156,7 +156,7 @@ class rack_ZoneDetails extends core_Detail
             }
         }
         
-        arr::sortObjects($data->rows, '_code', 'asc');
+        arr::sortObjects($data->rows, '_code', 'asc', 'str');
     }
     
     
