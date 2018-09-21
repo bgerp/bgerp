@@ -234,6 +234,7 @@ class cat_Listings extends core_Master
             $Cover = doc_Folders::getCover($rec->folderId);
             $isPublic = ($Cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
             if($rec->isPublic != $isPublic){
+                $rec->isPublic = $isPublic;
                 $mvc->save_($rec, 'isPublic');
             }
         }
