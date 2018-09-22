@@ -687,13 +687,16 @@ class cms_Content extends core_Manager
             if (cls::existsMethod($cls, 'getSearchResults')) {
                 $res = $cls->getSearchResults($rec->id, $q);
                 if (count($res)) {
+                    $domainName = '';
                     if ($rec->domainId != $domainId) {
                         $domainHost = cms_Domains::fetch($rec->domainId)->domain;
                         Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
-                        $domainName = ' (' .  cms_Domains::fetch($rec->domainId)->domain . ')';
-                    } else {
-                        $domainName = '';
+                        $domainTitle = cms_Domains::fetch($rec->domainId)->domain;
+                        if($domainTitle != 'localhost') {
+                            $domainName = ' (' . $domainTitle . ')';
+                        }
                     }
+
                     $html .= "<h2>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->menu) . $domainName . '</strong></h2>';
                     $html .= '<ul>';
                     foreach ($res as $o) {
