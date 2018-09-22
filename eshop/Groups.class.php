@@ -640,7 +640,7 @@ class eshop_Groups extends core_Master
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 5, 64);
             while ($r = $query->fetch()) {
-                $title = $r->name;
+                $title = tr($r->name);
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
                 
