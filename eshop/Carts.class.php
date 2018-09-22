@@ -159,6 +159,15 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Сортира записите по време на създаване
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+    }
+
+    
+    /**
      * Екшън за добавяне на артикул в кошницата
      *
      * @return mixed
