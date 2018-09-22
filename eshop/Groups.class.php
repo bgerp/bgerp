@@ -633,6 +633,7 @@ class eshop_Groups extends core_Master
         
         if (!empty($groups)) {
             $queryM = eshop_Products::getQuery();
+            $queryM->where("#state = 'active'");
             $queryM->where('#groupId IN (' . implode(',', $groups) . ')');
             $queryM->limit($maxResults);
             
