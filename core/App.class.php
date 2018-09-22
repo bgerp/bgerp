@@ -820,7 +820,7 @@ class core_App
         }
         
         if ($type === null) {
-            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
+            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('BGERP_CURRENT_DOMAIN')) {
                 $type = 'absolute';
             } else {
                 $type = 'relative';
@@ -1045,7 +1045,9 @@ class core_App
                 $auth = '';
             }
             
-            if (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+            if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
+                $boot = $protocol . '://' . $auth . $domain . $dirName;
+            } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                 $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
             } else {
                 $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
