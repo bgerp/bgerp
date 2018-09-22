@@ -253,9 +253,10 @@ class eshop_Products extends core_Master
     
     /**
      * Колко е МКП, то
-     * 
+     *
      * @param stdClass $rec
-     * @return NULL|double $moq
+     *
+     * @return NULL|float $moq
      */
     private function getMoq($rec)
     {
@@ -328,33 +329,33 @@ class eshop_Products extends core_Master
     }
     
     
-    
     /**
      * Какви са дефолтните данни за създаване на запитване
-     * 
+     *
      * @param mixed $id - ид или запис
+     *
      * @return array $res
-     *          ['title']         - заглавие
-     *          ['drvId']         - ид на драйвер
-     *          ['lg']            - език
-     *          ['protos']        - списък от прототипни артикули
-     *          ['quantityCount'] - опционален брой количества
-     *          ['moq']           - МКП
-     *          ['measureId']     - основна мярка
-     *                                                       
+     *               ['title']         - заглавие
+     *               ['drvId']         - ид на драйвер
+     *               ['lg']            - език
+     *               ['protos']        - списък от прототипни артикули
+     *               ['quantityCount'] - опционален брой количества
+     *               ['moq']           - МКП
+     *               ['measureId']     - основна мярка
+     *
      */
     public function getInquiryData($id)
     {
         $rec = $this->fetchRec($id);
         
-        $res = array('title'         => $rec->name, 
-                     'drvId'         => $rec->coDriver, 
-                     'lg'            => cms_Content::getLang(), 
-                     'protos'        => $rec->proto, 
-                     'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount, 
-                     'moq'           => $this->getMoq($rec),
-                     'measureId'     => self::getUomId($rec),
-            
+        $res = array('title' => $rec->name,
+            'drvId' => $rec->coDriver,
+            'lg' => cms_Content::getLang(),
+            'protos' => $rec->proto,
+            'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
+            'moq' => $this->getMoq($rec),
+            'measureId' => self::getUomId($rec),
+        
         );
         
         return $res;
@@ -489,7 +490,7 @@ class eshop_Products extends core_Master
             }
             
             $commonParams = self::getCommonParams($pRec->id);
-            $pRow->commonParams = (count($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : NULL;
+            $pRow->commonParams = (count($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
         }
         
         // URL за добавяне на продукт
@@ -588,7 +589,6 @@ class eshop_Products extends core_Master
         $data->groups = new stdClass();
         $data->groups->groupId = $data->rec->groupId;
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
-        
         cms_Content::setCurrent($data->groups->rec->menuId);
         
         $this->prepareProduct($data);
@@ -1231,23 +1231,26 @@ class eshop_Products extends core_Master
     
     /**
      * Рендира параметрите на е-артикула
-     * 
+     *
      * @param array $array
-     * 
+     *
      * @return core_ET
      */
     public static function renderParams($array)
     {
-        $tpl = new core_ET("");
-        if (!is_array($array))  return $tpl;
+        $tpl = new core_ET('');
+        if (!is_array($array)) {
+            
+            return $tpl;
+        }
         
         $tpl = new core_ET("<table class='paramsTable'>[#row#]</table>");
         foreach ($array as $paramId => $value) {
-             $paramBlock = new core_ET('<tr><td nowrap valign="top"><b>&bull; [#caption#]:<b></td><td>[#value#]</td></tr>');
-             $paramBlock->placeArray(array('caption' => cat_Params::getTitleById($paramId), 'value' => $value));
-             $paramBlock->removeBlocks();
-             $paramBlock->removePlaces();
-             $tpl->append($paramBlock, 'row');
+            $paramBlock = new core_ET('<tr><td nowrap valign="top"><b>&bull; [#caption#]:<b></td><td>[#value#]</td></tr>');
+            $paramBlock->placeArray(array('caption' => cat_Params::getTitleById($paramId), 'value' => $value));
+            $paramBlock->removeBlocks();
+            $paramBlock->removePlaces();
+            $tpl->append($paramBlock, 'row');
         }
         
         return $tpl;

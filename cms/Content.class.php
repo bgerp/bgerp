@@ -107,6 +107,8 @@ class cms_Content extends core_Manager
         $this->FLD('url', 'varchar(128)', 'caption=URL,input=none');
         $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
         
+        $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=title)', 'caption=Споделяне с,notNull,defValue=bg,mandatory,autoFilter');
+        
         $this->setDbUnique('menu,domainId');
     }
     
@@ -460,6 +462,9 @@ class cms_Content extends core_Manager
         if ($menuId && ($rec = cms_Content::fetch($menuId))) {
             Mode::set('cMenuId', $menuId);
             cms_Domains::setPublicDomain($rec->domainId);
+            if (haveRole('powerUser')) {
+                cms_Domains::selectCurrent($rec->domainId);
+            }
         }
         
         $lg = cms_Domains::getPublicDomain('lang');
@@ -667,25 +672,37 @@ class cms_Content extends core_Manager
             $domainId = cms_Domains::getPublicDomain('id');
         }
         
-        $query->where("#domainId = {$domainId} AND #id != {$menuId}");
+        $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId}");
         
         $res = array();
         
         do {
-            if (!$rec->source) {
+            if (!$rec->source || !cls::load($rec->source, true)) {
                 continue;
             }
+            expect($rec->source);
+            
             $cls = cls::get($rec->source);
             
             if (cls::existsMethod($cls, 'getSearchResults')) {
                 $res = $cls->getSearchResults($rec->id, $q);
                 if (count($res)) {
-                    $html .= "<h2>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->menu) . '</strong></h2>';
+                    if ($rec->domainId != $domainId) {
+                        $domainHost = cms_Domains::fetch($rec->domainId)->domain;
+                        Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
+                        $domainName = ' (' .  cms_Domains::fetch($rec->domainId)->domain . ')';
+                    } else {
+                        $domainName = '';
+                    }
+                    $html .= "<h2>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->menu) . $domainName . '</strong></h2>';
                     $html .= '<ul>';
                     foreach ($res as $o) {
                         $html .= "<li style='font-size:1.2em; margin:5px;' >" . ht::createLink($o->title, $o->url) . '</li>';
                     }
                     $html .= '</ul>';
+                    if ($rec->domainId != $domainId) {
+                        Mode::pop('BGERP_CURRENT_DOMAIN');
+                    }
                 }
             }
         } while ($rec = $query->fetch());

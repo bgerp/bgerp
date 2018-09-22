@@ -100,11 +100,6 @@ class cal_TaskConditions extends core_Detail
     {
         expect($data->form->rec->baseId);
         
-        // Да не може да се слага в звена, които са в неговия състав
-        if ($id = $data->form->rec->baseId) {
-            $notAllowedCond = '#id NOT IN (' . implode(',', self::getInheritors($id, 'dependId')) . ')';
-        }
-        
         $masterRec = cal_Tasks::fetch($data->form->rec->baseId);
         
         $data->form->setField('activationCond', array('removeAndRefreshForm' => 'progress|distTime'));
@@ -139,25 +134,31 @@ class cal_TaskConditions extends core_Detail
         // те трябва да са в същата папка
         $query = cal_Tasks::getQuery();
         
-        $query->where($notAllowedCond);
-        $query->orderBy('#id', 'DESC');
+        doc_Threads::restrictAccess($query);
         
-        $taskArr[''] = '';
+        // Да не може да се слага в звена, които са в неговия състав
+        if ($data->form->rec->baseId) {
+            $query->notIn('id', self::getInheritors($data->form->rec->baseId, 'dependId'));
+        }
+        
+        $query->where($notAllowedCond);
+        
+        $query->where("#state != 'rejected'");
+        
+        $query->orderBy('#modifiedOn', 'DESC');
+        
+        $query->where(array("#folderId = '[#1#]'", $masterRec->folderId));
+        
+        $taskArr = array('' => '');
         while ($recTask = $query->fetch()) {
-            if ($recTask->folderId == $masterRec->folderId) {
-                $task = $recTask->id. '.' .$recTask->title;
-                
-                $taskArr[$recTask->id] = $task;
-            }
+            $taskArr[$recTask->id] = $recTask->id. '. ' .$recTask->title;
         }
         
         if (count($taskArr) >= 2) {
             $data->form->setOptions('dependId', $taskArr);
         } else {
-            // ако няма зависими задачи, ще върнем на същото място
-            $link = array('doc_Containers', 'list', 'threadId' => $masterRec->threadId);
             
-            return new Redirect($link, '|Липсват задачи, от които да зависи задачата');
+            return redirect(array('cal_Tasks', 'single', $masterRec->id), false, '|Липсват задачи, от които да зависи задачата', 'warning');
         }
     }
     

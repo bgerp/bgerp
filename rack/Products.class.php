@@ -101,25 +101,6 @@ class rack_Products extends store_Products
     
     
     /**
-     * Изпълнява се след създаване на нов запис
-     *
-     * @param rack_Products $mvc
-     * @param stdClass      $rec
-     * @param array         $fields
-     * @param NULL|string   $mode
-     */
-    protected static function on_AfterSaveArray($mvc, $res, $recs)
-    {
-        foreach ($recs as $rec) {
-            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = '{$rec->storeId}'");
-            if ($rec) {
-                rack_Pallets::recalc($rec->id, $rec->storeId);
-            }
-        }
-    }
-    
-    
-    /**
      * Избягване скриването на бутоните в rowTools2
      *
      * @param core_Mvc $mvc

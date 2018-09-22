@@ -101,6 +101,9 @@ class label_CounterItems extends core_Detail
         
         $this->setDbIndex('number, counterId');
         $this->setDbIndex('counterId, printId');
+        $this->setDbIndex('counterId');
+        
+        $this->setDbUnique('counterId, printId, number');
     }
     
     
@@ -114,8 +117,11 @@ class label_CounterItems extends core_Detail
         // Вземаме най - голямата стойност на номера за съответния брояч
         $query = static::getQuery();
         $query->XPR('maxVal', 'int', 'MAX(#number)');
-        $query->groupBy('counterId');
         $query->where(array("#counterId = '[#1#]'", $counterId));
+        
+        $query->show('maxVal');
+        
+        $query->limit(1);
         
         $rec = $query->fetch();
         
@@ -130,18 +136,19 @@ class label_CounterItems extends core_Detail
      * @param int $counterId - id на брояча
      * @param int $printId   - id на етикета
      * @param int $number    - Стойността на брояча
+     * @param boolean $update    - дали да се обновят или добавят нови
      *
      * @return int - id на записа
      */
-    public static function updateCounter($counterId, $printId, $number)
+    public static function updateCounter($counterId, $printId, $number, $update = false)
     {
-        // Вземаме записа
-        $rec = static::fetch(array("#counterId = '[#1#]' AND #printId = '[#2#]'", $counterId, $printId));
+        if ($update) {
+            // Вземаме записа
+            $rec = static::fetch(array("#counterId = '[#1#]' AND #printId = '[#2#]'", $counterId, $printId));
+        }
         
         // Ако няма запис
-        if (!$rec) {
-            
-            // Създаваме нов
+        if (!$update || !$rec) {
             $rec = new stdClass();
             $rec->counterId = $counterId;
             $rec->printId = $printId;
@@ -164,6 +171,7 @@ class label_CounterItems extends core_Detail
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('modifiedOn', 'DESC');
+        $data->query->orderBy('number', 'DESC');
     }
     
     
