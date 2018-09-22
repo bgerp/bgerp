@@ -72,7 +72,8 @@ class rack_Setup extends core_ProtoSetup
         'rack_Zones',
         'rack_ZoneDetails',
         'migrate::truncateOldRecs',
-        'migrate::updateFloor'
+        'migrate::updateFloor',
+        'migrate::deleteOldPlugins'
     );
     
     
@@ -204,5 +205,14 @@ class rack_Setup extends core_ProtoSetup
                 $Movements->save_($rec, $saveFields);
             }
         }
+    }
+    
+    
+    /**
+     * Деинсталиране на стари плъгини
+     */
+    public function deleteOldPlugins()
+    {
+        cls::get('core_Plugins')->deinstallPlugin('rack_plg_Document');
     }
 }

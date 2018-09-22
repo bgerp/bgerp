@@ -372,22 +372,28 @@ class rack_Pallets extends core_Manager
     /**
      * Преизчислява наличността на палети за посочения продукт
      */
-    public static function recalc($productId, $storeId)
+    public static function recalc($productId, $storeId, $save = true)
     {
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
         $query->XPR('sum', 'double', 'SUM(#quantity)');
-        $rec = $query->fetch();
-        $sum = ($rec->sum) ? $rec->sum : null;
+        $query->show('sum,productId,storeId');
+        $sum = $query->fetch()->sum;
+        $sum = ($sum) ? $sum : null;
         
-        $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+        $rRec = rack_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'id,quantityOnPallets');
         if (!$rRec) {
             $rRec = (object) array('storeId' => $storeId, 'productId' => $productId, 'state' => 'active', 'quantity' => 0, 'quantityOnPallets' => $sum);
         } else {
             $rRec->quantityOnPallets = $sum;
             $rRec->state = 'active';
         }
-        rack_Products::save($rRec);
+        
+        if($save === true){
+            rack_Products::save($rRec);
+        }
+        
+        return $rRec;
     }
     
     

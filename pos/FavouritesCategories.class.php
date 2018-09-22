@@ -114,7 +114,6 @@ class pos_FavouritesCategories extends core_Manager
      */
     public static function loadSetupData()
     {
-        pos_FavouritesCategories::truncate();
         if (!self::fetch("#name = 'Най-продавани'")) {
             self::save((object) array('name' => 'Най-продавани'));
         }

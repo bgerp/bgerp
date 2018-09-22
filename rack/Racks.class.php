@@ -605,9 +605,9 @@ class rack_Racks extends core_Master
         // Изчисляваме заетите палети
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#storeId = {$rec->storeId} AND #position LIKE '{$rec->num}-%' AND #state = 'active'");
-        $usedCnt = $pQuery->count();
+        $pQuery->XPR('count', 'int', 'count(#id)');
         
-        $rec->used = $usedCnt;
+        $rec->used = $pQuery->fetch()->count;
         $rR = cls::get('rack_Racks');
         $rR->save_($rec, 'used');
     }
@@ -621,14 +621,6 @@ class rack_Racks extends core_Master
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
             self::updateRack($rec);
-        }
-        
-        $pQuery = rack_Products::getQuery();
-        $pQuery->groupBy('productId,storeId');
-        while ($rec = $pQuery->fetch()) {
-            if(isset($rec->productId)){
-                rack_Pallets::recalc($rec->productId, $rec->storeId);
-            }
         }
     }
     

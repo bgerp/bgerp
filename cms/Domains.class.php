@@ -63,13 +63,13 @@ class cms_Domains extends core_Embedder
      */
     public $canList = 'ceo, cms, admin';
     
-
+    
     /**
      * Кой може да избира текущ домейн
      */
     public $canSelect = 'powerUser';
     
-
+    
     /**
      *    Админа може да редактира и изтрива създадените от системата записи
      */
@@ -150,6 +150,8 @@ class cms_Domains extends core_Embedder
         // Език
         $this->FLD('lang', 'varchar(2)', 'caption=Език');
         
+        // Заглавие
+        $this->XPR('title', 'varchar(70)', "CONCAT(#domain, ', ', #lang)");
         
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');
@@ -174,6 +176,11 @@ class cms_Domains extends core_Embedder
         // SEO Ключови думи
         $this->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,autohide');
     }
+    
+    
+    /**
+     *
+     */
     
     
     /**
@@ -513,7 +520,7 @@ class cms_Domains extends core_Embedder
                 $requiredRoles = 'no_one';
             }
         }
-
+        
         if ($action == 'select') {
             $requiredRoles = 'ceo,admin,cms';
             if(isset($rec)) {
@@ -522,7 +529,7 @@ class cms_Domains extends core_Embedder
                 }
             }
         }
-
+    
     }
     
     

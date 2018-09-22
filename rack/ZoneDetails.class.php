@@ -156,7 +156,7 @@ class rack_ZoneDetails extends core_Detail
             }
         }
         
-        arr::sortObjects($data->rows, '_code', 'asc', 'natural');
+        arr::sortObjects($data->rows, '_code', 'asc', 'str');
     }
     
     
@@ -177,6 +177,7 @@ class rack_ZoneDetails extends core_Detail
             $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null);
         }
         $newRec->movementQuantity += $quantity;
+        $newRec->movementQuantity = round($newRec->movementQuantity, 6);
         
         self::save($newRec);
     }
@@ -316,7 +317,7 @@ class rack_ZoneDetails extends core_Detail
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
         
-        $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements);
+        $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements, 'inlineMovement' => true);
         $data->listFields = arr::make('movement=Движение,workerId=Работник', true);
         if($masterRec->_isSingle === true){
             $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
@@ -337,6 +338,9 @@ class rack_ZoneDetails extends core_Detail
             $fields = $Movements->selectFields();
             $fields['-list'] = true;
             $fields['-inline'] = true;
+            if($masterRec->_isSingle === true){
+                $fields['-inline-single'] = true;
+            }
             $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
         }
        

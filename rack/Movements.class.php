@@ -100,7 +100,7 @@ class rack_Movements extends core_Manager
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
         
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
-        $this->FLD('quantityInPack', 'double', 'input=none');
+        $this->FLD('quantityInPack', 'double', 'input=hidden');
         $this->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Състояние,silent');
         $this->FLD('workerId', 'user', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
         
@@ -348,7 +348,7 @@ class rack_Movements extends core_Manager
             
             $zones = rack_Zones::getZones($rec->storeId);
             if (count($zones)) {
-                $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones));
+                $form->setFieldTypeParams('zones', array('zone_opt' => array('' => '') + $zones, 'packagingId' => $rec->packagingId));
                 $form->setField('zones', 'input');
                 if(!empty($defZones)){
                     $form->setDefault('zones', $defZones);
@@ -457,6 +457,7 @@ class rack_Movements extends core_Manager
         }
         
         $res = $zones = $error = $errorFields = array();
+        $packagingId = $Type->params['packagingId'];
         
         foreach ($tableData['zone'] as $key => $zone) {
             if (!empty($zone) && empty($tableData['quantity'][$key])) {
@@ -488,6 +489,11 @@ class rack_Movements extends core_Manager
             if (!$q2) {
                 $error[] = 'Невалидно количество';
                 $errorFields['quantity'][$key] = 'Невалидно количество';
+            } else {
+                if(!deals_Helper::checkQuantity($packagingId, $q2, $warning)){
+                    $error[] = $warning;
+                    $errorFields['quantity'][$key] = $warning;
+                }
             }
         }
         
@@ -546,7 +552,7 @@ class rack_Movements extends core_Manager
                 $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
             }
             
-            if($fields['-inline']){
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl(array($mvc, 'toggle', $rec->id, 'ret_url' => true), 'local');
                 $state .= ht::createFnBtn('Започни', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
@@ -557,7 +563,7 @@ class rack_Movements extends core_Manager
         if ($mvc->haveRightFor('done', $rec)) {
             $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
             
-            if($fields['-inline']){
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl(array($mvc, 'done', $rec->id, 'ret_url' => true), 'local');
                 $state .= ht::createFnBtn('Приключи', null, null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
@@ -626,7 +632,7 @@ class rack_Movements extends core_Manager
         
         if ($skipZones === false) {
             $zones = self::getZoneArr($rec, $quantityInZones);
-            $restQuantity = $packQuantity - $quantityInZones;
+            $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
             
             foreach ($zones as $zoneRec) {
                 $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
@@ -1095,7 +1101,7 @@ class rack_Movements extends core_Manager
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (Mode::is('screenMode', 'narrow')) {
+        if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->commonFirst = true;
             $data->listFields['productId'] = '@Артикул';
         }

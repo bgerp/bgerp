@@ -597,13 +597,6 @@ class label_Prints extends core_Master
             $form->cmd = 'refresh';
         }
         
-        // Ако е записан или отпечатан
-        if ($form->isSubmitted() && ($form->cmd == 'save' || $form->cmd == 'print')) {
-            $pData = $mvc->getLabelDataFromRec($rec);
-            
-            $rec->rows = $pData->rows;
-        }
-        
         // Да се махат стойността от параметрите при рефрешване
         if (empty($refreshForm)) {
             if ($rec->templateId) {
@@ -633,6 +626,13 @@ class label_Prints extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if (!isset($rec->rows)) {
+            $pData = $mvc->getLabelDataFromRec($rec);
+            $rec->rows = $pData->rows;
+            
+            $mvc->save_($rec, 'rows');
+        }
+        
         label_Templates::activateTemplate($rec->templateId);
     }
     

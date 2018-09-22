@@ -511,6 +511,7 @@ class blast_ListDetails extends doc_Detail
         core_App::setTimeLimit(50);
         
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
+        $exp->functions['getcountriesfromgroup'] = 'blast_ListDetails::getCountriesFromGroup';
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
@@ -535,13 +536,23 @@ class blast_ListDetails extends doc_Detail
         $exp->question('#companiesGroup', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
         $exp->question('#personsGroup', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
+        $exp->DEF('#countriesInclude=Само тези', 'keylist(mvc=drdata_Countries, select=commonName)', 'placeholder=Всички, notNull');
+        $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#companiesGroup)');
+        $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
+        
+        $exp->DEF('#countriesExclude=Без тези=Само тези', 'keylist(mvc=drdata_Countries, select=commonName)', 'placeholder=Няма, notNull');
+        $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#companiesGroup)');
+        $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
+        
+        $exp->question('#countriesInclude,#countriesExclude', tr('Филтър по държави') . ':', "#source == 'groupCompanies' || #source == 'groupPersons'", 'title=' . tr('Филтър по държави'));
+        
         $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies'");
         $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies'");
         $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies'");
-        
-        $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId)");
-        $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId)");
-        
+
+        $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude)");
+        $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude)");
+
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
         $exp->question('#blastList', tr('Изберете списъка от който да се импортират данните'), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
@@ -787,6 +798,49 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Връща масив с всички държави използвани в съотвения клас и група
+     * 
+     * @param integer $groupId
+     * @param string $class
+     * 
+     * @return array
+     */
+    public static function getCountriesFromGroup($groupId, $class = 'crm_Companies')
+    {
+        static $resArr = array();
+        
+        $hash = $groupId . '|' . $class;
+        
+        if (isset($resArr[$hash])) {
+            
+            return $resArr[$hash];
+        }
+        
+        $cQuery = $class::getQuery();
+        $cQuery->likeKeylist('groupList', $groupId);
+        
+        $cQuery->groupBy('country');
+        
+        $cQuery->orderBy('country', 'ASC');
+        
+        $cQuery->show('country');
+        
+        $cRecArr = array();
+        while ($cRec = $cQuery->fetch()) {
+            $cRecArr[$cRec->country] = $cRec->country;
+        }
+        
+        $resArr[$hash] = array();
+        
+        if (!empty($cRecArr)) {
+            $resArr[$hash] = drdata_Countries::getOptionsArr($cRecArr);
+        }
+        
+        return $resArr[$hash];
+    }
+    
+    
+    /**
      * Връща масив с опции - заглавията на колоните
      */
     public static function getCsvColNames($csvData, $delimiter, $enclosure, $caption = null, $escape = true, $name = null)
@@ -865,7 +919,7 @@ class blast_ListDetails extends doc_Detail
     /**
      * Импортира CSV от моделите на визитника
      */
-    public static function importCsvFromContacts($className, $groupId, $listId)
+    public static function importCsvFromContacts($className, $groupId, $listId, $countriesInclude, $countriesExlude)
     {
         $listRec = blast_Lists::fetch($listId);
         
@@ -876,6 +930,16 @@ class blast_ListDetails extends doc_Detail
         $cQuery = $mvc->getQuery();
         
         $cQuery->where("#state != 'rejected' AND #groupList like '%|{$groupId}|%'");
+        
+        // Филтрираме само по-тези държави
+        if ($countriesInclude) {
+            $cQuery->in('country', type_Keylist::toArray($countriesInclude));
+        }
+        
+        // Премахваме тези държави от списъка
+        if ($countriesExlude) {
+            $cQuery->notIn('country', type_Keylist::toArray($countriesExlude));
+        }
         
         $csv = array();
         

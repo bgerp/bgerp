@@ -998,7 +998,8 @@ class marketing_Inquiries2 extends embed_Manager
             }
             
             // Ако има минимално количество за поръчка
-            $errorMoqs = $errorQuantities = $allQuantities = array();
+            $errorMoqs = $errorQuantities = $errorQuantitiesDecimals = $allQuantities = array();
+            $roundError = null;
             
             // Проверка на въведените количества
             foreach (range(1, 3) as $i) {
@@ -1016,6 +1017,14 @@ class marketing_Inquiries2 extends embed_Manager
                 } else {
                     $allQuantities[] = $quantity;
                 }
+                
+                if(!deals_Helper::checkQuantity($rec->measureId, $quantity, $roundError)){
+                    $errorQuantitiesDecimals[] = "quantity{$i}";
+                }
+            }
+            
+            if(count($errorQuantitiesDecimals)){
+                $form->setError(implode(',', $errorQuantitiesDecimals), $roundError);
             }
             
             if (count($errorMoqs)) {
