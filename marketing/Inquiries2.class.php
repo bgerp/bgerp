@@ -1018,14 +1018,14 @@ class marketing_Inquiries2 extends embed_Manager
                     $allQuantities[] = $quantity;
                 }
                 
-                if(!deals_Helper::checkQuantity($rec->measureId, $quantity, $roundError)){
-                    $errorQuantitiesDecimals[] = "quantity{$i}";
-                }
+               // if(!deals_Helper::checkQuantity($rec->measureId, $quantity, $roundError)){
+               //     $errorQuantitiesDecimals[] = "quantity{$i}";
+               // }
             }
             
-            if(count($errorQuantitiesDecimals)){
-                $form->setError(implode(',', $errorQuantitiesDecimals), $roundError);
-            }
+            //if(count($errorQuantitiesDecimals)){
+            //    $form->setError(implode(',', $errorQuantitiesDecimals), $roundError);
+            //}
             
             if (count($errorMoqs)) {
                 $form->setError(implode(',', $errorMoqs), "Количеството не трябва да е под||Quantity can't be bellow|* <b>{$moqVerbal}</b>");
