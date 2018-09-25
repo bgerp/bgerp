@@ -234,6 +234,11 @@ class unit_MinkPListProduct extends core_Manager
         
         $browser->press('Активиране/Контиране');
         
+        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
+            $browser->setValue('Ignore', '1');
+            $browser->press('Активиране/Контиране');
+        } 
+        
         if (strpos($browser->gettext(), 'Двадесет и седем BGN и 0,60')) {
         } else {
             
@@ -398,6 +403,11 @@ class unit_MinkPListProduct extends core_Manager
         $browser->press('Активиране');
         
         $browser->press('Активиране/Контиране');
+        
+        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
+            $browser->setValue('Ignore', '1');
+            $browser->press('Активиране/Контиране');
+        } 
         
         if (strpos($browser->gettext(), 'Two hundred and nine EUR and 0,63')) {
         } else {
