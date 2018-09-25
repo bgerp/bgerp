@@ -1663,5 +1663,9 @@ class bgerp_Notifications extends core_Manager
                 }
             }
         }
+        
+        if (!isset($rec->urlNumbers) && ($rec->url || $rec->customUrl)) {
+            $rec->urlNumbers = $invoker->prepareUrlNumber($rec->url, $rec->customUrl);
+        }
     }
 }
