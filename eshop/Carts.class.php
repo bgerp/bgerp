@@ -1323,6 +1323,12 @@ class eshop_Carts extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
+            if(!empty($rec->invoiceNames)){
+                if(!preg_match("/[a-zа-я0-9]{3,}$/iu", $rec->invoiceNames)){
+                    $form->setError('invoiceNames', 'Неправилен формат');
+                }
+            }
+            
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
             if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {
                 $form->setError('email', $error);
