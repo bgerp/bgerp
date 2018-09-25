@@ -442,7 +442,7 @@ class rack_Pallets extends core_Manager
         
         $query = self::getQuery();
         
-        while ($rec = $query->fetch("#storeId = {$storeId} AND #position LIKE '{$num}-%'")) {
+        while ($rec = $query->fetch("#storeId = {$storeId} AND #position LIKE '{$num}-%' AND #state != 'closed'")) {
             if (!$rec->position) {
                 continue;
             }
@@ -457,7 +457,7 @@ class rack_Pallets extends core_Manager
         
         $mQuery = rack_Movements::getQuery();
         
-        while ($mRec = $mQuery->fetch("#storeId = {$storeId} AND #positionTo LIKE '{$num}-%'")) {
+        while ($mRec = $mQuery->fetch("#storeId = {$storeId} AND #positionTo LIKE '{$num}-%' AND #state != 'closed'")) {
             if (!$mRec->positionTo) {
                 continue;
             }

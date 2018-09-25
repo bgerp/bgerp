@@ -82,7 +82,12 @@ class rack_PositionType extends type_Varchar
         
         list($n, $r, $c) = explode('-', $value);
         
-        $res = ht::createLink($value, array('rack_Racks', 'show', $n, 'pos' => "{$n}-{$r}-{$c}"));
+        $storeId = store_Stores::getCurrent();
+        if(!rack_Racks::checkPosition($value, null, $storeId, $error)){
+            $res = ht::createHint($value, 'Позицията, вече е премахната от стелажа|*!', 'warning', false);
+        } else {
+            $res = ht::createLink($value, array('rack_Racks', 'show', $n, 'pos' => "{$n}-{$r}-{$c}"));
+        }
         
         return $res;
     }
