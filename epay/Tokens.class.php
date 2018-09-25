@@ -62,8 +62,7 @@ class epay_Tokens extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'initiatorId=Източник,currencyId,token,paymentId,createdOn=Създадено на';
-    
+    public $listFields = 'token,initiatorId=Източник,createdOn=Създадено на';
     
     /**
      * Описание на модела
@@ -71,12 +70,11 @@ class epay_Tokens extends core_Manager
     public function description()
     {
         $this->FLD('token', 'varchar', 'caption=Токен');
-        $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута');
         $this->FLD('initiatorClassId', 'class', 'caption=Инициатор->Клас');
-        $this->FLD('initiatorId', 'int', 'caption=Инициатор->Ид');
+        $this->FLD('initiatorId', 'int', 'caption=Инициатор->Ид,tdClass=leftCol');
         
-        $this->setDbIndex('initiatorClassId,initiatorId,currencyId');
+        $this->setDbUnique('token');
+        $this->setDbIndex('initiatorClassId,initiatorId');
     }
     
     
@@ -89,12 +87,54 @@ class epay_Tokens extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->initiatorId = cls::get('initiatorClassId')->getHyperlink($rec->initiatorId, true);
+        $row->initiatorId = cls::get($rec->initiatorClassId)->getHyperlink($rec->initiatorId, true);
     }
     
     
-    public static function force($initiatorClass, $initiatorId, $currencyCode)
+    
+    /**
+     * Форсира нов токен за обекта-инициатор
+     * 
+     * @param mixed $initiatorClass - клас инициатор
+     * @param int $initiatorId      - ид на обекта от класа инициатор
+     * @return string               - генерираният токен
+     */
+    public static function force($initiatorClass, $initiatorId)
     {
-        bp();
+        // Има ли токен за този обект
+        $initiatorClassId = cls::get($initiatorClass)->getClassId();
+        $rec = self::fetch("#initiatorClassId = {$initiatorClassId} AND #initiatorId = {$initiatorId}");
+       
+        // Ако няма генерира се нов уникален токен
+        if(empty($rec)){
+            $token = self::getNewToken($initiatorClassId, $initiatorId);
+            
+            $rec = (object)array('token' => $token, 'initiatorClassId' => $initiatorClassId, 'initiatorId' => $initiatorId);
+            self::save($rec);
+        }
+        
+        return $rec->token;
+    }
+    
+    
+    /**
+     * Генерира нов уникален токен
+     *
+     * @param mixed $initiatorClassId - клас инициатор
+     * @param int $initiatorId        - ид на обекта от класа инициатор
+     * @return string $token          - генерираният токен
+     */
+    public static function getNewToken($initiatorClassId, $initiatorId)
+    {
+        // Генериране на токен
+        $initiatorClassId = cls::get($initiatorClassId)->getClassId();
+        $token = $initiatorClassId . str::getRand('A') . $initiatorId . str::getRand('DDD');
+       
+        // Докато не се получи уникален токен, се генерира нов
+        while(self::fetch("#token = '{$token}'")){
+            $token = $initiatorClassId . str::getRand('A') . $initiatorId . str::getRand('DDD');
+        }
+        
+        return $token;
     }
 }

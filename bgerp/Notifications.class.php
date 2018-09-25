@@ -111,9 +111,33 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
         $this->FLD('lastTime', 'datetime', 'caption=Предишното време, input=none');
         $this->FLD('activatedOn', 'datetime', 'caption=Последно активиране, input=none');
+        $this->FLD('urlNumbers', 'text(100)', 'caption=URL номера, input=none,column=none,single=none,input=none');
         
         $this->setDbUnique('url, userId');
         $this->setDbIndex('userId');
+        
+        $this->setDbIndex('urlNumbers', null, 'FULLTEXT');
+    }
+    
+    
+    /**
+     * 
+     * @param array|string $urlArr
+     * @param array|null|string $customUrlArr
+     * 
+     * @return mixed
+     */
+    public static function prepareUrlNumber($url, $customUrl = null)
+    {
+        if (isset($customUrl)) {
+            $url .= $customUrl;
+        }
+        
+        $url = preg_replace('/[^0-9]+/', ' ', $url);
+        
+        $url = ' ' . plg_Search::normalizeText($url);
+        
+        return $url;
     }
     
     
@@ -123,7 +147,7 @@ class bgerp_Notifications extends core_Manager
      * @param string $msg
      * @param array  $url
      * @param int    $userId
-     * @param enum   $priority
+     * @param null|string   $priority
      */
     public static function add($msg, $urlArr, $userId, $priority = null, $customUrl = null, $addOnce = false)
     {
@@ -193,6 +217,8 @@ class bgerp_Notifications extends core_Manager
             $rec->customUrl = toUrl($customUrl, 'local', false);
         }
         
+        $rec->urlNumbers = self::prepareUrlNumber($rec->url, $rec->customUrl);
+        
         bgerp_Notifications::save($rec);
     }
     
@@ -230,7 +256,13 @@ class bgerp_Notifications extends core_Manager
         }
         
         $url = toUrl($urlArr, 'local', false);
+        
         $query = bgerp_Notifications::getQuery();
+        
+        $urlNumbers = self::prepareUrlNumber($url);
+        if ($urlNumbers) {
+            plg_Search::applySearch($urlNumbers, $query, 'urlNumbers');
+        }
         
         if ($userId == '*') {
             $query->where(array("#url = '[#1#]' AND #state = 'active'", $url));

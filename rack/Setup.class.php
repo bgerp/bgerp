@@ -2,18 +2,6 @@
 
 
 /**
- * Колко време след като е направено движението да се изтрие
- */
-defIfNot('RACK_DELETE_MOVEMENTS_OLDER_THAN', '');
-
-
-/**
- * Колко време след като е затворен палета да се изтрива
- */
-defIfNot('RACK_DELETE_CLOSED_PALLETS_OLDER_THAN', '');
-
-
-/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -94,10 +82,7 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Описание на конфигурационните константи
      */
-    public $configDescription = array(
-        'RACK_DELETE_MOVEMENTS_OLDER_THAN' => array('time(suggestions=1 месец|2 месеца|3 месеца|6 месеца)', 'caption=Изтриване на минали движения->От преди'),
-        'RACK_DELETE_CLOSED_PALLETS_OLDER_THAN' => array('time(suggestions=1 месец|2 месеца|3 месеца|6 месеца)', 'caption=Изтриване на затворени палети->От преди'),
-    );
+    public $configDescription = array();
     
     
     /**

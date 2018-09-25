@@ -107,13 +107,19 @@ class eshop_Carts extends core_Master
 
     
     /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'sales,eshop,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,input=none');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Магазин,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
@@ -1001,7 +1007,8 @@ class eshop_Carts extends core_Master
         // Ако се изисква онлайн плащане добавя се бутон към него
         if (isset($rec->paymentId)) {
             if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
-                $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $amount, $currency, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
+                $settings = cms_Domains::getSettings();
+                $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $rec->total, $settings->currencyId, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
                 $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
             }
             
@@ -1159,6 +1166,17 @@ class eshop_Carts extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'delete' && isset($rec)) {
+            if($rec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            } else {
+                $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
+                if($compareDate >= dt::now()){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -1171,6 +1189,8 @@ class eshop_Carts extends core_Master
         if (isset($rec->saleId)) {
             $row->saleId = sales_Sales::getLink($rec->saleId, 0);
         }
+        
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     }
     
     
@@ -1302,6 +1322,12 @@ class eshop_Carts extends core_Master
         
         if ($form->isSubmitted()) {
             $rec = $form->rec;
+            
+            if(!empty($rec->invoiceNames)){
+                if(!preg_match("/[a-zа-я0-9]{3,}$/iu", $rec->invoiceNames)){
+                    $form->setError('invoiceNames', 'Неправилен формат');
+                }
+            }
             
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
             if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {

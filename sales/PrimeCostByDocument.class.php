@@ -99,6 +99,9 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('contragentId', 'int', 'caption=Контрагент,tdClass=leftCol');
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         
+        $this->setDbIndex('productId');
+        $this->setDbIndex('containerId');
+        $this->setDbIndex('folderId');
         $this->setDbIndex('detailClassId,detailRecId,productId');
     }
     

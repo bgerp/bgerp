@@ -83,6 +83,12 @@ class rack_Movements extends core_Manager
     
     
     /**
+     * Колко време след като са приключени движенията да се изтриват
+     */
+    const DELETE_CLOSED_MOVEMENTS_OLDER_THEN = 60 * 60 * 24 * 60;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1148,6 +1154,7 @@ class rack_Movements extends core_Manager
         
         // Всички движения преди X време
         $createdBefore = dt::addSecs(-1 * $olderThan);
+        
         $movementQuery = rack_Movements::getQuery();
         $movementQuery->where("#createdOn <= '{$createdBefore}'");
         
@@ -1219,11 +1226,11 @@ class rack_Movements extends core_Manager
     public function cron_DeleteOldMovementsAndPallets()
     {
         // Изтриване на старите движения
-        $olderThan = rack_Setup::get('DELETE_MOVEMENTS_OLDER_THAN');
+        $olderThan = self::DELETE_CLOSED_MOVEMENTS_OLDER_THEN;
         $this->deleteOldMovements($olderThan);
         
         // Изтриване на затворените палети
-        $palletsOlderThan = rack_Setup::get('DELETE_CLOSED_PALLETS_OLDER_THAN');
+        $palletsOlderThan = rack_Pallets::DELETE_CLOSED_PALLETS_OLDER_THAN;
         $this->deleteClosedPallets($palletsOlderThan);
     }
 }
