@@ -1001,7 +1001,8 @@ class eshop_Carts extends core_Master
         // Ако се изисква онлайн плащане добавя се бутон към него
         if (isset($rec->paymentId)) {
             if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
-                $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $amount, $currency, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
+                $settings = cms_Domains::getSettings();
+                $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $rec->total, $settings->currencyId, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
                 $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
             }
             
