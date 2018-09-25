@@ -349,6 +349,38 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Каква е дефолтната мярка
+     */
+    private function getDefaultMeasureId($rec)
+    {
+        if (isset($rec->measureId)) {
+            
+            return $rec->measureId;
+        }
+        
+        if(isset($rec->id)){
+            $Driver = $this->getDriver($rec->id);
+        } else {
+            $Driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
+        }
+        
+        if(is_object($Driver)){
+            $measureId = $Driver->getDefaultUomId();
+        }
+        
+        if (!$measureId) {
+            $measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+        }
+        
+        if (!$measureId) {
+            $measureId = cat_UoM::fetchBySinonim('pcs')->id;
+        }
+        
+        return $measureId;
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -375,22 +407,7 @@ class marketing_Inquiries2 extends embed_Manager
             $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), null, $attr);
         }
         
-        if ($Driver = $mvc->getDriver($rec->id)) {
-            $measureId = $Driver->getDefaultUomId();
-        }
-        
-        if (isset($rec->measureId)) {
-            $measureId = $rec->measureId;
-        }
-        
-        if (!$measureId) {
-            $measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
-        }
-        
-        if (!$measureId) {
-            $measureId = cat_UoM::fetchBySinonim('pcs')->id;
-        }
-        
+        $measureId = $mvc->getDefaultMeasureId($rec);
         $shortName = tr(cat_UoM::getShortName($measureId));
         
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
@@ -1018,14 +1035,11 @@ class marketing_Inquiries2 extends embed_Manager
                     $allQuantities[] = $quantity;
                 }
                 
-               // if(!deals_Helper::checkQuantity($rec->measureId, $quantity, $roundError)){
-               //     $errorQuantitiesDecimals[] = "quantity{$i}";
-               // }
+                $measureId = $mvc->getDefaultMeasureId($rec);
+                if(!deals_Helper::checkQuantity($measureId, $quantity, $roundError)){
+                    $errorQuantitiesDecimals[] = "quantity{$i}";
+               }
             }
-            
-            //if(count($errorQuantitiesDecimals)){
-            //    $form->setError(implode(',', $errorQuantitiesDecimals), $roundError);
-            //}
             
             if (count($errorMoqs)) {
                 $form->setError(implode(',', $errorMoqs), "Количеството не трябва да е под||Quantity can't be bellow|* <b>{$moqVerbal}</b>");
