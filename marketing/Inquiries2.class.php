@@ -1049,6 +1049,10 @@ class marketing_Inquiries2 extends embed_Manager
                 $form->setError(implode(',', $errorQuantities), 'Количествата трябва да са различни||Quantities must be different|*');
             }
             
+            if(count($errorQuantitiesDecimals)){
+                $form->setError(implode(',', $errorQuantitiesDecimals), $roundError);
+            }
+            
             if (!empty($rec->deliveryAdress)) {
                 if (!drdata_Address::parsePlace($rec->deliveryAdress)) {
                     $form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
