@@ -39,6 +39,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     {
         $save = array();
         $onlySelfValue = false;
+        $threadId = (isset($rec->threadId)) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
         
         if ($mvc instanceof sales_Sales) {
             
@@ -50,7 +51,6 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         } else {
             
             // Ако не е продажба но документа НЕ е в нишка на продажба, не се записва нищо
-            $threadId = (isset($rec->threadId)) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
             $firstDoc = doc_Threads::getFirstDocument($threadId);
             if (!$firstDoc->isInstanceOf('sales_Sales')) {
                 
