@@ -1044,14 +1044,22 @@ class log_Debug extends core_Manager
                     
                     // Ако се търси определен файл и отговаря на изискванията - го показваме
                     if ($canShow) {
-                        $mTime = @$iterator->current()->getMTime();
+                        try {
+                            $mTime = @$iterator->current()->getMTime();
+                        } catch (Throwable  $e) {
+                            $mTime = dt::now();
+                        }
                         $fArr[$fileName] = $mTime . '|' . $fileName;
                     }
                     
                     if ($fName) {
                         if (strpos($fileName, $fNameTemplate)) {
                             if (!isset($mTime)) {
-                                $mTime = @$iterator->current()->getMTime();
+                                try {
+                                    $mTime = @$iterator->current()->getMTime();
+                                } catch (Throwable  $e) {
+                                    $mTime = dt::now();
+                                }
                             }
                             
                             if ($fileName != $fName) {
