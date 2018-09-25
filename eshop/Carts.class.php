@@ -107,6 +107,12 @@ class eshop_Carts extends core_Master
 
     
     /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'sales,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
