@@ -71,6 +71,12 @@ class rack_Pallets extends core_Manager
     
     
     /**
+     * Колко време след като са затворени палетите да се изтриват
+     */
+    const DELETE_CLOSED_PALLETS_OLDER_THAN = 60 * 60 * 24 * 60;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
