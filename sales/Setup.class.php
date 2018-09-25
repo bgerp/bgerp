@@ -527,6 +527,9 @@ class sales_Setup extends core_ProtoSetup
         
         $query3 = 'UPDATE sales_prime_cost_by_document, doc_folders SET sales_prime_cost_by_document.contragent_class_id = doc_folders.cover_class,sales_prime_cost_by_document.contragent_id = doc_folders.cover_id WHERE sales_prime_cost_by_document.folder_id = doc_folders.id';
         $Deltas->db->query($query3);
+    
+        $query4 = 'UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id';
+        $Deltas->db->query($query4);
     }
     
     
