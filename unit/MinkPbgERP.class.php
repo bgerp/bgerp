@@ -1438,28 +1438,6 @@ class unit_MinkPbgERP extends core_Manager
             return $this->reportErr('Грешна обща сума', 'warning');
         }
         
-        // Складова разписка
-        // Когато няма автом. избиране
-        //$browser->press('Засклаждане');
-        //$browser->setValue('storeId', 'Склад 1');
-        //$browser->setValue('template', 'Складова разписка с цени');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Двадесет и три EUR и 0,90')) {
-        //} else {
-        //    return $this->reportErr('Грешна сума в складова разписка', 'warning');
-        //}
-        
-        // протокол
-        // Когато няма автом. избиране
-        //$browser->press('Приемане');
-        //$browser->setValue('template', 'Приемателен протокол за услуги с цени');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Пет EUR и 0,70')) {
-        //} else {
-        //    return $this->reportErr('Грешна сума в протокол за услуги', 'warning');
-        //}
         
         // Фактура
         $browser->press('Вх. фактура');
@@ -1692,10 +1670,6 @@ class unit_MinkPbgERP extends core_Manager
         
         // Записване на артикула
         $browser->press('Запис');
-        
-        // Игнорираме предупреждението за липсваща стока
-        //$browser->setValue('Ignore', 1);
-        //$browser->press('Запис');
         
         // активиране на продажбата
         $browser->press('Активиране');
