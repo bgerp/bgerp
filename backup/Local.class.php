@@ -28,6 +28,23 @@ class backup_Local extends core_BaseClass
      */
     public $title = 'Архивиране в локалната файлова система';
     
+    /**
+     * Локален път
+     */
+    private $path;
+    
+    /**
+     * Инициализиране на обекта
+     */
+    public function init($array = array())
+    {
+        if (isset($array['path'])) {
+            $this->path = $array['path'];
+        } else { // търсим пътят от конфигурацията
+            $conf = core_Packs::getConfig('backup');
+            $this->path = $conf->BACKUP_LOCAL_PATH;
+        }
+    }
     
     /**
      * Копира файл съхраняван в сторидж на локалната файлова система в
@@ -39,10 +56,9 @@ class backup_Local extends core_BaseClass
      *
      * @return bool
      */
-    public static function getFile($sourceFile, $destFile)
+    public function getFile($sourceFile, $destFile)
     {
-        $conf = core_Packs::getConfig('backup');
-        $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $sourceFile, $destFile);
+        $result = @copy($this->path . '/' . $sourceFile, $destFile);
         
         return $result;
     }
@@ -58,18 +74,17 @@ class backup_Local extends core_BaseClass
      *
      * @return bool
      */
-    public static function putFile($fileName, $subDir = null)
+    public function putFile($fileName, $subDir = null)
     {
-        $conf = core_Packs::getConfig('backup');
         if ($subDir) {
-            if (!is_dir($conf->BACKUP_LOCAL_PATH . '/' . $subDir)) {
-                if (!@mkdir($conf->BACKUP_LOCAL_PATH . '/' . $subDir)) {
+            if (!is_dir($this->path . '/' . $subDir)) {
+                if (!@mkdir($this->path . '/' . $subDir)) {
                     self::logWarning('Не може да се създаде път за backup-a');
                 }
             }
-            $destFileName = ($conf->BACKUP_LOCAL_PATH . '/' . $subDir . '/' . basename($fileName));
+            $destFileName = ($this->path . '/' . $subDir . '/' . basename($fileName));
         } else {
-            $destFileName = $conf->BACKUP_LOCAL_PATH . '/' . basename($fileName);
+            $destFileName = $this->path . '/' . basename($fileName);
         }
         
         $result = @copy($fileName, $destFileName);
@@ -87,10 +102,9 @@ class backup_Local extends core_BaseClass
      *
      * @return bool
      */
-    public static function removeFile($fileName)
+    public function removeFile($fileName)
     {
-        $conf = core_Packs::getConfig('backup');
-        $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . basename($fileName));
+        $result = @unlink($this->path . '/' . basename($fileName));
         
         return $result;
     }
