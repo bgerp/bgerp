@@ -109,7 +109,7 @@ class eshop_Carts extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'sales,ceo';
+    public $canSingle = 'sales,eshop,ceo';
     
     
     /**
