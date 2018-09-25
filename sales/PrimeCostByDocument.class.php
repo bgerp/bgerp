@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,dealerId,initiatorId,state';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,dealerId,initiatorId,state,isPublic,folderId';
     
     
     /**
@@ -93,6 +93,11 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('dealerId', 'user', 'caption=Дилър,mandatory');
         $this->FLD('initiatorId', 'user', 'caption=Инициатор,mandatory');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка,closed=Затворено)', 'caption=Статус, input=none');
+        $this->FLD('folderId', 'int', 'caption=Папка,tdClass=leftCol');
+        $this->FLD('threadId', 'int', 'caption=Нишка,tdClass=leftCol');
+        $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'caption=Публичен');
+        $this->FLD('contragentId', 'int', 'caption=Контрагент,tdClass=leftCol');
+        $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         
         $this->setDbIndex('detailClassId,detailRecId,productId');
     }
@@ -160,6 +165,10 @@ class sales_PrimeCostByDocument extends core_Manager
         }
         
         $row->delta = ht::styleIfNegative($row->delta, $rec->delta);
+        
+        if(isset($rec->folderId)){
+            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+        }
     }
     
     

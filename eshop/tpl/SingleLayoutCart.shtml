@@ -88,7 +88,7 @@
       [#deliveryInfo#]
    <table class="styled-table" style='width:99%'>
       <tr>
-         <th colspan="2">Доставка</th>
+         <th colspan="2">|Доставка|*</th>
       </tr>
       <tr>
          <td style='width:150px'> <span class="title-style">|Начин|*</span> </td>
@@ -115,6 +115,49 @@
          <td><span class="title-style">|Фактуриране|*</span> </td>
          <td>[#makeInvoice#]</td>
       </tr>
+      
+      <!--ET_BEGIN invoiceNames-->
+      <tr>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |Наименовани|*</span> </td>
+         <td>[#invoiceNames#]</td>
+      </tr>
+      <!--ET_END invoiceNames-->
+      
+      <!--ET_BEGIN invoiceVatNo-->
+      <tr>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |VAT/EIC|*</span> </td>
+         <td>[#invoiceVatNo#]</td>
+      </tr>
+      <!--ET_END invoiceVatNo-->
+      
+      <!--ET_BEGIN invoiceCountry-->
+      <tr>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |Държава|*</span> </td>
+         <td>[#invoiceCountry#]</td>
+      </tr>
+      <!--ET_END invoiceCountry-->
+      
+      <!--ET_BEGIN invoicePCode-->
+      <tr>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |П. код|*</span> </td>
+         <td>[#invoicePCode#]</td>
+      </tr>
+      <!--ET_END invoicePCode-->
+      
+      <!--ET_BEGIN invoicePlace-->
+      <tr>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |Град|*</span> </td>
+         <td>[#invoicePlace#]</td>
+      </tr>
+      <!--ET_END invoicePlace-->
+      
+      <!--ET_BEGIN invoiceAddress-->
+      <tr>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |Адрес|*</span> </td>
+         <td>[#invoiceAddress#]</td>
+      </tr>
+      <!--ET_END invoiceAddress-->
+      
       <!--ET_BEGIN saleId-->
       <tr>
          <td class="title-style">|Продажба|*</td>

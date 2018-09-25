@@ -39,6 +39,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     {
         $save = array();
         $onlySelfValue = false;
+        $threadId = (isset($rec->threadId)) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
         
         if ($mvc instanceof sales_Sales) {
             
@@ -50,7 +51,6 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         } else {
             
             // Ако не е продажба но документа НЕ е в нишка на продажба, не се записва нищо
-            $threadId = (isset($rec->threadId)) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
             $firstDoc = doc_Threads::getFirstDocument($threadId);
             if (!$firstDoc->isInstanceOf('sales_Sales')) {
                 
@@ -105,6 +105,11 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'productId' => $dRec->{$mvc->detailProductFld},
                 'sellCost' => $sellCost,
                 'state'    => 'active',
+                'folderId' => $folderId,
+                'threadId' => $threadId,
+                'isPublic' => cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic'),
+                'contragentId' => $Cover->that,
+                'contragentClassId' => $Cover->getClassId(),
                 'primeCost' => $primeCost);
             
             $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
@@ -145,9 +150,11 @@ class sales_plg_CalcPriceDelta extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	if($exRec = sales_PrimeCostByDocument::fetch("#containerId = {$rec->containerId}")){
-    		$exRec->state = $rec->state;
-    		sales_PrimeCostByDocument::save($exRec, 'state');
+    	$deltaQuery = sales_PrimeCostByDocument::getQuery();
+    	$deltaQuery->where("#containerId = {$rec->containerId}");
+    	while($deltaRec = $deltaQuery->fetch()){
+    	    $deltaRec->state = $rec->state;
+    	    cls::get('sales_PrimeCostByDocument')->save($deltaRec, 'state');
     	}
     }
 }
