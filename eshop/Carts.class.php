@@ -1160,6 +1160,17 @@ class eshop_Carts extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'delete' && isset($rec)) {
+            if($rec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            } else {
+                $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
+                if($compareDate >= dt::now()){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
