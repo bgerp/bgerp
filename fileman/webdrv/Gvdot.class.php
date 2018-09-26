@@ -18,7 +18,7 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
     /**
      * Извлича текстовата част от файла
      *
-     * @param object $fRec - Записите за файла
+     * @param object|string $fRec - Записите за файла
      */
     public static function extractText($fRec)
     {
