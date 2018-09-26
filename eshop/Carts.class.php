@@ -660,7 +660,7 @@ class eshop_Carts extends core_Master
         if($rec->paidOnline == 'yes'){
             try{
                 $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank');
-                bank_IncomeDocuments::createNewDraft($threadRec->id, $incomeFields);
+                bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
             } catch(core_exception_Expect $e){
                 reportException($e);
             }
@@ -1666,6 +1666,7 @@ class eshop_Carts extends core_Master
         core_Statuses::newStatus('Плащането е отказано|*!', 'error');
         redirect(array($this, 'view', $id));
     }
+    
     
     /**
      * Екшън към който се редиректва при отказване на онлайн плащане
