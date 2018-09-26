@@ -1,0 +1,11 @@
+<form method="POST" action="[#action#]">
+<input type=hidden name=PAGE value="paylogin">
+	<input type="hidden" name="MIN" value="[#min#]">
+	<input type="hidden" name="TOTAL" value="[#total#]">
+	<input type="hidden" name="DESCR" value="[#description#]">
+	<input type="hidden" name="URL_OK" value="[#urlOk#]">
+	<input type="hidden" name="URL_CANCEL" value="[#cancelUrl#]">
+	<input type="hidden" name="ENCODING" value="utf8">
+	<input type="hidden" name="CHECKSUM" value="[#checksum#]">
+	<input type="image" src="https://online.datamax.bg/epaynow/a04.gif" title="|Онлайн плащане чрез ePay.bg|*" alt="|Плащане on-line|*">
+</form>
