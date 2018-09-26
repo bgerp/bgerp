@@ -150,8 +150,8 @@ class log_Debug extends core_Manager
         }
         
         $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent,class=debugField');
-        $data->listFilter->FNC('execTime', 'enum(,fast=Бързо,slow=Бавно,verySlow=Много бавно)', 'caption=Изпълнение, input, silent,class=debugField');
-        $data->listFilter->FNC('execSize', 'enum(,small=Малък, big=Голям, veryBig=Много голям)', 'caption=Размер, input, silent,class=debugField');
+        $data->listFilter->FNC('execTime', 'enum(,fast=< 1 сек.,slow=< 5 сек.,verySlow=< 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение, input, silent,class=debugField');
+        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K)', 'caption=Размер, input, silent,class=debugField');
         $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
         $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
         $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent,class=debugField');
@@ -167,14 +167,16 @@ class log_Debug extends core_Manager
         // Опциите за потребители
         $uArr = core_Cache::get('log_Debug', 'users', 1000, 'core_Users');
         if (!$uArr) {
+            $sysNick = core_Users::fetchField(-1, 'nick');
             $uArr = array();
             $uQuery = core_Users::getQuery();
             $uQuery->show('id, nick, names');
-            $uArr[PHP_INT_MAX] = tr('Всички потребители');
+            $uArr[PHP_INT_MAX] = tr('Всички');
+            $uArr[PHP_INT_MAX - 1] = tr('Всички без') . ' ' . $sysNick;
             while ($uRec = $uQuery->fetch()) {
                 $uArr[$uRec->id] = $uRec->nick . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
             }
-            $uArr[-1] = core_Users::fetchField(-1, 'nick');
+            $uArr[-1] = $sysNick;
             $uArr[0] = core_Users::fetchField(0, 'nick');
             core_Cache::set('log_Debug', 'users', $uArr, 1000, 'core_Users');
         }
@@ -890,8 +892,14 @@ class log_Debug extends core_Manager
         
         // Ако се филтрира по потребител
         $searchUser = null;
+        $searchUserType = false;
         if (isset($searchArr['user']) && ($searchArr['user'] != PHP_INT_MAX)) {
             $searchUser = $searchArr['user'];
+            if ($searchArr['user'] == (PHP_INT_MAX - 1)) {
+                $searchUser = '-1';
+                $searchUserType = true;
+            }
+            
             $searchUser = '_' . str_pad($searchUser, 5, '0', STR_PAD_LEFT) . '_';
         }
         
@@ -905,6 +913,7 @@ class log_Debug extends core_Manager
                 $eTimeArr[] = 5;
             } elseif ($searchArr['execTime'] == 'verySlow') {
                 $eTimeArr[] = 20;
+            } elseif ($searchArr['execTime'] == 'overTime') {
                 $eTimeArr[] = 50;
             }
             
@@ -985,8 +994,14 @@ class log_Debug extends core_Manager
                     
                     // Филтрираме по потребител
                     if ($canShow && isset($searchUser)) {
-                        if (strpos($fileName, $searchUser) === false) {
-                            $canShow = false;
+                        if ($searchUserType) {
+                            if (strpos($fileName, $searchUser) !== false) {
+                                $canShow = false;
+                            }
+                        } else {
+                            if (strpos($fileName, $searchUser) === false) {
+                                $canShow = false;
+                            }
                         }
                     }
                     
