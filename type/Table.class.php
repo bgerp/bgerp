@@ -196,9 +196,12 @@ class type_Table extends type_Blob
             
             return;
         }
-        
-        if (($columns = $this->params['mandatory']) && ($columns = ! 'mandatory')) {
+         
+        if (($columns = $this->params['mandatory']) && ($columns != 'mandatory')) {
+            
             $value = self::toArray($value);
+
+           
             $columns = explode('|', $columns);
             $errFld = array();
             
@@ -235,7 +238,7 @@ class type_Table extends type_Blob
      * Връща вербално представяне на стойността на двоичното поле
      */
     public function toVerbal($value)
-    {
+    { 
         if (empty($value)) {
             
             return;
@@ -244,7 +247,7 @@ class type_Table extends type_Blob
         if (is_string($value)) {
             $value = @json_decode($value, true);
         }
-        
+         
         if ($this->params['render']) {
             $res = call_user_func_array($this->params['render'], array($value, $this));
             
@@ -327,7 +330,7 @@ class type_Table extends type_Blob
                 if (isset($value[$field][$i])) {
                     $isset = true;
                 }
-                if (strlen($value[$field][$i])) {
+                if (strlen($value[$field][$i]) && $fObj->mandatory) {
                     $empty = false;
                 }
             }
@@ -340,7 +343,7 @@ class type_Table extends type_Blob
             
             $i++;
         } while ($isset);
-        
+      
         $res = @json_encode($res);
         
         if ($res == '[]') {
@@ -367,13 +370,19 @@ class type_Table extends type_Blob
         if (isset($this->params['widths'])) {
             $widthsArr = explode('|', $this->params['widths']);
         }
-        
+
+        $mandatoryArr = array();
+        if (isset($this->params['mandatory'])) {
+            $mandatoryArr = explode('|', $this->params['mandatory']);
+        }
+
         $res = array();
         
         foreach ($colsArr as $i => $c) {
             $obj = new stdClass();
             $obj->caption = $captionArr[$i] ? $captionArr[$i] : $c;
             $obj->width = $widthsArr[$i];
+            $obj->mandatory = (!count($mandatoryArr)) || in_array($c, $mandatoryArr);
             $res[$c] = $obj;
         }
         
