@@ -182,20 +182,20 @@ abstract class bank_Document extends deals_PaymentDocument
      * @param mixed $contragentClass - ид/инстанция/име на класа на котрагента
      * @param int   $contragentId    - ид на контрагента
      * @param array $fields          - стойности на полетата на сделката
-     *
-     * 		o $fields['valior']              -  вальор
-     *      o $fields['operation']           -  операция
-     *  	o $fields['termDate']            -  очаквана дата
-     *   	o $fields['reason']              -  основание
-     *    	o $fields['ownAccountId']        -  ид на наша сметка
-     *     	o $fields['contragentIban']      -  IBAN на контрагента
-     *      o $fields['amountDeal']          -  сума, която ще бъде платена по сделката, във валутата на сделката
-     *      o $fields['amountFromAccountId'] -  сума, която ще бъде заверена, във валутата на сметката на контрагента
-     *      o $fields['valior']              -  вальор (ако няма е текущата дата)
+     * 		o $fields['valior']              - вальор
+     *      o $fields['operation']           - операция
+     *  	o $fields['termDate']            - очаквана дата
+     *   	o $fields['reason']              - основание
+     *    	o $fields['ownAccountId']        - ид на наша сметка
+     *     	o $fields['contragentIban']      - IBAN на контрагента
+     *      o $fields['amountDeal']          - сума, която ще бъде платена по сделката, във валутата на сделката
+     *      o $fields['amountFromAccountId'] - сума, която ще бъде заверена, във валутата на сметката на контрагента
+     *      o $fields['valior']              - вальор (ако няма е текущата дата)
+     * @param boolean $pending               - да се създаде ли директно като заявка
      *        
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
-    public static function createNewDraft($threadId, $fields = array())
+    public static function create($threadId, $fields = array(), $pending = false)
     {
         // Може ли документа да се добави към нишката
         expect(doc_Threads::fetch($threadId), 'Невалиден тред');
@@ -294,6 +294,13 @@ abstract class bank_Document extends deals_PaymentDocument
                 }
             }
             $rec->amount = $fields['amountFromAccountId'];
+        }
+        
+        // Ако се създава като заявка
+        if($pending === true){
+            $rec->state = 'pending';
+            $rec->brState = 'draft';
+            $rec->pendingSaved = true;
         }
         
         return self::save($rec);
