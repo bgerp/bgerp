@@ -19,7 +19,6 @@ class backup_Restore extends core_Manager
 {
 
     
-    
     /**
      * Стартиране на restore
      */
@@ -46,7 +45,7 @@ class backup_Restore extends core_Manager
                 foreach ($confRows as $row) {
                     foreach ($searchConsts as $const) {
                         if (strpos($row, $const) !== false) {
-                            $consts[] = $row;
+                            $consts[$const] = $row;
                         }
                     }
                     
@@ -56,7 +55,27 @@ class backup_Restore extends core_Manager
             bp($e->getMessage());
         }
         unlink($confFileNameTmp);
-        // в $consts[] са редовете, които трябва да се добавят в новия conf файл 
+        // в $consts[] са редовете, които трябва да се добавят в новия conf файл
+        
+        // Парсираме текущият конфиг файл, коментираме редовете с търсените константи и добавяме редовете от $consts[]
+        $fRows = file(EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php'); // масив от редовете
+        foreach ($fRows as $ndx => $row) {
+            foreach ($consts as $const => $repl) {
+                if (stripos($row, $repl) !== false) {
+                    continue; // Ако реда съвпада изцяло - не заменяме нищо
+                }
+                if (stripos($row, $const) !== false) {
+                    $fRows[$ndx] = "// Коментирано от Restore \n //" . $fRows[$ndx];
+                    $fRows[$ndx] .= $repl;
+                }
+            }
+        }
+        if (is_writable(EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php')) {
+            @file_put_contents(EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php', implode('', $fRows));
+            $res[] = "Успешно подменени константи в " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
+        } else {
+            $res[] = "Няма права за писане в конфиг файла. Трябва да подмените ръчно следните константи както следва: " . implode('\n', $consts);
+        }
         
         // Взимаме МЕТА файла
         $metaFileName = $backup->prefix . '_' . EF_DB_NAME . '_META';
