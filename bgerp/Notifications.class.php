@@ -111,7 +111,7 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
         $this->FLD('lastTime', 'datetime', 'caption=Предишното време, input=none');
         $this->FLD('activatedOn', 'datetime', 'caption=Последно активиране, input=none');
-        $this->FLD('urlNumbers', 'text(100)', 'caption=URL номера, input=none,column=none,single=none,input=none');
+        $this->FLD('urlNumbers', 'varchar(32)', 'caption=URL номера, input=none,column=none,single=none,input=none');
         
         $this->setDbUnique('url, userId');
         $this->setDbIndex('userId');
@@ -121,33 +121,68 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * 
-     * @param array|string $urlArr
+     * Връща номерата от стринга
+     *
+     * @param array|string      $urlArr
      * @param array|null|string $customUrlArr
-     * 
-     * @return mixed
+     *
+     * @return string
      */
     public static function prepareUrlNumber($url, $customUrl = null)
     {
-        if (isset($customUrl)) {
-            $url .= $customUrl;
+        $res = '';
+        
+        if (!$url && !$customUrl) {
+            
+            return $res;
         }
         
-        $url = preg_replace('/[^0-9]+/', ' ', $url);
+        foreach (array($url, $customUrl) as $urlStr) {
+            $urlStr = trim($urlStr);
+            if (!$urlStr) {
+                continue;
+            }
+            
+            $urlStr = preg_replace('/[^0-9]+/', ' ', $urlStr);
+            
+            $urlStr = trim($urlStr);
+            
+            if (!$urlStr) {
+                continue;
+            }
+            
+            $urlStrArr = explode(' ', $urlStr);
+            
+            $strWord = '';
+            $maxStrLen = 0;
+            foreach ($urlStrArr as $strVal) {
+                $strVal = trim($strVal);
+                $strLen = strlen($strVal);
+                if ($maxStrLen < $strLen) {
+                    $maxStrLen = $strLen;
+                    $strWord = $strVal;
+                }
+            }
+            
+            if (!$strWord) {
+                continue;
+            }
+            $res .= ' ' . $strWord;
+        }
         
-        $url = ' ' . plg_Search::normalizeText($url);
+        $res = ' ' . plg_Search::normalizeText($res);
         
-        return $url;
+        return $res;
     }
     
     
     /**
      * Добавя известие за настъпило събитие
      *
-     * @param string $msg
-     * @param array  $url
-     * @param int    $userId
-     * @param null|string   $priority
+     * @param string      $msg
+     * @param array       $url
+     * @param int         $userId
+     * @param null|string $priority
      */
     public static function add($msg, $urlArr, $userId, $priority = null, $customUrl = null, $addOnce = false)
     {
