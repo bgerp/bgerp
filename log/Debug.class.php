@@ -323,7 +323,7 @@ class log_Debug extends core_Manager
                     $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
                 }
                 
-                $tpl->replace("<iframe style='width:100%; height: 100%' src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
+                $tpl->replace("<iframe class='debugIframe' style='width:100%; height: 100%' src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
                 
                 $rArr = $this->getDebugFileInfoArr($fPath);
                 $tpl->replace($rArr['_info'], 'SHOW_DEBUG_INFO');
