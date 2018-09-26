@@ -58,7 +58,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $textPart = static::getTextPart($mime, true);
         
         // Вземаме HTML частта
-        $htmlPartUrl = static::getHtmlPart($mime);
+        $htmlPartArr = static::getHtmlPart($mime);
         
         // Вземаме хедърите
         $headersStr = $mime->getHeadersVerbal();
@@ -72,7 +72,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Подготвяме табовете
         
         // Вземаме съдържанието на таба за HTML
-        $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
+        $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
         
         // Ако няма HTML част
         if ($htmlPart !== false) {
@@ -185,7 +185,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      *
      * @param email_Mime $mime
      *
-     * return string - HTML частта на файла
+     * @return array
      */
     public static function getHtmlPart($mime)
     {
@@ -200,7 +200,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Манипулатора на html файла
         $htmlFileHnd = fileman_Files::fetchField($htmlFile, 'fileHnd');
         
-        return fileman_Download::getDownloadUrl($htmlFileHnd);
+        return array('path' => fileman::extract($htmlFileHnd), 'url' => fileman_Download::getDownloadUrl($htmlFileHnd));
     }
     
     

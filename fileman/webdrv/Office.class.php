@@ -89,7 +89,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             @file_put_contents($path, $content);
             
             // Вземаме съдържанието на таба за HTML
-            $htmlPart = static::getHtmlTabTpl($path);
+            $htmlPart = static::getHtmlTabTpl(null, $path);
             
             if (trim($htmlPart)) {
                 // Таб за информация

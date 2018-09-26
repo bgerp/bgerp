@@ -42,13 +42,13 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // Url към HTML файла
-        $htmlPartUrl = static::getHtmlPart($fRec);
+        $htmlPartArr = static::getHtmlPart($fRec);
         
         // Текстовата част
         $textPart = static::getRichTextPart($fRec);
         
         // Вземаме съдържанието на таба за HTML
-        $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
+        $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
         
         // Подготвяме табовете
         
@@ -82,11 +82,11 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
      *
      * @param object $fRec - Данните за файла
      *
-     * return url - Връща URL, което да се визуализра
+     * return array
      */
     public static function getHtmlPart($fRec)
     {
-        return fileman_Download::getDownloadUrl($fRec->fileHnd);
+        return array('path' => fileman::extract($fRec->fileHnd), 'url' => fileman_Download::getDownloadUrl($fRec->fileHnd));
     }
     
     
