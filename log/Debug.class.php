@@ -173,11 +173,11 @@ class log_Debug extends core_Manager
             $uQuery->show('id, nick, names');
             $uArr[PHP_INT_MAX] = tr('Всички');
             $uArr[PHP_INT_MAX - 1] = tr('Всички без') . ' ' . $sysNick;
+            $uArr[-1] = $sysNick;
+            $uArr[0] = core_Users::fetchField(0, 'nick');
             while ($uRec = $uQuery->fetch()) {
                 $uArr[$uRec->id] = $uRec->nick . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
             }
-            $uArr[-1] = $sysNick;
-            $uArr[0] = core_Users::fetchField(0, 'nick');
             core_Cache::set('log_Debug', 'users', $uArr, 1000, 'core_Users');
         }
         $data->listFilter->setOptions('user', $uArr);
