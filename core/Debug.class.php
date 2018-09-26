@@ -224,9 +224,9 @@ class core_Debug
         if (!isset($timers)) {
             $timers = self::$timers;
         }
-        
+        $display = Mode::get('screenMode', 'wide') ? 'table' : 'block';
         if (count($timers)) {
-            $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:table;color:black;'>" .
+            $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:{$display};color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
             
             arsort($timers);

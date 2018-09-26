@@ -323,7 +323,7 @@ class log_Debug extends core_Manager
                     $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
                 }
                 
-                $tpl->replace("<iframe style='width:100%; height: 100%' src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
+                $tpl->replace("<iframe class='debugIframe' style='width:100%; height: 100%' src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
                 
                 $rArr = $this->getDebugFileInfoArr($fPath);
                 $tpl->replace($rArr['_info'], 'SHOW_DEBUG_INFO');
@@ -1044,14 +1044,22 @@ class log_Debug extends core_Manager
                     
                     // Ако се търси определен файл и отговаря на изискванията - го показваме
                     if ($canShow) {
-                        $mTime = @$iterator->current()->getMTime();
+                        try {
+                            $mTime = @$iterator->current()->getMTime();
+                        } catch (Throwable  $e) {
+                            $mTime = dt::now();
+                        }
                         $fArr[$fileName] = $mTime . '|' . $fileName;
                     }
                     
                     if ($fName) {
                         if (strpos($fileName, $fNameTemplate)) {
                             if (!isset($mTime)) {
-                                $mTime = @$iterator->current()->getMTime();
+                                try {
+                                    $mTime = @$iterator->current()->getMTime();
+                                } catch (Throwable  $e) {
+                                    $mTime = dt::now();
+                                }
                             }
                             
                             if ($fileName != $fName) {

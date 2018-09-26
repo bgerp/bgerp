@@ -64,6 +64,7 @@ class epay_Tokens extends core_Manager
      */
     public $listFields = 'token,initiatorId=Източник,createdOn=Създадено на';
     
+    
     /**
      * Описание на модела
      */
@@ -107,8 +108,7 @@ class epay_Tokens extends core_Manager
        
         // Ако няма генерира се нов уникален токен
         if(empty($rec)){
-            $token = self::getNewToken($initiatorClassId, $initiatorId);
-            
+            $token = self::getNewToken();
             $rec = (object)array('token' => $token, 'initiatorClassId' => $initiatorClassId, 'initiatorId' => $initiatorId);
             self::save($rec);
         }
@@ -120,19 +120,15 @@ class epay_Tokens extends core_Manager
     /**
      * Генерира нов уникален токен
      *
-     * @param mixed $initiatorClassId - клас инициатор
-     * @param int $initiatorId        - ид на обекта от класа инициатор
-     * @return string $token          - генерираният токен
+     * @return string $token - генерираният токен
      */
-    public static function getNewToken($initiatorClassId, $initiatorId)
+    public static function getNewToken()
     {
-        // Генериране на токен
-        $initiatorClassId = cls::get($initiatorClassId)->getClassId();
-        $token = $initiatorClassId . str::getRand('A') . $initiatorId . str::getRand('DDD');
+        $token = str::getRand('AAA') . str::getRand('########');
        
         // Докато не се получи уникален токен, се генерира нов
         while(self::fetch("#token = '{$token}'")){
-            $token = $initiatorClassId . str::getRand('A') . $initiatorId . str::getRand('DDD');
+            $token = str::getRand('AAA') . str::getRand('########');
         }
         
         return $token;

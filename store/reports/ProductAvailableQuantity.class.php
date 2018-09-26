@@ -383,7 +383,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             if($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
                 continue;
             }
-            if ($prodRec->quantity > $prodRec->maxQuantity) {
+            if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
                 $prodRec->conditionQuantity = 'свръх наличност';
                 $prodRec->conditionColor = 'blue';
             } elseif($prodRec->quantity < $prodRec->minQuantity) {

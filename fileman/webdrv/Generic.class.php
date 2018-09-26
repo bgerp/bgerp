@@ -266,10 +266,10 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Атрибути на thumbnail изображението
             $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
-
+            
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
-
+            
             // Създаваме шаблон за preview на изображението
             $preview = new ET("<div id='imgBg' style='background-image:url(" . $bgImg . "); padding: 8px 0 0px; height: 598px; display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
             
@@ -1361,16 +1361,20 @@ class fileman_webdrv_Generic extends core_Manager
      * Връща съдържанието на HTML таба
      *
      * @param string $htmlUrl - Линк към HTML файла
+     * @param string $fPath   - Път към HTML файла
      *
-     * @return core_ET - Текста, за създаване на таб
+     * @return core_ET|false - Текста, за създаване на таб
      */
-    public static function getHtmlTabTpl($htmlUrl)
+    public static function getHtmlTabTpl($htmlUrl = null, $fPath = null)
     {
         // Ако няма URL, връщаме FALSE
-        if (!$htmlUrl) {
+        if (!$htmlUrl && !$fPath) {
             
             return false;
         }
+        
+        setIfNot($htmlUrl, $fPath);
+        setIfNot($fPath, $htmlUrl);
         
         // Ако JS не е включен
         if (Mode::is('javascript', 'no')) {
@@ -1394,7 +1398,7 @@ class fileman_webdrv_Generic extends core_Manager
             				");
             
             // HTML частта със заместениете данни
-            $htmlPart = hclean_JSSanitizer::sanitizeHtml($htmlTpl, $htmlUrl);
+            $htmlPart = hclean_JSSanitizer::sanitizeHtml($htmlTpl, $fPath);
         }
         
         return $htmlPart;

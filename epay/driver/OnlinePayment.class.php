@@ -30,6 +30,9 @@ class epay_driver_OnlinePayment extends core_BaseClass
     public $title = 'Плащане чрез ePay.bg';
     
     
+    const EPAY_DOMAIN = 'https://www.epay.bg/';
+    
+    
     /**
      * Генериране на бутон за онлайн плащане
      *
@@ -50,6 +53,24 @@ class epay_driver_OnlinePayment extends core_BaseClass
      */
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
+        $amount = 0.01;
         
+        $action = self::EPAY_DOMAIN;
+        //$action = "https://demo.epay.bg/";
+        
+        $token = epay_Tokens::force($initiatorClass, $initiatorId, $paymentId, $currency);
+        $data = (object)array('action' => $action,
+                              'total' => $amount,
+                              'description' => "Плащане по поръчка {$token}",
+                              'min' => epay_Setup::get('MIN'),
+                              'checksum' => epay_Setup::get('CHECKSUM'),
+                              'okUrl' => toUrl($okUrl, 'absolute'),
+                              'cancelUrl' => toUrl($cancelUrl, 'absolute'),
+        );
+        
+        $tpl = getTplFromFile("epay/tpl/Button.shtml");
+        $tpl->placeObject($data);
+        
+        return $tpl;
     }
 }
