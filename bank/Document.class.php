@@ -184,6 +184,7 @@ abstract class bank_Document extends deals_PaymentDocument
      * @param array $fields          - стойности на полетата на сделката
      *
      * 		o $fields['valior']              -  вальор
+     *      o $fields['operation']           -  операция
      *  	o $fields['termDate']            -  очаквана дата
      *   	o $fields['reason']              -  основание
      *    	o $fields['ownAccountId']        -  ид на наша сметка
