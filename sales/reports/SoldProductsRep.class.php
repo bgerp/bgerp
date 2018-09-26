@@ -260,31 +260,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->where("#isPublic = '{$rec->articleType}'");
         }
         
-        // Масив бързи продажби //
-        $sQuery = sales_Sales::getQuery();
-        
-        if (($rec->compare) == 'no') {
-            $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
-        }
-        
-        // Last период
-        if (($rec->compare) == 'previous') {
-            $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-        }
-        
-        // LastYear период
-        if (($rec->compare) == 'year') {
-            $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
-        }
-        
-        $sQuery->like('contoActions', 'ship', false);
-        
-        $sQuery->EXT('detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId');
-        
-        while ($sale = $sQuery->fetch()) {
-            $salesWithShipArr[$sale->detailId] = $sale->detailId;
-        }
-        
         // Синхронизира таймлимита с броя записи //
         $rec->count = $query->count();
         
@@ -299,7 +274,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $flag = false;
         
         while ($recPrime = $query->fetch()) {
-            
             $quantity = $primeCost = $delta = 0;
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
             $quantityLastYear = $primeCostLastYear = $deltaLastYear = 0;
@@ -307,10 +281,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $DetClass = cls::get($recPrime->detailClassId);
             
             if ($DetClass instanceof sales_SalesDetails) {
-                if (is_array($salesWithShipArr)) {
-                    if (in_array($recPrime->detailRecId, $salesWithShipArr)) {
-                        continue;
-                    }
+                if (is_null($recPrime->sellCost)) {
+                    continue;
                 }
             }
             $id = $recPrime->productId;

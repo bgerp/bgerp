@@ -228,31 +228,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $query->where("#isPublic = '{$rec->articleType}'");
         }
         
-        // Масив бързи продажби //
-        $sQuery = sales_Sales::getQuery();
-        
-        if (($rec->compare) == 'no') {
-            $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
-        }
-        
-        // Last период
-        if (($rec->compare) == 'previous') {
-            $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-        }
-        
-        // LastYear период
-        if (($rec->compare) == 'year') {
-            $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
-        }
-        
-        $sQuery->like('contoActions', 'ship', false);
-        
-        $sQuery->EXT('detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId');
-        
-        while ($sale = $sQuery->fetch()) {
-            $salesWithShipArr[$sale->detailId] = $sale->detailId;
-        }
-        
         // избрани контрагенти
         $checkContragentsArr = keylist::toArray($rec->contragent);
         
@@ -275,6 +250,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $detClassName = $masterClassName = $masterKey = $contragentGroups = 0;
             
             $DetClass = cls::get($recPrime->detailClassId);
+            
+            if ($DetClass instanceof sales_SalesDetails) {
+                if (is_null($recPrime->sellCost)) {
+                    continue;
+                }
+            }
             
             // контрагента по сделката
             $detClassName = $DetClass->className;
@@ -331,13 +312,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 }
             }
             
-            if ($DetClass instanceof sales_SalesDetails) {
-                if (is_array($salesWithShipArr)) {
-                    if (in_array($recPrime->detailRecId, $salesWithShipArr)) {
-                        continue;
-                    }
-                }
-            }
             $id = $contragentId;
             
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
