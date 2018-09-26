@@ -295,7 +295,7 @@ class bgerp_Notifications extends core_Manager
         $query = bgerp_Notifications::getQuery();
         
         $urlNumbers = self::prepareUrlNumber($url);
-        if ($urlNumbers) {
+        if (trim($urlNumbers)) {
             plg_Search::applySearch($urlNumbers, $query, 'urlNumbers');
         }
         

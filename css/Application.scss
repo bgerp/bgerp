@@ -5798,6 +5798,15 @@ row-fluid {
     }
 }
 
+@media handheld, only screen and (max-width: 375px) {
+	.narrow .eshop-group-button {
+		width: 100%;
+		margin-right: 0%;
+		margin-left: 0%;
+		font-size: 0.9em;
+	}
+}
+
 @media handheld, only screen and (max-width: 360px) {
 	.background-holder {
           padding: 0 !important;

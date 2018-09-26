@@ -382,7 +382,6 @@ class core_Mvc extends core_FieldSet
                 case 'ignore':
                     $query = "UPDATE IGNORE `{$table}` SET {$query} WHERE id = {$rec->id}";
                     break;
-                
                 case '':
                 case 'update':
                     $query = "UPDATE `{$table}` SET {$query} WHERE id = {$rec->id}";
@@ -391,23 +390,28 @@ class core_Mvc extends core_FieldSet
                 default:
                     error('Неподдържан режим на запис', $mode, $rec);
             }
+            $timer = "{$table} UPDATE";
         } else {
             switch ($mode) {
                 case 'replace':
                     $query = "REPLACE `{$table}` SET {$query}";
+                    $timer = "{$table} REPLACE";
                     break;
                 
                 case 'ignore':
                     $query = "INSERT IGNORE `{$table}` SET {$query}";
+                    $timer = "{$table} INSERT";
                     break;
                 
                 case 'delayed':
                     $query = "INSERT DELAYED `{$table}` SET {$query}";
+                    $timer = "{$table} INSERT";
                     break;
                 
                 case '':
                 case 'update':
-                    $query = "INSERT  INTO `{$table}` SET {$query}";
+                    $query = "INSERT INTO `{$table}` SET {$query}";
+                    $timer = "{$table} INSERT";
                     break;
                 
                 default:
@@ -415,7 +419,11 @@ class core_Mvc extends core_FieldSet
             }
         }
         
-        if (!$this->db->query($query)) {
+        DEBUG::startTimer($timer);
+        $res = $this->db->query($query);
+        DEBUG::stopTimer($timer);
+        
+        if (!$res) {
             
             return false;
         }

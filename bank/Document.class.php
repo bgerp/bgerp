@@ -35,7 +35,7 @@ abstract class bank_Document extends deals_PaymentDocument
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
          plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice, acc_plg_DocumentSummary,doc_plg_HidePrices,
-         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate';
+         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -173,6 +173,137 @@ abstract class bank_Document extends deals_PaymentDocument
                 'caption=Статус, input=none'
         );
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
+    }
+    
+    
+    /**
+     * Метод за бързо създаване на чернова сделка към контрагент
+     *
+     * @param mixed $contragentClass - ид/инстанция/име на класа на котрагента
+     * @param int   $contragentId    - ид на контрагента
+     * @param array $fields          - стойности на полетата на сделката
+     * 		o $fields['valior']              - вальор
+     *      o $fields['operation']           - операция
+     *  	o $fields['termDate']            - очаквана дата
+     *   	o $fields['reason']              - основание
+     *    	o $fields['ownAccountId']        - ид на наша сметка
+     *     	o $fields['contragentIban']      - IBAN на контрагента
+     *      o $fields['amountDeal']          - сума, която ще бъде платена по сделката, във валутата на сделката
+     *      o $fields['amountFromAccountId'] - сума, която ще бъде заверена, във валутата на сметката на контрагента
+     *      o $fields['valior']              - вальор (ако няма е текущата дата)
+     * @param boolean $pending               - да се създаде ли директно като заявка
+     *        
+     * @return mixed $id/FALSE - ид на запис или FALSE
+     */
+    public static function create($threadId, $fields = array(), $pending = false)
+    {
+        // Може ли документа да се добави към нишката
+        expect(doc_Threads::fetch($threadId), 'Невалиден тред');
+        expect(static::canAddToThread($threadId), 'Документа не може да бъде добавен в нишката');
+        expect(isset($fields['operation']), 'Няма systemId на операция');
+        
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        expect($dealInfo = $firstDoc->getAggregateDealInfo());
+        $firstRec = $firstDoc->fetch();
+        
+        // Допустима ли е операцията
+        $operations = $firstDoc->getPaymentOperations();
+        $options = static::getOperations($operations);
+        expect(array_key_exists($fields['operation'], $options), "Недопустима операция {$fields['operation']}");
+        if(isset($fields['termDate'])){
+            $fields['termDate'] = core_Type::getByName('date')->fromVerbal($fields['termDate']);
+        }
+        if(isset($fields['valior'])){
+            $fields['valior'] = core_Type::getByName('date')->fromVerbal($fields['valior']);
+        }
+        
+        if(isset($fields['reason'])){
+            $fields['reason'] = core_Type::getByName('varchar')->fromVerbal($fields['reason']);
+        }
+        
+        $dealCurrencyId = currency_Currencies::getIdByCode($dealInfo->currency);
+        $currencyId = $dealCurrencyId;
+        if(isset($fields['ownAccountId'])){
+            $ownAccountInfo = bank_OwnAccounts::getOwnAccountInfo($fields['ownAccountId']);
+            expect($ownAccountInfo, "Няма наша сметка с ид|* {$fields['ownAccountId']}");
+            $currencyId = $ownAccountInfo->currencyId;
+        }
+        
+        if(isset($fields['contragentIban'])){
+            $Iban = core_Type::getByName('iban_Type(64)');
+            $fields['contragentIban'] = $Iban->fromVerbal($fields['contragentIban']);
+            $checkArr = $Iban->isValid($fields['contragentIban']);
+            expect(empty($checkArr['error']), $checkArr['error']);
+        }
+        
+        // Подготвяне на записа
+        $rec = (object)array('operationSysId' =>$fields['operation'], 
+                             'threadId' => $threadId, 
+                             'termDate' => $fields['termDate'],
+                             'valior' => $fields['valior'],
+                             'contragentClassId' => $firstRec->contragentClassId,
+                             'contragentId' => $firstRec->contragentId,
+                             'state' => 'draft',
+                             'reason' => $fields['reason'],
+                             'currencyId' => $currencyId,
+                             'contragentIban' => $fields['contragentIban'],
+                             'ownAccount' => $fields['ownAccountId'],
+                             'dealCurrencyId' => $dealCurrencyId,
+        );
+        
+        if(isset($fields['contragentName'])){
+            $fields['contragentName'] = core_Type::getByName('varchar')->fromVerbal($fields['contragentName']);
+        } else {
+            $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
+            $fields['contragentName'] = ($cData->person) ? $cData->person : $cData->company;
+        }
+        $rec->contragentName = $fields['contragentName'];
+        
+        $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
+        $debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
+        expect($debitAcc);
+        $creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
+        expect($creditAcc);
+        
+        $rec->debitAccId = $debitAcc;
+        $rec->creditAccId = $creditAcc;
+        $rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
+        
+        if(!isset($fields['amountDeal'])){
+            $fields['amountDeal'] = ($dealInfo->amount / $dealInfo->rate);
+        } else {
+            $fields['amountDeal'] = core_Type::getByName('double')->fromVerbal($fields['amountDeal']);
+            expect(!is_null($fields['amountDeal']) && $fields['amountDeal'] != false, "Невалидна сума {$fields['amountDeal']}");
+        }
+        $rec->amountDeal = $fields['amountDeal'];
+        $from = currency_Currencies::getCodeById($rec->dealCurrencyId);
+        $to = currency_Currencies::getCodeById($rec->currencyId);
+        
+        if(empty($fields['amountFromAccountId'])){
+            if($rec->dealCurrencyId == $rec->currencyId){
+                $rec->amount = $rec->amountDeal;
+            } else {
+                $rec->amount = currency_CurrencyRates::convertAmount($rec->amountDeal, $rec->valior, $from, $to);
+            }
+        } else {
+            if($rec->dealCurrencyId == $rec->currencyId){
+                expect(round($rec->amountDeal, 4) == round($fields['amountFromAccountId'], 4));
+            } else {
+                if ($msg = currency_CurrencyRates::checkAmounts($fields['amountFromAccountId'], $rec->amountDeal, $rec->valior, $from, $to)) {
+                    expect(false, $msg);
+                }
+            }
+            $rec->amount = $fields['amountFromAccountId'];
+        }
+        
+        // Ако се създава като заявка
+        if($pending === true){
+            $rec->state = 'pending';
+            $rec->brState = 'draft';
+            $rec->pendingSaved = true;
+        }
+        
+        return self::save($rec);
     }
     
     
