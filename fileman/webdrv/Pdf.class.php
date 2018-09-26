@@ -145,7 +145,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     /**
      * Извлича текстовата част от файла
      *
-     * @param object $fRec - Записите за файла
+     * @param object|string $fRec - Записите за файла
      *
      * @Override
      *

@@ -173,8 +173,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         
         $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
         
-        $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $query->where("#state != 'rejected'");
@@ -230,31 +228,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $query->where("#isPublic = '{$rec->articleType}'");
         }
         
-        // Масив бързи продажби //
-        $sQuery = sales_Sales::getQuery();
-        
-        if (($rec->compare) == 'no') {
-            $sQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
-        }
-        
-        // Last период
-        if (($rec->compare) == 'previous') {
-            $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
-        }
-        
-        // LastYear период
-        if (($rec->compare) == 'year') {
-            $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
-        }
-        
-        $sQuery->like('contoActions', 'ship', false);
-        
-        $sQuery->EXT('detailId', 'sales_SalesDetails', 'externalName=id,remoteKey=saleId');
-        
-        while ($sale = $sQuery->fetch()) {
-            $salesWithShipArr[$sale->detailId] = $sale->detailId;
-        }
-        
         // избрани контрагенти
         $checkContragentsArr = keylist::toArray($rec->contragent);
         
@@ -277,6 +250,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $detClassName = $masterClassName = $masterKey = $contragentGroups = 0;
             
             $DetClass = cls::get($recPrime->detailClassId);
+            
+            if ($DetClass instanceof sales_SalesDetails) {
+                if (is_null($recPrime->sellCost)) {
+                    continue;
+                }
+            }
             
             // контрагента по сделката
             $detClassName = $DetClass->className;
@@ -333,13 +312,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 }
             }
             
-            if ($DetClass instanceof sales_SalesDetails) {
-                if (is_array($salesWithShipArr)) {
-                    if (in_array($recPrime->detailRecId, $salesWithShipArr)) {
-                        continue;
-                    }
-                }
-            }
             $id = $contragentId;
             
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
@@ -612,7 +584,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 
                 $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
                 $row->saleValue = ht::styleNumber($row->saleValue, $dRec->totalValue);
-               
+                
                 $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
                 $row->delta = ht::styleNumber($row->delta, $dRec->totalDelta);
                 
@@ -620,8 +592,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 
                 if ($rec->compare != 'no') {
                     if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                        
-                        
                         $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious) . '</b>';
                         $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValuePrevious);
                         
@@ -633,19 +603,17 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
                         
                         $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaPrevious;
-                        $row->changeDeltas ='<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
+                        $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
                         $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                   
                     }
                     
                     if ($rec->compare == 'year') {
-                       
                         $row->sellValueCompare = '<b>' .core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValueLastYear). '</b>';
                         $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValueLastYear);
                         
                         $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaLastYear) . '</b>';
                         $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaLastYear);
-                       
+                        
                         $changeSales = $dRec->totalValue - $dRec->totalValueLastYear;
                         $row->changeSales = '<b>'  . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
                         $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
@@ -653,7 +621,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaLastYear;
                         $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
                         $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                        
                     }
                 }
                 
@@ -670,15 +637,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 'saleValue',
                 'delta'
             ) as $fld) {
-                
                 $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
-                
             }
             
             if ($rec->compare != 'no') {
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    
                     $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
                     $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValuePrevious);
                     
@@ -692,15 +656,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     $changeDeltas = $dRec->delta - $dRec->deltaPrevious;
                     $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                    
                 }
                 
                 if ($rec->compare == 'year') {
-                    
-                    
                     $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
                     $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValueLastYear);
-                   
+                    
                     $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
                     $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaLastYear);
                     
@@ -711,7 +672,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     $changeDeltas = $dRec->delta - $dRec->deltaLastYear;
                     $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                    
                 }
             }
             

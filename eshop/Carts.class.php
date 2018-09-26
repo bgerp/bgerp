@@ -71,6 +71,18 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Кой може да откаже плащане?
+     */
+    public $canAbortpayment = 'every_one';
+    
+    
+    /**
+     * Кой може да потвърди плащане?
+     */
+    public $canConfirmpayment = 'every_one';
+    
+    
+    /**
      * Кой може да финализира поръчката?
      */
     public $canFinalize = 'every_one';
@@ -107,19 +119,26 @@ class eshop_Carts extends core_Master
 
     
     /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'sales,eshop,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Брид,input=none');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Магазин,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
         $this->FLD('deliveryTime', 'time', 'caption=Общи данни->Срок на доставка,input=none');
         $this->FLD('total', 'double(decimals=2)', 'caption=Общи данни->Стойност,input=none');
         $this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none');
+        $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
         $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none');
         
         $this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
@@ -500,6 +519,8 @@ class eshop_Carts extends core_Master
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
+        $description = Request::get('description', 'varchar');
+        
         $this->requireRightFor('finalize', $rec);
         Mode::push('eshopFinalize', true);
         $cu = core_Users::getCurrent('id', false);
@@ -557,7 +578,7 @@ class eshop_Carts extends core_Master
         );
         
         $fields['dealerId'] = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
-        
+       
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         
@@ -595,9 +616,24 @@ class eshop_Carts extends core_Master
             sales_Sales::addRow($saleId, $transportId, 1, $deliveryNoVat);
         }
         
-        // Продажбата става на заявка, кошницата се активира
-        $saleRec = self::makeSalePending($saleId);
+        // Ако е платено онлайн
+        if($rec->paidOnline == 'yes'){
+            
+            // Продажбата се активира
+            $saleRec = sales_Sales::fetchRec($saleId);
+            $saleRec->contoActions = 'activate';
+            $saleRec->isContable = 'activate';
+            sales_Sales::save($saleRec);
+            sales_Sales::conto($saleRec->id);
+            cls::get('sales_Sales')->updateMaster($saleRec->id);
+        } else {
+            
+            // Ако не е става на заявка
+            $saleRec = self::makeSalePending($saleId);
+        }
+        
         self::activate($rec, $saleId);
+       
         doc_Threads::doUpdateThread($saleRec->threadId);
         
         // Ако е партньор и има достъп до нишката, директно се реидректва към нея
@@ -619,6 +655,16 @@ class eshop_Carts extends core_Master
         $threadRec->state = 'opened';
         doc_Threads::save($threadRec, 'state');
         doc_Threads::updateThread($threadRec->id);
+        
+        // Ако е платено онлайн се създава нов ПБД в нишката на продажбата
+        if($rec->paidOnline == 'yes'){
+            try{
+                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank');
+                bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
+            } catch(core_exception_Expect $e){
+                reportException($e);
+            }
+        }
         
         if (is_array($colabUrl) && count($colabUrl)) {
             
@@ -992,7 +1038,7 @@ class eshop_Carts extends core_Master
             $tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
         }
         
-        $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array(eshop_Carts, 'order', $rec->id, 'ret_url' => true) : array();
+        $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array('eshop_Carts', 'order', $rec->id, 'ret_url' => true) : array();
         if (empty($rec->personNames) && count($checkoutUrl)) {
             $btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
@@ -1001,13 +1047,14 @@ class eshop_Carts extends core_Master
         // Ако се изисква онлайн плащане добавя се бутон към него
         if (isset($rec->paymentId)) {
             if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
-                $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $amount, $currency, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
-                $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
+                if(!empty($rec->productCount)){
+                    $cancelUrl = array('eshop_Carts', 'abort', $rec->id);
+                    $okUrl = array('eshop_Carts', 'confirm', $rec->id);
+                    $settings = cms_Domains::getSettings();
+                    $btn = $PaymentDriver->getPaymentBtn($rec->paymentId, $rec->total, $settings->currencyId, $okUrl, $cancelUrl, 'eshop_Carts', $rec->id);
+                    $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
+                }
             }
-            
-            //$paymentUrl = cond_PaymentMethods::getOnlinePaymentUrl($rec->paymentId);
-            //$btn = ht::createBtn('Плащане', $paymentUrl, null, null, "title=Плащане на поръчката,class=order-btn eshop-btn");
-            
         }
         
         if (eshop_Carts::haveRightFor('finalize', $rec)) {
@@ -1159,6 +1206,24 @@ class eshop_Carts extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'delete' && isset($rec)) {
+            if($rec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            } else {
+                $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
+                if($compareDate >= dt::now()){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        // Ако няма начин за плащане, и няма драйвер за онлайн плащане, екшъна за отказано плащане е недостъпен
+        if (in_array($action, array('abortpayment', 'confirmpayment')) && isset($rec)) {
+            if ($rec->state != 'draft' || !isset($rec->paymentId) || !cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId) || empty($rec->productCount)) {
+                 $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -1171,6 +1236,8 @@ class eshop_Carts extends core_Master
         if (isset($rec->saleId)) {
             $row->saleId = sales_Sales::getLink($rec->saleId, 0);
         }
+        
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     }
     
     
@@ -1302,6 +1369,12 @@ class eshop_Carts extends core_Master
         
         if ($form->isSubmitted()) {
             $rec = $form->rec;
+            
+            if(!empty($rec->invoiceNames)){
+                if(!preg_match("/[a-zа-я0-9]{3,}$/iu", $rec->invoiceNames)){
+                    $form->setError('invoiceNames', 'Неправилен формат');
+                }
+            }
             
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
             if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {
@@ -1577,5 +1650,40 @@ class eshop_Carts extends core_Master
                 self::delete($rec->id);
             }
         }
+    }
+    
+    
+    /**
+     * Екшън към който се редиректва при отказване на онлайн плащане
+     */
+    function act_Abort()
+    {
+        // Проверка дали наистина е отказано плащане
+        expect($id = Request::get('id', 'int'));
+        $this->requireRightFor('abortpayment', $id);
+        
+        // Редирект към количката с подходящо съобщение
+        core_Statuses::newStatus('Плащането е отказано|*!', 'error');
+        redirect(array($this, 'view', $id));
+    }
+    
+    
+    /**
+     * Екшън към който се редиректва при отказване на онлайн плащане
+     */
+    function act_Confirm()
+    {
+        // Проверка дали наистина е отказано плащане
+        expect($id = Request::get('id', 'int'));
+        expect($rec = self::fetch($id));
+        expect($description = Request::get('description', 'varchar'));
+        $this->requireRightFor('confirmpayment', $rec);
+        
+        // Маркира се като платена онлайн
+        $rec->paidOnline = 'yes';
+        self::save($rec, 'paidOnline');
+        
+        // Финализиране на сделката
+        redirect(array($this, 'finalize', $id, 'description' => $description));
     }
 }

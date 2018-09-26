@@ -88,7 +88,7 @@
       [#deliveryInfo#]
    <table class="styled-table" style='width:99%'>
       <tr>
-         <th colspan="2">Доставка</th>
+         <th colspan="2">|Доставка|*</th>
       </tr>
       <tr>
          <td style='width:150px'> <span class="title-style">|Начин|*</span> </td>

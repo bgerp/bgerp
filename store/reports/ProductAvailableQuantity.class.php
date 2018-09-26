@@ -96,7 +96,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->rec->limmits == 'yes') {
-            if(is_string($form->rec->additional)) {
+            if (is_string($form->rec->additional)) {
                 $details = json_decode($form->rec->additional);
             } else {
                 $details = $form->rec->additional;
@@ -111,7 +111,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
             
             if ($form->rec->limmits == 'yes') {
-                
                 if (is_array($details->code)) {
                     $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
                     
@@ -214,7 +213,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
                         
                         while ($grProduct = $rQuery->fetch()) {
-                       
                             $grDetails['code'][] = $grProduct->code;
                             
                             $grDetails['name'][] = cat_Products::getTitleById($grProduct->id);
@@ -312,20 +310,20 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         
         $codes = array();
         
-        if(is_string($rec->additional)) {
+        if (is_string($rec->additional)) {
             $additional = json_decode($rec->additional, false);
         } else {
             $additional = (object) $rec->additional;
         }
-         
+        
         $minQuantity = $maxQuantity = array();
-
+        
         // Подготвяме заявката за извличането на записите от store_Products
         $sQuery = store_Products::getQuery();
         $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $sQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
         $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-
+        
         if ($rec->limmits == 'no') {
             // Филтриране по група продукти
             $sQuery->where("#groups LIKE '%|{$rec->groupId}|%'");
@@ -340,18 +338,17 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
                 $codeList = '|' . implode('|', $codes) . '|';
             }
-            $sQuery->where(array("'[#1#]' LIKE CONCAT('%|', LOWER(#code), '|%')", $codeList));
+            $sQuery->where(array("'[#1#]' LIKE CONCAT('%|', LOWER(COALESCE(#code, CONCAT('Art', #id))), '|%')", $codeList));
         }
         
         // Филтриране по склад, ако е зададено
         if (isset($rec->storeId)) {
             $sQuery->where("#storeId = {$rec->storeId}");
         }
-            
+        
         while ($recProduct = $sQuery->fetch()) {
-            
             $productId = $recProduct->productId;
-
+            
             if ($rec->typeOfQuantity == 'TRUE') {
                 // Гледаме разполагаемото количество
                 $quantity = $recProduct->quantity - $recProduct->reservedQuantity;
@@ -359,39 +356,39 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 // Гледаме наличното количество
                 $quantity = $recProduct->quantity;
             }
-                            
+            
             if ($obj = &$recs[$productId]) {
                 $obj->quantity += $quantity;
             } else {
                 $key = mb_strtolower($recProduct->code);
-                $recs[$productId] = (object) array(                                    
-                                    'measure' => $recProduct->measureId,
-                                    'productId' => $productId,
-                                    'storeId' => $rec->storeId,
-                                    'quantity' => $quantity,
-                                    'minQuantity' => (int) $minQuantity[$key],
-                                    'maxQuantity' => (int) $maxQuantity[$key],
-                                    'code' => $recProduct->code,
-                                );
+                $recs[$productId] = (object) array(
+                    'measure' => $recProduct->measureId,
+                    'productId' => $productId,
+                    'storeId' => $rec->storeId,
+                    'quantity' => $quantity,
+                    'minQuantity' => (int) $minQuantity[$key],
+                    'maxQuantity' => (int) $maxQuantity[$key],
+                    'code' => $recProduct->code,
+                );
             }
         }
-            
+        
         // Определяне на индикаторите за "свръх наличност" и "под минимум";
         foreach ($recs as $productId => $prodRec) {
             $prodRec->conditionQuantity = 'ok';
             $prodRec->conditionColor = 'green';
-            if($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
+            if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
                 continue;
             }
-            if ($prodRec->quantity > $prodRec->maxQuantity) {
+            if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
                 $prodRec->conditionQuantity = 'свръх наличност';
                 $prodRec->conditionColor = 'blue';
-            } elseif($prodRec->quantity < $prodRec->minQuantity) {
+            } elseif ($prodRec->quantity < $prodRec->minQuantity) {
                 $prodRec->conditionQuantity = 'под минимум';
                 $prodRec->conditionColor = 'red';
             }
-        }            
-
+        }
+        
         return $recs;
     }
     

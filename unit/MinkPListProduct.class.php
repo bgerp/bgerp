@@ -234,6 +234,11 @@ class unit_MinkPListProduct extends core_Manager
         
         $browser->press('Активиране/Контиране');
         
+        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
+            $browser->setValue('Ignore', '1');
+            $browser->press('Активиране/Контиране');
+        } 
+        
         if (strpos($browser->gettext(), 'Двадесет и седем BGN и 0,60')) {
         } else {
             
@@ -329,7 +334,6 @@ class unit_MinkPListProduct extends core_Manager
         //$browser->setValue('from', 'sales');
         $browser->press('Refresh');
         
-        //$browser->setValue('Ценова група » Промоция', '15');
         $browser->setValue('group', 'Ценова група » Промоция');
         $browser->press('Refresh');
         
@@ -399,14 +403,19 @@ class unit_MinkPListProduct extends core_Manager
         
         $browser->press('Активиране/Контиране');
         
-        if (strpos($browser->gettext(), 'Two hundred and nine EUR and 0,63')) {
+        if (strpos($browser->gettext(), 'Контирането на документа ще доведе до отрицателни количества')) {
+            $browser->setValue('Ignore', '1');
+            $browser->press('Активиране/Контиране');
+        } 
+        
+        if (strpos($browser->gettext(), 'Five hundred and sixty-four EUR and 0,30')) {  
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
         
         //Проверка на статистиката
-        if (strpos($browser->gettext(), '209,63 209,63 0,00 0,00')) {
+        if (strpos($browser->gettext(), '564,30 564,30 0,00 0,00')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');

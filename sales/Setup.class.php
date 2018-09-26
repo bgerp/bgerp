@@ -336,7 +336,8 @@ class sales_Setup extends core_ProtoSetup
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
         'migrate::updateDeltaStates1',
-        'migrate::setContragentFieldKeylist3'
+        'migrate::setContragentFieldKeylist3',
+        'migrate::updateDeltaFields',
     );
     
     
@@ -506,6 +507,28 @@ class sales_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Кеширане на допълнителни полета от документите
+     */
+    public function updateDeltaFields()
+    {
+        $Deltas = cls::get('sales_PrimeCostByDocument');
+        $Deltas->setupMvc();
+        
+        $query = 'UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.folder_id = doc_containers.folder_id, sales_prime_cost_by_document.thread_id = doc_containers.thread_id WHERE sales_prime_cost_by_document.container_id = doc_containers.id';
+        $Deltas->db->query($query);
+        
+        $query2 = 'UPDATE sales_prime_cost_by_document, cat_products SET sales_prime_cost_by_document.is_public = cat_products.is_public WHERE sales_prime_cost_by_document.product_id = cat_products.id';
+        $Deltas->db->query($query2);
+        
+        $query3 = 'UPDATE sales_prime_cost_by_document, doc_folders SET sales_prime_cost_by_document.contragent_class_id = doc_folders.cover_class,sales_prime_cost_by_document.contragent_id = doc_folders.cover_id WHERE sales_prime_cost_by_document.folder_id = doc_folders.id';
+        $Deltas->db->query($query3);
+    
+        $query4 = 'UPDATE sales_prime_cost_by_document, doc_containers SET sales_prime_cost_by_document.state = doc_containers.state WHERE sales_prime_cost_by_document.container_id = doc_containers.id';
+        $Deltas->db->query($query4);
     }
     
     

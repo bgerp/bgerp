@@ -299,7 +299,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $Detail = cls::get($this->mainDetail);
         $query = $Detail->getQuery();
-        $query->where("#{$Detail->masterKey} = '{$id}'");
+        $query->where("#{$Detail->masterKey} = '{$rec->id}'");
         $recs = $query->fetchAll();
         
         deals_Helper::fillRecs($this, $recs, $rec);

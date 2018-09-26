@@ -117,6 +117,8 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $renumValues = array();
+        $values = array();
         
         $query = tracking_Log::getQuery();
         

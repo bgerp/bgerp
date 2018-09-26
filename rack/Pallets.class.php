@@ -71,6 +71,12 @@ class rack_Pallets extends core_Manager
     
     
     /**
+     * Колко време след като са затворени палетите да се изтриват
+     */
+    const DELETE_CLOSED_PALLETS_OLDER_THAN = 60 * 60 * 24 * 60;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -442,7 +448,7 @@ class rack_Pallets extends core_Manager
         
         $query = self::getQuery();
         
-        while ($rec = $query->fetch("#storeId = {$storeId} AND #position LIKE '{$num}-%'")) {
+        while ($rec = $query->fetch("#storeId = {$storeId} AND #position LIKE '{$num}-%' AND #state != 'closed'")) {
             if (!$rec->position) {
                 continue;
             }
@@ -457,7 +463,7 @@ class rack_Pallets extends core_Manager
         
         $mQuery = rack_Movements::getQuery();
         
-        while ($mRec = $mQuery->fetch("#storeId = {$storeId} AND #positionTo LIKE '{$num}-%'")) {
+        while ($mRec = $mQuery->fetch("#storeId = {$storeId} AND #positionTo LIKE '{$num}-%' AND #state != 'closed'")) {
             if (!$mRec->positionTo) {
                 continue;
             }
