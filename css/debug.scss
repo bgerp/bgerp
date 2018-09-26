@@ -34,6 +34,11 @@ body.wide {
     }
 }
 
+.narrow .search-fields {
+    position: relative;
+    left: 8px;
+}
+
 .narrow #filter {
     width: 28px;
     height: 29px;
@@ -183,18 +188,36 @@ body.wide {
     display: inline-block;
 }
 
-.debugHolder .select2-container {
+.debugList .select2-container {
     min-width: 230px;
 }
 
-.debugHolder .debugOpt {
+.debugList .debugOpt {
     width: 100% !important;
+}
+
+.narrow .other-fileds {
+    width: 300px;
+    margin-left: 8px;
+}
+
+.narrow .hFormField {
+    padding-bottom: 5px;
+}
+
+.narrow .debugList .select2-container {
+    min-width: 100%;
 }
 
 .search-fields {
     .hFormField {
         width: auto;
     }
+}
+
+.narrow .debugIframe {
+    height: 600px !important;
+    width: 100%;
 }
 
 .other-fileds {

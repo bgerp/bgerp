@@ -18,56 +18,6 @@
 class backup_Restore extends core_Manager
 {
 
-    private static $initialized = false;
-    
-    /**
-     * Информация за бекъпа
-     */
-    const BGERP_RESTORE_ORIGIN = array (
-                                        'Description'=>'Локална система',
-                                        'type'=>'local',
-                                        'path' => '/storage',
-                                        'prefix' => 'bgerp.localhost'
-                                        );
-//     const BGERP_RESTORE_ORIGIN = array(
-//                                             'Description'=>'FTP сървър',
-//                                             'type'=>'ftp',
-//                                             'address' => 'ftp.localhost.local',
-//                                             'port' => '21',
-//                                             'user' => 'user',
-//                                             'password' => 'pass',
-//                                             'path' => '/storage',
-//                                         );
-//     const BGERP_RESTORE_ORIGIN = array(
-//                                         'Description'=>'Амазон AWS S3',
-//                                         'type'=>'S3',
-//                                         'AMAZON_KEY' => '',
-//                                         'AMAZON_SECRET' => '',
-//                                         'AMAZON_BUCKET' => ''
-//                                        );
-    
-    
-    /**
-     * Инициализиране на обекта
-     */
-    public function init($array = array())
-    {
-        self::initialize();
-    }
-    
-    
-    /**
-     * Инициализация при статичните извиквания
-     */
-    private static function initialize()
-    {
-        if (self::$initialized) {
-            
-            return;
-        }
-        
-        self::$initialized = true;
-    }
     
     
     /**
@@ -75,16 +25,21 @@ class backup_Restore extends core_Manager
      */
     public function act_Default()
     {
-        $backup = json_encode(self::BGERP_RESTORE_ORIGIN); // това трябва да идва като параметър от ВЕБ или на ф-
+        $backup = json_encode(self::BGERP_RESTORE_ORIGIN); // това трябва да идва като параметър от ВЕБ или на ф-я
         $backup = json_decode($backup);
         
-        $storage = core_Cls::get('backup_' . $backup->type);
+        $storage = core_Cls::get('backup_' . $backup->type, (array) $backup);
         // Взимаме конфиг. файла
         $confFileName = $backup->prefix . '_' . EF_DB_NAME . '_conf.tar.gz';
-        $storage->getFile($confFileName, EF_TEMP_PATH . "/" . $confFileName);
+        $confFileNameTmp = tempnam(sys_get_temp_dir(), 'bgerp') . ".tar.gz";
+        if (!$storage->getFile($confFileName, $confFileNameTmp)) {
+            
+            return ("Не може да се прочете файла: $confFileName");
+        }
         $searchConsts = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
+        $consts = array();
         try {
-            $phar = new PharData(EF_TEMP_PATH . "/" . $confFileName);
+            $phar = new PharData($confFileNameTmp);
             foreach (new RecursiveIteratorIterator($phar) as $file) {
                 echo $file . "<br />";
                 $confRows = file($file);
@@ -100,19 +55,67 @@ class backup_Restore extends core_Manager
         } catch (Exception $e) {
             bp($e->getMessage());
         }
+        unlink($confFileNameTmp);
         // в $consts[] са редовете, които трябва да се добавят в новия conf файл 
         
         // Взимаме МЕТА файла
         $metaFileName = $backup->prefix . '_' . EF_DB_NAME . '_META';
-        $storage->getFile($metaFileName, EF_TEMP_PATH . "/" . $metaFileName);
-        $meta = file_get_contents(EF_TEMP_PATH . "/" . $metaFileName);
+        $metaFileNameTmp = tempnam(sys_get_temp_dir(), 'bgerp');
+        $storage->getFile($metaFileName, $metaFileNameTmp);
+        $meta = file_get_contents($metaFileNameTmp);
+        unlink($metaFileNameTmp);
+        
         $metaArr = unserialize($meta);
+        
         // Махаме служебната за mySQL информация
         unset($metaArr['logNames']);
         
         // Взимаме последния бекъп
-        $restoreArr = array_reverse($metaArr['backup'])[0];;
-        bp($restoreArr);
+        $restoreArr = array_reverse($metaArr['backup'])[0];
+        
+        // Импортираме бекъпa
+        // сваляме файловете във временната директория, разархивираме ги и попълваме командата за изпълнение
+        $cmd = $cmdBin = $cmdFull = '';
+        $statementsSQLTmp = tempnam(sys_get_temp_dir(), 'bgerp'); // в този файл наптрупваме binLog-овете
+        $forDelete = array();
+        foreach ($restoreArr as $fileName) {
+            // В нулевият елемент е пълния бекъп.
+
+            $zippedNameTmp = tempnam(sys_get_temp_dir(), 'bgerp');
+            $unzippedNameTmp = tempnam(sys_get_temp_dir(), 'bgerp');
+            
+            $forDelete[] = $unzippedNameTmp;
+            $forDelete[] = $zippedNameTmp;
+            
+            $storage->getFile($fileName, $zippedNameTmp);
+            // Разархивираме файла
+            $cmd = "gunzip -c " . $zippedNameTmp . " > " . $unzippedNameTmp;
+            exec($cmd, $output, $returnVar);
+            if (empty($cmdFull)) {
+                // Команда за пълния бекъп
+                $cmdFull = "mysql -u" . EF_DB_USER. " -p" . EF_DB_PASS. " " . EF_DB_NAME . " < " . EF_TEMP_PATH . "/". $unzippedNameTmp;
+            } else {
+                $d[] = "cat " . $unzippedNameTmp . " >> " . $statementsSQLTmp; // За дебъг
+                exec("cat " . $unzippedNameTmp . " >> " . $statementsSQLTmp);
+            }
+        }
+        $cmdBin = "mysql -u" . EF_DB_USER. " -p" . EF_DB_PASS. " " . EF_DB_NAME . " < " . $statementsSQLTmp;
+        
+        // Заключваме цялата система
+        core_SystemLock::block('Процес на въстановяване на база', $time = 180000); // 3000 мин.
+        
+//        exec($cmdFull, $output, $returnVar);
+  //      exec($cmdBin, $output, $returnVar);
+        
+        // Освобождаваме системата
+        core_SystemLock::remove();
+        
+        $forDelete[] = $statementsSQLTmp;
+        foreach ($forDelete as $f) {
+            unlink($f);
+        }
+
+        bp($cmdFull, $cmdBin, $d, $forDelete, $consts);
         
         return $backup;
     }

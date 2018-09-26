@@ -58,7 +58,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $textPart = static::getTextPart($mime, true);
         
         // Вземаме HTML частта
-        $htmlPartUrl = static::getHtmlPart($mime);
+        $htmlPartArr = static::getHtmlPart($mime);
         
         // Вземаме хедърите
         $headersStr = $mime->getHeadersVerbal();
@@ -72,7 +72,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Подготвяме табовете
         
         // Вземаме съдържанието на таба за HTML
-        $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
+        $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
         
         // Ако няма HTML част
         if ($htmlPart !== false) {
@@ -185,7 +185,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      *
      * @param email_Mime $mime
      *
-     * return string - HTML частта на файла
+     * @return array
      */
     public static function getHtmlPart($mime)
     {
@@ -200,7 +200,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Манипулатора на html файла
         $htmlFileHnd = fileman_Files::fetchField($htmlFile, 'fileHnd');
         
-        return fileman_Download::getDownloadUrl($htmlFileHnd);
+        return array('path' => fileman::extract($htmlFileHnd), 'url' => fileman_Download::getDownloadUrl($htmlFileHnd));
     }
     
     
@@ -289,35 +289,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     
     
     /**
-     * Проверяваме дали има HTML част
-     *
-     * @param $link - Линка към файла
-     *
-     * @return bool - Ако има съдържание връща TRUE
-     */
-    public static function checkHtmlPart($link)
-    {
-        // Ако няма линк кода не се изплълнява
-        if (!$link) {
-            
-            return ;
-        }
-        
-        // Вземаме съдържанието на линка
-        $content = file_get_contents($link);
-        
-        // Преобразуваме го в текс
-        $content = html2text_Converter::toRichText($content);
-        
-        // След тримване, ако има съдъжание връщаме TRUE
-        if (trim($content)) {
-            
-            return true;
-        }
-    }
-    
-    
-    /**
      * Проверяваме дали има текстова част
      *
      * @param email_Mime $mime - Обект
@@ -336,7 +307,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     /**
      * Извлича текстовата част от файла
      *
-     * @param object $fRec - Записите за файла
+     * @param object|string $fRec - Записите за файла
      */
     public static function extractText($fRec)
     {
@@ -370,7 +341,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 $textPart = self::getInfoContentByFh($fRec->fileHnd, 'text');
             } else {
                 // Записите за съответния файл
-                $source = !@file_get_contents($fRec);
+                $source = @file_get_contents($fRec);
                 
                 // Инстанция на класа
                 $mime = cls::get('email_Mime');

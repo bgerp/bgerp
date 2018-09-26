@@ -2,6 +2,18 @@
 
 
 /**
+ * Минимален брой групи, необходими за да се покаже страничната навигация
+ */
+defIfNot('EPAY_MIN', '');
+
+
+/**
+ * Минимален брой групи, необходими за да се покаже страничната навигация
+ */
+defIfNot('EPAY_CHECKSUM', '');
+
+
+/**
  * Пакет за интеграция с ePay.bg
  *
  * @category  bgerp
@@ -24,7 +36,7 @@ class epay_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Интеграция с ePay.bg';
+    public $info = 'Интеграция с ePay.bg, In development';
     
     
     /**
@@ -32,6 +44,15 @@ class epay_Setup extends core_ProtoSetup
      */
     public $defClasses = 'epay_driver_OnlinePayment';
 
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'EPAY_MIN' => array('varchar', 'caption=MIN'),
+        'EPAY_CHECKSUM' => array('varchar', 'caption=CHECKSUM'),
+    );
+    
 
     /**
      * Списък с мениджърите, които съдържа пакета

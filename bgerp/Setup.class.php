@@ -222,6 +222,14 @@ class bgerp_Setup extends core_ProtoSetup
     
     
     /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+            'migrate::setUrlNumbers',
+    );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()
@@ -512,6 +520,26 @@ class bgerp_Setup extends core_ProtoSetup
                     }
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Задава стойност на urlNumbers в bgerp_Notifications 
+     */
+    public static function setUrlNumbers()
+    {
+        $Notifications = cls::get('bgerp_Notifications');
+        
+        $query = $Notifications->getQuery();
+        $query->where("#urlNumbers IS NULL");
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            $rec->urlNumbers = $Notifications->prepareUrlNumber($rec->url, $rec->customUrl);
+            
+            $Notifications->save_($rec, 'urlNumbers');
         }
     }
 }
