@@ -535,7 +535,6 @@ class eshop_Carts extends core_Master
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
             $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
             
-            bp($folderId);
             // Ако папката е на фирма, добавя се нейния ват номер
             $Cover = doc_Folders::getCover($folderId);
             if ($Cover->isInstanceOf('crm_Companies')) {
@@ -613,7 +612,7 @@ class eshop_Carts extends core_Master
         $saleRec = self::makeSalePending($saleId);
         
         
-        //self::activate($rec, $saleId);
+        self::activate($rec, $saleId);
        
         
         doc_Threads::doUpdateThread($saleRec->threadId);
