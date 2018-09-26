@@ -168,8 +168,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
         
-        $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $query->where("#state != 'rejected'");
@@ -301,6 +299,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $flag = false;
         
         while ($recPrime = $query->fetch()) {
+            
             $quantity = $primeCost = $delta = 0;
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
             $quantityLastYear = $primeCostLastYear = $deltaLastYear = 0;
@@ -619,7 +618,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
                     
                     $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaLastYear;
-                    $row->changeDeltas =  '<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaLastYear) . '</b>';
+                    $row->changeDeltas = '<b>'. core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta - $dRec->totalDeltaLastYear) . '</b>';
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
             }
