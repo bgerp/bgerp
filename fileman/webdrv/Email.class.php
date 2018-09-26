@@ -289,35 +289,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     
     
     /**
-     * Проверяваме дали има HTML част
-     *
-     * @param $link - Линка към файла
-     *
-     * @return bool - Ако има съдържание връща TRUE
-     */
-    public static function checkHtmlPart($link)
-    {
-        // Ако няма линк кода не се изплълнява
-        if (!$link) {
-            
-            return ;
-        }
-        
-        // Вземаме съдържанието на линка
-        $content = file_get_contents($link);
-        
-        // Преобразуваме го в текс
-        $content = html2text_Converter::toRichText($content);
-        
-        // След тримване, ако има съдъжание връщаме TRUE
-        if (trim($content)) {
-            
-            return true;
-        }
-    }
-    
-    
-    /**
      * Проверяваме дали има текстова част
      *
      * @param email_Mime $mime - Обект
@@ -370,7 +341,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 $textPart = self::getInfoContentByFh($fRec->fileHnd, 'text');
             } else {
                 // Записите за съответния файл
-                $source = !@file_get_contents($fRec);
+                $source = @file_get_contents($fRec);
                 
                 // Инстанция на класа
                 $mime = cls::get('email_Mime');
