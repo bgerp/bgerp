@@ -195,7 +195,6 @@ class unit_MinkPProducts extends core_Manager
         $browser->setValue('name', 'Плик 7 л');
         $browser->setValue('code', 'plik7');
         $browser->setValue('measureId', 'брой');
-        $browser->setValue('Ценова група » Промоция', true);
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
@@ -362,13 +361,12 @@ class unit_MinkPProducts extends core_Manager
         // търсене
         $browser->setValue('search', 'Чувал');
         $browser->press('Филтрирай');
-        
-        //$browser->click('Продукти');
         $browser->click('Чувал голям 50 L');
         $browser->press('Клониране');
         $browser->setValue('code', 'smet40');
         $browser->setValue('name', 'Чувал голям 40 L');
         $browser->setValue('paramcat1', '40');
+        $browser->setValue('Ценова група » Промоция', false);
         $browser->press('Запис');
         if (strpos($browser->gettext(), 'Чувал голям 40 L')) {
         } else {
@@ -382,7 +380,6 @@ class unit_MinkPProducts extends core_Manager
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
         
-        //return $browser->getHtml();
     }
     
     
