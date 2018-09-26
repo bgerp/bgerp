@@ -175,8 +175,13 @@ class acc_BalanceDetails extends core_Detail
                 return;
             }
             
+            // Сортиране на резултатите
+            if(is_array($by) && ($sortBy = $by['sortBy'])) {  
+                arr::sortObjects($data->recs, $sortBy, 'desc');
+            }
+ 
             $data->allRecs = $data->recs;
-            static::sortRecsByNum($data->recs, $data->listFields);
+            static::sortRecsByNum($data->recs, $data->listFields, $sortBy == '');
             
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
@@ -204,7 +209,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Канонизира и подрежда записите
      */
-    public static function sortRecsByNum(&$recs, $listFields)
+    public static function sortRecsByNum(&$recs, $listFields, $sort = true)
     {
         // Кои пера участват в записите?
         $usedItems = array();
@@ -248,7 +253,9 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // Сортираме записите според полето за сравнение
-        usort($recs, array(get_called_class(), 'sortRecs'));
+        if($sort) {
+            usort($recs, array(get_called_class(), 'sortRecs'));
+        }
     }
     
     
@@ -762,10 +769,11 @@ class acc_BalanceDetails extends core_Detail
         $form->fieldsLayout = getTplFromFile('acc/tpl/BalanceFilterFormFields.shtml');
         $form->FNC('accId', 'int', 'silent,input=hidden');
         $form->input('accId', true);
-        
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
+        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо)', 'caption=Подредба,input');
+        $form->showFields .= 'sortBy,';
         $form->showFields = trim($form->showFields, ',');
         
         $form->input(null, true);
