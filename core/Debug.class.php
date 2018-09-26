@@ -232,7 +232,10 @@ class core_Debug
             arsort($timers);
             
             foreach ($timers as $name => $t) {
-                $html .= "\n<li> '{$name}' => " . number_format($t->workingTime, 5) . ' sec.';
+                $t = number_format($t->workingTime, 5);
+                if ($t > '0.00000') {
+                    $html .= "\n<li> '{$name}' => " . $t . ' sec.';
+                }
             }
             
             $html .= "\n</ol></div>";
