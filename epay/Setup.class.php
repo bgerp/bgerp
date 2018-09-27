@@ -14,6 +14,18 @@ defIfNot('EPAY_CHECKSUM', '');
 
 
 /**
+ * Сметка по която се очаква да пристигат плащанията от ePay.bg
+ */
+defIfNot('EPAY_OWN_ACCOUNT_ID', '');
+
+
+/**
+ * Име на подател на имейл, по който да се разпознава че е дошъл от ePay
+ */
+defIfNot('EPAY_EMAIL_NAME', 'ePay.bg');
+
+
+/**
  * Пакет за интеграция с ePay.bg
  *
  * @category  bgerp
@@ -49,8 +61,10 @@ class epay_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'EPAY_MIN' => array('varchar', 'caption=MIN'),
-        'EPAY_CHECKSUM' => array('varchar', 'caption=CHECKSUM'),
+        'EPAY_MIN' => array('varchar', 'caption=Настройки за онлайн плащане->MIN'),
+        'EPAY_CHECKSUM' => array('varchar', 'caption=Настройки за онлайн плащане->CHECKSUM'),
+        'EPAY_OWN_ACCOUNT_ID' => array('key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Настройки за онлайн плащане->Сметка'),
+        'EPAY_EMAIL_NAME' => array('varchar', 'caption=Имейл за получаване на плащане->Подател'),
     );
     
 
