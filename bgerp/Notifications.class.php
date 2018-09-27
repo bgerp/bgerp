@@ -127,16 +127,19 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Връща максималното id от подаденото url
-     * 
+     *
      * @param string $urlStr
-     * 
+     *
      * @return NULL|string
      */
     public static function prepareUrlId($urlStr)
     {
         $urlStr = trim($urlStr);
         
-        if (!$urlStr) return null;
+        if (!$urlStr) {
+            
+            return;
+        }
         
         $res = '';
         
@@ -144,7 +147,10 @@ class bgerp_Notifications extends core_Manager
         
         $urlStr = trim($urlStr);
         
-        if (!$urlStr) return $res;
+        if (!$urlStr) {
+            
+            return $res;
+        }
         
         $urlStrArr = explode(' ', $urlStr);
         
@@ -281,7 +287,7 @@ class bgerp_Notifications extends core_Manager
         
         $query = bgerp_Notifications::getQuery();
         
-        $urlId  = self::prepareUrlId($url);
+        $urlId = self::prepareUrlId($url);
         if ($urlId) {
             $query->where(array("#urlId = '[#1#]'", $urlId));
         }
@@ -314,7 +320,7 @@ class bgerp_Notifications extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
-        $urlId  = self::prepareUrlId($url);
+        $urlId = self::prepareUrlId($url);
         if ($urlId) {
             $query->where(array("#urlId = '[#1#]'", $urlId));
         }
@@ -341,7 +347,7 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId  = self::prepareUrlId($url);
+        $urlId = self::prepareUrlId($url);
         if ($urlId) {
             $query->where(array("#urlId = '[#1#]'", $urlId));
         }
@@ -367,7 +373,7 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId  = self::prepareUrlId($url);
+        $urlId = self::prepareUrlId($url);
         if ($urlId) {
             $query->where(array("#urlId = '[#1#]'", $urlId));
         }
@@ -1605,7 +1611,7 @@ class bgerp_Notifications extends core_Manager
     public function cron_DeleteOldNotifications()
     {
         $closedBefore = dt::addDays(-1 * (bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600)));
-        $modifiedBefore = dt::addDays(-1 *((bgerp_Setup::get('RECENTLY_KEEP_DAYS') * 2) / (24 * 3600)));
+        $modifiedBefore = dt::addDays(-1 * ((bgerp_Setup::get('RECENTLY_KEEP_DAYS') * 2) / (24 * 3600)));
         
         $res = self::delete("((#closedOn IS NOT NULL) AND (#closedOn < '{$closedBefore}')) OR ((#closedOn IS NULL) AND (#modifiedOn < '{$modifiedBefore}'))");
         
