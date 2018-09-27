@@ -111,66 +111,55 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
         $this->FLD('lastTime', 'datetime', 'caption=Предишното време, input=none');
         $this->FLD('activatedOn', 'datetime', 'caption=Последно активиране, input=none');
-        $this->FLD('urlNumbers', 'varchar(32)', 'caption=URL номера, input=none,column=none,single=none,input=none');
+        $this->FLD('urlId', 'bigint', 'caption=URL номера от URL, input=none,column=none,single=none');
+        $this->FLD('customUrlId', 'bigint', 'caption=URL номера от обект, input=none,column=none,single=none');
         
         $this->setDbUnique('url, userId');
         $this->setDbIndex('userId');
         
-        $this->setDbIndex('urlNumbers', null, 'FULLTEXT');
+        $this->setDbIndex('urlId');
+        $this->setDbIndex('customUrlId');
+        
+        $this->setDbIndex('modifiedOn');
+        $this->setDbIndex('lastTime');
     }
     
     
     /**
-     * Връща номерата от стринга
-     *
-     * @param array|string      $urlArr
-     * @param array|null|string $customUrlArr
-     *
-     * @return string
+     * Връща максималното id от подаденото url
+     * 
+     * @param string $urlStr
+     * 
+     * @return NULL|string
      */
-    public static function prepareUrlNumber($url, $customUrl = null)
+    public static function prepareUrlId($urlStr)
     {
+        $urlStr = trim($urlStr);
+        
+        if (!$urlStr) return null;
+        
         $res = '';
         
-        if (!$url && !$customUrl) {
-            
-            return $res;
+        $urlStr = preg_replace('/[^0-9]+/', ' ', $urlStr);
+        
+        $urlStr = trim($urlStr);
+        
+        if (!$urlStr) return $res;
+        
+        $urlStrArr = explode(' ', $urlStr);
+        
+        $strWord = '';
+        $maxStrLen = 0;
+        foreach ($urlStrArr as $strVal) {
+            $strVal = trim($strVal);
+            $strLen = strlen($strVal);
+            if ($maxStrLen < $strLen) {
+                $maxStrLen = $strLen;
+                $strWord = $strVal;
+            }
         }
         
-        foreach (array($url, $customUrl) as $urlStr) {
-            $urlStr = trim($urlStr);
-            if (!$urlStr) {
-                continue;
-            }
-            
-            $urlStr = preg_replace('/[^0-9]+/', ' ', $urlStr);
-            
-            $urlStr = trim($urlStr);
-            
-            if (!$urlStr) {
-                continue;
-            }
-            
-            $urlStrArr = explode(' ', $urlStr);
-            
-            $strWord = '';
-            $maxStrLen = 0;
-            foreach ($urlStrArr as $strVal) {
-                $strVal = trim($strVal);
-                $strLen = strlen($strVal);
-                if ($maxStrLen < $strLen) {
-                    $maxStrLen = $strLen;
-                    $strWord = $strVal;
-                }
-            }
-            
-            if (!$strWord) {
-                continue;
-            }
-            $res .= ' ' . $strWord;
-        }
-        
-        $res = ' ' . plg_Search::normalizeText($res);
+        $res = $strWord;
         
         return $res;
     }
@@ -252,8 +241,6 @@ class bgerp_Notifications extends core_Manager
             $rec->customUrl = toUrl($customUrl, 'local', false);
         }
         
-        $rec->urlNumbers = self::prepareUrlNumber($rec->url, $rec->customUrl);
-        
         bgerp_Notifications::save($rec);
     }
     
@@ -294,9 +281,9 @@ class bgerp_Notifications extends core_Manager
         
         $query = bgerp_Notifications::getQuery();
         
-        $urlNumbers = self::prepareUrlNumber($url);
-        if (trim($urlNumbers)) {
-            plg_Search::applySearch($urlNumbers, $query, 'urlNumbers');
+        $urlId  = self::prepareUrlId($url);
+        if ($urlId) {
+            $query->where(array("#urlId = '[#1#]'", $urlId));
         }
         
         if ($userId == '*') {
@@ -327,6 +314,11 @@ class bgerp_Notifications extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
+        $urlId  = self::prepareUrlId($url);
+        if ($urlId) {
+            $query->where(array("#urlId = '[#1#]'", $urlId));
+        }
+        
         $query->where("#url = '{$url}' AND #userId = '{$userId}'");
         
         if ($rec = $query->fetch()) {
@@ -348,6 +340,12 @@ class bgerp_Notifications extends core_Manager
         $url = toUrl($urlArr, 'local', false);
         
         $query = self::getQuery();
+        
+        $urlId  = self::prepareUrlId($url);
+        if ($urlId) {
+            $query->where(array("#urlId = '[#1#]'", $urlId));
+        }
+        
         $query->where("#url = '{$url}'");
         
         $usersArr = array();
@@ -368,6 +366,11 @@ class bgerp_Notifications extends core_Manager
         $url = toUrl($urlArr, 'local', false);
         
         $query = self::getQuery();
+        
+        $urlId  = self::prepareUrlId($url);
+        if ($urlId) {
+            $query->where(array("#urlId = '[#1#]'", $urlId));
+        }
         
         $query->where("#url = '{$url}'");
         
@@ -421,7 +424,10 @@ class bgerp_Notifications extends core_Manager
         $query->where("#hidden = '{$hidden}'");
         $className = strtolower($className);
         
-        $query->where(array("LOWER(#url) LIKE '%/[#1#]/single/[#2#]' OR LOWER(#url) LIKE '%/[#1#]/single/[#2#]/%' OR LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]' OR LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]/%'", $className, $clsId));
+        $query->setUnion(array("(LOWER(#url) LIKE '%/[#1#]/single/[#2#]') AND #urlId = '[#2#]'", $className, $clsId));
+        $query->setUnion(array("(LOWER(#url) LIKE '%/[#1#]/single/[#2#]/%') AND #urlId = '[#2#]'", $className, $clsId));
+        $query->setUnion(array("(LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]') AND #customUrlId = '[#2#]'", $className, $clsId));
+        $query->setUnion(array("(LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]/%') AND #customUrlId = '[#2#]'", $className, $clsId));
         
         while ($rec = $query->fetch()) {
             $rec->hidden = ($hidden == 'no') ? 'yes' : 'no';
@@ -1618,10 +1624,10 @@ class bgerp_Notifications extends core_Manager
         $query = self::getQuery();
         
         $before = dt::subtractSecs(180000); // преди 50 часа
-        $query->where(array("#modifiedOn >= '[#1#]'", $before));
-        $query->orWhere(array("#closedOn >= '[#1#]'", $before));
-        $query->orWhere(array("#lastTime >= '[#1#]'", $before));
-        $query->orWhere(array("#activatedOn >= '[#1#]'", $before));
+        $query->setUnion(array("#modifiedOn >= '[#1#]'", $before));
+        $query->setUnion(array("#closedOn >= '[#1#]'", $before));
+        $query->setUnion(array("#lastTime >= '[#1#]'", $before));
+        $query->setUnion(array("#activatedOn >= '[#1#]'", $before));
         
         $query->orderBy('modifiedOn', 'DESC');
         
@@ -1699,8 +1705,12 @@ class bgerp_Notifications extends core_Manager
             }
         }
         
-        if (!isset($rec->urlNumbers) && ($rec->url || $rec->customUrl)) {
-            $rec->urlNumbers = $invoker->prepareUrlNumber($rec->url, $rec->customUrl);
+        if (isset($rec->url)) {
+            $rec->urlId = self::prepareUrlId($rec->url);
+        }
+        
+        if (isset($rec->customUrl)) {
+            $rec->customUrlId = self::prepareUrlId($rec->customUrl);
         }
     }
 }

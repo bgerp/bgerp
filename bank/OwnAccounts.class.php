@@ -518,9 +518,13 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
-     * Връща Валутата и iban-a на всивки наши сметки разделени с "-"
+     * Връща Валутата и IBAN-a на всички наши сметки разделени с "-"
+     * 
+     * @param boolean $selectIban
+     * @param string|null $currencyCode
+     * @return array $accounts
      */
-    public static function getOwnAccounts($selectIban = true)
+    public static function getOwnAccounts($selectIban = true, $currencyCode = null)
     {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
@@ -536,12 +540,14 @@ class bank_OwnAccounts extends core_Master
             if (isset($rec->bankAccountId)) {
                 $account = bank_Accounts::fetch($rec->bankAccountId);
                 $cCode = currency_Currencies::getCodeById($account->currencyId);
+                if(isset($currencyCode) && strtoupper($currencyCode) != $cCode) continue;
+               
                 $verbal = ($selectIban === true) ? $Varchar->toVerbal($account->iban) : $rec->title;
                 
                 $accounts[$rec->id] = "{$cCode} - {$verbal}";
             }
         }
-        
+      
         return $accounts;
     }
     

@@ -516,10 +516,12 @@ class eshop_Carts extends core_Master
      */
     public function act_Finalize()
     {
+        Request::setProtected('description,accountId');
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $description = Request::get('description', 'varchar');
+        $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         
         $this->requireRightFor('finalize', $rec);
         Mode::push('eshopFinalize', true);
@@ -659,7 +661,8 @@ class eshop_Carts extends core_Master
         // Ако е платено онлайн се създава нов ПБД в нишката на продажбата
         if($rec->paidOnline == 'yes'){
             try{
-                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank');
+                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
+               
                 bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
             } catch(core_exception_Expect $e){
                 reportException($e);
@@ -1673,10 +1676,13 @@ class eshop_Carts extends core_Master
      */
     function act_Confirm()
     {
+        Request::setProtected('description,accountId');
+        
         // Проверка дали наистина е отказано плащане
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         expect($description = Request::get('description', 'varchar'));
+        $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         $this->requireRightFor('confirmpayment', $rec);
         
         // Маркира се като платена онлайн
@@ -1684,6 +1690,6 @@ class eshop_Carts extends core_Master
         self::save($rec, 'paidOnline');
         
         // Финализиране на сделката
-        redirect(array($this, 'finalize', $id, 'description' => $description));
+        redirect(array($this, 'finalize', $id, 'description' => $description, 'accountId' => $accountId));
     }
 }
