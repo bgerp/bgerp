@@ -518,7 +518,7 @@ class bank_OwnAccounts extends core_Master
     
     
     /**
-     * Връща Валутата и iban-a на всивки наши сметки разделени с "-"
+     * Връща Валутата и IBAN-a на всички наши сметки разделени с "-"
      */
     public static function getOwnAccounts($selectIban = true)
     {
