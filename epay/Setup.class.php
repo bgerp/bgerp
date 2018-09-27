@@ -22,7 +22,7 @@ defIfNot('EPAY_OWN_ACCOUNT_ID', '');
 /**
  * Име на подател на имейл, по който да се разпознава че е дошъл от ePay
  */
-defIfNot('EPAY_EMAIL_NAME', 'ePay.bg');
+defIfNot('EPAY_EMAIL_NAME', 'epay.bg');
 
 
 /**

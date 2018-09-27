@@ -17,10 +17,11 @@
 class epay_plg_CheckForPayments extends core_Plugin
 {
     
+
     /**
-     * Извиква се след успешен запис в модела
+     * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    public static function on_AfterCreate($mvc, $rec)
     {
         // Ако входящия имейл не е от ePay.bg, продължава се
         if(!self::isFromEpay($rec)) return;
@@ -45,8 +46,11 @@ class epay_plg_CheckForPayments extends core_Plugin
      */
     private static function isFromEpay($rec)
     {
-        $cmp = strcmp(trim($rec->fromName), trim(epay_Setup::get('EMAIL_NAME')));
-        if($cmp == 0 && $rec->spamScore <= 3) return true;
+        $needle = "@" . strtolower(trim(epay_Setup::get('EMAIL_NAME')));
+        
+        if(strpos(strtolower(trim($rec->fromEml)), $needle) === false) return false;
+        
+        if($rec->spamScore <= 3) return true;
         
         return false;
     }
