@@ -547,9 +547,7 @@ class bank_OwnAccounts extends core_Master
                 $accounts[$rec->id] = "{$cCode} - {$verbal}";
             }
         }
-        
-        bp($accounts);
-        
+      
         return $accounts;
     }
     
