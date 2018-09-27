@@ -1604,9 +1604,10 @@ class bgerp_Notifications extends core_Manager
      */
     public function cron_DeleteOldNotifications()
     {
-        $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600));
+        $closedBefore = dt::addDays(-1 * (bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600)));
+        $modifiedBefore = dt::addDays(-1 *((bgerp_Setup::get('RECENTLY_KEEP_DAYS') * 2) / (24 * 3600)));
         
-        $res = self::delete("(#closedOn IS NOT NULL) AND (#closedOn < '{$lastRecently}')");
+        $res = self::delete("((#closedOn IS NOT NULL) AND (#closedOn < '{$closedBefore}')) OR ((#closedOn IS NULL) AND (#modifiedOn < '{$modifiedBefore}'))");
         
         if ($res) {
             $this->logNotice("Бяха изтрити {$res} записа");
