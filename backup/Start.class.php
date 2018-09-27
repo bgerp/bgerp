@@ -125,6 +125,21 @@ class backup_Start extends core_Manager
         
         // Добавяме нов запис за пълния бекъп
         $metaArr['backup'][][0] = self::$backupFileName;
+        $metaArr['backupInfo']['CORE_LAST_DB_VERSION'] = CORE_LAST_DB_VERSION;
+        $metaArr['backupInfo']['CORE_CODE_VERSION'] = CORE_CODE_VERSION;
+        $metaArr['backupInfo']['BGERP_GIT_BRANCH'] = BGERP_GIT_BRANCH;
+        $metaArr['backupInfo']['EF_DB_NAME'] = EF_DB_NAME;
+        $db = cls::get(
+            'core_Db',
+            array('dbUser' => self::$conf->BACKUP_MYSQL_USER_NAME,
+                'dbHost' => self::$conf->BACKUP_MYSQL_HOST,
+                'dbPass' => self::$conf->BACKUP_MYSQL_USER_PASS,
+                'dbName' => 'information_schema')
+            );
+        $dbRes = $db->query("SELECT SUM(TABLE_ROWS) AS rowsDb FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '" . EF_DB_NAME. "'");
+        $tableRows = $db->fetchArray($dbRes);
+        $metaArr['backupInfo']['rowsDb'] =  $tableRows['rowsDb'];
+        $metaArr['backupInfo']['confFileName'] =  self::$confFileName;
         
         // Махаме бинлоговете
         unset($metaArr['logNames']);
@@ -277,6 +292,7 @@ class backup_Start extends core_Manager
             $garbage = array_slice($metaArr['backup'], 0, count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
             $keeped['backup'] = array_slice($metaArr['backup'], count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr['backup']));
             $keeped['logNames'] = $metaArr['logNames'];
+            $keeped['backupInfo'] = $metaArr['backupInfo'];
             file_put_contents(EF_TEMP_PATH . '/' . self::$metaFileName, serialize($keeped));
             
             // Качваме МЕТАТ-а в сториджа
