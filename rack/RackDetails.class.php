@@ -63,6 +63,9 @@ class rack_RackDetails extends core_Detail
     public $canDelete = 'ceo, rackMaster';
     
     
+    /**
+     * Полета за листовия изглед
+     */
     public $listFields = 'row,col,status';
     
     
@@ -79,6 +82,7 @@ class rack_RackDetails extends core_Detail
                                    reserved=Запазено                                     
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
         $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,input=none');
+        
         $this->setDbUnique('rackId,row,col');
     }
     
