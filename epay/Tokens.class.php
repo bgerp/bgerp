@@ -92,7 +92,6 @@ class epay_Tokens extends core_Manager
     }
     
     
-    
     /**
      * Форсира нов токен за обекта-инициатор
      * 
@@ -132,5 +131,34 @@ class epay_Tokens extends core_Manager
         }
         
         return $token;
+    }
+    
+    
+    /**
+     * Търси съществуващ токен в стринга
+     * 
+     * @param string $string - стринг
+     * 
+     * @return false|array  - информация за токена или false ако не е намерен валиден токен
+     *          ['token']            - токен
+     *          ['initiatorClassId'] - клас инициатор
+     *          ['initiatorId']      - ид на инициатора
+     */
+    public static function findToken($string)
+    {
+        $string = trim($string);
+        
+        $matches = array();
+        if(preg_match('/(#([A-Z]{3})([0-9]{8}))/', $string, $matches)){
+            if(isset($matches[1])){
+                $token = trim($matches[1], '#');
+                if($tokenRec = self::fetch(array("#token = '[#1#]'", $token), 'token,initiatorClassId,initiatorId')){
+                    
+                    return array('token' => $tokenRec->token, 'initiatorClassId' => $tokenRec->initiatorClassId, 'initiatorId' => $tokenRec->initiatorId);
+                }
+            }
+        }
+        
+        return false;
     }
 }

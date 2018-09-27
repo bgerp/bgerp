@@ -14,6 +14,18 @@ defIfNot('EPAY_CHECKSUM', '');
 
 
 /**
+ * Сметка по която се очаква да пристигат плащанията от ePay.bg
+ */
+defIfNot('EPAY_OWN_ACCOUNT_ID', '');
+
+
+/**
+ * Име на подател на имейл, по който да се разпознава че е дошъл от ePay
+ */
+defIfNot('EPAY_EMAIL_DOMAIN', 'ntf@epay.bg');
+
+
+/**
  * Пакет за интеграция с ePay.bg
  *
  * @category  bgerp
@@ -49,8 +61,10 @@ class epay_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'EPAY_MIN' => array('varchar', 'caption=MIN'),
-        'EPAY_CHECKSUM' => array('varchar', 'caption=CHECKSUM'),
+        'EPAY_MIN' => array('varchar', 'caption=Настройки за онлайн плащане->MIN'),
+        'EPAY_CHECKSUM' => array('varchar', 'caption=Настройки за онлайн плащане->CHECKSUM'),
+        'EPAY_OWN_ACCOUNT_ID' => array('key2(mvc=bank_OwnAccounts,select=title,allowEmpty,selectSourceArr=epay_Setup::getOwnAccountsArr)', 'caption=Настройки за онлайн плащане->Сметка|* (BGN)'),
+        'EPAY_EMAIL_DOMAIN' => array('varchar', 'caption=Имейл от който ще се очаква получаване на плащане->Имейл'),
     );
     
 
@@ -60,4 +74,23 @@ class epay_Setup extends core_ProtoSetup
     public $managers = array(
         'epay_Tokens',
     );
+    
+    
+    /**
+     * Връща опциите за сметки
+     *
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|int|array $onlyIds
+     * @param bool           $includeHiddens
+     *
+     * @return array
+     */
+    public static function getOwnAccountsArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        // Само нашите сметки в BGN
+        return bank_OwnAccounts::getOwnAccounts(true, 'BGN');
+    }
 }
+
