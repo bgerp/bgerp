@@ -63,8 +63,8 @@ class epay_Setup extends core_ProtoSetup
     public $configDescription = array(
         'EPAY_MIN' => array('varchar', 'caption=Настройки за онлайн плащане->MIN'),
         'EPAY_CHECKSUM' => array('varchar', 'caption=Настройки за онлайн плащане->CHECKSUM'),
-        'EPAY_OWN_ACCOUNT_ID' => array('key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Настройки за онлайн плащане->Сметка'),
-        'EPAY_EMAIL_DOMAIN' => array('varchar', 'caption=Имейл за получаване на плащане->Имейл'),
+        'EPAY_OWN_ACCOUNT_ID' => array('key2(mvc=bank_OwnAccounts,select=title,allowEmpty,selectSourceArr=epay_Setup::getOwnAccountsArr)', 'caption=Настройки за онлайн плащане->Сметка|* (BGN)'),
+        'EPAY_EMAIL_DOMAIN' => array('varchar', 'caption=Имейл от който ще се очаква получаване на плащане->Имейл'),
     );
     
 
@@ -74,4 +74,23 @@ class epay_Setup extends core_ProtoSetup
     public $managers = array(
         'epay_Tokens',
     );
+    
+    
+    /**
+     * Връща опциите за сметки
+     *
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|int|array $onlyIds
+     * @param bool           $includeHiddens
+     *
+     * @return array
+     */
+    public static function getOwnAccountsArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        // Само нашите сметки в BGN
+        return bank_OwnAccounts::getOwnAccounts(true, 'BGN');
+    }
 }
+
