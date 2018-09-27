@@ -68,7 +68,7 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'rack,rackMaster';
+    public $roles = array('rack', array('rackMaster', 'rack'));
     
     
     /**
