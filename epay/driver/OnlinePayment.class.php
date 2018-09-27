@@ -55,14 +55,21 @@ class epay_driver_OnlinePayment extends core_BaseClass
     {
         //@TODO тестово
         $amount = 0.01;
+        $amount = round($amount, 2);
         
         $token = epay_Tokens::force($initiatorClass, $initiatorId, $paymentId, $currency);
         $action = self::EPAY_DOMAIN;
         $reason = "Плащане по поръчка #{$token}";
-        
         $okUrl['description'] = $reason;
+        
+        if($accountId = epay_Setup::get('OWN_ACCOUNT_ID')){
+            $okUrl['accountId'] = $accountId;
+        }
+        
+        Request::setProtected('description,accountId');
         $okUrl = toUrl($okUrl, 'absolute');
-       
+        Request::removeProtected('description,accountId');
+        
         //@TODO тестово
         $action = $okUrl;
         
@@ -71,7 +78,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
                               'description' => "Плащане по поръчка #{$token}",
                               'min' => epay_Setup::get('MIN'),
                               'checksum' => epay_Setup::get('CHECKSUM'),
-                              'okUrl' => $reason,
+                              'urlOk' => $okUrl,
                               'cancelUrl' => toUrl($cancelUrl, 'absolute'),
         );
         
