@@ -22,7 +22,7 @@ defIfNot('EPAY_OWN_ACCOUNT_ID', '');
 /**
  * Име на подател на имейл, по който да се разпознава че е дошъл от ePay
  */
-defIfNot('EPAY_EMAIL_NAME', 'epay.bg');
+defIfNot('EPAY_EMAIL_DOMAIN', 'ntf@epay.bg');
 
 
 /**
@@ -64,7 +64,7 @@ class epay_Setup extends core_ProtoSetup
         'EPAY_MIN' => array('varchar', 'caption=Настройки за онлайн плащане->MIN'),
         'EPAY_CHECKSUM' => array('varchar', 'caption=Настройки за онлайн плащане->CHECKSUM'),
         'EPAY_OWN_ACCOUNT_ID' => array('key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Настройки за онлайн плащане->Сметка'),
-        'EPAY_EMAIL_NAME' => array('varchar', 'caption=Имейл за получаване на плащане->Подател'),
+        'EPAY_EMAIL_NAME' => array('varchar', 'caption=Имейл за получаване на плащане->Имейл'),
     );
     
 

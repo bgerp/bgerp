@@ -46,13 +46,12 @@ class epay_plg_CheckForPayments extends core_Plugin
      */
     private static function isFromEpay($rec)
     {
-        $needle = "@" . strtolower(trim(epay_Setup::get('EMAIL_NAME')));
+        if($rec->spamScore > 3) return false;
         
-        if(strpos(strtolower(trim($rec->fromEml)), $needle) === false) return false;
+        $needle = strtolower(trim(epay_Setup::get('EMAIL_DOMAIN')));
+        $search = strpos(strtolower(trim($rec->fromEml)), $needle);
         
-        if($rec->spamScore <= 3) return true;
-        
-        return false;
+        return ($search !== false) ? true : false;
     }
     
     
