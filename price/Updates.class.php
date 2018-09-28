@@ -352,7 +352,7 @@ class price_Updates extends core_Manager
                 $minChange = (isset($rec->minChange)) ? $rec->minChange : price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST');
                 
                 // Ако старата себестойност е различна от новата
-                if (abs(round($primeCost / $oldPrimeCost - 1, 2)) >= $minChange) {
+                if (empty($oldPrimeCost) || abs(round($primeCost / $oldPrimeCost - 1, 2)) >= $minChange) {
                     
                     // Кешираме себестойността, ако правилото не е за категория
                     if ($rec->type != 'category') {
