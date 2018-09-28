@@ -99,6 +99,9 @@ class price_Updates extends core_Manager
     									lastQuote=Последна оферта,
     									bom=Последна рецепта)', 'caption=Източник 3');
         $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
+        $this->FLD('costAddAmount', 'double', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
+        $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
+        
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
         $this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасно,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
         
@@ -113,6 +116,10 @@ class price_Updates extends core_Manager
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        
+        Mode::push('text', 'plain');
+        $form->setField("minChange", "placeholder=" . core_Type::getByName('percent')->toVerbal(price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST')));
+        Mode::pop('text', 'plain');
         
         if ($rec->type == 'category') {
             $form->setField('objectId', 'caption=Категория');
@@ -338,9 +345,14 @@ class price_Updates extends core_Manager
                 
                 // Добавяме надценката, ако има
                 $primeCost = $primeCost * (1 + $rec->costAdd);
+                if(!empty($rec->costAddAmount)){
+                    $primeCost += $rec->costAddAmount;
+                }
+               
+                $minChange = (isset($rec->minChange)) ? $rec->minChange : price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST');
                 
                 // Ако старата себестойност е различна от новата
-                if ($primeCost != $oldPrimeCost) {
+                if (empty($oldPrimeCost) || abs(round($primeCost / $oldPrimeCost - 1, 2)) >= $minChange) {
                     
                     // Кешираме себестойността, ако правилото не е за категория
                     if ($rec->type != 'category') {
