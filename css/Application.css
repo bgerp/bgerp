@@ -971,6 +971,43 @@ div.acc-detail {
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
 
+.toggleLink {
+  float: right;
+  display: inline-block;
+  height: 20px;
+  cursor: pointer;
+  padding: 3px; }
+
+.narrow #cmsNavigation .articles-navigation {
+  margin-top: -10px !important;
+  margin-bottom: 0 !important; }
+  .narrow #cmsNavigation .articles-navigation #searchform {
+    margin: 0 !important;
+    float: left; }
+  .narrow #cmsNavigation .articles-navigation #simpleSearch {
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    position: relative; }
+  .narrow #cmsNavigation .articles-navigation #searchInput {
+    border-radius: 3px;
+    box-shadow: none !important;
+    border: none !important; }
+  .narrow #cmsNavigation .articles-navigation #searchButton {
+    position: absolute;
+    top: 2px;
+    right: 26px; }
+    .narrow #cmsNavigation .articles-navigation #searchButton:focus {
+      outline: none; }
+
+.narrowNav {
+  display: none;
+  background-color: #f1f1f1;
+  border: 1px solid #cccccc;
+  padding: 10px 10px 15px 10px;
+  font-size: 0.85em;
+  margin-bottom: 20px; }
+
 .narrow .additionalInfo {
   font-size: 0.9em; }
 
@@ -3308,6 +3345,9 @@ table .eshop-btn {
     width: 20px;
     height: 20px;
     background: url('../img/16/toggle1.png') center bottom no-repeat; }
+
+.narrow .cms-row {
+  padding-top: 20px; }
 
 .cms-row h1 {
   margin-top: 0;
