@@ -23,6 +23,12 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'eshop_InitiatorPayment';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified';
