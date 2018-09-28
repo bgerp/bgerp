@@ -372,7 +372,7 @@ class store_InventoryNotes extends core_Master
         if ($mvc->haveRightFor('fillreport', $rec)) {
             $url = array($mvc, 'fillreport', $rec->id, 'ret_url' => true);
             $data->toolbar->addBtn('Нулиране', $url, 'id=fillReport,ef_icon = img/16/cart_go.png,title=Нулиране на всички артикули без въведени количества,row=2');
-            $data->toolbar->setWarning('fillReport', "Наистина ли желаете на всички артикули без въведени количества да сe нулират|*?");
+            $data->toolbar->setWarning('fillReport', "Наистина ли желаете всички артикули без въведени количества да сe нулират|*?");
         }
     }
     
