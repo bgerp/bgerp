@@ -1417,7 +1417,7 @@ class eshop_Carts extends core_Master
             $rec = $form->rec;
             
             if(!empty($rec->invoiceNames)){
-                if(!preg_match("/[a-zа-я0-9]{3,}$/iu", $rec->invoiceNames)){
+                if(!preg_match("/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu", $rec->invoiceNames)){
                     $form->setError('invoiceNames', 'Неправилен формат');
                 }
             }
