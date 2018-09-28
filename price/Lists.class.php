@@ -331,10 +331,6 @@ class price_Lists extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
-        if (isset($rec->parent)) {
-            $form->setReadOnly('parent');
-        }
-        
         $folderId = $rec->folderId;
         
         if (isset($rec->cClass, $rec->cId)) {
