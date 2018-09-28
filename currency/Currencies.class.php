@@ -365,11 +365,14 @@ class currency_Currencies extends core_Master
     
     
     /**
-     * Връща дефолтната цена отговаряща на количеството
+     * Връща дефолтната единична цена отговаряща на количеството
      *
      * @param mixed $id - ид/запис на обекта
+     * @param double $quantity - За какво количество
+     * 
+     * @return double|NULL - дефолтната единична цена
      */
-    public function getDefaultCost($id)
+    public function getDefaultCost($id, $quantity)
     {
         $today = dt::now();
         $code = static::getCodeById($id);

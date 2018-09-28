@@ -291,6 +291,14 @@ class eshop_Settings extends core_Manager
     
         $companyPlaceholder = $mvc->getFieldType('countries')->toVerbal(keylist::addKey('', $ownCompany->country));
         $form->setField('countries', "placeholder={$companyPlaceholder}");
+        
+        // При нов запис, за имейл да е корпоратичния имейл
+        if(empty($rec->id)){
+            if($emailRec = email_Accounts::getCorporateAcc()){
+                $defaultInboxId = email_Inboxes::fetchField("#email = '{$emailRec->email}'", 'id');
+                $form->setDefault('inboxId', $defaultInboxId);
+            }
+        }
     }
     
     

@@ -67,7 +67,7 @@ class social_Followers extends core_Master
         $this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
         $this->FLD('followersCnt', 'int', 'caption=Последователи, input=none, notNull');
         $this->FLD('order', 'int', 'caption=Подредба, notNull');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
     }
     
     

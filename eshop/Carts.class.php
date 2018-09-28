@@ -23,15 +23,21 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'eshop_InitiatorPaymentIntf';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified,plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
+    public $listFields = 'productCount=Артикули,total=Сума,ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
     
     
     /**
@@ -123,6 +129,11 @@ class eshop_Carts extends core_Master
      */
     public $canSingle = 'sales,eshop,ceo';
     
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'productCount';
+    
     
     /**
      * Описание на модела
@@ -131,7 +142,7 @@ class eshop_Carts extends core_Master
     {
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Магазин,input=none');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Магазин,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
@@ -505,6 +516,8 @@ class eshop_Carts extends core_Master
      */
     public function act_Force()
     {
+        if(!core_Packs::isInstalled('eshop')) return;
+        
         $cartId = self::force();
         
         redirect(array($this, 'view', $cartId, 'ret_url' => true));
@@ -524,10 +537,56 @@ class eshop_Carts extends core_Master
         $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         
         $this->requireRightFor('finalize', $rec);
-        Mode::push('eshopFinalize', true);
         $cu = core_Users::getCurrent('id', false);
         
         Mode::set('currentExternalTab', 'eshop_Carts');
+        
+        $saleRec = self::forceSale($rec);
+        
+        // Ако е партньор и има достъп до нишката, директно се реидректва към нея
+        $colabUrl = null;
+        if (core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)) {
+            $threadRec = doc_Threads::fetch($saleRec->threadId);
+            if (colab_Threads::haveRightFor('single', $threadRec)) {
+                $colabUrl = array('colab_Threads', 'single', 'threadId' => $saleRec->threadId);
+            }
+        }
+        
+        // Ако е платено онлайн се създава нов ПБД в нишката на продажбата
+        if($rec->paidOnline == 'yes'){
+            try{
+                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
+               
+                bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
+            } catch(core_exception_Expect $e){
+                reportException($e);
+            }
+        }
+        
+        if (is_array($colabUrl) && count($colabUrl)) {
+            
+            return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
+        }
+        
+        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Поръчката е направена|*!');
+    }
+    
+    
+    /**
+     * Форсира продажба към количката
+     * 
+     * @param mixed $id
+     * 
+     * @return stdClass $saleRec
+     */
+    public function forceSale($id)
+    {
+        $rec = $this->fetchRec($id);
+        if(isset($rec->saleId)) return $rec->saleId;
+        expect($rec->state == 'draft');
+        
+        Mode::push('eshopFinalize', true);
+        $cu = core_Users::getCurrent('id', false);
         
         $company = null;
         $personNames = $rec->personNames;
@@ -580,7 +639,7 @@ class eshop_Carts extends core_Master
         );
         
         $fields['dealerId'] = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
-       
+        
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         
@@ -595,7 +654,7 @@ class eshop_Carts extends core_Master
         
         // Добавяне на артикулите от количката в продажбата
         $dQuery = eshop_CartDetails::getQuery();
-        $dQuery->where("#cartId = {$id}");
+        $dQuery->where("#cartId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
             $price = ($dRec->amount / $dRec->quantity);
             $price = isset($dRec->discount) ? ($price / (1 - $dRec->discount)) : $price;
@@ -635,17 +694,10 @@ class eshop_Carts extends core_Master
         }
         
         self::activate($rec, $saleId);
-       
+        
         doc_Threads::doUpdateThread($saleRec->threadId);
         
-        // Ако е партньор и има достъп до нишката, директно се реидректва към нея
-        $colabUrl = null;
-        if (core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)) {
-            $threadRec = doc_Threads::fetch($saleRec->threadId);
-            if (colab_Threads::haveRightFor('single', $threadRec)) {
-                $colabUrl = array('colab_Threads', 'single', 'threadId' => $saleRec->threadId);
-            }
-        } else {
+        if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
             self::sendEmail($rec, $saleRec);
             doc_Threads::doUpdateThread($saleRec->threadId);
         }
@@ -658,23 +710,7 @@ class eshop_Carts extends core_Master
         doc_Threads::save($threadRec, 'state');
         doc_Threads::updateThread($threadRec->id);
         
-        // Ако е платено онлайн се създава нов ПБД в нишката на продажбата
-        if($rec->paidOnline == 'yes'){
-            try{
-                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
-               
-                bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
-            } catch(core_exception_Expect $e){
-                reportException($e);
-            }
-        }
-        
-        if (is_array($colabUrl) && count($colabUrl)) {
-            
-            return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
-        }
-        
-        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Поръчката е направена|*!');
+        return $saleRec;
     }
     
     
@@ -1233,14 +1269,21 @@ class eshop_Carts extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
-        if (isset($rec->saleId)) {
-            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        if(isset($fields['-list'])){
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            if (isset($rec->saleId)) {
+                $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            }
+            
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+            $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+            
+            $currencyCode = cms_Domains::getSettings()->currencyId;
+            $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $currencyCode);
+            $row->total = $mvc->getFieldType('total')->toVerbal($total) . " <span class='cCode'>{$currencyCode}</span>";
         }
-        
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     }
     
     

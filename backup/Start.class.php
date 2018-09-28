@@ -59,8 +59,8 @@ class backup_Start extends core_Manager
         self::$conf = core_Packs::getConfig('backup');
         $now = date('Y_m_d_H_i');
         self::$backupFileName = self::$conf->BACKUP_PREFIX . '_' . EF_DB_NAME . '_' . $now . '.full.gz';
-        self::$metaFileName = self::$conf->BACKUP_PREFIX . '_' . EF_DB_NAME . '_META';
-        self::$confFileName = self::$conf->BACKUP_PREFIX . '_' . EF_DB_NAME . '_conf.tar.gz';
+        self::$metaFileName = self::$conf->BACKUP_PREFIX . '_bgERP_backup_META';
+        self::$confFileName = self::$conf->BACKUP_PREFIX . '_conf.tar.gz';
         self::$storage = core_Cls::get('backup_' . self::$conf->BACKUP_STORAGE_TYPE);
         self::$initialized = true;
     }

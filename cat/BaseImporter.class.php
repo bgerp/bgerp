@@ -104,7 +104,7 @@ class cat_BaseImporter extends core_Manager
     
     
     /**
-     * Инпортиране на csv-файл в cat_Products
+     * Импортиране на csv-файл в cat_Products
      *
      * @param array $rows   - масив с обработени csv данни,
      *                      получен от Експерта в bgerp_Import

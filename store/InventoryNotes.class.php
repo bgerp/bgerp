@@ -191,6 +191,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Кой може да занули количествата на всички артикули без установени количества
+     */
+    public $canFillreport = 'ceo,storeMaster,inventory';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -219,7 +225,7 @@ class store_InventoryNotes extends core_Master
             }
         }
         
-        if (($action == 'add' || $action == 'edit') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'fillreport') && isset($rec)) {
             if (isset($rec->threadId)) {
                 if (!doc_Threads::haveRightFor('single', $rec->threadId)) {
                     $requiredRoles = 'no_one';
@@ -229,6 +235,12 @@ class store_InventoryNotes extends core_Master
         
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
             $requiredRoles = 'no_one';
+        }
+        
+        if($action == 'fillreport' && isset($rec)){
+            if($rec->state != 'draft'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -355,6 +367,12 @@ class store_InventoryNotes extends core_Master
             if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
                 $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
             }
+        }
+        
+        if ($mvc->haveRightFor('fillreport', $rec)) {
+            $url = array($mvc, 'fillreport', $rec->id, 'ret_url' => true);
+            $data->toolbar->addBtn('Нулиране', $url, 'id=fillReport,ef_icon = img/16/cart_go.png,title=Нулиране на всички артикули без въведени количества,row=2');
+            $data->toolbar->setWarning('fillReport', "Наистина ли желаете всички артикули без въведени количества да сe нулират|*?");
         }
     }
     
@@ -980,5 +998,31 @@ class store_InventoryNotes extends core_Master
         
         // Връщане на записа
         return $rec->id;
+    }
+    
+    
+    /**
+     * Екшън зануляващ к-та в инвентаризацията
+     */
+    public function act_fillreport()
+    {
+        $this->requireRightFor('fillreport');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = self::fetch($id));
+        $this->requireRightFor('fillreport', $rec);
+        
+        $summaryQuery = store_InventoryNoteSummary::getQuery();
+        $summaryQuery->where("#noteId = {$rec->id} AND #quantity IS NULL");
+        
+        while($summaryRec = $summaryQuery->fetch()){
+            $dRec = (object)array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1);
+            $dRec->packagingId = cat_Products::fetchField($summaryRec->productId, 'measureId');
+            $dRec->quantity = 0;
+            store_InventoryNoteDetails::save($dRec);
+        }
+       
+        $this->logInAct('Нулиране на невъведените артикули', $id);
+        
+        followRetUrl('Всички артикули с невъведени количества са нулирани');
     }
 }

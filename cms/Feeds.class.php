@@ -80,7 +80,7 @@ class cms_Feeds extends core_Manager
         $this->FLD('description', 'text', 'caption=Описание, mandatory');
         $this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого');
         $this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, notNull, mandatory');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         $this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
         

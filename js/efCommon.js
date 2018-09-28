@@ -1579,6 +1579,9 @@ function setMinHeightExt() {
             }
         }
     }
+    $('.toggleLink').on('click', function(){
+        $('.narrowNav').slideToggle();
+    });
 }
 function getWindowWidth() {
 	var winWidth = parseInt($(window).width());

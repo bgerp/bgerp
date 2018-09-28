@@ -18,7 +18,7 @@
 class deals_DealImportProductIntf extends acc_RegisterIntf
 {
     /**
-     * Инпортиране на артикул генериран от ред на csv файл
+     * Импортиране на артикул генериран от ред на csv файл
      *
      * @param int   $masterId - ид на мастъра на детайла
      * @param array $row      - Обект представляващ артикула за импортиране

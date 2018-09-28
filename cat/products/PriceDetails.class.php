@@ -158,6 +158,7 @@ class cat_products_PriceDetails extends core_Manager
         // Само за публичните показваме правилото за обновяване
         if ($data->masterData->rec->isPublic == 'yes') {
             $uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
+            $data->updateCostRec = $uRec;
             if (is_object($uRec)) {
                 $uRow = price_Updates::recToVerbal($uRec);
                 
@@ -289,14 +290,12 @@ class cat_products_PriceDetails extends core_Manager
         $primeCostTpl->prepend(tr('|*<div>|Цени без ДДС|*:</div>'));
         $colspan = count($fields);
         
-        $colspan = count($fields);
-        
         // Рендираме правилото за обновяване само при нужда
         if ($data->masterData->rec->isPublic == 'yes') {
-            if (isset($data->afterRow)) {
+            if (isset($data->afterRow) && price_Updates::haveRightFor('edit', $data->updateCostRec)) {
                 $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
                 $afterRowTpl->append($data->afterRow, '1');
-            } else {
+            } elseif(empty($data->updateCostRec)) {
                 $afterRowTpl = new core_ET("<tr><td colspan={$colspan}>[#1#][#button#]</td></tr>");
                 $afterRowTpl->append(tr('Няма зададено правило за обновяване на себестойност'), '1');
                 

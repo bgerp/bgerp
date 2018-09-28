@@ -43,13 +43,13 @@ class rack_Racks extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,rack';
+    public $canEdit = 'ceo,rackMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,rack';
+    public $canAdd = 'ceo,rackMaster';
     
     
     /**
@@ -67,7 +67,7 @@ class rack_Racks extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,rack';
+    public $canDelete = 'ceo,rackMaster';
     
     
     /**
@@ -134,6 +134,7 @@ class rack_Racks extends core_Master
         
         $this->FLD('constrColumnsStep', 'int', 'caption=Брой палети на една основа->Палети,smartCenter');
         
+        $this->setDbIndex('storeId');
         $this->setDbUnique('storeId,num');
     }
     

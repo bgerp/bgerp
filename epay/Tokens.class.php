@@ -71,7 +71,7 @@ class epay_Tokens extends core_Manager
     public function description()
     {
         $this->FLD('token', 'varchar', 'caption=Токен');
-        $this->FLD('initiatorClassId', 'class', 'caption=Инициатор->Клас');
+        $this->FLD('initiatorClassId', 'class(interface=eshop_InitiatorPaymentIntf)', 'caption=Инициатор->Клас');
         $this->FLD('initiatorId', 'int', 'caption=Инициатор->Ид,tdClass=leftCol');
         
         $this->setDbUnique('token');

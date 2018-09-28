@@ -25,7 +25,7 @@ class export_Pdf extends core_Mvc
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
      * @param int $clsId
      * @param int $objId
@@ -48,7 +48,7 @@ class export_Pdf extends core_Mvc
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
      * @param int $clsId
      * @param int $objId
@@ -62,7 +62,7 @@ class export_Pdf extends core_Mvc
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
      * @param core_Form    $form
      * @param int          $clsId
