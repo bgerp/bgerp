@@ -31,13 +31,13 @@ class eshop_Carts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified,plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
+    public $listFields = 'productCount=Артикули,total=Сума,ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
     
     
     /**
@@ -129,6 +129,11 @@ class eshop_Carts extends core_Master
      */
     public $canSingle = 'sales,eshop,ceo';
     
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'productCount';
+    
     
     /**
      * Описание на модела
@@ -137,7 +142,7 @@ class eshop_Carts extends core_Master
     {
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=domain)', 'caption=Магазин,input=none');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=title)', 'caption=Магазин,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
@@ -1264,14 +1269,21 @@ class eshop_Carts extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
-        if (isset($rec->saleId)) {
-            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        if(isset($fields['-list'])){
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            if (isset($rec->saleId)) {
+                $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            }
+            
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+            $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+            
+            $currencyCode = cms_Domains::getSettings()->currencyId;
+            $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $currencyCode);
+            $row->total = $mvc->getFieldType('total')->toVerbal($total) . " <span class='cCode'>{$currencyCode}</span>";
         }
-        
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     }
     
     
