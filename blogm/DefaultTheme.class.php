@@ -46,7 +46,11 @@ class blogm_DefaultTheme extends core_Manager
      */
     public static function getNavigationLayout()
     {
-        return getTplFromFile('blogm/themes/default/Navigation.shtml');
+        if(Mode::is('screenMode', 'wide')){
+            return getTplFromFile('blogm/themes/default/Navigation.shtml');
+        } else {
+            return getTplFromFile('blogm/themes/default/NavigationNarrow.shtml');
+        }
     }
     
     

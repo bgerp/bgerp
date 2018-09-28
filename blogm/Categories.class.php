@@ -161,6 +161,8 @@ class blogm_Categories extends core_Manager
             
             // Създаваме шаблон, после заместваме плейсхолдъра със самия линк
             $tpl->append($title);
+            $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
+            $tpl->replace($toggleLink, 'TOGGLE_BTN');
         }
         
         

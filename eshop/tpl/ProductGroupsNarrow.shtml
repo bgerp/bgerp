@@ -1,4 +1,15 @@
 <div class='cms-row'>
+    <!--ET_BEGIN NAVIGATION-->
+    <div   id='cmsNavigation' class='articles-menu'  style='margin:2%'>
+        <div class='articles-navigation'>
+            [#SEARCH_BOX#] [#TOGGLE_BTN#]
+            <div class="clearfix21"></div>
+        </div>
+        <div class="narrowNav">
+            [#NAVIGATION#]
+        </div>
+    </div>
+    <!--ET_END NAVIGATION-->
     <div style='margin:0 2%;'>
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
@@ -6,12 +17,4 @@
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
     </div>
-    <!--ET_BEGIN NAVIGATION-->
-    <div   id='cmsNavigation'  style='margin:2%'>
-        <div class='articles-navigation'>
-            |Навигация|*
-        </div>
-        [#NAVIGATION#] 
-    </div>
-    <!--ET_END NAVIGATION-->
 </div>
