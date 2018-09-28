@@ -505,6 +505,8 @@ class eshop_Carts extends core_Master
      */
     public function act_Force()
     {
+        if(!core_Packs::isInstalled('eshop')) return;
+        
         $cartId = self::force();
         
         redirect(array($this, 'view', $cartId, 'ret_url' => true));
