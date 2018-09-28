@@ -1117,6 +1117,8 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        core_Lg::push($rec->tplLang);
+        
         if (!Mode::isReadOnly() && core_Packs::isInstalled('eshop')) {
             if ($cartId = eshop_Carts::fetchField("#saleId = {$rec->id}")) {
                 $row->cartId = eshop_Carts::getHyperlink($cartId, true);
@@ -1131,8 +1133,9 @@ class sales_Sales extends deals_DealMaster
             if ($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')) {
                 $row->bic = $bic;
             }
+            
             if ($bank = bank_Accounts::getVerbal($rec->bankAccountId, 'bank')) {
-                $row->bank = $bank;
+                $row->bank = tr($bank);
             }
         }
         
@@ -1185,6 +1188,8 @@ class sales_Sales extends deals_DealMaster
                 }
             }
         }
+        
+        core_Lg::pop();
     }
     
     
