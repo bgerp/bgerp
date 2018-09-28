@@ -436,7 +436,7 @@ class cms_Articles extends core_Master
             } else {
                 $navTpl->append('<span>' . $l->title .'</span>');
             }
-            
+            if($selected) $currentPage = $l->title;
             if ($l->editLink) {
                 // Добавяме интервал
                 $navTpl->append('&nbsp;');
@@ -463,7 +463,10 @@ class cms_Articles extends core_Master
             $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
             $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
             $searchForm->setHidden('menuId', $data->menuId);
-            $navTpl->prepend($searchForm->renderHtml());
+            $navTpl->replace($searchForm->renderHtml(), 'SEARCH_BOX');
+            $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
+            $navTpl->replace($toggleLink, 'TOGGLE_BTN');
+            $navTpl->replace($currentPage, 'CURRENT_PAGE');
         }
         
         return $navTpl;
