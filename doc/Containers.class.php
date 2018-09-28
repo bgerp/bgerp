@@ -127,6 +127,7 @@ class doc_Containers extends core_Manager
         $this->setDbIndex('createdBy');
         $this->setDbIndex('createdOn');
         $this->setDbIndex('modifiedOn');
+        $this->setDbIndex('originId');
         $this->setDbUnique('docClass, docId');
         $this->setDbIndex('searchKeywords', null, 'FULLTEXT');
     }
