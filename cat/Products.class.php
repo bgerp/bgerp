@@ -2341,10 +2341,10 @@ class cat_Products extends embed_Manager
      *
      * @param mixed $id - ид/запис на обекта
      */
-    public function getDefaultCost($id)
+    public function getDefaultCost($id, $quantity)
     {
         // За артикула, това е цената по себестойност
-        return self::getSelfValue($id);
+        return self::getSelfValue($id, null, $quantity);
     }
     
     
