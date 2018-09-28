@@ -330,13 +330,6 @@ class price_Lists extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-<<<<<<< DC2
-		
-        if(isset($rec->parent)){
-        	$form->setReadOnly('parent');
-        }
-=======
->>>>>>> a91be02 Ценови оолитики да се редактират
         
         $folderId = $rec->folderId;
         
