@@ -200,7 +200,7 @@ class core_Debug
             
             foreach (self::$debugTime as $rec) {
                 $rec->name = core_ET::escape($rec->name);
-                $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start), 5) . ': ' . @htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
+                $html .= "\n<li style='word-wrap:break-word;word-break:break-word;hyphens: auto;word-break: break-all;padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start), 5) . ': ' . @htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
             }
             
             $html .= "\n</ul></div>";
