@@ -532,10 +532,56 @@ class eshop_Carts extends core_Master
         $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         
         $this->requireRightFor('finalize', $rec);
-        Mode::push('eshopFinalize', true);
         $cu = core_Users::getCurrent('id', false);
         
         Mode::set('currentExternalTab', 'eshop_Carts');
+        
+        $saleRec = self::forceSale($rec);
+        
+        // Ако е партньор и има достъп до нишката, директно се реидректва към нея
+        $colabUrl = null;
+        if (core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)) {
+            $threadRec = doc_Threads::fetch($saleRec->threadId);
+            if (colab_Threads::haveRightFor('single', $threadRec)) {
+                $colabUrl = array('colab_Threads', 'single', 'threadId' => $saleRec->threadId);
+            }
+        }
+        
+        // Ако е платено онлайн се създава нов ПБД в нишката на продажбата
+        if($rec->paidOnline == 'yes'){
+            try{
+                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
+               
+                bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
+            } catch(core_exception_Expect $e){
+                reportException($e);
+            }
+        }
+        
+        if (is_array($colabUrl) && count($colabUrl)) {
+            
+            return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
+        }
+        
+        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Поръчката е направена|*!');
+    }
+    
+    
+    /**
+     * Форсира продажба към количката
+     * 
+     * @param mixed $id
+     * 
+     * @return stdClass $saleRec
+     */
+    public function forceSale($id)
+    {
+        $rec = $this->fetchRec($id);
+        if(isset($rec->saleId)) return $rec->saleId;
+        expect($rec->state == 'draft');
+        
+        Mode::push('eshopFinalize', true);
+        $cu = core_Users::getCurrent('id', false);
         
         $company = null;
         $personNames = $rec->personNames;
@@ -588,7 +634,7 @@ class eshop_Carts extends core_Master
         );
         
         $fields['dealerId'] = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
-       
+        
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         
@@ -603,7 +649,7 @@ class eshop_Carts extends core_Master
         
         // Добавяне на артикулите от количката в продажбата
         $dQuery = eshop_CartDetails::getQuery();
-        $dQuery->where("#cartId = {$id}");
+        $dQuery->where("#cartId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
             $price = ($dRec->amount / $dRec->quantity);
             $price = isset($dRec->discount) ? ($price / (1 - $dRec->discount)) : $price;
@@ -643,17 +689,10 @@ class eshop_Carts extends core_Master
         }
         
         self::activate($rec, $saleId);
-       
+        
         doc_Threads::doUpdateThread($saleRec->threadId);
         
-        // Ако е партньор и има достъп до нишката, директно се реидректва към нея
-        $colabUrl = null;
-        if (core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)) {
-            $threadRec = doc_Threads::fetch($saleRec->threadId);
-            if (colab_Threads::haveRightFor('single', $threadRec)) {
-                $colabUrl = array('colab_Threads', 'single', 'threadId' => $saleRec->threadId);
-            }
-        } else {
+        if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
             self::sendEmail($rec, $saleRec);
             doc_Threads::doUpdateThread($saleRec->threadId);
         }
@@ -666,23 +705,7 @@ class eshop_Carts extends core_Master
         doc_Threads::save($threadRec, 'state');
         doc_Threads::updateThread($threadRec->id);
         
-        // Ако е платено онлайн се създава нов ПБД в нишката на продажбата
-        if($rec->paidOnline == 'yes'){
-            try{
-                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
-               
-                bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
-            } catch(core_exception_Expect $e){
-                reportException($e);
-            }
-        }
-        
-        if (is_array($colabUrl) && count($colabUrl)) {
-            
-            return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
-        }
-        
-        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Поръчката е направена|*!');
+        return $saleRec;
     }
     
     
