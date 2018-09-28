@@ -1332,4 +1332,23 @@ class planning_Jobs extends core_Master
             return 'Заданието не може да се приключи, защото има документи в състояние "Заявка"';
         }
     }
+    
+    
+    /**
+     * Намира количеството от последното (активно или приключено) задание за артикула
+     * 
+     * @param int $productId
+     * 
+     * @return double|null
+     */
+    public static function getLastQuantity($productId)
+    {
+        $query = self::getQuery();
+        $query->where("#productId = {$productId} AND #state IN ('active', 'closed')");
+        $query->orderBy('activatedOn', 'DESC');
+        $query->limit(1);
+        $query->show('quantity');
+        
+        return  $query->fetch()->quantity;
+    }
 }
