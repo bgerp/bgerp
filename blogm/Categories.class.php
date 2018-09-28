@@ -71,7 +71,7 @@ class blogm_Categories extends core_Manager
     {
         $this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
         $this->FLD('description', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Описание');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         
         $this->setDbUnique('title');
     }
@@ -161,6 +161,8 @@ class blogm_Categories extends core_Manager
             
             // Създаваме шаблон, после заместваме плейсхолдъра със самия линк
             $tpl->append($title);
+            $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
+            $tpl->replace($toggleLink, 'TOGGLE_BTN');
         }
         
         

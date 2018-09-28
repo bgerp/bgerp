@@ -1,0 +1,26 @@
+<!--ET_BEGIN NAVIGATION-->
+    <div class='articles-navigation'>
+        [#SEARCH_FORM#] [#TOGGLE_BTN#]
+        <div class="clearfix21"></div>
+    </div>
+    <div class="narrowNav">
+        <!--ET_BEGIN CATEGORIES-->
+        <div class='blogm-categories'>
+            <div class='nav_item  level1'>|Категории|*</div>
+            [#CATEGORIES#]
+        </div>
+        <!--ET_END CATEGORIES-->
+        <!--ET_BEGIN ARCHIVE-->
+        <div class='blogm-archive'>
+            <div class='nav_item  level1'>|Архив|*</div>
+            [#ARCHIVE#]
+        </div>
+        <!--ET_END ARCHIVE-->
+        <!--ET_BEGIN LINKS-->
+        <div class='blogm-links'>
+            <div class='nav_item  level1'>|Ние четем|*</div>
+            [#LINKS#]
+        </div>
+        <!--ET_END LINKS-->
+    </div>
+<!--ET_END NAVIGATION-->

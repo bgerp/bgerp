@@ -355,7 +355,7 @@ class store_InventoryNoteSummary extends doc_Detail
             return;
         }
         
-        $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
+        $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;

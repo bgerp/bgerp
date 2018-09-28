@@ -2341,10 +2341,31 @@ class cat_Products extends embed_Manager
      *
      * @param mixed $id - ид/запис на обекта
      */
-    public function getDefaultCost($id)
+    public function getDefaultCost($id, $quantity)
     {
-        // За артикула, това е цената по себестойност
-        return self::getSelfValue($id);
+        // Намира се цената на последния дебит в складовата сметка където участва артикула, с най-голямо количество
+        if($itemId = acc_Items::fetchField("#classId = '{$this->getClassId()}' AND #objectId = '{$id}'")){
+            $jQuery = acc_JournalDetails::getQuery();
+            $sysId = acc_Accounts::getRecBySystemId('321')->id;
+            $jQuery->where("#debitAccId = {$sysId} AND #debitItem2 = {$itemId} AND #debitPrice > 0");
+            $jQuery->orderBy('debitQuantity', 'DESC');
+            $jQuery->show('debitPrice');
+            $jQuery->limit(1);
+            
+            // Ако има таква цена, то това ще е дефолтната цена
+            if($biggestDebitPrice = $jQuery->fetch()->debitPrice){
+                
+                return $biggestDebitPrice;
+            }
+        }
+        
+        // Ако няма се взима количеството от последното задание за артикула (ако има)
+        if($quantityFromJob = planning_Jobs::getLastQuantity($id)){
+            $quantity = $quantityFromJob;
+        }
+        
+        // За артикула, това е цената по себестойност за исканото количество
+        return self::getSelfValue($id, null, $quantity);
     }
     
     

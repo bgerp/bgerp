@@ -550,7 +550,7 @@ class eshop_Products extends core_Master
                 $pTpl->placeObject($row);
                 $pTpl->removePlaces();
                 $pTpl->removeBlocks();
-                
+
                 $layout->append($pTpl);
             }
         }
@@ -558,7 +558,10 @@ class eshop_Products extends core_Master
         if ($data->addUrl) {
             $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
-        
+
+        $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
+        $layout->replace($toggleLink, 'TOGGLE_BTN');
+
         return $layout;
     }
     

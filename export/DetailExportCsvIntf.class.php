@@ -46,7 +46,7 @@ class export_DetailExportCsvIntf
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
      * @param core_Master   $masterMvc
      * @param stdClass      $mRec

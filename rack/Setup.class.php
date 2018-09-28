@@ -68,7 +68,7 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'rack,rackMaster';
+    public $roles = array('rack', array('rackMaster', 'rack'));
     
     
     /**
@@ -97,7 +97,19 @@ class rack_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 90,
             'timeLimit' => 100
-        ));
+        ),
+        
+        array(
+            'systemId' => 'Update Racks',
+            'description' => 'Обновяване на информацията за стелажите',
+            'controller' => 'rack_Racks',
+            'action' => 'update',
+            'period' => 60,
+            'offset' => 55,
+            'timeLimit' => 20,
+            'delay' => 0,
+        )
+    );
         
 
     /**
@@ -110,18 +122,6 @@ class rack_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Връзка между ЕН-то и палетния склад', 'rack_plg_Shipments', 'store_ShipmentOrders', 'private');
         $html .= $Plugins->installPlugin('Връзка между МСТ-то и палетния склад', 'rack_plg_Shipments', 'store_Transfers', 'private');
-        
-        // Залагаме в cron
-        $rec = new stdClass();
-        $rec->systemId = 'Update Racks';
-        $rec->description = 'Обновяване на информацията за стелажите';
-        $rec->controller = 'rack_Racks';
-        $rec->action = 'update';
-        $rec->period = 60;
-        $rec->offset = rand(5, 55);
-        $rec->delay = 0;
-        $rec->timeLimit = 20;
-        $html .= core_Cron::addOnce($rec);
         
         return $html;
     }

@@ -112,7 +112,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
      * @param mixed $data - данни
      *

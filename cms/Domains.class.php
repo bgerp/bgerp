@@ -151,7 +151,7 @@ class cms_Domains extends core_Embedder
         $this->FLD('lang', 'varchar(2)', 'caption=Език');
         
         // Заглавие
-        $this->XPR('title', 'varchar(70)', "CONCAT(#domain, ', ', #lang)");
+        $this->XPR('titleExt', 'varchar(70)', "CONCAT(#domain, ', ', #lang)");
         
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');

@@ -2,6 +2,7 @@
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation'  style='margin-left:2%'>
         [#NAVIGATION#]
+        [#BEFORE_FOOTER_INFO#]
         <div class='bulletin-link'></div>
     </div>
     <!--ET_END NAVIGATION-->

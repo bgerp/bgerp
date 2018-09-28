@@ -172,14 +172,17 @@ class acc_JournalDetails extends core_Detail
     /**
      * Филтрира заявка към модела за показване на определени данни
      *
-     * @param core_Query $query    - Заявка към модела
-     * @param mixed      $accs     - списък от систем ид-та на сметките
-     * @param mixed      $itemsAll - списък от пера, за които може да са на произволна позиция
-     * @param mixed      $items1   - списък с пера, от които поне един може да е на първа позиция
-     * @param mixed      $items2   - списък с пера, от които поне един може да е на втора позиция
-     * @param mixed      $items3   - списък с пера, от които поне един може да е на трета позиция
-     * @param bool       $strict   - ако перата са NULL да се търсят записи в журнала със стойност NULL,
-     *                             иначе приема, че не трябва да се търсят пера
+     * @param core_Query $query     - Заявка към модела
+     * @param datetime|null  $from  - списък от систем ид-та на сметките
+     * @param datetime|null  $to    - списък от систем ид-та на сметките
+     * @param mixed      $accs      - списък от систем ид-та на сметките
+     * @param mixed      $itemsAll  - списък от пера, за които може да са на произволна позиция
+     * @param mixed      $items1    - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed      $items2    - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed      $items3    - списък с пера, от които поне един може да е на трета позиция
+     * @param bool       $strict    - ако перата са NULL да се търсят записи в журнала със стойност NULL, иначе приема, че не трябва да се търсят пера
+     *
+     * @return void
      */
     public static function filterQuery(core_Query &$query, $from, $to, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null, $strict = false)
     {
