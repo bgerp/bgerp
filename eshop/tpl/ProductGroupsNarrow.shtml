@@ -16,5 +16,6 @@
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
+        [#BEFORE_FOOTER_INFO#]
     </div>
 </div>

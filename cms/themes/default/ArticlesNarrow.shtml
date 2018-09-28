@@ -8,7 +8,6 @@
         </div>
         <div class="narrowNav">
             [#NAVIGATION#]
-            <div class='bulletin-link'></div>
         </div>
     </div>
     <!--ET_END NAVIGATION-->
@@ -19,5 +18,7 @@
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
+        <div class='bulletin-link'></div>
+        [#BEFORE_FOOTER_INFO#]
     </div>
 </div>

@@ -7,5 +7,6 @@
     <!--ET_END NAVIGATION-->
     <div style='margin:0 2%;'>
         [#PAGE_CONTENT#]
+        <div class='bulletin-link' style="margin-bottom: 20px;"></div>
     </div>
 </div>
