@@ -25,7 +25,7 @@ class eshop_Carts extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'eshop_InitiatorPayment';
+    public $interfaces = 'eshop_InitiatorPaymentIntf';
     
     
     /**
