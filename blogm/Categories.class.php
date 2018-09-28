@@ -71,7 +71,7 @@ class blogm_Categories extends core_Manager
     {
         $this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
         $this->FLD('description', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Описание');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         
         $this->setDbUnique('title');
     }

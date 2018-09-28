@@ -74,7 +74,7 @@ class forum_Categories extends core_Manager
         $this->FLD('boardCnt', 'int', 'caption=Дъски, input=none, value=0');
         
         // Към кой домейн е дадената категория
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         
         // Поставяне на уникални индекси
         $this->setDbUnique('title, order');
