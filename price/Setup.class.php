@@ -14,6 +14,12 @@ defIfNot('PRICE_MIN_DECIMALS', '2');
 
 
 /**
+ * Минимален % промяна за автоматичното обновяване на себе-ст
+ */
+defIfNot('PRICE_MIN_CHANGE_UPDATE_PRIME_COST', '0.03');
+
+
+/**
  * Инсталиране на модул 'price'
  *
  * Ценови политики на фирмата
@@ -105,6 +111,7 @@ class price_Setup extends core_ProtoSetup
     public $configDescription = array(
         'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
         'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
+        'PRICE_MIN_CHANGE_UPDATE_PRIME_COST' => array('percent(min=0,max=1)', 'caption=Автоматично обновяване на себестойностите->Мин. промяна'),
     );
     
     
