@@ -84,7 +84,7 @@ class bulmar_InvoiceExport extends core_Manager
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
      * @param mixed $data - данни
      *

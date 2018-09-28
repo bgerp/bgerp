@@ -61,7 +61,7 @@ class bgerp_ExtendedImporter extends core_Manager
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
      * @param array $rows   - масив с обработени csv данни, получен от Експерта в bgerp_Import
      * @param array $fields - масив с съответстията на колоните от csv-то и
