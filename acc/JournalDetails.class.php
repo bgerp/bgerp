@@ -174,8 +174,7 @@ class acc_JournalDetails extends core_Detail
      *
      * @param core_Query $query     - Заявка към модела
      * @param datetime|null  $from  - списък от систем ид-та на сметките
-     * @param datetime|$to  $from   - списък от систем ид-та на сметките
-     * @param mixed      $accs      - списък от систем ид-та на сметките
+     * @param datetime|null  $to    - списък от систем ид-та на сметките
      * @param mixed      $accs      - списък от систем ид-та на сметките
      * @param mixed      $itemsAll  - списък от пера, за които може да са на произволна позиция
      * @param mixed      $items1    - списък с пера, от които поне един може да е на първа позиция
