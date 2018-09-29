@@ -248,10 +248,11 @@ class hr_Indicators extends core_Manager
                     
                     $rec->sourceClass = core_Classes::getId($class);
                     
-                    $exRec = self::fetch(array("#docClass = {$rec->docClass} AND #docId = {$rec->docId} 
-                                                AND #personId = {$rec->personId} 
-                                                AND #indicatorId = '{$rec->indicatorId}' AND #sourceClass = {$rec->sourceClass}
-                                                AND #date = '{$rec->date}'"));
+                    $exRec = self::fetch(array("#date = '{$rec->date}' AND
+                                                #docId = {$rec->docId} AND #docClass = {$rec->docClass} AND
+                                                #indicatorId = '{$rec->indicatorId}' AND  
+                                                #sourceClass = {$rec->sourceClass} AND
+                                                #personId = {$rec->personId}"));
                     
                     $persons[$rec->personId] = $rec->personId;
                     

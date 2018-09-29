@@ -265,9 +265,15 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Групи за обновяване
+     * Групи в които са добавени продукти
      */
-    public $updateGroupsCnt = false;
+    public $addToGroups = array();
+    
+    
+    /**
+     * Групи от които са изключени продукти
+     */
+    public $removeFromGroups = array();
     
     
     /**
@@ -589,8 +595,12 @@ class cat_Products extends embed_Manager
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if ($rec->groupsInput && (!$rec->id || $mvc->fetch($rec->id)->groupsInput != $rec->groupsInput)) {
-            $mvc->updateGroupsCnt = true;
+        // Обновяване на групите
+        if ($rec->id) {
+            $exRec = self::fetch($rec->id);
+            if ($exRec->groups) {
+                $mvc->removeFromGroups[$exRec->id] = $exRec->groups;
+            }
         }
         
         // Разпределяме свойствата в отделни полета за полесно търсене
@@ -1228,6 +1238,10 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        if ($rec->groups) {
+            $mvc->addToGroups[$rec->id] = $rec->groups;
+        }
+        
         Mode::setPermanent('cat_LastProductCode', $rec->code);
         
         if (isset($rec->originId)) {
@@ -1264,9 +1278,40 @@ class cat_Products extends embed_Manager
      */
     public static function on_Shutdown($mvc)
     {
-        if ($mvc->updateGroupsCnt) {
-            $mvc->updateGroupsCnt();
+        // Обновяваме дефиринциално групите
+        $deltaGroups = array();
+        if (count($mvc->removeFromGroups)) {
+            foreach ($mvc->removeFromGroups as $k) {
+                $kArr = keylist::toArray($k);
+                foreach ($kArr as $groupId) {
+                    --$deltaGroups[$groupId];
+                }
+            }
         }
+        
+        if (count($mvc->addToGroups)) {
+            foreach ($mvc->addToGroups as $k) {
+                $kArr = keylist::toArray($k);
+                foreach ($kArr as $i => $groupId) {
+                    ++$deltaGroups[$groupId];
+                    if ($deltaGroups[$groupId] == 0) {
+                        unset($deltaGroups[$i]);
+                    }
+                }
+            }
+        }
+        
+        // Записваме промяната в групите
+        if (count($deltaGroups) < 10) {
+            foreach ($deltaGroups as $groupId => $delta) {
+                $gRec = cat_Groups::fetch($groupId);
+                $gRec->productCnt += $delta;
+                cat_Groups::save($gRec, 'productCnt');
+            }
+        } else {
+            self::updateGroupsCnt();
+        }
+        
         
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
         if (count($mvc->createdProducts)) {
@@ -1285,9 +1330,18 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Обновява броячите на групите по cron
+     */
+    public function cron_UpdateGroupsCnt()
+    {
+        self::updateGroupsCnt();
+    }
+    
+    
+    /**
      * Ъпдейтване на броя продукти на всички групи
      */
-    private function updateGroupsCnt()
+    private static function updateGroupsCnt()
     {
         $query = self::getQuery();
         $gCntArr = $query->countKeylist('groups');
@@ -2344,7 +2398,7 @@ class cat_Products extends embed_Manager
     public function getDefaultCost($id, $quantity)
     {
         // Намира се цената на последния дебит в складовата сметка където участва артикула, с най-голямо количество
-        if($itemId = acc_Items::fetchField("#classId = '{$this->getClassId()}' AND #objectId = '{$id}'")){
+        if ($itemId = acc_Items::fetchField("#classId = '{$this->getClassId()}' AND #objectId = '{$id}'")) {
             $jQuery = acc_JournalDetails::getQuery();
             $sysId = acc_Accounts::getRecBySystemId('321')->id;
             $jQuery->where("#debitAccId = {$sysId} AND #debitItem2 = {$itemId} AND #debitPrice > 0");
@@ -2353,14 +2407,14 @@ class cat_Products extends embed_Manager
             $jQuery->limit(1);
             
             // Ако има таква цена, то това ще е дефолтната цена
-            if($biggestDebitPrice = $jQuery->fetch()->debitPrice){
+            if ($biggestDebitPrice = $jQuery->fetch()->debitPrice) {
                 
                 return $biggestDebitPrice;
             }
         }
         
         // Ако няма се взима количеството от последното задание за артикула (ако има)
-        if($quantityFromJob = planning_Jobs::getLastQuantity($id)){
+        if ($quantityFromJob = planning_Jobs::getLastQuantity($id)) {
             $quantity = $quantityFromJob;
         }
         
