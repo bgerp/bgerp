@@ -501,7 +501,13 @@ class core_Mvc extends core_FieldSet
         
         // Ако имаме някакви натрупани стойности - записваме ги и тях
         if ($query) {
-            if (!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) {
+            $timer = "{$this->dbTableName} INSERT ARRAY";
+            
+            DEBUG::startTimer($timer);
+            $res = $this->db->query($queryBegin . rtrim($query, ',') . $queryEnd);
+            DEBUG::stopTimer($timer);
+            
+            if (!$res) {
                 
                 return false;
             }
