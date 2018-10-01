@@ -727,6 +727,7 @@ class eshop_Carts extends core_Master
         $saleRec->state = 'pending';
         $saleRec->brState = 'draft';
         $saleRec->pendingSaved = true;
+        
         sales_Sales::save($saleRec, 'state');
         
         return $saleRec;
@@ -774,6 +775,8 @@ class eshop_Carts extends core_Master
         if ($hnd = sales_Sales::getHandle($saleRec->id)) {
             $body->replace("#{$hnd}", 'SALE_HANDLER');
         }
+        
+        $body->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
         
         // Линка за регистрация
         $Cover = doc_Folders::getCover($saleRec->folderId);
