@@ -1273,16 +1273,19 @@ class eshop_Carts extends core_Master
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
         
-        if(isset($fields['-list'])){
-            $row->ROW_ATTR['class'] = "state-{$rec->state}";
-            if (isset($rec->saleId)) {
-                $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        if (isset($rec->saleId)) {
+            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        }
+        $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+        
+        $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
+        
+        foreach (array('total', 'totalNoVat', 'deliveryNoVat') as $fld){
+            if(isset($rec->{$fld})){
+                ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
+                $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
             }
-            $row->domainId = cms_Domains::getHyperlink($rec->domainId);
-            
-            $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
-            $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $currencyCode);
-            $row->total = $mvc->getFieldType('total')->toVerbal($total) . " <span class='cCode'>{$currencyCode}</span>";
         }
     }
     
