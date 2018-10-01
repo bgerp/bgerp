@@ -128,7 +128,14 @@ class eshop_Carts extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'sales,eshop,ceo';
-    
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/trolley.png';
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
