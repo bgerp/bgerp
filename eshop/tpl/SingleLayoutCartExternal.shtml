@@ -27,10 +27,16 @@
          <!--ET_END CHECK_EMAIL-->
       </div>
    </div>
+   
+   
+            
    <div class="cartInfoBlock">
       <!--ET_BEGIN INFO_BLOCK-->
       [#INFO_BLOCK#]
       <div class="order-info" id='cart-view-order-info'>
+      <!--ET_BEGIN activeFolderId-->
+            <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
+            <!--ET_END activeFolderId-->
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
             <h4 style="margin: 0px 0 3px;">|Данни за поръчката|* [#editBtn#]</h4>
@@ -91,12 +97,9 @@
                <!--ET_END instruction-->
                <!--ET_END DELIVERY_BLOCK-->
             </table>
-
          <!--ET_BEGIN INVOICE_BLOCK-->
          [#INVOICE_BLOCK#]
-            <!--ET_BEGIN activeFolderId-->
-            <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
-            <!--ET_END activeFolderId-->
+            
 
          <!--ET_BEGIN NO_INVOICE-->
          <div style="padding-bottom: 5px;">[#NO_INVOICE#]</div>
@@ -113,9 +116,16 @@
                <!--ET_END invoiceNames-->
                <!--ET_BEGIN invoiceVatNo-->
                <tr>
-                  <td class="aright">[#VAT_CAPTION#]:</td><td> [#invoiceVatNo#]</td>
+                  <td class="aright">|ДДС №|*:</td><td> [#invoiceVatNo#]</td>
                </tr>
                <!--ET_END invoiceVatNo-->
+               
+               <!--ET_BEGIN invoiceUicNo-->
+               <tr>
+                  <td class="aright">[#VAT_CAPTION#]</td><td> [#invoiceUicNo#]</td>
+               </tr>
+               <!--ET_END invoiceUicNo-->
+               
                <!--ET_BEGIN invoiceCountry-->
                <tr>
                   <td class="aright">|Държава|*: </td><td>[#invoiceCountry#]</td>
@@ -168,11 +178,13 @@
                   <td class="aright"><b>[#totalVat#]</b></td>
                </tr>
                <!--ET_END totalVat-->
+               <!--ET_BEGIN total-->
                <tr>
                   <td class="aright">|Общо|*: </td>
                   <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
                   <td class="aright"><b>[#total#]</b></td>
                </tr>
+               <!--ET_END total-->
             </table>
 
          <!--ET_BEGIN CART_TOOLBAR_RIGHT-->

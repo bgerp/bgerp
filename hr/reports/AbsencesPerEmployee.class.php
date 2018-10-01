@@ -19,7 +19,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,hr,acc';
+    public $canSelectDriver = 'ceo,hr,acc,powerUser';
 
     /**
      * Брой записи на страница
