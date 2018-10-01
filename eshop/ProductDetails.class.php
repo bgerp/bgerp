@@ -464,7 +464,7 @@ class eshop_ProductDetails extends core_Detail
         $fieldset->FNC('catalogPrice', 'double');
         $fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
-        $fieldset->FLD('quantity', 'varchar');
+        $fieldset->FLD('quantity', 'varchar', 'tdClass=small-field');
         $fieldset->setField('quantity', 'tdClass=quantity-input-column');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
