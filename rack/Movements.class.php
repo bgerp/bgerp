@@ -156,7 +156,7 @@ class rack_Movements extends core_Manager
                 
                 // Симулиране дали транзакцията е валидна
                 $clone = clone $rec;
-                $clone->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                $clone->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
                 
                 $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
                 $transaction = $mvc->getTransaction($clone);
@@ -171,7 +171,7 @@ class rack_Movements extends core_Manager
                 }
                 
                 if (!$form->gotErrors()) {
-                    $rec->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                    $rec->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
                     $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
                     
                     if ($rec->state == 'closed') {
