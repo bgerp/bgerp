@@ -1271,16 +1271,16 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+        
         if(isset($fields['-list'])){
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
             if (isset($rec->saleId)) {
                 $row->saleId = sales_Sales::getLink($rec->saleId, 0);
             }
-            
-            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
             $row->domainId = cms_Domains::getHyperlink($rec->domainId);
             
-            $currencyCode = cms_Domains::getSettings()->currencyId;
+            $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
             $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $currencyCode);
             $row->total = $mvc->getFieldType('total')->toVerbal($total) . " <span class='cCode'>{$currencyCode}</span>";
         }
