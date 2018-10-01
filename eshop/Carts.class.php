@@ -137,6 +137,12 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Икона на единичния изглед
+     */
+    public $singleIcon = 'img/16/trolley.png';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
