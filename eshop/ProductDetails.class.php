@@ -457,7 +457,6 @@ class eshop_ProductDetails extends core_Detail
     public static function renderExternal($data)
     {
         $tpl = new core_ET('');
-        $count = count($data->rows);
         
         $fieldset = cls::get(get_called_class());
         $fieldset->FNC('code', 'varchar');
