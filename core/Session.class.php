@@ -1,34 +1,34 @@
 <?php
 
 
-
 /**
  * Клас 'core_Session' - Клас-манипулатор на потребителска сесия
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>, Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
-class core_Session {
-    
-    
+class core_Session
+{
     /**
      * @var array
      * @access private
      */
-    var $_headers;
+    public $_headers;
     
     
     /**
      * @var bool
      * @access private
      */
-    var $_started;
+    public $_started;
     
     
     /**
@@ -41,7 +41,9 @@ class core_Session {
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
-    function _Singleton() {}
+    public function _Singleton()
+    {
+    }
     
     
     /**
@@ -59,38 +61,41 @@ class core_Session {
      * POST или COOKIE), то обекта се "прикача", автоматично зарежда съдържанието на
      * сесията със зададения идентификатор.
      *
-     * @param    string    $name    име на идентификатора на сесията (PHPSESSID)
+     * @param string $name име на идентификатора на сесията (PHPSESSID)
      */
-    function __construct($name = "SID")
+    public function __construct($name = 'SID')
     {
         ini_set('session.gc_maxlifetime', 7200);
         
         session_name($name);
+        
         //$this->_started = FALSE;
         
         $this->_start();
+        
         // Проверка за съществуваща сесия
 //        $sid = $this->getSid();
-        
+
 //        $resumeSession = isset($sid) && preg_match("/^[0-9a-z]{5,}$/i", $sid);
-//        
+//
 //        $this->_resumed = FALSE;
-//        
+//
 //        if($resumeSession) {
 //            $this->_start();
 //            $this->_resumed = isset($_SESSION['session_is_valid']);
-//            
+//
 //            if(!$this->_resumed) {
 //                $this->destroy();
 //            }
 //        }
-//        
+//
 //        if(!$this->_resumed) {
-            unset($_REQUEST[session_name()]);
-            unset($_GET[session_name()]);
-            unset($_POST[session_name()]);
-            unset($_COOKIE[session_name()]);
-            unset($GLOBALS[session_name()]);
+        unset($_REQUEST[session_name()]);
+        unset($_GET[session_name()]);
+        unset($_POST[session_name()]);
+        unset($_COOKIE[session_name()]);
+        unset($GLOBALS[session_name()]);
+
 //        }
     }
     
@@ -100,12 +105,12 @@ class core_Session {
      *
      * @return string
      */
-    function getSid()
+    public function getSid()
     {
         if (isset($_COOKIE[session_name()])) {
             $sid = $_COOKIE[session_name()];
         }
-
+        
         if (isset($sid)) {
             
             return $sid;
@@ -120,7 +125,7 @@ class core_Session {
      *
      * @return string
      */
-    function getName()
+    public function getName()
     {
         return session_name();
     }
@@ -131,9 +136,9 @@ class core_Session {
      *
      * @return bool
      */
-    function isStarted()
+    public function isStarted()
     {
-        if(is_a($this, 'core_Session')) {
+        if (is_a($this, 'core_Session')) {
             $Session = $this;
         } else {
             $Session = cls::get('core_Session');
@@ -147,28 +152,28 @@ class core_Session {
      * Връща стойността на променлива от сесията
      *
      * @param string $varName
+     *
      * @return mixed
      */
-    static function get($varName, $part = NULL)
+    public static function get($varName, $part = null)
     {
         $Session = cls::get('core_Session');
         
-        if($Session->_started) {
+        if ($Session->_started) {
             $dv = $Session->_decorate($varName);
             
-            if(isset($_SESSION[$dv])) {
+            if (isset($_SESSION[$dv])) {
                 $var = $_SESSION[$dv];
                 
-                if($part) {
-                    if(is_array($var)) {
+                if ($part) {
+                    if (is_array($var)) {
                         
                         return $var[$part];
-                    } elseif(is_object($var)) {
+                    } elseif (is_object($var)) {
                         
                         return $var->{$part};
-                    } else {
-                        error("@Опит за прочитане на част от скаларна сесийна променлива", $varName, $part);
                     }
+                    error('@Опит за прочитане на част от скаларна сесийна променлива', $varName, $part);
                 } else {
                     
                     return $var;
@@ -178,14 +183,11 @@ class core_Session {
     }
     
     
-    /**
-     * 
-     */
     public static function forcedStart()
     {
         $Session = cls::get('core_Session');
         
-        $Session->_start(TRUE);
+        $Session->_start(true);
     }
     
     
@@ -193,9 +195,9 @@ class core_Session {
      * Задава стойност на променлива в сесията. Създава нова сесия ако няма вече стартирана.
      *
      * @param string $varName
-     * @param mixed $value
+     * @param mixed  $value
      */
-    static function set($varName, $value)
+    public static function set($varName, $value)
     {
         $Session = cls::get('core_Session');
         
@@ -209,26 +211,24 @@ class core_Session {
      *
      * @param string $varName
      */
-    function unsetVar($varName)
+    public function unsetVar($varName)
     {
-        $_SESSION[$this->_decorate($varName)] = NULL;
+        $_SESSION[$this->_decorate($varName)] = null;
     }
     
-    
-     
     
     /**
      * Унищожава сесията (не обекта от клас Session, а файла, съдържащ данните
      */
-    function destroy()
+    public function destroy()
     {
-        if(is_a($this, 'core_Session')) {
+        if (is_a($this, 'core_Session')) {
             $Session = $this;
         } else {
             $Session = cls::get('core_Session');
         }
         
-        if($Session->_started) {
+        if ($Session->_started) {
             session_regenerate_id();
             @session_unset();
             @session_destroy();
@@ -244,38 +244,39 @@ class core_Session {
     /**
      * @access private
      */
-    function _start($forced=FALSE)
+    public function _start($forced = false)
     {
-        if(!$this->_started || $forced) {
+        if (!$this->_started || $forced) {
             @session_cache_limiter('nocache');
             @session_set_cookie_params(0);
+            
             // ini_set('session.cookie_secure', 1);
             ini_set('session.cookie_httponly', 1);
             ini_set('session.use_only_cookies', 1);
             @session_start();
             
-            $this->_started = TRUE;
+            $this->_started = true;
         }
     }
     
     
     /**
      * @access private
+     *
      * @param string $varName
      */
-    function _decorate($varName)
+    public function _decorate($varName)
     {
         static $prefix;
-
-        if(!$prefix) {
-            $prefix = strtolower(str_replace("www.", "", $_SERVER['HTTP_HOST']));
+        
+        if (!$prefix) {
+            $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
             $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
             $prefix = substr($prefix, 0, 10);
         }
-
+        
         $decoratedVar = 'sess_' . $prefix . '_' . $varName;
         
         return $decoratedVar;
     }
-
 }

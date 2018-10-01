@@ -10,9 +10,6 @@
                         <!--ET_BEGIN handle-->
                         <div>|Реф.|*: [#handle#]</div>
                         <!--ET_END handle-->
-                        <!--ET_BEGIN createdDate-->
-                        <div>|Дата|*: [#createdDate#]</div>
-                        <!--ET_END createdDate-->
                         <!--ET_BEGIN recipient-->
                         <div>
                             |До|*: [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail-->

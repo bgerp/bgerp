@@ -13,46 +13,45 @@ defIfNot('COMMUNICATION_FORMAT', 'tel,fax,mob,email,icq,social,web');
  *
  * @category  bgerp
  * @package   communicationformat
+ *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class commformat_Setup extends core_ProtoSetup 
+class commformat_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = '';
+    public $startCtr = '';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = '';
+    public $startAct = '';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Форматиране на телефонни номера, ICQ, Skype и др. в документите";
+    public $info = 'Форматиране на телефонни номера, ICQ, Skype и др. в документите';
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
         
-             'COMMUNICATION_FORMAT'   => array 
-    												('set(tel=Телефон,
+        'COMMUNICATION_FORMAT' => array('set(tel=Телефон,
                                                      fax=Факс,
                                                      mob=Мобилен телефон,
                                                      email=Имейл,
@@ -61,15 +60,16 @@ class commformat_Setup extends core_ProtoSetup
                                                      web=Уеб адреси
                                                      )', 'caption=Форматиране на адреси за комуникация->Услуги'),
     
-             );
+    );
+    
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -83,10 +83,10 @@ class commformat_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

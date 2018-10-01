@@ -1,9 +1,8 @@
 <?php
 
 
-
 /**
- * Подравняване на десетични числа, според зададени в типа type_Doubleна минималния и максималния брой цифри след запетаята
+ * Подравняване на десетични числа, според зададени в типа type_Double на минималния и максималния брой цифри след запетаята
  *
  * Този плъгин е предназначен за прикачане към core_Mvc (или неговите наследници).
  * Инспектира `double` полетата на приемника си и ги форматира вербалните им стойности така,
@@ -17,16 +16,16 @@
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link      https://github.com/bgerp/ef/issues/6
  */
 class plg_AlignDecimals extends core_Plugin
 {
-    
-    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -34,15 +33,18 @@ class plg_AlignDecimals extends core_Plugin
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    public function on_AfterPrepareListRows($mvc, $data)
     {
         $recs = &$data->recs;
         $rows = &$data->rows;
         
         // Ако няма никакви записи - нищо не правим
-        if(!count($recs)) return;
+        if (!count($recs)) {
+            
+            return;
+        }
         
-        foreach ($mvc->fields as $name=>$field) {
+        foreach ($mvc->fields as $name => $field) {
             if (is_a($field->type, 'type_Double')) {
                 if ($field->type->params['decimals']) {
                     // Пропускаме полета, които имат зададен точен брой цифри след запетаята
@@ -55,8 +57,8 @@ class plg_AlignDecimals extends core_Plugin
                 // Първи пас по стойностите - определяне дължината на най-дългата дробна част.
                 $maxDecimals = $this->calcMaxFracLen($name, $recs, $field->type->params['maxDecimals']);
                 
-                // Изчисляваме "оптималната" дължина на дробните части на стойностите: това е 
-                // най-малката дължина, която е не по-дълга от най-дългата, не по-къса от 
+                // Изчисляваме "оптималната" дължина на дробните части на стойностите: това е
+                // най-малката дължина, която е не по-дълга от най-дългата, не по-къса от
                 // най-късата дробна част и да попада в границите, зададени изначално в типа.
                 $optDecimals = min(
                     $field->type->params['maxDecimals'],
@@ -68,10 +70,10 @@ class plg_AlignDecimals extends core_Plugin
                 $type = clone($field->type);
                 $type->params['decimals'] = $optDecimals;
                 unset($type->params['smartRound']);
-              
-                foreach ($recs as $i=>$rec) { 
+                
+                foreach ($recs as $i => $rec) {
                     $rows[$i]->{$name} = str_replace(strip_tags($rows[$i]->{$name}), $type->toVerbal($rec->{$name}), $rows[$i]->{$name});
-                } 
+                }
             }
         }
     }
@@ -81,9 +83,9 @@ class plg_AlignDecimals extends core_Plugin
      * Изчислява дължината на най-дългата дробна част на (double) поле от масив със записи.
      *
      * @param string $fieldName име на полето, което инспектираме
-     * @param array $recs масив от записи (stdClass)
-     * @param int $stop горна граница; дори да има стойности с дължина на дробната част по-дълги
-     * от $stop, това не е съществено. Използва се за оптимизация.
+     * @param array  $recs      масив от записи (stdClass)
+     * @param int    $stop      горна граница; дори да има стойности с дължина на дробната част по-дълги
+     *                          от $stop, това не е съществено. Използва се за оптимизация.
      */
     private function calcMaxFracLen($fieldName, $recs, $stop)
     {
@@ -112,7 +114,7 @@ class plg_AlignDecimals extends core_Plugin
      */
     private function getFractionLen($number)
     {
-        list($floor, $frac) = explode('.', (string)$number);
+        list($floor, $frac) = explode('.', (string) $number);
         
         return strlen($frac);
     }

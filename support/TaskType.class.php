@@ -2,28 +2,22 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  bgerp
  * @package   support
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class support_TaskType extends core_Mvc
 {
-    
-    
-    /**
-     * 
-     */
     public $interfaces = 'cal_TaskTypeIntf';
     
     
-    /**
-     * 
-     */
     public $title = 'Сигнал';
     
     
@@ -38,33 +32,33 @@ class support_TaskType extends core_Mvc
         $fieldset->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, after=typeId, refreshForm, silent');
         $fieldset->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
-        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none');
-        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none');
+        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none, silent');
+        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none, silent');
         $fieldset->FLD('url', 'varchar', 'caption=Данни за обратна връзка->URL, input=none');
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
+        $fieldset->FLD('file', 'fileman_FileType(bucket=Support)', 'caption=Файл, input=none');
     }
     
     
     /**
      * Може ли вградения обект да се избере
-     * 
-     * @param NULL|integer $userId
-     * 
-     * @return boolean
+     *
+     * @param NULL|int $userId
+     *
+     * @return bool
      */
-    public function canSelectDriver($userId = NULL)
+    public function canSelectDriver($userId = null)
     {
-        
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Връща подсказките за добавяне на прогрес
-     * 
-     * @param  stdClass $tRec
-     * 
+     *
+     * @param stdClass $tRec
+     *
      * @return array
      */
     public function getProgressSuggestions($tRec)
@@ -106,15 +100,15 @@ class support_TaskType extends core_Mvc
         $allowedTypesArr = support_Systems::getAllowedFieldsArr($systemId);
         
         $atOpt = array();
-        foreach($allowedTypesArr as $tId) {
-            $atOpt[$tId] =  support_IssueTypes::fetchField($tId, 'type');
+        foreach ($allowedTypesArr as $tId) {
+            $atOpt[$tId] = support_IssueTypes::fetchField($tId, 'type');
         }
         
         $form->setOptions('typeId', $atOpt);
         
         if (!haveRole('user') && !core_Users::isSystemUser()) {
-            $brid = log_Browsers::getBrid(FALSE);
-            if($brid) {
+            $brid = log_Browsers::getBrid(false);
+            if ($brid) {
                 $vArr = log_Browsers::getVars(array('name', 'email'));
                 
                 if ($vArr['name']) {
@@ -136,7 +130,7 @@ class support_TaskType extends core_Mvc
     
     /**
      * Подготвя documentRow за функцията
-     * 
+     *
      * @param stdClass $rec
      * @param stdClass $row
      */
@@ -173,25 +167,25 @@ class support_TaskType extends core_Mvc
      * Връща състоянието на нишката
      *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param string|NULL $res
-     * @param integer $id
+     * @param cal_Tasks        $mvc
+     * @param string|NULL      $res
+     * @param int              $id
      *
      * @return string
      */
-    static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
+    public static function on_AfterGetThreadState($Driver, $mvc, &$res, $id)
     {
         $res = 'opened';
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param stdClass $res
-     * @param stdClass $data
+     * @param cal_Tasks        $mvc
+     * @param stdClass         $res
+     * @param stdClass         $data
      */
     public static function on_AfterPrepareEditForm($Driver, $mvc, &$res, $data)
     {
@@ -219,11 +213,12 @@ class support_TaskType extends core_Mvc
             $typesArr = array();
             
             if (!empty($allSystemsArr)) {
-                
                 foreach ($allSystemsArr as $sId) {
                     $sRec = support_Systems::fetch($sId);
                     
-                    if (!$sRec->folderId) continue;
+                    if (!$sRec->folderId) {
+                        continue;
+                    }
                     
                     $foldersArr[$sRec->folderId] = $sRec->folderId;
                 }
@@ -274,7 +269,6 @@ class support_TaskType extends core_Mvc
         if ($data->form->cmd == 'refresh') {
             // При избор на компонент, да са избрани споделените потребители, които са отговорници
             if ($data->form->rec->assetResourceId) {
-                
                 $assetId = planning_AssetResources::fetchField($data->form->rec->assetResourceId, 'id');
                 
                 if ($assetId) {
@@ -308,9 +302,9 @@ class support_TaskType extends core_Mvc
      * Извиква се след успешен запис в модела
      *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param cal_Tasks        $mvc
+     * @param int              $id     първичния ключ на направения запис
+     * @param stdClass         $rec    всички полета, които току-що са били записани
      */
     public static function on_BeforeSave($Driver, $mvc, &$id, $rec)
     {
@@ -318,7 +312,7 @@ class support_TaskType extends core_Mvc
             if (!$rec->ip) {
                 $rec->ip = core_Users::getRealIpAddr();
             }
-                
+            
             if (!$rec->brid) {
                 $rec->brid = log_Browsers::getBrid();
             }
@@ -330,9 +324,9 @@ class support_TaskType extends core_Mvc
      * Извиква се след успешен запис в модела
      *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param cal_Tasks        $mvc
+     * @param int              $id     първичния ключ на направения запис
+     * @param stdClass         $rec    всички полета, които току-що са били записани
      */
     public static function on_AfterSave($Driver, $mvc, &$id, $rec)
     {
@@ -359,31 +353,31 @@ class support_TaskType extends core_Mvc
      * Добавя допълнителни полетата в антетката
      *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param NULL|array $resArr
-     * @param object $rec
-     * @param object $row
+     * @param cal_Tasks        $mvc
+     * @param NULL|array       $resArr
+     * @param object           $rec
+     * @param object           $row
      */
     public static function on_AfterGetFieldForLetterHead($Driver, $mvc, &$resArr, $rec, $row)
     {
         if ($row->systemId) {
-            $resArr['systemId'] =  array('name' => tr('Система'), 'val' => "[#systemId#]");
+            $resArr['systemId'] = array('name' => tr('Система'), 'val' => '[#systemId#]');
         }
         
         if ($row->assetResourceId) {
-            $resArr['assetResourceId'] =  array('name' => tr('Ресурс'), 'val' => "[#assetResourceId#]");
+            $resArr['assetResourceId'] = array('name' => tr('Ресурс'), 'val' => '[#assetResourceId#]');
         }
         
         if ($row->typeId) {
-            $resArr['typeId'] =  array('name' => tr('Тип'), 'val' => "[#typeId#]");
+            $resArr['typeId'] = array('name' => tr('Тип'), 'val' => '[#typeId#]');
         }
         
         if ($row->name) {
-            $resArr['name'] =  array('name' => tr('Име'), 'val' => "[#name#]");
+            $resArr['name'] = array('name' => tr('Име'), 'val' => '[#name#]');
         }
         
         if ($row->email) {
-            $resArr['email'] =  array('name' => tr('Имейл'), 'val' => "[#email#]");
+            $resArr['email'] = array('name' => tr('Имейл'), 'val' => '[#email#]');
         }
         
         if (trim($rec->url)) {
@@ -394,7 +388,7 @@ class support_TaskType extends core_Mvc
             $attr = array();
             $attr['target'] = '_blank';
             $attr['class'] = 'out';
-            if(!strpos($url, '://')) {
+            if (!strpos($url, '://')) {
                 $url = 'http://' . $url;
             }
             
@@ -403,20 +397,24 @@ class support_TaskType extends core_Mvc
             if ($v != $url) {
                 $v .= '...';
             }
-            $url = HT::createLink($v, $url, FALSE, $attr);
+            $url = HT::createLink($v, $url, false, $attr);
             
-            $resArr['url'] =  array('name' => tr('URL'), 'val' => $url);
+            $resArr['url'] = array('name' => tr('URL'), 'val' => $url);
         }
         
         if ($row->ip) {
-            $resArr['ip'] =  array('name' => tr('IP'), 'val' => "[#ip#]");
+            $resArr['ip'] = array('name' => tr('IP'), 'val' => '[#ip#]');
         }
         
         if (trim($rec->brid) && trim($row->brid)) {
             $bridLink = log_Browsers::getLink(trim($rec->brid));
             if ($bridLink) {
-                $resArr['brid'] =  array('name' => tr('BRID'), 'val' => $bridLink);
+                $resArr['brid'] = array('name' => tr('BRID'), 'val' => $bridLink);
             }
+        }
+        
+        if ($row->file) {
+            $resArr['file'] = array('name' => tr('Файл'), 'val' => '[#file#]');
         }
         
         if ($resArr['ident']['name']) {
@@ -427,24 +425,25 @@ class support_TaskType extends core_Mvc
     
     /**
      * Кои полета да са скрити във вътрешното или външното показване
-     * 
+     *
      * @param support_TaskType $Driver
-     * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
+     * @param core_Master      $mvc
+     * @param NULL|array       $res
+     * @param object           $rec
+     * @param object           $row
      */
     public static function on_AfterGetHideArrForLetterHead($Driver, $mvc, &$res, $rec, $row)
     {
         $res = arr::make($res);
         
-        $res['external']['url'] = TRUE;
-        $res['external']['brid'] = TRUE;
-        $res['external']['ip'] = TRUE;
-        $res['external']['createdBy'] = TRUE;
-        $res['external']['progressBar'] = TRUE;
-        $res['external']['driverClass'] = TRUE;
-        $res['external']['priority'] = TRUE;
+        $res['external']['url'] = true;
+        $res['external']['brid'] = true;
+        $res['external']['ip'] = true;
+        $res['external']['createdBy'] = true;
+        $res['external']['progressBar'] = true;
+        $res['external']['driverClass'] = true;
+        $res['external']['priority'] = true;
+        $res['external']['file'] = true;
     }
     
     
@@ -452,11 +451,11 @@ class support_TaskType extends core_Mvc
      * Добавя ключовите думи от допълнителните полета
      *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param object $res
-     * @param object $rec
+     * @param cal_Tasks        $mvc
+     * @param object           $res
+     * @param object           $rec
      */
-    function on_AfterGetSearchKeywords($Driver, $mvc, &$res, $rec)
+    public function on_AfterGetSearchKeywords($Driver, $mvc, &$res, $rec)
     {
         $sTxt = $rec->name . ' ' . $rec->email . ' ' . $rec->ip . ' ' . $rec->url;
         
@@ -470,34 +469,34 @@ class support_TaskType extends core_Mvc
      * След подготовка на тулбара на единичен изглед
      *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param object $res
-     * @param object $data
+     * @param cal_Tasks        $mvc
+     * @param object           $res
+     * @param object           $data
      */
-    static function on_AfterPrepareSingleToolbar($Driver, $mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($Driver, $mvc, &$res, $data)
     {
         if ($data->rec->state != 'rejected' && $data->rec->brid && email_Outgoings::haveRightFor('add')) {
             $data->toolbar->addBtn('Отговор', array(
-                    'email_Outgoings',
-                    'add',
-                    'originId' => $data->rec->containerId,
-                    'ret_url'=> TRUE
-            ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
+                'email_Outgoings',
+                'add',
+                'originId' => $data->rec->containerId,
+                'ret_url' => true
+            ), 'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
     }
     
     
     /**
-     * 
+     *
      *
      * @param support_TaskType $Driver
-     * @param cal_Tasks $mvc
-     * @param NULL|core_Form $res
-     * @param core_Form $form
-     * 
+     * @param cal_Tasks        $mvc
+     * @param NULL|core_Form   $res
+     * @param core_Form        $form
+     *
      * @see doc_plg_SelectFolder
      */
-    static function on_AfterPrepareSelectForm($Driver, $mvc, &$res, $form)
+    public static function on_AfterPrepareSelectForm($Driver, $mvc, &$res, $form)
     {
         // При създаване на задача от тип сигнал, показваме само папките от тип система
         $form->fields['folderId']->type->params['coverInterface'] = 'support_IssueIntf';

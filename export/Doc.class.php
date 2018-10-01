@@ -3,72 +3,71 @@
 
 /**
  * Експортиране на детайлите на документив в doc формат
- * 
+ *
  * @category  bgerp
  * @package   export
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class export_Doc extends core_Mvc
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
-    public $title = "Експортиране на документ като DOC";
+    public $title = 'Експортиране на документ като DOC';
     
     
-    /**
-     *  
-     */
     public $interfaces = 'export_ExportTypeIntf';
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
-     * 
-     * @param integer $clsId
-     * @param integer $objId
-     * 
-     * @return boolean
+     * Импортиране на csv-файл в даден мениджър
+     *
+     * @param int $clsId
+     * @param int $objId
+     *
+     * @return bool
      */
-    function canUseExport($clsId, $objId)
+    public function canUseExport($clsId, $objId)
     {
         // @todo - remove
-        if (!haveRole('debug')) return ;
+        if (!haveRole('debug')) {
+            
+            return ;
+        }
         
         return export_Export::canUseExport($clsId, $objId);
     }
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
      * @return string
      */
-    function getExportTitle($clsId, $objId)
+    public function getExportTitle($clsId, $objId)
     {
-        
         return 'DOC файл';
     }
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
-     * 
-     * @param core_Form $form
-     * @param integer $clsId
-     * @param integer|stdClass $objId
+     * Импортиране на csv-файл в даден мениджър
+     *
+     * @param core_Form    $form
+     * @param int          $clsId
+     * @param int|stdClass $objId
      *
      * @return NULL|string
      */
-    function makeExport($form, $clsId, $objId)
+    public function makeExport($form, $clsId, $objId)
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
@@ -81,9 +80,9 @@ class export_Doc extends core_Mvc
         } else {
             $opt->rec->__mid = doclog_Documents::saveAction(
                                     array(
-                                            'action'      => doclog_Documents::ACTION_PRINT,
-                                            'containerId' => $cRec->containerId,
-                                            'threadId'    => $cRec->threadId,
+                                        'action' => doclog_Documents::ACTION_PRINT,
+                                        'containerId' => $cRec->containerId,
+                                        'threadId' => $cRec->threadId,
                                     )
                                 );
             
@@ -99,24 +98,23 @@ class export_Doc extends core_Mvc
         // Вкарваме CSS-а инлайн
         $css = doc_PdfCreator::getCssStr($html);
         $html = doc_PdfCreator::removeFormAttr($html);
-        $html = "<div class='wide'><div class='external'>" . $html . "</div></div>";
+        $html = "<div class='wide'><div class='external'>" . $html . '</div></div>';
         $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
         $html = $CssToInlineInst->convert($html, $css);
         
         $html = str::cut($html, '<div id="begin' . $r . '">', '<div id="end' . $r . '">');
         
         $fileName = $clsInst->getHandle($cRec->id) . '_Export.html';
-		
+        
         $fileHnd = docoffice_Office::htmlToDoc($html, $fileName, 'exportFiles');
         
-        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/doc.png, title=Сваляне на документа");
+        $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/doc.png, title=Сваляне на документа');
         
-        $form->info .= "<b>" . tr('Файл|*: ') . "</b>" . fileman::getLink($fileHnd);
+        $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         
         $clsInst->logWrite('Генериране на DOC', $objId);
         
         return $fileHnd;
-        
     }
     
     
@@ -125,12 +123,12 @@ class export_Doc extends core_Mvc
      *
      * @param object $script - Обект със стойности
      *
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
-     * и записа от таблицата fconv_Process
+     * @return bool TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
+     *              и записа от таблицата fconv_Process
      *
      * @access protected
      */
-    static function afterConvertToXls($script)
+    public static function afterConvertToXls($script)
     {
         // Десериализираме параметрите
         $params = unserialize($script->params);
@@ -142,29 +140,31 @@ class export_Doc extends core_Mvc
         core_Locks::release($params['lockId']);
         
         // Да не се изтрива директрояита, след като качим файла
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща линк за експортиране във външната част
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int    $clsId
+     * @param int    $objId
      * @param string $mid
-     * 
+     *
      * @return core_ET|NULL
      */
-    function getExternalExportLink($clsId, $objId, $mid)
+    public function getExternalExportLink($clsId, $objId, $mid)
     {
         // @todo - remove
-        if (!isDebug()) return ;
+        if (!isDebug()) {
+            
+            return ;
+        }
         
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
         
-        $link = ht::createLink('DOC', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/doc.png'));
+        $link = ht::createLink('DOC', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/doc.png'));
         
         return $link;
     }
-        
 }

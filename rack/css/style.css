@@ -1,0 +1,149 @@
+.rack_Zones table.listTable > tbody > tr > td.productCell {
+    max-width: none;
+}
+
+/*rack*/
+.rack_Zones  .listTable {
+    border: none !important;
+}
+
+.rack_Zones  .listTable td, .rack_Zones  .listTable th {
+    border: none !important;
+    width : auto;
+    max-width: fit-content;
+    max-width:-webkit-fit-content;
+    max-width:  -moz-max-content;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) {
+    background: #333;
+    color: #fff !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow):hover {
+     background: #444 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) span {
+    color: #eee !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) a {
+    color: #aaa !important;
+}
+
+.rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) .iw-contextMenu a {
+    color: #222 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow {
+    color: #333 !important;
+    background: #f1f1f1 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow:hover {
+     background: #f1f1f1 !important;
+}
+
+.rack_Zones .listTable > tbody > tr.zonesCommonRow.zoneLighter .row-added{
+    background-color: #555 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow td {
+    padding: 5px!important;
+}
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow span {
+    color: #000 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow a {
+    color: #004488 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow .iw-contextMenu a {
+    color: #222 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-active {
+    background-color: #ffeedd !important;
+    color: #000 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-active:hover {
+     background: rgba(247, 197, 139, 1) !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending {
+    background-color: #eeccff;
+    color: #000 !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending:hover {
+     background-color: #e6b3ff !important;
+}
+
+.zone-product-status {
+    white-space: nowrap;
+    text-align: right;
+    padding-right: 10px !important;
+}
+
+.inline-workerId {
+    width: 250px !important;
+    max-width: none !important;
+}
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow  .anchor-arrow img {
+    filter: invert(100%);
+}
+
+.rack_Zones .small-field {
+    width: 1% !important;
+}
+
+.rack_Zones .rack-quantity {
+    width: 200px !important;
+    text-align: center;
+    max-width: none !important;
+}
+
+.rack_Zones .zone-product-status {
+    width: 140px !important;
+    max-width: none !important;
+}
+
+.minusImg {
+    margin: 0 10px;
+    opacity: 0.9;
+}
+
+.singleView .rack_ZoneDetails .minusImg {
+    filter: invert(90%);
+}
+
+.wide .singleView .rack_ZoneDetails table.listTable {
+    max-width: none !important;
+}
+
+.rack_ZoneDetails .red , .rack_Zones  .listTable > tbody > tr.zonesCommonRow tr.state-pending .red{
+   color: red !important;
+}
+
+
+@media handheld , only screen and (max-device-width: 1280px) {
+    .rack_Zones .listTable {
+        font-size: 1.1em;
+    }
+
+    .rack_Zones .toolbar-btn {
+        margin: 0;
+        padding: 5px;
+        width: 16px;
+        height: 13px;
+    }
+}

@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Classes extends core_Manager
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -24,7 +23,7 @@ class log_Classes extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Класове";
+    public $title = 'Класове';
     
     
     /**
@@ -62,16 +61,13 @@ class log_Classes extends core_Manager
      */
     public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_SystemWrapper, log_Wrapper';
     
     
-    /**
-     * 
-     */
     public static $classArr = array();
     
     
@@ -89,15 +85,18 @@ class log_Classes extends core_Manager
     
     /**
      * Връща crc32 стойността на стринга
-     * 
+     *
      * @param string $action
-     * @param boolean $autoSave
-     * 
-     * @return integer|NULL
+     * @param bool   $autoSave
+     *
+     * @return int|NULL
      */
-    public static function getClassCrc($className, $autoSave = TRUE)
+    public static function getClassCrc($className, $autoSave = true)
     {
-        if (!$className) return ;
+        if (!$className) {
+            
+            return ;
+        }
         
         $classCrc = crc32($className);
         
@@ -114,21 +113,21 @@ class log_Classes extends core_Manager
      */
     public static function saveActions()
     {
-       foreach (self::$classArr as $crc => $class) {
-           $rec = new stdClass();
-           $rec->crc = $crc;
-           $rec->class = $class;
-           
-           self::save($rec, NULL, 'IGNORE');
-       }
+        foreach (self::$classArr as $crc => $class) {
+            $rec = new stdClass();
+            $rec->crc = $crc;
+            $rec->class = $class;
+            
+            self::save($rec, null, 'IGNORE');
+        }
     }
     
     
     /**
      * Връща името на класа от подадената crc стойност
-     * 
-     * @param integer $crc
-     * 
+     *
+     * @param int $crc
+     *
      * @return string
      */
     public static function getClassFromCrc($crc)

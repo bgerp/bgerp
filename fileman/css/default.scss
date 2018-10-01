@@ -170,15 +170,16 @@
 	   margin-bottom: 10px !important;
 	}
 	.listTable{
-		width:100%;
+		width:99%;
+		min-width: 0;
 		th {
 			display: none;
 			border: none;
 			vertical-align: top !important;
 	    }
 		tr > td:first-child{
-			width:48px;
-			height:48px;
+			width:46px;
+			height:46px;
 			padding: 3px ;
 			.file-log-link{
 				width:48px;
@@ -198,6 +199,18 @@
 			}
 		}
 	}
+}
+
+.narrow.dialog-window .listRows  {
+	overflow-y: auto;
+}
+
+.narrow.dialog-window .pages {
+	margin: 10px 2px;
+}
+
+.narrow.dialog-window .filemanUpload ul {
+	margin: 10px 0;
 }
 
 .narrow .fileman_Log.switching-display{
@@ -262,4 +275,21 @@
 
 .btn-ulfile {
 	background-image: url('../../img/16/paper_clip.png');
+}
+
+.disabledRow {
+	background-color: #e0e0e0 !important;
+	color: #666;
+	.file-log-link {
+		color: #666 !important;
+		&:hover {
+			cursor: auto;
+		}
+	}
+	span {
+		color: #666 !important;
+	}
+	.anchor-arrow {
+		cursor: pointer;
+	}
 }

@@ -1,23 +1,21 @@
 <?php 
 
-
-
 /**
  * Разходен банков документ
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_SpendingDocuments extends bank_Document
 {
-   
-   
-   /**
+    /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_SpendingDocument, bgerp_DealIntf, email_DocumentIntf';
@@ -26,7 +24,7 @@ class bank_SpendingDocuments extends bank_Document
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Разходни банкови документи";
+    public $title = 'Разходни банкови документи';
     
     
     /**
@@ -44,15 +42,15 @@ class bank_SpendingDocuments extends bank_Document
     /**
      * Абревиатура
      */
-    public $abbr = "Rbd";
+    public $abbr = 'Rbd';
     
     
     /**
-     * Файл с шаблон за единичен изглед 
+     * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'bank/tpl/SingleCostDocument.shtml';
     
-
+    
     /**
      * Файл с шаблон за единичен изглед в мобилен
      */
@@ -62,13 +60,13 @@ class bank_SpendingDocuments extends bank_Document
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.4|Финанси";
+    public $newBtnGroup = '4.4|Финанси';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "termDate,valior=Вальор, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+    public $listFields = 'termDate,valior=Вальор, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy';
     
     
     /**
@@ -80,7 +78,7 @@ class bank_SpendingDocuments extends bank_Document
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         parent::getFields($this);
         $this->setField('termDate', 'caption=Срок');
@@ -101,7 +99,7 @@ class bank_SpendingDocuments extends bank_Document
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
-        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
+        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(false));
         
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
@@ -109,7 +107,7 @@ class bank_SpendingDocuments extends bank_Document
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         $form->setOptions('operationSysId', $options);
         
-        if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
+        if (isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)) {
             $form->setDefault('operationSysId', $form->defaultOperation);
         }
         
@@ -131,8 +129,8 @@ class bank_SpendingDocuments extends bank_Document
         $options = array();
         
         // Оставяме само тези операции, в които се дебитира основната сметка на документа
-        foreach ($operations as $sysId => $op){
-            if($op['credit'] == static::$baseAccountSysId){
+        foreach ($operations as $sysId => $op) {
+            if ($op['credit'] == static::$baseAccountSysId) {
                 $options[$sysId] = $op['title'];
             }
         }
@@ -147,16 +145,15 @@ class bank_SpendingDocuments extends bank_Document
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$rec = $data->rec;
+        $rec = $data->rec;
         
-    	if($rec->state == 'draft') {
-            
-            if(bank_PaymentOrders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
-                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/pln.png,title=Създаване на ново платежно нареждане');
+        if ($rec->state == 'draft') {
+            if (bank_PaymentOrders::haveRightFor('add', (object) array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => true, ''), null, 'ef_icon=img/16/pln.png,title=Създаване на ново платежно нареждане');
             }
             
-            if(bank_CashWithdrawOrders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
-                $data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/nrrz.png,title=Създаване на ново нареждане разписка');
+            if (bank_CashWithdrawOrders::haveRightFor('add', (object) array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => true, ''), null, 'ef_icon=img/16/nrrz.png,title=Създаване на ново нареждане разписка');
             }
         }
     }

@@ -3,54 +3,55 @@
 
 /**
  * Експортиране на детайлите на документив в xls формат
- * 
+ *
  * @category  bgerp
  * @package   export
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class export_Xls extends core_Mvc
 {
-    
-    
     /**
      * Заглавие на таблицата
      */
-    public $title = "Експортиране на документ като XLS";
+    public $title = 'Експортиране на документ като XLS';
     
     
-    /**
-     *  
-     */
     public $interfaces = 'export_ExportTypeIntf';
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
-     * 
-     * @param integer $clsId
-     * @param integer $objId
-     * 
-     * @return boolean
+     * Импортиране на csv-файл в даден мениджър
+     *
+     * @param int $clsId
+     * @param int $objId
+     *
+     * @return bool
      */
-    function canUseExport($clsId, $objId)
+    public function canUseExport($clsId, $objId)
     {
         $csvClsArr = $this->getCsvExportIntf();
         
-        if (empty($csvClsArr)) return FALSE;
+        if (empty($csvClsArr)) {
+            
+            return false;
+        }
         
-        $canUse = FALSE;
+        $canUse = false;
         
         foreach ($csvClsArr as $csvClsId => $clsName) {
-            if (!cls::load($csvClsId, TRUE)) continue;
+            if (!cls::load($csvClsId, true)) {
+                continue;
+            }
             
             $inst = cls::get($csvClsId);
             
             if ($inst->canUseExport($clsId, $objId)) {
-                
-                $canUse = TRUE;
+                $canUse = true;
                 
                 break;
             }
@@ -61,39 +62,43 @@ class export_Xls extends core_Mvc
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
+     * Импортиране на csv-файл в даден мениджър
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int $clsId
+     * @param int $objId
      *
      * @return string
      */
-    function getExportTitle($clsId, $objId)
+    public function getExportTitle($clsId, $objId)
     {
-        
         return 'XLS таблица';
     }
     
     
     /**
-     * Инпортиране на csv-файл в даден мениджър
-     * 
-     * @param core_Form $form
-     * @param integer $clsId
-     * @param integer|stdClass $objId
+     * Импортиране на csv-файл в даден мениджър
+     *
+     * @param core_Form    $form
+     * @param int          $clsId
+     * @param int|stdClass $objId
      *
      * @return NULL|string
      */
-    function makeExport($form, $clsId, $objId)
+    public function makeExport($form, $clsId, $objId)
     {
         $csvClsArr = $this->getCsvExportIntf();
         
-        if (empty($csvClsArr)) return FALSE;
+        if (empty($csvClsArr)) {
+            
+            return false;
+        }
         
         $nFileHnd = '';
         
         foreach ($csvClsArr as $csvClsId => $clsName) {
-            if (!cls::load($csvClsId, TRUE)) continue;
+            if (!cls::load($csvClsId, true)) {
+                continue;
+            }
             
             $inst = cls::get($csvClsId);
             
@@ -102,14 +107,12 @@ class export_Xls extends core_Mvc
             $oId = (is_object($objId)) ? $objId->id : $objId;
             
             if ($inst->canUseExport($clsId, $oId)) {
-                
                 $fileHnd = $inst->makeExport($nForm, $clsId, $objId);
                 
                 // Ако се създаде CSV - генерираме XLS
                 if ($fileHnd) {
-                    
                     $fRec = fileman::fetchByFh($fileHnd);
-                    $fPath = fileman_webdrv_Office::convertToFile($fRec, 'xls', FALSE, 'export_Xls::afterConvertToXls', 'xls');
+                    $fPath = fileman_webdrv_Office::convertToFile($fRec, 'xls', false, 'export_Xls::afterConvertToXls', 'xls');
                     
                     if ($fPath && is_file($fPath)) {
                         $nFileHnd = fileman::absorb($fPath, 'exportFiles');
@@ -124,17 +127,15 @@ class export_Xls extends core_Mvc
         }
         
         if ($nFileHnd) {
-            $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $nFileHnd, 'forceDownload' => TRUE), "ef_icon = fileman/icons/16/xls.png, title=Сваляне на документа");
+            $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $nFileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/xls.png, title=Сваляне на документа');
             
-            $form->info .= "<b>" . tr('Файл|*: ') . "</b>" . fileman::getLink($nFileHnd);
+            $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($nFileHnd);
             $clsInst = cls::get($clsId);
             $clsInst->logWrite('Генериране на XLS', $objId);
             
             return $nFileHnd;
-        } else {
-            $form->info .= "<div class='formNotice'>" . tr("Грешка при експорт|*.") . "</div>";
         }
-      
+        $form->info .= "<div class='formNotice'>" . tr('Грешка при експорт|*.') . '</div>';
     }
     
     
@@ -143,12 +144,12 @@ class export_Xls extends core_Mvc
      *
      * @param object $script - Обект със стойности
      *
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
-     * и записа от таблицата fconv_Process
+     * @return bool TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
+     *              и записа от таблицата fconv_Process
      *
      * @access protected
      */
-    static function afterConvertToXls($script)
+    public static function afterConvertToXls($script)
     {
         // Десериализираме параметрите
         $params = unserialize($script->params);
@@ -160,24 +161,24 @@ class export_Xls extends core_Mvc
         core_Locks::release($params['lockId']);
         
         // Да не се изтрива директрояита, след като качим файла
-        return FALSE;
+        return false;
     }
     
     
     /**
      * Връща линк за експортиране във външната част
      *
-     * @param integer $clsId
-     * @param integer $objId
+     * @param int    $clsId
+     * @param int    $objId
      * @param string $mid
-     * 
+     *
      * @return core_ET|NULL
      */
-    function getExternalExportLink($clsId, $objId, $mid)
+    public function getExternalExportLink($clsId, $objId, $mid)
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
         
-        $link = ht::createLink('XLS', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/xls.png'));
+        $link = ht::createLink('XLS', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/xls.png'));
         
         return $link;
     }
@@ -185,7 +186,7 @@ class export_Xls extends core_Mvc
     
     /**
      * Връща класовете, които може да имат съответния интерфейс
-     * 
+     *
      * @return array
      */
     protected function getCsvExportIntf()

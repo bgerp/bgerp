@@ -4,7 +4,7 @@
 /**
  *  Време в което не се логва заявка от същото ip/ресурс
  */
-defIfNot('VISLOG_ALLOW_SAME_IP', 5*60);
+defIfNot('VISLOG_ALLOW_SAME_IP', 5 * 60);
 
 
 /**
@@ -13,83 +13,83 @@ defIfNot('VISLOG_ALLOW_SAME_IP', 5*60);
  *
  * @category  vendors
  * @package   vislog
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
 class vislog_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'vislog_History';
+    public $startCtr = 'vislog_History';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Хронология за действията на посетителите на сайта";
+    public $info = 'Хронология за действията на посетителите на сайта';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-            'vislog_HistoryResources',
-            'vislog_History',
-            'vislog_Referer',
-            'vislog_IpNames',
-            'vislog_Adwords',
-        );
+    public $managers = array(
+        'vislog_HistoryResources',
+        'vislog_History',
+        'vislog_Referer',
+        'vislog_IpNames',
+        'vislog_Adwords',
+    );
     
-
-    var $configDescription = array(
-			'VISLOG_ALLOW_SAME_IP' => array ('time', 'caption=Време за недопускане на запис за едни и същи ip/ресурс->Време'),
-        );
-
-         
+    
+    public $configDescription = array(
+        'VISLOG_ALLOW_SAME_IP' => array('time', 'caption=Време за недопускане на запис за едни и същи ip/ресурс->Време'),
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
     //var $roles = 'vislog';
-
-
+    
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.53, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms"),
-        );
+    public $menuItems = array(
+        array(3.53, 'Сайт', 'Лог', 'vislog_History', 'default', 'admin, ceo, cms'),
+    );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "vislog_reports_IpImpl,vislog_reports_Resources";
+    public $defClasses = 'vislog_reports_IpImpl,vislog_reports_Resources';
     
     
-	/**
+    /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-      	$html = parent::install();
+        $html = parent::install();
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -104,8 +104,8 @@ class vislog_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-        return "";
+        return '';
     }
 }

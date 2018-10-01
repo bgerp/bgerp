@@ -7,20 +7,20 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_RichTextPlg extends core_Plugin
 {
-    
-    
     /**
      * Шаблон за намиране на линкове към документи
      * # (от 1 до 3 букви)(от 1 до 10 цифри). Без да се прави разлика за малки и големи букви.
      * Шаблона трябва да не започва и/или да не завършва с буква и/или цифра
-     * 
+     *
      * @param begin    - Символа преди шаблона
      * @param dsSign    - Символа за документа
      * @param dsName  - Името на шаблона, с # отпред
@@ -28,25 +28,19 @@ class doc_RichTextPlg extends core_Plugin
      * @param abbr     - Абревиатурата на шаблона
      * @param id       - id' то на шаблона
      */
-    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))(?'endDs'(\!)?)){1}/iu";
+    public static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))(?'endDs'(\!)?)){1}/iu";
     
     
-    /**
-     * 
-     */
     public static $identPattern = "/(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})(?'endDs'(\!)?))/i";
     
     
-    /**
-     * 
-     */
     public static $identEnd = '!';
     
     
     /**
      * Обработваме елементите линковете, които сочат към докъментната система
      */
-    function on_AfterCatchRichElements($mvc, &$html)
+    public function on_AfterCatchRichElements($mvc, &$html)
     {
         $this->mvc = $mvc;
         
@@ -65,7 +59,7 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Обработваме елементите линковете, които сочат към докъментната система
      */
-    function on_BeforeCatchRichElements($mvc, &$html)
+    public function on_BeforeCatchRichElements($mvc, &$html)
     {
         $html = self::truncateText($html);
     }
@@ -73,29 +67,38 @@ class doc_RichTextPlg extends core_Plugin
     
     /**
      * Съкращава дългите стрингове, като добавя линк за показване на още
-     * 
+     *
      * @param string $html
-     * 
+     *
      * @return string
      */
     protected static function truncateText($html)
     {
         // Във външната част и при принтиране да не сработва
-        if (Mode::is('printing') || Mode::is('text', 'xhtml')) return $html;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
+            
+            return $html;
+        }
         
         $conf = core_Packs::getConfig('doc');
         $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
         
-        if (mb_strlen($html) <= $hideLen) return $html;
+        if (mb_strlen($html) <= $hideLen) {
+            
+            return $html;
+        }
         
         $cHtml = mb_strcut($html, $hideLen);
         $cHtmlArr = explode("\n", $cHtml, 2);
         
-        if (!$cHtmlArr[1]) return $html;
+        if (!$cHtmlArr[1]) {
+            
+            return $html;
+        }
         
         $bHtml = mb_strcut($html, 0, $hideLen);
         
-        $cHtmlArr[1] = "[hide=" . tr('Вижте още') . "]" . $cHtmlArr[1] . "[/hide]";
+        $cHtmlArr[1] = '[hide=' . tr('Вижте още') . ']' . $cHtmlArr[1] . '[/hide]';
         $cHtml = implode("\n", $cHtmlArr);
         
         $html = $bHtml . $cHtml;
@@ -111,19 +114,20 @@ class doc_RichTextPlg extends core_Plugin
      *
      * @return string $res - Ресурса, който ще се замества
      */
-    function _catchFile($match)
+    public function _catchFile($match)
     {
         if (!$doc = doc_Containers::getDocumentByHandle($match)) {
+            
             return $match[0];
         }
         
         // Проверяваме дали имаме достъп до някакъв еденичен изглед
         // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
         $singleUrl = $doc->getSingleUrlArray();
-        if(is_array($singleUrl) && !count($singleUrl)){
-        	
-        	// Ако масива е празен значи няма достъп потребителя да преглежда документа
-        	return $match[0];
+        if (is_array($singleUrl) && !count($singleUrl)) {
+            
+            // Ако масива е празен значи няма достъп потребителя да преглежда документа
+            return $match[0];
         }
         
         // Абревиатурарата
@@ -135,7 +139,7 @@ class doc_RichTextPlg extends core_Plugin
         // Подаваме името на файла на документа, ако иска да го промени
         $doc->invoke('AfterGetDocNameInRichtext', array(&$docName, $match['id']));
         
-        $mvc    = $doc->instance;
+        $mvc = $doc->instance;
         $docRec = $doc->rec();
         
         //Създаваме линк към документа
@@ -145,11 +149,10 @@ class doc_RichTextPlg extends core_Plugin
         $place = $this->mvc->getPlace();
         
         //Ако сме в текстов режим
-        if(Mode::is('text', 'plain')) {
+        if (Mode::is('text', 'plain')) {
             //Добавяме линк към системата
-            $this->mvc->_htmlBoard[$place] = "{$docName} ( $link )";
+            $this->mvc->_htmlBoard[$place] = "{$docName} ( ${link} )";
         } else {
-            
             $attr = array();
             
             // Икона на линка
@@ -164,38 +167,41 @@ class doc_RichTextPlg extends core_Plugin
             if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
                 
                 // Линка да се отваря на нова страница
-                $attr['target'] = '_blank';    
+                $attr['target'] = '_blank';
             } else {
                 // Ако линка е в iframe да се отваря в родителския(главния) прозорец
-                $attr['target'] = "_parent";
+                $attr['target'] = '_parent';
             }
             
-            $href = ht::createLink($docName, $link, NULL, $attr);
+            $href = ht::createLink($docName, $link, null, $attr);
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
             $this->mvc->_htmlBoard[$place] = $href->getContent();
         }
-
+        
         //Стойността, която ще заместим в регулярния израз
         //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
         $res = $match['begin'] . "[#{$place}#]";
-
+        
         return  $res;
     }
     
     
     /**
      * Парсира манипулатора
-     * 
+     *
      * @param string $handle
-     * 
+     *
      * @return array|NULL
      */
     public static function parseHandle($handle)
     {
         preg_match(self::$pattern, $handle, $matches);
         
-        if (!$matches) return ;
+        if (!$matches) {
+            
+            return ;
+        }
         
         $resArr = array();
         $resArr['abbr'] = $matches['abbr'];
@@ -209,14 +215,15 @@ class doc_RichTextPlg extends core_Plugin
      * Намира всички цитирания на хендъли на документи в текст
      *
      * @param string $rt - Стринг, в който ще търсим.
+     *
      * @return array $docs - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
-     *                         array(
-     *                             'name' => хендъл, също като ключа
-     *                             'mvc'  => мениджър на документа с този хендъл
-     *                             'rec'  => запис за документа с този хендъл
-     *                         ) 
+     *               array(
+     *               'name' => хендъл, също като ключа
+     *               'mvc'  => мениджър на документа с този хендъл
+     *               'rec'  => запис за документа с този хендъл
+     *               )
      */
-    static function getAttachedDocs($rt)
+    public static function getAttachedDocs($rt)
     {
         $docs = array();
         
@@ -227,21 +234,22 @@ class doc_RichTextPlg extends core_Plugin
             foreach ($matches as $match) {
                 if (!$doc = doc_Containers::getDocumentByHandle($match)) {
                     continue;
-                } else {
-                	// Проверяваме дали имаме достъп до някакъв еденичен изглед
-                	// core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
-                	$singleUrl = $doc->getSingleUrlArray();
-                	if(is_array($singleUrl) && !count($singleUrl)){
-                		 
-                		// Ако масива е празен значи няма достъп потребителя да преглежда документа
-                		continue;
-                	}
                 }
+                
+                // Проверяваме дали имаме достъп до някакъв еденичен изглед
+                // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
+                $singleUrl = $doc->getSingleUrlArray();
+                if (is_array($singleUrl) && !count($singleUrl)) {
+                        
+                        // Ако масива е празен значи няма достъп потребителя да преглежда документа
+                    continue;
+                }
+                
                 
                 //Името на документа
                 $name = $doc->getHandle();
-                $mvc  = $doc->getInstance();
-                $rec  = $doc->rec();
+                $mvc = $doc->getInstance();
+                $rec = $doc->rec();
                 
                 $docs[$name] = compact('name', 'mvc', 'rec');
             }
@@ -258,10 +266,13 @@ class doc_RichTextPlg extends core_Plugin
      *
      * @return array|NULL - Информация за масива. $info['className'] - Името на класа. $info['id'] - id' то на документа
      */
-    static function getFileInfo($fileName)
+    public static function getFileInfo($fileName)
     {
         // Ако не е подадено нищо
-        if (!trim($fileName)) return ;
+        if (!trim($fileName)) {
+            
+            return ;
+        }
         
         // Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
         preg_match(self::$identPattern, $fileName, $matches);
@@ -296,13 +307,13 @@ class doc_RichTextPlg extends core_Plugin
         
         // Провяряваме дали имаме права и дали има такъв запис
         if ($rec) {
-        	
-        	// Проверяваме дали имаме достъп до някакъв еденичен изглед
-        	// core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
+            
+            // Проверяваме дали имаме достъп до някакъв еденичен изглед
+            // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
             $singleUrl = $className::getSingleUrlArray($rec);
-            if(is_array($singleUrl) && count($singleUrl)){
-            	
-            	return $handleInfo;
+            if (is_array($singleUrl) && count($singleUrl)) {
+                
+                return $handleInfo;
             }
         }
     }
@@ -311,19 +322,25 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Прихваща извикването на AfterCatchBQuote в type_RichText
      * Добавя дата и автор на цитата
-     * 
+     *
      * @param type_RichText $mvc
-     * @param string $quote
-     * @param string $hnd
+     * @param string        $quote
+     * @param string        $hnd
      */
-    function on_AfterCatchBQuote($mvc, &$quote, $hnd)
+    public function on_AfterCatchBQuote($mvc, &$quote, $hnd)
     {
-        if (!trim($hnd)) return ;
+        if (!trim($hnd)) {
+            
+            return ;
+        }
         
         // Вземаме информация за файла
         $fileInfo = static::getFileInfo($hnd);
         
-        if (!$fileInfo) return ;
+        if (!$fileInfo) {
+            
+            return ;
+        }
         
         // Вземаме инстанция на класа
         $class = cls::get($fileInfo['className']);
@@ -333,7 +350,10 @@ class doc_RichTextPlg extends core_Plugin
         // Вземаме записа от контейнера на съответния документ
         $cRec = $class->getContainer($rec->id);
         
-        if (!$cRec) return ;
+        if (!$cRec) {
+            
+            return ;
+        }
         
         // Добавяме датата
         $date = dt::mysql2verbal($cRec->createdOn);
@@ -373,11 +393,11 @@ class doc_RichTextPlg extends core_Plugin
         // Определяме данните за цитата
         $authorInfo = '';
         if ($date) {
-            $authorInfo = $date . " ";
+            $authorInfo = $date . ' ';
         }
         if ($author) {
             $authorInfo .= "&lt;{$author}&gt;";
-        } 
+        }
         
         // Ако има данни ги добавяме към цитата
         if ($authorInfo) {
@@ -385,7 +405,7 @@ class doc_RichTextPlg extends core_Plugin
             if (Mode::is('text', 'plain')) {
                 
                 // Добавяме към цитата автора и дата
-                $quote = $authorInfo . $quote; 
+                $quote = $authorInfo . $quote;
             } else {
                 
                 // Автора и датата
@@ -401,50 +421,53 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Връща всички документи които са цитирани във всички richtext полета
      * на даден мениджър
+     *
      * @param core_Mvc $mvc - мениджър
      * @param stdClass $rec - запис, за който проверяваме
+     *
      * @return array - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
-     *                       	array(
-     *                             'name' => хендъл, също като ключа
-     *                             'mvc'  => мениджър на документа с този хендъл
-     *                             'rec'  => запис за документа с този хендъл
-     *                          ) 
+     *               array(
+     *               'name' => хендъл, също като ключа
+     *               'mvc'  => мениджър на документа с този хендъл
+     *               'rec'  => запис за документа с този хендъл
+     *               )
      */
     public static function getDocsInRichtextFields(core_Mvc $mvc, $rec)
     {
-    	$all = '';
-    	
-    	if ($rec) {
-    	    
-    	    if (is_object($rec)) {
-    	        $rec = $mvc->fetch($rec->id);
-    	    } else {
-    	        $rec = $mvc->fetchRec($rec);
-    	    }
-    	    
-    	    $fields = $mvc->selectFields();
-    	     
-    	    foreach ($fields as $name => $fld){
-    	        if ($fld->type instanceof type_Richtext){
-    	            if ($fld->type->params['hndToLink'] == 'no') continue;
-    	            $all .= $rec->{$name};
-    	        }
-    	    }
-    	}
-    	
-    	// Намират се всички цитирания на документи в поле richtext
-    	return static::getAttachedDocs($all);
+        $all = '';
+        
+        if ($rec) {
+            if (is_object($rec)) {
+                $rec = $mvc->fetch($rec->id);
+            } else {
+                $rec = $mvc->fetchRec($rec);
+            }
+            
+            $fields = $mvc->selectFields();
+            
+            foreach ($fields as $name => $fld) {
+                if ($fld->type instanceof type_Richtext) {
+                    if ($fld->type->params['hndToLink'] == 'no') {
+                        continue;
+                    }
+                    $all .= $rec->{$name};
+                }
+            }
+        }
+        
+        // Намират се всички цитирания на документи в поле richtext
+        return static::getAttachedDocs($all);
     }
     
     
     /**
      * Добавя бутон за качване на документ
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc              $mvc
      * @param core_ObjectCollection $toolbarArr
-     * @param array $attr
+     * @param array                 $attr
      */
-    function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
+    public function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
         // Ако има права за добавяне
         if (doc_Containers::haveRightFor('adddoc')) {
@@ -456,7 +479,7 @@ class doc_RichTextPlg extends core_Plugin
             $windowName = $callbackName = 'placeDoc_' . $id;
             
             // Ако е мобилен/тесем режим
-            if(Mode::is('screenMode', 'narrow')) {
+            if (Mode::is('screenMode', 'narrow')) {
                 
                 // Парамтери към отварянето на прозореца
                 $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
@@ -471,13 +494,14 @@ class doc_RichTextPlg extends core_Plugin
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
             
             // Бутон за отвяряне на прозореца
-            $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на документ/и от системата") . "' onclick=\"{$js}\">" . tr("Документ") . "</a>");
+            $documentUpload = new ET("<a class=rtbutton title='" . tr('Добавяне на документ/и от системата') . "' onclick=\"{$js}\">" . tr('Документ') . '</a>');
             
             
             // JS функцията
             $callback = "function {$callbackName}(docHnd) {
                 var ta = get$('{$id}');
                 rp(docHnd, ta, 1);
+                
                 return true;
             }";
             
@@ -492,20 +516,26 @@ class doc_RichTextPlg extends core_Plugin
     
     /**
      * Прихваща никовете и създава линкове към сингъла на профилите
-     * 
+     *
      * @param array $match
      */
-    function _catchNick($match)
+    public function _catchNick($match)
     {
         // Да не сработва в текстов режим
-        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) return $match[0];
+        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
+            
+            return $match[0];
+        }
         
         // Вземаме id на записа от ника
         $nick = $match['nick'];
         $nick = strtolower($nick);
         $id = core_Users::fetchField(array("LOWER (#nick) = '[#1#]'", $nick));
         
-        if (!$id) return $match[0];
+        if (!$id) {
+            
+            return $match[0];
+        }
         
         // Добавяме в борда
         $place = $this->mvc->getPlace();

@@ -1113,6 +1113,50 @@ div.acc-detail {
 	   cursor: pointer;
 	}
 }
+.toggleLink {
+	float: right;
+	display: inline-block;
+	height: 20px;
+	cursor: pointer;
+	padding: 3px;
+}
+
+.narrow #cmsNavigation .articles-navigation {
+	margin-top: -10px !important;
+	margin-bottom: 0 !important;
+	#searchform{
+		margin: 0 !important;
+		float: left;
+	}
+	#simpleSearch {
+		margin: 0 !important;
+		box-shadow: none !important;
+		border: none !important;
+		position: relative;
+	}
+	#searchInput {
+		border-radius: 3px;
+		box-shadow: none !important;
+		border: none !important;
+	}
+	#searchButton {
+		position: absolute;
+		top: 2px;
+		right: 26px;
+		&:focus {
+			outline: none;
+		}
+	}
+
+}
+.narrowNav {
+	display: none;
+	background-color: #f1f1f1;
+	border: 1px solid #ccc;
+	padding: 10px 10px 15px 10px;
+	font-size: 0.85em;
+	margin-bottom: 20px;
+}
 
 .narrow .additionalInfo {
 	font-size: 0.9em;
@@ -1304,7 +1348,7 @@ table.listTable > tbody > tr {
 		width: 100% !important;
 		border: none;
 		font-size: 0.9em;
-		line-height: 1.1em;
+		line-height: 1.1em !important;
 		margin-bottom: 0;
 		td {
 			border: none !important;
@@ -3183,27 +3227,79 @@ fieldset.sharing-history {
 	}
 }
 
-#cart-view-total {
-	margin-bottom: 10px;
-}
-
 .cart-view-buttons-left {
 	float: left;
-	clear: both;
-	a {
-		display: block;
-		margin-bottom: 10px;
+	margin-top: 8px;
+}
+.cart-view-buttons-right {
+	text-align: center;
+	margin-top: 8px;
+	input {
+		margin-right: 0;
 	}
 }
+.narrow .cart-view-buttons-left {
+	float: none;
+	clear: both;
+}
+
+.wide .cartInfoBlock {
+	width: 26%;
+	float: left;
+	margin-left: 2%;
+	td {
+		vertical-align: top;
+	}
+	.aright {
+		padding-right: 5px;
+	}
+}
+
+.narrow .order-info td {
+	vertical-align: top !important;
+}
+.cart-view-buttons-top {
+	margin: 10px 0;
+	span {
+		display: inline-block;
+		margin: 0 10px;
+		color: #666;
+	}
+	a {
+		display: inline-block;
+		margin-bottom: 10px;
+		font-size: 1.05em;
+		padding-left: 22px !important;
+	}
+}
+
+.paramsTable td {
+	padding: 1px 5px;
+	color: #333333;
+	font-family: sans-serif;
+	line-height: 1.4em;
+}
+
+.wide .cartHolder {
+	float: left;
+	width: 72%;
+}
+
 .eshop-link {
 	font-size: 16px;
 	font-weight: normal;
 	display: inline-block;
 }
+
 .order-info {
 	background-color: #f1f1f1;
+	border: 1px solid #ccc ;
+	color: #222;
 	padding: 10px;
 	font-size: 0.9em;
+}
+
+.narrow .order-info {
 	margin-bottom: 10px;
 }
 
@@ -3222,6 +3318,7 @@ fieldset.sharing-history {
 
 .narrow .half-width {
 	float: none !important;
+	width: 100%;
 	max-width: 100%;
 	margin: 5px 0;
 }
@@ -3253,20 +3350,30 @@ fieldset.sharing-history {
 	color: #222;
 	min-width: 320px;
 	width: 100%;
-	margin-bottom: 10px;
-    		font-size: 0.9em;
-
+    font-size: 0.95em;
 	th {
 		text-align: center;
-		padding: 5px;
+		padding: 7px 5px;
 		border-top: 1px solid #ccc;
 	}
 	td {
 		padding: 4px 7px; 
 	}
-	tbody tr {
-		background: linear-gradient(#eeeeee, #f8f8f8, white, #f8f8f8, #eeeeee);
+	tbody tr:not(.ecartCommonRow) {
+		background: linear-gradient(white, white, white, white, white, white, #eee);
 	}
+	tbody tr.ecartCommonRow {
+		background: linear-gradient(#eee, white, white, white, white, white, white);
+	}
+	tbody tr:not(.ecartCommonRow) td {
+		padding-bottom:10px;
+   		padding-top:3px;
+    }
+	tbody tr.ecartCommonRow td {
+        padding-top:10px;
+   		padding-bottom:3px;
+	}
+
   	thead tr:first-child {
 		background-color: #F1F1F1;
 	}
@@ -3296,7 +3403,7 @@ fieldset.sharing-history {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 25px;
+	width: 22px;
 	height: 25px;
 	border: 1px solid #ccc;
 	font-size: 14px;
@@ -3317,38 +3424,75 @@ fieldset.sharing-history {
 	height: 27px;
 }
 .btnUp {
-	padding-right: 3px;
+	padding-right: 2px;
 	border-bottom-right-radius: 12px;
 	border-top-right-radius: 12px;
 	border-left: none;
 }
 
 .btnDown {
-	padding-left: 3px;
+	padding-left: 2px;
 	border-bottom-left-radius: 12px;
 	border-top-left-radius: 12px;
 	border-right: none;
 }
 
-.wide .cart-container {
-	display: inline-block;
-}
-
 .summary-holder {
-	float: right;
+	text-align: left;
 	table {
+		width: 100%;
 		td {
-			padding: 5px 10px;
+			padding: 3px 10px;
 		}
 	}
+	&.borderTop{
+		padding-top: 10px;
+		margin-top: 10px;
+		border-top: 1px solid #ccc;
+	}
+}
+.narrow .summary-holder  table {
+	float: right;
+	width: auto;
 }
 
+.textInfo {
+	padding-top: 20px;
+	line-height: 1.5em;
+	text-align: right;
+	color: #222;
+	font-size: 0.9em;
+	.richtext-holder .richtext {
+		color: #222 !important;
+	}
+}
+.narrow .textInfo {
+	padding: 0px 0 10px ;
+	text-align: left;
+	.richtext {
+		font-size: 1em;
+	}
+}
+.wide .infoBlock {
+	margin-top: 20px;
+}
+
+.narrow .infoBlock {
+	margin: 10px 0 20px;
+	font-size: 0.9em;
+}
 .richtext-holder {
 	.richtext {
-		display: inline-block;
-		 color: #000;
+		display: inline;
+		color: #000;
 		line-height: 1em;
+		font-family: Verdana, Arial, Helvetica, sans-serif;
 	}
+}
+.order-info .richtext {
+	font-size: 1em;
+	color: #222;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
 }
 
 .remove-from-cart:hover {
@@ -3359,8 +3503,11 @@ fieldset.sharing-history {
 	padding: 20px 20px 20px;
 }
 
+.narrow .cart-holder-external {
+	padding: 12px 7px 0px;
+}
+
 .quantity-input-column {
-	width: 100px;
 	text-align: center;
 	span {
 		display: flex;
@@ -3369,20 +3516,33 @@ fieldset.sharing-history {
 	}
 	input {
 		text-align: right;
-		width: 60px;
 		height: 27px;
-		padding: 2px 5px;
+		padding: 2px 5px 2px 0;
 		border: 1px solid #cccccc;
 		border-radius: 3px;
 		border-radius: 0;
+		min-width: 34px;
 		&.inputError {
 			border-color: red;
 		}
 	}
 }
 
+.narrow .quantity-input-column input {
+	height: 29px;
+}
+
 .narrow .optionsTable {
 	min-width: 320px;
+	margin-top: 15px;
+	td {
+		padding: 4px 10px;
+	}
+}
+
+.eshop-product-navigation {
+	margin-bottom: 20px;
+	font-size: 0.9em;
 }
 
 table .eshop-btn {
@@ -3416,6 +3576,9 @@ table .eshop-btn {
 	border-radius: 3px;
 	box-shadow: inset 0 -1px 0 1px rgba(0, 0, 0, 0.1), inset 0 -10px 20px rgba(0, 0, 0, 0.1);
 	margin: 0 10px 0 0 !important;
+	position: relative;
+	top: -1px;
+
 	&:hover{
 		background-color: #eee !important;
 	}
@@ -3453,9 +3616,18 @@ table .eshop-btn {
 .narrow .eshop-btn {
 	padding-left: 10px !important;
 	&.order-btn {
+		clear: both;
 		padding-left: 20px !important;
 		margin: 10px 0;
 	}
+}
+
+.narrow .cart-view-buttons-top span {
+	margin: 0 3px;
+}
+
+.narrow .cart-view-buttons-top a {
+	font-size: 0.95em;
 }
 
 .foldertabs {
@@ -3703,8 +3875,20 @@ table .eshop-btn {
 	border: solid 1px #aaa;
 	clear: both;
 	margin-bottom: 5px
-}
 
+}
+.toggleGroups {
+	.openBtn {
+		display: inline-block;
+		width: 20px;
+		height: 20px;
+		background: url('../img/16/toggle1.png') center bottom no-repeat;
+
+	}
+}
+.narrow .cms-row {
+	padding-top: 20px;
+}
 .cms-row h1 {
     margin-top: 0;
     margin-left: -2px;
@@ -3935,7 +4119,6 @@ table .eshop-btn {
 /*стилове за fileman*/
 .webdrvTabBody {
 	min-width: 800px;
-	min-height: 612px;
 	top: 10px;
 	position: relative;
 }
@@ -3968,7 +4151,6 @@ table .eshop-btn {
 	@include border-radius(5px);
 	box-shadow: 0 0 5px rgba(0,0,0,0.2) inset;
 	> div {
-		max-width: 880px;
 		overflow: auto;
 	}
 	> .dtree {
@@ -3977,7 +4159,7 @@ table .eshop-btn {
 	> .mejs-container {
 		overflow: hidden;
 	}
-	pre.richtext {
+	.richtext {
 		max-width: 865px;
 		margin-bottom:0;
 		margin-top:0;
@@ -3992,10 +4174,11 @@ table .eshop-btn {
 	position:relative;
 }
 
-.webdrvFieldset .legend {
+.webdrvTabBody .legend {
 	position: absolute;
 	top:-10px;
 	left: 10px;
+	z-index: 10;
 	background-color: #fff;
 	padding: 0 5px;
 	margin: 0 15px;
@@ -4047,6 +4230,14 @@ table .eshop-btn {
 }
 /*стилове за fileman*/
 
+#packWrapper .debugLink {
+	display: inline-block;
+	padding: 3px;
+	margin: 10px  10px 0 0;
+	border: 1px solid #ccc;
+	background: #eee;
+	border-radius: 3px;
+}
 
 /*стилове за блог*/
 #blog-article-details .listTable th {
@@ -4803,6 +4994,15 @@ div.location.public {
 }
 /*край на стилове за състояния на SMS' ите в колцентъра*/
 
+.doc-negative-quantiy {
+	color: red;
+	font-weight: bold;
+}
+
+.doc-warning-quantiy {
+	color: #d66737;
+	font-weight: bold;
+}
 
 /* Стилове за `sens` */
 .measure {
@@ -4977,6 +5177,10 @@ div.location.public {
 	color: #444;
 }
 
+.paramsTable {
+	margin-top: 10px;
+}
+
 .eshop-product-labels span {
     margin-right:10px;
     @include border-radius(3px);
@@ -4994,13 +5198,21 @@ div.location.public {
 
 .eshop-product-images {
 	padding:5px;
-    width:30%;
 	background-color:#e6e6e6;
-	height:100%;
-    img {
-        width:100%;
-    }
     @include border-radius(3px);
+}
+.wide .eshop-product-images {
+	width:30%;
+	height:100%;
+	img {
+		width:100%;
+	}
+}
+
+.narrow .eshop-product-images a{
+	display: inline-block;
+	width: 160px;
+	text-align: center;
 }
 
 .eshop-product-labels > a {
@@ -5056,8 +5268,10 @@ div.location.public {
 	}
 }
 
+.newCol{
+	background-color:#eee
+}
 
-/*rack*/
 td.rack-hl {
 	background-color:red;
 }
@@ -5629,6 +5843,15 @@ row-fluid {
     #all h1{
         font-size: 1.74em;
     }
+}
+
+@media handheld, only screen and (max-width: 375px) {
+	.narrow .eshop-group-button {
+		width: 100%;
+		margin-right: 0%;
+		margin-left: 0%;
+		font-size: 0.9em;
+	}
 }
 
 @media handheld, only screen and (max-width: 360px) {
@@ -6358,6 +6581,10 @@ row-fluid {
 	top: 2px;
 }
 
+.linkRefIcon {
+	position: relative;
+	top: 2px;
+}
 
 .vislog {
 	white-space:nowrap;
@@ -6388,6 +6615,15 @@ row-fluid {
 	}
 	.logs-type-err td {
 	    background-color: #fad0d1 !important;
+	}
+}
+
+.document .reportHolder div.tab-control.alphabet div.tab-row .tab{
+	padding: 4px 5px 5px !important;
+	display: inline-block;
+	background: #dddddd;
+	&.selected {
+		top: 0 !important
 	}
 }
 
@@ -6602,6 +6838,10 @@ row-fluid {
 
 .narrow .elem-holder .endTooltip {
 	float: right;
+}
+
+.frontToolip {
+	display: inline-block;
 }
 /* край на стилове за външната част при потребител контрактор */
 .cd-l1{

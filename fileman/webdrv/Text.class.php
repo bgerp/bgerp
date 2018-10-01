@@ -3,35 +3,38 @@
 
 /**
  * Драйвер за работа с .text файлове.
- * 
+ *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Text extends fileman_webdrv_Generic
 {
+    /**
+     * Кой таб да е избран по подразбиране
+     *
+     * @Override
+     *
+     * @see fileman_webdrv_Generic::$defaultTab
+     */
+    public static $defaultTab = 'text';
     
     
     /**
-     * Кой таб да е избран по подразбиране
-     * @Override
-     * @see fileman_webdrv_Generic::$defaultTab
-     */
-    static $defaultTab = 'text';
-
-
-	/**
      * Стартира извличането на информациите за файла
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::startProcessing
      */
-    static function startProcessing($fRec) 
+    public static function startProcessing($fRec)
     {
         parent::startProcessing($fRec);
         static::extractText($fRec);
@@ -40,29 +43,30 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
     
     /**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
+     *
      * @see fileman_webdrv_Generic::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', TRUE, TRUE)) {
+        if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', true, true)) {
             // URL за показване на текстовата част на файловете
-            $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
+            $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), true);
             
             // Таб за текстовата част
             $tabsArr['text'] = (object)
             array(
-                    'title' => 'Текст',
-                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-                    'order' => 4,
+                'title' => 'Текст',
+                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Текст') . "</div><div class='webdrvFieldset'> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'order' => 4,
             );
         }
         
@@ -70,14 +74,14 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
     }
     
     
-	/**
+    /**
      * Извлича текстовата част от файла
-     * 
+     *
      * @param object|string $fRec - Записите за файла
-     * 
+     *
      * @return NULL|string
      */
-    static function extractText($fRec)
+    public static function extractText($fRec)
     {
         // Параметри необходими за конвертирането
         $params = array(
@@ -96,10 +100,13 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         $params['lockId'] = self::getLockId('text', $dId);
         
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) {
+            
+            return ;
+        }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+        if (core_Locks::get($params['lockId'], 100, 0, false)) {
             
             // Вземаме съдържанието на файла
             if ($params['fileHnd']) {

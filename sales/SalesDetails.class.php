@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'sales_SalesDetails'
  *
@@ -9,23 +8,23 @@
  *
  * @category  bgerp
  * @package   sales
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sales_SalesDetails extends deals_DealDetail
 {
-    
-    
     /**
      * Заглавие
-     * 
+     *
      * @var string
      */
     public $title = 'Детайли на продажби';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      *
@@ -42,7 +41,7 @@ class sales_SalesDetails extends deals_DealDetail
     
     /**
      * Плъгини за зареждане
-     * 
+     *
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_PrevAndNext,
@@ -51,7 +50,7 @@ class sales_SalesDetails extends deals_DealDetail
     
     /**
      * Активен таб на менюто
-     * 
+     *
      * @var string
      */
     public $menuPage = 'Търговия:Продажби';
@@ -59,7 +58,7 @@ class sales_SalesDetails extends deals_DealDetail
     
     /**
      * Кой има право да променя?
-     * 
+     *
      * @var string|array
      */
     public $canEdit = 'sales,ceo,partner';
@@ -75,7 +74,7 @@ class sales_SalesDetails extends deals_DealDetail
     
     /**
      * Кой има право да добавя?
-     * 
+     *
      * @var string|array
      */
     public $canAdd = 'user';
@@ -83,7 +82,7 @@ class sales_SalesDetails extends deals_DealDetail
     
     /**
      * Кой може да го изтрие?
-     * 
+     *
      * @var string|array
      */
     public $canDelete = 'sales,ceo,partner';
@@ -105,7 +104,6 @@ class sales_SalesDetails extends deals_DealDetail
     public $canCreateproduct = 'user';
     
     
-    
     /**
      * Кои полета да се извличат при изтриване
      */
@@ -114,8 +112,8 @@ class sales_SalesDetails extends deals_DealDetail
     
     /**
      * Брой записи на страница
-     * 
-     * @var integer
+     *
+     * @var int
      */
     public $listItemsPerPage;
     
@@ -125,7 +123,7 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
     
-
+    
     /**
      * Полета свързани с цени
      */
@@ -146,7 +144,7 @@ class sales_SalesDetails extends deals_DealDetail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::getDealDetailFields($this);
-		$this->setField('packPrice', 'silent');
+        $this->setField('packPrice', 'silent');
     }
     
     
@@ -155,26 +153,26 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-    	$rec = &$form->rec;
-    	$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-    	if(isset($rec->productId)){
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		$masterStore = $masterRec->shipmentStoreId;
-    		
-    		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
-    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    			$form->info = $storeInfo->formInfo;
-    		}
-    	}
-    	
-    	parent::inputDocForm($mvc, $form);
-    	
-    	// След събмит
-    	if($form->isSubmitted()){
-    		
-    		// Подготовка на сумата на транспорта, ако има
-    		sales_TransportValues::prepareFee($rec, $form, $masterRec);
-    	}
+        $rec = &$form->rec;
+        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        if (isset($rec->productId)) {
+            $pInfo = cat_Products::getProductInfo($rec->productId);
+            $masterStore = $masterRec->shipmentStoreId;
+            
+            if (isset($masterStore, $pInfo->meta['canStore'])) {
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+                $form->info = $storeInfo->formInfo;
+            }
+        }
+        
+        parent::inputDocForm($mvc, $form);
+        
+        // След събмит
+        if ($form->isSubmitted()) {
+            
+            // Подготовка на сумата на транспорта, ако има
+            sales_TransportValues::prepareFee($rec, $form, $masterRec);
+        }
     }
     
     
@@ -183,35 +181,35 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	$rows = &$data->rows;
-    	
-    	if(!count($data->recs)) return;
-    	$masterRec = $data->masterData->rec;
-    	
-    	foreach ($rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    			
-    		if($storeId = $masterRec->shipmentStoreId){
-    			if(isset($pInfo->meta['canStore']) && $masterRec->state == 'draft'){
-    				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
-    				if(strlen($warning)){
-    					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
-    				}
-    			}
-    		}
-    		
-    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			if(!core_Users::haveRole('partner') && isset($row->packPrice)){
-    				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
-    			}
-    		}
-    		
-    		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
-    		$fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id)->fee;
-    		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-    		$row->amount = sales_TransportValues::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-    	}
+        $rows = &$data->rows;
+        
+        if (!count($data->recs)) {
+            
+            return;
+        }
+        $masterRec = $data->masterData->rec;
+        
+        foreach ($rows as $id => $row) {
+            $rec = $data->recs[$id];
+            $pInfo = cat_Products::getProductInfo($rec->productId);
+            
+            if ($storeId = $masterRec->shipmentStoreId) {
+                if (isset($pInfo->meta['canStore'])) {
+                    deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $masterRec->state);
+                }
+            }
+            
+            if ($rec->price < cat_Products::getSelfValue($rec->productId, null, $rec->quantity)) {
+                if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
+                    $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
+                }
+            }
+            
+            // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
+            $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $fee->explain);
+        }
     }
     
     
@@ -220,13 +218,14 @@ class sales_SalesDetails extends deals_DealDetail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
-    	// Преди клониране клонира се и сумата на цената на транспорта
-    	$cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
-    	if(isset($cRec)){
-    		$rec->fee = $cRec->fee;
-    		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
-    		$rec->syncFee = TRUE;
-    	}
+        // Преди клониране клонира се и сумата на цената на транспорта
+        $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+        if (isset($cRec)) {
+            $rec->fee = $cRec->fee;
+            $rec->deliveryTimeFromFee = $cRec->deliveryTime;
+            $rec->_transportExplained = $cRec->explain;
+            $rec->syncFee = true;
+        }
     }
     
     
@@ -235,10 +234,10 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	// Синхронизиране на сумата на транспорта
-    	if($rec->syncFee === TRUE){
-    		sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
-    	}
+        // Синхронизиране на сумата на транспорта
+        if ($rec->syncFee === true) {
+            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
+        }
     }
     
     
@@ -247,32 +246,32 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-    	// Инвалидиране на изчисления транспорт, ако има
-    	foreach ($query->getDeletedRecs() as $id => $rec) {
-    		sales_TransportValues::sync($mvc->Master, $rec->saleId, $rec->id, NULL);
-    	}
+        // Инвалидиране на изчисления транспорт, ако има
+        foreach ($query->getDeletedRecs() as $id => $rec) {
+            sales_TransportValues::sync($mvc->Master, $rec->saleId, $rec->id, null);
+        }
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	if(($action == 'add') && isset($rec)){
-    		if($requiredRoles != 'no_one'){
-    			$roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
-    			if(!haveRole($roles, $userId)){
-    				$requiredRoles = 'no_one';
-    			}
-    		}
-    	}
-    	
-    	if($action == 'importlisted'){
-    		$roles = sales_Setup::get('ADD_BY_LIST_BTN');
-    		if(!haveRole($roles, $userId)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
+        if (($action == 'add') && isset($rec)) {
+            if ($requiredRoles != 'no_one') {
+                $roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
+                if (!haveRole($roles, $userId)) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if ($action == 'importlisted') {
+            $roles = sales_Setup::get('ADD_BY_LIST_BTN');
+            if (!haveRole($roles, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

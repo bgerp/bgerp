@@ -1,37 +1,36 @@
 <?php 
 
-
 /**
  * Мениджира детайлите на Overviews (Details)
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens_OverviewDetails extends core_Detail
 {
-    
-    
     /**
      * Заглавие
      */
-    var $title = "Детайли на Мениджър изгледи";
+    public $title = 'Детайли на Мениджър изгледи';
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Наблюдение";
+    public $pageMenu = 'Наблюдение';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, 
+    public $loadList = 'plg_Created, plg_RowTools2, 
                           plg_Printing, sens_Wrapper, plg_Sorting, 
                           Overviews=sens_Overviews,plg_PrevAndNext, plg_SaveAndNew';
     
@@ -39,25 +38,25 @@ class sens_OverviewDetails extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'overviewId';
+    public $masterKey = 'overviewId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'overviewId, blockTitle';
-
+    public $listFields = 'overviewId, blockTitle';
+    
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол..
      */
-    var $tabName = "sens_Overviews";
+    public $tabName = 'sens_Overviews';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('overviewId', 'key(mvc=sens_Overviews)', 'caption=Към изглед');
         $this->FLD('blockTitle', 'varchar(255)', 'caption=Заглавие на блока');

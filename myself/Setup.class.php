@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * class acc_Setup
  *
@@ -9,54 +10,54 @@
  *
  * @category  bgerp
  * @package   opit
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class myself_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'myself_Codebase';
+    public $startCtr = 'myself_Codebase';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Code analysis";
+    public $info = 'Code analysis';
     
-
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-            'myself_Codebase'
-
-        );
+    public $managers = array(
+        'myself_Codebase'
     
-
+    );
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'powerUser';
+    public $roles = 'powerUser';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -64,15 +65,13 @@ class myself_Setup extends core_ProtoSetup
 //            array(3.995, 'Анализ', 'Анализ', 'myself_Codebase', 'default', "powerUser"),
 //        );
     
-        
+    
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
-              
-
         
         return $html;
     }
@@ -81,7 +80,7 @@ class myself_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

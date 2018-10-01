@@ -1,50 +1,49 @@
 <?php
 
 
-
 /**
  * Мениджър на категории с продукти.
  *
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class cat_Categories extends core_Master
 {
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'cat_ProductFolderCoverIntf';
     
     
-	/**
-	 * Поддържани интерфейси
-	 */
-	public $interfaces = 'cat_ProductFolderCoverIntf';
-	
-	
-	/**
-	 * Детайли
-	 */
-	public $details = 'updates=price_Updates';
-	
-	
+    /**
+     * Детайли
+     */
+    public $details = 'updates=price_Updates';
+    
+    
     /**
      * Заглавие
      */
-    public $title = "Категории на артикулите";
+    public $title = 'Категории на артикулите';
     
     
     /**
      * Страница от менюто
      */
-    public $pageMenu = "Каталог";
+    public $pageMenu = 'Каталог';
     
     
     /**
      * Кои документи да се добавят като бързи бутони в папката на корицата
      */
-    public $defaultDefaultDocuments  = 'cat_Products';
+    public $defaultDefaultDocuments = 'cat_Products';
     
     
     /**
@@ -80,7 +79,7 @@ class cat_Categories extends core_Master
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Категория";
+    public $singleTitle = 'Категория';
     
     
     /**
@@ -166,23 +165,23 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$form = &$data->form;
-    	
-    	$suggestions = cat_UoM::getUomOptions();
-    	$form->setSuggestions('measures', $suggestions);
-    	
-    	if(isset($form->rec->folderId)){
-    		if(cat_Products::fetchField("#folderId = {$form->rec->folderId}")){
-    			$form->setReadOnly('useAsProto');
-    		}
-    	}
+        $form = &$data->form;
+        
+        $suggestions = cat_UoM::getUomOptions();
+        $form->setSuggestions('measures', $suggestions);
+        
+        if (isset($form->rec->folderId)) {
+            if (cat_Products::fetchField("#folderId = {$form->rec->folderId}")) {
+                $form->setReadOnly('useAsProto');
+            }
+        }
     }
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
@@ -201,8 +200,8 @@ class cat_Categories extends core_Master
                                 fixedAsset=Дълготрайни активи,
         			canManifacture=Производими)', 'caption=Настройки - препоръчителни за артикулите в категорията->Свойства,columns=2');
         
-        $this->setDbUnique("sysId");
-        $this->setDbUnique("name");
+        $this->setDbUnique('sysId');
+        $this->setDbUnique('name');
     }
     
     
@@ -210,15 +209,15 @@ class cat_Categories extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
-        if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
+        if ($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
             $requiredRoles = 'no_one';
         }
     }
@@ -229,23 +228,23 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($fields['-list']){
-    		$row->name .= " {$row->folder}";
-    		$count = cat_Products::count("#folderId = '{$rec->folderId}'");
-    		
-    		$row->count = cls::get('type_Int')->toVerbal($count);
-    		$row->count = "<span style='float:right'>{$row->count}</span>";
-    		
-    		if(empty($rec->useAsProto)){
-    			$row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal('no');
-    		}
-    	}
-    	
-    	if($fields['-single']){
-    		if($rec->useAsProto == 'yes'){
-    			$row->protoFolder = tr('Всички артикули в папката са шаблони');
-    		}
-    	}
+        if ($fields['-list']) {
+            $row->name .= " {$row->folder}";
+            $count = cat_Products::count("#folderId = '{$rec->folderId}'");
+            
+            $row->count = cls::get('type_Int')->toVerbal($count);
+            $row->count = "<span style='float:right'>{$row->count}</span>";
+            
+            if (empty($rec->useAsProto)) {
+                $row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal('no');
+            }
+        }
+        
+        if ($fields['-single']) {
+            if ($rec->useAsProto == 'yes') {
+                $row->protoFolder = tr('Всички артикули в папката са шаблони');
+            }
+        }
     }
     
     
@@ -253,23 +252,23 @@ class cat_Categories extends core_Master
      * Връща keylist от id-та на групи, съответстващи на даден стрингов
      * списък от sysId-та, разделени със запетайки
      */
-    public static function getKeylistBySysIds($list, $strict = FALSE)
+    public static function getKeylistBySysIds($list, $strict = false)
     {
         $sysArr = arr::make($list);
         
-        foreach($sysArr as $sysId) {
+        foreach ($sysArr as $sysId) {
             $id = static::fetchField("#sysId = '{$sysId}'", 'id');
             
-            if($strict) {
+            if ($strict) {
                 expect($id, $sysId, $list);
             }
             
-            if($id) {
+            if ($id) {
                 $keylist .= '|' . $id;
             }
         }
         
-        if($keylist) {
+        if ($keylist) {
             $keylist .= '|';
         }
         
@@ -282,13 +281,13 @@ class cat_Categories extends core_Master
      */
     protected static function on_BeforeImportRec($mvc, &$rec)
     {
-    	if($rec->csv_measures){
-    		$measures = arr::make($rec->csv_measures, TRUE);
-    		$rec->measures = '';
-    		foreach ($measures  as $m){
-    			$rec->measures = keylist::addKey($rec->measures, cat_UoM::fetchBySinonim($m)->id);
-    		}
-    	}
+        if ($rec->csv_measures) {
+            $measures = arr::make($rec->csv_measures, true);
+            $rec->measures = '';
+            foreach ($measures  as $m) {
+                $rec->measures = keylist::addKey($rec->measures, cat_UoM::fetchBySinonim($m)->id);
+            }
+        }
     }
     
     
@@ -299,13 +298,13 @@ class cat_Categories extends core_Master
     {
         $res .= core_Classes::add($mvc);
         
-        $file = "cat/csv/Categories.csv";
+        $file = 'cat/csv/Categories.csv';
         $fields = array(
-            0 => "name",
-            1 => "info",
-            2 => "sysId",
-            3 => "meta",
-        	4 => "csv_measures",
+            0 => 'name',
+            1 => 'info',
+            2 => 'sysId',
+            3 => 'meta',
+            4 => 'csv_measures',
         );
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
@@ -319,13 +318,14 @@ class cat_Categories extends core_Master
      * Връща мета дефолт мета данните на папката
      *
      * @param int $id - ид на категория
+     *
      * @return array $meta - масив с дефолт мета данни
      */
     public function getDefaultMeta($id)
     {
-    	$rec = $this->fetchRec($id);
-    	
-    	return arr::make($rec->meta, TRUE);
+        $rec = $this->fetchRec($id);
+        
+        return arr::make($rec->meta, true);
     }
     
     
@@ -334,23 +334,23 @@ class cat_Categories extends core_Master
      */
     public function getDefaultProductCode($id)
     {
-    	$rec = $this->fetchRec($id);
-    	
-    	// Ако има представка
-    	if($rec->prefix){
-    		
-    		// Опитваме се да намерим първия код започващ с представката
-    		$code = str::addIncrementSuffix("", $rec->prefix);
-    		while(cat_Products::getByCode($code)){
-    			$code = str::addIncrementSuffix($code, $rec->prefix);
-    			if(!cat_Products::getByCode($code)){
-    				break;
-    			}
-    		}
-    	}
-    	
-    	// Връщаме намерения код
-    	return $code;
+        $rec = $this->fetchRec($id);
+        
+        // Ако има представка
+        if ($rec->prefix) {
+            
+            // Опитваме се да намерим първия код започващ с представката
+            $code = str::addIncrementSuffix('', $rec->prefix);
+            while (cat_Products::getByCode($code)) {
+                $code = str::addIncrementSuffix($code, $rec->prefix);
+                if (!cat_Products::getByCode($code)) {
+                    break;
+                }
+            }
+        }
+        
+        // Връщаме намерения код
+        return $code;
     }
     
     
@@ -359,122 +359,128 @@ class cat_Categories extends core_Master
      * универсален артикул, създаден в папката на корицата
      *
      * @param int $id - ид на корицата
+     *
      * @return array $params - масив с дефолтни параметри И техните стойности
-     * 				<ид_параметър> => <дефолтна_стойност>
+     *               <ид_параметър> => <дефолтна_стойност>
      */
     public function getDefaultProductParams($id)
     {
-    	$rec = $this->fetchRec($id);
-    	$params = keylist::toArray($rec->params);
-    	foreach($params as $paramId => &$value){
-    		$value = NULL;
-    	}
-    	
-    	return $params;
+        $rec = $this->fetchRec($id);
+        $params = keylist::toArray($rec->params);
+        foreach ($params as $paramId => &$value) {
+            $value = null;
+        }
+        
+        return $params;
     }
     
     
     /**
      * Връща папките, в които може да има прототипи
-     * 
+     *
      * @return array $folders
      */
     public static function getProtoFolders()
     {
-    	$folders = array();
-    	
-    	// В кои категории може да има прототипни артикули
-    	$query = self::getQuery();
-    	$query->where("#useAsProto = 'yes'");
-    	$query->show('folderId');
-    	while($cRec = $query->fetch()) {
-    		$folders[$cRec->folderId] = $cRec->folderId;
-    	}
-    	
-    	return $folders;
+        $folders = array();
+        
+        // В кои категории може да има прототипни артикули
+        $query = self::getQuery();
+        $query->where("#useAsProto = 'yes'");
+        $query->show('folderId');
+        while ($cRec = $query->fetch()) {
+            $folders[$cRec->folderId] = $cRec->folderId;
+        }
+        
+        return $folders;
     }
     
     
     /**
      * Връща възможните за избор прототипни артикули с дадения драйвер и свойства
-     * 
-     * @param int|NULL $driverId - Ид на продуктов драйвер
-     * @param string|NULL $meta  - Мета свойствo на артикулите
-     * @param int|NULL $limit    - Ограничаване на резултатите
-     * @param int|NULL $folderId - Папка
+     *
+     * @param int|NULL    $driverId - Ид на продуктов драйвер
+     * @param string|NULL $meta     - Мета свойство на артикулите
+     * @param int|NULL    $limit    - Ограничаване на резултатите
+     * @param int|NULL    $folderId - Папка
+     *
      * @return array $newOptions - прототипните артикули
      */
-    public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL, $folderId = NULL)
+    public static function getProtoOptions($driverId = null, $meta = null, $limit = null, $folderId = null)
     {
-    	// Извличане на всички прототипни артикули
-    	$options = doc_Prototypes::getPrototypes('cat_Products', $driverId, $folderId);
-    	$newOptions = array();
-    	
-    	$count = 0;
-    	foreach ($options as $productId => $name){
-    		
-    		// Ако има изискване за свойство, махат се тези които нямат свойството
-    		if(isset($meta)){
-    			$pMeta = cat_Products::fetchField($productId, $meta);
-    			if($pMeta == "no") continue;
-    		}
-    		$count++;
-    		
-    		// Ако има лимит, проверка дали е достигнат
-    		if(isset($limit) && $count > $limit) break;
-    		
-    		// Ако е стигнато до тук, артикулът се добавя към резултатите
-    		$newOptions[$productId] = $name;
-    	}
-    	
-    	return $newOptions;
+        // Извличане на всички прототипни артикули
+        $options = doc_Prototypes::getPrototypes('cat_Products', $driverId, $folderId);
+        $newOptions = array();
+        
+        $count = 0;
+        foreach ($options as $productId => $name) {
+            
+            // Ако има изискване за свойство, махат се тези които нямат свойството
+            if (isset($meta)) {
+                $pMeta = cat_Products::fetchField($productId, $meta);
+                if ($pMeta == 'no') {
+                    continue;
+                }
+            }
+            $count++;
+            
+            // Ако има лимит, проверка дали е достигнат
+            if (isset($limit) && $count > $limit) {
+                break;
+            }
+            
+            // Ако е стигнато до тук, артикулът се добавя към резултатите
+            $newOptions[$productId] = $name;
+        }
+        
+        return $newOptions;
     }
     
     
     /**
      * След подготовка на филтъра за филтриране в корицата
-     * 
-     * @param core_mvc $mvc
-     * @param core_Form $threadFilter
+     *
+     * @param core_mvc   $mvc
+     * @param core_Form  $threadFilter
      * @param core_Query $threadQuery
      */
     protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
     {
-    	// Добавяме поле за избор на групи
-    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група');
-    	$threadFilter->showFields .= ",group";
-    	$threadFilter->input('group');
-    	
-    	if(isset($threadFilter->rec)){
-    		
-    		// Ако търсим по група
-    		if($group = $threadFilter->rec->group){
-    			$catClass = cat_Products::getClassId();
-    			
-    			// Подготвяме заявката да се филтрират само нишки с начало Артикул
-    			$threadQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
-    			$threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-    			$threadQuery->where("#docClass = {$catClass}");
-    			
-    			// Разпъваме групите
-    			$descendants = cat_groups::getDescendantArray($group);
-    			$keylist = keylist::fromArray($descendants);
-    			
-    			// Намираме ид-та на артикулите от тези групи
-    			$catQuery = cat_Products::getQuery();
-    			$catQuery->likeKeylist("groups", $keylist);
-    			$catQuery->show('id');
-    			$productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
-    			
-    			if (empty($productIds)) {
-    			    // Искаме от нишките да останат само тези за въпросните артикули
-    			    $threadQuery->where('1=2');
-    			} else {
-    			    // Искаме от нишките да останат само тези за въпросните артикули
-    			    $threadQuery->in('docId', $productIds);
-    			}
-    		}
-    	}
+        // Добавяме поле за избор на групи
+        $threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група');
+        $threadFilter->showFields .= ',group';
+        $threadFilter->input('group');
+        
+        if (isset($threadFilter->rec)) {
+            
+            // Ако търсим по група
+            if ($group = $threadFilter->rec->group) {
+                $catClass = cat_Products::getClassId();
+                
+                // Подготвяме заявката да се филтрират само нишки с начало Артикул
+                $threadQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
+                $threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+                $threadQuery->where("#docClass = {$catClass}");
+                
+                // Разпъваме групите
+                $descendants = cat_groups::getDescendantArray($group);
+                $keylist = keylist::fromArray($descendants);
+                
+                // Намираме ид-та на артикулите от тези групи
+                $catQuery = cat_Products::getQuery();
+                $catQuery->likeKeylist('groups', $keylist);
+                $catQuery->show('id');
+                $productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
+                
+                if (empty($productIds)) {
+                    // Искаме от нишките да останат само тези за въпросните артикули
+                    $threadQuery->where('1=2');
+                } else {
+                    // Искаме от нишките да останат само тези за въпросните артикули
+                    $threadQuery->in('docId', $productIds);
+                }
+            }
+        }
     }
     
     
@@ -482,14 +488,18 @@ class cat_Categories extends core_Master
      * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
      *
      * @param mixed $id - ид или запис
-     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     *
+     * @return string - Стандартен / Нестандартен / Шаблон
      */
     public function getProductType($id)
     {
-    	$rec = $this->fetchRec($id);
-    	
-    	if($rec->useAsProto == 'yes') return 'template';
-    	
-    	return 'public';
+        $rec = $this->fetchRec($id);
+        
+        if ($rec->useAsProto == 'yes') {
+            
+            return 'template';
+        }
+        
+        return 'public';
     }
 }

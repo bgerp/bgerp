@@ -1,41 +1,41 @@
 <?php
 
 
-
 /**
  * Драйвер за IP сензор HWg-STE - мери температура и влажност
  *
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Драйвери на сензори
  */
 class sens_driver_HWgSTE extends sens_driver_IpDevice
 {
-    
     /**
      * Заглавие на драйвера
      */
-    var $title = 'HWgSTE';
-
-
+    public $title = 'HWgSTE';
+    
+    
     /**
      * Параметри които чете или записва драйвера
      */
-    var $params = array(
-        'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C', 'xmlPath'=>'/SenSet[1]/Entry[1]/Value[1]'),
-        'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%', 'xmlPath'=>'/SenSet[1]/Entry[2]/Value[1]')
+    public $params = array(
+        'T' => array('unit' => 'T', 'param' => 'Температура', 'details' => 'C', 'xmlPath' => '/SenSet[1]/Entry[1]/Value[1]'),
+        'Hr' => array('unit' => 'Hr', 'param' => 'Влажност', 'details' => '%', 'xmlPath' => '/SenSet[1]/Entry[2]/Value[1]')
     );
     
     
     /**
      * Колко аларми/контроли да има?
      */
-    var $alarmCnt = 3;
+    public $alarmCnt = 3;
     
     
     /**
@@ -48,9 +48,8 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
      *
      * @param object $form
      */
-    function setSettingsFromForm($form)
+    public function setSettingsFromForm($form)
     {
-    
     }
     
     
@@ -58,9 +57,8 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
      * Подготвя формата за настройки на сензора
      * и алармите в зависимост от параметрите му
      */
-    function prepareSettingsForm($form)
+    public function prepareSettingsForm($form)
     {
-        
         $form->FNC('ip', new type_Ip(), 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         
@@ -72,7 +70,7 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
     /**
      * Връща масив със стойностите на температурата и влажността
      */
-    function updateState()
+    public function updateState()
     {
         $state = array();
         
@@ -80,12 +78,12 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
         
         $context = stream_context_create(array('http' => array('timeout' => 4)));
         
-        $xml = @file_get_contents($url, FALSE, $context);
+        $xml = @file_get_contents($url, false, $context);
         
         if (empty($xml) || !$xml) {
-            $this->stateArr = NULL;
+            $this->stateArr = null;
             
-            return FALSE;
+            return false;
         }
         
         $result = array();
@@ -98,27 +96,27 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
         
         $this->stateArr = $state;
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function XMLToArrayFlat($xml, &$return, $path = '', $root = FALSE)
+    public function XMLToArrayFlat($xml, &$return, $path = '', $root = false)
     {
         $children = array();
         
         if ($xml instanceof SimpleXMLElement) {
             $children = $xml->children();
             
-            if ($root){ // we're at root
+            if ($root) { // we're at root
                 $path .= '/' . $xml->getName();
             }
         }
         
-        if (count($children) == 0){
-            $return[$path] = (string)$xml;
+        if (count($children) == 0) {
+            $return[$path] = (string) $xml;
             
             return;
         }
@@ -128,7 +126,7 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
         foreach ($children as $child => $value) {
             $childname = ($child instanceof SimpleXMLElement) ? $child->getName() : $child;
             
-            if (!isset($seen[$childname])){
+            if (!isset($seen[$childname])) {
                 $seen[$childname] = 0;
             }
             $seen[$childname]++;

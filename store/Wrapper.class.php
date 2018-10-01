@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_Wrapper'
  *
@@ -10,29 +9,29 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('store_Stores', 'Складове', 'ceo,storeWorker');
         $this->TAB('store_Products', 'Наличности', 'ceo,storeWorker');
-        $this->TAB( array('deals_OpenDeals', 'show' => 'store'), 'Документи->Чакащи', 'store,ceo');
+        $this->TAB(array('deals_OpenDeals', 'show' => 'store'), 'Документи->Чакащи', 'store,ceo');
         $this->TAB('store_ShipmentOrders', 'Документи->Експедиции');
         $this->TAB('store_Receipts', 'Документи->Получавания');
-		$this->TAB('store_Transfers', 'Документи->Трансфери');
-		$this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене');
-		$this->TAB('store_InventoryNotes', 'Документи->Инвентаризация');
-		
+        $this->TAB('store_Transfers', 'Документи->Трансфери');
+        $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене');
+        $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация');
+        
         $this->title = 'Склад';
     }
 }

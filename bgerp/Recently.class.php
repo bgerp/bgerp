@@ -1,23 +1,22 @@
 <?php
 
 
-
 /**
  * Последни документи и папки, посетени от даден потребител
  *
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Последни документи и папки
  */
 class bgerp_Recently extends core_Manager
 {
-    
-    
     /**
      * Максимална дължина на показваните заглавия
      */
@@ -27,62 +26,62 @@ class bgerp_Recently extends core_Manager
     /**
      * @see bgerp_RefreshRowsPlg
      */
-    var $bgerpRefreshRowsTime = 15000;
+    public $bgerpRefreshRowsTime = 15000;
     
     
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
+    public $loadList = 'bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
     
     
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    var $groupByDateField = 'last';
+    public $groupByDateField = 'last';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Последни';
+    public $title = 'Последни';
     
     
     /**
      * Права за писане
      */
-    var $canWrite = 'admin';
+    public $canWrite = 'admin';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Как се казва полето за пълнотекстово търсене
      */
-    var $searchInputField = 'recentlySearch';
+    public $searchInputField = 'recentlySearch';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('type', 'enum(folder,document)', 'caption=Тип, mandatory');
         $this->FLD('objectId', 'int', 'caption=Id');
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
-        $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка, input=none');
+        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка, input=none');
         
         $this->setDbUnique('type, objectId, userId');
         $this->setDbIndex('userId');
@@ -92,25 +91,28 @@ class bgerp_Recently extends core_Manager
     
     /**
      * Добавя известие за настъпило събитие
-     * 
-     * @param string $type - folder,document
-     * @param integer $objectId
-     * @param integer|NULL $userId
-     * @param string $hidden - yes/no
+     *
+     * @param string      $type     - folder,document
+     * @param int         $objectId
+     * @param int|NULL    $userId
+     * @param string      $hidden   - yes/no
      * @param iteger|NULL $threadId
      */
-    static function add($type, $objectId, $userId = NULL, $hidden = 'no', $threadId = NULL)
+    public static function add($type, $objectId, $userId = null, $hidden = 'no', $threadId = null)
     {
         // Не добавяме от опресняващи ajax заявки
-        if(Request::get('ajax_mode')) return;
+        if (Request::get('ajax_mode')) {
+            
+            return;
+        }
         
         $rec = new stdClass();
         
-        $rec->type      = $type;
-        $rec->objectId  = $objectId;
-        $rec->userId    = $userId ? $userId : core_Users::getCurrent();
-        $rec->last      = dt::verbal2mysql();
-        $rec->hidden    = $hidden;
+        $rec->type = $type;
+        $rec->objectId = $objectId;
+        $rec->userId = $userId ? $userId : core_Users::getCurrent();
+        $rec->last = dt::verbal2mysql();
+        $rec->hidden = $hidden;
         
         if (!$threadId && $objectId && ($type == 'document')) {
             $rec->threadId = doc_Containers::fetchField($objectId, 'threadId');
@@ -126,8 +128,8 @@ class bgerp_Recently extends core_Manager
      * Преди запис на документ, преизчисляваме стойността на threadId
      *
      * @param bgerp_Recently $mvc
-     * @param stdClass $res
-     * @param stdClass $rec
+     * @param stdClass       $res
+     * @param stdClass       $rec
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
@@ -141,17 +143,17 @@ class bgerp_Recently extends core_Manager
      * Скрива посочените записи
      * Обикновено след Reject
      */
-    static function setHidden($type, $objectId, $hidden = 'yes', $userId = NULL)
+    public static function setHidden($type, $objectId, $hidden = 'yes', $userId = null)
     {
         $query = self::getQuery();
         
-        $query->where("#type = '{$type}'  AND #objectId = $objectId");
+        $query->where("#type = '{$type}'  AND #objectId = ${objectId}");
         
         if ($userId) {
             $query->where("#userId = '{$userId}'");
         }
         
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             $rec->hidden = $hidden;
             $rec->last = dt::verbal2mysql();
             self::save($rec);
@@ -163,12 +165,12 @@ class bgerp_Recently extends core_Manager
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass     $row Това ще се покаже
+     * @param stdClass     $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if($rec->type == 'folder') {
+        if ($rec->type == 'folder') {
             try {
                 $folderRec = doc_Folders::fetch($rec->objectId);
                 $folderRow = doc_Folders::recToVerbal($folderRec);
@@ -180,7 +182,7 @@ class bgerp_Recently extends core_Manager
         } elseif ($rec->type == 'document') {
             try {
                 $threadId = $rec->threadId;
-                $threadRec = NULL;
+                $threadRec = null;
                 if ($threadId) {
                     $threadRec = doc_Threads::fetch($threadId);
                 }
@@ -196,7 +198,7 @@ class bgerp_Recently extends core_Manager
                 $attr['class'] .= "state-{$state}";
                 $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
                 
-                if(mb_strlen($docRow->title) > self::maxLenTitle) {
+                if (mb_strlen($docRow->title) > self::maxLenTitle) {
                     $attr['title'] = '|*' . $docRow->title;
                 }
                 
@@ -205,20 +207,21 @@ class bgerp_Recently extends core_Manager
                     $linkUrl = array($docProxy->getInstance(), 'single',
                         'id' => $docRec->id);
                 }
-
-                $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle, 20, " ... ", TRUE),
+                
+                $row->title = ht::createLink(
+                    str::limitLen($docRow->title, self::maxLenTitle, 20, ' ... ', true),
                     $linkUrl,
-                    NULL, $attr);
-                
-                
+                    null,
+                    $attr
+                );
             } catch (core_exception_Expect $ex) {
                 $row->title = tr("Проблемен контейнер|* № {$rec->objectId}");
             }
         }
         
-        if($state == 'opened') {
+        if ($state == 'opened') {
             $row->title = new ET("<span class='state-opened-link'>[#1#]</span>", $row->title);
-        } 
+        }
     }
     
     
@@ -226,22 +229,22 @@ class bgerp_Recently extends core_Manager
      * Добавя ключови думи за пълнотекстово търсене, това са името на
      * документа или папката
      */
-    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    public function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $objectTitle = $mvc->getObjectTitle($rec);
         
         $res = plg_Search::normalizeText($objectTitle);
-        $res = " " . $res;
+        $res = ' ' . $res;
     }
     
     
     /**
      * Взима заглавието на обекта
      */
-    function getObjectTitle($rec)
+    public function getObjectTitle($rec)
     {
-        try{
-            if($rec->type == 'folder') {
+        try {
+            if ($rec->type == 'folder') {
                 $folderRec = doc_Folders::fetch($rec->objectId);
                 $objectTitle = $folderRec->title;
             } else {
@@ -255,38 +258,41 @@ class bgerp_Recently extends core_Manager
         
         return $objectTitle;
     }
-
-
+    
+    
     /**
      * Връща кога за последен път потребителя е виждал този документ
      *
-     * @param bool $isFirstContainerId  дали първият аргумент е ид на първи контейнер в нишка
+     * @param bool $isFirstContainerId дали първият аргумент е ид на първи контейнер в нишка
      */
-    static function getLastDocumentSee($doc, $userId = NULL, $isFirstContainerId = FALSE)
-    {   
-        if(!$isFirstContainerId) {
-            if(is_object($doc)) {
+    public static function getLastDocumentSee($doc, $userId = null, $isFirstContainerId = false)
+    {
+        if (!$isFirstContainerId) {
+            if (is_object($doc)) {
                 $cRec = $doc;
             } else {
                 expect(is_numeric($doc));
                 $cRec = doc_Containers::fetch($doc);
             }
-
-            if(!$cRec->threadId) return;
-
+            
+            if (!$cRec->threadId) {
+                
+                return;
+            }
+            
             $fid = doc_Threads::getFirstContainerId($cRec->threadId);
         } else {
             $fid = $doc;
         }
-
-        if(!$userId) {
+        
+        if (!$userId) {
             $userId = core_Users::getCurrent();
         }
-
-        if($fid && $userId) {
+        
+        if ($fid && $userId) {
             $lastTime = bgerp_Recently::fetchField("#type = 'document' AND #objectId = {$fid} AND #userId = {$userId}", 'last');
         }
-
+        
         return $lastTime;
     }
     
@@ -294,7 +300,7 @@ class bgerp_Recently extends core_Manager
     /**
      * Екшън за рендиране блок с последни за текущия
      */
-    function act_Render()
+    public function act_Render()
     {
         requireRole('powerUser');
         
@@ -307,26 +313,26 @@ class bgerp_Recently extends core_Manager
     /**
      * Рендира блок с последните документи и папки, посетени от даден потребител
      */
-    static function render_($userId = NULL)
+    public static function render_($userId = null)
     {
-        if(empty($userId)) {
+        if (empty($userId)) {
             expect($userId = core_Users::getCurrent());
         }
         
         $Recently = cls::get('bgerp_Recently');
-
+        
         // Намираме времето на последния запис
         $query = $Recently->getQuery();
-        $query->where("#userId = $userId");
+        $query->where("#userId = ${userId}");
         $query->limit(1);
-        $query->orderBy("#last", 'DESC');
+        $query->orderBy('#last', 'DESC');
         $lastRec = $query->fetch();
         $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
         $now = dt::now();
-        list($tpl, $createdOn)  = core_Cache::get('RecentDoc', $key);
- 
-        if(!$tpl || $createdOn != $lastRec->last) {
- 
+        list($tpl, $createdOn) = core_Cache::get('RecentDoc', $key);
+        
+        if (!$tpl || $createdOn != $lastRec->last) {
+            
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -337,7 +343,7 @@ class bgerp_Recently extends core_Manager
             $data->listFields = 'last,title';
             
             $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
-            $data->query->orderBy("last=DESC");
+            $data->query->orderBy('last=DESC');
             
             // Подготвяме филтрирането
             $Recently->prepareListFilter($data);
@@ -351,9 +357,9 @@ class bgerp_Recently extends core_Manager
             // Подготвяме редовете на таблицата
             $Recently->prepareListRows($data);
             
-            if(!Mode::is('screenMode', 'narrow')) {  
+            if (!Mode::is('screenMode', 'narrow')) {
                 // Подготвяме заглавието на таблицата
-                $data->title = tr("Последно||Recently");
+                $data->title = tr('Последно||Recently');
             }
             
             // Подготвяме лентата с инструменти
@@ -361,7 +367,7 @@ class bgerp_Recently extends core_Manager
             
             // Рендираме изгледа
             $tpl = $Recently->renderPortal($data);
-
+            
             core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), doc_Setup::get('CACHE_LIFETIME'));
         }
         
@@ -372,13 +378,12 @@ class bgerp_Recently extends core_Manager
     /**
      * Рендира блок в портала с последните документи и папки, посетени от даден потребител
      */
-    function renderPortal($data)
+    public function renderPortal($data)
     {
         $Recently = cls::get('bgerp_Recently');
         
         // Ако се вика по AJAX
         if (!Request::get('ajax_mode')) {
-            
             $divId = $Recently->getDivId();
             
             $tpl = new ET("
@@ -403,14 +408,14 @@ class bgerp_Recently extends core_Manager
             // Попълваме горния страньор
             $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
             
-            if($data->listFilter){
+            if ($data->listFilter) {
                 $tpl->append($data->listFilter->renderHtml(), 'ListFilter');
             }
             
             // Попълваме долния страньор
             $tpl->append($Recently->renderListPager($data), 'PortalPagerBottom');
         } else {
-            $tpl = new ET("[#PortalTable#]");
+            $tpl = new ET('[#PortalTable#]');
         }
         
         // Попълваме таблицата с редовете
@@ -418,9 +423,8 @@ class bgerp_Recently extends core_Manager
         
         return $tpl;
     }
-
-
-
+    
+    
     /**
      * Игнорираме pager-а
      *
@@ -428,19 +432,19 @@ class bgerp_Recently extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareListPager($mvc, &$res, $data)
+    public static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-
         // Задаваме броя на елементите в страница
         $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-
-        if($portalArrange == 'recentlyNotifyTaskCal') {
+        
+        if ($portalArrange == 'recentlyNotifyTaskCal') {
             $mvc->listItemsPerPage = 20;
         } else {
             $mvc->listItemsPerPage = 10;
         }
     }
-
+    
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -448,12 +452,11 @@ class bgerp_Recently extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->view = 'horizontal';
         
-        if(strtolower(Request::get('Act')) == 'show'){
-            
+        if (strtolower(Request::get('Act')) == 'show') {
             $data->listFilter->showFields = $mvc->searchInputField;
             
             bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
@@ -472,17 +475,17 @@ class bgerp_Recently extends core_Manager
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             
             // Ако не е избран потребител по подразбиране
-            if(!$data->listFilter->rec->usersSearch) {
+            if (!$data->listFilter->rec->usersSearch) {
                 
                 // Да е текущия
                 $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
             }
             
             // Ако има филтър
-            if($filter = $data->listFilter->rec) {
+            if ($filter = $data->listFilter->rec) {
                 
                 // Ако се търси по всички и има права ceo
-                if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
+                if ((strpos($filter->usersSearch, '|-1|') !== false) && (haveRole('ceo'))) {
                     // Търсим всичко
                 } else {
                     
@@ -490,35 +493,37 @@ class bgerp_Recently extends core_Manager
                     $usersArr = type_Keylist::toArray($filter->usersSearch);
                     
                     // Ако има избрани потребители
-                    if (count((array)$usersArr)) {
+                    if (count((array) $usersArr)) {
                         
                         // Показваме всички потребители
                         $data->query->orWhereArr('userId', $usersArr);
                     } else {
                         
                         // Не показваме нищо
-                        $data->query->where("1=2");
+                        $data->query->where('1=2');
                     }
                 }
             }
         }
         
-        $data->query->orderBy("#last", 'DESC');
+        $data->query->orderBy('#last', 'DESC');
     }
     
     
     /**
      * Какво правим след сетъпа на модела?
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if(!$mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+        if (!$mvc->fetch("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
             $count = 0;
             $query = static::getQuery();
-            $query->orderBy("#id", "DESC");
+            $query->orderBy('#id', 'DESC');
             
-            while($rec = $query->fetch()){
-                if($rec->searchKeywords) continue;
+            while ($rec = $query->fetch()) {
+                if ($rec->searchKeywords) {
+                    continue;
+                }
                 $rec->searchKeywords = $mvc->getSearchKeywords($rec);
                 $mvc->save_($rec, 'searchKeywords');
                 $count++;
@@ -532,12 +537,12 @@ class bgerp_Recently extends core_Manager
     /**
      * Връща id-тата на последно използваните нишки
      *
-     * @param integer $count - Броя нишки
-     * @param integer $userId - За потребителя
+     * @param int $count  - Броя нишки
+     * @param int $userId - За потребителя
      *
      * @return array
      */
-    static function getLastThreadsId($count = 5, $userId = NULL)
+    public static function getLastThreadsId($count = 5, $userId = null)
     {
         // Броя трябва да е положителен
         expect($count > 0);
@@ -556,7 +561,7 @@ class bgerp_Recently extends core_Manager
         $query = static::getQuery();
         $query->where("#userId = '{$userId}'");
         $query->where("#type = 'document'");
-        $query->orderBy("last", "DESC");
+        $query->orderBy('last', 'DESC');
         
         // Брояч
         $cnt = 0;
@@ -567,7 +572,9 @@ class bgerp_Recently extends core_Manager
             $threadId = doc_Containers::fetchField($rec->objectId, 'threadId');
             
             // Ако няма id на нишка или нямам права за сингъла на нишката, прескачаме
-            if (!$threadId || !doc_Threads::haveRightFor('single', $threadId)) continue;
+            if (!$threadId || !doc_Threads::haveRightFor('single', $threadId)) {
+                continue;
+            }
             
             // Добавяме в масива
             $threadsArr[$threadId] = $threadId;
@@ -576,7 +583,9 @@ class bgerp_Recently extends core_Manager
             $cnt++;
             
             // Ако сме достигнали лимита, прекъсваме
-            if ($cnt == $count) break;
+            if ($cnt == $count) {
+                break;
+            }
         }
         
         return $threadsArr;
@@ -586,12 +595,12 @@ class bgerp_Recently extends core_Manager
     /**
      * Връща id-тата на последно използваните папки
      *
-     * @param integer $count - Броя папки
-     * @param integer $userId - За потребителя
+     * @param int $count  - Броя папки
+     * @param int $userId - За потребителя
      *
      * @return array
      */
-    public static function getLastFolderIds($count = 5, $userId = NULL)
+    public static function getLastFolderIds($count = 5, $userId = null)
     {
         // Броя трябва да е положителен
         expect($count > 0);
@@ -610,17 +619,18 @@ class bgerp_Recently extends core_Manager
         $query = static::getQuery();
         $query->where("#userId = '{$userId}'");
         $query->where("#type = 'folder'");
-        $query->orderBy("last", "DESC");
+        $query->orderBy('last', 'DESC');
         
         // Брояч
         $cnt = 0;
         
         while ($rec = $query->fetch()) {
-            
             $folderId = $rec->objectId;
             
             // Ако няма id на нишка или нямам права за сингъла на нишката, прескачаме
-            if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) continue;
+            if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
+                continue;
+            }
             
             // Добавяме в масива
             $foldersArr[$folderId] = $folderId;
@@ -629,7 +639,9 @@ class bgerp_Recently extends core_Manager
             $cnt++;
             
             // Ако сме достигнали лимита, прекъсваме
-            if ($cnt == $count) break;
+            if ($cnt == $count) {
+                break;
+            }
         }
         
         return $foldersArr;
@@ -641,7 +653,7 @@ class bgerp_Recently extends core_Manager
      *
      * @return string
      */
-    function getDivId()
+    public function getDivId()
     {
         return $this->className . '_PortalTable';
     }
@@ -653,30 +665,30 @@ class bgerp_Recently extends core_Manager
      * @param string $status
      *
      * @return string
+     *
      * @see bgerp_RefreshRowsPlg
      */
-    function getContentHash($status)
+    public function getContentHash($status)
     {
         // Премахваме всички тагове
         $hash = md5(trim(strip_tags($status)));
         
         return $hash;
     }
-
-
+    
+    
     /**
      * Изтрива стари записи в bgerp_Recently
      */
-    function cron_DeleteOldRecently()
+    public function cron_DeleteOldRecently()
     {
-        $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS')/(24*3600));
-
+        $lastRecently = dt::addDays(-bgerp_Setup::get('RECENTLY_KEEP_DAYS') / (24 * 3600));
+        
         // $res = self::delete("#last < '{$lastRecently}'");
-
-        if($res) {
-
+        
+        if ($res) {
+            
             return "Бяха изтрити {$res} записа от " . $this->className;
         }
     }
-
 }

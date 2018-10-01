@@ -8,28 +8,28 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class planning_ProductionNoteDetails extends deals_ManifactureDetail
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'mp_ProductionNoteDetails';
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'mp_ProductionNoteDetails';
-	
-	
     /**
      * Заглавие
      */
     public $title = 'Детайли на протокола от производство';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -77,7 +77,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
      */
     public $listFields = 'productId, jobId, bomId, packagingId, packQuantity';
     
-        
+    
     /**
      * Активен таб
      */
@@ -127,37 +127,35 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-    	$rec = &$form->rec;
-    	
-    	// Да се показвали полети за себестойност
-    	$showSelfvalue = TRUE;
-    	
-    	if($rec->productId){
-    			
-    		if($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production')){
-    			$rec->bomId = $bomRec->id;
-    		} elseif($bomRec = cat_Products::getLastActiveBom($rec->productId, 'sales')){
-    			$rec->bomId = $bomRec->id;
-    		} else {
-    			$rec->bomId = NULL;
-    		}
-    			
-    		// Не показваме полето за себестойност ако има активна рецепта и задание
-    		if(isset($rec->jobId) && isset($rec->bomId)){
-    			$showSelfvalue = FALSE;
-    		}
-    	}
-    	
-    	if($form->isSubmitted()){
-    		
-    		if(empty($rec->jobId)){
-    			$form->setError('productId', 'Артикулът няма задание');
-    		}
-    		
-    		if(empty($rec->bomId)){
-    			$form->setError('productId', 'Артикулът няма рецепта');
-    		}
-    	}
+        $rec = &$form->rec;
+        
+        // Да се показвали полети за себестойност
+        $showSelfvalue = true;
+        
+        if ($rec->productId) {
+            if ($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production')) {
+                $rec->bomId = $bomRec->id;
+            } elseif ($bomRec = cat_Products::getLastActiveBom($rec->productId, 'sales')) {
+                $rec->bomId = $bomRec->id;
+            } else {
+                $rec->bomId = null;
+            }
+            
+            // Не показваме полето за себестойност ако има активна рецепта и задание
+            if (isset($rec->jobId, $rec->bomId)) {
+                $showSelfvalue = false;
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            if (empty($rec->jobId)) {
+                $form->setError('productId', 'Артикулът няма задание');
+            }
+            
+            if (empty($rec->bomId)) {
+                $form->setError('productId', 'Артикулът няма рецепта');
+            }
+        }
     }
     
     
@@ -170,13 +168,13 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if(isset($rec->jobId)){
-    		$row->jobId= planning_Jobs::getLink($rec->jobId, 0);
-    	}
-    	
-    	if(isset($rec->bomId)){
-    		$row->bomId = cat_Boms::getLink($rec->bomId, 0);
-    	}
+        if (isset($rec->jobId)) {
+            $row->jobId = planning_Jobs::getLink($rec->jobId, 0);
+        }
+        
+        if (isset($rec->bomId)) {
+            $row->bomId = cat_Boms::getLink($rec->bomId, 0);
+        }
     }
     
     
@@ -185,23 +183,23 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareListRows($mvc, &$res)
     {
-    	$recs = &$res->recs;
-    
-    	$hasBomFld = $hasJobFld = FALSE;
-    	
-    	if (count($recs)) {
-    		foreach ($recs as $id => $rec) {
-    			$hasJobFld = !empty($rec->jobId) ? TRUE : $hasJobFld;
-    			$hasBomFld = !empty($rec->bomId) ? TRUE : $hasBomFld;
-    		}
-    		 
-    		if($hasJobFld === FALSE){
-    			unset($res->listFields['jobId']);
-    		}
-    		
-    		if($hasBomFld === FALSE){
-    			unset($res->listFields['bomId']);
-    		}
-    	}
+        $recs = &$res->recs;
+        
+        $hasBomFld = $hasJobFld = false;
+        
+        if (count($recs)) {
+            foreach ($recs as $id => $rec) {
+                $hasJobFld = !empty($rec->jobId) ? true : $hasJobFld;
+                $hasBomFld = !empty($rec->bomId) ? true : $hasBomFld;
+            }
+            
+            if ($hasJobFld === false) {
+                unset($res->listFields['jobId']);
+            }
+            
+            if ($hasBomFld === false) {
+                unset($res->listFields['bomId']);
+            }
+        }
     }
 }

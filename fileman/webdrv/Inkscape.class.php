@@ -1,48 +1,45 @@
 <?php
 
 
-
-
 /**
  * Драйвер за работа с файлове поддържани от inkscape
- * 
+ *
  * @category  vendors
  * @package   fileman
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
 {
-    
-    
     /**
      * Височина на експортиране
      */
-    static $pngExportHeight = 2000;
+    public static $pngExportHeight = 2000;
     
     
     /**
      * Изходния тип на файла
      */
-    static $fileType = 'png';
+    public static $fileType = 'png';
     
     
     /**
      * Преобразува подадения файл в PDF
-     * 
+     *
      * @param string $file
-     * @param boolean $cmyk
+     * @param bool   $cmyk
      * @param string $type
      * @param string $name
-     * @param array $otherParam
-     * 
+     * @param array  $otherParam
+     *
      * @return string|NULL - Манипулатора на PDF файла
      */
-    public static function toPdf($file, $cmyk = FALSE, $type = 'auto', $name = '', $otherParam = array())
+    public static function toPdf($file, $cmyk = false, $type = 'auto', $name = '', $otherParam = array())
     {
-        
         return self::convertTo($file, 'pdf', $type, $name, $cmyk, $otherParam);
     }
     
@@ -53,14 +50,13 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @param string $file
      * @param string $type
      * @param string $name
-     * @param array $otherParam
+     * @param array  $otherParam
      *
      * @return string|NULL - Манипулатора на PNG файла
      */
     public static function toPng($file, $type = 'auto', $name = '', $otherParam = array())
     {
-        
-        return self::convertTo($file, 'png', $type, $name, FALSE, $otherParam);
+        return self::convertTo($file, 'png', $type, $name, false, $otherParam);
     }
     
     
@@ -68,25 +64,28 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * Преобразува подадения файл в различни формати
      *
      * @param string $file
-     * @param string $file - pdf|png
+     * @param string $file       - pdf|png
      * @param string $type
      * @param string $name
-     * @param boolean $cmyk
-     * @param array $otherParam
+     * @param bool   $cmyk
+     * @param array  $otherParam
      *
      * @return string|NULL - Манипулатора на PNG файла
      */
-    protected static function convertTo($file, $to = 'pdf', $type = 'auto', $name = '', $cmyk = FALSE, $otherParam = array())
+    protected static function convertTo($file, $to = 'pdf', $type = 'auto', $name = '', $cmyk = false, $otherParam = array())
     {
-        if (!$file) return ;
+        if (!$file) {
+            
+            return ;
+        }
         
         expect(in_array($to, array('pdf', 'png')));
         
-        $lineExec = "inkscape [#INPUTF#]  --export-text-to-path  --export-pdf=[#OUTPUTF#] --export-area-page";
+        $lineExec = 'inkscape [#INPUTF#]  --export-text-to-path  --export-pdf=[#OUTPUTF#] --export-area-page';
         
         if ($to == 'png') {
             $height = static::$pngExportHeight;
-            $lineExec = "inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing";
+            $lineExec = 'inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing';
             if ($otherParam['exportHeight']) {
                 $lineExec .= ' --export-height=' . $otherParam['exportHeight'];
             }
@@ -131,15 +130,14 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $Script->lineExec($lineExec, array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
-        $Script->run(FALSE);
+        $Script->run(false);
         
         fileman_Indexes::haveErrors($outFilePath, array('type' => $to, 'errFilePath' => $errFilePath));
         
-        $resFileHnd = NULL;
+        $resFileHnd = null;
         
         if (is_file($outFilePath)) {
             if (!$cmyk) {
-                
                 $bucketName = 'fileIndex';
                 if ($otherParam['bucket']) {
                     $bucketName = $otherParam['bucket'];
@@ -156,7 +154,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
                 // Изтриваме временната директория с всички файлове вътре
                 core_Os::deleteDir($Script->tempDir);
             }
-        
+            
             if ($fileType == 'string') {
                 fileman::deleteTempPath($file);
             }
@@ -171,17 +169,18 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
     }
     
     
-	/**
+    /**
      * Връща всички табове, които ги има за съответния файл
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @return array
-     * 
+     *
      * @Override
+     *
      * @see fileman_webdrv_Office::getTabs
      */
-    static function getTabs($fRec)
+    public static function getTabs($fRec)
     {
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
@@ -196,12 +195,12 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             $contentStr = self::getArchiveContent($fRec, $path);
             
             // Таб за съдържанието
-    		$tabsArr['content'] = (object) 
-    			array(
-    				'title'   => 'Съдържание',
-    				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Съдържание") . "</div>{$contentStr}</div></div>",
-    				'order' => 7,
-    			);
+            $tabsArr['content'] = (object)
+                array(
+                    'title' => 'Съдържание',
+                    'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Съдържание') . "</div><div class='webdrvFieldset'>{$contentStr}</div></div>",
+                    'order' => 7,
+                );
         } catch (fileman_Exception $e) {
             // Да не се показва таба за съръдържанието
         }
@@ -212,13 +211,14 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
     
     /**
      * Конвертиране в JPG формат
-     * 
+     *
      * @param object $fRec - Записите за файла
-     * 
+     *
      * @Override
+     *
      * @see fileman_webdrv_Image::convertToJpg
      */
-    static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
+    public static function convertToJpg($fRec, $callBack = 'fileman_webdrv_Image::afterConvertToJpg')
     {
         $className = get_called_class();
         
@@ -226,40 +226,43 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $params = array(
             'callBack' => "{$className}::afterConvertToPng",
             'dataId' => $fRec->dataId,
-        	'asynch' => TRUE,
+            'asynch' => true,
             'createdBy' => core_Users::getCurrent('id'),
             'type' => static::$fileType,
         );
         
         // Променливата, с която ще заключим процеса
         $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        
         // Проверявама дали няма извлечена информация или не е заключен
-        if (fileman_Indexes::isProcessStarted($params)) return ;
+        if (fileman_Indexes::isProcessStarted($params)) {
+            
+            return ;
+        }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 250, 0, FALSE)) {
+        if (core_Locks::get($params['lockId'], 250, 0, false)) {
             
             // Стартираме конвертирането към JPG
-            static::startConvertingToPng($fRec, $params);    
+            static::startConvertingToPng($fRec, $params);
         }
     }
     
     
     /**
      * Стартира конвертиране към PNG формат
-     * 
-     * @param object $fRec - Записите за файла
-     * @param array $params - Допълнителни параметри
+     *
+     * @param object $fRec   - Записите за файла
+     * @param array  $params - Допълнителни параметри
      */
-    static function startConvertingToPng($fRec, $params)
+    public static function startConvertingToPng($fRec, $params)
     {
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
-
+        
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '.png';
         
@@ -286,26 +289,27 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $Script->fName = $name;
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
-
+        
         $Script->setCheckProgramsArr('inkscape');
+        
         // Стартираме скрипта синхронно
-        if ($Script->run() === FALSE) {
+        if ($Script->run() === false) {
             fileman_Indexes::createError($params);
         }
     }
-	
     
-	/**
+    
+    /**
      * Функция, която получава управлението след конвертирането на файл в JPG формат
-     * 
+     *
      * @param object $script - Обект със стойности
-     * 
-     * @return boolean TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
+     *
+     * @return bool TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
+     *              и записа от таблицата fconv_Process
+     *
      * @access protected
      */
-    static function afterConvertToPng($script, &$fileHndArr = array())
+    public static function afterConvertToPng($script, &$fileHndArr = array())
     {
         // Десериализираме нужните помощни данни
         $params = unserialize($script->params);
@@ -316,7 +320,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             // Отключваме процеса
             core_Locks::release($params['lockId']);
             
-            return FALSE;
+            return false;
         }
         
         // Ако възникне грешка при качването на файла (липса на права)
@@ -328,10 +332,9 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             
             // Създаваме запис в модела за грешка
             fileman_Indexes::createError($params);
-    
+            
             // Записваме грешката в лога
             fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
-        
         }
         
         // Ако се качи успешно записваме манипулатора в масив
@@ -342,7 +345,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             
             // Текстовата част
             $params['content'] = $fileHndArr;
-    
+            
             // Обновяваме данните за запис във fileman_Indexes
             $savedId = fileman_Indexes::saveContent($params);
         }
@@ -351,25 +354,27 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         core_Locks::release($params['lockId']);
         
         if ($savedId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
+            
+            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове
             // и записа от таблицата fconv_Process
-            return TRUE;
+            return true;
         }
-    
     }
     
     
     /**
      * Връща информация за съдържанието на файла
      * Вика се от fileman_Indexes, за файлове, които нямат запис в модела за съответния тип
-     * 
+     *
      * @param string $fileHnd
      * @param string $type
      */
     public static function getInfoContentByFh($fileHnd, $type)
     {
-        if ($type != 'jpg') return FALSE;
+        if ($type != 'jpg') {
+            
+            return false;
+        }
         
         return fileman_Indexes::getInfoContentByFh($fileHnd, static::$fileType);
     }

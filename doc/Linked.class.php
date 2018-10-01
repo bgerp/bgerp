@@ -6,15 +6,15 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class doc_Linked extends core_Manager
 {
-    
-    
     /**
      * Възможните действия във формата
      */
@@ -23,14 +23,16 @@ class doc_Linked extends core_Manager
     
     /**
      * Брой записи, които ще се гледат в bgerp_Recently - за подредба
-     * @var integer
+     *
+     * @var int
      */
     protected static $recentlyLimit = 20;
     
     
     /**
      * Дължина на селект полето
-     * @var integer
+     *
+     * @var int
      */
     protected static $titleLen = 50;
     
@@ -38,13 +40,13 @@ class doc_Linked extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Свързани документи и файлове";
+    public $title = 'Свързани документи и файлове';
     
     
     /**
      * Сингъл заглавие
      */
-    public $singleTitle = "Свързани документи и файлове";
+    public $singleTitle = 'Свързани документи и файлове';
     
     
     /**
@@ -69,13 +71,13 @@ class doc_Linked extends core_Manager
      * Кой има право да изтрива?
      */
     public $canDelete = 'no_one';
-	
-	
+    
+    
     /**
      * Кой има право да оттегле?
      */
     public $canReject = 'powerUser';
-	
+    
     
     /**
      * Кой има право да възстановява?
@@ -104,7 +106,7 @@ class doc_Linked extends core_Manager
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('outType', 'enum(doc=Документ,file=Файл)', 'caption=Изходен->Тип');
         $this->FLD('outVal', 'int', 'caption=Изходен->Стойност');
@@ -122,15 +124,15 @@ class doc_Linked extends core_Manager
     
     /**
      * Връща всички записи за подадените типове
-     * 
+     *
      * @param string $type
-     * @param integer $id
-     * @param boolean $showRejecte
-     * @param number $limit
-     * 
+     * @param int    $id
+     * @param bool   $showRejecte
+     * @param float  $limit
+     *
      * @return array
      */
-    public static function getRecsForType($type, $id, $showRejecte = TRUE, $limit = 1000)
+    public static function getRecsForType($type, $id, $showRejecte = true, $limit = 1000)
     {
         $query = self::getQuery();
         
@@ -153,18 +155,21 @@ class doc_Linked extends core_Manager
     
     /**
      * Връща вербализирани данни за различни преставяния
-     * 
+     *
      * @param string $type
-     * @param integer $val
+     * @param int    $val
      * @param string $viewType
-     * @param boolean $showRejecte
-     * @param integer $limit
-     * 
+     * @param bool   $showRejecte
+     * @param int    $limit
+     *
      * @return NULL|string|core_ET|array
      */
-    public static function getListView($type, $val, $viewType = 'table', $showRejecte = TRUE, $limit = 1000)
+    public static function getListView($type, $val, $viewType = 'table', $showRejecte = true, $limit = 1000)
     {
-        if (!self::haveRightFor('viewlist')) return;
+        if (!self::haveRightFor('viewlist')) {
+            
+            return;
+        }
         
         $recArr = self::getRecsForType($type, $val, $showRejecte, $limit);
         
@@ -173,13 +178,12 @@ class doc_Linked extends core_Manager
         $me = cls::get(get_called_class());
         
         foreach ($recArr as $id => $rec) {
-            
             $comment = $me->getVerbal($rec, 'comment');
             
-            $getUrlWithAccess = FALSE;
+            $getUrlWithAccess = false;
             
             if ($rec->state == 'active') {
-                $getUrlWithAccess = TRUE;
+                $getUrlWithAccess = true;
             }
             
             if ($rec->outType == $type && $rec->outVal == $val) {
@@ -192,11 +196,11 @@ class doc_Linked extends core_Manager
             
             $rowArr[$id]['comment'] = $comment;
             
-            $rowArr[$id]['icon'] = ht::createElement("img", array("src" => sbf($icon, '', Mode::isReadOnly())));
+            $rowArr[$id]['icon'] = ht::createElement('img', array('src' => sbf($icon, '', Mode::isReadOnly())));
             $rowArr[$id]['docLink'] = $rowArr[$id]['icon'] . $rowArr[$id]['docLink'];
             
             if ($row = $me->recToVerbal($rec)) {
-                if ($row->_rowTools instanceOf core_RowToolbar) {
+                if ($row->_rowTools instanceof core_RowToolbar) {
                     $rowArr[$id]['_rowTools'] = $row->_rowTools->renderHtml();
                 }
                 
@@ -204,14 +208,17 @@ class doc_Linked extends core_Manager
             }
         }
         
-        if (empty($rowArr)) return ;
+        if (empty($rowArr)) {
+            
+            return ;
+        }
         
         if ($viewType == 'table') {
             $table = cls::get('core_TableView');
-            $table->tableClass = "listTable smallerText";
-            $res = $table->get($rowArr, "_rowTools=✍,
+            $table->tableClass = 'listTable smallerText';
+            $res = $table->get($rowArr, '_rowTools=✍,
                                           docLink=Връзка,
-	                                      comment=Коментар");
+	                                      comment=Коментар');
         } elseif ($viewType == 'file') {
             $res = '';
             foreach ($rowArr as $row) {
@@ -233,24 +240,30 @@ class doc_Linked extends core_Manager
      * Добавя връзките във формата с възможност за визуализиране
      *
      * @param core_Form $form
-     * @param string $outVal
-     * @param string $outType
+     * @param string    $outVal
+     * @param string    $outType
      */
     public static function showLinkedInForm(&$form, $outVal, $outType = 'doc')
     {
-        if (!$outVal) return ;
-        
-        if(Mode::is('screenMode', 'wide') ) {
-            $className = "floatedElement";
+        if (!$outVal) {
+            
+            return ;
         }
         
-        $rowArr = self::getListView($outType, $outVal, 'row', FALSE, 10);
+        if (Mode::is('screenMode', 'wide')) {
+            $className = 'floatedElement';
+        }
         
-        if (!$rowArr) return ;
+        $rowArr = self::getListView($outType, $outVal, 'row', false, 10);
+        
+        if (!$rowArr) {
+            
+            return ;
+        }
         
         $form->layout = $form->renderLayout();
         
-        $conStr = "<div class='preview-holder {$className}' style='padding-top: 25px;'>" . tr("Свързани документи и файлове") . " <a href=\"javascript:toggleDisplay('linkedView')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
+        $conStr = "<div class='preview-holder {$className}' style='padding-top: 25px;'>" . tr('Свързани документи и файлове') . " <a href=\"javascript:toggleDisplay('linkedView')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn"> </a>';
         
         $hashParams = str::addHash($outType . '_' . $outVal . '_' . core_Users::getCurrent(), 8);
         
@@ -269,14 +282,13 @@ class doc_Linked extends core_Manager
             
             try {
                 $renderRes = Request::forward($urlArr);
-            } catch (core_exception_Expect $e) { }
+            } catch (core_exception_Expect $e) {
+            }
         }
-        
-        $style = "style='display:none;'";
         
         $conStr .= "<div id='linkedView'{$style}><ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;' onchange=\"getEfae().process({url: '{$renderViewUrl}'}, {rId: $('input[name=linkedRadio]:checked').val()});\">";
         
-        foreach ($rowArr as $id => $row){
+        foreach ($rowArr as $id => $row) {
             $rId = 'linked_' . $id;
             
             $caption = 'capt';
@@ -294,20 +306,19 @@ class doc_Linked extends core_Manager
             }
             
             $conStr .= "<div><input type='radio' name='linkedRadio' value='{$id}' id='{$rId}' {$checked}>{$val}</div>";
-            
         }
         $conStr .= "</ol></div><div id='renderRes'>{$renderRes}</div>";
-        $conStr .= "</div>";
+        $conStr .= '</div>';
         $form->layout->append($conStr);
     }
     
     
     /**
      * Екшън за рендирена на изгледа на свързаните документи и файлове
-     * 
+     *
      * @return array|string
      */
-    function act_RenderView()
+    public function act_RenderView()
     {
         $hash = Request::get('hash', 'varchar');
         expect($hStr = str::checkHash($hash, 8));
@@ -335,7 +346,6 @@ class doc_Linked extends core_Manager
         
         // Ако е връзка към
         if (($lRec->outType != $outType) || ($lRec->outVal != $outVal)) {
-            
             expect(($lRec->inType == $outType) && ($lRec->inVal == $outVal));
             
             $outType = $inType;
@@ -364,7 +374,7 @@ class doc_Linked extends core_Manager
             
             expect($rec);
         } else {
-            expect(FALSE, $type);
+            expect(false, $type);
         }
         
         expect($inType && $inVal);
@@ -372,18 +382,20 @@ class doc_Linked extends core_Manager
         if ($inType == 'doc') {
             $docInst = doc_Containers::getDocument($outVal);
             
-            $tplRes = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+            $tplRes = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             
             $document = doc_Containers::getDocument($inVal);
             if ($document->haveRightFor('single')) {
+                Request::push(array('ajax_mode' => false), 'noAjaxMode');
                 $docHtml = $document->getInlineDocumentBody();
+                Request::pop('noAjaxMode');
                 
                 $tplRes->replace($docHtml, 'DOCUMENT');
             }
         } elseif ($inType == 'file') {
             $fRec = fileman_Files::fetch($inVal);
             expect($fRec);
-            $tplRes = doc_DocumentPlg::showOriginalFile($fRec, NULL, $pUrl);
+            $tplRes = doc_DocumentPlg::showOriginalFile($fRec, null, $pUrl);
         }
         
         if ($tplRes instanceof core_ET) {
@@ -394,7 +406,7 @@ class doc_Linked extends core_Manager
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id' => 'renderRes', 'html' => $tplRes, 'replace' => TRUE);
+            $resObj->arg = array('id' => 'renderRes', 'html' => $tplRes, 'replace' => true);
             
             return array($resObj);
         }
@@ -405,10 +417,10 @@ class doc_Linked extends core_Manager
     
     /**
      * Екшън за свързване на файлове и документи
-     * 
+     *
      * @return Redirect|core_Et
      */
-    function act_Link()
+    public function act_Link()
     {
         $this->requireRightFor('addlink');
         
@@ -427,7 +439,7 @@ class doc_Linked extends core_Manager
         
         $floatedClassName = '';
         if (Mode::is('screenMode', 'wide')) {
-            $floatedClassName = "floatedElement";
+            $floatedClassName = 'floatedElement';
             $form->class .= " {$floatedClassName} ";
         }
         
@@ -450,7 +462,7 @@ class doc_Linked extends core_Manager
             
             $fId = fileman::idToFh($fId);
         } else {
-            expect(FALSE, $type);
+            expect(false, $type);
         }
         
         expect($rec);
@@ -494,15 +506,20 @@ class doc_Linked extends core_Manager
         $form->input();
         
         if ($form->cmd != 'refresh') {
+            doc_Linked::showLinkedInForm($form, $originFId, $type);
+        }
+        
+        if ($form->cmd != 'refresh') {
             if ($type == 'file') {
                 doc_DocumentPlg::showOriginalFile($rec, $form);
             } elseif ($type == 'doc') {
-                
                 $form->layout = $form->renderLayout();
                 
-                $tpl = new ET("<div class='preview-holder {$floatedClassName}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Източник") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+                $tpl = new ET("<div class='preview-holder {$floatedClassName}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Източник') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
                 
+                Request::push(array('ajax_mode' => false), 'noAjaxMode');
                 $docHtml = $clsInst->getInlineDocumentBody($fId);
+                Request::pop('noAjaxMode');
                 
                 $tpl->replace($docHtml, 'DOCUMENT');
                 
@@ -529,7 +546,7 @@ class doc_Linked extends core_Manager
         
         $form->input();
         
-        $res = NULL;
+        $res = null;
         
         if ($act && !doc_Linked::$actArr[$act]) {
             // Субмитваме формата от интерфейсни методи
@@ -557,7 +574,7 @@ class doc_Linked extends core_Manager
         if (is_object($res)) {
             if ($res instanceof core_Redirect) {
                 if (!$form->cmd) {
-                    $res = NULL;
+                    $res = null;
                 }
             }
         }
@@ -571,23 +588,20 @@ class doc_Linked extends core_Manager
         if ($act == 'linkDoc' && $form->rec->linkContainerId) {
             $form->layout = $form->renderLayout();
             
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             
             $document = doc_Containers::getDocument($form->rec->linkContainerId);
             if ($document->haveRightFor('single')) {
+                Request::push(array('ajax_mode' => false), 'noAjaxMode');
                 $docHtml = $document->getInlineDocumentBody();
-                
+                Request::pop('noAjaxMode');
                 $tpl->replace($docHtml, 'DOCUMENT');
                 
                 $form->layout->append($tpl);
             }
         }
         
-        if ($form->cmd != 'refresh') {
-            doc_Linked::showLinkedInForm($form, $originFId, $type);
-        }
-        
-        $form->title = "Свързване на файлове и документи с|* " . $clsInst->getLinkToSingle($fId);
+        $form->title = 'Свързване на файлове и документи с|* ' . $clsInst->getLinkToSingle($fId);
         
         // Добавяне на бутони
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Добавяне на връзка');
@@ -602,13 +616,13 @@ class doc_Linked extends core_Manager
     
     /**
      * Помощна функция, за подготовка на формата
-     * 
-     * @param core_Form $form
-     * @param string $act
-     * @param string $type
+     *
+     * @param core_Form   $form
+     * @param string      $act
+     * @param string      $type
      * @param NULL|string $originFId
      */
-    public static function prepareFormForAct(&$form, $act, $type = 'doc', $originFId = NULL)
+    public static function prepareFormForAct(&$form, $act, $type = 'doc', $originFId = null)
     {
         if ($act == 'linkDoc') {
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, class=w100, input, removeAndRefreshForm=linkContainerId|linkFolderId');
@@ -633,7 +647,6 @@ class doc_Linked extends core_Manager
                 $optClsInst = cls::get($optClsId);
                 
                 if (!$optClsInst->haveRightFor('add')) {
-                    
                     unset($optArr[$optClsId]);
                 }
             }
@@ -649,7 +662,6 @@ class doc_Linked extends core_Manager
                 
                 // Ако документа може да се създаде в съществуваща нишка, показваме избор
                 if ($form->rec->linkFolderId && !$dInst->onlyFirstInThread) {
-                    
                     $mandatory = '';
                     
                     if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
@@ -665,17 +677,17 @@ class doc_Linked extends core_Manager
     
     /**
      * Помощна функция, която се вика след субмитване на формата
-     * 
-     * @param core_Form $form
-     * @param string $act
-     * @param string $type
-     * @param integer $originFId
+     *
+     * @param core_Form   $form
+     * @param string      $act
+     * @param string      $type
+     * @param int         $originFId
      * @param NULL|string $actType
-     * @param array $rUrl
-     * 
+     * @param array       $rUrl
+     *
      * @return Redirect
      */
-    public function onSubmitFormForAct($form, $act, $type, $originFId, $actType = NULL, $rUrl = array())
+    public function onSubmitFormForAct($form, $act, $type, $originFId, $actType = null, $rUrl = array())
     {
         if (!isset($actType)) {
             $actType = $act;
@@ -712,7 +724,7 @@ class doc_Linked extends core_Manager
             
             $url['linkedHashKey'] = 'LHK_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
             
-            $url['ret_url'] = TRUE;
+            $url['ret_url'] = true;
             
             core_Permanent::set($url['linkedHashKey'], $nRec, 120);
             
@@ -725,7 +737,7 @@ class doc_Linked extends core_Manager
         $fieldsArr = array();
         
         if (!$this->isUnique($nRec, $fieldsArr)) {
-            $form->setError($fieldsArr, "Вече съществува такава връзка");
+            $form->setError($fieldsArr, 'Вече съществува такава връзка');
         } else {
             if ($nRec->inVal && ($nRec->inType == $nRec->outType) && ($nRec->inVal == $nRec->outVal)) {
                 $errMsg = 'Избрали сте същия ';
@@ -756,7 +768,8 @@ class doc_Linked extends core_Manager
                         $inDoc = doc_Containers::getDocument($nRec->inVal);
                         $inDoc->instance->logRead("Добавена връзка от {$strType}", $inDoc->that);
                     }
-                } catch (core_exception_Expect $e) { }
+                } catch (core_exception_Expect $e) {
+                }
                 
                 return new Redirect($retUrl);
             }
@@ -766,15 +779,15 @@ class doc_Linked extends core_Manager
     
     /**
      * Връща възможно най-добрият екшън за съответния документ
-     * 
-     * @param integer $docId
-     * @param string $type
-     * @param integer|NULL $folderId
-     * @param integer|NULL $userId
-     * 
+     *
+     * @param int      $docId
+     * @param string   $type
+     * @param int|NULL $folderId
+     * @param int|NULL $userId
+     *
      * @return string|mixed
      */
-    protected static function getDefaultActionFor($docId, $type, $folderId = NULL, $userId = NULL)
+    protected static function getDefaultActionFor($docId, $type, $folderId = null, $userId = null)
     {
         $qLimit = 3;
         $minBestCnt = $qLimit - 1;
@@ -797,7 +810,7 @@ class doc_Linked extends core_Manager
         $query->limit($qLimit);
         
         $query->where(array("#outType = '[#1#]'", $type));
-		
+        
         if ($type == 'doc') {
             
             // Подобен файл - от същия клас
@@ -824,20 +837,21 @@ class doc_Linked extends core_Manager
                 }
             }
             
-            if (array_search($ext, $extArr) === FALSE) {
+            if (array_search($ext, $extArr) === false) {
                 $extArr[] = $ext;
             }
             
-            $or = FALSE;
+            $or = false;
             foreach ($extArr as $ext) {
-                
                 $ext = mb_strtolower($ext);
                 $ext = trim($ext);
                 
-                if (!$ext) continue;
+                if (!$ext) {
+                    continue;
+                }
                 
                 $query->where(array("#fileName LIKE LOWER('%.[#1#]')", $ext), $or);
-                $or = TRUE;
+                $or = true;
             }
         }
         
@@ -852,7 +866,6 @@ class doc_Linked extends core_Manager
         $qArr[2]->where(array("#createdBy = '[#1#]'", $userId));
         
         if ($folderId) {
-            
             $qArr[1] = clone $query;
             
             $qArr[1]->EXT('folderId', 'doc_Containers', 'externalKey=outVal, externalName=folderId');
@@ -869,12 +882,15 @@ class doc_Linked extends core_Manager
         foreach ($qArr as $q) {
             $actTypeArr = array();
             while ($rec = $q->fetch()) {
-                
-                if (!$rec->actType) continue;
+                if (!$rec->actType) {
+                    continue;
+                }
                 $actTypeArr[$rec->actType]++;
             }
             
-            if (empty($actTypeArr)) continue;
+            if (empty($actTypeArr)) {
+                continue;
+            }
             
             arsort($actTypeArr);
             if (!empty($actTypeArr)) {
@@ -895,16 +911,16 @@ class doc_Linked extends core_Manager
     
     /**
      * Подготвя опциите за key2 за избор на документ
-     * 
-     * @param array $params
-     * @param NULL|integer $limit
-     * @param string $q
-     * @param NULL|array|integer $onlyIds
-     * @param boolean $includeHiddens
-     * 
+     *
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|array|int $onlyIds
+     * @param bool           $includeHiddens
+     *
      * @return array
      */
-    public static function prepareLinkDocId($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    public static function prepareLinkDocId($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         setIfNot($limit, $params['maxSuggestions'], 100);
         $sArr = array();
@@ -915,21 +931,22 @@ class doc_Linked extends core_Manager
         
         doc_Threads::restrictAccess($cQuery);
         
-        if(!$includeHiddens) {
+        if (!$includeHiddens) {
             $cQuery->where("#state != 'rejected'");
         }
         
-        if(is_array($onlyIds)) {
-            if(!count($onlyIds)) {
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
                 return array();
             }
             
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
             
-            $cQuery->where("#id IN ($ids)");
-        } elseif(ctype_digit("{$onlyIds}")) {
-            $cQuery->where("#id = $onlyIds");
+            $cQuery->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $cQuery->where("#id = ${onlyIds}");
         }
         
         if ($q) {
@@ -946,31 +963,44 @@ class doc_Linked extends core_Manager
                 
                 if (!empty($recentlyArr)) {
                     foreach ($recentlyArr as $cId) {
-                        
-                        if (!$cId) continue;
+                        if (!$cId) {
+                            continue;
+                        }
                         
                         $cRec = doc_Containers::fetch($cId);
                         
-                        if (!$cRec) continue;
+                        if (!$cRec) {
+                            continue;
+                        }
                         
-                        if ($cRec->state == 'rejected') continue;
+                        if ($cRec->state == 'rejected') {
+                            continue;
+                        }
                         
                         if ($params['docType']) {
-                            if ($cRec->docClass != $params['docType']) continue;
+                            if ($cRec->docClass != $params['docType']) {
+                                continue;
+                            }
                         }
                         
                         if ($params['folderId']) {
-                            if ($cRec->folderId != $params['folderId']) continue;
+                            if ($cRec->folderId != $params['folderId']) {
+                                continue;
+                            }
                         }
                         
                         if ($params['unsetId']) {
-                            if ($cRec->id == $params['unsetId']) continue;
+                            if ($cRec->id == $params['unsetId']) {
+                                continue;
+                            }
                         }
                         
                         try {
                             $dInst = cls::get($cRec->docClass);
                             
-                            if (!$dInst->haveRightFor('single', $cRec->docId)) continue;
+                            if (!$dInst->haveRightFor('single', $cRec->docId)) {
+                                continue;
+                            }
                             
                             $oRow = $dInst->getDocumentRow($cRec->docId);
                             $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
@@ -1006,8 +1036,9 @@ class doc_Linked extends core_Manager
         $cQuery->orderBy('modifiedOn', 'DESC');
         
         while ($cRec = $cQuery->fetchAndCache()) {
-            
-            if ($sArr[$cRec->id]) continue;
+            if ($sArr[$cRec->id]) {
+                continue;
+            }
             
             try {
                 $dInst = cls::get($cRec->docClass);
@@ -1029,15 +1060,15 @@ class doc_Linked extends core_Manager
     /**
      * Подготвя опциите за key2 за избор на папка
      *
-     * @param array $params
-     * @param NULL|integer $limit
-     * @param string $q
-     * @param NULL|array|integer $onlyIds
-     * @param boolean $includeHiddens
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|array|int $onlyIds
+     * @param bool           $includeHiddens
      *
      * @return array
      */
-    public static function prepareFoldersForDoc($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    public static function prepareFoldersForDoc($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $maxTrays = 500;
         setIfNot($limit, $params['maxSuggestions'], 100);
@@ -1049,23 +1080,24 @@ class doc_Linked extends core_Manager
         
         $query = doc_Folders::getQuery();
         
-        doc_Folders::restrictAccess($query, NULL, FALSE);
+        doc_Folders::restrictAccess($query, null, false);
         
         if (!$includeHiddens) {
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
         
-        if(is_array($onlyIds)) {
-            if(!count($onlyIds)) {
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
                 return array();
             }
             
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
             
-            $query->where("#id IN ($ids)");
-        } elseif(ctype_digit("{$onlyIds}")) {
-            $query->where("#id = $onlyIds");
+            $query->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = ${onlyIds}");
         }
         
         $titleFld = $params['titleFld'];
@@ -1079,7 +1111,9 @@ class doc_Linked extends core_Manager
             
             $show .= ',searchFieldXpr';
             
-            if ($q{0} == '"') $strict = TRUE;
+            if ($q{0} == '"') {
+                $strict = true;
+            }
             
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
@@ -1092,11 +1126,10 @@ class doc_Linked extends core_Manager
             }
             
             $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach($qArr as $w) {
+            foreach ($qArr as $w) {
                 $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         } else {
-            
             if (isset($limit) && ($limit < self::$recentlyLimit)) {
                 self::$recentlyLimit = $limit;
             }
@@ -1106,20 +1139,29 @@ class doc_Linked extends core_Manager
                 $recentlyArr = self::getLastObjectsFromRecently();
                 if (!empty($recentlyArr)) {
                     foreach ($recentlyArr as $fId) {
-                        
-                        if (!$fId) continue;
+                        if (!$fId) {
+                            continue;
+                        }
                         
                         if ($docTypeInst) {
-                            if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) continue;
+                            if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) {
+                                continue;
+                            }
                         }
                         
                         $fRec = doc_Folders::fetch($fId);
                         
-                        if (!$fRec) continue;
+                        if (!$fRec) {
+                            continue;
+                        }
                         
-                        if (($fRec->state == 'rejected') || ($fRec->state == 'closed')) continue;
+                        if (($fRec->state == 'rejected') || ($fRec->state == 'closed')) {
+                            continue;
+                        }
                         
-                        if (!doc_Folders::haveRightFor('single', $fRec)) continue;
+                        if (!doc_Folders::haveRightFor('single', $fRec)) {
+                            continue;
+                        }
                         
                         $fTitle = doc_Folders::fetchField($fId, 'title');
                         $fTitle = trim($fTitle);
@@ -1138,7 +1180,6 @@ class doc_Linked extends core_Manager
         
         // Ако е зададено да се показват папките в които има такива документи
         if ($params['showWithDocs'] && $docTypeInst) {
-            
             $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . $params['unsetId'];
             
             $cacheTime = 5;
@@ -1155,7 +1196,7 @@ class doc_Linked extends core_Manager
                     $dQuery->where(array("#containerId != '[#1#]'", $params['unsetId']));
                 }
                 
-                doc_Folders::restrictAccess($dQuery, NULL, FALSE);
+                doc_Folders::restrictAccess($dQuery, null, false);
                 
                 $dQuery->groupBy('folderId');
                 
@@ -1173,7 +1214,7 @@ class doc_Linked extends core_Manager
                 $query->in('id', $fArr);
             } else {
                 // Да не се показва нищо, ако няма документ
-                $query->where("1=2");
+                $query->where('1=2');
             }
             
             // Премахваме папките, които нямат такъв документ
@@ -1187,30 +1228,34 @@ class doc_Linked extends core_Manager
         $query->show($show);
         
         $limit -= count($res);
-        $query->orderBy("last", "DESC");
+        $query->orderBy('last', 'DESC');
         
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
             // Това е защита от увисване
             if ($maxTrays-- < 0 && (!empty($res))) {
-                
                 $group = new stdClass();
                 $group->title = tr('За още резултати, въведете част от името');
                 $group->attr = array('class' => 'team');
-                $group->group = TRUE;
+                $group->group = true;
                 $res['more'] = $group;
                 
                 break;
             }
             
-            if ($res[$rec->id]) continue;
-            
-            if ($docTypeInst) {
-                
-                if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) continue;
+            if ($res[$rec->id]) {
+                continue;
             }
             
-            if (!$limit--) break;
+            if ($docTypeInst) {
+                if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
+                    continue;
+                }
+            }
+            
+            if (!$limit--) {
+                break;
+            }
             
             $title = trim($rec->{$titleFld});
             $title = str::limitLen($title, self::$titleLen);
@@ -1225,15 +1270,15 @@ class doc_Linked extends core_Manager
     /**
      * Подготвя опциите за key2 за избор на нишка
      *
-     * @param array $params
-     * @param NULL|integer $limit
-     * @param string $q
-     * @param NULL|array|integer $onlyIds
-     * @param boolean $includeHiddens
+     * @param array          $params
+     * @param NULL|int       $limit
+     * @param string         $q
+     * @param NULL|array|int $onlyIds
+     * @param bool           $includeHiddens
      *
      * @return array
      */
-    public static function prepareThreadsForDoc($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    public static function prepareThreadsForDoc($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         setIfNot($limit, $params['maxSuggestions'], 100);
         $res = array();
@@ -1256,20 +1301,21 @@ class doc_Linked extends core_Manager
             $query->where("#state != 'rejected'");
         }
         
-        if(is_array($onlyIds)) {
-            if(!count($onlyIds)) {
+        if (is_array($onlyIds)) {
+            if (!count($onlyIds)) {
+                
                 return array();
             }
             
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
             
-            $query->where("#id IN ($ids)");
-        } elseif(ctype_digit("{$onlyIds}")) {
-            $query->where("#id = $onlyIds");
+            $query->where("#id IN (${ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = ${onlyIds}");
         }
         
-        $show = "id, firstDocClass, firstDocId";
+        $show = 'id, firstDocClass, firstDocId';
         if ($q) {
             $query->EXT('searchKeywords', 'doc_Containers', 'externalKey=firstContainerId, externalName=searchKeywords');
             
@@ -1285,25 +1331,39 @@ class doc_Linked extends core_Manager
                 $recentlyArr = self::getLastObjectsFromRecently('document', 'threadId');
                 if (!empty($recentlyArr)) {
                     foreach ($recentlyArr as $tId) {
-                        if (!$tId) continue;
+                        if (!$tId) {
+                            continue;
+                        }
                         
                         if ($docTypeInst) {
-                            if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($tId)) continue;
+                            if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($tId)) {
+                                continue;
+                            }
                             
-                            if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $tId))) continue;
+                            if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $tId))) {
+                                continue;
+                            }
                         }
                         
                         $title = $tId;
                         
                         $tRec = doc_Threads::fetch($tId);
                         
-                        if (!$tRec) continue;
+                        if (!$tRec) {
+                            continue;
+                        }
                         
-                        if ($tRec->state == 'rejected') continue;
+                        if ($tRec->state == 'rejected') {
+                            continue;
+                        }
                         
-                        if ($folderId && $tRec->folderId != $folderId) continue;
+                        if ($folderId && $tRec->folderId != $folderId) {
+                            continue;
+                        }
                         
-                        if (!doc_Threads::haveRightFor('single', $tRec)) continue;
+                        if (!doc_Threads::haveRightFor('single', $tRec)) {
+                            continue;
+                        }
                         
                         if ($tRec->firstDocClass) {
                             try {
@@ -1327,19 +1387,26 @@ class doc_Linked extends core_Manager
         $query->show($show);
         
         $limit -= count($res);
-        $query->orderBy("last", "DESC");
+        $query->orderBy('last', 'DESC');
         
-        while($rec = $query->fetch()) {
-            
-            if ($res[$rec->id]) continue;
-            
-            if ($docTypeInst) {
-                if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($rec->id)) continue;
-                
-                if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $rec->id))) continue;
+        while ($rec = $query->fetch()) {
+            if ($res[$rec->id]) {
+                continue;
             }
             
-            if (!$limit--) break;
+            if ($docTypeInst) {
+                if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($rec->id)) {
+                    continue;
+                }
+                
+                if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $rec->id))) {
+                    continue;
+                }
+            }
+            
+            if (!$limit--) {
+                break;
+            }
             
             $title = $rec->id;
             
@@ -1365,14 +1432,14 @@ class doc_Linked extends core_Manager
     
     /**
      * Връща последните записи от bgerp_Recently
-     * 
-     * @param string $type
-     * @param string $show
-     * @param NULL|integer $userId
-     * 
+     *
+     * @param string   $type
+     * @param string   $show
+     * @param NULL|int $userId
+     *
      * @return array
      */
-    protected static function getLastObjectsFromRecently($type = 'folder', $show = 'objectId', $userId = NULL)
+    protected static function getLastObjectsFromRecently($type = 'folder', $show = 'objectId', $userId = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -1381,17 +1448,19 @@ class doc_Linked extends core_Manager
         $rQuery = bgerp_Recently::getQuery();
         $rQuery->where(array("#type = '[#1#]'", $type));
         $rQuery->where(array("#userId = '[#1#]'", $userId));
-        $rQuery->where("#objectId IS NOT NULL");
+        $rQuery->where('#objectId IS NOT NULL');
         $rQuery->where("#objectId != ''");
-        $rQuery->where("#objectId != 0");
+        $rQuery->where('#objectId != 0');
         $rQuery->orderBy('last', 'DESC');
         $rQuery->limit(self::$recentlyLimit);
         
         $rQuery->show($show);
         
         $resArr = array();
-        while($rRec = $rQuery->fetch()) {
-            if (!$rRec->{$show}) continue;
+        while ($rRec = $rQuery->fetch()) {
+            if (!$rRec->{$show}) {
+                continue;
+            }
             $resArr[$rRec->{$show}] = $rRec->{$show};
         }
         
@@ -1402,14 +1471,14 @@ class doc_Linked extends core_Manager
     /**
      * Помощна функция за връщане на линк към документ/файл
      *
-     * @param string $type
-     * @param integer $valId
+     * @param string      $type
+     * @param int         $valId
      * @param NULL|string $comment
-     * @param boolean $getUrlWithAccess
+     * @param bool        $getUrlWithAccess
      *
      * @return string|core_ET
      */
-    protected static function getVerbalLinkForType($type, $valId, &$comment = NULL, $getUrlWithAccess = FALSE)
+    protected static function getVerbalLinkForType($type, $valId, &$comment = null, $getUrlWithAccess = false)
     {
         if ($type == 'doc') {
             // Документа
@@ -1437,7 +1506,7 @@ class doc_Linked extends core_Manager
                 $attr['style'] = 'text-decoration: line-through; color: #666;';
             }
             
-            $link = ht::createLink($hnd, $url, NULL, $attr);
+            $link = ht::createLink($hnd, $url, null, $attr);
             
             $folderId = doc_Containers::fetchField($valId, 'folderId');
             if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
@@ -1457,10 +1526,10 @@ class doc_Linked extends core_Manager
             $link = $clsInst->getLinkToSingle($valId);
             
             if (!trim($comment)) {
-                $comment = tr("Файл");
+                $comment = tr('Файл');
             }
         } else {
-            expect(FALSE, $type);
+            expect(false, $type);
         }
         
         return $link;
@@ -1471,7 +1540,7 @@ class doc_Linked extends core_Manager
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -1489,7 +1558,7 @@ class doc_Linked extends core_Manager
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
+     * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
@@ -1509,12 +1578,12 @@ class doc_Linked extends core_Manager
     /**
      * След инсталация на класа
      *
-     * @param doc_linked $mvc
+     * @param doc_linked  $mvc
      * @param NULL|string $res
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         // Инсталиране на кофата
-        $res .= fileman_Buckets::createBucket('Linked', 'Файлове във свързаните документи', NULL, '300 MB', 'user', 'user');
+        $res .= fileman_Buckets::createBucket('Linked', 'Файлове във свързаните документи', null, '300 MB', 'user', 'user');
     }
 }

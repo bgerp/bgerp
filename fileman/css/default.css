@@ -153,14 +153,15 @@
   .dialog-window .fileman_Log .horizontal .formToolbar {
     margin-bottom: 10px !important; }
   .dialog-window .fileman_Log .listTable {
-    width: 100%; }
+    width: 99%;
+    min-width: 0; }
     .dialog-window .fileman_Log .listTable th {
       display: none;
       border: none;
       vertical-align: top !important; }
     .dialog-window .fileman_Log .listTable tr > td:first-child {
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       padding: 3px; }
       .dialog-window .fileman_Log .listTable tr > td:first-child .file-log-link {
         width: 48px;
@@ -176,6 +177,15 @@
           left: 0;
           right: 0;
           margin: auto; }
+
+.narrow.dialog-window .listRows {
+  overflow-y: auto; }
+
+.narrow.dialog-window .pages {
+  margin: 10px 2px; }
+
+.narrow.dialog-window .filemanUpload ul {
+  margin: 10px 0; }
 
 .narrow .fileman_Log.switching-display {
   margin-top: 5px; }
@@ -230,4 +240,16 @@
 
 .btn-ulfile {
   background-image: url('../../img/16/paper_clip.png'); }
+
+.disabledRow {
+  background-color: #e0e0e0 !important;
+  color: #666666; }
+  .disabledRow .file-log-link {
+    color: #666666 !important; }
+    .disabledRow .file-log-link:hover {
+      cursor: auto; }
+  .disabledRow span {
+    color: #666666 !important; }
+  .disabledRow .anchor-arrow {
+    cursor: pointer; }
 

@@ -1,10 +1,10 @@
 <?php
 
+
 /**
  * Версията на chartjs, която се използва
  */
 defIfNot('CONTEXT_VERSION', '1.4.0');
-
 
 
 /**
@@ -13,29 +13,31 @@ defIfNot('CONTEXT_VERSION', '1.4.0');
  *
  * @category  vendors
  * @package   context
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class context_Setup extends core_ProtoSetup 
+class context_Setup extends core_ProtoSetup
 {
     /**
      * контекстно меню за бутоните
      */
-    var $info = "Контекстно меню за бутоните от тулбара";
-
-
+    public $info = 'Контекстно меню за бутоните от тулбара';
+    
+    
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-
-        'CONTEXT_VERSION' => array ('enum(1.4.0)', 'mandatory, caption=Версията на плъгина->Версия')
-
+        
+        'CONTEXT_VERSION' => array('enum(1.4.0)', 'mandatory, caption=Версията на плъгина->Версия')
+    
     );
-
-
+    
+    
     /**
      * Връща JS файлове, които са подходящи за компактиране
      */
@@ -52,15 +54,15 @@ class context_Setup extends core_ProtoSetup
     {
         return 'context/'.  context_Setup::get('VERSION') . '/contextMenu.css';
     }
-
+    
     
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -74,10 +76,10 @@ class context_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

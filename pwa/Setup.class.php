@@ -12,31 +12,33 @@ defIfNot('PWA_IMAGE', '');
  *
  *
  * @package   pwa
+ *
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class pwa_Setup extends core_ProtoSetup
 {
-	var $info = "bgERP progressive web application";
-
-
+    public $info = 'bgERP progressive web application';
+    
+    
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-        'PWA_IMAGE' => array ('fileman_FileType(bucket=gallery_Pictures)', 'caption=Икона за приложението (512x512px)->Изображение'),
+    public $configDescription = array(
+        'PWA_IMAGE' => array('fileman_FileType(bucket=gallery_Pictures)', 'caption=Икона за приложението (512x512px)->Изображение'),
     );
-
-	
-	/**
+    
+    
+    /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
-    	$html = parent::install();
-    	
+        $html = parent::install();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -50,10 +52,10 @@ class pwa_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
-    	$html = parent::deinstall();
-    	
+        $html = parent::deinstall();
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

@@ -1,124 +1,147 @@
 <?php
 
 
-
 /**
  * Клас 'plg_RowTools' - Инструменти за изтриване и редактиране на ред
  *
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_RowTools extends core_Plugin
 {
-    
-    
     /**
      * Шаблон за съзване на rowTools
      */
-    static $rowToolsTpl = "<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>";
+    public static $rowToolsTpl = "<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>";
     
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
+            
+            return;
+        }
         
-        if(!arr::haveSection($fields, '-list')) return;
+        if (!arr::haveSection($fields, '-list')) {
+            
+            return;
+        }
         
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
-        if(method_exists($mvc, 'act_Single')) {
-            
+        if (method_exists($mvc, 'act_Single')) {
             $singleUrl = $mvc->getSingleUrlArray($rec->id);
-
+            
             $icon = $mvc->getIcon($rec->id);
             
-            if($singleField = $mvc->rowToolsSingleField) {
+            if ($singleField = $mvc->rowToolsSingleField) {
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['ef_icon'] = $icon;
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
-                $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);  
+                $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, null, $attr1);
             } else {
-                $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
+                $singleImg = '<img src=' . sbf($mvc->singleIcon) . '>';
                 $singleLink = ht::createLink($singleImg, $singleUrl);
             }
         }
         
         // URL за връщане след редакция/изтриване
-        if(cls::existsMethod($mvc, 'getRetUrl')) {
+        if (cls::existsMethod($mvc, 'getRetUrl')) {
             $retUrl = $mvc->getRetUrl($rec);
         } else {
-            $retUrl = TRUE;
+            $retUrl = true;
         }
         
         $singleTitle = $mvc->singleTitle;
         $singleTitle = tr($singleTitle);
         $singleTitle = mb_strtolower($singleTitle);
         $iconSize = 16;
-        if(log_Browsers::isRetina()) {
+        if (log_Browsers::isRetina()) {
             $iconSize = 32;
         }
         
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $editImg = "<img src=" . sbf("img/{$iconSize}/edit-icon.png") . " width=16  height=16 alt=\"" . tr('Редакция') . "\">";
-
-            $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id},title=" . tr("Редактиране на") . ' ' . $singleTitle);
+            $editImg = '<img src=' . sbf("img/{$iconSize}/edit-icon.png") . ' width=16  height=16 alt="' . tr('Редакция') . '">';
+            
+            $editLink = ht::createLink($editImg, $editUrl, null, "id=edt{$rec->id},title=" . tr('Редактиране на') . ' ' . $singleTitle);
         }
         
-         if ($mvc->haveRightFor('delete', $rec)) {
-            $deleteImg = "<img src=" . sbf("img/{$iconSize}/delete.png") . " width=16  height=16 alt=\"" . tr('Изтриване') . "\">";
+        if ($mvc->haveRightFor('delete', $rec)) {
+            $deleteImg = '<img src=' . sbf("img/{$iconSize}/delete.png") . ' width=16  height=16 alt="' . tr('Изтриване') . '">';
             $deleteUrl = array(
-	            $mvc,
-	            'delete',
-	            'id' => $rec->id,
-	            'ret_url' => $retUrl
-        	);
-        	
-        	$deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                tr('Наистина ли желаете записът да бъде изтрит?'), "id=del{$rec->id},title=" . tr("Изтриване на") . ' ' . $singleTitle);
+                $mvc,
+                'delete',
+                'id' => $rec->id,
+                'ret_url' => $retUrl
+            );
+            
+            $deleteLink = ht::createLink(
+                
+                $deleteImg,
+                
+                $deleteUrl,
+                tr('Наистина ли желаете записът да бъде изтрит?'),
+                
+                "id=del{$rec->id},title=" . tr('Изтриване на') . ' ' . $singleTitle
+            
+            );
         } else {
-        	$loadList = arr::make($mvc->loadList);
-        	if(in_array('plg_Rejected', $loadList)){
-        		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)){
-        			$deleteImg = "<img src=" . sbf("img/{$iconSize}/reject.png") . " width=16  height=16 alt=\"" . tr('Оттегляне') . "\">";
-        			$deleteUrl = array(
-			            $mvc,
-			            'reject',
-			            'id' => $rec->id,
-			            'ret_url' => $retUrl);
-			         $deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id},title=" . tr("Оттегляне на") . ' ' . $singleTitle);
-        			
-        		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
-        			$restoreImg = "<img src=" . sbf("img/{$iconSize}/restore.png") . " width=16  height=16 alt=\"" . tr('Възстановяване') . "\">";
-        				
-        			$restoreUrl = array(
-			            $mvc,
-			            'restore',
-			            'id' => $rec->id,
-			            'ret_url' => $retUrl);
-			            
-			        $restoreLink = ht::createLink($restoreImg, $restoreUrl,
-                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},title=" . tr("Възстановяване на") . ' ' . $singleTitle);
-        		}
-        	}
+            $loadList = arr::make($mvc->loadList);
+            if (in_array('plg_Rejected', $loadList)) {
+                if ($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)) {
+                    $deleteImg = '<img src=' . sbf("img/{$iconSize}/reject.png") . ' width=16  height=16 alt="' . tr('Оттегляне') . '">';
+                    $deleteUrl = array(
+                        $mvc,
+                        'reject',
+                        'id' => $rec->id,
+                        'ret_url' => $retUrl);
+                    $deleteLink = ht::createLink(
+                         $deleteImg,
+                         $deleteUrl,
+                        tr('Наистина ли желаете записът да бъде оттеглен?'),
+                         "id=rej{$rec->id},title=" . tr('Оттегляне на') . ' ' . $singleTitle
+                     );
+                } elseif ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)) {
+                    $restoreImg = '<img src=' . sbf("img/{$iconSize}/restore.png") . ' width=16  height=16 alt="' . tr('Възстановяване') . '">';
+                    
+                    $restoreUrl = array(
+                        $mvc,
+                        'restore',
+                        'id' => $rec->id,
+                        'ret_url' => $retUrl);
+                    
+                    $restoreLink = ht::createLink(
+                        
+                        $restoreImg,
+                        
+                        $restoreUrl,
+                        tr('Наистина ли желаете записът да бъде възстановен?'),
+                        
+                        "id=res{$rec->id},title=" . tr('Възстановяване на') . ' ' . $singleTitle
+                    
+                    );
+                }
+            }
         }
         
-        if($mvc->hasPlugin('change_Plugin')){
-        	if ($mvc->haveRightFor('changerec', $rec)) {
-        		$changeLink = $mvc->getChangeLink($rec->id);
-        	}
+        if ($mvc->hasPlugin('change_Plugin')) {
+            if ($mvc->haveRightFor('changerec', $rec)) {
+                $changeLink = $mvc->getChangeLink($rec->id);
+            }
         }
         
         $tpl = new ET(static::$rowToolsTpl);
@@ -145,35 +168,35 @@ class plg_RowTools extends core_Plugin
      * Метод по подразбиране
      * Връща иконата на документа
      */
-    public static function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    public static function on_AfterGetIcon($mvc, &$res, $id = null)
     {
-        if(!$res) { 
+        if (!$res) {
             $res = $mvc->singleIcon;
-            if(log_Browsers::isRetina()) {
+            if (log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $res);
-
-                if(getFullPath($icon2)) {
+                
+                if (getFullPath($icon2)) {
                     $res = $icon2;
                 }
             }
         }
     }
-
+    
     
     /**
      * Реализация по подразбиране на метода getEditUrl()
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param array $editUrl
+     * @param array    $editUrl
      * @param stdClass $rec
      */
     public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
         // URL за връщане след редакция
-        if(cls::existsMethod($mvc, 'getRetUrl')) {
+        if (cls::existsMethod($mvc, 'getRetUrl')) {
             $retUrl = $mvc->getRetUrl($rec);
         } else {
-            $retUrl = TRUE;
+            $retUrl = true;
         }
         
         $editUrl = array(
@@ -185,20 +208,20 @@ class plg_RowTools extends core_Plugin
     }
     
     
-	/**
+    /**
      * Реализация по подразбиране на метода getDeleteUrl()
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param array $editUrl
+     * @param array    $editUrl
      * @param stdClass $rec
      */
     public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
     {
         // URL за връщане след редакция
-        if(cls::existsMethod($mvc, 'getDeleteUrl')) {
+        if (cls::existsMethod($mvc, 'getDeleteUrl')) {
             $retUrl = $mvc->getDeleteUrl($rec);
         } else {
-            $retUrl = TRUE;
+            $retUrl = true;
         }
         
         $deleteUrl = array(
@@ -215,25 +238,28 @@ class plg_RowTools extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listFields =  arr::make($data->listFields, TRUE);
-
-         
+        $data->listFields = arr::make($data->listFields, true);
+        
+        
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
-        if(count($data->rows)) {
+        if (count($data->rows)) {
             $rowToolsTpl = new ET(static::$rowToolsTpl);
             
-            foreach($data->rows as $row) {
+            foreach ($data->rows as $row) {
                 
                 // Ако в някой от полетата има промяна по шаблона
-                if(isset($row->{$field})){
-                	if ($rowToolsTpl->content != $row->{$field}->content) return;
+                if (isset($row->{$field})) {
+                    if ($rowToolsTpl->content != $row->{$field}->content) {
+                        
+                        return;
+                    }
                 }
             }
         }
         
-        if(isset($data->listFields[$field])) {
+        if (isset($data->listFields[$field])) {
             unset($data->listFields[$field]);
         }
     }

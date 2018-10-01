@@ -1,21 +1,20 @@
 <?php
 
 
-
 /**
  * Плъгин за експортиране на данни
  *
  * @category  bgerp
  * @package   bgerp
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bgerp_plg_Export extends core_Plugin
 {
-    
-    
     /**
      * След дефиниране на полетата на модела
      *
@@ -23,7 +22,6 @@ class bgerp_plg_Export extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        
         /**
          * @todo Чака за документация...
          */
@@ -36,10 +34,10 @@ class bgerp_plg_Export extends core_Plugin
      */
     public static function on_AfterPrepareListToolbar(core_Mvc $mvc, &$data)
     {
-        if($mvc->haveRightFor('export') && self::getExportDrivers($mvc)){
-        	$url = getCurrentUrl();
-        	$url['export'] = TRUE;
-        	
+        if ($mvc->haveRightFor('export') && self::getExportDrivers($mvc)) {
+            $url = getCurrentUrl();
+            $url['export'] = true;
+            
             $data->toolbar->addBtn('Експорт', $url, 'ef_icon=img/16/export.png, row=2');
         }
     }
@@ -50,20 +48,20 @@ class bgerp_plg_Export extends core_Plugin
      */
     public static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-    	if(Request::get('export', 'int')){
-    		$nQuery = clone $data->query;
-    		$mvc->invoke('AfterPrepareExportQuery', array($nQuery));
-    		$recs = $nQuery->fetchAll();
-    		$mvc->invoke('AfterPrepareExportRecs', array(&$recs));
-    	    
-    		$userId = core_Users::getCurrent();
-    		core_Cache::remove($mvc->className, "exportRecs{$userId}");
-    		core_Cache::set($mvc->className, "exportRecs{$userId}", $recs, 20);
-    	
-    		$retUrl = toUrl(array($mvc, 'list'), 'local');
-    	
-    		redirect(array($mvc, 'export', 'ret_url' => $retUrl));
-    	}
+        if (Request::get('export', 'int')) {
+            $nQuery = clone $data->query;
+            $mvc->invoke('AfterPrepareExportQuery', array($nQuery));
+            $recs = $nQuery->fetchAll();
+            $mvc->invoke('AfterPrepareExportRecs', array(&$recs));
+            
+            $userId = core_Users::getCurrent();
+            core_Cache::remove($mvc->className, "exportRecs{$userId}");
+            core_Cache::set($mvc->className, "exportRecs{$userId}", $recs, 20);
+            
+            $retUrl = toUrl(array($mvc, 'list'), 'local');
+            
+            redirect(array($mvc, 'export', 'ret_url' => $retUrl));
+        }
     }
     
     
@@ -78,10 +76,10 @@ class bgerp_plg_Export extends core_Plugin
         $options = array();
         $drivers = core_Classes::getOptionsByInterface('bgerp_ExportIntf');
         
-        foreach ($drivers as $id => $driver){
+        foreach ($drivers as $id => $driver) {
             $Driver = cls::get($id);
             
-            if($Driver->isApplicable($mvc)){
+            if ($Driver->isApplicable($mvc)) {
                 $options[$id] = $Driver->title;
             }
         }
@@ -95,10 +93,8 @@ class bgerp_plg_Export extends core_Plugin
      */
     public static function on_BeforeAction(core_Mvc $mvc, &$tpl, $action)
     {
-        if($action == 'export'){
-            
+        if ($action == 'export') {
             if ($selected = Request::get('Selected')) {
-                
                 $selectedArr = type_Set::toArray($selected);
                 foreach ($selectedArr as &$selId) {
                     $selId = (int) $selId;
@@ -107,13 +103,13 @@ class bgerp_plg_Export extends core_Plugin
                 if (!empty($selectedArr)) {
                     $selected = implode(',', $selectedArr);
                     $query = $mvc->getQuery();
-                    $query->in("id", $selected);
+                    $query->in('id', $selected);
                     
                     $recs = $query->fetchAll();
                 }
                 
                 core_App::setTimeLimit(count($recs) / 100);
-
+                
                 $cu = core_Users::getCurrent();
                 core_Cache::set($mvc->className, "exportRecs{$cu}", $recs, 20);
             }
@@ -128,23 +124,23 @@ class bgerp_plg_Export extends core_Plugin
             $form = cls::get('core_Form');
             $form->method = 'GET';
             $form->title = "Експортиране на {$mvc->title}";
-            $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', "input,caption=Формат,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
-   
+            $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', 'input,caption=Формат,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit()')));
+            
             // Ако има опции за избор на драйвър слагаме ги, иначе правим полето readOnly
-            if(count($options)){
+            if (count($options)) {
                 $form->setOptions('driver', array('' => '') + $options);
-                if(count($options) == 1) {
+                if (count($options) == 1) {
                     $form->setDefault('driver', key($options));
                 }
             } else {
                 $form->setReadOnly('driver');
             }
-             
+            
             // Инпутваме тихите полета
-            $form->input(NULL, 'silent');
+            $form->input(null, 'silent');
             
             // Ако е избран драйвър, той добавя полета към формата
-            if($form->rec->driver){
+            if ($form->rec->driver) {
                 $Driver = cls::get($form->rec->driver);
                 $Driver->mvc = $mvc;
                 $Driver->prepareExportForm($form);
@@ -154,42 +150,42 @@ class bgerp_plg_Export extends core_Plugin
             $form->input();
             
             // Драйвера проверява формата
-            if($Driver){
+            if ($Driver) {
                 $Driver->checkExportForm($form);
             }
             
             // Ако формата е събмитната
-            if($form->isSubmitted()){
+            if ($form->isSubmitted()) {
                 $Driver = cls::get($form->rec->driver, array('mvc1' => $mvc));
                 $Driver->mvc = $mvc;
                 
                 $content = $Driver->export($form->rec);
                 
-                if(!$content){
-                	$tpl = new Redirect(array($mvc, 'list'), '|Няма налични данни за експорт', 'warning');
-                	
-                	return FALSE;
+                if (!$content) {
+                    $tpl = new Redirect(array($mvc, 'list'), '|Няма налични данни за експорт', 'warning');
+                    
+                    return false;
                 }
                 
                 $name = $Driver->getExportedFileName();
                 
                 // Записваме файла в системата
                 $fh = fileman::absorbStr($content, 'exportCsv', $name);
-                	
+                
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
                 $tpl = new Redirect(array('fileman_Files', 'single', $fh), '|Файлът е експортиран успешно');
                 
-                return FALSE;
+                return false;
             }
             
             $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
             $form->toolbar->addBtn('Отказ', array($mvc, 'list'), 'ef_icon = img/16/close-red.png');
-         
+            
             $form = $form->renderHtml();
-          
+            
             $tpl = $mvc->renderWrapping($form);
             
-            return FALSE;
+            return false;
         }
     }
     
@@ -197,15 +193,14 @@ class bgerp_plg_Export extends core_Plugin
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-    	if($action == 'export'){
-    	
-    		// Ако няма налични драйвери за експорт за този мениджър не можем да експортираме
-    		if(!self::getExportDrivers($mvc) && !$mvc->hasPlugin('plg_ExportCsv')){
-    			
-    			$requiredRoles = 'no_one';
-    		}
-    	}
+        if ($action == 'export') {
+            
+            // Ако няма налични драйвери за експорт за този мениджър не можем да експортираме
+            if (!self::getExportDrivers($mvc) && !$mvc->hasPlugin('plg_ExportCsv')) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

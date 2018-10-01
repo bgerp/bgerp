@@ -1,32 +1,31 @@
 <div class='eshop-product'>
-<table>
-<tr>
-	<td colspan=2><h1 style='font-size:1.5em'>[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1></td>
-</tr>
-<tr>
-	<td class='eshop-product-images vtop' style='min-width:120px'>
+	<h1 style='font-size:1.5em'>[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1>
+	<div class='eshop-product-navigation'>[#productPath#]</div>
+
+	<div class='eshop-product-images vtop' style='min-width:120px;float:left;width:22%'>
 		[#image#]
 		[#image2#]
 		[#image3#]
 		[#image4#]
 		[#image5#]
-	</td>
-	<td class="vtop" style='padding-left:8px;'>
+	</div>
+	<div class="vtop" style='padding-left:2%;float:left;width:74%'>
 		<div class='eshop-product-labels'>
 			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> 
             <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]
 			<div class="clearfix21"></div>
 		</div>
-
+		<div style="padding: 10px 0;">
 		[#info#]
+		</div>
 		<!--ET_BEGIN PRODUCT_OPT-->
-		<div class="scrolling-holder" style="margin: 15px 0;">
+		<div class="overflow-scroll" style="margin: 10px 0;">
 			[#PRODUCT_OPT#]
 		</div>
 		<!--ET_END PRODUCT_OPT-->
+		<div style="padding: 10px 0;">
 		[#longInfo#]
-
-	</td>
-</tr>
-</table>
+		</div>
+	</div>
+	<div class="clearfix21"></div>
 </div>

@@ -6,71 +6,71 @@
  *
  * @category  bgerp
  * @package   doc
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.11
  */
 class doc_Files extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, plg_Sorting, plg_GroupByDate';
+    public $loadList = 'doc_Wrapper, plg_Sorting, plg_GroupByDate';
     
     
     /**
      * Заглавие
      */
-    var $title = "Файлове в папка";
+    public $title = 'Файлове в папка';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
-    
+    public $canList = 'powerUser';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го редактира
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Полетата, които ще се показват
      */
-    var $listFields = 'fileHnd=Файл, threadId=Документ, date=Час';
+    public $listFields = 'fileHnd=Файл, threadId=Документ, date=Час';
     
     
     /**
      * По кое поле да се групира
+     *
      * @see plg_GroupByDate
      */
     public $groupByDateField = 'date';
     
     
-    /**
-     * 
-     */
-    function description()
+    public function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер,notNull,value=0');
         $this->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,notNull,value=0');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка,notNull,value=0');
-        $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
-            array('notNull' => TRUE, 'caption' => 'Манипулатор'));
-        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
-        $this->FLD("show", "enum(yes,no)", 'caption=Показване');
+        $this->FLD(
+            'fileHnd',
+            'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')',
+            array('notNull' => true, 'caption' => 'Манипулатор')
+        );
+        $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');
+        $this->FLD('show', 'enum(yes,no)', 'caption=Показване');
         $this->FNC('date', 'datetime', 'caption=Дата,input=none');
         
         $this->setDbUnique('containerId, fileHnd');
@@ -85,12 +85,12 @@ class doc_Files extends core_Manager
     
     /**
      * Връща най-доброто място където се намира файла
-     * 
+     *
      * @param string $fh
-     * 
+     *
      * @return array
      */
-    public static function getBestContainer($fh, $fInterface = NULL)
+    public static function getBestContainer($fh, $fInterface = null)
     {
         $fRec = fileman::fetchByFh($fh);
         
@@ -105,22 +105,25 @@ class doc_Files extends core_Manager
         if (is_array($barcodesArr)) {
             foreach ($barcodesArr as $barcodesArrPage) {
                 foreach ($barcodesArrPage as $barcodeObj) {
-        			
+                    
                     // Вземаме cid'a на баркода
                     $cid = doclog_Documents::getDocumentCidFromURL($barcodeObj->code);
                     
                     if ($cid) {
-                        
                         $doc = doc_Containers::getDocument($cid);
                         
                         $dRec = $doc->fetch();
                         
-                        if ($dRec->state == 'rejected') continue;
+                        if ($dRec->state == 'rejected') {
+                            continue;
+                        }
                         
                         if ($fInterface && $dRec->folderId) {
                             $fRec = doc_Folders::fetchRec($dRec->folderId);
                             
-                            if (!cls::haveInterface($fInterface, $fRec->coverClass)) continue;
+                            if (!cls::haveInterface($fInterface, $fRec->coverClass)) {
+                                continue;
+                            }
                         }
                         
                         $resArr['folderId'] = $dRec->folderId;
@@ -133,17 +136,22 @@ class doc_Files extends core_Manager
             }
         }
         
-        if (!empty($resArr)) return $resArr;
+        if (!empty($resArr)) {
+            
+            return $resArr;
+        }
         
         $query = self::getQuery();
         $query->where(array("#dataId = '[#1#]'", $fRec->dataId));
-        $query->orderBy("show", 'ASC');
+        $query->orderBy('show', 'ASC');
         
         while ($rec = $query->fetch()) {
             if ($fInterface && $rec->folderId) {
                 $fRec = doc_Folders::fetchRec($rec->folderId);
                 
-                if (!cls::haveInterface($fInterface, $fRec->coverClass)) continue;
+                if (!cls::haveInterface($fInterface, $fRec->coverClass)) {
+                    continue;
+                }
             }
             
             $resArr['folderId'] = $rec->folderId;
@@ -157,12 +165,15 @@ class doc_Files extends core_Manager
     
     /**
      * Преизчислява дали да се показват файловете или не
-     * 
-     * @param integer $cId
+     *
+     * @param int $cId
      */
     public static function recalcFiles($cId)
     {
-        if (!$cId) return ;
+        if (!$cId) {
+            
+            return ;
+        }
         
         $query = self::getQuery();
         $query->where(array("#containerId = '[#1#]'", $cId));
@@ -173,7 +184,6 @@ class doc_Files extends core_Manager
         
         // Всички файлове от контейнера
         while ($rec = $query->fetch()) {
-            
             $dataId = $rec->dataId;
             if (!$dataId) {
                 $rec->show = 'no';
@@ -194,11 +204,10 @@ class doc_Files extends core_Manager
             }
             
             $hideArr = array();
-            $bestRec = NULL;
+            $bestRec = null;
             
             // Всички файлове, които се съдържат в същата папка
             while ($dRec = $dQuery->fetch()) {
-                
                 $containerId = $dRec->containerId;
                 
                 if (!$containerId) {
@@ -209,7 +218,6 @@ class doc_Files extends core_Manager
                 $cRec = doc_Containers::fetch($containerId);
                 
                 if ($cRec->state == 'rejected') {
-                    
                     $hideArr[$dRec->id] = $dRec;
                     continue;
                 }
@@ -238,7 +246,7 @@ class doc_Files extends core_Manager
                     self::save($hRec, 'show');
                 }
             }
-        } 
+        }
         
         // Показваме файла
         foreach ($updateArr['show'] as $bestRec) {
@@ -251,13 +259,16 @@ class doc_Files extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param integer $cId
+     *
+     *
+     * @param int $cId
      */
     public static function deleteFilesForContainer($cId)
     {
-        if (!$cId) return ;
+        if (!$cId) {
+            
+            return ;
+        }
         
         return self::delete(array("#containerId = '[#1#]'", $cId));
     }
@@ -265,11 +276,11 @@ class doc_Files extends core_Manager
     
     /**
      * Записваме/Обновяваме всики файлове в модела
-     * 
+     *
      * @param core_Mvc $invoker - Класа, за който се отнася
-     * @param object $rec - Записите за съответния модел
+     * @param object   $rec     - Записите за съответния модел
      */
-    static function saveFile($invoker, $rec)
+    public static function saveFile($invoker, $rec)
     {
         // Вземаме данните
         $id = $rec->id;
@@ -281,7 +292,7 @@ class doc_Files extends core_Manager
         if ($rec->state == 'rejected') {
             $show = 'no';
         }
-
+        
         // Очакваме да има id
         expect($id);
         
@@ -297,20 +308,24 @@ class doc_Files extends core_Manager
         expect($containerId);
         
         // Вземаме всички линкнати файлове
-        $linked = (array)$invoker->getLinkedFiles($rec);
+        $linked = (array) $invoker->getLinkedFiles($rec);
         
         // Ако няма папка или тред
         if (!$folderId || !$threadId) {
             
             // Записите за контейнера
-            $cRec= doc_Containers::fetch($containerId);
+            $cRec = doc_Containers::fetch($containerId);
         }
         
         // Ако няма папка
-        if (!$folderId) $folderId = $cRec->folderId;
+        if (!$folderId) {
+            $folderId = $cRec->folderId;
+        }
         
         // Ако няма нишка
-        if (!$threadId) $threadId = $cRec->threadId;
+        if (!$threadId) {
+            $threadId = $cRec->threadId;
+        }
         
         $savedFh = array();
         
@@ -323,20 +338,21 @@ class doc_Files extends core_Manager
             $savedFh[$fRec->fileHnd] = $fRec->fileHnd;
         }
         
-        // Обхождаме всички линкнати файлове        
+        // Обхождаме всички линкнати файлове
         foreach ($linked as $fh => $name) {
-            
             // Данните за файла
             $dataId = fileman_Files::fetchByFh($fh, 'dataId');
             
             // Ако няма данни, да не се записва
-            if (!$dataId) continue;
+            if (!$dataId) {
+                continue;
+            }
             
             // Ако файла е бил записан
             if ($savedFh[$fh]) {
                 
                 // Премахваме от масива
-                unset($savedFh[$fh]);    
+                unset($savedFh[$fh]);
                 continue;
             }
             
@@ -349,7 +365,7 @@ class doc_Files extends core_Manager
             $nRec->dataId = $dataId;
             $nRec->show = $show;
             
-            static::save($nRec, NULL, 'IGNORE');
+            static::save($nRec, null, 'IGNORE');
         }
         
         // Ако са останали файлоаве, които не са премахнати от записите
@@ -369,44 +385,49 @@ class doc_Files extends core_Manager
     
     /**
      * Връща контейнерите с документи, в които се използва съответния файл
-     * 
-     * @param intger $dataId
-     * @param intger|NULL $clsId
-     * @param integer $resLimit
-     * @param integer $qLimit
-     * @param boolean $restrictAccess
-     * @param boolean $restricViewAccess
-     * 
+     *
+     * @param int      $dataId
+     * @param int|NULL $clsId
+     * @param int      $resLimit
+     * @param int      $qLimit
+     * @param bool     $restrictAccess
+     * @param bool     $restricViewAccess
+     *
      * @return array
      */
-    public static function getCidWithFile($dataId, $clsId = NULL, $resLimit = 5, $qLimit = 100, $restrictAccess = TRUE, $restricViewAccess = TRUE)
+    public static function getCidWithFile($dataId, $clsId = null, $resLimit = 5, $qLimit = 100, $restrictAccess = true, $restricViewAccess = true)
     {
         $fQuery = self::getQuery();
         $fQuery->where(array("#dataId = '[#1#]'", $dataId));
         
         if ($restrictAccess) {
-            doc_Threads::restrictAccess($fQuery, NULL, TRUE);
+            doc_Threads::restrictAccess($fQuery, null, true);
         }
         
         $fQuery->limit($qLimit);
         
-        $fQuery->orderBy('id', "DESC");
+        $fQuery->orderBy('id', 'DESC');
         
         $resArr = array();
         
         while ($fRec = $fQuery->fetch()) {
-            if (!$fRec->containerId) continue;
+            if (!$fRec->containerId) {
+                continue;
+            }
             
             $cRec = doc_Containers::fetch($fRec->containerId);
             
-            if ($cRec->state == 'rejected') continue;
+            if ($cRec->state == 'rejected') {
+                continue;
+            }
             
             if ($clsId && $cRec->docClass == $clsId) {
-                
                 $resArr[$fRec->containerId] = $fRec->containerId;
             }
             
-            if (!--$resLimit) break;
+            if (!--$resLimit) {
+                break;
+            }
         }
         
         return $resArr;
@@ -414,12 +435,12 @@ class doc_Files extends core_Manager
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param doc_Files $mvc
-     * @param stdClass $data
+     * @param stdClass  $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->where("#show = 'yes' OR #show IS NULL");
         
@@ -432,7 +453,7 @@ class doc_Files extends core_Manager
         $suggArr[$folderPrefix . 'allFolders'] = 'Всички папки';
         
         // Последните разгледани папки на текущия потребител
-        $lastFoldersArr = (array)bgerp_Recently::getLastFolderIds(doc_Setup::get('SEARCH_FOLDER_CNT'));
+        $lastFoldersArr = (array) bgerp_Recently::getLastFolderIds(doc_Setup::get('SEARCH_FOLDER_CNT'));
         foreach ($lastFoldersArr as $folderId) {
             $fRec = doc_Folders::fetch($folderId);
             $suggArr[$folderPrefix . $folderId] = $fRec->title;
@@ -459,9 +480,9 @@ class doc_Files extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search,range';
         
-        $data->listFilter->input(NULL, 'silent');
+        $data->listFilter->input(null, 'silent');
         
-        $usersArr = NULL;
+        $usersArr = null;
         $filter = $data->listFilter->rec;
         
         if ($filter->range) {
@@ -470,6 +491,7 @@ class doc_Files extends core_Manager
                 // Търсене по папка
                 if (stripos($filter->range, $folderPrefix) === 0) {
                     $fSearch = substr($filter->range, strlen($folderPrefix));
+                    
                     // Търсене по всички папки
                     if ($fSearch == 'allFolders') {
                         doc_Threads::restrictAccess($data->query);
@@ -498,6 +520,7 @@ class doc_Files extends core_Manager
             
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
+                
                 // TODO - след JOIN може да се увеличи с restrictAccess
                 fileman_Files::prepareFilesQuery($data->query, $usersArr);
             }
@@ -506,19 +529,19 @@ class doc_Files extends core_Manager
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
-        
+            
             plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
         }
     }
     
     
     /**
-     * 
+     *
      * @param doc_Files $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
+     * @param stdClass  $row
+     * @param stdClass  $rec
      */
-    static function on_BeforeRecToVerbal($mvc, $row, $rec)
+    public static function on_BeforeRecToVerbal($mvc, $row, $rec)
     {
         // Определяме датата
         setIfNot($rec->date, $rec->lastUse, $rec->lastOn, $rec->cModifiedOn);
@@ -538,8 +561,9 @@ class doc_Files extends core_Manager
             $query->orderBy('id', 'DESC');
             
             while ($oRec = $query->fetch()) {
-                
-                if (!$oRec->containerId) continue ;
+                if (!$oRec->containerId) {
+                    continue ;
+                }
                 
                 try {
                     $doc = doc_Containers::getDocument($oRec->containerId);
@@ -548,7 +572,6 @@ class doc_Files extends core_Manager
                 }
                 
                 if ($doc->haveRightFor('single')) {
-                    
                     $dRec = $doc->fetch();
                     
                     $rec->containerId = $dRec->containerId;
@@ -561,41 +584,42 @@ class doc_Files extends core_Manager
         }
     }
     
-       
+    
     /**
      * Връща броя на файловете в съответната папка
-     * 
+     *
      * @param doc_Folders $folderId - id' то на папката, за която търсим
-     * 
-     * @return integer $count - Броя файловете
+     *
+     * @return int $count - Броя файловете
      */
-    static function getCountInFolder($folderId=NULL) 
+    public static function getCountInFolder($folderId = null)
     {
         // Ако не е подадено $folderId, използваме id' то на последно активната папка
         $folderId = ($folderId) ? ($folderId) : mode::get('lastfolderId');
         
         // Ако все още няма папка, връщаме 0
-        if (!$folderId) return 0;
+        if (!$folderId) {
+            
+            return 0;
+        }
         
         // Вземаме броя на файловете в папката
         $count = static::count("#folderId = '{$folderId}'");
         
         return $count;
     }
-
-
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param stdClass     $row Това ще се покаже
+     * @param stdClass     $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Името на файла да е линк към singле' a му
-        $row->fileHnd = fileman_Files::getLink($rec->fileHnd);
-        
+        $url = null;
         if ($rec->containerId) {
             try {
                 // Документа
@@ -603,7 +627,7 @@ class doc_Files extends core_Manager
                 
                 // Полетата на документа във вербален вид
                 $docRow = $doc->getDocumentRow();
-            
+                
                 // Атрибутеите на линка
                 $attr = array();
                 $attr['title'] = '|*' . $docRow->title;
@@ -618,43 +642,56 @@ class doc_Files extends core_Manager
                 // id' то на контейнера на пъривя документ
                 $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
                 if ($firstContainerId != $rec->containerId) {
-            
+                    
                     // Първия документ в нишката
                     $docProxy = doc_Containers::getDocument($firstContainerId);
-            
+                    
                     // Полетата на документа във вербален вид
                     $docProxyRow = $docProxy->getDocumentRow();
-            
+                    
                     // Атрибутеите на линка
                     $attr['title'] = 'Първи документ|*: ' . $docProxyRow->title;
-            
+                    
                     // Темата да е линк към single' а на първиа документ документа
                     $firstContainerLink = $docProxy->getLink(35, $attr);
-                    $row->threadId = $row->threadId . " « " . $firstContainerLink;
+                    $row->threadId = $row->threadId . ' « ' . $firstContainerLink;
                 }
             } catch (ErrorException $e) {
                 // Не се прави нищо
             }
+            
+            if ($doc) {
+                $fRec = fileman::fetchByFh($rec->fileHnd);
+                if ($doc && $fRec && fileman::haveRightFor('single', $fRec) && $doc->haveRightFor('single')) {
+                    $url = array($doc, 'viewFile', $rec->containerId, 'fh' => $fRec->fileHnd);
+                }
+            }
         }
+        
+        // Името на файла да е линк към сингъл изгледа му
+        $row->fileHnd = fileman_Files::getLink($rec->fileHnd, null, $url);
     }
     
     
     /**
      * Променяме folderId на папката
-     * 
+     *
      * @param object $cRec - Запис от doc_Containers
      */
-    static function updateRec($cRec)
+    public static function updateRec($cRec)
     {
         // Ако няма containerId не се прави нищо
-        if (!$cRec->containerId) return ;
-
+        if (!$cRec->containerId) {
+            
+            return ;
+        }
+        
         // Вземаем всички записи от модела от съответния контейнер
         $query = static::getQuery();
         $query->where("#containerId = '{$cRec->containerId}'");
         
         // Обхождаме всички записи
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
             // Ако се е променило id' то на папката
             if ($rec->folderId != $cRec->folderId) {

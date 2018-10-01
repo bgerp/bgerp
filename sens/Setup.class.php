@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * class acc_Setup
  *
@@ -11,79 +10,79 @@
  *
  * @category  bgerp
  * @package   sens
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class sens_Setup extends core_ProtoSetup
 {
-    
-    
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * От кои други пакети зависи
      */
-    var $depends = 'permanent=0.1';
+    public $depends = 'permanent=0.1';
     
     
     /**
      * Начален контролер на пакета за връзката в core_Packs
      */
-    var $startCtr = 'sens_Sensors';
+    public $startCtr = 'sens_Sensors';
     
     
     /**
      * Начален екшън на пакета за връзката в core_Packs
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Мониторинг на сензори и оборудване";
+    public $info = 'Мониторинг на сензори и оборудване';
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
-            'sens_Sensors',
-            'sens_IndicationsLog',
-            'sens_MsgLog',
-            'sens_Params',
-            'sens_Overviews',
-            'sens_OverviewDetails'
-        );
+    public $managers = array(
+        'sens_Sensors',
+        'sens_IndicationsLog',
+        'sens_MsgLog',
+        'sens_Params',
+        'sens_Overviews',
+        'sens_OverviewDetails'
+    );
     
-
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'sens';
+    public $roles = 'sens';
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.4, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "sens, ceo,admin"),
-        );
+    public $menuItems = array(
+        array(3.4, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', 'sens, ceo,admin'),
+    );
     
-        
+    
     /**
      * Инсталиране на пакета
      */
-    function install()
+    public function install()
     {
         $html = parent::install();
-                                 
+        
         // Добавяме наличните драйвери
         $drivers = array(
             'sens_driver_Mockup',
@@ -100,12 +99,12 @@ class sens_Setup extends core_ProtoSetup
             $drvObject->setParams();
             unset($drvObject);
         }
-         
+        
         $rec = new stdClass();
-        $rec->systemId = "sens_GetIndications";
-        $rec->description = "Вземат се данни от активни сензори";
-        $rec->controller = "sens_Sensors";
-        $rec->action = "Process";
+        $rec->systemId = 'sens_GetIndications';
+        $rec->description = 'Вземат се данни от активни сензори';
+        $rec->controller = 'sens_Sensors';
+        $rec->action = 'Process';
         $rec->period = 1;
         $rec->offset = 0;
         $rec->timeLimit = 30;
@@ -118,7 +117,7 @@ class sens_Setup extends core_ProtoSetup
     /**
      * Де-инсталиране на пакета
      */
-    function deinstall()
+    public function deinstall()
     {
         // Изтриване на пакета от менюто
         $res = bgerp_Menu::remove($this);

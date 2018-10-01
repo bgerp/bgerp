@@ -6,70 +6,70 @@
  *
  * @category  bgerp
  * @package   custom
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @deprecated
  */
 class custom_Settings extends core_Manager
 {
-    
-    
     /**
      * Заглавие
      */
-    var $title = "Персонализиране";
+    public $title = 'Персонализиране';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    public $canList = 'debug';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
-
+    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created';
+    public $loadList = 'plg_Created';
     
     
     /**
      * Кой може да модофицира
      */
-    var $canModify = 'powerUser';
+    public $canModify = 'powerUser';
     
     
     /**
      * Кой може да модифицира по-подразбиране за всички
      */
-    var $canModifydefault = 'admin';
+    public $canModifydefault = 'admin';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD('userId', 'user', 'caption=Потрбител, input=none');
+        $this->FLD('userId', 'user', 'caption=Потребител, input=none');
         $this->FLD('classId', 'class(interface=custom_SettingsIntf)', 'caption=Обект->Клас, silent, input=none');
         $this->FLD('objectId', 'int', 'caption=Обект->ID, silent, input=none');
         $this->FLD('property', 'varchar(32)', 'caption=Свойство->Име, input=none');
@@ -81,31 +81,31 @@ class custom_Settings extends core_Manager
     
     /**
      * Добавя бутон в тулбара, който отваря формата за персонализиране
-     * 
+     *
      * @param core_Toolbar $toolbar
-     * @param integer $classId
-     * @param integer $objectId
-     * @param string $title
+     * @param int          $classId
+     * @param int          $objectId
+     * @param string       $title
      */
-    static function addBtn(core_Toolbar $toolbar, $classId, $objectId, $title = 'Персонализиране')
+    public static function addBtn(core_Toolbar $toolbar, $classId, $objectId, $title = 'Персонализиране')
     {
         // Защитаваме get параметрите
         Request::setProtected(array('classId', 'objectId'));
         
         // Добавяме бутона, който сочи към екшъна за персонализиране
-        $toolbar->addBtn($title, array('custom_Settings', 'modify', 'classId' => $classId, 'objectId' => $objectId, 'ret_url' => TRUE), 'ef_icon=img/16/customize.png,row=2,class=fright');
+        $toolbar->addBtn($title, array('custom_Settings', 'modify', 'classId' => $classId, 'objectId' => $objectId, 'ret_url' => true), 'ef_icon=img/16/customize.png,row=2,class=fright');
     }
     
     
     /**
      * Връща масив с потребители и стойностите за съответното свойство
-     * 
-     * @param integer $classId
-     * @param integer $objectId
+     *
+     * @param int    $classId
+     * @param int    $objectId
      * @param string $property
      * @param string $value
      */
-    static function fetchUsers($classId, $objectId, $property, $value = NULL)
+    public static function fetchUsers($classId, $objectId, $property, $value = null)
     {
         $userPropertiesArr = array();
         
@@ -133,14 +133,14 @@ class custom_Settings extends core_Manager
     
     /**
      * Въща масив с всички стойности на свойствата за даден клас и документ за съответния потребител
-     * 
-     * @param integer $classId
-     * @param integer $objectId
-     * @param integer $userId
-     * 
+     *
+     * @param int $classId
+     * @param int $objectId
+     * @param int $userId
+     *
      * @return array
      */
-    static function fetchValues($classId, $objectId, $userId = NULL, $forAll = TRUE)
+    public static function fetchValues($classId, $objectId, $userId = null, $forAll = true)
     {
         $propertiesArr = array();
         
@@ -164,8 +164,10 @@ class custom_Settings extends core_Manager
         
         while ($rec = $query->fetch()) {
             
-            // Ако е добавен в масива и в момента се опитваме да добавим настойки по подразбиране
-            if (isset($propertiesArr[$rec->property]) && ($rec->userId == -1)) continue;
+            // Ако е добавен в масива и в момента се опитваме да добавим настройки по подразбиране
+            if (isset($propertiesArr[$rec->property]) && ($rec->userId == -1)) {
+                continue;
+            }
             
             // Добавяме името на свойството и стойността му в масива
             $propertiesArr[$rec->property] = $rec->value;
@@ -178,7 +180,7 @@ class custom_Settings extends core_Manager
     /**
      * Екшън за модифициране на настройките на обекта
      */
-    function act_Modify()
+    public function act_Modify()
     {
         // Трябва да има права за модифициране
         $this->requireRightFor('modify');
@@ -200,7 +202,7 @@ class custom_Settings extends core_Manager
         
         // Трябва да има такъв запис
         expect($cRec);
-    
+        
         // Опитваме се да определим ret_url-то
         $retUrl = getRetUrl();
         if (!$retUrl) {
@@ -237,13 +239,13 @@ class custom_Settings extends core_Manager
         $form->setDefault('userId', $currUserId);
         
         // Инпутваме silent полетата
-        $form->input(NULL, TRUE);
+        $form->input(null, true);
         
         // Вземаме всички зададени свойства от текущия потребител за текущия обект и лице
-        $propertiesArrFromUser = static::fetchValues($form->rec->classId, $form->rec->objectId, $currUserId, FALSE);
+        $propertiesArrFromUser = static::fetchValues($form->rec->classId, $form->rec->objectId, $currUserId, false);
         
         // Сетваме по подразбиране стойностите на зададените свойства
-        foreach ((array)$propertiesArrFromUser as $property => $value) {
+        foreach ((array) $propertiesArrFromUser as $property => $value) {
             $form->setDefault($property, $value);
         }
         
@@ -251,16 +253,16 @@ class custom_Settings extends core_Manager
         $class->prepareCustomizationForm($form);
         
         // Вземаме всички зададени свойства от админа потребител за текущия обект и лице
-        $propertiesArrFromAdmin = static::fetchValues($form->rec->classId, $form->rec->objectId, -1, FALSE);
+        $propertiesArrFromAdmin = static::fetchValues($form->rec->classId, $form->rec->objectId, -1, false);
         
         // Ако сме в мобилен режим, да не е хинт
         $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
         
         // Сетваме по подразбиране стойностите на зададените свойства
-        foreach ((array)$propertiesArrFromAdmin as $property => $value) {
+        foreach ((array) $propertiesArrFromAdmin as $property => $value) {
             
             // Вербалната стойност
-            $verbalVal = $form->getFieldType($property, FALSE)->toVerbal($value);
+            $verbalVal = $form->getFieldType($property, false)->toVerbal($value);
             
             // Променяме хинта
             $form->setParams($property, array($paramType => '|*<br>|По подразбиране|*: ' . "{$verbalVal}"));
@@ -287,19 +289,19 @@ class custom_Settings extends core_Manager
             }
             
             // Премхаваме от масива, данните, които не са въведени от интерфейса
-            $recsArr = (array)$form->rec;
+            $recsArr = (array) $form->rec;
             unset($recsArr['userId']);
             unset($recsArr['classId']);
             unset($recsArr['objectId']);
             
             // Обхождаме останалите данни от масива
-            foreach ((array)$recsArr as $property => $value) {
+            foreach ((array) $recsArr as $property => $value) {
                 
                 // Ако имат стойност по подразбиране
                 if ($value == 'default' || $value == '' || is_null($value)) {
                     
-                    // 
-                    $allPropertiesArr = array_merge((array)$propertiesArrFromAdmin, (array)$propertiesArrFromUser);
+                    //
+                    $allPropertiesArr = array_merge((array) $propertiesArrFromAdmin, (array) $propertiesArrFromUser);
                     
                     // Ако има запис в модела
                     if (isset($allPropertiesArr[$property])) {
@@ -313,7 +315,7 @@ class custom_Settings extends core_Manager
                             // Да се изтрие и за текущия потребител
                             $deleteWhere .= " OR #userId = '{$currUserId}'";
                         }
-                        $deleteWhere .= ")";
+                        $deleteWhere .= ')';
                         $this->delete(array($deleteWhere, $property));
                     }
                 } else {
@@ -327,7 +329,7 @@ class custom_Settings extends core_Manager
                     $nRec->value = $value;
                     
                     // Заменяме предишните данни
-                    $this->save($nRec, NULL, 'REPLACE');
+                    $this->save($nRec, null, 'REPLACE');
                     
                     // Ако ще се добавя за "всички" потребители
                     if ($form->rec->userId == -1) {
@@ -354,8 +356,12 @@ class custom_Settings extends core_Manager
         
         // Ако има права за модифициране за всички
         if ($class->haveRightFor('modifydefault')) {
-            $form->toolbar->addSbBtn('Запис по подразбиране', 'save_default',
-            	'id=save-default, order=100,class=fright', 'ef_icon = img/16/disk.png, warning=Наистина ли искате да промените настройките по-подразбиране за всички?');
+            $form->toolbar->addSbBtn(
+                'Запис по подразбиране',
+                'save_default',
+                'id=save-default, order=100,class=fright',
+                'ef_icon = img/16/disk.png, warning=Наистина ли искате да промените настройките по-подразбиране за всички?'
+            );
         }
         
         // Добавяме класа
@@ -365,23 +371,26 @@ class custom_Settings extends core_Manager
         return $this->renderWrapping($form->renderHtml(), $data);
     }
     
-
+    
     /**
      * Променяме wrapper' а да сочи към врапера на търсения клас
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_Et $res
-     * @param core_Et $tpl
-     * @param object $data
+     * @param core_Et  $res
+     * @param core_Et  $tpl
+     * @param object   $data
      */
-    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
+    public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
-        if (!$data->cClass) return ;
-           
+        if (!$data->cClass) {
+            
+            return ;
+        }
+        
         // Рендираме изгледа
         $res = $data->cClass->renderWrapping($tpl, $data);
         
         // За да не се изпълнява по - нататък
-        return FALSE;
+        return false;
     }
 }

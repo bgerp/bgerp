@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'cat_Wrapper'
  *
@@ -10,20 +9,20 @@
  *
  * @category  bgerp
  * @package   cat
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class cat_Wrapper extends plg_ProtoWrapper
 {
-    
-    
     /**
      * Описание на табовете
      */
-    function description()
+    public function description()
     {
         $this->TAB('cat_Products', 'Списък', 'powerUser');
         $this->TAB('cat_Groups', 'Групи', 'cat,ceo,sales,purchase');

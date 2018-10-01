@@ -1,85 +1,85 @@
 <?php 
 
-
 /**
  * Модул за записване на всички номера
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_Numbers extends core_Manager
 {
-    
-    
     /**
      * Заглавие на модела
      */
-    var $title = 'Номера';
+    public $title = 'Номера';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Номер";
+    public $singleTitle = 'Номер';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, callcenter, ceo';
+    public $canEdit = 'admin, callcenter, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, callcenter,ceo';
+    public $canAdd = 'admin, callcenter,ceo';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    public $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    public $canList = 'powerUser';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin, callcenter, ceo';
+    public $canDelete = 'admin, callcenter, ceo';
     
     
     /**
      * Кои полета да се извличат при изтриване
      */
-    var $fetchFieldsBeforeDelete = 'id,number';
+    public $fetchFieldsBeforeDelete = 'id,number';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg';
+    public $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Printing, plg_Sorting, plg_saveAndNew, plg_Created, callcenter_ListOperationsPlg';
     
     
     /**
      * Полето, което ще се използва за търсене по номер
+     *
      * @see callcenter_ListOperationsPlg
      */
-    var $numberField = 'numberSearch';
+    public $numberField = 'numberSearch';
     
     
     /**
@@ -88,12 +88,11 @@ class callcenter_Numbers extends core_Manager
     public $listFields = 'id, number, type, contragent=Визитка';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
-        
         $this->FLD('number', 'drdata_PhoneType', 'caption=Номер, mandatory, width=100%, silent');
         $this->FLD('type', 'enum(tel=Телефон, mobile=Мобилен, fax=Факс, internal=Вътрешен)', 'caption=Тип, refreshForm, allowEmpty');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
@@ -102,7 +101,7 @@ class callcenter_Numbers extends core_Manager
         $this->FNC('contragent', 'varchar', 'caption=Контрагент');
         
         $this->setDbUnique('number, type, classId, contragentId');
-
+        
         $this->setDbIndex('number');
         $this->setDbIndex('classId, contragentId');
     }
@@ -115,7 +114,7 @@ class callcenter_Numbers extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         // Ако има клас
         if ($rec->classId) {
@@ -132,7 +131,7 @@ class callcenter_Numbers extends core_Manager
                 // Вземаме профила
                 $userId = crm_Profiles::fetchField($rec->contragentId, 'userId');
                 
-                if($userId) {
+                if ($userId) {
                     // Вземам линк към профила на отговорника
                     $card = crm_Profiles::createLink($userId);
                 }
@@ -163,16 +162,19 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Връща вербалното име на позвъняващия за съответния запис в модела
-     * 
-     * @param integer $id
-     * @param integer $userId
-     * 
+     *
+     * @param int $id
+     * @param int $userId
+     *
      * @return string
      */
-    static function getCallerName($id, $userId = NULL)
+    public static function getCallerName($id, $userId = null)
     {
         // Ако не е подадено id
-        if (!$id) return ;
+        if (!$id) {
+            
+            return ;
+        }
         
         // Ако не е подадено
         if (!$userId) {
@@ -185,13 +187,19 @@ class callcenter_Numbers extends core_Manager
         $numRec = callcenter_Numbers::fetch($id);
         
         // Ако няма клас или id на контрагент
-        if (!$numRec->classId || !$numRec->contragentId) return ;
+        if (!$numRec->classId || !$numRec->contragentId) {
+            
+            return ;
+        }
         
         // Инстанция на съответния клас
         $class = cls::get($numRec->classId);
         
         // Ако нямаме права до сингъла на записа
-        if (!$class->haveRightFor('single', $numRec->contragentId, $userId)) return ;
+        if (!$class->haveRightFor('single', $numRec->contragentId, $userId)) {
+            
+            return ;
+        }
         
         // Ако класа е инстанция на профилите
         if (($class instanceof crm_Profiles)) {
@@ -210,15 +218,15 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Добавяме посочения номер в модела
-     * 
+     *
      * @param array $numbersArr - Масив с номерата, които ще добавяме - tel, fax, mobile
-     * @param int $classId - id на класа
-     * @param int $docId - id на документа
-     * @param int $countryId - id на държавата
-     * 
+     * @param int   $classId    - id на класа
+     * @param int   $docId      - id на документа
+     * @param int   $countryId  - id на държавата
+     *
      * @return array $retArr - Масив с броя на изтрите и добавените резултати
      */
-    public static function addNumbers($numbersArr, $classId, $docId, $countryId=NULL)
+    public static function addNumbers($numbersArr, $classId, $docId, $countryId = null)
     {
         // Резултата, който ще връщаме
         $retArr = array();
@@ -240,10 +248,10 @@ class callcenter_Numbers extends core_Manager
         }
         
         // Обхождаме записите
-        foreach ((array)$numbersArr as $type => $numberArr) {
+        foreach ((array) $numbersArr as $type => $numberArr) {
             
             // Обхождаме номерата
-            foreach ((array)$numberArr as $number) {
+            foreach ((array) $numberArr as $number) {
                 
                 // Вземаме детайлна информация за номерата
                 $numberDetArr = drdata_PhoneType::toArray($number, $phoneParams);
@@ -256,16 +264,16 @@ class callcenter_Numbers extends core_Manager
                     
                     // Ако е бил записан
                     if ($numRec = $existRecsArr[$numStr]) {
-                     
+                        
                         // Обновяваме записите
                         $me->savedItems[$numRec->id] = $numRec->id;
                         
                         // Премахваме от масива
                         unset($existRecsArr[$numStr]);
                     } else {
-                     
+                        
                         // Ако е нов
-                         
+                        
                         // Ако е факс
                         if ($type == 'fax') {
                             $fType = 'fax';
@@ -286,7 +294,7 @@ class callcenter_Numbers extends core_Manager
                         $nRec->contragentId = $docId;
                         
                         // Записваме
-                        $saved = static::save($nRec, NULL, 'IGNORE');
+                        $saved = static::save($nRec, null, 'IGNORE');
                         
                         // Ако записа е бил успешен
                         if ($saved) {
@@ -298,9 +306,9 @@ class callcenter_Numbers extends core_Manager
                 }
             }
         }
-
+        
         // Ако номера е бил изтрит, премахваме
-        foreach ((array)$existRecsArr as $num => $rec) {
+        foreach ((array) $existRecsArr as $num => $rec) {
             
             // Изтриваме
             $deleted = static::delete(array("#number = '[#1#]' AND #classId = '[#2#]' AND #contragentId = '[#3#]'", $num, $classId, $docId));
@@ -319,19 +327,22 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Връща записите за съответния документ от класа
-     * 
+     *
      * @param int $classId - id на класа
-     * @param int $docId - id на документ
-     * 
+     * @param int $docId   - id на документ
+     *
      * @return array - Масив с номерата и записите
      */
-    static function getRecsForDoc($classId, $docId)
+    public static function getRecsForDoc($classId, $docId)
     {
         // Масива, който ще връщаме
         $resArr = array();
         
         // Ако няма подаден клас или документ връщаме
-        if (!$classId || !$docId) return $resArr;
+        if (!$classId || !$docId) {
+            
+            return $resArr;
+        }
         
         // Вземаме записитеи за класа и документа
         $query = static::getQuery();
@@ -351,10 +362,10 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Добавяме посочения номер в модела като вътрешен
-     * 
+     *
      * @param array $numbers - Масив с номерата, които ще добавяме - tel, fax, mobile
-     * @param int $classId - id на класа
-     * @param int $docId - id на документа
+     * @param int   $classId - id на класа
+     * @param int   $docId   - id на документа
      */
     public static function addInternalNumbers($numbers, $classId, $docId)
     {
@@ -362,8 +373,8 @@ class callcenter_Numbers extends core_Manager
         $numberArr = arr::make($numbers);
         
         // Обхождаме номерата
-        foreach ((array)$numberArr as $num) {
-                    
+        foreach ((array) $numberArr as $num) {
+            
             // Създаваме записа
             $nRec = new stdClass();
             $nRec->number = $num;
@@ -372,15 +383,12 @@ class callcenter_Numbers extends core_Manager
             $nRec->contragentId = $docId;
             
             // Записваме, ако няма такъв запис
-            static::save($nRec, NULL, 'IGNORE');
+            static::save($nRec, null, 'IGNORE');
         }
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Поле за търсене по номера
         $data->listFilter->FNC('numberSearch', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
@@ -393,14 +401,14 @@ class callcenter_Numbers extends core_Manager
         
         $data->listFilter->fields['type']->type->options += array('' => '');
         
-        // Показваме само това поле. Иначе и другите полета 
+        // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'numberSearch, type';
         
         $data->listFilter->input('numberSearch, type', 'silent');
         
         // Ако има филтър
-        if($filter = $data->listFilter->rec) {
+        if ($filter = $data->listFilter->rec) {
             
             // Ако се търси по номера
             if ($number = $filter->numberSearch) {
@@ -419,20 +427,14 @@ class callcenter_Numbers extends core_Manager
     }
     
     
-	/**
-     * 
-     */
-    function on_AfterSave($mvc, $id, $rec)
+    public function on_AfterSave($mvc, $id, $rec)
     {
         // Добавяме id' тата на записаните данни
         $mvc->savedItems[$rec->id] = $rec->id;
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterDelete($mvc, &$res, $query)
+    public static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->deletedItems[$rec->id] = $rec;
@@ -440,16 +442,16 @@ class callcenter_Numbers extends core_Manager
     }
     
     
-	/**
+    /**
      * При спиране на скрипта
      */
-    function on_Shutdown($mvc)
+    public function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
-        if(count((array)$mvc->savedItems)) {
+        if (count((array) $mvc->savedItems)) {
             
             // Обхождаме масива
-            foreach ((array)$mvc->savedItems as $id) {
+            foreach ((array) $mvc->savedItems as $id) {
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($id);
@@ -473,10 +475,10 @@ class callcenter_Numbers extends core_Manager
         }
         
         // Ако имаме изтрити номера
-        if(count((array)$mvc->deletedItems)) {
+        if (count((array) $mvc->deletedItems)) {
             
             // Обхождаме масива
-            foreach ((array)$mvc->deletedItems as $id => $rec) {
+            foreach ((array) $mvc->deletedItems as $id => $rec) {
                 
                 // Ако е вътрешен
                 if ($rec->type == 'internal') {
@@ -500,14 +502,14 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Връща масив със записите за номерата
-     * 
+     *
      * @param string $number - Номера
-     * @param string $type - Типа на номера - tel, mobile, fax, internal
-     * @param boolean $all - Дали да се върнат всичките или само последния
-     * 
+     * @param string $type   - Типа на номера - tel, mobile, fax, internal
+     * @param bool   $all    - Дали да се върнат всичките или само последния
+     *
      * @return array - Масив с запсите
      */
-    static function getRecForNum($number, $type=FALSE, $all=FALSE)
+    public static function getRecForNum($number, $type = false, $all = false)
     {
         // Резултата, който ще връщаме
         $res = array();
@@ -545,10 +547,7 @@ class callcenter_Numbers extends core_Manager
     }
     
     
-    /**
-     * 
-     */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('add')) {
             // Променяме името на бутоно
@@ -557,11 +556,11 @@ class callcenter_Numbers extends core_Manager
     }
     
     
-	/**
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -579,24 +578,24 @@ class callcenter_Numbers extends core_Manager
             $form->setDefault('userId', $userId);
         }
     }
-
-
+    
+    
     /**
      * След подготовката на заглавието на формата
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	// Добавяме титлата на формата
-    	if (!$data->form->rec->id) {
-    		$data->form->title = "Добавяне на вътрешен номер";
-    	}
+        // Добавяме титлата на формата
+        if (!$data->form->rec->id) {
+            $data->form->title = 'Добавяне на вътрешен номер';
+        }
     }
     
     
-	/**
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -638,16 +637,16 @@ class callcenter_Numbers extends core_Manager
     }
     
     
-	/**
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако ще добаме, променяме или изтриваме запис
         if ($rec && ($action == 'add' || $action == 'edit' || $action == 'delete')) {
@@ -664,12 +663,12 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Връща масив с id' та на потребители, които използват този номер
-     * 
-     * @param integer $num - Вътрешен номер
-     * 
+     *
+     * @param int $num - Вътрешен номер
+     *
      * @return array $userArr - Масив с id' та на потребители, които използват този номер
      */
-    static function getUserForNum($num)
+    public static function getUserForNum($num)
     {
         // id на профилите
         $profileId = core_Classes::getId('crm_Profiles');
@@ -686,7 +685,9 @@ class callcenter_Numbers extends core_Manager
         while ($rec = $query->fetch()) {
             
             // Ако няма контрагент, продължаваме
-            if (!$rec->contragentId) continue ;
+            if (!$rec->contragentId) {
+                continue ;
+            }
             
             // Вземаме id' то на потребителя
             $userId = crm_Profiles::fetchField($rec->contragentId, 'userId');
@@ -701,9 +702,9 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Връща записа за номера
-     * 
-     * @param integer $num - Вътрешен номер
-     * 
+     *
+     * @param int $num - Вътрешен номер
+     *
      * @return FALSE|stdClass
      */
     public static function getRecForInternalNum($num)
@@ -719,35 +720,47 @@ class callcenter_Numbers extends core_Manager
     
     /**
      * Дали може да се използва хоста за подадения номер
-     * 
-     * @param integer $num
-     * 
-     * @return boolean
+     *
+     * @param int $num
+     *
+     * @return bool
      */
     public static function canUseHostForNum($num)
     {
-        if (!$num) return FALSE;
+        if (!$num) {
+            
+            return false;
+        }
         
         $rec = self::getRecForInternalNum($num);
         
-        if (!$rec) return FALSE;
+        if (!$rec) {
+            
+            return false;
+        }
         
-        if (!$rec->host) return FALSE;
+        if (!$rec->host) {
+            
+            return false;
+        }
         
-        if (!callcenter_Hosts::haveRightFor('use', $rec->host)) return FALSE;
+        if (!callcenter_Hosts::haveRightFor('use', $rec->host)) {
+            
+            return false;
+        }
         
-        return TRUE;
+        return true;
     }
     
     
     /**
      * Връща вътрешните номера за подадените потребители
-     * 
+     *
      * @param array $usersArr - Масив с потребители
-     * 
+     *
      * @return array $numbersArr - Масив с номерата
      */
-    static function getInternalNumbersForUsers($usersArr=NULL)
+    public static function getInternalNumbersForUsers($usersArr = null)
     {
         // Ако не са подадени потребители
         if (!$usersArr) {
@@ -782,7 +795,7 @@ class callcenter_Numbers extends core_Manager
         $numbersArr = array();
         
         // Обхождаме резултата
-        while($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
             // Добавяме в масива
             $numbersArr[$rec->id] = $rec->number;
@@ -795,7 +808,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Обновява номерата за потребителите от указателя
      */
-    function act_Update()
+    public function act_Update()
     {
         // Изискваме да има роля admin
         requireRole('admin');
@@ -803,13 +816,13 @@ class callcenter_Numbers extends core_Manager
         // Вземаме всички записи за потребителите
         $Person = cls::get('crm_Persons');
         $pQuery = $Person->getQuery();
-        $pQuery->where("1=1");
+        $pQuery->where('1=1');
         
         // Обхождаме резултатите
         while ($pRec = $pQuery->fetch()) {
             
             // Обновяваме
-            $pRecArr = (array)$Person->updateNumbers($pRec);
+            $pRecArr = (array) $Person->updateNumbers($pRec);
             
             // Броя на записаните номера
             $savedNums += $pRecArr['saved'];
@@ -821,13 +834,13 @@ class callcenter_Numbers extends core_Manager
         // Вземаме всички записи за фирмите
         $Company = cls::get('crm_Companies');
         $cQuery = $Company->getQuery();
-        $cQuery->where("1=1");
+        $cQuery->where('1=1');
         
         // Обхождаме резултатите
         while ($cRec = $cQuery->fetch()) {
             
             // Обновяваме
-            $cRecArr = (array)$Company->updateNumbers($cRec);
+            $cRecArr = (array) $Company->updateNumbers($cRec);
             
             // Броя на записаните номера
             $savedNums += $cRecArr['saved'];
@@ -838,7 +851,6 @@ class callcenter_Numbers extends core_Manager
         
         // Ако има записани номера, добавяме съответния текст в резултата
         if ($savedNums) {
-            
             if ($savedNums == 1) {
                 $res = "|Добавен e|* {$savedNums} |номер";
             } else {

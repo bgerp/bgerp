@@ -1,140 +1,140 @@
 <?php
 
 
-
 /**
  * Валутите
  *
  *
  * @category  bgerp
  * @package   currency
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
-class currency_Currencies extends core_Master {
-    
-    
+class currency_Currencies extends core_Master
+{
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf, acc_RegistryDefaultCostIntf';
+    public $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf, acc_RegistryDefaultCostIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, currency_Wrapper, acc_plg_Registry,
+    public $loadList = 'plg_Created, plg_RowTools2, currency_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_State2';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'currency/tpl/SingleLayoutCurrency.shtml';
+    public $singleLayoutFile = 'currency/tpl/SingleLayoutCurrency.shtml';
     
-
+    
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Валута";
-
-
+    public $singleTitle = 'Валута';
+    
+    
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/zone_money.png';
+    public $singleIcon = 'img/16/zone_money.png';
     
-
+    
     /**
      * Кой може да изтрива
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo,admin,cash,bank,currency,acc';
+    public $canRead = 'ceo,admin,cash,bank,currency,acc';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'ceo,currency';
+    public $canAdd = 'ceo,currency';
     
     
     /**
      * Кой може да редактира системните данни
      */
-    var $canEditsysdata = 'ceo,currency,admin';
+    public $canEditsysdata = 'ceo,currency,admin';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'ceo,currency,admin';
+    public $canEdit = 'ceo,currency,admin';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'powerUser';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,currency,powerUser';
-	
-	
-	/**
-	 * Кой може да променя състоянието на валутата
-	 */
-    var $canChangestate = 'ceo,currency,admin';
+     * Кой може да го разглежда?
+     */
+    public $canList = 'powerUser';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,currency,powerUser';
+    
+    
+    /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'ceo,currency,admin';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Списък с всички валути';
+    public $title = 'Списък с всички валути';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "name, code, lastUpdate, lastRate, state";
+    public $listFields = 'name, code, lastUpdate, lastRate, state';
     
     
     /**
      * Полето "name" да е хипервръзка към единичния изглед
      */
-    var $rowToolsSingleField = 'name';
-
-
+    public $rowToolsSingleField = 'name';
+    
+    
     /**
      * Полетата, които ще се показват в единичния изглед
      */
-    var $singleFields = 'name, code, lastUpdate, lastRate, groups';
+    public $singleFields = 'name, code, lastUpdate, lastRate, groups';
     
     
     /**
      * Детайли на модела
      */
-    var $details = "currency_CurrencyRates";
+    public $details = 'currency_CurrencyRates';
     
     
     /**
      * В коя номенклатура да се добави при активиране
      */
-    var $addToListOnActivation = 'currencies';
+    public $addToListOnActivation = 'currencies';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Наименование,mandatory');
         $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,smartCenter');
@@ -143,32 +143,34 @@ class currency_Currencies extends core_Master {
         
         $this->setDbUnique('code');
     }
-
-
+    
+    
     /**
      * Връща id-то на валутата с посочения трибуквен ISO код
-     * 
+     *
      * @param string $code трибуквен ISO код
+     *
      * @return int key(mvc=currency_Currencies)
      */
     public static function getIdByCode($code)
     {
         expect($id = self::fetchField(array("#code = '[#1#]'", $code), 'id'));
-		
+        
         return $id;
     }
     
     
     /**
      * Връща кода на валутата по зададено id
-     *  
+     *
      * @param int $id key(mvc=currency_Currencies)
+     *
      * @return string $code - трибуквен ISO код на валутата
      */
     public static function getCodeById($id)
     {
         expect($code = self::fetchField($id, 'code'));
-
+        
         return $code;
     }
     
@@ -185,24 +187,23 @@ class currency_Currencies extends core_Master {
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($groupId = Request::get('groupId', 'int')) {
-            
             $groupRec = $mvc->CurrencyGroups->fetch($groupId);
             
             // Полето 'groups' е keylist и затова имаме LIKE
             $data->query->where("#groups LIKE '%|{$groupId}|%'");
             
             // Сменяме заглавието
-            $data->title = 'Валути в група "|*' . $groupRec->name . "\"";
+            $data->title = 'Валути в група "|*' . $groupRec->name . '"';
         }
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param currency_Currencies $mvc
-     * @param object $data
-     * @param object $data
+     * @param object              $data
+     * @param object              $data
      */
     public static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
@@ -210,10 +211,15 @@ class currency_Currencies extends core_Master {
         
         $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", $accConf->BASE_CURRENCY_CODE), 'lastRate');
         
-        if (!$bgnRate) return ;
+        if (!$bgnRate) {
+            
+            return ;
+        }
         
-        foreach ((array)$data->recs as $rec) {
-            if (!$rec->lastRate) continue;
+        foreach ((array) $data->recs as $rec) {
+            if (!$rec->lastRate) {
+                continue;
+            }
             
             $rec->lastRate = $bgnRate / $rec->lastRate;
         }
@@ -225,7 +231,7 @@ class currency_Currencies extends core_Master {
      */
     public static function on_BeforeRenderDetails($mvc, $res, &$data)
     {
-    	return FALSE;
+        return false;
     }
     
     
@@ -240,7 +246,7 @@ class currency_Currencies extends core_Master {
     {
         $data->toolbar->removeBtn('btnAdd');
         
-        $data->toolbar->addBtn('Нова валута', array($mvc, 'Add', 'groupId' => Request::get('groupId', 'int')), NULL, 'title=Създаване на нова валута');
+        $data->toolbar->addBtn('Нова валута', array($mvc, 'Add', 'groupId' => Request::get('groupId', 'int')), null, 'title=Създаване на нова валута');
     }
     
     
@@ -259,23 +265,22 @@ class currency_Currencies extends core_Master {
     }
     
     
-	/**
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData()
     {
-    	$file = "currency/csv/Currencies.csv";
-    	$fields = array( 
-	    	0 => "name", 
-	    	1 => "csv_code", 
-	    	2 => "state",);
-    	
-    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
-    	$res = $cntObj->html;
-    	
-    	return $res;
+        $file = 'currency/csv/Currencies.csv';
+        $fields = array(
+            0 => 'name',
+            1 => 'csv_code',
+            2 => 'state',);
+        
+        $cntObj = csv_Lib::importOnce($this, $file, $fields);
+        $res = $cntObj->html;
+        
+        return $res;
     }
-    
     
     
     /**
@@ -283,54 +288,56 @@ class currency_Currencies extends core_Master {
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
-    	if(isset($rec->csv_code) && strlen($rec->csv_code) != 0){
-    		
-    		// Ако данните идват от csv файл
-    		$rec->code = $rec->csv_code;
-    		
-    		if(!$rec->id){
-    			$rec->lastUpdate = dt::verbal2mysql();
-    		}
-    		
-    		if($rec->code == 'EUR') {
-               $rec->lastRate = 1;
+        if (isset($rec->csv_code) && strlen($rec->csv_code) != 0) {
+            
+            // Ако данните идват от csv файл
+            $rec->code = $rec->csv_code;
+            
+            if (!$rec->id) {
+                $rec->lastUpdate = dt::verbal2mysql();
             }
-    	}
+            
+            if ($rec->code == 'EUR') {
+                $rec->lastRate = 1;
+            }
+        }
     }
     
     
     /**
      * Функция за закръгляне на валута, която
      * трябва да се използва във всички бизнес документи за показване на суми
-     * @param double $amount - сума
-     * @param string(3) $code -трибуквен код на валута
+     *
+     * @param float     $amount - сума
+     * @param string(3) $code   -трибуквен код на валута
      */
-    public static function round($amount, $code = NULL)
+    public static function round($amount, $code = null)
     {
-    	// Мокъп имплементация
-    	//@TODO да не е мокъп
-    	return round($amount, 2);
+        // Мокъп имплементация
+        //@TODO да не е мокъп
+        return round($amount, 2);
     }
     
     
     /*******************************************************************************************
-     * 
+     *
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
+     *
      ******************************************************************************************/
     
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
+     *
      * @param int $objectId
      */
     public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
-        $result = NULL;
+        $result = null;
         
         if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
+            $result = (object) array(
                 'num' => $rec->code,
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
@@ -343,6 +350,7 @@ class currency_Currencies extends core_Master {
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
+     *
      * @param int $objectId
      */
     public static function itemInUse($objectId)
@@ -354,19 +362,22 @@ class currency_Currencies extends core_Master {
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-
+    
     
     /**
-     * Връща дефолтната цена отговаряща на количеството
+     * Връща дефолтната единична цена отговаряща на количеството
      *
      * @param mixed $id - ид/запис на обекта
+     * @param double $quantity - За какво количество
+     * 
+     * @return double|NULL - дефолтната единична цена
      */
-    public function getDefaultCost($id)
+    public function getDefaultCost($id, $quantity)
     {
-    	$today = dt::now();
-    	$code = static::getCodeById($id);
-    	$toCode = acc_Periods::getBaseCurrencyCode($today);
-    	
-    	return currency_CurrencyRates::getRate($today, $code, $toCode);
+        $today = dt::now();
+        $code = static::getCodeById($id);
+        $toCode = acc_Periods::getBaseCurrencyCode($today);
+        
+        return currency_CurrencyRates::getRate($today, $code, $toCode);
     }
 }

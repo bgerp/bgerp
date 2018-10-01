@@ -4,8 +4,6 @@ function copyValToPlaceholder()
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		$placeholder = $(this).val();
-		console.log($placeholder);
-		if(!$placeholder) return;
 		
 		var element = $("input[name="+ changeVal +"]");
 		if (element.length <= 0) return;
@@ -13,11 +11,12 @@ function copyValToPlaceholder()
 		element.attr("placeholder", $placeholder);
 	});
 	
+	$('select[name=deliveryCountry]').trigger('change');
+	
 	$('select[name=deliveryCountry]').bind('change', function() {
 		var changeVal = $(this).attr("data-updateonchange");
 		
 		var $placeholder = $('select[name=deliveryCountry] option:selected').text();
-		if(!$placeholder) return;
 		
 		var element = $("select[name="+ changeVal +"");
 		if (element.length <= 0) return;
@@ -26,12 +25,29 @@ function copyValToPlaceholder()
 		element.select2();
 	});
 	
-	$('select[name=deliveryCountry]').trigger('change');
 	$('.updateonchange').trigger('keyup');
+}
+
+/**
+ * Динамична ширина на полето за количество
+ */
+function changeInputWidth()
+{
+	$('.option-quantity-input').each(function () {
+		$(this).css( "width", 12 + $(this).val().length * 10);
+	});
+}
+
+
+function render_changeInputWidth()
+{
+	changeInputWidth();
 }
 
 
 function eshopActions() {
+
+	changeInputWidth();
 
 	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
@@ -76,7 +92,7 @@ function eshopActions() {
 	});
 	
 	// Време за изчакване
-	var timeout1;
+	var timeout1 = [];
 	
 	// Ъпдейт на кошницата след промяна на к-то
 	$(document.body).on('keyup', ".option-quantity-input", function(e){
@@ -93,15 +109,17 @@ function eshopActions() {
 			$(this).addClass('inputError');
 		} else {
 			$(this).removeClass('inputError');
+			changeInputWidth();
 			var url = $(this).attr("data-url");
 		    if(!url) return;
 		    var data = {packQuantity:packQuantity};
 		    
 		    // След всяко натискане на бутон изчистваме времето на изчакване
-			clearTimeout(timeout1);
-			
+			var idProd = $(this).attr('name');
+			clearTimeout(timeout1[idProd]);
+
 			// Правим Ajax заявката като изтече време за изчакване
-			timeout1 = setTimeout(function(){
+			timeout1[idProd] = setTimeout(function(){
 				resObj = new Object();
 				resObj['url'] = url;
 				getEfae().process(resObj, data);
@@ -115,7 +133,7 @@ function eshopActions() {
 		
 		var packQuantity = $(this).val();
 		
-		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 1)){
+		if(packQuantity && (!$.isNumeric(packQuantity) || packQuantity < 0)){
 			$(this).addClass('inputError');
 		}
 	});
@@ -128,23 +146,35 @@ function eshopActions() {
 		
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
+		var valNew = parseFloat(val) + parseFloat(step);
 		
-		if (val + step > 0 && (!max || step == -1 || (max && val + step <= max))) {
-			$(input).val(val + step);
+		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			
-			if(max && val >= max) return;
+			val = valNew.toString();
+			valNew.toFixed(2);
+			
+			$(input).val(valNew);
+			$(input).css( "color", "green");
+			changeInputWidth();
+            $("#cart-view-table").css("cursor", "progress");
+			if(max > 0 && val >= max) return;
 		}
 
 		// Ръчно инвоукване на ивент на инпут полето
 		input.keyup();
 	});
-	
-	
-	
 
-	$('.eshop-product .eshop-btn').on('click', function () {
+
+
+
+	$('.eshop-btn').on('click', function () {
+		if($('.eshop-product-option').hasClass('inputError')) return;
 		var cart = $('.logoutBlock #cart-external-status');
-		var imgtodrag = $('.eshop-product-images').find("img").eq(0);
+		if($('.eshop-product-list').length) {
+			var imgtodrag = $(this).closest('.eshop-product-list').find('.eshop-product-image');
+		} else {
+			var imgtodrag = $('.product-image').eq(0);
+		}
 		if (imgtodrag) {
 			var imgclone = imgtodrag.clone()
 				.offset({

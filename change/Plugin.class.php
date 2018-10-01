@@ -6,18 +6,18 @@
  *
  * @category  vendors
  * @package   change
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class change_Plugin extends core_Plugin
 {
-    
-	
-	/**
+    /**
      * След дефиниране на полетата на модела
-     * 
+     *
      * @param core_Mvc $mvc
      */
     public static function on_AfterDescription(core_Mvc $mvc)
@@ -45,17 +45,17 @@ class change_Plugin extends core_Plugin
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @return array
      */
-    public static function getDateAndVersionRow($inOne = TRUE)
+    public static function getDateAndVersionRow($inOne = true)
     {
         if ($inOne) {
-            $rowRes = array('versionAndDate' => array('name' => tr("Версия"), 'val' => "<!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#][#LastVersion#]/[#LastVersionDate#]<!--ET_END REMOVE_BLOCK--><!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_BEGIN FirstSelectedVersionDate-->/[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]/<!--ET_END LastSelectedVersion--><!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END REMOVE_BLOCK-->"));
+            $rowRes = array('versionAndDate' => array('name' => tr('Версия'), 'val' => '<!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#][#LastVersion#]/[#LastVersionDate#]<!--ET_END REMOVE_BLOCK--><!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_BEGIN FirstSelectedVersionDate-->/[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]/<!--ET_END LastSelectedVersion--><!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END REMOVE_BLOCK-->'));
         } else {
-            $rowRes = array('date' => array('name' => tr("Дата"), 'val' => "[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersionDate--> / [#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END DATE_REMOVE-->"),
-            				   'version' => array('name' => tr("Версия"), 'val' =>"[#LastVersion#]<!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_END FirstSelectedVersion--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]<!--ET_END LastSelectedVersion--><!--ET_END VERSIONREMOVE-->"));
+            $rowRes = array('date' => array('name' => tr('Дата'), 'val' => '[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersionDate--> / [#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END DATE_REMOVE-->'),
+                'version' => array('name' => tr('Версия'), 'val' => '[#LastVersion#]<!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_END FirstSelectedVersion--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]<!--ET_END LastSelectedVersion--><!--ET_END VERSIONREMOVE-->'));
         }
         
         return $rowRes;
@@ -77,24 +77,24 @@ class change_Plugin extends core_Plugin
             );
             
             // Добавяме бутона за промяна
-            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'changeBtn' . $data->rec->id,'order'=>'19', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа', 'row' => 2));    
+            $data->toolbar->addBtn('Промяна', $changeUrl, array('id' => 'changeBtn' . $data->rec->id,'order' => '19', 'ef_icon' => 'img/16/to_do_list.png', 'title' => 'Промяна на документа', 'row' => 2));
         }
     }
     
     
-	/**
-     *  
-     */
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         // Ако екшъна не е changefields, да не се изпълнява
-        if (strtolower($action) != 'changefields') return ;
+        if (strtolower($action) != 'changefields') {
+            
+            return ;
+        }
         
         // Ако има права за промяна
         $mvc->requireRightFor('changerec');
         
         $data = new stdClass();
-
+        
         $data->action = 'changefields';
         
         // Създаване и подготвяне на формата
@@ -152,14 +152,14 @@ class change_Plugin extends core_Plugin
         $mvc->requireRightFor('changerec', $fRec);
         
         // Проверка дали входните данни са уникални
-        if($fRec) { 
-            if($form->isSubmitted() && !$mvc->isUnique($fRec, $fields)) {
-                $form->setError($fields, "Вече съществува запис със същите данни");
+        if ($fRec) {
+            if ($form->isSubmitted() && !$mvc->isUnique($fRec, $fields)) {
+                $form->setError($fields, 'Вече съществува запис със същите данни');
             }
         }
-
+        
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
-        $form->rec->__isBeingChanged = TRUE;
+        $form->rec->__isBeingChanged = true;
         $mvc->invoke('AfterInputEditForm', array($form));
         
         // URL' то където ще се редиректва
@@ -175,8 +175,7 @@ class change_Plugin extends core_Plugin
         $versionArr = change_Log::getFirstAndLastVersion($classId, $rec->id);
         
         // Ако формата е изпратена без грешки
-        if($form->isSubmitted()) {
-        	
+        if ($form->isSubmitted()) {
             if (is_null($rec->version) && is_null($rec->subVersion)) {
                 $rec->version = 0;
                 $rec->subVersion = 1;
@@ -190,10 +189,10 @@ class change_Plugin extends core_Plugin
             }
             
             // Ако сме променили версията
-            if ((string)$fRec->version != (string)$rec->version) {
+            if ((string) $fRec->version != (string) $rec->version) {
                 
                 // Нулираме флага
-                $fRec->__noChange = FALSE;
+                $fRec->__noChange = false;
                 
                 // Подверсията
                 $subVersion = 0;
@@ -222,7 +221,7 @@ class change_Plugin extends core_Plugin
                 
                 // Увеличаваме подверсията
                 $subVersion++;
-            
+                
                 // Добавяме подверсията
                 $fRec->subVersion = $subVersion;
                 
@@ -230,8 +229,8 @@ class change_Plugin extends core_Plugin
                 $mvc->invoke('AfterInputChanges', array($rec, $fRec));
                 
                 // Нулираме ги за да се променят
-                $fRec->changeModifiedBy = NULL;
-                $fRec->changeModifiedOn = NULL;
+                $fRec->changeModifiedBy = null;
+                $fRec->changeModifiedOn = null;
                 
                 // Записваме промени
                 $mvc->save($fRec);
@@ -260,7 +259,7 @@ class change_Plugin extends core_Plugin
                 
                 // Ако има първа версия
                 if ($versionArr['first']) {
-
+                    
                     // Версията, която ще използваме е първата
                     $versionKey = $versionArr['first'];
                 }
@@ -274,10 +273,12 @@ class change_Plugin extends core_Plugin
             $gRecArr = change_Log::getRecForVersion($classId, $rec->id, $versionKey, $fieldsArrLogSave);
             
             // Обхождаме масива
-            foreach ((array)$gRecArr as $field => $gRec) {
+            foreach ((array) $gRecArr as $field => $gRec) {
                 
                 // Ако няма запис - прескачаме
-                if (!$gRec) continue;
+                if (!$gRec) {
+                    continue;
+                }
                 
                 // Добавяме полето към записа
                 $vRec->$field = $gRec->value;
@@ -290,7 +291,7 @@ class change_Plugin extends core_Plugin
             if ($versionKey) {
                 
                 // Обхождаме стария запис
-                foreach ((array)$fieldsArrShow as $field) {
+                foreach ((array) $fieldsArrShow as $field) {
                     
                     // Добавяме старта стойност
                     $form->rec->$field = $vRec->$field;
@@ -322,14 +323,15 @@ class change_Plugin extends core_Plugin
                     $form->title .= " на|*: <i>{$title}</i>";
                 }
             }
-        } catch (core_exception_Expect $e) {}
+        } catch (core_exception_Expect $e) {
+        }
         
         // Ако има избрана версия
         if ($versionKey) {
             
             // Вземаме стринга
             $versionStr = change_Log::getVersionStrFromKey($mvc, $versionKey);
-                
+            
             // Към заглавието добавяме вербалното представяне на версията
             $form->title .= "|* <b style='color:red;'>{$versionStr}</b>";
         }
@@ -337,13 +339,10 @@ class change_Plugin extends core_Plugin
         // Рендираме изгледа
         $tpl = $mvc->renderWrapping($form->renderHtml());
         
-        return FALSE;
+        return false;
     }
     
     
-    /**
-     * 
-     */
     public static function on_AfterPrepareSingle($mvc, $res, $data)
     {
         if (!isset($res)) {
@@ -363,13 +362,12 @@ class change_Plugin extends core_Plugin
         $form = $mvc->getForm();
         
         // Вземаме всички полета, които могат да се променят
-        $allowedFieldsArr = (array)static::getAllowedFields($form, $mvc->changableFields);
+        $allowedFieldsArr = (array) static::getAllowedFields($form, $mvc->changableFields);
         
         if ($selVerArr['first'] != $lastVersion) {
             
             // Ако има избрана версия
             if ($selVerArr['first']) {
-                
                 $lastArr = array();
                 
                 // Вземаме стойността за съответното поле, за първата версия
@@ -395,11 +393,10 @@ class change_Plugin extends core_Plugin
                         // Вземаме стойността за съответното поле, за последната версия
                         $lastArr = change_Log::getVerbalValue($classId, $res->rec->id, $selVerArr['last'], $allowedFieldsArr);
                     }
-                    
                 } else {
                     
                     // Флаг, който посочва, че няма последна версия
-                    $noLast = TRUE;
+                    $noLast = true;
                 }
                 
                 // Обхождаме всички позволени версии
@@ -424,7 +421,7 @@ class change_Plugin extends core_Plugin
                         // Добавяме pending полетата от новия запис
                         if ($first instanceof core_Et) {
                             $newFieldVal = new ET($newFieldVal);
-                            foreach ((array)$first->pending as $pending) {
+                            foreach ((array) $first->pending as $pending) {
                                 $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
                             }
                         }
@@ -432,7 +429,7 @@ class change_Plugin extends core_Plugin
                         // Добавяме pending полетата от стария запис
                         if ($last instanceof core_Et) {
                             $newFieldVal = new ET($newFieldVal);
-                            foreach ((array)$last->pending as $pending) {
+                            foreach ((array) $last->pending as $pending) {
                                 $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
                             }
                         }
@@ -446,7 +443,7 @@ class change_Plugin extends core_Plugin
         // Вербално представяне на избраните версии
         $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first']);
         $lastVerDocArr = change_Log::getVersionAndDateFromKey($mvc, $lastVersion);
-        $isLastVer = (boolean)($lastVersionStr && ($selVerArr['last'] == $lastVersion));
+        $isLastVer = (boolean) ($lastVersionStr && ($selVerArr['last'] == $lastVersion));
         
         if (!$isLastVer) {
             $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
@@ -459,7 +456,6 @@ class change_Plugin extends core_Plugin
         
         // Ако се сравняват две версии от един и същи ден, да се показва и датата
         if ($lastCreatedOn) {
-            
             $lastCreatedOnDate = dt::mysql2verbal($lastCreatedOn, $dateMask);
             $firstCreatedOnDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
             
@@ -522,18 +518,18 @@ class change_Plugin extends core_Plugin
     
     /**
      * Връща масив с всички полета, които ще се променят
-     * 
+     *
      * @param core_Form $form
-     * 
+     *
      * return array $allowedFieldsArr
      */
-    static function getAllowedFields($form, $changableFields=array())
+    public static function getAllowedFields($form, $changableFields = array())
     {
         // Масива, който ще връщаме
         $allowedFieldsArr = array();
         
         // Преобразуваме в масив
-        $changableFieldsArr = arr::make($changableFields, TRUE);
+        $changableFieldsArr = arr::make($changableFields, true);
         
         // Обхождаме всички полета
         foreach ($form->fields as $field => $filedClass) {
@@ -544,8 +540,8 @@ class change_Plugin extends core_Plugin
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
-
-            if($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
+            
+            if ($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
                 unset($allowedFieldsArr[$field]);
             }
         }
@@ -554,10 +550,10 @@ class change_Plugin extends core_Plugin
     }
     
     
-	/**
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
+     *
+     * @param core_Mvc  $mvc
      * @param core_Form $form
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -575,13 +571,13 @@ class change_Plugin extends core_Plugin
                 $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
                 
                 // Обхождаме полетта
-                foreach ((array)$allowedFieldsArr as $field) {
+                foreach ((array) $allowedFieldsArr as $field) {
                     
                     // Ако има променя
                     if ($form->rec->$field != $rec->$field) {
                         
                         // Вдигаме флага
-                        $haveChange = TRUE;
+                        $haveChange = true;
                     }
                 }
                 
@@ -589,14 +585,13 @@ class change_Plugin extends core_Plugin
                 if (!$haveChange) {
                     
                     // Вдигаме флага
-                    $form->rec->__noChange = TRUE;
+                    $form->rec->__noChange = true;
                 }
             }
         }
         
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
-            
             if (!$form->rec->id) {
                 $form->rec->version = '0';
                 $form->rec->subVersion = 1;
@@ -608,37 +603,37 @@ class change_Plugin extends core_Plugin
     /**
      * Прихваща извикването на GetChangeLink.
      * Създава линк, който води до промяната на записа
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param core_Et $res
-     * @param integer $id
-     * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
+     * @param core_Et  $res
+     * @param int      $id
+     * @param string   $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
      */
-    public static function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
+    public static function on_AfterGetChangeLink(&$mvc, &$res, $id, $title = false)
     {
         // URL' то за промяна
         $changeUrl = $mvc->getChangeUrl($id);
-
+        
         $iconSize = 16;
-        if(log_Browsers::isRetina()) {
+        if (log_Browsers::isRetina()) {
             $iconSize = 32;
         }
-
+        
         // Създаваме линк с загллавието
-        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/{$iconSize}/edit.png");
+        $res = ht::createLink($title, $changeUrl, null, "ef_icon=img/{$iconSize}/edit.png");
     }
     
     
     /**
      * Връща URL за промяна на полетата
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param array $res
-     * @param integer $id
+     * @param array    $res
+     * @param int      $id
      */
     public static function on_AfterGetChangeUrl(&$mvc, &$res, $id)
     {
-        $res = array($mvc, 'changeFields', $id, 'ret_url' => TRUE);
+        $res = array($mvc, 'changeFields', $id, 'ret_url' => true);
     }
     
     
@@ -646,73 +641,73 @@ class change_Plugin extends core_Plugin
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
+     * @param string   $requiredRoles
+     * @param string   $action
      * @param stdClass $rec
-     * @param int $userId
+     * @param int      $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($rec && $action == 'changerec') {
             if (($requiredRoles != 'no_one') && (!$mvc->canChangeRec($rec))) {
                 $requiredRoles = 'no_one';
-            } 
+            }
         }
     }
     
     
     /**
      * Проверява дали може да се променя записа в зависимост от състоянието на документа
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param boolean $res
-     * @param string $state
+     * @param bool     $res
+     * @param string   $state
      */
     public static function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
         // Чернова и затворени документи не могат да се променят
-        if ($res !== FALSE && (!in_array($rec->state, array('rejected', 'draft', 'pending')))) {
-            $res = TRUE;
-        } 
+        if ($res !== false && (!in_array($rec->state, array('rejected', 'draft', 'pending')))) {
+            $res = true;
+        }
     }
     
     
     /**
      * Преди записване при клониране
-     * 
+     *
      * @see plg_Clone
-     * 
+     *
      * @param core_Manager $mvc
-     * @param stdClass $rec
-     * @param stdClass $nRec
+     * @param stdClass     $rec
+     * @param stdClass     $nRec
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    public function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
         $nRec->version = 0;
         $nRec->subVersion = 1;
-        $nRec->changeModifiedOn = NULL;
-        $nRec->changeModifiedBy = NULL;
+        $nRec->changeModifiedOn = null;
+        $nRec->changeModifiedBy = null;
     }
     
     
     /**
      * Преди запис на документ
      *
-     * @param change_Log $mvc
-     * @param stdClass $res
-     * @param stdClass $rec
-     * @param NULL|string $fields
+     * @param change_Log      $mvc
+     * @param stdClass        $res
+     * @param stdClass        $rec
+     * @param NULL|string     $fields
      * @param stdClass|string $mode
      */
-    public static function on_BeforeSave($mvc, $res, $rec, &$fields = NULL, &$mode = NULL)
+    public static function on_BeforeSave($mvc, $res, $rec, &$fields = null, &$mode = null)
     {
         if ($fields) {
-            $fieldsArr = arr::make($fields, TRUE);
+            $fieldsArr = arr::make($fields, true);
             $mustHaveBy = isset($fieldsArr['changeModifiedBy']);
             $mustHaveOn = isset($fieldsArr['changeModifiedOn']);
         } else {
-            $mustHaveBy = TRUE;
-            $mustHaveOn = TRUE;
+            $mustHaveBy = true;
+            $mustHaveOn = true;
         }
         
         // Определяме кой е създал продажбата

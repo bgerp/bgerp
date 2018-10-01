@@ -234,14 +234,18 @@ function bulletinFormOpen()
  */
  function getForm()
 {
+    <!--ET_BEGIN logoUp-->var logoUp = [#logoUp#];<!--ET_END logoUp-->
+    <!--ET_BEGIN logoLeft-->var logoLeft = [#logoLeft#];<!--ET_END logoLeft-->
+    var formAction = [#formAction#];
+    
 	var form =  "<div class='bulletinHolder' style='display:none'>" +
 				"<div class='bulletinReg'>" +
 				"<a href='#' class='bulletinClose'>X</a>"+
 				"<div class='bulletinInner'>"+
-				"<!--ET_BEGIN logoUp--><div class = 'centered'><img class='logImg' src='[#logoUp#]' alt='Logo'></div><!--ET_END logoUp-->[#formTitle#]" +
-                "<!--ET_BEGIN formTitleRight--><div><!--ET_BEGIN logoLeft--><img class='logImgLeft' src='[#logoLeft#]' alt='Logo'><!--ET_END logoLeft-->[#formTitleRight#]</div><!--ET_END formTitleRight-->" +
+				"<!--ET_BEGIN logoUpD-->[#logoUpD#]<div class = 'centered'><img class='logImg' src='" + logoUp + "' alt='Logo'></div><!--ET_END logoUpD-->[#formTitle#]" +
+                "<!--ET_BEGIN formTitleRight--><div><!--ET_BEGIN logoLeftD-->[#logoLeftD#]<img class='logImgLeft' src='" + logoLeft + "' alt='Logo'><!--ET_END logoLeftD-->[#formTitleRight#]</div><!--ET_END formTitleRight-->" +
 				"<div class='clearfix21'></div>" +
-				"<form class='bulletinForm' id='bulletinForm' action='[#formAction#]'>" +
+				"<form class='bulletinForm' id='bulletinForm' action='" + formAction + "'>" +
                 "<div class='bulletinFields'>" +
 				"<div class='rowBulletin'><span>[#emailName#] ([#weSaveIt#]): </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
 				"<div class='bulletinError' id='emailError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
@@ -465,13 +469,14 @@ function checkForButton()
  */
 function loadCSS() {
 	var cssId = 'bulletinCss';
+	var cssUrl = [#CSS_URL#];
 	if (!document.getElementById(cssId)) {
 	    var head  = document.getElementsByTagName('head')[0];
 	    var link  = document.createElement('link');
 	    link.id   = cssId;
 	    link.rel  = 'stylesheet';
 	    link.type = 'text/css';
-	    link.href = '[#CSS_URL#]';
+	    link.href = cssUrl;
 	    link.media = 'all';
 	    head.appendChild(link);
 	}
@@ -485,17 +490,17 @@ function loadShowFormWindow()
 {
 	var formId = 'showFormWindow';
 	if (!document.getElementById(formId)) {
+	    var showFormUrl = [#showFormUrl#];
 	    var head  = document.getElementsByTagName('head')[0];
 	    var scriptTag = document.createElement('script');
 		scriptTag.setAttribute('id', formId);
-		scriptTag.setAttribute('src', '[#showFormUrl#]');
+		scriptTag.setAttribute('src', showFormUrl);
 		
 	    head.appendChild(scriptTag);
 	}
 }
 
  
-
 /**
  * След зареждане на JQuery стартираме функцията
  */
@@ -506,3 +511,37 @@ $(document).ready(function() {
 	var hash = location.hash.substr(1);
 	if(hash == 'ob') bulletinFormOpen();
 });
+
+
+/**
+ * Премахва или добавя `www.` в зависимост от текущото `url`
+ */
+function checkUrlHostName(url)
+{
+    var hostName = window.location.hostname;
+
+    if (hostName && url) {
+        
+        var cUrlHaveW = false;
+        if (hostName.toLowerCase().indexOf('www.') == 0) {
+            cUrlHaveW = true;
+        }
+        
+        var urlHaveW = false;
+        if (url.toLowerCase().indexOf('//www.') == 0) {
+            urlHaveW = true;
+        }
+        
+        if (urlHaveW != cUrlHaveW) {
+            if (!urlHaveW) {
+                url = url.substring(2);
+                url = '//www.'.concat(url)
+            } else {
+                url = url.substring(6);
+                url = '//'.concat(url)
+            }
+        }
+    }
+    
+    return url;
+}

@@ -1,33 +1,32 @@
 <?php
 
 
-
 /**
  * Клас 'core_BaseClass' - прототип за класове поддържащи събития и инициализиране
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_BaseClass
 {
-    
-    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList;
+    public $loadList;
     
     
     /**
      * Масив с плъгини, които ще работят съвместно с класа
      */
-    var $pluginsList;
+    public $pluginsList;
     
     
     /**
@@ -35,12 +34,12 @@ class core_BaseClass
      *
      * @var array
      */
-    var $invocableMethods = array();
-
+    public $invocableMethods = array();
+    
     
     /**
      * Списък от заредените инстанции на плъгини
-     * 
+     *
      * @var array
      */
     protected $_plugins = array();
@@ -48,7 +47,7 @@ class core_BaseClass
     
     /**
      * Списък от поддъраните от класа интерфейси
-     * 
+     *
      * @var string|array
      */
     public $interfaces;
@@ -59,19 +58,19 @@ class core_BaseClass
      */
     public $params = array();
     
-
+    
     /**
      * Кеш с обработвачите на събития в обекта
      */
     private $_listenerCache = array();
-
-
+    
+    
     /**
      * Конструктор. Дава възможност за инициализация
      */
-    function __construct($params = NULL)
+    public function __construct($params = null)
     {
-        if(isset($params)) {
+        if (isset($params)) {
             $this->init($params);
         }
     }
@@ -80,9 +79,9 @@ class core_BaseClass
     /**
      * Връща id-то на текущия клас, ако има такова
      */
-    static function getClassId()
+    public static function getClassId()
     {
-        return core_Classes::fetchField(array("#name = '[#1#]'" , get_called_class()), 'id');
+        return core_Classes::fetchField(array("#name = '[#1#]'", get_called_class()), 'id');
     }
     
     
@@ -91,7 +90,7 @@ class core_BaseClass
      * Параметрите се предават по следния начин:
      * $obj = cls::get($className, $params = array())
      */
-    function init($params = array())
+    public function init($params = array())
     {
         $params = arr::make($params);
         
@@ -108,20 +107,20 @@ class core_BaseClass
     /**
      * Зарежда само един клас, плъгин или MVC в полета-свойства на обекта
      *
-     * @param string $name име под което класът трябва да бъде зареден, ако е плъгин или mvc
+     * @param string $name  име под което класът трябва да бъде зареден, ако е плъгин или mvc
      * @param string $class името на класа
      */
-    function loadSingle($name, $class = '')
+    public function loadSingle($name, $class = '')
     {
         expect($name);
         
-        if(!$class) {
+        if (!$class) {
             $class = $name;
         }
-
+        
         $class = cls::getClassName($class);
         
-        // Ако е подклас на core_Mvc, записваме го като член на този клас 
+        // Ако е подклас на core_Mvc, записваме го като член на този клас
         if (!isset($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
             $this->{$name} = &cls::get($class);
         }
@@ -138,16 +137,16 @@ class core_BaseClass
             $this->_listenerCache = array();
         }
     }
-
-
+    
+    
     /**
      * Премахва посочения плъгин плъгин
      *
      * @param string $name Име на клас, съдържащ плъгина или името под което е регистриран
      */
-    function unloadPlugin($name)
+    public function unloadPlugin($name)
     {
-        if(isset($this->_plugins[$name])) {
+        if (isset($this->_plugins[$name])) {
             unset($this->_plugins[$name]);
             $this->_listenerCache = array();
         }
@@ -159,12 +158,12 @@ class core_BaseClass
      *
      * @param string|array $classesList списък с класове, които трябва да се заредят
      */
-    function load($classesList)
+    public function load($classesList)
     {
-        $classesList = arr::make($classesList, TRUE);
+        $classesList = arr::make($classesList, true);
         
         foreach ($classesList as $var => $class) {
-            // Зареждаме класа. Ако никое от по-долните не се 
+            // Зареждаме класа. Ако никое от по-долните не се
             // изпълни, най-малкото ще имаме зареден този клас
             $this->loadSingle($var, $class);
         }
@@ -174,23 +173,23 @@ class core_BaseClass
     /**
      * Генерира събитие с посоченото име и параметри
      *
-     * @param string    $event  име на събитието
-     * @param array     $args   аргументи на събитието
+     * @param string $event име на събитието
+     * @param array  $args  аргументи на събитието
+     *
      * @return mixed (TRUE, FALSE, -1)
-     * $status == -1 означава, че никой не е обработил това събитие
-     * $status == TRUE означава, че събитието е обработено нормално
-     * $status == FALSE означава, че събитието е обработено и
-     * се изисква спиране на последващите обработки
+     *               $status == -1 означава, че никой не е обработил това събитие
+     *               $status == TRUE означава, че събитието е обработено нормално
+     *               $status == FALSE означава, че събитието е обработено и
+     *               се изисква спиране на последващите обработки
      */
-    function invoke($event, $args = array())
+    public function invoke($event, $args = array())
     {
         $method = 'on_' . strtolower($event);
         
-         // Ако нямаме - генерираме кеша с обработвачите
-        if(!isset($this->_listenerCache[$method])) {
-            
+        // Ако нямаме - генерираме кеша с обработвачите
+        if (!isset($this->_listenerCache[$method])) {
             $this->_listenerCache[$method] = array();
-
+            
             // Проверяваме дали имаме плъгин(и), който да обработва това събитие
             if (count($this->_plugins)) {
                 $plugins = array_reverse($this->_plugins);
@@ -203,49 +202,48 @@ class core_BaseClass
             
             // Търсим обработвачите на събития по методите на този клас и предшествениците му
             $className = get_class($this);
-            $first = TRUE;
+            $first = true;
             do {
                 if (method_exists($className, $method)) {
                     $RM = new ReflectionMethod($className, $method);
-                    if($className == $RM->class) {
-                         $this->_listenerCache[$method][] = $first ? $this : $className;
+                    if ($className == $RM->class) {
+                        $this->_listenerCache[$method][] = $first ? $this : $className;
                     }
                 }
-                $first = FALSE;
+                $first = false;
                 $flag = strcasecmp($className = get_parent_class($className), __CLASS__);
             } while ($flag);
-
         }
         
         // Използваме кеша за извикаване на обработвачите
-        if(count($this->_listenerCache[$method])) {
-            
+        if (count($this->_listenerCache[$method])) {
             $args1 = array(&$this);
             $cntArgs = count($args);
             for ($i = 0; $i < $cntArgs; $i++) {
                 $args1[] = & $args[$i];
             }
-
-            foreach($this->_listenerCache[$method] as $subject) {
-                if(call_user_func_array(array($subject, $method),  $args1) === FALSE) return FALSE;
+            
+            foreach ($this->_listenerCache[$method] as $subject) {
+                if (call_user_func_array(array($subject, $method), $args1) === false) {
+                    
+                    return false;
+                }
             }
-
-            return TRUE;
+            
+            return true;
         }
-
+        
         return -1;
     }
-
-
-
+    
+    
     /**
      * Рутинна процедура, която се задейства, ако извиквания метод липсва
      * Методи, които съдържат в името си "_" ще бъдат извикани, ако без тази черта,
      * се получава точно името на търсения метод
      */
-    function __call($method, $args)
+    public function __call($method, $args)
     {
-        
         $argsHnd = array(&$res);
         $argsMtd = array();
         
@@ -255,26 +253,26 @@ class core_BaseClass
             $argsMtd[] = & $args[$i];
         }
         
+        
         /**
          *     $args:            $args[0] |   $args[1] | ... |   $args[n]
          *  $argsMtd:          & $args[0] | & $args[1] | ... | & $args[n]
          *  $argsHnd: & $res | & $args[0] | & $args[1] | ... | & $args[n]
          */
+        $beforeStatus = $this->invoke('Before' . $method, $argsHnd);
         
-        $beforeStatus = $this->invoke('Before' . $method,  $argsHnd);
-        
-        if ($beforeStatus !== FALSE) {
+        if ($beforeStatus !== false) {
             if (method_exists($this, $mtd = $method . '_')) {
-                $flag = TRUE;
-                $res = call_user_func_array(array(&$this, $mtd),  $argsMtd);
+                $flag = true;
+                $res = call_user_func_array(array(&$this, $mtd), $argsMtd);
             }
             
             $afterStatus = $this->invoke('After' . $method, $argsHnd);
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
-        if($beforeStatus === -1 && $afterStatus === -1 && !$flag) {
-            expect(FALSE, "Missing method " . cls::getClassName($this) . "::{$method}", $beforeStatus, $afterStatus, $mtd);
+        if ($beforeStatus === -1 && $afterStatus === -1 && !$flag) {
+            expect(false, 'Missing method ' . cls::getClassName($this) . "::{$method}", $beforeStatus, $afterStatus, $mtd);
         }
         
         return $res;
@@ -286,9 +284,11 @@ class core_BaseClass
      * Тази функция се използва за да се генерират събития beforeAction и afterAction
      * По този начин могат да бъдат прихванати извиквания на нови, непознати екшъни
      */
-    function action_($act)
+    public function action_($act)
     {
-        if (!$act) $act = 'default';
+        if (!$act) {
+            $act = 'default';
+        }
         
         $method = 'act_' . $act;
         
@@ -304,16 +304,18 @@ class core_BaseClass
     
     /**
      * Помощен метод за определяне дали класа поддържа зададен интерфейс.
-     * 
+     *
      * @param string $interface
-     * @return string|boolean
+     *
+     * @return string|bool
      */
     public function getInterface($interface)
     {
-        $this->interfaces = arr::make($this->interfaces, TRUE);
+        $this->interfaces = arr::make($this->interfaces, true);
         
         if (!isset($this->interfaces[$interface])) {
-            return FALSE;
+            
+            return false;
         }
         
         return $this->interfaces[$interface];
@@ -322,19 +324,20 @@ class core_BaseClass
     
     /**
      * Помощен метод за деклариране на нов интерфейс на класа
-     * 
+     *
      * Ако не е деклариран интерфейса, метода го добавя, иначе не прави нищо
-     * 
+     *
      * @param string $interface
      * @param string $implementationClass име на клас-имплементация
      */
-    public function declareInterface($interface, $implementationClass = NULL)
+    public function declareInterface($interface, $implementationClass = null)
     {
         if (!isset($implementationClass)) {
             $implementationClass = $interface;
         }
         
-        if ($this->getInterface($interface) !== FALSE) {
+        if ($this->getInterface($interface) !== false) {
+            
             return;
         }
         
@@ -344,40 +347,43 @@ class core_BaseClass
     
     /**
      * Връща масив от заредените инстанции на плъгини
+     *
      * @return array - масив от инстанции на плъгини
      */
     public function getPlugins()
     {
-    	return $this->_plugins;
+        return $this->_plugins;
     }
     
     
     /**
      * Дали класа има закачен плъгин
-     * 
+     *
      * @param string $name - име на плъгин за който проверяваме
-     * @return boolean
+     *
+     * @return bool
      */
     public function hasPlugin($name)
     {
-    	$res = isset($this->_plugins[$name]);
-    	
-    	return $res;
+        $res = isset($this->_plugins[$name]);
+        
+        return $res;
     }
-
-
+    
+    
     /**
      * Създава инстанция на себе си в посочената променлива
      */
     public static function createIfNotExists(&$var)
     {
         $me = get_called_class();
-
-        if(isset($var)) {
-            expect($var instanceOf $me, $var);
+        
+        if (isset($var)) {
+            expect($var instanceof $me, $var);
+            
             return;
         }
-
+        
         $var = cls::get($me);
     }
 }

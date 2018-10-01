@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
- * 
+ *
  *
  * @category  bgerp
  * @package   logs
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class log_Referer extends core_Master
 {
-    
-    
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -24,7 +23,7 @@ class log_Referer extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Реферери";
+    public $title = 'Реферери';
     
     
     /**
@@ -80,31 +79,37 @@ class log_Referer extends core_Master
      */
     public function description()
     {
-         $this->FLD('ipId', 'key(mvc=log_Ips, select=ip)', 'caption=IP');
-         $this->FLD('brId', 'key(mvc=log_Browsers, select=brid)', 'caption=Браузър');
-         $this->FLD('time', 'int', 'caption=Време');
-         $this->FLD('ref', 'text', 'caption=Реферер');
-         
-         $this->setDbUnique('ipId, brId, time');
+        $this->FLD('ipId', 'key(mvc=log_Ips, select=ip)', 'caption=IP');
+        $this->FLD('brId', 'key(mvc=log_Browsers, select=brid)', 'caption=Браузър');
+        $this->FLD('time', 'int', 'caption=Време');
+        $this->FLD('ref', 'text', 'caption=Реферер');
+        
+        $this->setDbUnique('ipId, brId, time');
     }
     
     
     /**
      * Добавя запис за реферер
-     * 
-     * @param integer $ipId
-     * @param integer $bridId
-     * @param integer $time
-     * 
-     * @return NULL|integer
+     *
+     * @param int $ipId
+     * @param int $bridId
+     * @param int $time
+     *
+     * @return NULL|int
      */
-    public static function addReferer($ipId = NULL, $bridId = NULL, $time = NULL)
+    public static function addReferer($ipId = null, $bridId = null, $time = null)
     {
         $referer = $_SERVER['HTTP_REFERER'];
         
-        if (!$referer) return ;
+        if (!$referer) {
+            
+            return ;
+        }
         
-        if (core_Url::isLocal($referer)) return ;
+        if (core_Url::isLocal($referer)) {
+            
+            return ;
+        }
         
         if (!isset($ipId)) {
             $ipId = log_Ips::getIpId();
@@ -124,17 +129,17 @@ class log_Referer extends core_Master
         $rec->time = $time;
         $rec->ref = $referer;
         
-        return self::save($rec, NULL, 'IGNORE');
+        return self::save($rec, null, 'IGNORE');
     }
     
     
     /**
      * Връща записа за реферера
-     * 
-     * @param integer $ipId
-     * @param integer $bridId
-     * @param integer $time
-     * 
+     *
+     * @param int $ipId
+     * @param int $bridId
+     * @param int $time
+     *
      * @return object|FALSE
      */
     public static function getRefRec($ipId, $bridId, $time)
@@ -147,18 +152,21 @@ class log_Referer extends core_Master
     
     /**
      * Изтрива записа за реферера
-     * 
-     * @param integer $ipId
-     * @param integer $bridId
-     * @param integer $time
-     * @param boolean $check
-     * 
-     * @return integer
+     *
+     * @param int  $ipId
+     * @param int  $bridId
+     * @param int  $time
+     * @param bool $check
+     *
+     * @return int
      */
-    public static function delRefRec($ipId, $bridId, $time, $check = TRUE)
+    public static function delRefRec($ipId, $bridId, $time, $check = true)
     {
         if ($check) {
-            if (log_Data::fetch(array("#ipId = '[#1#]' AND #brId = '[#2#]' AND #time = '[#3#]'", $ipId, $bridId, $time))) return 0;
+            if (log_Data::fetch(array("#ipId = '[#1#]' AND #brId = '[#2#]' AND #time = '[#3#]'", $ipId, $bridId, $time))) {
+                
+                return 0;
+            }
         }
         
         $delCnt = self::delete(array("#ipId = '[#1#]' AND #brId = '[#2#]' AND #time = '[#3#]'", $ipId, $bridId, $time));
@@ -192,8 +200,8 @@ class log_Referer extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->orderBy("time", "DESC");
+        $data->query->orderBy('time', 'DESC');
     }
 }

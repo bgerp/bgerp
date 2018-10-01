@@ -1,34 +1,50 @@
 <?php
 
 
-
 /**
  * Четене и записване на локални файлове
  *
  *
  * @category  bgerp
  * @package   backup
+ *
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @title     Локален файлов архив
  */
 class backup_Local extends core_BaseClass
 {
-    
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'backup_StorageIntf';
+    public $interfaces = 'backup_StorageIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Архивиране в локалната файлова система';
+    public $title = 'Архивиране в локалната файлова система';
     
+    /**
+     * Локален път
+     */
+    private $path;
+    
+    /**
+     * Инициализиране на обекта
+     */
+    public function init($array = array())
+    {
+        if (isset($array['path'])) {
+            $this->path = $array['path'];
+        } else { // търсим пътят от конфигурацията
+            $conf = core_Packs::getConfig('backup');
+            $this->path = $conf->BACKUP_LOCAL_PATH;
+        }
+    }
     
     /**
      * Копира файл съхраняван в сторидж на локалната файлова система в
@@ -38,39 +54,39 @@ class backup_Local extends core_BaseClass
      *
      * @param string $fileName
      *
-     * @return boolean
+     * @return bool
      */
-    static function getFile($sourceFile, $destFile)
+    public function getFile($sourceFile, $destFile)
     {
-        $conf = core_Packs::getConfig('backup');
-        $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $sourceFile, $destFile);
+        $result = @copy($this->path . '/' . $sourceFile, $destFile);
         
         return $result;
     }
-
-
+    
+    
     /**
      * Записва файл в локалния архив
      *
      * Част от интерфейса: backup_StorageIntf
      *
      * @param string $fileName
+     * @param null   $subDir
      *
-     * @param null $subDir
      * @return bool
      */
-    static function putFile($fileName, $subDir = NULL)
+    public function putFile($fileName, $subDir = null)
     {
-        $conf = core_Packs::getConfig('backup');
         if ($subDir) {
-            if (!is_dir($conf->BACKUP_LOCAL_PATH . '/' . $subDir)) {
-                mkdir($conf->BACKUP_LOCAL_PATH . '/' . $subDir);
+            if (!is_dir($this->path . '/' . $subDir)) {
+                if (!@mkdir($this->path . '/' . $subDir)) {
+                    self::logWarning('Не може да се създаде път за backup-a');
+                }
             }
-            $destFileName = ($conf->BACKUP_LOCAL_PATH . '/' . $subDir . '/' . basename($fileName));
+            $destFileName = ($this->path . '/' . $subDir . '/' . basename($fileName));
         } else {
-            $destFileName = $conf->BACKUP_LOCAL_PATH . '/' . basename($fileName);
+            $destFileName = $this->path . '/' . basename($fileName);
         }
-
+        
         $result = @copy($fileName, $destFileName);
         
         return $result;
@@ -84,12 +100,11 @@ class backup_Local extends core_BaseClass
      *
      * @param string $fileName
      *
-     * @return boolean
+     * @return bool
      */
-    static function removeFile($fileName)
+    public function removeFile($fileName)
     {
-        $conf = core_Packs::getConfig('backup');
-        $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . basename($fileName));
+        $result = @unlink($this->path . '/' . basename($fileName));
         
         return $result;
     }

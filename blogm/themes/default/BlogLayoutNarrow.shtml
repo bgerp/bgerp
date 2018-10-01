@@ -1,14 +1,12 @@
 <div class='cms-row'>
-    <div style='margin:0 2%;'>
-        [#PAGE_CONTENT#]
-    </div>
+
     <!--ET_BEGIN NAVIGATION-->
     <div   id='cmsNavigation'  style='margin:2%'>
-        <div class='articles-navigation'>
-            |Навигация|*
-        </div>
         [#NAVIGATION#]
-        <div class='bulletin-link'></div>
     </div>
     <!--ET_END NAVIGATION-->
+    <div style='margin:0 2%;'>
+        [#PAGE_CONTENT#]
+        <div class='bulletin-link' style="margin-bottom: 20px;"></div>
+    </div>
 </div>

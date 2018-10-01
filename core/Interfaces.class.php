@@ -1,50 +1,49 @@
 <?php
 
 
-
 /**
  * Клас 'core_Interfaces' - Регистър на интерфейсите
  *
  *
  * @category  ef
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class core_Interfaces extends core_Manager
 {
-    
-    
     /**
      * Плъгини и класове за начално зареждане
      */
-    var $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools,plg_Sorting';
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin';
-	
-
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+    
+    
     /**
      * Никой потребител не може да добавя или редактира тази таблица
      */
-    var $canWrite = 'no_one';
-
-
+    public $canWrite = 'no_one';
+    
+    
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Интерфейси";
+    public $title = 'Интерфейси';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Интерфейс, mandatory,width=100%');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,oldField=info');
@@ -52,7 +51,7 @@ class core_Interfaces extends core_Manager
         $this->setDbUnique('name');
         
         // Ако не сме в DEBUG-режим, интерфайсите не могат да се редактират
-        if(!isDebug()) {
+        if (!isDebug()) {
             $this->canWrite = 'no_one';
         }
     }
@@ -64,24 +63,24 @@ class core_Interfaces extends core_Manager
     public static function add($interface)
     {
         $rec = new stdClass();
-
+        
         $rec->name = $interface;
         $rec->title = cls::getTitle($interface);
-
+        
         $exRec = self::fetch("#name = '{$interface}'");
-        if($exRec) {
+        if ($exRec) {
             $rec->id = $exRec->id;
         } else {
             $inst = cls::get($interface);
-            if($inst->oldClassName) {
+            if ($inst->oldClassName) {
                 $exRec = self::fetch("#name = '{$inst->oldClassName}'");
-                if($exRec) {
+                if ($exRec) {
                     $rec->id = $exRec->id;
                 }
             }
         }
-
-        if(!$exRec || ($exRec->title != $rec->title)) {
+        
+        if (!$exRec || ($exRec->title != $rec->title) || ($exRec->name != $rec->name)) {
             self::save($rec);
         }
         
@@ -103,30 +102,31 @@ class core_Interfaces extends core_Manager
     
     
     /**
-     * Връща масив с ид-та на поддържаните от класа интерфeйси
+     * Връща масив с ид-та на поддържаните от класа интерфейси
      *
      * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     *
      * @return array ключове - ид на интерфейси, стойности - TRUE
      */
     public static function getInterfaceIds($class)
     {
-        if(is_scalar($class)) {
+        if (is_scalar($class)) {
             $instance = cls::get($class);
         } else {
             $instance = $class;
         }
         
         cls::prepareInterfaces($instance);
-
+        
         $list = $instance->interfaces;
         
         $result = array();
         
-        if(count($list)) {
+        if (count($list)) {
             // Вземаме инстанция на core_Interfaces
-            foreach($list as $intf => $impl) {
+            foreach ($list as $intf => $impl) {
                 // Добавяме id в списъка
-                $result[self::fetchByName($intf)] = TRUE;
+                $result[self::fetchByName($intf)] = true;
             }
         }
         
@@ -135,9 +135,10 @@ class core_Interfaces extends core_Manager
     
     
     /**
-     * Връща keylist с поддържаните от класа интерфeйси
+     * Връща keylist с поддържаните от класа интерфейси
      *
      * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     *
      * @return string keylist от ид-тата на интерфейсите
      */
     public static function getKeylist($class)
@@ -155,10 +156,10 @@ class core_Interfaces extends core_Manager
     public static function deinstallPack($pack)
     {
         $query = self::getQuery();
-        $preffix = $pack . "_";
+        $preffix = $pack . '_';
         
-        while($rec = $query->fetch()) {
-            if(strpos($rec->name, $preffix) === 0 || (!cls::load($rec->name, TRUE))) {
+        while ($rec = $query->fetch()) {
+            if (strpos($rec->name, $preffix) === 0 || (!cls::load($rec->name, true))) {
                 core_Interfaces::delete($rec->id);
             }
         }

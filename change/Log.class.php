@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Клас 'change_Log - Логове
  *
  * @category  vendors
  * @package   change
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class change_Log extends core_Manager
 {
-    
-    
     /**
      * Име на перманентните данни
      */
@@ -36,63 +35,63 @@ class change_Log extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'docClass, docId, field, value';
+    public $listFields = 'docClass, docId, field, value';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Логове';
+    public $title = 'Логове';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin';
+    public $canDelete = 'admin';
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FLD('docClass' , 'class', 'caption=Документ->Клас');
-        $this->FLD('docId' , 'int', 'caption=Документ->Обект');
+        $this->FLD('docClass', 'class', 'caption=Документ->Клас');
+        $this->FLD('docId', 'int', 'caption=Документ->Обект');
         $this->FLD('field', 'varchar', 'caption=Поле');
         $this->FLD('value', 'blob(1000000,compress,serialize)', 'caption=Стойности');
         
-        $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none'); 
+        $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none');
         $this->FNC('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, input=none');
     }
     
     
     /**
      * Създава запис в лога
-     * 
-     * @param mixed $docClass - Името или id на класа
-     * @param array $fieldsArr - Масив с полетата, които ще се запишат
-     * @param object $oldRec - Стара стойност
-     * @param object $newRec - Нова стойност
+     *
+     * @param mixed  $docClass  - Името или id на класа
+     * @param array  $fieldsArr - Масив с полетата, които ще се запишат
+     * @param object $oldRec    - Стара стойност
+     * @param object $newRec    - Нова стойност
      */
-    static function create($docClass, $fieldsArr, $oldRec, $newRec)
+    public static function create($docClass, $fieldsArr, $oldRec, $newRec)
     {
         // Резултатния масив, който ще връщаме
         $recsArr = array();
@@ -101,7 +100,7 @@ class change_Log extends core_Manager
         if (is_numeric($docClass)) {
             
             // Използваме id' то
-            $docClassId = $docClass;   
+            $docClassId = $docClass;
         } else {
             
             // Вземаме id' то на класа
@@ -109,7 +108,7 @@ class change_Log extends core_Manager
         }
         
         // Обхождаме масива с полетата
-        foreach ((array)$fieldsArr as $field) {
+        foreach ((array) $fieldsArr as $field) {
             
             // Ако changeModifiedOn
             if ($oldRec->changeModifiedOn) {
@@ -156,7 +155,7 @@ class change_Log extends core_Manager
             }
             
             // Обекта за value, който ще запишем
-            $valueObj = (object)array('version' => $oldRec->version, 'subVersion' => $oldRec->subVersion, 'value' => $oldRec->$field, 'createdOn' => $createdOn, 'createdBy' => $createdBy);
+            $valueObj = (object) array('version' => $oldRec->version, 'subVersion' => $oldRec->subVersion, 'value' => $oldRec->$field, 'createdOn' => $createdOn, 'createdBy' => $createdBy);
             
             // Обекта, който ще записваме
             $rec = new stdClass();
@@ -175,7 +174,6 @@ class change_Log extends core_Manager
                 $rec->value = $sRec->value;
                 $rec->value[] = $valueObj;
             } else {
-                
                 $rec->docClass = $docClassId;
                 $rec->docId = $oldRec->id;
                 $rec->field = $field;
@@ -201,19 +199,19 @@ class change_Log extends core_Manager
     
     /**
      * Подготвяме записите за лога във вербален вид
-     * 
-     * @param mixed $docClass - Името или id на класа
-     * @param string $docId - id' на документа
-     * 
+     *
+     * @param mixed  $docClass - Името или id на класа
+     * @param string $docId    - id' на документа
+     *
      * @return array $res - Масив с данни
      */
-    static function prepareLogRow($docClass, $docId)
+    public static function prepareLogRow($docClass, $docId)
     {
         // Ако е id на клас
         if (is_numeric($docClass)) {
             
             // Използваме id' то
-            $docClassId = $docClass;   
+            $docClassId = $docClass;
         } else {
             
             // Вземаме id' то на класа
@@ -233,10 +231,10 @@ class change_Log extends core_Manager
         if (is_array($rec->value)) {
             
             // Обхождаме масива
-            foreach ((array)$rec->value as $key => $value) {
+            foreach ((array) $rec->value as $key => $value) {
                 
                 // Данните, които ще се визуализрат
-                $row = (object)array(
+                $row = (object) array(
                     'createdOn' => $value->createdOn,
                     'createdBy' => $value->createdBy,
                 );
@@ -248,7 +246,7 @@ class change_Log extends core_Manager
                 $versionStr = static::getVersionStr($value->version, $value->subVersion);
                 
                 // Идентификатор на версията
-                $versionId= static::getVersionId($docClassId, $docId, $key);
+                $versionId = static::getVersionId($docClassId, $docId, $key);
                 
                 // Линк към версията
                 $row->Version = static::getVersionLink($rec, $versionStr, $versionId);
@@ -263,19 +261,19 @@ class change_Log extends core_Manager
         $row = new stdClass();
         
         // Версията
-        $row->Version = static::getVersionLink((object)array('docId' => $docId, 'docClass' => $docClassId), FALSE, FALSE, TRUE);
+        $row->Version = static::getVersionLink((object) array('docId' => $docId, 'docClass' => $docClassId), false, false, true);
         
         // Последната версия на записа
         $docRec = $class->fetch($docId);
         
         // Ако има дата и потребител
-        if (isset($docRec->changeModifiedBy) && isset($docRec->changeModifiedOn)) {
-        
+        if (isset($docRec->changeModifiedBy, $docRec->changeModifiedOn)) {
+            
             // Вземаме вербалните им стойности
             $lastVerRow = $class->recToVerbal($docRec, 'changeModifiedBy, changeModifiedOn, -single');
             $row->createdBy = $lastVerRow->changeModifiedBy;
             $row->createdOn = $lastVerRow->changeModifiedOn;
-        } elseif (isset($docRec->modifiedBy) && isset($docRec->modifiedOn)) {
+        } elseif (isset($docRec->modifiedBy, $docRec->modifiedOn)) {
             
             // Вземаме вербалните им стойности
             $lastVerRow = $class->recToVerbal($docRec, 'modifiedBy, modifiedOn, -single');
@@ -296,7 +294,7 @@ class change_Log extends core_Manager
     /**
      * Екшън за избиране/отказване на съответната версия
      */
-    function act_logVersion()
+    public function act_logVersion()
     {
         // Изискваме да има права
         requireRole('user');
@@ -321,7 +319,7 @@ class change_Log extends core_Manager
         
         // Вземаме данните за докуемнта
         $cRec = $class->fetch($docId);
-
+        
         // Очакваме да имаме права до сингъла или до треда
         expect($class->haveRightFor('single', $docId) || doc_Threads::haveRightFor('single', $cRec->threadId));
         
@@ -342,7 +340,7 @@ class change_Log extends core_Manager
             // Ако екшъна не е отказване
             
             // Добавяме в масива
-            $dataArr[$versionId] = TRUE;
+            $dataArr[$versionId] = true;
         }
         
         // Обновяваме масива с версиите
@@ -350,40 +348,43 @@ class change_Log extends core_Manager
         
         // Линка, към който ще редиректнем
         $link = array(
-	                 $class, 
-	                 'single', 
-	                 $cRec->id,
-	                 'Cid' => $cRec->containerId, 
-	                 'Tab' => $tab,
-	                );
-
+            $class,
+            'single',
+            $cRec->id,
+            'Cid' => $cRec->containerId,
+            'Tab' => $tab,
+        );
+        
         return new Redirect($link);
     }
     
     
     /**
      * Връща вербалната стойност на данните за полетата
-     * 
-     * @param int $docClass - id на класа
-     * @param int $docId - id на документа
+     *
+     * @param int    $docClass   - id на класа
+     * @param int    $docId      - id на документа
      * @param string $versionStr - Стринга на версията и подверсията
-     * @param array $fieldsArr - Масив с полетата
-     * 
+     * @param array  $fieldsArr  - Масив с полетата
+     *
      * @return array $resArr - Масив с вербалните стойности на съответните полетата
      */
-    static function getVerbalValue($docClass, $docId, $versionStr, $fieldsArr)
+    public static function getVerbalValue($docClass, $docId, $versionStr, $fieldsArr)
     {
         // Вземаме записа
         $recArr = static::getRecForVersion($docClass, $docId, $versionStr, $fieldsArr);
         
         // Ако няма запис връщаме FALSE
-        if (!$recArr) return FALSE;
+        if (!$recArr) {
+            
+            return false;
+        }
         
         // Инстанция на класа
         $class = cls::get($docClass);
         
         // Обхождаме записите
-        foreach ((array)$recArr as $field => $rec) {
+        foreach ((array) $recArr as $field => $rec) {
             
             // Стойност
             $value = $rec->value;
@@ -401,13 +402,13 @@ class change_Log extends core_Manager
     
     /**
      * Връща броя на версиите
-     * 
-     * @param mixed $docClassId - id на класа
-     * @param string $docId - id' на документа
-     * 
+     *
+     * @param mixed  $docClassId - id на класа
+     * @param string $docId      - id' на документа
+     *
      * @return int - Броя на промените
      */
-    static function getCountOfChange($docClassId, $docId)
+    public static function getCountOfChange($docClassId, $docId)
     {
         // Вземаме записа
         $rec = static::getRec($docClassId, $docId);
@@ -423,13 +424,13 @@ class change_Log extends core_Manager
     
     /**
      * Връща масив с последните подверсии на съответните версии за документа
-     * 
+     *
      * @param mixed $docClass - Инстанция или id на клас
-     * @param int $docId - id на документ
-     * 
-     * @return array $arr - 
+     * @param int   $docId    - id на документ
+     *
+     * @return array $arr -
      */
-    static function getLastSubVersionsArr($docClass, $docId)
+    public static function getLastSubVersionsArr($docClass, $docId)
     {
         // Ако не е число
         if (!is_numeric($docClass)) {
@@ -446,7 +447,7 @@ class change_Log extends core_Manager
         $rec = static::getRec($docClassId, $docId);
         
         // Обхождаме резултатите
-        foreach ((array)$rec->value as $value) {
+        foreach ((array) $rec->value as $value) {
             
             // Ако подверсията е по - голяма от записаната в масива
             if ($value->subVersion > $arr[$value->version]) {
@@ -461,19 +462,22 @@ class change_Log extends core_Manager
     
     
     /**
-     * Връща линк към с версията 
-     * 
+     * Връща линк към с версията
+     *
      * @param object $rec
      * @param string $versionStr
      * @param string $versionId
-     * @param boolean $lastVer
-     * 
+     * @param bool   $lastVer
+     *
      * @return string
      */
-    static function getVersionLink($rec, $versionStr=FALSE, $versionId=FALSE, $lastVer=FALSE)
+    public static function getVersionLink($rec, $versionStr = false, $versionId = false, $lastVer = false)
     {
         // Ако няма клас или документ, връщаме
-        if (!$rec->docClass && !$rec->docId) return ;
+        if (!$rec->docClass && !$rec->docId) {
+            
+            return ;
+        }
         
         // Масив с избраните версии
         static $allDataArr = array();
@@ -500,7 +504,7 @@ class change_Log extends core_Manager
             
             // Вземаме последната версия
             $versionStr = static::getLastVersionFromDoc($rec->docClass, $rec->docId);
-
+            
             // Идентификатора за избраната версия
             $versionId = static::getLastVersionIdFromDoc($rec->docClass, $rec->docId);
         }
@@ -523,17 +527,17 @@ class change_Log extends core_Manager
         if (!count($dataArr) && $lastVer) {
             
             // Флаг, да маркираме последната
-            $markLast = TRUE;
+            $markLast = true;
         }
-                
+        
         // Ескейпваме стринга
         $versionStrRaw = static::escape($versionStr);
-           
+        
         // Задаваме линка
         $link = array('change_Log', 'logVersion', 'docClass' => $rec->docClass, 'docId' => $rec->docId, 'versionStr' => $versionStr, 'versionId' => $versionId, 'tab' => Request::get('Tab'), 'action' => $action);
         
         // Връщаме линка
-        $linkEt = ht::createLink($versionStrRaw, $link, NULL, "ef_icon={$icon}");
+        $linkEt = ht::createLink($versionStrRaw, $link, null, "ef_icon={$icon}");
         
         // Ако е избран или е вдигнат флага
         if ($markLast || static::isSelected($rec->docClass, $rec->docId, $versionId)) {
@@ -548,13 +552,13 @@ class change_Log extends core_Manager
     
     /**
      * Връща масив с всички избрани версии
-     * 
+     *
      * @param id $classId - id на класа
-     * @param id $docId - id на документа
-     * 
+     * @param id $docId   - id на документа
+     *
      * @return array - Масив с избраните версии
      */
-    static function getSelectedVersionsArr($classId=NULL, $docId=NULL)
+    public static function getSelectedVersionsArr($classId = null, $docId = null)
     {
         // Вземаме масива за версиите
         $versionArr = mode::get(static::PERMANENT_SAVE_NAME);
@@ -564,38 +568,36 @@ class change_Log extends core_Manager
             
             // Връщаме целия масив
             return $versionArr;
-        } else {
-            
-            // Ключа за версиите
-            $versionKey = static::getVersionKey($classId, $docId);
-            
-            // Връщаме масива за съответния ключ
-            return $versionArr[$versionKey];
         }
+        
+        // Ключа за версиите
+        $versionKey = static::getVersionKey($classId, $docId);
+        
+        // Връщаме масива за съответния ключ
+        return $versionArr[$versionKey];
     }
     
     
     /**
      * Връща ключа за версиите
-     * 
+     *
      * @param id $classId - id на класа
-     * @param id $docId - id на документа
+     * @param id $docId   - id на документа
      */
-    static function getVersionKey($classId, $docId)
+    public static function getVersionKey($classId, $docId)
     {
-        
         return $classId . '_' . $docId;
     }
     
     
     /**
      * Записва в перманентните данни съответния масив
-     * 
-     * @param mixed $classId - Името или id на класа
-     * @param string $docId - id' на документа
-     * @param array $dataArr - Масива, който ще добавим
+     *
+     * @param mixed  $classId - Името или id на класа
+     * @param string $docId   - id' на документа
+     * @param array  $dataArr - Масива, който ще добавим
      */
-    static function updateSelectedVersion($classId, $docId, $dataArr)
+    public static function updateSelectedVersion($classId, $docId, $dataArr)
     {
         // Вземаме всички избрани версии за документите
         $allVersionArr = static::getSelectedVersionsArr();
@@ -613,13 +615,13 @@ class change_Log extends core_Manager
     
     /**
      * Добавя подадената версия в избраните
-     * 
-     * @param mixed $classId - Името или id на класа
-     * @param string $docId - id' на документа
-     * @param string $version - Версията
+     *
+     * @param mixed      $classId    - Името или id на класа
+     * @param string     $docId      - id' на документа
+     * @param string     $version    - Версията
      * @param subVersion $subVersion - Подверсията
      */
-    static function addVersion($classId, $docId, $recId)
+    public static function addVersion($classId, $docId, $recId)
     {
         // Вземаме масива с избраните версии
         $dataArr = static::getSelectedVersionsArr($classId, $docId);
@@ -628,7 +630,7 @@ class change_Log extends core_Manager
         $versionId = static::getLastVersionIdFromDoc($classId, $docId);
         
         // Добавяме в масива
-        $dataArr[$versionId] = TRUE;
+        $dataArr[$versionId] = true;
         
         // Обновяваме масива с версиите
         static::updateSelectedVersion($classId, $docId, $dataArr);
@@ -637,13 +639,13 @@ class change_Log extends core_Manager
     
     /**
      * Събира версията и подверсията и връща един стринг
-     * 
-     * @param string $version - Версията
-     * @param int $subVersion - Подверсията
-     * 
+     *
+     * @param string $version    - Версията
+     * @param int    $subVersion - Подверсията
+     *
      * @return string $versionStr
      */
-    static function getVersionStr($version, $subVersion)
+    public static function getVersionStr($version, $subVersion)
     {
         if (is_null($version)) {
             $version = 0;
@@ -659,23 +661,23 @@ class change_Log extends core_Manager
         return $versionStr;
     }
     
-
+    
     /**
      * Събира версията и подверсията и връща един стринг
-     * 
+     *
      * @param mixed $docClass - Името или id на класа
-     * @param integer $docId - id' на документа
-     * @param integer $id - id на версията 
-     * 
+     * @param int   $docId    - id' на документа
+     * @param int   $id       - id на версията
+     *
      * @return string
      */
-    static function getVersionId($docClass, $docId, $id)
+    public static function getVersionId($docClass, $docId, $id)
     {
         // Ако е id на клас
         if (is_numeric($docClass)) {
             
             // Използваме id' то
-            $docClassId = $docClass;   
+            $docClassId = $docClass;
         } else {
             
             // Вземаме id' то на класа
@@ -691,12 +693,12 @@ class change_Log extends core_Manager
     
     /**
      * Ескейпва подадения стринг
-     * 
+     *
      * @param string $string - Стринга, който ще се ескейпва
-     * 
+     *
      * @return string $string
      */
-    static function escape($string)
+    public static function escape($string)
     {
         // Ескейпваме стринга
         $string = core_Type::escape($string);
@@ -708,40 +710,39 @@ class change_Log extends core_Manager
     
     /**
      * Разделяме стринга на версия и подверсия
-     * 
+     *
      * @param string $versionStr
-     * 
+     *
      * @return array - Масив с версията и подверсията
      */
-    static function getVersionFromString($versionStr)
+    public static function getVersionFromString($versionStr)
     {
-        
         return explode(static::VERSION_DELIMITER, $versionStr);
     }
     
     
     /**
      * Връща масив с вербалната стойност на версията от ключа на версията и кога и от койт потребител е създаден
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param string $key
-     * @param boolean $key
-     * 
+     * @param string   $key
+     * @param bool     $key
+     *
      * @return array
      */
-    static function getVersionAndDateFromKey($mvc, $key, $escape=TRUE)
+    public static function getVersionAndDateFromKey($mvc, $key, $escape = true)
     {
         // Масив с данните за версията от ключа
         $versionArr = static::getVersionFromString($key);
         
         // Ако има всички необходими данни
-        if (isset($versionArr[0]) && isset($versionArr[1]) && isset($versionArr[2])) {
+        if (isset($versionArr[0], $versionArr[1], $versionArr[2])) {
             
             // Масив с всички промени
             $recsArr = static::getRec($versionArr[0], $versionArr[1], '*');
             
             // Обхождаме масива
-            foreach ((array)$recsArr as $rec) {
+            foreach ((array) $recsArr as $rec) {
                 
                 // Ако има добавена стойност
                 if ($val = $rec->value[$versionArr[2]]) {
@@ -782,16 +783,16 @@ class change_Log extends core_Manager
     
     /**
      * Връща вербалната стойност на версията от ключа на версията
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param string $key
-     * @param boolean $key
-     * 
+     * @param string   $key
+     * @param bool     $key
+     *
      * @return string
      */
-    static function getVersionStrFromKey($mvc, $key, $escape=TRUE)
+    public static function getVersionStrFromKey($mvc, $key, $escape = true)
     {
-        $versionStrArr = static::getVersionAndDateFromKey($mvc, $key, $escape=TRUE);
+        $versionStrArr = static::getVersionAndDateFromKey($mvc, $key, $escape = true);
         
         return $versionStrArr['versionStr'];
     }
@@ -799,35 +800,41 @@ class change_Log extends core_Manager
     
     /**
      * Връща най - новата и най - старата версия, която сме избрали
-     * 
+     *
      * @param array $versionArr
-     * @param int $docClass
-     * @param int $docId
-     * 
+     * @param int   $docClass
+     * @param int   $docId
+     *
      * @return array $res - Най - новата и най - старата версия
-     * $res['first'] - Първата версия
-     * $res['last'] - Последната версия
+     *               $res['first'] - Първата версия
+     *               $res['last'] - Последната версия
      */
-    static function getFirstAndLastVersion($docClass, $docId)
+    public static function getFirstAndLastVersion($docClass, $docId)
     {
         // Масива, който ще връщаме
         static $allRes = array();
         
         $str = $docClass . '_' . $docId;
         
-        $res = (array)$allRes[$str];
+        $res = (array) $allRes[$str];
         
         // Ако е генериран преди
-        if ($res) return $res;
+        if ($res) {
+            
+            return $res;
+        }
         
         // Всички избрани версии
-        $versionArr = (array)static::getSelectedVersionsArr($docClass, $docId);
+        $versionArr = (array) static::getSelectedVersionsArr($docClass, $docId);
         
         // Броя на избраните версии
         $cntVers = count($versionArr);
         
         // Ако няма избрана версии, връщаме
-        if (!$cntVers) return $res;
+        if (!$cntVers) {
+            
+            return $res;
+        }
         
         // Ако има избрана една версия
         if ($cntVers == 1) {
@@ -845,26 +852,30 @@ class change_Log extends core_Manager
             if ($versionArr[$lastVer]) {
                 
                 // Отбелязваме, че е избрана
-                $haveLast = TRUE;
+                $haveLast = true;
                 
                 // Добавяме в масива
                 $res['last'] = $lastVer;
             }
             
-            $firstTime = NULL;
-            $lastTime = NULL;
+            $firstTime = null;
+            $lastTime = null;
             
             // Обхождамва масива
             foreach ($versionArr as $keyVer => $dummy) {
                 
                 // Ако е последна версия, прескачаме
-                if ((string)$keyVer === (string)$lastVer) continue;
+                if ((string) $keyVer === (string) $lastVer) {
+                    continue;
+                }
                 
                 // Вземаме записа
                 $recArr = static::getRecForVersion($docClass, $docId, $keyVer);
                 
                 // Ако няма записи
-                if ($recArr === FALSE) continue;
+                if ($recArr === false) {
+                    continue;
+                }
                 
                 // Вземаме първия запис от масива
                 $rec = $recArr[0];
@@ -899,13 +910,13 @@ class change_Log extends core_Manager
     
     /**
      * Връща последната версия на документа, който е записан в модела на класа
-     * 
+     *
      * @param mixed $class - id или инстанция на класа
-     * @param int $docId - id на докуемнта
-     * 
+     * @param int   $docId - id на докуемнта
+     *
      * @return mixed - Стринга на версията
      */
-    static function getLastVersionFromDoc($class, $docId)
+    public static function getLastVersionFromDoc($class, $docId)
     {
         try {
             
@@ -916,70 +927,76 @@ class change_Log extends core_Manager
             $rec = $class->fetch($docId);
             
             // Ако има версия и подверсия
-            if (isset($rec->version) && isset($rec->subVersion)) {
+            if (isset($rec->version, $rec->subVersion)) {
                 
                 // Връщаме стринга на версията и подверсията
                 return static::getVersionStr($rec->version, $rec->subVersion);
             }
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+        }
         
         return static::LAST_VERSION_STRING;
     }
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param mixed $class - id или инстанция на класа
-     * @param int $docId - id на докуемнта
-     * 
+     * @param int   $docId - id на докуемнта
+     *
      * @return mixed - Стринга на версията
      */
-    static function getLastVersionIdFromDoc($class, $docId)
+    public static function getLastVersionIdFromDoc($class, $docId)
     {
-        
         return $docId;
     }
     
     
     /**
      * Проверява дали версията е между избраниете
-     * 
-     * @param int $docClass - id на клас
-     * @param int $docId - id на документ
+     *
+     * @param int    $docClass   - id на клас
+     * @param int    $docId      - id на документ
      * @param string $versionStr - Версия
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    static function isSelected($docClass, $docId, $versionId)
+    public static function isSelected($docClass, $docId, $versionId)
     {
         // Вземаме версиите между избраните
         $versionsBetweenArr = static::getSelectedVersionsBetween($docClass, $docId);
         
         // Ако е в избраните, връщаме TRUE
-        if ($versionsBetweenArr[$versionId]) return TRUE;
+        if ($versionsBetweenArr[$versionId]) {
+            
+            return true;
+        }
     }
     
     
     /**
      * Връща масив между избраните версии
-     * 
+     *
      * @param int $docClass - id на клас
-     * @param int $docId - id на документ
-     * 
+     * @param int $docId    - id на документ
+     *
      * @return array - Масив с версиите между избраните
      */
-    static function getSelectedVersionsBetween($docClass, $docId)
+    public static function getSelectedVersionsBetween($docClass, $docId)
     {
         // Масива, който ще връщаме
         static $allVersionsArr = array();
         
         $str = $docClass . '_' . $docId;
         
-        $arr = (array)$allVersionsArr[$str];
+        $arr = (array) $allVersionsArr[$str];
         
         // Ако е генерирано преди, връщаме
-        if ($arr) return $arr;
+        if ($arr) {
+            
+            return $arr;
+        }
         
         // Вземаме първата и последна версия
         $firstAndLastVerArr = static::getFirstAndLastVersion($docClass, $docId);
@@ -998,7 +1015,7 @@ class change_Log extends core_Manager
         }
         
         // Стойността по подразбиране
-        $lastRecArr = FALSE;
+        $lastRecArr = false;
         
         // Ако име последна версия
         if ($firstAndLastVerArr['last']) {
@@ -1014,25 +1031,25 @@ class change_Log extends core_Manager
         }
         
         // Ако има избрана версия и има израбрана последна версия
-        if (($lastRecArr !== FALSE) && $firstRec && ($firstCreatedOn = $firstRec->createdOn)) {
+        if (($lastRecArr !== false) && $firstRec && ($firstCreatedOn = $firstRec->createdOn)) {
             
             // Вземаме записа
             $rec = static::getRec($docClass, $docId);
             
             // Обхождаме стойностите
-            foreach ((array)$rec->value as $key => $value) {
+            foreach ((array) $rec->value as $key => $value) {
                 
                 // Флаг, дали да се запише версията
-                $getVersion = FALSE;
+                $getVersion = false;
                 
                 // Ако е избрана последната версия
-                if ($lastRecArr === NULL) {
+                if ($lastRecArr === null) {
                     
                     // Ако е създадена след първия избран
                     if ($value->createdOn >= $firstCreatedOn) {
                         
                         // Вдигаме флага
-                        $getVersion = TRUE;
+                        $getVersion = true;
                     }
                 } else {
                     
@@ -1043,7 +1060,7 @@ class change_Log extends core_Manager
                         if (($value->createdOn <= $lastCreatedOn) && ($value->createdOn >= $firstCreatedOn)) {
                             
                             // Вдигаме флага
-                            $getVersion = TRUE;
+                            $getVersion = true;
                         }
                     }
                 }
@@ -1068,12 +1085,12 @@ class change_Log extends core_Manager
     
     /**
      * Връща за дадено поле
-     * 
-     * @param integer $docClass
+     *
+     * @param int    $docClass
      * @param intege $docId
-     * @param mixed $field
+     * @param mixed  $field
      */
-    static function getRec($docClass, $docId, $field=FALSE)
+    public static function getRec($docClass, $docId, $field = false)
     {
         // Масива със записите
         static $allRecsArr = array();
@@ -1083,7 +1100,7 @@ class change_Log extends core_Manager
         $recsArr = $allRecsArr[$str];
         
         // Ако не е сетнат
-        if ($recsArr !== FALSE) {
+        if ($recsArr !== false) {
             
             // Вземаме всички записи за съответния клас и документ
             $query = static::getQuery();
@@ -1101,12 +1118,14 @@ class change_Log extends core_Manager
             
             // Ако няма резултат връщаме FALSE
             if (!$recsArr) {
-                
-                $allRecsArr[$str] = FALSE;
+                $allRecsArr[$str] = false;
             }
-        } 
+        }
         
-        if ($allRecsArr[$str] === FALSE) return FALSE;
+        if ($allRecsArr[$str] === false) {
+            
+            return false;
+        }
         
         // Ако е зададено съответно поле
         if ($field) {
@@ -1115,7 +1134,7 @@ class change_Log extends core_Manager
             if ($field == '*') {
                 
                 // Връщаме всички
-                $resRecArr =  $recsArr;
+                $resRecArr = $recsArr;
             } elseif (is_array($field)) {
                 
                 // Ако полетата са в масив
@@ -1143,15 +1162,15 @@ class change_Log extends core_Manager
     
     /**
      * Връща един запис със съответните данни
-     * 
-     * @param int $docClass - id на класа
-     * @param int $docId - id на документа
+     *
+     * @param int    $docClass   - id на класа
+     * @param int    $docId      - id на документа
      * @param string $versionStr - Версията и подверсията
-     * @param mixed $field - Името на полето или масив с полетата
-     * 
+     * @param mixed  $field      - Името на полето или масив с полетата
+     *
      * return array $recArr - Масив с откритите записи
      */
-    static function getRecForVersion($docClass, $docId, $versionStr, $field=FALSE)
+    public static function getRecForVersion($docClass, $docId, $versionStr, $field = false)
     {
         // Вземаме версията и подверсията от стринга
         $versionArr = static::getVersionFromString($versionStr);
@@ -1160,19 +1179,24 @@ class change_Log extends core_Manager
         $rec = static::getRec($docClass, $docId, '*');
         
         // Ако няма, връщаме FALSE
-        if (!$rec) return FALSE;
+        if (!$rec) {
+            
+            return false;
+        }
         
         // Обхождаме масива
-        foreach ((array)$rec as $f => $r) {
+        foreach ((array) $rec as $f => $r) {
             
             // Стойността за съответната версия
             $val = $r->value[$versionArr[2]];
             
             // Ако няма прескачаме
-            if (!$val) continue;
+            if (!$val) {
+                continue;
+            }
             
             // Ако не е подадено поле
-            if ($field === FALSE) {
+            if ($field === false) {
                 
                 // Добавяме в масива
                 $recArr[] = $val;

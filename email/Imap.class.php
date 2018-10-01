@@ -1,29 +1,30 @@
 <?php 
 
-
 /**
  * Апита за използване на IMAP
  *
  *
  * @category  bgerp
  * @package   email
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class email_Imap extends core_BaseClass
-{    
+{
     /**
      * Ресурс с връзката към пощенската кутия
      */
-    var $connection;
+    public $connection;
     
     
     /**
      * Информация за сметката, към която ще се свързваме
      */
-    var $accRec;
+    public $accRec;
     
     
     /**
@@ -32,51 +33,51 @@ class email_Imap extends core_BaseClass
     protected function getServerString()
     {
         $accRec = $this->accRec;
-
+        
         // Определяне на хоста и евентуално порта
         $hostArr = explode(':', $accRec->server);
         
-        if(count($hostArr) == 2) {
+        if (count($hostArr) == 2) {
             $host = $hostArr[0];
             $port = $hostArr[1];
         } else {
             $host = $hostArr[0];
         }
-
+        
         expect($host);
         
         // Определяне на порта, ако не е зададен в хоста
-        if(!$port) {
-            if($accRec->protocol == 'imap') {
-                if($accRec->security == 'ssl') {
+        if (!$port) {
+            if ($accRec->protocol == 'imap') {
+                if ($accRec->security == 'ssl') {
                     $port = '993';
                 } else {
                     $port = '143';
                 }
             }
-            if($accRec->protocol == 'pop3') {
-                if($accRec->security == 'ssl') {
+            if ($accRec->protocol == 'pop3') {
+                if ($accRec->security == 'ssl') {
                     $port = '995';
                 } else {
                     $port = '110';
                 }
             }
         }
-            
+        
         expect($port);
-
+        
         $portArr = explode('/', $port, 2);
-
-        if(count($portArr) == 2) {
+        
+        if (count($portArr) == 2) {
             $port = $portArr[0];
             $params = $portArr[1];
         }
         
-        if(!$params) {
+        if (!$params) {
             $params = $this->getParams($accRec);
         }
-
-        $str =  '{' . "{$host}:{$port}/{$params}" . '}' . $accRec->folder;
+        
+        $str = '{' . "{$host}:{$port}/{$params}" . '}' . $accRec->folder;
         
         return $str;
     }
@@ -91,26 +92,26 @@ class email_Imap extends core_BaseClass
         expect(in_array($protocol = $accRec->protocol, array('imap', 'pop3')));
         expect(in_array($security = $accRec->security, array('default', 'tls', 'notls', 'ssl')));
         expect(in_array($cert = $accRec->cert, array('noValidate', 'validate')));
-
-        if($cert == 'noValidate' || $security == 'notls') {
+        
+        if ($cert == 'noValidate' || $security == 'notls') {
             $cert = '/novalidate-cert';
         } else {
             $cert = '';
         }
         
         // Стринг за метода за аутенти
-        if($security == 'default') {
+        if ($security == 'default') {
             $security = '';
         } else {
             $security = "/{$security}";
         }
-
+        
         $params = $protocol . $security . $cert;
-
+        
         return $params;
     }
     
-
+    
     /**
      * Свързва се към пощенската кутия
      */
@@ -125,7 +126,7 @@ class email_Imap extends core_BaseClass
     /**
      * Връща последната IMAP грешка
      */
-    function getLastError()
+    public function getLastError()
     {
         return imap_last_error();
     }
@@ -138,34 +139,34 @@ class email_Imap extends core_BaseClass
      *
      * @return array
      */
-    function getStatistic($varName = 'messages')
+    public function getStatistic($varName = 'messages')
     {
         $this->statistic = imap_status($this->connection, $this->getServerString(), SA_ALL);
         
         return $this->statistic->{$varName};
     }
-
-
+    
+    
     /**
      * Еръща UID на съобщението с пореден номер $msgNo
      * Не работи с POP3 сървери
      */
-    function getUid($msgNo)
+    public function getUid($msgNo)
     {
         return imap_uid($this->connection, $msgNo);
     }
     
     
     /**
-     * Еръща $msgNoна съобщението със зададения UID
+     * Връща $msgNo на съобщението със зададения UID
      * Не работи с POP3 сървери
      */
-    function getMsgNo($uid)
+    public function getMsgNo($uid)
     {
         return imap_msgno($this->connection, $uid);
     }
-
-
+    
+    
     /**
      * Връща състоянието на писмата или посоченото писмо
      *
@@ -174,14 +175,13 @@ class email_Imap extends core_BaseClass
      *
      * @return array
      */
-    function lists($msgNo = FALSE)
+    public function lists($msgNo = false)
     {
-        
         if ($msgNo) {
             $range = $msgNo;
         } else {
             $MC = imap_check($this->connection);
-            $range = "1:" . $MC->Nmsgs;
+            $range = '1:' . $MC->Nmsgs;
         }
         
         $response = imap_fetch_overview($this->connection, $range);
@@ -202,10 +202,10 @@ class email_Imap extends core_BaseClass
      *
      * @return string
      */
-    function getHeaders($msgNo)
+    public function getHeaders($msgNo)
     {
         $header = trim(imap_fetchheader($this->connection, $msgNo, FT_INTERNAL));
-
+        
         return $header;
     }
     
@@ -217,9 +217,9 @@ class email_Imap extends core_BaseClass
      *
      * @return string
      */
-    function getEml($msgNo)
+    public function getEml($msgNo)
     {
-        return imap_fetchbody($this->connection, $msgNo, NULL);
+        return imap_fetchbody($this->connection, $msgNo, null);
     }
     
     
@@ -228,42 +228,42 @@ class email_Imap extends core_BaseClass
      *
      * @param int $msgId - Индекса на съобщението, което да бъде изтрито
      *
-     * @return boolean
+     * @return bool
      */
-    function delete($msgNo)
+    public function delete($msgNo)
     {
         $res = imap_delete($this->connection, "{$msgNo}:{$msgNo}");
         
         return $res;
     }
     
-
+    
     /**
      * Поставя флага, че съобщението е прочетено
      */
-    function markSeen($msgNo)
+    public function markSeen($msgNo)
     {
         return imap_setflag_full($this->connection, "{$msgNo}:{$msgNo}", '\\Seen');
     }
     
-
+    
     /**
      * Изтрива флага, че съобщението е прочетено
      */
-    function unmarkSeen($msgNo)
+    public function unmarkSeen($msgNo)
     {
         return imap_clearflag_full($this->connection, "{$msgNo}:{$msgNo}", '\\Seen');
     }
-
+    
     
     /**
      * Изтрива e които са маркирани за изтриване
      *
      * @param resource $connection - Връзката към пощенската кутия
      *
-     * @return boolean
+     * @return bool
      */
-    function expunge()
+    public function expunge()
     {
         $expunge = imap_expunge($this->connection);
         
@@ -276,11 +276,11 @@ class email_Imap extends core_BaseClass
      *
      * @param resource $connection - Връзката към пощенската кутия
      * @param const    $flag       - Ако е CL_EXPUNGE тогава преди затварянето на конекцията
-     * се изтриват всички имейли, които са маркирани за изтриване
+     *                             се изтриват всички имейли, които са маркирани за изтриване
      *
-     * @return boolean
+     * @return bool
      */
-    function close($flag = 0)
+    public function close($flag = 0)
     {
         $close = imap_close($this->connection, $flag);
         
@@ -291,7 +291,7 @@ class email_Imap extends core_BaseClass
     /**
      * и връща структурата на имейл-а
      */
-    function fetchStructure($msgNo)
+    public function fetchStructure($msgNo)
     {
         $structure = imap_fetchstructure($this->connection, $msgNo);
         
@@ -302,11 +302,10 @@ class email_Imap extends core_BaseClass
     /**
      * Фетчва избраната част от структурата на имейл-а
      */
-    function getPartData($msgNo, $prefix)
+    public function getPartData($msgNo, $prefix)
     {
         $partData = imap_fetchbody($this->connection, $msgNo, $prefix);
         
         return $partData;
     }
-
 }

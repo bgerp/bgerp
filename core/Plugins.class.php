@@ -1,53 +1,52 @@
 <?php
 
 
-
 /**
  * Клас 'core_Plugins' - Мениджър на плъгини
  *
  *
  * @category  bgerp
  * @package   core
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class core_Plugins extends core_Manager
 {
-    
-    
     /**
      * Заглавие на мениджъра
      */
-    var $title = 'Регистър на плъгините';
+    public $title = 'Регистър на плъгините';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Регистър на плъгините";
+    public $singleTitle = 'Регистър на плъгините';
     
     
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_SystemWrapper,plg_RowTools2,plg_State';
+    public $loadList = 'plg_SystemWrapper,plg_RowTools2,plg_State,plg_Sorting';
     
-
+    
     /**
      * Масив с плъгините, които се прикачат динамично
-     * 
+     *
      * @var array
      */
     private $attachedPlugins;
     
-
+    
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
         $this->FLD('plugin', 'varchar(128)', 'caption=Плъгин,mandatory');
@@ -61,34 +60,33 @@ class core_Plugins extends core_Manager
      * Изпълнява се след въвеждането на данните от формата
      * Използва се обикновено за проверка на входните параметри
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
-        if($form->rec->plugin && !cls::load($form->rec->plugin, TRUE)) {
+        if ($form->rec->plugin && !cls::load($form->rec->plugin, true)) {
             $form->setError('plugin', "Плъгинът|* {$rec->plugin} |не съществува");
         }
         
-        if($form->rec->class && !cls::load($form->rec->class, TRUE)) {
+        if ($form->rec->class && !cls::load($form->rec->class, true)) {
             $form->setError('class', "Класът|* {$rec->class} |не съществува");
         }
     }
     
-
+    
     /**
      * Форсирано инсталиране на плъгин. Ако има други със същотот име, те ще бъдат спрени
      */
-    static function forcePlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
+    public static function forcePlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
     {
-        $res = static::installPlugin($name, $plugin, $class, $cover, $state, TRUE);
-
+        $res = static::installPlugin($name, $plugin, $class, $cover, $state, true);
+        
         return $res;
-
     }
     
-
+    
     /**
      * Не-форсирано инсталиране на плъгин. Ако има други със същотот име, те ще бъдат останат, а зададения няма да се закачи
      */
-    static function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = FALSE)
+    public static function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = false)
     {
         if ($res = static::stopUnusedPlugin($plugin, $class)) {
             
@@ -96,24 +94,23 @@ class core_Plugins extends core_Manager
         }
         
         $status = static::setupPlugin($name, $plugin, $class, $cover, $state, $force);
-
-        if($status === 0) {
+        
+        if ($status === 0) {
             $res = "<li><b>{$name}</b>: Плъгинът <b>{$plugin}</b> и до сега е бил закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
-        } elseif($status === -1) {
+        } elseif ($status === -1) {
             $res = "<li style='color:#660000;'>Друг плъгин изпълнява ролята <b>{$name}</b>, затова <b>{$plugin}</b> не е закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
         } else {
             $res = "<li style='color:green;'><b>{$name}</b>: Плъгинът <b>{$plugin}</b> беше закачен към <b>{$class}</b> ({$cover}, {$state}) </li>";
         }
         
         return $res;
-
     }
     
     
     /**
      * Подготовка на филтър формата
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('name');
     }
@@ -122,26 +119,26 @@ class core_Plugins extends core_Manager
     /**
      * Инсталира нов плъгин, към определен клас
      */
-    static function setupPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = FALSE)
-    {   
+    public static function setupPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = false)
+    {
         // Ако плъгина е вече инсталиран - на правим нищо
-        if(static::fetch(array("#name = '[#1#]' AND #state = '{$state}' AND #plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'", $name))) {
-
+        if (static::fetch(array("#name = '[#1#]' AND #state = '{$state}' AND #plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'", $name))) {
+            
             return 0;
         }
-
+        
         // Изтриваме съществуващите прикачания на този плъгин към посочения клас
         static::delete("#plugin = '{$plugin}' AND #class = '{$class}'");
         
         // Ако има друг плъгин със същото име и не се изисква форсиране на този - излизаме
-        if(!$force && static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name))) {
+        if (!$force && static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name))) {
             
             return -1;
         }
-
+        
         // Спираме всички плъгини със същтото име
         $query = static::getQuery();
-        while($rec = $query->fetch(array("#name = '[#1#]'", $name))) {
+        while ($rec = $query->fetch(array("#name = '[#1#]'", $name))) {
             $rec->state = 'stopped';
             static::save($rec);
         }
@@ -153,9 +150,9 @@ class core_Plugins extends core_Manager
         $rec->state = $state;
         $rec->cover = $cover;
         
-        $self = cls::get('core_Plugins');  
-        $self->setPlugin($rec->class, $rec->plugin, $rec->cover, $rec->name); 
-
+        $self = cls::get('core_Plugins');
+        $self->setPlugin($rec->class, $rec->plugin, $rec->cover, $rec->name);
+        
         return static::save($rec);
     }
     
@@ -163,18 +160,18 @@ class core_Plugins extends core_Manager
     /**
      * Деинсталира даден плъгин
      */
-    function deinstallPlugin($plugin)
+    public function deinstallPlugin($plugin)
     {
-        foreach($this->attachedPlugins as $class => $r1) {
-            foreach($r1 as $cover => $r2) {
-                foreach($r2 as $name => $cPlg) {
-                    if($cPlg == $plugin) {
+        foreach ($this->attachedPlugins as $class => $r1) {
+            foreach ($r1 as $cover => $r2) {
+                foreach ($r2 as $name => $cPlg) {
+                    if ($cPlg == $plugin) {
                         unset($this->attachedPlugins[$class][$cover][$name]);
                     }
                 }
             }
         }
-
+        
         return $this->delete("#plugin = '{$plugin}'");
     }
     
@@ -192,10 +189,10 @@ class core_Plugins extends core_Manager
      * параметри на метода createEventCatcher, който създава класа на
      * плъгина
      */
-    function attach(&$obj)
+    public function attach(&$obj)
     {
-    	// Ако не са заредени прикачените плъгини, правим им начално зареждане
-        if(!is_array($this->attachedPlugins)) {
+        // Ако не са заредени прикачените плъгини, правим им начално зареждане
+        if (!is_array($this->attachedPlugins)) {
             $this->attachedPlugins = array();
             $query = $this->getQuery();
             
@@ -212,7 +209,7 @@ class core_Plugins extends core_Manager
             do {
                 if (isset($this->attachedPlugins[$objClass][$cover]) && count($arr = $this->attachedPlugins[$objClass][$cover])) {
                     foreach ($arr as $name => $plugin) {
-                        if (cls::load($plugin, TRUE)) {
+                        if (cls::load($plugin, true)) {
                             $obj->loadSingle($name, $plugin);
                         } else {
                             $this->logWarning("Липсващ плъгин: {$plugin}");
@@ -231,26 +228,26 @@ class core_Plugins extends core_Manager
      * класа на плъгина. Ако параметърът е масив, то елементите му са
      * параметри на метода createEventCatcher, който създава класа на плъгина
      */
-    function setPlugin($class, $plugin, $cover = 'private', $name = NULL)
+    public function setPlugin($class, $plugin, $cover = 'private', $name = null)
     {
         $singletons = cls::getSingletons();
         
-        if(isset($singletons[$class]) && !($singletons[$class] instanceof stdClass)){
-        	
-        	// Ако класа вече е зареден в паметта, закачаме плъгина с `load`
-        	$Cls = cls::get($class);
-        	$Cls->load($plugin);
-
+        if (isset($singletons[$class]) && !($singletons[$class] instanceof stdClass)) {
+            
+            // Ако класа вече е зареден в паметта, закачаме плъгина с `load`
+            $Cls = cls::get($class);
+            $Cls->load($plugin);
+            
             // Извикваме on_AfterDescription, защото това викане вече е минало
-            if(method_exists($plugin, 'on_AfterDescription')) {
+            if (method_exists($plugin, 'on_AfterDescription')) {
                 $Cls->_plugins[$plugin]->on_AfterDescription($Cls);
             }
         } else {
-        	
-        	// Ако не е закачен запомняме, че този плъгин трябва да се закачи при инстанцирането на класа
-        	$class = strtolower($class);
-        	$name = $name ? $name : $plugin;
-        	$this->attachedPlugins[$class][$cover][$name] = $plugin;
+            
+            // Ако не е закачен запомняме, че този плъгин трябва да се закачи при инстанцирането на класа
+            $class = strtolower($class);
+            $name = $name ? $name : $plugin;
+            $this->attachedPlugins[$class][$cover][$name] = $plugin;
         }
     }
     
@@ -258,30 +255,29 @@ class core_Plugins extends core_Manager
     /**
      * Рутинен метод, премахва прикачанията, свързани с класове от посочения пакет
      */
-    static function deinstallPack($pack)
+    public static function deinstallPack($pack)
     {
         $query = self::getQuery();
-        $preffix = $pack . "_";
+        $preffix = $pack . '_';
         $query->delete(array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix));
     }
     
     
     /**
      * Ако липсва кода на плъгина или класа, да не се спира съответния плъгин
-     * 
+     *
      * @param string $plugin
      * @param string $class
-     * 
+     *
      * @return string
      */
-    static function stopUnusedPlugin($plugin, $class)
+    public static function stopUnusedPlugin($plugin, $class)
     {
-        $pluginLoad = cls::load($plugin, TRUE);
-        $classLoad = cls::load($class, TRUE);
+        $pluginLoad = cls::load($plugin, true);
+        $classLoad = cls::load($class, true);
         
         // Ако не може да се зареди плъгина или класа
-        if (!$pluginLoad || !$classLoad){
-            
+        if (!$pluginLoad || !$classLoad) {
             $cnt = 0;
             $str = '';
             
@@ -325,37 +321,33 @@ class core_Plugins extends core_Manager
             return $res;
         }
         
-        return FALSE;
+        return false;
     }
-
-
+    
+    
     /**
      * функция, която автоматично изчиства лишите линкове от менюто
      */
-    function repair()
+    public function repair()
     {
         $query = $this->getQuery();
-
-        while($rec = $query->fetch()) {
-
-            if(!cls::load($rec->plugin, TRUE)) {
+        
+        while ($rec = $query->fetch()) {
+            if (!cls::load($rec->plugin, true)) {
                 $this->delete($rec->id);
-
+                
                 $res .= "<li class='debug-error'>Премахнато е {$rec->name} защото липсва плъгина {$rec->plugin}</li>";
-
+                
                 continue;
             }
-
-            if(!cls::load($rec->class, TRUE)) {
+            
+            if (!cls::load($rec->class, true)) {
                 $this->delete($rec->id);
-
+                
                 $res .= "<li class='debug-error'>Премахнато е {$rec->name} защото липсва класа {$rec->class}</li>";
-
+                
                 continue;
             }
-
         }
-
     }
-
 }

@@ -12,21 +12,21 @@ defIfNot('PLG_SEARCH_MAX_KEYWORD_LEN', '10');
  *
  * Мениджърът, към който се закача този плъгин трябва да има пропърти
  * searchFields = "field1,field2,..." в които да са описани полетата за търсене
- * По пдоразбиране полето за търсене в филтер формата се казва 'search', 
+ * По пдоразбиране полето за търсене в филтер формата се казва 'search',
  * да се смени името му трябва да се дефинира в съответния мениджър searchInputField
  *
  * @category  ef
  * @package   plg
+ *
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  * @link
  */
 class plg_Search extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -39,11 +39,11 @@ class plg_Search extends core_Plugin
         
         $fType = $mvc->getFieldType('searchKeywords');
         $fType->params['collate'] = 'ascii_bin';
-
-        if(empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
-            $mvc->setDbIndex('searchKeywords', NULL, 'FULLTEXT');
+        
+        if (empty($mvc->dbEngine) && !$mvc->dbIndexes['search_keywords']) {
+            $mvc->setDbIndex('searchKeywords', null, 'FULLTEXT');
         }
-
+        
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
         setIfNot($mvc->searchInputField, 'search');
     }
@@ -53,13 +53,12 @@ class plg_Search extends core_Plugin
      * Извиква се преди запис в MVC класа. Генерира ключовите
      * думи за записа, които се допълват в полето searchKeywords
      */
-    public static function on_BeforeSave($mvc, $id, $rec, &$fields=NULL)
+    public static function on_BeforeSave($mvc, $id, $rec, &$fields = null)
     {
-		$fieldArr = arr::make($fields, TRUE);
-		if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords') || array_key_exists('searchKeywords', $fieldArr)) {
-			
-			if ($fields !== NULL) {
-                $fields = arr::make($fields, TRUE);
+        $fieldArr = arr::make($fields, true);
+        if (!$fields || arr::haveSection($fields, $mvc->getSearchFields()) || ($fields == 'searchKeywords') || array_key_exists('searchKeywords', $fieldArr)) {
+            if ($fields !== null) {
+                $fields = arr::make($fields, true);
                 $fields['searchKeywords'] = 'searchKeywords';
             }
             
@@ -73,7 +72,10 @@ class plg_Search extends core_Plugin
      */
     public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
-        if ($searchKeywords) return;
+        if ($searchKeywords) {
+            
+            return;
+        }
         
         $searchKeywords = self::getKeywords($mvc, $rec);
     }
@@ -87,7 +89,7 @@ class plg_Search extends core_Plugin
         $searchKeywords = '';
         $searchFields = $mvc->getSearchFields();
         if (!empty($searchFields)) {
-            $fieldsArr = $mvc->selectFields("", $searchFields);
+            $fieldsArr = $mvc->selectFields('', $searchFields);
             
             if (is_object($rec)) {
                 $cRec = clone $rec;
@@ -98,26 +100,25 @@ class plg_Search extends core_Plugin
                             $cRec->{$fieldName} = $fullRec->{$fieldName};
                         }
                     }
-                    
                 }
             } elseif (is_numeric($rec)) {
                 $cRec = $mvc->fetch($rec);
             }
             
-            foreach($fieldsArr as $field => $fieldObj) {
-                if(get_class($fieldObj->type) == 'type_Text') {
+            foreach ($fieldsArr as $field => $fieldObj) {
+                if (get_class($fieldObj->type) == 'type_Text') {
                     $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
                 } else {
                     Mode::push('text', 'plain');
                     Mode::push('htmlEntity', 'none');
-                    Mode::push('forSearch', TRUE);
+                    Mode::push('forSearch', true);
                     
                     $verbalVal = $mvc->getVerbal($cRec, $field);
                     
                     if (!($fieldObj->type instanceof type_Varchar)) {
-                        $verbalVal = type_Richtext::stripTags($verbalVal); 
+                        $verbalVal = type_Richtext::stripTags($verbalVal);
                     }
-            
+                    
                     $searchKeywords .= ' ' . static::normalizeText($verbalVal);
                     
                     Mode::pop('forSearch');
@@ -129,7 +130,7 @@ class plg_Search extends core_Plugin
         
         return $searchKeywords;
     }
-
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -143,138 +144,172 @@ class plg_Search extends core_Plugin
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC($mvc->searchInputField, 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
-    	$data->listFilter->input(NULL, 'silent');
+        $data->listFilter->input(null, 'silent');
         
         $filterRec = $data->listFilter->rec;
         if ($filterRec->{$mvc->searchInputField}) {
             static::applySearch($filterRec->{$mvc->searchInputField}, $data->query);
             
             // Ако ключовата дума е число, търсим и по ид
-            if (type_Int::isInt($filterRec->{$mvc->searchInputField}) && ($mvc->searchInId !== FALSE)) {
-            	$data->query->orWhere($filterRec->{$mvc->searchInputField});
+            if (type_Int::isInt($filterRec->{$mvc->searchInputField}) && ($mvc->searchInId !== false)) {
+                $data->query->orWhere($filterRec->{$mvc->searchInputField});
             }
         }
     }
     
-
+    
     /**
      * Помощна функция за сортиране по дължина на думите
      */
-    static function sortLength($a, $b)
+    public static function sortLength($a, $b)
     {
-        return strlen($b)-strlen($a);
+        return strlen($b) - strlen($a);
     }
     
     
     /**
      * Прилага търсене по ключови думи
-     * 
-     * @param string $search
+     *
+     * @param string     $search
      * @param core_Query $query
-     * @param string $field
+     * @param string     $field
      */
-    public static function applySearch($search, $query, $field = NULL, $strict = 2, $limit = NULL)
+    public static function applySearch($search, $query, $field = null, $strict = 2, $limit = null)
     {
-        if(!$field) {
+        if (!$field) {
             $field = 'searchKeywords';
         }
         
         $wCacheArr = array();
         
         if ($words = static::parseQuery($search)) {
-          
             usort($words, 'plg_Search::sortLength');
             
-            foreach($words as $w) {
-                
+            $stopWordsCnt = $notStopWordsCnt = $shortWordsCnt = $longWordsCnt = 0;
+            $shortWordLen = 4;
+            
+            foreach ($words as $w) {
                 $w = trim($w);
                 
                 // Предпазване от търсене на повтарящи се думи
-                if (isset($wCacheArr[$w])) continue;
+                if (isset($wCacheArr[$w])) {
+                    continue;
+                }
                 $wCacheArr[$w] = $w;
                 
-                if(!$w) continue;
+                if (!$w) {
+                    continue;
+                }
                 
                 $wordBegin = ' ';
                 $wordEnd = '';
                 $wordEndQ = '*';
                 
-                if($strict === TRUE ||(is_numeric($strict) && $strict > strlen($w))) {
+                if ($strict === true || (is_numeric($strict) && $strict > strlen($w))) {
                     $wordEnd = ' ';
                     $wordEndQ = '';
                 }
-
+                
                 $mode = '+';
-
-                if($w{0} == '"') {
+                
+                if ($w{0} == '"') {
                     $mode = '"';
                     $w = substr($w, 1);
-                    if(!$w) continue;
+                    if (!$w) {
+                        continue;
+                    }
                     $wordEnd = ' ';
-                }  
+                }
                 
-                if($w{0} == '*') {
-                    $wТ = substr($w, 1);
-                    $wТ = trim($wТ);
-                    if(!$wТ) continue;
+                if ($w{0} == '*') {
+                    $wT = substr($w, 1);
+                    $wT = trim($wT);
+                    if (!$wT) {
+                        continue;
+                    }
                     $wordBegin = '';
-                } 
+                }
                 
-                if($w{0} == '-') {
+                if ($w{0} == '-') {
                     $w = substr($w, 1);
                     $mode = '-';
-
-
-                    if(!$w) continue;
+                    
+                    
+                    if (!$w) {
+                        continue;
+                    }
                     $wordEnd = ' ';
-                    $like = "NOT LIKE";
-                    $equalTo = " = 0";
+                    $like = 'NOT LIKE';
+                    $equalTo = ' = 0';
                 } else {
-
-                    $like = "LIKE";
-                    $equalTo = "";
+                    $like = 'LIKE';
+                    $equalTo = '';
                 }
-            
-                $w = trim(static::normalizeText($w, array('*'))); 
+                
+                $w = trim(static::normalizeText($w, array('*')));
                 
                 // Ако търсената дума е празен интервал
                 $wTrim = trim($w);
-                if (!strlen($wTrim)) continue;
+                if (!strlen($wTrim)) {
+                    continue;
+                }
                 
-                if(strpos($w, ' ')) {
+                if (strpos($w, ' ')) {
                     $mode = '"';
                 }
-
+                
                 // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
                 if ($mode != '"') {
                     $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
                     $w = substr($w, 0, $maxLen);
                 }
                 
-                if(strpos($w, '*') !== FALSE) {
+                if (strpos($w, '*') !== false) {
                     $w = str_replace('*', '%', $w);
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {  
-                        if($limit > 0 && $like == 'LIKE') {
-                            $field1 =  "LEFT(#{$field}, {$limit})";
+                    
+                    // Разделяме думите по интервал и тогава ги приброяваме
+                    $wArr = explode(' ', $w);
+                    foreach ($wArr as $wIn) {
+                        if (self::isStopWord($wIn)) {
+                            $stopWordsCnt++;
                         } else {
-                            $field1 =  "#{$field}";
+                            $notStopWordsCnt++;
+                        }
+                        
+                        $wLen = strlen($wIn);
+                        if ($wLen < $shortWordLen) {
+                            $shortWordsCnt++;
+                        } else {
+                            $longWordsCnt++;
+                        }
+                    }
+                    
+                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
+                        if ($limit > 0 && $like == 'LIKE') {
+                            $field1 = "LEFT(#{$field}, {$limit})";
+                        } else {
+                            $field1 = "#{$field}";
                         }
                         $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
                     } else {
-                        if($mode == '+') {
+                        if ($mode == '+') {
                             $query->where("match(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)");
                         }
-                        if($mode == '"') {
+                        if ($mode == '"') {
                             $query->where("match(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
                         }
-                        if($mode == '-') {
+                        if ($mode == '-') {
                             $query->where("LOCATE('{$w}', #{$field}) = 0");
                         }
                     }
                 }
+            }
+            
+            if (($stopWordsCnt >= 2) || ($shortWordsCnt && !$longWordsCnt)) {
+                $query->isSlowQuery = true;
             }
         }
     }
@@ -282,14 +317,14 @@ class plg_Search extends core_Plugin
     
     /**
      * Проверява дали думите са изключени от FullText търсене
-     * 
-     * @param string $word
-     * @param boolean $strict
-     * @param NULL|integer $strict
-     * 
-     * @return boolean
+     *
+     * @param string   $word
+     * @param bool     $strict
+     * @param NULL|int $strict
+     *
+     * @return bool
      */
-    public static function isStopWord($word, $strict = FALSE, $minLenFTS = NULL)
+    public static function isStopWord($word, $strict = false, $minLenFTS = null)
     {
         $word = trim($word);
         
@@ -297,7 +332,10 @@ class plg_Search extends core_Plugin
             $minLenFTS = self::getFTSMinWordLen();
         }
         
-        if (strlen($word) < $minLenFTS) return TRUE;
+        if (strlen($word) < $minLenFTS) {
+            
+            return true;
+        }
         
         $type = 'sqlStopWord';
         $handler = 'stopWords';
@@ -313,30 +351,35 @@ class plg_Search extends core_Plugin
             core_Cache::set($type, $handler, $stopWordsArr, $keepMinutes);
         }
         
-        if (isset($stopWordsArr[$word])) return TRUE;
+        if (isset($stopWordsArr[$word])) {
+            
+            return true;
+        }
         
         // Ако има интервал в думите и всички поотделно са stopWords - тогава приемаме целият израз за такъв
         if (strpos($word, ' ')) {
             $wArr = explode(' ', $word);
-            $allIsStopWords = TRUE;
+            $allIsStopWords = true;
             foreach ($wArr as $kWord) {
                 if (!self::isStopWord($kWord, $strict, $minLenFTS)) {
-                    $allIsStopWords = FALSE;
+                    $allIsStopWords = false;
                     
                     break;
                 }
             }
             
-            if ($allIsStopWords) return TRUE;
+            if ($allIsStopWords) {
+                
+                return true;
+            }
         }
         
         // Ако няма да се търси точната дума, гледаме и думите, които започват с подадения стринг
         if (!$strict) {
-            
-            $all = FALSE;
-            if (strpos($word, '*') !== FALSE) {
+            $all = false;
+            if (strpos($word, '*') !== false) {
                 $word = str_replace('*', '%', $word);
-                $all = TRUE;
+                $all = true;
             }
             
             $pattern = '/^' . preg_quote($word, '/') . '/i';
@@ -345,10 +388,13 @@ class plg_Search extends core_Plugin
                 $pattern = str_replace('%', '.*', $pattern);
             }
             
-            if (preg_grep($pattern, $stopWordsArr)) return TRUE;
+            if (preg_grep($pattern, $stopWordsArr)) {
+                
+                return true;
+            }
         }
         
-        return FALSE;
+        return false;
     }
     
     
@@ -359,19 +405,18 @@ class plg_Search extends core_Plugin
      * и прави всички букви в долен регистър (lower case).
      *
      * @param string $str
-     * @param array $ignoreParamsArr
-     * 
+     * @param array  $ignoreParamsArr
+     *
      * @return string
      */
     public static function normalizeText($str, $ignoreParamsArr = array())
     {
         $ignoreParamsArr = arr::make($ignoreParamsArr);
         
-        if(strlen($str) > 32000) {
-
+        if (strlen($str) > 32000) {
             static $maxLen;
-
-            if(!$maxLen) {
+            
+            if (!$maxLen) {
                 $conf = core_Packs::getConfig('core');
                 
                 // Максимално допустима дължина
@@ -383,7 +428,7 @@ class plg_Search extends core_Plugin
         }
         
         $str = preg_replace('/[ ]+/', ' ', $str);
-
+        
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);
@@ -392,7 +437,7 @@ class plg_Search extends core_Plugin
         if (!empty($ignoreParamsArr)) {
             foreach ($ignoreParamsArr as $ignore) {
                 $ignoreStr .= preg_quote($ignore, '/');
-            } 
+            }
         }
         
         $str = preg_replace("/[^a-z0-9{$ignoreStr}]+/", ' ', $str);
@@ -404,32 +449,33 @@ class plg_Search extends core_Plugin
     /**
      * Парсира заявка за търсене на отделни думи и фрази
      */
-    public static function parseQuery($str, $latin = TRUE)
+    public static function parseQuery($str, $latin = true)
     {
         $str = trim($str);
         
-        if(!$str) return FALSE;
+        if (!$str) {
+            
+            return false;
+        }
         
-        if($latin) {
+        if ($latin) {
             $str = str::utf2ascii($str);
         }
-
+        
         $str = strtolower($str);
         
         $len = strlen($str);
         
-        $quote = FALSE;
+        $quote = false;
         $wordId = 0;
-        $isWord = TRUE;
+        $isWord = true;
         
-        for($i = 0; $i < $len; $i++) {
-            
+        for ($i = 0; $i < $len; $i++) {
             $c = $str{$i};
             
             // Кога трябва да прибавим буквата
-            if(($c != ' ' && $c != '"') || ($c == ' ' && $quote)) {
-                
-                if(($quote) && empty($words[$wordId])) {
+            if (($c != ' ' && $c != '"') || ($c == ' ' && $quote)) {
+                if (($quote) && empty($words[$wordId])) {
                     $words[$wordId] = '"';
                 }
                 
@@ -438,95 +484,96 @@ class plg_Search extends core_Plugin
             }
             
             // Кога трябва да се пробваме да започнем нова дума
-            if($c == ' ' && !$quote) {
-                if(strlen($words[$wordId])) {
+            if ($c == ' ' && !$quote) {
+                if (strlen($words[$wordId])) {
                     $wordId++;
                     continue;
                 }
             }
             
             // Кога трябва да отворим словосъчетание?
-            if($c == '"' && !$quote) {
-                $quote = TRUE;
+            if ($c == '"' && !$quote) {
+                $quote = true;
                 continue;
             }
             
             // Кога трябва да затворим словосъчетание?
-            if($c == '"' && $quote) {
-                $quote = FALSE;
+            if ($c == '"' && $quote) {
+                $quote = false;
                 continue;
             }
         }
-
+        
         return $words;
     }
-
-
+    
+    
     /**
-     * Maркира текста, отговарящ на заявката
+     * Маркира текста, отговарящ на заявката
      */
     public static function highlight($text, $query, $class = 'document')
-    {   
-        $qArr = self::parseQuery($query, FALSE);
-      
-        if(is_array($qArr)) {
-            foreach($qArr as $q) {
-                if($q{0} == '-') continue;
+    {
+        $qArr = self::parseQuery($query, false);
+        
+        if (is_array($qArr)) {
+            foreach ($qArr as $q) {
+                if ($q{0} == '-') {
+                    continue;
+                }
                 $q = trim($q);
                 $q = json_encode($q);
-                jquery_Jquery::run($text, "\n $('.{$class}').highlight({$q});", TRUE);
+                jquery_Jquery::run($text, "\n $('.{$class}').highlight({$q});", true);
             }
         }
-
-        return $text; 
+        
+        return $text;
     }
-
-
+    
+    
     /**
      * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
         $i = 0;
-        setIfNot($mvc->fillSearchKeywordsOnSetup, TRUE);
-    	if($mvc->fillSearchKeywordsOnSetup !== FALSE && !$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
-    	    try {
-    	        $query = $mvc->getQuery();
-    	        while($rec = $query->fetch()) {
-    	            try{
-    	                
-    	                // Ако има полета от които да се генери ключ за търсене
-    	                if ($saveFields = $mvc->getSearchFields()) {
-    	                    
-    	                    // Към полетата, които ще се записват, добавяме и полето за търсене
-    	                    $saveFields[] = 'searchKeywords';
-    	                    
-    	                    // Записваме само определени полета, от масива
-    	                    $mvc->save($rec, $saveFields);
-    	                    $i++;
-    	                }
-    	                
-    	            } catch(core_exception_Expect $e) {
-    	                continue;
-    	            }
-    	        }
-    	    } catch (Exception $e) {
-    	        reportException($e);
-    	    }
-    	}
-
-        if($i) {
+        setIfNot($mvc->fillSearchKeywordsOnSetup, true);
+        if ($mvc->fillSearchKeywordsOnSetup !== false && !$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+            try {
+                $query = $mvc->getQuery();
+                while ($rec = $query->fetch()) {
+                    try {
+                        
+                        // Ако има полета от които да се генери ключ за търсене
+                        if ($saveFields = $mvc->getSearchFields()) {
+                            
+                            // Към полетата, които ще се записват, добавяме и полето за търсене
+                            $saveFields[] = 'searchKeywords';
+                            
+                            // Записваме само определени полета, от масива
+                            $mvc->save($rec, $saveFields);
+                            $i++;
+                        }
+                    } catch (core_exception_Expect $e) {
+                        continue;
+                    }
+                }
+            } catch (Exception $e) {
+                reportException($e);
+            }
+        }
+        
+        if ($i) {
             $res .= "<li style='color:green;'>Добавени са ключови думи за {$i} записа.</li>";
         }
     }
-
+    
     
     /**
      * Полета, по които да се генерират ключове за търсене
-     * 
+     *
      * @param core_Mvc $mvc
-     * @param array $searchFieldsArr
-     */   
+     * @param array    $searchFieldsArr
+     */
     public static function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
     {
         $searchFieldsArr = arr::make($mvc->searchFields);
@@ -569,14 +616,18 @@ class plg_Search extends core_Plugin
         $query->orderBy('id', 'ASC');
         
         while ($rec = $query->fetch()) {
-            if (dt::now() >= $maxTime) break;
+            if (dt::now() >= $maxTime) {
+                break;
+            }
             
             $maxId = $rec->id;
             
             try {
                 $generatedKeywords = $clsInst->getSearchKeywords($rec);
                 
-                if ($generatedKeywords == $rec->searchKeywords) continue;
+                if ($generatedKeywords == $rec->searchKeywords) {
+                    continue;
+                }
                 
                 $rec->searchKeywords = $generatedKeywords;
                 
@@ -594,16 +645,20 @@ class plg_Search extends core_Plugin
     
     /**
      * Връща дефолтната стойност на ft_min_word_len
-     * 
+     *
      * @param NULL|core_Query $query
-     * @param integer $def
-     * @return integer
+     * @param int             $def
+     *
+     * @return int
      */
-    protected static function getFTSMinWordLen($query = NULL, $def = 4)
+    protected static function getFTSMinWordLen($query = null, $def = 4)
     {
         static $minLenFTS;
         
-        if (isset($minLenFTS)) return $minLenFTS;
+        if (isset($minLenFTS)) {
+            
+            return $minLenFTS;
+        }
         
         // Ако е зададен в конфига
         if (defined('PLG_SEARCH_MIN_LEN_FTS')) {
@@ -622,7 +677,7 @@ class plg_Search extends core_Plugin
         }
         
         // Ако все още не може да се определи - дефолтната стойност от документацията
-        if(!$minLenFTS) {
+        if (!$minLenFTS) {
             $minLenFTS = $def;
         }
         

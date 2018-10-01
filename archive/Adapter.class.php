@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Директория, в която ще се държат екстрактнатите файлове
  */
@@ -15,26 +14,19 @@ defIfNot('ARCHIVE_7Z_PATH', '7z');
 
 
 /**
- * Максималната големина след разархивиране на един файл
- * 100 mB
- */
-defIfNot('ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT', 104857600);
-
-
-/**
  * Адаптер за разглеждане и разархивиране на архиви
  *
  * @category  vendors
  * @package   archive
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class archive_Adapter
 {
-    
-    
     /**
      * Инстанция на класа
      */
@@ -58,10 +50,10 @@ class archive_Adapter
      *
      * @param array $fArr
      */
-    function init($fArr = array())
+    public function init($fArr = array())
     {
         // Вкарваме пакета
-        require_once getFullPath("archive/7z/7z.php");
+        require_once getFullPath('archive/7z/7z.php');
         
         if ($fArr['fileHnd']) {
             // Пътя до файла
@@ -84,7 +76,7 @@ class archive_Adapter
      *
      * @param array $url - Масив с URL
      */
-    function tree($url)
+    public function tree($url)
     {
         try {
             // Вземаме съдържанието
@@ -99,20 +91,19 @@ class archive_Adapter
         $tableInst = cls::get('core_Tree');
         
         // Обхождаме масива
-        foreach ((array)$entriesArr as $key => $entry) {
+        foreach ((array) $entriesArr as $key => $entry) {
             
             // Пътя в архива
             $path = $entry->getPath();
             
             // Заместваме разделителите за поддиректория с разделителя за дърво
-            $path = str_replace(array('/', '\\'), "->", $path);
+            $path = str_replace(array('/', '\\'), '->', $path);
             
             // Размер на файла след разархивиране
             $size = $entry->getSize();
             
             // Ако има размер
-            if ($size && ($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT)) {
-                
+            if ($size && ($size < archive_Setup::get('MAX_LEN'))) {
                 $urlPath = $url;
                 
                 // Индекса да е ключа
@@ -120,18 +111,18 @@ class archive_Adapter
             } else {
                 
                 // Ако няма размер
-                $urlPath = FALSE;
+                $urlPath = false;
             }
             
             // Добавяме пътя в дървото със съответното URL
-            $tableInst->addNode($path, $urlPath, TRUE);
+            $tableInst->addNode($path, $urlPath, true);
         }
         
         // Името
         $tableInst->name = 'archive';
         
         // Рендираме изгледа
-        $res = $tableInst->renderHtml(NULL);
+        $res = $tableInst->renderHtml(null);
         
         // Връщаме шаблона
         return $res;
@@ -140,13 +131,13 @@ class archive_Adapter
     
     /**
      * Връща масив от обекти със информацията за съдържанието на файла
-     *
-     * @param ingeger $entry - Индекса на файла от архива
+     *Portal/Show/
+     * @param int $entry - Индекса на файла от архива
      *
      * @return mixed - Ако е подаден индекс, връща обект с информация за съответния файл/папка
-     * Ако не е подаден индек, масив с всички файлове/папки, като обекти
+     *               Ако не е подаден индек, масив с всички файлове/папки, като обекти
      */
-    public function getEntries($entry = FALSE)
+    public function getEntries($entry = false)
     {
         try {
             // Вземаме информация за всички файлове/папки
@@ -156,7 +147,7 @@ class archive_Adapter
         }
         
         // Ако е подаден номер на файл
-        if ($entry !== FALSE) {
+        if ($entry !== false) {
             
             // Връщаме съответния запис
             return $entriesArr[$entry];
@@ -165,7 +156,7 @@ class archive_Adapter
         // Обхождаме масива
         foreach ($entriesArr as $e) {
             
-            // Минаваме пътя през изчисване на името
+            // Минаваме пътя през изчистване на името
             $e->path = i18n_Charset::convertToUtf8($e->path);
         }
         
@@ -177,7 +168,7 @@ class archive_Adapter
     /**
      * Качва в кофа файла в съответния индекс и връща манипулатора на качения файл
      *
-     * @param integer $index - Индекса на файла в архива
+     * @param int $index - Индекса на файла в архива
      */
     public function getFile($index)
     {
@@ -189,10 +180,10 @@ class archive_Adapter
             $size = $entry->getSize();
             
             // Очакваме размера след декомпресия да е в допустимите граници
-            expect($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT);
+            expect($size < archive_Setup::get('MAX_LEN'));
         } catch (ErrorException $e) {
             // Ако възникне грешка
-            expect(FALSE, 'Възникна грешка при свалянето на файла');
+            expect(false, 'Възникна грешка при свалянето на файла');
         }
         
         // Ако няма размер
@@ -203,7 +194,7 @@ class archive_Adapter
             $path = $entry->getPath();
         } catch (ErrorException $e) {
             // Ако възникне грешка
-            expect(FALSE, 'Не може да се определи пътя до файла.');
+            expect(false, 'Не може да се определи пътя до файла.');
         }
         
         // Вземаме манипулатора на файла
@@ -235,7 +226,6 @@ class archive_Adapter
      * Качваме подадения файл от архива, в кофата 'archive'
      *
      * @param string $path - Вътрешния път в архива
-     *
      * @param string - Манипулатора на файла
      */
     protected function absorbFile($path)
@@ -245,7 +235,7 @@ class archive_Adapter
             $path = $this->extractEntry($path);
         } catch (ErrorException $e) {
             // Ако възникне грешка
-            expect(FALSE, 'Не може да се екстрактен файла от архива');
+            expect(false, 'Не може да се екстрактен файла от архива');
         }
         
         // Ако е файл
@@ -267,7 +257,7 @@ class archive_Adapter
      *
      * @param string $path - Вътрешния път в архива
      */
-    function extractEntry($path)
+    public function extractEntry($path)
     {
         // Вземаме директорията
         $this->setOutputDirectory();
@@ -298,13 +288,13 @@ class archive_Adapter
         // Опитваме се да генерираме име, което не се среща в директория
         do {
             $newName = str::getRand();
-        }while(in_array($newName, (array)$dirs));
+        } while (in_array($newName, (array) $dirs));
         
         // Пътя на директорията
         $this->dir = $dir . '/' . $newName;
         
         // Създаваме директорията
-        expect(mkdir($this->dir, 0777, TRUE), 'Не може да се създаде директория.');
+        expect(mkdir($this->dir, 0777, true), 'Не може да се създаде директория.');
         
         try {
             // Инициализираме директорията

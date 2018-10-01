@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'store_ConsignmentProtocolDetailsReceived'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   store
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDetail
 {
-    
-	
     /**
      * Заглавие
      */
     public $title = 'Детайли на протоколите за отговорно пазене-върнати';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -38,7 +37,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     /**
      * Плъгини за зареждане
-     * 
+     *
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
@@ -73,9 +72,9 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId=Получено от Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем, packPrice, amount,transUnitId=ЛЕ';
-
     
-	/**
+    
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
@@ -94,9 +93,9 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      */
     public function description()
     {
-    	$this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
-    	parent::setFields($this);
-    	$this->setDbUnique('protocolId,productId,packagingId');
+        $this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
+        parent::setFields($this);
+        $this->setDbUnique('protocolId,productId,packagingId');
     }
     
     
@@ -105,9 +104,9 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      */
     protected function getProducts($masterRec)
     {
-    	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
-    	 
-    	return $products;
+        // Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
+        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
+        
+        return $products;
     }
 }

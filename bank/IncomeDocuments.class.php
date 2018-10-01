@@ -1,32 +1,30 @@
 <?php 
 
-
-
 /**
  * Приходен банков документ
  *
  *
  * @category  bgerp
  * @package   bank
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class bank_IncomeDocuments extends bank_Document
 {
-    
-    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, bgerp_DealIntf, email_DocumentIntf';
-
+    
     
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Приходни банкови документи";
+    public $title = 'Приходни банкови документи';
     
     
     /**
@@ -44,7 +42,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Абревиатура
      */
-    public $abbr = "Pbd";
+    public $abbr = 'Pbd';
     
     
     /**
@@ -62,7 +60,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.3|Финанси";
+    public $newBtnGroup = '4.3|Финанси';
     
     
     /**
@@ -74,7 +72,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "termDate,valior=Вальор, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+    public $listFields = 'termDate,valior=Вальор, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy';
     
     
     /**
@@ -82,15 +80,17 @@ class bank_IncomeDocuments extends bank_Document
      */
     public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
     
+    
     /**
      * Права за плъгин-а bgerp_plg_Export
      */
-   public $canExport = 'ceo, invoicer';
+    public $canExport = 'ceo, invoicer';
+    
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
         parent::getFields($this);
     }
@@ -110,7 +110,7 @@ class bank_IncomeDocuments extends bank_Document
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
-        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
+        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(false));
         
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
         
@@ -119,8 +119,8 @@ class bank_IncomeDocuments extends bank_Document
         
         $form->setOptions('operationSysId', $options);
         
-        if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
-        	$form->setDefault('operationSysId', $form->defaultOperation);
+        if (isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)) {
+            $form->setDefault('operationSysId', $form->defaultOperation);
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
@@ -136,8 +136,8 @@ class bank_IncomeDocuments extends bank_Document
         $options = array();
         
         // Оставяме само тези операции, в които се дебитира основната сметка на документа
-        foreach ($operations as $sysId => $op){
-            if($op['debit'] == static::$baseAccountSysId){
+        foreach ($operations as $sysId => $op) {
+            if ($op['debit'] == static::$baseAccountSysId) {
                 $options[$sysId] = $op['title'];
             }
         }
@@ -154,13 +154,13 @@ class bank_IncomeDocuments extends bank_Document
     {
         $rec = $data->rec;
         
-    	if($rec->state == 'draft') {
-            if(bank_PaymentOrders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
-                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/pln.png,title=Създаване на ново платежно нареждане');
+        if ($rec->state == 'draft') {
+            if (bank_PaymentOrders::haveRightFor('add', (object) array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => true, ''), null, 'ef_icon=img/16/pln.png,title=Създаване на ново платежно нареждане');
             }
             
-            if(bank_DepositSlips::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))){
-                $data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/vnb.png,title=Създаване на нова вносна бележка');
+            if (bank_DepositSlips::haveRightFor('add', (object) array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => true, ''), null, 'ef_icon=img/16/vnb.png,title=Създаване на нова вносна бележка');
             }
         }
     }

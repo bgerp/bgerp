@@ -1,20 +1,19 @@
 <?php 
 
-
 /**
  * Модул за хостове за връзка с астерикс
  *
  * @category  bgerp
  * @package   callcenter
+ *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class callcenter_Hosts extends core_Master
 {
-    
-    
     /**
      * Името на кофата за файловете
      */
@@ -24,79 +23,79 @@ class callcenter_Hosts extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Хостове';
+    public $title = 'Хостове';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Хост";
+    public $singleTitle = 'Хост';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin';
+    public $canEdit = 'admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin';
+    public $canAdd = 'admin';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
-	
-	
+    public $canList = 'admin';
+    
+    
     /**
      * Кой може да разглежда сингъл изгледа?
      */
-    var $canSingle = 'admin';
+    public $canSingle = 'admin';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой има право да го оттегля?
      */
-    var $canReject = 'admin';
+    public $canReject = 'admin';
     
     
     /**
      * Кой има право да го използва?
      */
-    var $canUse = 'powerUser';
+    public $canUse = 'powerUser';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Created, plg_Modified, plg_Rejected';
+    public $loadList = 'callcenter_Wrapper, plg_RowTools2, plg_Created, plg_Modified, plg_Rejected';
     
     
-	/**
+    /**
      * Описание на модела (таблицата)
      */
-    function description()
+    public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
         $this->FLD('hostId', 'key(mvc=ssh_Hosts, select=name)', 'caption=Хост,mandatory');
@@ -107,18 +106,27 @@ class callcenter_Hosts extends core_Master
     
     /**
      * Архивира обаждането и връща манипулатора на файла
-     * 
+     *
      * @param array $placeArr
-     * 
+     *
      * @return FALSE|string
      */
     public static function archiveTalk($id, $placeArr)
     {
-        if (!$id) return FALSE;
+        if (!$id) {
+            
+            return false;
+        }
         
-        if (!($rec = self::fetch((int)$id))) return FALSE;
+        if (!($rec = self::fetch((int) $id))) {
+            
+            return false;
+        }
         
-        if (!$rec->hostId) return FALSE;
+        if (!$rec->hostId) {
+            
+            return false;
+        }
         
         // Свързаме се към отдалечения хост
         try {
@@ -126,7 +134,7 @@ class callcenter_Hosts extends core_Master
         } catch (ErrorException $e) {
             self::logWarning($e->getMessage(), $rec->id);
             
-            return FALSE;
+            return false;
         }
         
         $fPath = self::prepareFileName($rec, $placeArr);
@@ -137,21 +145,23 @@ class callcenter_Hosts extends core_Master
         } catch (Exception $e) {
             self::logWarning($e->getMessage(), $rec->id);
             
-            return FALSE;
+            return false;
         }
         
         if (!trim($content)) {
-            
             self::logWarning('Файлът няма съдържание', $rec->id);
             
-            return FALSE;
+            return false;
         }
         
         $fName = pathinfo($fPath, PATHINFO_BASENAME);
         
         $fileHnd = fileman::absorbStr($content, self::$bucket, $fName);
         
-        if (!$fileHnd) return FALSE;
+        if (!$fileHnd) {
+            
+            return false;
+        }
         
         return $fileHnd;
     }
@@ -159,10 +169,10 @@ class callcenter_Hosts extends core_Master
     
     /**
      * Подготвя пътя до файла, като замества плейсхолдерите
-     * 
+     *
      * @param stdClass $rec
-     * @param array $placeArr
-     * 
+     * @param array    $placeArr
+     *
      * @return string
      */
     protected static function prepareFileName($rec, $placeArr)
@@ -185,7 +195,7 @@ class callcenter_Hosts extends core_Master
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param stdClass     $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -194,15 +204,15 @@ class callcenter_Hosts extends core_Master
     
     
     /**
-     * 
-     * 
+     *
+     *
      * @param callcenter_Hosts $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param NULL|stdClass $rec
-     * @param NULL|integer $userId
+     * @param string           $requiredRoles
+     * @param string           $action
+     * @param NULL|stdClass    $rec
+     * @param NULL|int         $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'use') {
             if (!$rec) {
@@ -218,11 +228,10 @@ class callcenter_Hosts extends core_Master
             }
             
             if ($requiredRoles != 'no_one') {
-                
                 try {
-                    $sshHost = ssh_Hosts::fetchConfig((int)$rec->hostId);
+                    $sshHost = ssh_Hosts::fetchConfig((int) $rec->hostId);
                 } catch (ErrorException $e) {
-                    $sshHost = FALSE;
+                    $sshHost = false;
                 }
                 
                 if (!$sshHost) {
@@ -237,11 +246,11 @@ class callcenter_Hosts extends core_Master
      * Изпълнява се след създаването на модела
      *
      * @param callcenter_Hosts $mvc
-     * @param string $res
+     * @param string           $res
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function on_AfterSetupMVC($mvc, &$res)
     {
         //Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= fileman_Buckets::createBucket(self::$bucket, 'Архивирани обаждания', NULL, '300 MB', 'user', 'user');
+        $res .= fileman_Buckets::createBucket(self::$bucket, 'Архивирани обаждания', null, '300 MB', 'user', 'user');
     }
 }

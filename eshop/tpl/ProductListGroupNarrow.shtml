@@ -14,5 +14,11 @@
         <tr>
             <td style="padding-top:10px;" colspan="2">[#info#]</td>
         </tr>
+        
+        <!--ET_BEGIN commonParams-->
+        <tr>
+        	<td style="padding-top:5px;" colspan="2" class='small'>[#commonParams#]</td>
+        </tr>
+        <!--ET_END commonParams-->
     </table>
 </div>

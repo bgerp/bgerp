@@ -25,6 +25,8 @@ function spr(sel, refresh) {
 
 }
 
+
+
 /**
  * Опитваме се да репортнем JS грешките
  */
@@ -75,7 +77,7 @@ function showTooltip() {
     if (!($('.tooltip-arrow-link').length)) {
         return;
     }
-    // Aко има тултипи
+    // Ако има тултипи
     var element;
 
     var cachedArr = new Array();
@@ -1577,6 +1579,9 @@ function setMinHeightExt() {
             }
         }
     }
+    $('.toggleLink').on('click', function(){
+        $('.narrowNav').slideToggle();
+    });
 }
 function getWindowWidth() {
 	var winWidth = parseInt($(window).width());
@@ -2638,6 +2643,7 @@ function smartCenter() {
 
         var smartCenterWidth = [];
     	$("span.maxwidth").css('display', 'inline-block');
+        $("span.maxwidth").css('white-space', "nowrap");
 		$("span.maxwidth").each(function() {
             if($(this).hasClass('totalCol') ){
                 var dataCol = $(this).closest('table').find('tr td:last').find('.maxwidth').attr('data-col');
@@ -2654,7 +2660,8 @@ function smartCenter() {
 
         $("span.maxwidth:not('.notcentered')").css('display', "block");
         $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
-        $("span.maxwidth:not('.notcentered')").css('white-space', "nowrap");
+        $("span.maxwidth:not('.notcentered')").css('text-align', "right");
+
 }
 
 
@@ -3591,7 +3598,7 @@ efae.prototype.setUrl = function(url) {
 /**
  * Връща локалното URL, което да се извика
  *
- * @return - Локолното URL, което да се извикa по AJAX
+ * @return - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.getUrl = function() {
 
@@ -3612,7 +3619,7 @@ efae.prototype.setParentUrl = function(parentUrl) {
 /**
  * Връща URL-то, от което се вика AJAX-а
  *
- * @return - Локолното URL, което да се извикa по AJAX
+ * @return - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.getParentUrl = function() {
 
@@ -4993,6 +5000,31 @@ function detectScrollAndWp() {
     }
 }
 
+/**
+ * Определяне на височината на елементите в дебъг лога
+ */
+function debugLayout() {
+    var leftMenuHeight = $(window).height() - $('.headerLine').outerHeight();
+    $('.wide .debugList, .wide .debugPreview').css('height', leftMenuHeight);
+
+    if ($('body').hasClass('narrow')) {
+        $('.linksGroup').scrollTop($('.debugLink.current').offset().top - $('.linksGroup').height() -10);
+    }
+    $('.search-fields input').on('click', function(){
+        $('.other-fileds').slideDown();
+
+        $('.other-fileds').find('input.combo').each(function(){
+            var idComboBox = $(this).attr('id');
+            if(!comboBoxInited[idComboBox]){
+                comboBoxInit(idComboBox, idComboBox + "_cs");
+                comboBoxInited[idComboBox] = true;
+            }
+        });
+    });
+
+
+}
+
 
 function removeNarrowScroll() {
 	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
@@ -5082,7 +5114,7 @@ function mailServerSettings() {
 		    	protocol.value = "imap";
 		    	security.value = "tls";
 		    	cert.value = "validate";
-		    	smtpServer.value = "smtp.mail.bg:25";
+		    	smtpServer.value = "smtp.mail.bg:465";
 		    	smtpSecure.value = "tls";
 		    	smtpAuth.value = "LOGIN";
 		    	user.value = email.value;
@@ -5197,6 +5229,38 @@ function copyFileToLast(fh)
     }
 }
 
+/**
+ * Извиква функцията за изчисляване при зареждане и смяна на размери на прозореца
+ */
+function setFilemanPreviewSize()
+{
+    calcFilemanSize();
+    $( window ).resize(function() {
+        calcFilemanSize();
+    });
+}
+
+
+/**
+ * Изчисляване на размерите на привюто на файловете
+ */
+function calcFilemanSize(){
+    if (!$('.wide .webdrvFieldset').length) return;
+    var width = $(window).outerWidth() - $('.sidemenu-open').length * $('.sidemenu-open').width() - 4*parseInt($('#packWrapper').css('padding-left'));
+    var offset = $('.webdrvFieldset').offset();
+    var height = $(window).outerHeight() - parseInt(offset.top, 10) - 45;
+
+    $('.webdrvFieldset').css('width', width);
+    $('.webdrvFieldset').css('height', height);
+    $('.webdrvFieldset').css('overflow-y', 'auto');
+
+    $('.webdrvIframe').css('min-height', height - 5);
+
+    $("#imgIframe").load(function() {
+        $("#imgIframe").contents().find("#imgBg").css("height", height - 15);
+    });
+}
+
 
 /**
  * Fix за IE8
@@ -5270,17 +5334,20 @@ JSON.stringify = JSON.stringify || function (obj) {
 
 
 /**
- * Fix за IE7
- * implement JSON.parse de-serialization
- *
- * @see http://www.sitepoint.com/javascript-json-serialization/
+ * Дали елемента е видим във viewport
  */
-JSON.parse = JSON.parse || function (str) {
-	if (str === "") str = '""';
-	eval("var p=" + str + ";");
-	return p;
-};
+$.fn.isInViewport = function() {
+	if (typeof($(this).offset()) == 'undefined') return ;
+	
+	var elementTop = $(this).offset().top;
+    
+    var elementBottom = elementTop + $(this).outerHeight();
 
+    var viewportTop = $(window).scrollTop();
+    var viewportBottom = viewportTop + $(window).height();
+
+    return elementBottom > viewportTop && elementTop < viewportBottom;
+};
 
 
 /**
@@ -5293,9 +5360,37 @@ function focusOnce(id, rand) {
         }
         localStorage.setItem(rand, 1);
     }
-    $(id).focus();
+    
+    if($(id).isInViewpor && $(id).isInViewport()) {
+        $(id).focus();
+    }
 }
+
+
+/**
+ * Кокусиране върху заглавията, при дабъклик върху H2 заглавие
+ */
+function focusOnHeader() {
+    $("h2").dblclick(function(e) {
+        window.location.hash = $(this).attr("id");
+        e.preventDefault();
+    });
+}
+
+
+/**
+ * Fix за IE7
+ * implement JSON.parse de-serialization
+ *
+ * @see http://www.sitepoint.com/javascript-json-serialization/
+ */
+JSON.parse = JSON.parse || function (str) {
+	if (str === "") str = '""';
+	eval("var p=" + str + ";");
+	return p;
+};
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
+runOnLoad(focusOnHeader);

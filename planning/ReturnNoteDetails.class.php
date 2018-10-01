@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'planning_ReturnNoteDetails'
  *
@@ -9,21 +8,21 @@
  *
  * @category  bgerp
  * @package   planning
+ *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
+ *
  * @since     v 0.1
  */
 class planning_ReturnNoteDetails extends deals_ManifactureDetail
 {
-    
-	
     /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за връщане';
-
-
+    
+    
     /**
      * Заглавие в единствено число
      */
@@ -61,7 +60,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      * Кои операции от задачите ще се зареждат
      */
     public $taskActionLoad = 'production';
-
+    
     
     /**
      * Кой има право да променя?
@@ -86,7 +85,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      */
     public $listFields = 'productId, packagingId, packQuantity';
     
-        
+    
     /**
      * Активен таб
      */
