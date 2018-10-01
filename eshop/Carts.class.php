@@ -1002,6 +1002,8 @@ class eshop_Carts extends core_Master
     {
         $Double = core_Type::getByName('double(decimals=2)');
         $rec = self::fetchRec($id, '*', false);
+        if(empty($rec->productCount) && empty($rec->personNames)) return;
+        
         $row = self::recToVerbal($rec);
         $settings = cms_Domains::getSettings();
         if(!empty($settings->freeDelivery)){
@@ -1082,7 +1084,7 @@ class eshop_Carts extends core_Master
         
         $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array('eshop_Carts', 'order', $rec->id, 'ret_url' => true) : array();
         if (empty($rec->personNames) && count($checkoutUrl)) {
-            $btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn");
+            $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
@@ -1240,6 +1242,13 @@ class eshop_Carts extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if($action == 'checkout' && isset($rec)){
+            if(empty($rec->productCount) && empty($rec->personNames)){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
         
         if ($action == 'finalize' && isset($rec)) {
             if (empty($rec->personNames) || empty($rec->productCount)) {
