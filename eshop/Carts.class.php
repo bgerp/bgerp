@@ -643,13 +643,6 @@ class eshop_Carts extends core_Master
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         
-        if ($cu && $cu != core_Users::SYSTEM_USER) {
-            core_Users::exitSudo($cu);
-        } else {
-            core_Users::cancelSystemUser();
-        }
-        
-        core_Lg::pop();
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
         
         // Добавяне на артикулите от количката в продажбата
@@ -693,6 +686,13 @@ class eshop_Carts extends core_Master
             $saleRec = self::makeSalePending($saleId);
         }
         
+        if ($cu && $cu != core_Users::SYSTEM_USER) {
+            core_Users::exitSudo($cu);
+        } else {
+            core_Users::cancelSystemUser();
+        }
+        
+        core_Lg::pop();
         self::activate($rec, $saleId);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
