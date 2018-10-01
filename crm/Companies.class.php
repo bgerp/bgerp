@@ -2484,6 +2484,7 @@ class crm_Companies extends core_Master
      * @param int         $folderId  - ид на папка
      * @param string      $name      - име на папката
      * @param string      $vatId     - ват номер
+     * @param string      $uicNo     - нац. номер
      * @param int         $countryId - ид на държава
      * @param string|NULL $pCode     - п. код
      * @param string|NULL $place     - населено място
@@ -2491,11 +2492,11 @@ class crm_Companies extends core_Master
      *
      * @return void
      */
-    public static function updateContactDataByFolderId($folderId, $name, $vatId, $countryId, $pCode, $place, $address)
+    public static function updateContactDataByFolderId($folderId, $name, $vatId, $uicNo, $countryId, $pCode, $place, $address)
     {
         $saveFields = array();
         $rec = self::fetch("#folderId = {$folderId}");
-        $arr = array('name' => $name, 'vatId' => $vatId, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
+        $arr = array('name' => $name, 'vatId' => $vatId, 'uicId' => $uicNo, 'country' => $countryId, 'pCode' => $pCode, 'place' => $place, 'address' => $address);
         
         // Обновяване на зададените полета
         foreach ($arr as $name => $value) {

@@ -129,6 +129,7 @@ class eshop_Carts extends core_Master
      */
     public $canSingle = 'sales,eshop,ceo';
     
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -166,11 +167,14 @@ class eshop_Carts extends core_Master
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
         
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
-        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationIdinvoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
+        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
-        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
-        $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
+        
+        $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->ДДС №||VAT ID,input=hidden,invoiceData');
+        $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактура->ЕИК №,input=hidden,invoiceData');
+        
         $this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Държава по регистрация,input=none,invoiceData');
         $this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none');
         $this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none');
@@ -603,14 +607,6 @@ class eshop_Carts extends core_Master
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
             $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
-            
-            // Ако папката е на фирма, добавя се нейния ват номер
-            $Cover = doc_Folders::getCover($folderId);
-            if ($Cover->isInstanceOf('crm_Companies')) {
-                $companyRec = crm_Companies::fetch($Cover->that);
-                $companyRec->vatId = $rec->invoiceVatNo;
-                crm_Companies::save($companyRec, 'vatId');
-            }
         }
         
         $settings = cms_Domains::getSettings();
@@ -950,14 +946,14 @@ class eshop_Carts extends core_Master
         if ($rec->makeInvoice != 'none') {
             $countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->invoiceCountry);
             $tpl->replace($countryVerbal, 'invoiceCountry');
-            foreach (array('invoiceNames', 'invoiceVatNo', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $name) {
+            foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $name) {
                 $tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
             }
             
             $nameCaption = ($rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
             $tpl->replace(tr($nameCaption), 'INV_CAPTION');
-            if (!empty($rec->invoiceVatNo)) {
-                $vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
+            if (!empty($rec->invoiceUicNo)) {
+                $vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'ЕИК №';
                 $tpl->replace(tr($vatCaption), 'VAT_CAPTION');
             }
         } else {
@@ -1335,6 +1331,7 @@ class eshop_Carts extends core_Master
         cms_Helper::setLoginInfoIfNeeded($form);
         
         $form->input(null, 'silent');
+     
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
@@ -1390,11 +1387,11 @@ class eshop_Carts extends core_Master
             
             if ($form->rec->makeInvoice == 'person') {
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Име');
-                $form->setField('invoiceVatNo', 'caption=Данни за фактура->ЕГН');
-                $form->setFieldType('invoiceVatNo', 'bglocal_EgnType');
+                $form->setField('invoiceUicNo', 'caption=Данни за фактура->ЕГН');
+                $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
             } else {
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Фирма');
-                $form->setField('invoiceVatNo', 'caption=Данни за фактура->VAT/EIC');
+                $form->setField('invoiceVatNo', 'caption=Данни за фактура->ДДС №||VAT ID');
             }
             
             $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
@@ -1431,6 +1428,10 @@ class eshop_Carts extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
+            if($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)){
+                $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
+            }
+            
             if(!empty($rec->invoiceNames)){
                 if(!preg_match("/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu", $rec->invoiceNames)){
                     $form->setError('invoiceNames', 'Неправилен формат');
@@ -1453,7 +1454,7 @@ class eshop_Carts extends core_Master
                     }
                 }
             } else {
-                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceNames = $rec->invoiceVatNo = NULL;
+                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceUicNo = $rec->invoiceNames = $rec->invoiceVatNo = NULL;
             }
            
             if (count($emptyFields)) {
@@ -1475,7 +1476,7 @@ class eshop_Carts extends core_Master
                 // Ако има избрана папка обновява се
                 if (!empty($rec->saleFolderId)) {
                     $Cover = doc_Folders::getCover($rec->saleFolderId);
-                    $Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
+                    $Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceUicNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
                 }
                 
                 $cu = core_Users::getCurrent('id', false);
@@ -1623,8 +1624,11 @@ class eshop_Carts extends core_Master
         // Ако има избрана папка се записват контрагент данните
         if (isset($folderId)) {
             if ($contragentData = doc_Folders::getContragentData($folderId)) {
+                
+                
                 $form->setDefault('invoiceNames', $contragentData->company);
                 $form->setDefault('invoiceVatNo', $contragentData->vatNo);
+                $form->setDefault('invoiceUicNo', $contragentData->uicId);
                 $form->setDefault('invoiceCountry', $contragentData->countryId);
                 $form->setDefault('invoicePCode', $contragentData->pCode);
                 $form->setDefault('invoicePlace', $contragentData->place);
