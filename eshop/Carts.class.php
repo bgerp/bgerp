@@ -37,7 +37,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productCount=Артикули,total=Сума,ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
+    public $listFields = 'id,productCount=Артикули,total=Сума,ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
     
     
     /**
@@ -1713,10 +1713,16 @@ class eshop_Carts extends core_Master
             
             // Колко е очаквания и 'живот'
             $settings = cms_Domains::getSettings($rec->domainId);
-            $lifetime = isset($rec->userId) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
             
+            if(empty($rec->productCount)){
+                $lifetime = $settings->lifetimeForEmptyDraftCarts;
+            } else {
+                $lifetime = isset($rec->userId) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
+            }
+           
             // Ако и е изтекла продължителността и е чернова се изтрива
             $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
+            
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
             }
