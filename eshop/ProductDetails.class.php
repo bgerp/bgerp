@@ -463,8 +463,7 @@ class eshop_ProductDetails extends core_Detail
         $fieldset->FNC('catalogPrice', 'double');
         $fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
-        $fieldset->FLD('quantity', 'varchar', 'tdClass=small-field');
-        $fieldset->setField('quantity', 'tdClass=quantity-input-column');
+        $fieldset->FLD('quantity', 'varchar', 'tdClass=quantity-input-column small-field');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
         
@@ -474,6 +473,7 @@ class eshop_ProductDetails extends core_Detail
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->paramListFields);
+        
         $listFields = &$data->listFields;
         array_walk(array_keys($data->commonParams), function($paramId) use (&$listFields){unset($listFields["param{$paramId}"]);});
         
