@@ -1706,7 +1706,7 @@ class eshop_Carts extends core_Master
         // Всички чернови колички
         $now = dt::now();
         $query = self::getQuery();
-        $query->where("#state = 'draft'");
+        $query->where("#state = 'draft' OR #state = '' OR #state IS NULL");
         
         // За всяка
         while ($rec = $query->fetch()) {
