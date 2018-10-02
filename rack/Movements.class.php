@@ -745,7 +745,7 @@ class rack_Movements extends core_Manager
         } else {
             $this->requireRightFor('toggle');
         }
-        
+       
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
         
@@ -910,8 +910,8 @@ class rack_Movements extends core_Manager
             
             return $res;
         }
-        
-        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal) && $transaction->zonesQuantityTotal > 0) {
+       
+        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs(round($transaction->quantity, 4)) < abs(round($transaction->zonesQuantityTotal, 4)) && $transaction->zonesQuantityTotal > 0) {
             $res->errors = 'Недостатъчно количество за оставяне в зоните';
             $res->errorFields = 'packQuantity,zones';
             
