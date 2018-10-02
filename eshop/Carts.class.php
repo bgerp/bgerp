@@ -474,7 +474,7 @@ class eshop_Carts extends core_Master
         }
         
         $cartId = ($cartId) ? $cartId : self::force(null, null, false);
-        $url = array('eshop_Carts', 'force');
+        $url = array();
         
         if (isset($cartId)) {
             $cartRec = self::fetch($cartId);
@@ -493,6 +493,7 @@ class eshop_Carts extends core_Master
                 $tpl->append(new core_ET("<span class='count'>[#count#]</span>"));
             }
         } else {
+            $hint = 'Нямате избрани арткули';
             if ($settings->enableCart == 'no') {
                 
                 return new core_ET(' ');
@@ -517,19 +518,6 @@ class eshop_Carts extends core_Master
         core_Lg::pop();
         
         return $tpl;
-    }
-    
-    
-    /**
-     * Екшън за форсиране на количка
-     */
-    public function act_Force()
-    {
-        if(!core_Packs::isInstalled('eshop')) return;
-        
-        $cartId = self::force();
-        
-        redirect(array($this, 'view', $cartId, 'ret_url' => true));
     }
     
     
@@ -1278,7 +1266,7 @@ class eshop_Carts extends core_Master
             } else {
                 $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
                 if($compareDate >= dt::now()){
-                    $requiredRoles = 'no_one';
+                    //$requiredRoles = 'no_one';
                 }
             }
         }
