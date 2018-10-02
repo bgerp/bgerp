@@ -27,10 +27,16 @@
          <!--ET_END CHECK_EMAIL-->
       </div>
    </div>
+   
+   
+            
    <div class="cartInfoBlock">
       <!--ET_BEGIN INFO_BLOCK-->
       [#INFO_BLOCK#]
       <div class="order-info" id='cart-view-order-info'>
+      <!--ET_BEGIN activeFolderId-->
+            <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
+            <!--ET_END activeFolderId-->
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
             <h4 style="margin: 0px 0 3px;">|Данни за поръчката|* [#editBtn#]</h4>
@@ -56,6 +62,45 @@
                </tr>
                <!--ET_END paymentId-->
             </table>
+
+			<!--ET_END SALE_BLOCK-->
+         <div id = 'cart-view-total' class="summary-holder [#BORDER_CLASS#] borderBottom" >
+            <table>
+            	<!--ET_BEGIN amount-->
+               <tr>
+                  <td class="aright">|Сума|*: </td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#amountCurrencyId#]</span></td>
+                  <td class="aright"><b>[#amount#]</b></td>
+               </tr>
+               <!--ET_END amount-->
+               <!--ET_BEGIN deliveryAmount-->
+               <tr>
+                  <!--ET_BEGIN deliveryCaption-->
+                  <td class="aright">[#deliveryCaption#]: </td>
+                  <!--ET_END deliveryCaption-->
+                  <!--ET_BEGIN deliveryCurrencyId-->
+                  <td class="aright"><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span></td>
+                  <!--ET_END deliveryCurrencyId-->
+                  <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
+               </tr>
+               <!--ET_END deliveryAmount-->
+               <!--ET_BEGIN totalVat-->
+               <tr>
+                  <td class="aright">|ДДС|*: </td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
+                  <td class="aright"><b>[#totalVat#]</b></td>
+               </tr>
+               <!--ET_END totalVat-->
+               <!--ET_BEGIN total-->
+               <tr>
+                  <td class="aright">|Общо|*: </td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
+                  <td class="aright"><b>[#total#]</b></td>
+               </tr>
+               <!--ET_END total-->
+            </table>
+         </div> 
+
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
             [#DELIVERY_BLOCK#]
@@ -91,13 +136,9 @@
                <!--ET_END instruction-->
                <!--ET_END DELIVERY_BLOCK-->
             </table>
-
+            
          <!--ET_BEGIN INVOICE_BLOCK-->
          [#INVOICE_BLOCK#]
-            <!--ET_BEGIN activeFolderId-->
-            <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
-            <!--ET_END activeFolderId-->
-
          <!--ET_BEGIN NO_INVOICE-->
          <div style="padding-bottom: 5px;">[#NO_INVOICE#]</div>
          <!--ET_END NO_INVOICE-->
@@ -113,9 +154,16 @@
                <!--ET_END invoiceNames-->
                <!--ET_BEGIN invoiceVatNo-->
                <tr>
-                  <td class="aright">[#VAT_CAPTION#]:</td><td> [#invoiceVatNo#]</td>
+                  <td class="aright">|ДДС №|*:</td><td> [#invoiceVatNo#]</td>
                </tr>
                <!--ET_END invoiceVatNo-->
+               
+               <!--ET_BEGIN invoiceUicNo-->
+               <tr>
+                  <td class="aright">[#VAT_CAPTION#]</td><td> [#invoiceUicNo#]</td>
+               </tr>
+               <!--ET_END invoiceUicNo-->
+               
                <!--ET_BEGIN invoiceCountry-->
                <tr>
                   <td class="aright">|Държава|*: </td><td>[#invoiceCountry#]</td>
@@ -139,46 +187,10 @@
             </table>
 		 <!--ET_END WITH_INVOICE-->
          <!--ET_END INVOICE_BLOCK-->
-
-         <!--ET_END SALE_BLOCK-->
-         <div id = 'cart-view-total' class="summary-holder [#BORDER_CLASS#]" >
-            <table>
-               <!--ET_BEGIN deliveryAmount-->
-               <tr>
-                  <!--ET_BEGIN deliveryCaption-->
-                  <td class="aright">[#deliveryCaption#]: </td>
-                  <!--ET_END deliveryCaption-->
-                  <!--ET_BEGIN deliveryCurrencyId-->
-                  <td class="aright"><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span></td>
-                  <!--ET_END deliveryCurrencyId-->
-                  <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
-               </tr>
-               <!--ET_END deliveryAmount-->
-               <!--ET_BEGIN totalNoVat-->
-               <tr>
-                  <td class="aright">|Основа|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#totalNoVatCurrencyId#]</span></td>
-                  <td class="aright"><b>[#totalNoVat#]</b></td>
-               </tr>
-               <!--ET_END totalNoVat-->
-               <!--ET_BEGIN totalVat-->
-               <tr>
-                  <td class="aright">|ДДС|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
-                  <td class="aright"><b>[#totalVat#]</b></td>
-               </tr>
-               <!--ET_END totalVat-->
-               <tr>
-                  <td class="aright">|Общо|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
-                  <td class="aright"><b>[#total#]</b></td>
-               </tr>
-            </table>
-
          <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
          <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_RIGHT-->
-         </div>
+         
       </div>
       <!--ET_END INFO_BLOCK-->
 

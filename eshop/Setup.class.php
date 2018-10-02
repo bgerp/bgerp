@@ -114,8 +114,8 @@ class eshop_Setup extends core_ProtoSetup
             'description' => 'Изтриване на старите колички',
             'controller' => 'eshop_Carts',
             'action' => 'DeleteDraftCarts',
-            'period' => 1440,
-            'offset' => 60,
+            'period' => 60,
+            'offset' => 30,
             'timeLimit' => 100
         ),
     );

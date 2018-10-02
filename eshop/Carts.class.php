@@ -37,7 +37,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productCount=Артикули,total=Сума,ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
+    public $listFields = 'id,productCount=Артикули,total=Сума,ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
     
     
     /**
@@ -128,11 +128,17 @@ class eshop_Carts extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'sales,eshop,ceo';
-    
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'productCount';
+    
+    
+    /**
+     * Икона на единичния изглед
+     */
+    public $singleIcon = 'img/16/trolley.png';
     
     
     /**
@@ -166,11 +172,14 @@ class eshop_Carts extends core_Master
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
         
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
-        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationIdinvoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
+        $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
-        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
-        $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->VAT/EIC,input=hidden,mandatory,invoiceData');
+        
+        $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->ДДС №||VAT ID,input=hidden,invoiceData');
+        $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактура->ЕИК №,input=hidden,invoiceData');
+        
         $this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Държава по регистрация,input=none,invoiceData');
         $this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none');
         $this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none');
@@ -465,7 +474,7 @@ class eshop_Carts extends core_Master
         }
         
         $cartId = ($cartId) ? $cartId : self::force(null, null, false);
-        $url = array('eshop_Carts', 'force');
+        $url = array();
         
         if (isset($cartId)) {
             $cartRec = self::fetch($cartId);
@@ -484,6 +493,7 @@ class eshop_Carts extends core_Master
                 $tpl->append(new core_ET("<span class='count'>[#count#]</span>"));
             }
         } else {
+            $hint = 'Нямате избрани артикули|*!';
             if ($settings->enableCart == 'no') {
                 
                 return new core_ET(' ');
@@ -508,19 +518,6 @@ class eshop_Carts extends core_Master
         core_Lg::pop();
         
         return $tpl;
-    }
-    
-    
-    /**
-     * Екшън за форсиране на количка
-     */
-    public function act_Force()
-    {
-        if(!core_Packs::isInstalled('eshop')) return;
-        
-        $cartId = self::force();
-        
-        redirect(array($this, 'view', $cartId, 'ret_url' => true));
     }
     
     
@@ -603,14 +600,6 @@ class eshop_Carts extends core_Master
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
             $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
-            
-            // Ако папката е на фирма, добавя се нейния ват номер
-            $Cover = doc_Folders::getCover($folderId);
-            if ($Cover->isInstanceOf('crm_Companies')) {
-                $companyRec = crm_Companies::fetch($Cover->that);
-                $companyRec->vatId = $rec->invoiceVatNo;
-                crm_Companies::save($companyRec, 'vatId');
-            }
         }
         
         $settings = cms_Domains::getSettings();
@@ -643,13 +632,6 @@ class eshop_Carts extends core_Master
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         
-        if ($cu && $cu != core_Users::SYSTEM_USER) {
-            core_Users::exitSudo($cu);
-        } else {
-            core_Users::cancelSystemUser();
-        }
-        
-        core_Lg::pop();
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
         
         // Добавяне на артикулите от количката в продажбата
@@ -693,6 +675,13 @@ class eshop_Carts extends core_Master
             $saleRec = self::makeSalePending($saleId);
         }
         
+        if ($cu && $cu != core_Users::SYSTEM_USER) {
+            core_Users::exitSudo($cu);
+        } else {
+            core_Users::cancelSystemUser();
+        }
+        
+        core_Lg::pop();
         self::activate($rec, $saleId);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
@@ -727,6 +716,7 @@ class eshop_Carts extends core_Master
         $saleRec->state = 'pending';
         $saleRec->brState = 'draft';
         $saleRec->pendingSaved = true;
+        
         sales_Sales::save($saleRec, 'state');
         
         return $saleRec;
@@ -774,6 +764,8 @@ class eshop_Carts extends core_Master
         if ($hnd = sales_Sales::getHandle($saleRec->id)) {
             $body->replace("#{$hnd}", 'SALE_HANDLER');
         }
+        
+        $body->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
         
         // Линка за регистрация
         $Cover = doc_Folders::getCover($saleRec->folderId);
@@ -947,14 +939,14 @@ class eshop_Carts extends core_Master
         if ($rec->makeInvoice != 'none') {
             $countryVerbal = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->invoiceCountry);
             $tpl->replace($countryVerbal, 'invoiceCountry');
-            foreach (array('invoiceNames', 'invoiceVatNo', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $name) {
+            foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoicePCode', 'invoicePlace', 'invoiceAddress') as $name) {
                 $tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
             }
             
             $nameCaption = ($rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
             $tpl->replace(tr($nameCaption), 'INV_CAPTION');
-            if (!empty($rec->invoiceVatNo)) {
-                $vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'VAT/EIC';
+            if (!empty($rec->invoiceUicNo)) {
+                $vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'ЕИК №';
                 $tpl->replace(tr($vatCaption), 'VAT_CAPTION');
             }
         } else {
@@ -999,6 +991,8 @@ class eshop_Carts extends core_Master
     {
         $Double = core_Type::getByName('double(decimals=2)');
         $rec = self::fetchRec($id, '*', false);
+        if(empty($rec->productCount) && empty($rec->personNames)) return;
+        
         $row = self::recToVerbal($rec);
         $settings = cms_Domains::getSettings();
         if(!empty($settings->freeDelivery)){
@@ -1007,36 +1001,49 @@ class eshop_Carts extends core_Master
         }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+        $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
+        $deliveryNoVat = currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
+        $vatAmount = $total - $totalNoVat;
+        $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
-        
-        if ($settings->chargeVat != 'yes') {
-            $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
-            $vatAmount = $total - $totalNoVat;
-            
-            $row->totalNoVat = $Double->toVerbal($totalNoVat);
-            $row->totalVat = $Double->toVerbal($vatAmount);
-            $row->totalNoVatCurrencyId = $row->vatCurrencyId = $row->currencyId;
-        } else {
-            unset($row->totalNoVat);
-        }
         
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $row->deliveryCaption = tr('Доставка||Shipping');
             $row->deliveryCurrencyId = $row->currencyId;
-            
+           
             if($rec->freeDelivery != 'no'){
                 $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
                 unset($row->deliveryCurrencyId);
                 $row->deliveryColspan = "colspan=2";
             } else {
-                $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                $deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+               if($settings->chargeVat == 'yes'){
+                    $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+                    $transportVat = cat_Products::getVat($transportId);
+                    $transportVatAmount = $rec->deliveryNoVat * $transportVat;
+                    $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
+                    $amountWithoutDelivery -= $transportVatAmount;
+                } else {
+                    $deliveryAmount = $rec->deliveryNoVat;
+                    $amountWithoutDelivery -= $deliveryNoVat;
+                }
+                
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
+                $totalNoVat -= $deliveryAmount;
+                
                 $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
                 $row->deliveryAmount = $deliveryAmountV;
             }
+        }
+        
+        $row->amount = $Double->toVerbal($amountWithoutDelivery);
+        
+        $row->amountCurrencyId = $row->currencyId;
+        
+        if($settings->chargeVat != 'yes'){
+            $row->vatCurrencyId = $row->currencyId;
+            $row->totalVat = $Double->toVerbal($vatAmount);
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
@@ -1079,7 +1086,7 @@ class eshop_Carts extends core_Master
         
         $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array('eshop_Carts', 'order', $rec->id, 'ret_url' => true) : array();
         if (empty($rec->personNames) && count($checkoutUrl)) {
-            $btn = ht::createBtn(tr('Данни за поръчката') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn");
+            $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, "title=Поръчване на артикулите,class=order-btn eshop-btn");
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
@@ -1238,6 +1245,13 @@ class eshop_Carts extends core_Master
             }
         }
         
+        if($action == 'checkout' && isset($rec)){
+            if(empty($rec->productCount) && empty($rec->personNames)){
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        
         if ($action == 'finalize' && isset($rec)) {
             if (empty($rec->personNames) || empty($rec->productCount)) {
                 $requiredRoles = 'no_one';
@@ -1271,18 +1285,21 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if(isset($fields['-list'])){
-            $row->ROW_ATTR['class'] = "state-{$rec->state}";
-            if (isset($rec->saleId)) {
-                $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+        
+        $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        if (isset($rec->saleId)) {
+            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        }
+        $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+        
+        $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
+        
+        foreach (array('total', 'totalNoVat', 'deliveryNoVat') as $fld){
+            if(isset($rec->{$fld})){
+                ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
+                $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
             }
-            
-            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
-            $row->domainId = cms_Domains::getHyperlink($rec->domainId);
-            
-            $currencyCode = cms_Domains::getSettings()->currencyId;
-            $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $currencyCode);
-            $row->total = $mvc->getFieldType('total')->toVerbal($total) . " <span class='cCode'>{$currencyCode}</span>";
         }
     }
     
@@ -1320,6 +1337,7 @@ class eshop_Carts extends core_Master
         cms_Helper::setLoginInfoIfNeeded($form);
         
         $form->input(null, 'silent');
+     
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
@@ -1375,11 +1393,11 @@ class eshop_Carts extends core_Master
             
             if ($form->rec->makeInvoice == 'person') {
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Име');
-                $form->setField('invoiceVatNo', 'caption=Данни за фактура->ЕГН');
-                $form->setFieldType('invoiceVatNo', 'bglocal_EgnType');
+                $form->setField('invoiceUicNo', 'caption=Данни за фактура->ЕГН');
+                $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
             } else {
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Фирма');
-                $form->setField('invoiceVatNo', 'caption=Данни за фактура->VAT/EIC');
+                $form->setField('invoiceVatNo', 'caption=Данни за фактура->ДДС №||VAT ID');
             }
             
             $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
@@ -1416,6 +1434,10 @@ class eshop_Carts extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
+            if($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)){
+                $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
+            }
+            
             if(!empty($rec->invoiceNames)){
                 if(!preg_match("/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu", $rec->invoiceNames)){
                     $form->setError('invoiceNames', 'Неправилен формат');
@@ -1438,7 +1460,7 @@ class eshop_Carts extends core_Master
                     }
                 }
             } else {
-                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceNames = $rec->invoiceVatNo = NULL;
+                $rec->invoiceCountry = $rec->invoicePCode = $rec->invoicePlace = $rec->invoiceAddress = $rec->invoiceUicNo = $rec->invoiceNames = $rec->invoiceVatNo = NULL;
             }
            
             if (count($emptyFields)) {
@@ -1460,7 +1482,7 @@ class eshop_Carts extends core_Master
                 // Ако има избрана папка обновява се
                 if (!empty($rec->saleFolderId)) {
                     $Cover = doc_Folders::getCover($rec->saleFolderId);
-                    $Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
+                    $Cover->getInstance()->updateContactDataByFolderId($rec->saleFolderId, $rec->invoiceNames, $rec->invoiceVatNo, $rec->invoiceUicNo, $rec->invoiceCountry, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress);
                 }
                 
                 $cu = core_Users::getCurrent('id', false);
@@ -1603,13 +1625,16 @@ class eshop_Carts extends core_Master
     {
         $rec = &$form->rec;
         $cu = core_Users::getCurrent('id', false);
-        $isColab = isset($cu);
+        $isColab = isset($cu) && core_Users::isContractor($cu);
         
         // Ако има избрана папка се записват контрагент данните
         if (isset($folderId)) {
             if ($contragentData = doc_Folders::getContragentData($folderId)) {
+                
+                
                 $form->setDefault('invoiceNames', $contragentData->company);
                 $form->setDefault('invoiceVatNo', $contragentData->vatNo);
+                $form->setDefault('invoiceUicNo', $contragentData->uicId);
                 $form->setDefault('invoiceCountry', $contragentData->countryId);
                 $form->setDefault('invoicePCode', $contragentData->pCode);
                 $form->setDefault('invoicePlace', $contragentData->place);
@@ -1642,31 +1667,34 @@ class eshop_Carts extends core_Master
             }
         }
         
-        // Ако е колаборатор
-        if ($isColab === true) {
-           
-            // Адреса за доставка е този от последната количка
+        if(isset($cu)){
             $cQuery = eshop_Carts::getQuery();
             $cQuery->where("#userId = {$cu} AND #state = 'active'");
-            $cQuery->in('deliveryCountry', $form->countries);
-            $cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress,locationId');
             $cQuery->orderBy('activatedOn', 'DESC');
             $cQuery->limit(1);
+            $cQuery2 = clone $cQuery;
             
+            // Адреса за доставка е този от последната количка
+            $cQuery->in('deliveryCountry', $form->countries);
             if ($lastCart = $cQuery->fetch()) {
                 foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
                     $form->setDefault($field, $lastCart->{$field});
                 }
-            } else {
-                
-                // Ако няма е като този на избраната папка
-                if (isset($folderId)) {
-                    if ($contragentData = doc_Folders::getContragentData($folderId)) {
-                        $form->setDefault('deliveryCountry', $contragentData->countryId);
-                        $form->setDefault('deliveryPCode', $contragentData->pCode);
-                        $form->setDefault('deliveryPlace', $contragentData->place);
-                        $form->setDefault('deliveryAddress', $contragentData->address);
-                    }
+            }
+            
+            $cQuery2->in('invoiceCountry', $form->countries);
+            if ($lastCart2 = $cQuery2->fetch()) {
+                foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress', 'tel') as $field) {
+                    $form->setDefault($field, $lastCart2->{$field});
+                }
+            }
+            
+            if (isset($folderId)) {
+                if ($contragentData = doc_Folders::getContragentData($folderId)) {
+                    $form->setDefault('deliveryCountry', $contragentData->countryId);
+                    $form->setDefault('deliveryPCode', $contragentData->pCode);
+                    $form->setDefault('deliveryPlace', $contragentData->place);
+                    $form->setDefault('deliveryAddress', $contragentData->address);
                 }
             }
         }
@@ -1681,17 +1709,23 @@ class eshop_Carts extends core_Master
         // Всички чернови колички
         $now = dt::now();
         $query = self::getQuery();
-        $query->where("#state = 'draft'");
+        $query->where("#state = 'draft' OR #state = '' OR #state IS NULL");
         
         // За всяка
         while ($rec = $query->fetch()) {
             
             // Колко е очаквания и 'живот'
             $settings = cms_Domains::getSettings($rec->domainId);
-            $lifetime = isset($rec->userId) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
             
+            if(empty($rec->productCount)){
+                $lifetime = $settings->lifetimeForEmptyDraftCarts;
+            } else {
+                $lifetime = isset($rec->userId) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
+            }
+           
             // Ако и е изтекла продължителността и е чернова се изтрива
             $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
+            
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
             }
