@@ -1684,7 +1684,7 @@ class eshop_Carts extends core_Master
             
             $cQuery2->in('invoiceCountry', $form->countries);
             if ($lastCart2 = $cQuery2->fetch()) {
-                foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress') as $field) {
+                foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress', 'tel') as $field) {
                     $form->setDefault($field, $lastCart2->{$field});
                 }
             }
