@@ -5268,6 +5268,15 @@ div.location.public {
 	}
 }
 
+.narrow .eshop-product-list {
+	.eshopLink {
+		float: left;
+	}
+	ul {
+		display: table-cell;
+	}
+}
+
 .newCol{
 	background-color:#eee
 }
