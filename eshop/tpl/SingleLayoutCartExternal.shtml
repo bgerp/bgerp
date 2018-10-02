@@ -66,13 +66,13 @@
 			<!--ET_END SALE_BLOCK-->
          <div id = 'cart-view-total' class="summary-holder [#BORDER_CLASS#] borderBottom" >
             <table>
-            	<!--ET_BEGIN totalWithoutDelivery-->
+            	<!--ET_BEGIN amount-->
                <tr>
                   <td class="aright">|Сума|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#totalWithoutDeliveryCurrencyId#]</span></td>
-                  <td class="aright"><b>[#totalWithoutDelivery#]</b></td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#amountCurrencyId#]</span></td>
+                  <td class="aright"><b>[#amount#]</b></td>
                </tr>
-               <!--ET_END totalWithoutDelivery-->
+               <!--ET_END amount-->
                <!--ET_BEGIN deliveryAmount-->
                <tr>
                   <!--ET_BEGIN deliveryCaption-->
@@ -84,13 +84,6 @@
                   <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
                </tr>
                <!--ET_END deliveryAmount-->
-               <!--ET_BEGIN totalNoVat-->
-               <tr>
-                  <td class="aright">|Основа|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#totalNoVatCurrencyId#]</span></td>
-                  <td class="aright"><b>[#totalNoVat#]</b></td>
-               </tr>
-               <!--ET_END totalNoVat-->
                <!--ET_BEGIN totalVat-->
                <tr>
                   <td class="aright">|ДДС|*: </td>

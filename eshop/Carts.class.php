@@ -1013,42 +1013,49 @@ class eshop_Carts extends core_Master
         }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
-        
+        $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
+        $deliveryNoVat = currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
+        $vatAmount = $total - $totalNoVat;
+        $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
-        
-        if ($settings->chargeVat != 'yes') {
-            $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
-            $vatAmount = $total - $totalNoVat;
-            
-            $row->totalNoVat = $Double->toVerbal($totalNoVat);
-            $row->totalVat = $Double->toVerbal($vatAmount);
-            $row->totalNoVatCurrencyId = $row->vatCurrencyId = $row->currencyId;
-        } else {
-            unset($row->totalNoVat);
-        }
         
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $row->deliveryCaption = tr('Доставка||Shipping');
             $row->deliveryCurrencyId = $row->currencyId;
-            
+           
             if($rec->freeDelivery != 'no'){
                 $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
                 unset($row->deliveryCurrencyId);
                 $row->deliveryColspan = "colspan=2";
             } else {
-                $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                $deliveryAmount = $rec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+               if($settings->chargeVat == 'yes'){
+                    $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+                    $transportVat = cat_Products::getVat($transportId);
+                    $transportVatAmount = $rec->deliveryNoVat * $transportVat;
+                    $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
+                    $amountWithoutDelivery -= $transportVatAmount;
+                } else {
+                    $deliveryAmount = $rec->deliveryNoVat;
+                    $amountWithoutDelivery -= $deliveryNoVat;
+                }
+                
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
+                $totalNoVat -= $deliveryAmount;
+                
                 $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
                 $row->deliveryAmount = $deliveryAmountV;
-                
-                if(!empty($deliveryAmount)){
-                    $row->totalWithoutDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($total - $deliveryAmount);
-                    $row->totalWithoutDeliveryCurrencyId = $row->currencyId;
-                }
             }
+        }
+        
+        $row->amount = $Double->toVerbal($amountWithoutDelivery);
+        
+        $row->amountCurrencyId = $row->currencyId;
+        
+        if($settings->chargeVat != 'yes'){
+            $row->vatCurrencyId = $row->currencyId;
+            $row->totalVat = $Double->toVerbal($vatAmount);
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
