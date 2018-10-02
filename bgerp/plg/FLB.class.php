@@ -39,12 +39,12 @@ class bgerp_plg_FLB extends core_Plugin
         
         // Поле, в които се указват потребителите, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectUserFld, false)) {
-            $mvc->FLD($mvc->canSelectUserFld, 'userList', "caption=Използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
+            $mvc->FLD($mvc->canSelectUserFld, 'userList', "caption=Избор на текущ и използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
         }
         
         // Поле, в които се указват rolite, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectRoleFld, false)) {
-            $mvc->FLD($mvc->canSelectRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Използване в документи->Екипи,after={$mvc->canSelectUserFld}");
+            $mvc->FLD($mvc->canSelectRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Избор на текущ и използване в документи->Екипи,after={$mvc->canSelectUserFld}");
         }
         
         // Трябва да е към корица
