@@ -47,7 +47,7 @@ class eshop_plg_Users extends core_Plugin
                     $arr["{$cRec->productId}|{$cRec->packagingId}"] = $cRec;
                 }
                 
-                // Ако логнатия потребител има чернова количка
+                // Ако логнатият потребител има чернова количка
                 if ($exId = eshop_Carts::force($dRec->id, $userRec->id, false)) {
                     
                     // Извличат се артикулит от нея
