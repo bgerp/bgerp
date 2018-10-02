@@ -399,8 +399,10 @@ class eshop_ProductDetails extends core_Detail
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
         
         $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
-        $row->quantity = ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", null, 'size=4,class=eshop-product-option,placeholder=1');
-        
+        $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
+        $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
+        $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
+
         $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
         $row->catalogPrice = core_Type::getByName('double(smartRound)')->toVerbal($catalogPriceInfo->price);
         $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
@@ -455,15 +457,13 @@ class eshop_ProductDetails extends core_Detail
     public static function renderExternal($data)
     {
         $tpl = new core_ET('');
-        $count = count($data->rows);
         
         $fieldset = cls::get(get_called_class());
         $fieldset->FNC('code', 'varchar');
         $fieldset->FNC('catalogPrice', 'double');
         $fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
-        $fieldset->FLD('quantity', 'varchar');
-        $fieldset->setField('quantity', 'tdClass=quantity-input-column');
+        $fieldset->FLD('quantity', 'varchar', 'tdClass=quantity-input-column small-field');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
         
@@ -473,6 +473,7 @@ class eshop_ProductDetails extends core_Detail
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->paramListFields);
+        
         $listFields = &$data->listFields;
         array_walk(array_keys($data->commonParams), function($paramId) use (&$listFields){unset($listFields["param{$paramId}"]);});
         

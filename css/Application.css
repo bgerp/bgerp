@@ -4674,6 +4674,11 @@ div.location.public {
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
+  .narrow .eshop-product-list .eshopLink {
+    float: left; }
+  .narrow .eshop-product-list ul {
+    display: table-cell; }
+
 .newCol {
   background-color: #eeeeee; }
 

@@ -221,7 +221,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $contragentsArr = array();
             $contragentsId = array();
             
-            $query->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
             $query->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
             $query->EXT('groupList', 'crm_Companies', 'externalFieldName=folderId, externalKey=folderId');
             

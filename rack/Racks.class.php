@@ -731,4 +731,15 @@ class rack_Racks extends core_Master
         $rowBeforeTpl->placeObject($rowBefore);
         $tpl->replace($rowBeforeTpl, 'ROW_BEFORE');
     }
+    
+    
+    /**
+     * Преди подготовка на сингъла
+     */
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {
+        if($data->rec->storeId != store_Stores::getCurrent()){
+           redirect(array('rack_Racks', 'list'));
+        }
+    }
 }

@@ -565,6 +565,7 @@ en,Е-маг,E-shop
 en,ЕАН,EAN
 en,ЕГН,EGN
 en,ЕИК,UIC
+en,ЕИК №,TAX ID
 en,Език на интерф_82872,Interface language after logging
 en,Език,Language
 en,Езици,Languages
@@ -2782,3 +2783,4 @@ en,Връзка между ЕН-то и палетния склад,Link between
 en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
+en,Направете поръчка,Place order
