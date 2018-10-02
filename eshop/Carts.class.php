@@ -1013,6 +1013,7 @@ class eshop_Carts extends core_Master
         }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+        
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
         
@@ -1042,6 +1043,11 @@ class eshop_Carts extends core_Master
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
                 $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
                 $row->deliveryAmount = $deliveryAmountV;
+                
+                if(!empty($deliveryAmount)){
+                    $row->totalWithoutDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($total - $deliveryAmount);
+                    $row->totalWithoutDeliveryCurrencyId = $row->currencyId;
+                }
             }
         }
         
