@@ -493,7 +493,7 @@ class eshop_Carts extends core_Master
                 $tpl->append(new core_ET("<span class='count'>[#count#]</span>"));
             }
         } else {
-            $hint = 'Нямате избрани арткули';
+            $hint = 'Нямате избрани артикули|*!';
             if ($settings->enableCart == 'no') {
                 
                 return new core_ET(' ');
@@ -1266,7 +1266,7 @@ class eshop_Carts extends core_Master
             } else {
                 $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
                 if($compareDate >= dt::now()){
-                    //$requiredRoles = 'no_one';
+                    $requiredRoles = 'no_one';
                 }
             }
         }
