@@ -673,7 +673,7 @@ class rack_Movements extends core_Manager
         if ($action == 'toggle' && isset($rec->state)) {
             if (!in_array($rec->state, array('pending', 'active'))) {
                 $requiredRoles = 'no_one';
-            } elseif ($rec->state == 'active' && $rec->workerId != $userId) {
+            } elseif ($rec->state == 'active' && isset($rec->workerId) && $rec->workerId != $userId) {
                 $requiredRoles = 'ceo,rackMaster';
             }
         }
