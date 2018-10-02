@@ -81,10 +81,10 @@ class bgerp_plg_FLB extends core_Plugin
     /**
      * Помощна ф-я връщаща дали потребителя може да активира корицата или да я избира
      *
-     * @param core_Master     $mvc
-     * @param stdClass        $rec
-     * @param int             $userId
-     * @param string $action
+     * @param core_Master $mvc
+     * @param stdClass    $rec
+     * @param int         $userId
+     * @param string      $action
      *
      * @return bool
      */
@@ -111,10 +111,10 @@ class bgerp_plg_FLB extends core_Plugin
         
         // Ако потребителя е ceo винаги има достъп
         if (core_Users::haveRole('ceo', $userId)) {
-            
+           
             return true;
         }
-        
+       
         // Отговорника на папката винаги може да прави всичко с нея
         if ($rec->inCharge == $userId) {
             
@@ -159,14 +159,11 @@ class bgerp_plg_FLB extends core_Plugin
             return;
         }
         
-        // Ако се проверява за избор, допълнително се проверява
-        // дали потребителя може да контира документи с обекта
+        // Ако се проверява за избор на текущ, допълнително се проверява, дали потребителя може да избира обекта
         if ($action == 'select') {
-            // По подразбиране, който може да актоивира документ в обекта, той може и да избира обекта
+            $res = isset($mvc->canSelect) ? $mvc->canSelect : $mvc->canActivate;
             
-            $res = $mvc->canActivate;
-            
-            if (isset($rec) && !self::canUse($mvc, $rec, $userId, 'activate')) {
+            if (isset($rec) && !self::canUse($mvc, $rec, $userId, 'select')) {
                 $res = 'no_one';
             }
         }
