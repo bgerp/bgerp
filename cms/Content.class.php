@@ -107,7 +107,7 @@ class cms_Content extends core_Manager
         $this->FLD('url', 'varchar(128)', 'caption=URL,input=none');
         $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
         
-        $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=title)', 'caption=Споделяне с,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=titleExt)', 'caption=Споделяне с,notNull,defValue=bg,mandatory,autoFilter');
         
         $this->setDbUnique('menu,domainId');
     }
