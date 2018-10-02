@@ -686,8 +686,11 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($action == 'edit' && isset($rec->state) && $rec->state != 'pending') {
-            $requiredRoles = 'no_one';
+        if ($action == 'edit' && isset($rec->state)) {
+            $oldState = $mvc->fetchField($rec->id, 'state');
+            if($oldState != 'pending'){
+                $requiredRoles = 'no_one';
+            }
         }
         
         if ($action == 'delete' && isset($rec->state) && $rec->state != 'pending') {
