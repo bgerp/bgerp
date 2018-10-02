@@ -1625,7 +1625,7 @@ class eshop_Carts extends core_Master
     {
         $rec = &$form->rec;
         $cu = core_Users::getCurrent('id', false);
-        $isColab = isset($cu);
+        $isColab = isset($cu) && core_Users::isContractor($cu);
         
         // Ако има избрана папка се записват контрагент данните
         if (isset($folderId)) {
@@ -1667,31 +1667,34 @@ class eshop_Carts extends core_Master
             }
         }
         
-        // Ако е колаборатор
-        if ($isColab === true) {
-           
-            // Адреса за доставка е този от последната количка
+        if(isset($cu)){
             $cQuery = eshop_Carts::getQuery();
             $cQuery->where("#userId = {$cu} AND #state = 'active'");
-            $cQuery->in('deliveryCountry', $form->countries);
-            $cQuery->show('termId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress,locationId');
             $cQuery->orderBy('activatedOn', 'DESC');
             $cQuery->limit(1);
+            $cQuery2 = clone $cQuery;
             
+            // Адреса за доставка е този от последната количка
+            $cQuery->in('deliveryCountry', $form->countries);
             if ($lastCart = $cQuery->fetch()) {
                 foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
                     $form->setDefault($field, $lastCart->{$field});
                 }
-            } else {
-                
-                // Ако няма е като този на избраната папка
-                if (isset($folderId)) {
-                    if ($contragentData = doc_Folders::getContragentData($folderId)) {
-                        $form->setDefault('deliveryCountry', $contragentData->countryId);
-                        $form->setDefault('deliveryPCode', $contragentData->pCode);
-                        $form->setDefault('deliveryPlace', $contragentData->place);
-                        $form->setDefault('deliveryAddress', $contragentData->address);
-                    }
+            }
+            
+            $cQuery2->in('invoiceCountry', $form->countries);
+            if ($lastCart2 = $cQuery2->fetch()) {
+                foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress') as $field) {
+                    $form->setDefault($field, $lastCart2->{$field});
+                }
+            }
+            
+            if (isset($folderId)) {
+                if ($contragentData = doc_Folders::getContragentData($folderId)) {
+                    $form->setDefault('deliveryCountry', $contragentData->countryId);
+                    $form->setDefault('deliveryPCode', $contragentData->pCode);
+                    $form->setDefault('deliveryPlace', $contragentData->place);
+                    $form->setDefault('deliveryAddress', $contragentData->address);
                 }
             }
         }
