@@ -93,7 +93,7 @@
                <!--ET_END totalVat-->
                <!--ET_BEGIN total-->
                <tr>
-                  <td class="aright">|Общо|*: </td>
+                  <td class="aright"><b style='font-size:1.2em'>|Общо|*</b>: </td>
                   <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
                   <td class="aright"><b>[#total#]</b></td>
                </tr>
