@@ -579,9 +579,9 @@ class eshop_Carts extends core_Master
     public function forceSale($id)
     {
         $rec = $this->fetchRec($id);
-        if(isset($rec->saleId)) return $rec->saleId;
-        expect($rec->state == 'draft');
+        if(isset($rec->saleId)) return sales_Sales::fetch($rec->saleId);
         
+        expect($rec->state == 'draft');
         Mode::push('eshopFinalize', true);
         $cu = core_Users::getCurrent('id', false);
         
@@ -600,6 +600,7 @@ class eshop_Carts extends core_Master
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
             $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid);
+            $Cover = doc_Folders::getCover($folderId);
         }
         
         $settings = cms_Domains::getSettings();
@@ -1768,5 +1769,28 @@ class eshop_Carts extends core_Master
         
         // Финализиране на сделката
         redirect(array($this, 'finalize', $id, 'description' => $description, 'accountId' => $accountId));
+    }
+    
+    
+    /**
+     * Приемане на плащане към инциаторът (@see eshop_InitiatorPaymentIntf)
+     *
+     * @param int $objId
+     * @param string $reason
+     * @param string|null $payer
+     * @param double|null $amount
+     * @param string $currencyCode
+     *
+     * @return void
+     */
+    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode)
+    {
+        $rec = self::fetch($objId);
+        
+        $saleRec = self::forceSale($rec);
+        //bp($saleRec);
+        echo "#Sal{$saleRec->id}";
+        
+        return $res;
     }
 }
