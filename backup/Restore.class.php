@@ -59,12 +59,12 @@ class backup_Restore extends core_Manager
         core_SystemLock::block('Процес на въстановяване на база', $time = 1800); // 30 мин.
         
         $res = $this->restore($backup);
-        
+        core_Cache::eraseFull();
         // Освобождаваме системата
         core_SystemLock::remove();
         
         
-        return print_r($res, true);
+        return '<div style=" resize: both; "><pre>' . print_r($res, true) . '</pre></div>';
     }
 
     /**
@@ -185,21 +185,28 @@ class backup_Restore extends core_Manager
         }
         $cmdBin = "mysql -u" . EF_DB_USER. " -p" . EF_DB_PASS. " " . EF_DB_NAME . " < " . $statementsSQLTmp . " 2>&1";
         
-        
+        core_Debug::startTimer('restoreFull');
         exec($cmdFull, $output, $returnVar);
         if ($returnVar !== 0) {
             $res['err'][] = "Грешка при наливане на пълен бекъп: " . implode('\n', $output);
         }
+        core_Debug::stopTimer('restoreFull');
         
+        core_Debug::startTimer('restoreBin');
         exec($cmdBin, $output, $returnVar);
         if ($returnVar !== 0) {
             $res['err'][] = "Грешка при наливане на бинлог: " . implode('\n', $output);
         }
+        core_Debug::stopTimer('restoreBin');
         
         $forDelete[] = $statementsSQLTmp;
         foreach ($forDelete as $f) {
-            unlink($f);
+            if (!unlink($f)) {
+                $res['warn'][] = "Не можа да изтрие файл: $f";
+            }
         }
+        $res['timersRestoreFull'] = core_Debug::$timers['restoreFull']->workingTime;
+        $res['timersRestoreBin'] = core_Debug::$timers['restoreBin']->workingTime;
         
         return $res;
     }
