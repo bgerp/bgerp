@@ -113,6 +113,9 @@ abstract class deals_DealDetail extends doc_Detail
         
         $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки');
+        
+        // За по-бързо преброяване на Usage
+        $mvc->setDbIndex('productId');
     }
     
     
@@ -274,10 +277,10 @@ abstract class deals_DealDetail extends doc_Detail
         
         if ($rec->productInfo) {
             $productInfo = $rec->productInfo;
-        } elseif($rec->productId) {
+        } elseif ($rec->productId) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
         }
-
+        
         if ($rec->productId) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
             $packs = cat_Products::getPacks($rec->productId);
