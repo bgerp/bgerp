@@ -64,43 +64,6 @@
             </table>
 
 			<!--ET_END SALE_BLOCK-->
-         <div id = 'cart-view-total' class="summary-holder [#BORDER_CLASS#] borderBottom" >
-            <table>
-            	<!--ET_BEGIN amount-->
-               <tr>
-                  <td class="aright">|Сума|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#amountCurrencyId#]</span></td>
-                  <td class="aright"><b>[#amount#]</b></td>
-               </tr>
-               <!--ET_END amount-->
-               <!--ET_BEGIN deliveryAmount-->
-               <tr>
-                  <!--ET_BEGIN deliveryCaption-->
-                  <td class="aright">[#deliveryCaption#]: </td>
-                  <!--ET_END deliveryCaption-->
-                  <!--ET_BEGIN deliveryCurrencyId-->
-                  <td class="aright"><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span></td>
-                  <!--ET_END deliveryCurrencyId-->
-                  <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
-               </tr>
-               <!--ET_END deliveryAmount-->
-               <!--ET_BEGIN totalVat-->
-               <tr>
-                  <td class="aright">|ДДС|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
-                  <td class="aright"><b>[#totalVat#]</b></td>
-               </tr>
-               <!--ET_END totalVat-->
-               <!--ET_BEGIN total-->
-               <tr>
-                  <td class="aright">|Общо|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
-                  <td class="aright"><b>[#total#]</b></td>
-               </tr>
-               <!--ET_END total-->
-            </table>
-         </div> 
-
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
             [#DELIVERY_BLOCK#]
@@ -187,6 +150,43 @@
             </table>
 		 <!--ET_END WITH_INVOICE-->
          <!--ET_END INVOICE_BLOCK-->
+         
+         <div id = 'cart-view-total' class="summary-holder [#BORDER_CLASS#] borderBottom" >
+            <table>
+            	<!--ET_BEGIN amount-->
+               <tr>
+                  <td class="aright">|Сума|*: </td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#amountCurrencyId#]</span></td>
+                  <td class="aright"><b>[#amount#]</b></td>
+               </tr>
+               <!--ET_END amount-->
+               <!--ET_BEGIN deliveryAmount-->
+               <tr>
+                  <!--ET_BEGIN deliveryCaption-->
+                  <td class="aright">[#deliveryCaption#]: </td>
+                  <!--ET_END deliveryCaption-->
+                  <!--ET_BEGIN deliveryCurrencyId-->
+                  <td class="aright"><span class='cCode' style='font-weight:normal;'>[#deliveryCurrencyId#]</span></td>
+                  <!--ET_END deliveryCurrencyId-->
+                  <td class="aright" [#deliveryColspan#]><b>[#deliveryAmount#]</b></td>
+               </tr>
+               <!--ET_END deliveryAmount-->
+               <!--ET_BEGIN totalVat-->
+               <tr>
+                  <td class="aright">|ДДС|*: </td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
+                  <td class="aright"><b>[#totalVat#]</b></td>
+               </tr>
+               <!--ET_END totalVat-->
+               <!--ET_BEGIN total-->
+               <tr>
+                  <td class="aright"><b style='font-size:1.2em'>|Общо|*</b>: </td>
+                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#currencyId#]</span></td>
+                  <td class="aright"><b>[#total#]</b></td>
+               </tr>
+               <!--ET_END total-->
+            </table>
+         </div> 
          <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
          <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_RIGHT-->

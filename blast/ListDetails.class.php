@@ -515,6 +515,7 @@ class blast_ListDetails extends doc_Detail
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
+        $exp->functions['importcsvfromdocuments'] = 'blast_ListDetails::importCsvFromDocuments';
         $exp->functions['importcsvfromlists'] = 'blast_Lists::importCsvFromLists';
         
         $exp->DEF('#listId', 'int', 'fromRequest');
@@ -523,7 +524,8 @@ class blast_ListDetails extends doc_Detail
                                            csvFile=Файл със CSV данни,
                                            groupCompanies=Група от "Указател » Фирми",
                                            groupPersons=Група от "Указател » Лица",
-                                           blastList=Друг списък от "Разпращане")', 'maxRadio=5,columns=1,mandatory');
+                                           blastList=Друг списък от "Разпращане",
+                                           document=От документи)', 'maxRadio=6,columns=1,mandatory');
         $exp->ASSUME('#source', '"csv"');
         $exp->question('#source', tr('Моля, посочете източника на данните') . ':', true, 'title=' . tr('От къде ще се импортират данните') . '?');
         
@@ -536,23 +538,33 @@ class blast_ListDetails extends doc_Detail
         $exp->question('#companiesGroup', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
         $exp->question('#personsGroup', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
-        $exp->DEF('#countriesInclude=Само тези', 'keylist(mvc=drdata_Countries, select=commonName)', 'placeholder=Всички, notNull');
+        $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholder=Всички, notNull');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
-        $exp->DEF('#countriesExclude=Без тези=Само тези', 'keylist(mvc=drdata_Countries, select=commonName)', 'placeholder=Няма, notNull');
+        $exp->DEF('#countriesExclude=Държава->Без тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholder=Няма, notNull');
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
+        $exp->DEF('#documentType=Вид', 'enum(,sales=Продажби, quotations=Оферти, inquiries=Запитвания)', 'placeholder=Всички, notNull');
+        $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
+        $exp->DEF('#contragentType=Вид контрагент', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
+        $exp->DEF('#docFrom=Период->От', 'date', 'notNull');
+        $exp->DEF('#docTo=Период->До', 'date', 'notNull');
+        
         $exp->question('#countriesInclude,#countriesExclude', tr('Филтър по държави') . ':', "#source == 'groupCompanies' || #source == 'groupPersons'", 'title=' . tr('Филтър по държави'));
         
-        $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies'");
-        $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies'");
-        $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies'");
-
+        $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
+        
+        $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
+        $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
+        $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document'");
+        
         $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude)");
         $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude)");
-
+        
+        $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo)');
+        
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
         $exp->question('#blastList', tr('Изберете списъка от който да се импортират данните'), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
@@ -799,10 +811,10 @@ class blast_ListDetails extends doc_Detail
     
     /**
      * Връща масив с всички държави използвани в съотвения клас и група
-     * 
-     * @param integer $groupId
+     *
+     * @param int    $groupId
      * @param string $class
-     * 
+     *
      * @return array
      */
     public static function getCountriesFromGroup($groupId, $class = 'crm_Companies')
@@ -917,6 +929,293 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Връща списъка за импортиране
+     *
+     * @param string|array $documentType
+     * @param string       $groupIds
+     * @param int          $listId
+     * @param string       $countriesInclude
+     * @param string       $countriesExlude
+     * @param string       $contragentType
+     * @param string       $docFrom
+     * @param string       $docTo
+     *
+     * @return array
+     */
+    public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $docFrom, $docTo)
+    {
+        core_App::setTimeLimit(600);
+        
+        $listRec = blast_Lists::fetch($listId);
+        core_Lg::push($listRec->lg);
+        
+        // Ако е празна стойност, тогава се връщат всички
+        $documentTypeArr = arr::make($documentType);
+        if (empty($documentType)) {
+            $documentTypeArr[] = 'sales';
+            $documentTypeArr[] = 'quotations';
+            $documentTypeArr[] = 'inquiries';
+        }
+        
+        $csvArr = array();
+        if (!empty($documentTypeArr)) {
+            $csvArr[] = tr('Имейл') . ',' . tr('Име') . ',' . tr('Държава');
+        }
+        
+        $allEmailArr = array();
+        
+        foreach ($documentTypeArr as $docType) {
+            $getFromNextEmail = false;
+            if ($docType == 'sales' || $docType == 'quotations') {
+                $getFromNextEmail = true;
+                
+                $docDetails = ($docType == 'sales') ? 'sales_SalesDetails' : 'sales_QuotationsDetails';
+                $masterClass = ($docType == 'sales') ? 'sales_Sales' : 'sales_Quotations';
+            }
+            
+            // Ако данните ще се определят от следващия изпратен имейл или папката
+            if ($getFromNextEmail) {
+                $docDetailsInst = cls::get($docDetails);
+                
+                $query = $docDetailsInst->getQuery();
+                
+                $query->groupBy($docDetailsInst->masterKey);
+                
+                // Филтрираме по група
+                if ($groupIds) {
+                    $query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+                    $query->likeKeylist('groups', $groupIds);
+                }
+                
+                if ($countriesInclude || $countriesExlude || $contragentType) {
+                    $query->EXT('contragentClassId', $masterClass, "externalName=contragentClassId,externalKey={$docDetailsInst->masterKey}");
+                    if ($countriesInclude || $countriesExlude) {
+                        $query->EXT('contragentId', $masterClass, "externalName=contragentId,externalKey={$docDetailsInst->masterKey}");
+                    }
+                }
+                
+                // Филтрираме по вид контрагент
+                if ($contragentType) {
+                    $query->where(array("#contragentClassId = '[#1#]'", $clsId = $contragentType::getClassId()));
+                }
+                
+                // Филтрираме по държави
+                if ($countriesInclude || $countriesExlude) {
+                    if ($docType == 'quotations') {
+                        $query->EXT('contragentCountryId', $masterClass, "externalName=contragentCountryId,externalKey={$docDetailsInst->masterKey}");
+                        
+                        if ($countriesInclude) {
+                            $query->in('contragentCountryId', type_Keylist::toArray($countriesInclude));
+                        }
+                        
+                        // Премахваме тези държави от списъка
+                        if ($countriesExlude) {
+                            $query->notIn('contragentCountryId', type_Keylist::toArray($countriesExlude));
+                        }
+                    }
+                }
+                
+                // Филтрираме по дата
+                if ($docFrom || $docTo) {
+                    $query->EXT('masterCreatedOn', $masterClass, "externalName=createdOn,externalKey={$docDetailsInst->masterKey}");
+                    
+                    if ($docFrom) {
+                        $query->where(array("#masterCreatedOn >= '[#1#]'", $docFrom . ' 00:00:00'));
+                    }
+                    
+                    if ($docTo) {
+                        $query->where(array("#masterCreatedOn <= '[#1#]'", $docTo . ' 23:59:59'));
+                    }
+                }
+                if ($docType == 'quotations') {
+                    $query->EXT('email', $masterClass, "externalName=email,externalKey={$docDetailsInst->masterKey}");
+                }
+                
+                $query->EXT('containerId', $masterClass, "externalName=containerId,externalKey={$docDetailsInst->masterKey}");
+                $query->EXT('folderId', $masterClass, "externalName=folderId,externalKey={$docDetailsInst->masterKey}");
+                
+                while ($rec = $query->fetch()) {
+                    $name = '';
+                    
+                    // Ако е продажба, филтрирам по държава, ако е зададено, защото не е направено със заявката
+                    if (($docType == 'sales') && (($countriesInclude || $countriesExlude))) {
+                        $contragentCountry = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
+                        
+                        if ($countriesInclude) {
+                            if (!$contragentCountry) {
+                                continue;
+                            }
+                            if (!type_Keylist::isIn($contragentCountry, $countriesInclude)) {
+                                continue;
+                            }
+                        }
+                        
+                        if ($countriesExlude) {
+                            if (type_Keylist::isIn($contragentCountry, $countriesExlude)) {
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    $fRec = doc_Folders::fetch($rec->folderId);
+                    $cInstRec = null;
+                    if (($fRec->coverClass) && ($fRec->coverId)) {
+                        $cInst = cls::get($fRec->coverClass);
+                        $cInstRec = $cInst->fetch($fRec->coverId);
+                    }
+                    
+                    // Ако няма имейл в записа, вземаме следващия до когото е изпратен
+                    $email = $rec->email;
+                    if (!$email) {
+                        if ($rec->containerId) {
+                            $cRec = doc_Containers::fetch($rec->containerId);
+                            
+                            $cQuery = doc_Containers::getQuery();
+                            $cQuery->where(array("#threadId = '[#1#]'", $cRec->threadId));
+                            $cQuery->where(array("#createdOn >= '[#1#]'", $cRec->createdOn));
+                            $cQuery->where(array("#docClass = '[#1#]'", email_Outgoings::getClassId()));
+                            $cQuery->where("#state != 'rejected' && #state != 'draft'");
+                            while ($eCRec = $cQuery->fetch()) {
+                                $sendEmailsArr = doclog_Documents::getSendEmails($eCRec->id);
+                                if (empty($sendEmailsArr)) {
+                                    continue;
+                                }
+                                
+                                $email = trim($sendEmailsArr[0]);
+                                if ($email) {
+                                    $eCDoc = doc_Containers::getDocument($eCRec->id);
+                                    if ($eCDoc) {
+                                        $eCDocRec = $eCDoc->fetch();
+                                        
+                                        if ($eCDocRec) {
+                                            if ($contragentType) {
+                                                if ($contragentType == 'crm_Persons') {
+                                                    $name = $eCDocRec->attn;
+                                                } else {
+                                                    $name = $eCDocRec->recipient;
+                                                }
+                                            } else {
+                                                $name = $eCDocRec->attn ? $eCDocRec->attn : $eCDocRec->recipient;
+                                            }
+                                        }
+                                    }
+                                    
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Ако все ощя няма имейл, използваме имейла от корицата
+                    if (!$email) {
+                        if ($cInstRec) {
+                            $emails = $cInstRec->buzEmail;
+                            $emails .= $emails ? ',' : '';
+                            $emails = $cInstRec->email;
+                            $emailsArr = type_Emails::toArray($emails);
+                            $email = trim($emailsArr[0]);
+                        }
+                    }
+                    
+                    if (!$email) {
+                        continue ;
+                    }
+                    
+                    if ($allEmailArr[$email]) {
+                        continue;
+                    }
+                    
+                    $allEmailArr[$email] = $email;
+                    
+                    $countryName = '';
+                    if ($cInstRec) {
+                        $countryName = $cInst->getVerbal($cInstRec, 'country');
+                    }
+                    
+                    if (!$name) {
+                        $name = $cInstRec->name;
+                    }
+                    
+                    $csvArr[] = $email . ',' . $name . ',' . $countryName;
+                }
+            } else {
+                
+                // Ако е запитване
+                
+                $query = marketing_Inquiries2::getQuery();
+                
+                $query->where('#email IS NOT NULL');
+                $query->where("#email != ''");
+                
+                // Ако се филтрира по дата
+                if ($docFrom || $docTo) {
+                    if ($docFrom) {
+                        $query->where(array("#createdOn >= '[#1#]'", $docFrom . ' 00:00:00'));
+                    }
+                    
+                    if ($docTo) {
+                        $query->where(array("#createdOn <= '[#1#]'", $docTo . ' 23:59:59'));
+                    }
+                }
+                
+                // Ако се филтрира по типа на контрагента
+                if ($contragentType) {
+                    $query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+                    $query->where(array("#coverClass = '[#1#]'", $clsId = $contragentType::getClassId()));
+                }
+                
+                // Ако се филтрира по държави
+                if ($countriesInclude || $countriesExlude) {
+                    if ($countriesInclude) {
+                        $query->in('country', type_Keylist::toArray($countriesInclude));
+                    }
+                    
+                    if ($countriesExlude) {
+                        $query->notIn('country', type_Keylist::toArray($countriesExlude));
+                    }
+                }
+                
+                while ($rec = $query->fetch()) {
+                    $email = trim($rec->email);
+                    
+                    if (!$email) {
+                        continue ;
+                    }
+                    
+                    if ($allEmailArr[$email]) {
+                        continue;
+                    }
+                    
+                    $allEmailArr[$email] = $email;
+                    
+                    $name = '';
+                    if ($contragentType) {
+                        if ($contragentType == 'crm_Persons') {
+                            $name = $rec->personNames;
+                        } else {
+                            $name = $rec->company;
+                        }
+                    } else {
+                        $name = $rec->company ? $rec->company : $rec->personNames;
+                    }
+                    
+                    $countryName = '';
+                    if ($rec->country) {
+                        $countryName = marketing_Inquiries2::getVerbal($rec, 'country');
+                    }
+                    
+                    $csvArr[] = $email . ',' . $name . ',' . $countryName;
+                }
+            }
+        }
+        
+        core_Lg::pop();
+        
+        return $csvArr;
+    }
+    
+    
+    /**
      * Импортира CSV от моделите на визитника
      */
     public static function importCsvFromContacts($className, $groupId, $listId, $countriesInclude, $countriesExlude)
@@ -942,6 +1241,8 @@ class blast_ListDetails extends doc_Detail
         }
         
         $csv = array();
+        $columns = '';
+        $haveColumns = false;
         
         while ($cRec = $cQuery->fetch()) {
             $rCsv = '';
@@ -974,7 +1275,7 @@ class blast_ListDetails extends doc_Detail
                 $rCsv .= ($rCsv ? ',' : '') . $value;
                 
                 if (!$haveColumns) {
-                    $columns .= ($columns ? ',' : '') . ($mvc->fields[$field]->caption ? $mvc->fields[$field]->caption : $filed);
+                    $columns .= ($columns ? ',' : '') . ($mvc->fields[$field]->caption ? $mvc->fields[$field]->caption : $field);
                 }
             }
             $haveColumns = true;
