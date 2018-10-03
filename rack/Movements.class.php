@@ -96,7 +96,7 @@ class rack_Movements extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory,remember');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack,silent');
-        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,silent');
+        $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,smartCenter,silent');
         $this->FNC('movementType', 'varchar', 'silent,input=hidden');
         
         // Палет, позиции и зони
@@ -156,7 +156,7 @@ class rack_Movements extends core_Manager
                 
                 // Симулиране дали транзакцията е валидна
                 $clone = clone $rec;
-                $clone->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                $clone->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
                 
                 $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
                 $transaction = $mvc->getTransaction($clone);
@@ -171,7 +171,7 @@ class rack_Movements extends core_Manager
                 }
                 
                 if (!$form->gotErrors()) {
-                    $rec->packQuantity = !empty($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                    $rec->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
                     $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
                     
                     if ($rec->state == 'closed') {
@@ -673,7 +673,7 @@ class rack_Movements extends core_Manager
         if ($action == 'toggle' && isset($rec->state)) {
             if (!in_array($rec->state, array('pending', 'active'))) {
                 $requiredRoles = 'no_one';
-            } elseif ($rec->state == 'active' && $rec->workerId != $userId) {
+            } elseif ($rec->state == 'active' && isset($rec->workerId) && $rec->workerId != $userId) {
                 $requiredRoles = 'ceo,rackMaster';
             }
         }
@@ -686,8 +686,11 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if ($action == 'edit' && isset($rec->state) && $rec->state != 'pending') {
-            $requiredRoles = 'no_one';
+        if ($action == 'edit' && isset($rec->state)) {
+            $oldState = $mvc->fetchField($rec->id, 'state');
+            if($oldState != 'pending'){
+                $requiredRoles = 'no_one';
+            }
         }
         
         if ($action == 'delete' && isset($rec->state) && $rec->state != 'pending') {
@@ -745,7 +748,7 @@ class rack_Movements extends core_Manager
         } else {
             $this->requireRightFor('toggle');
         }
-        
+       
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
         
@@ -910,8 +913,8 @@ class rack_Movements extends core_Manager
             
             return $res;
         }
-        
-        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs($transaction->quantity) < abs($transaction->zonesQuantityTotal) && $transaction->zonesQuantityTotal > 0) {
+       
+        if (count($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs(round($transaction->quantity, 4)) < abs(round($transaction->zonesQuantityTotal, 4)) && $transaction->zonesQuantityTotal > 0) {
             $res->errors = 'Недостатъчно количество за оставяне в зоните';
             $res->errorFields = 'packQuantity,zones';
             

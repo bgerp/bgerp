@@ -1,24 +1,12 @@
 <div class='eshop-product-list'>
-    <table>
-        <tr>
-            <td class="vtop">
-                [#image#]
-            </td>
-            <td class="vtop">
-                <div class='eshop-product-list-name'>[#name#] [#editLink#]</div>
-                <div class='eshop-product-labels'>
-                    <!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#] <!--ET_BEGIN singlePrice--><span>|Цена|*: <b>[#singlePrice#]</b> [#singleCurrencyId#] [#chargeVat#] |за|* [#measureId#]</span> [#addBtn#]<!--ET_END singlePrice-->
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td style="padding-top:10px;" colspan="2">[#info#]</td>
-        </tr>
-        
-        <!--ET_BEGIN commonParams-->
-        <tr>
-        	<td style="padding-top:5px;" colspan="2" class='small'>[#commonParams#]</td>
-        </tr>
-        <!--ET_END commonParams-->
-    </table>
+    [#image#]
+    <div>
+        <div class='eshop-product-list-name'>[#name#] [#editLink#]</div>
+        <div class='eshop-product-labels'>
+            <!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--><!--ET_BEGIN singlePrice--><span>|Цена|*: <b>[#singlePrice#]</b> [#singleCurrencyId#] |за|* [#measureId#]</span><!--ET_END singlePrice-->[#addBtn#] [#coInquiry#]
+        </div>
+        [#info#]
+    </div>
+    <div class="small" style="padding-top: 5px;">[#commonParams#]</div>
+    <div class='clearfix21'></div>
 </div>

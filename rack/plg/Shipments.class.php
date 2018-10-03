@@ -159,10 +159,10 @@ class rack_plg_Shipments extends core_Plugin
         
         // Има ли нагласени количества за артикула в зоната?
         $zQuery = rack_ZoneDetails::getQuery();
+        $zQuery->XPR('movementQuantityRound', 'varchar', 'ROUND(COALESCE(#movementQuantity, 0), 3)');
         $zQuery->EXT('containerId', 'rack_Zones', 'externalName=containerId,externalKey=zoneId');
-        $zQuery->where("#containerId = {$rec->containerId} AND (#movementQuantity IS NOT NULL OR #movementQuantity != 0)");
+        $zQuery->where("#containerId = {$rec->containerId} AND #movementQuantityRound != 0");
         $zQuery->show('id');
-        $zQuery->limit(1);
         
         // Ако има, се спира оттеглянето
         if($zQuery->fetch()){

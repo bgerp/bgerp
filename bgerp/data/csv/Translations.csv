@@ -565,6 +565,7 @@ en,Е-маг,E-shop
 en,ЕАН,EAN
 en,ЕГН,EGN
 en,ЕИК,UIC
+en,ЕИК №,TAX ID
 en,Език на интерф_82872,Interface language after logging
 en,Език,Language
 en,Езици,Languages
@@ -958,6 +959,7 @@ en,Логове,Logs
 en,Локации на кон_142df,Locations of partners
 en,Локации,Locations
 en,Локация,Location
+en,локация,location
 en,МВР по страната,MVR in Bulgaria
 en,МВР,MVR
 en,МКП,MOQ
@@ -1154,7 +1156,7 @@ en,Нов търговски _b9167,New point of sale
 en,Нов,New
 en,Нов...,New...
 en,Нова валута,New currency
-en,Нова локация на ,New location on 
+en,Нова локация на ,New location of 
 en,Нова нишка,New thread
 en,Нова папка на л_4ecb,New person folder
 en,Нова папка на ф_bbf2,New company folder
@@ -2762,7 +2764,7 @@ en,Изчерпано,Out of stock
 en,Всички складове,All stores
 en,Хронология на движенията,Chronology of movements
 en,"Сигурни ли сте, че искате да изтриете партидната дефиниция","Do you really want to delete the batch definition"
-en,Изтриване на нова партидна дефиниция,Delete new batch definition
+en,Изтриване на нова партидна дефиниция,Delete batch definition
 en,Добавяне на нова партидна дефиниция,Add new batch definition
 en,Палет-места,Pallet spaces
 en,Брой палети на една основа,Number of pallets on one basis
@@ -2782,3 +2784,4 @@ en,Връзка между ЕН-то и палетния склад,Link between
 en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
+en,Направете поръчка,Place order
