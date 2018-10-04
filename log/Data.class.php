@@ -122,8 +122,9 @@ class log_Data extends core_Manager
      * @param string|object|NULL $className
      * @param int|NULL|stdClass  $objectId
      * @param int                $lifeDays
+     * @param int|null           $cu
      */
-    public static function add($type, $message, $className = null, $objectId = null, $lifeDays = 180)
+    public static function add($type, $message, $className = null, $objectId = null, $lifeDays = 180, $cu = null)
     {
         // Инстанцираме класа, за да може да се изпълни on_Shutdown
         cls::get(get_called_class());
@@ -149,6 +150,10 @@ class log_Data extends core_Manager
         $toAdd['objectId'] = $objectId;
         $toAdd['time'] = dt::mysql2timestamp();
         $toAdd['lifeTime'] = $lifeDays * 86400;
+        
+        if (isset($cu)) {
+            $toAdd['userId'] = $cu;
+        }
         
         self::$toAdd[] = $toAdd;
         
@@ -420,7 +425,7 @@ class log_Data extends core_Manager
             $rec = new stdClass();
             $rec->ipId = $ipId;
             $rec->brId = $bridId;
-            $rec->userId = core_Users::getCurrent();
+            $rec->userId = isset($toAdd['userId']) ? $toAdd['userId'] : core_Users::getCurrent();
             $rec->actionCrc = log_Actions::getActionCrc($toAdd['message']);
             $rec->classCrc = log_Classes::getClassCrc($toAdd['className']);
             $rec->objectId = $toAdd['objectId'];

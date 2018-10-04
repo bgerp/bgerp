@@ -1528,53 +1528,56 @@ class core_Mvc extends core_FieldSet
     /**
      * Добавя info запис в log_Data
      *
-     * @param string $action
-     * @param int    $objectId
-     * @param int    $lifeDays
+     * @param string   $action
+     * @param int      $objectId
+     * @param int      $lifeDays
+     * @param int|null $cu
      */
-    public static function logRead($action, $objectId = null, $lifeDays = 180)
+    public static function logRead($action, $objectId = null, $lifeDays = 180, $cu = null)
     {
         if (core_Users::getCurrent() <= 0) {
             self::logInfo($action, $objectId);
         }
         
         $className = get_called_class();
-        log_Data::add('read', $action, $className, $objectId, $lifeDays);
+        log_Data::add('read', $action, $className, $objectId, $lifeDays, $cu);
     }
     
     
     /**
      * Добавя info запис в log_Data
      *
-     * @param string $action
-     * @param int    $objectId
-     * @param int    $lifeDays
+     * @param string   $action
+     * @param int      $objectId
+     * @param int      $lifeDays
+     * @param int|null $cu
      */
-    public static function logWrite($action, $objectId = null, $lifeDays = 360)
+    public static function logWrite($action, $objectId = null, $lifeDays = 360, $cu = null)
     {
         if (core_Users::getCurrent() <= 0) {
             self::logInfo($action, $objectId);
         }
         
         $className = get_called_class();
-        log_Data::add('write', $action, $className, $objectId, $lifeDays);
+        log_Data::add('write', $action, $className, $objectId, $lifeDays, $cu);
     }
     
     
     /**
      * Добавя info запис в log_Data
      *
-     * @param string $action
-     * @param int    $objectId
-     * @param int    $lifeDays
+     * @param string   $action
+     * @param int      $objectId
+     * @param int      $lifeDays
+     * @param int|null $cu
      */
-    public static function logLogin($action, $objectId = null, $lifeDays = 180)
+    public static function logLogin($action, $objectId = null, $lifeDays = 180, $cu = null)
     {
         if (core_Users::getCurrent() <= 0) {
             self::logInfo($action, $objectId);
         }
         $className = get_called_class();
-        log_Data::add('login', $action, $className, $objectId, $lifeDays);
+        log_Data::add('login', $action, $className, $objectId, $lifeDays, $cu = null);
     }
     
     
