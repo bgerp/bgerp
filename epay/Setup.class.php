@@ -2,13 +2,13 @@
 
 
 /**
- * Минимален брой групи, необходими за да се покаже страничната навигация
+ * MIN генерирана за плащане чрез ePay.bg
  */
 defIfNot('EPAY_MIN', '');
 
 
 /**
- * Минимален брой групи, необходими за да се покаже страничната навигация
+ * ЧЕКСУМА генерирана за плащане чрез ePay.bg
  */
 defIfNot('EPAY_CHECKSUM', '');
 
@@ -23,6 +23,12 @@ defIfNot('EPAY_OWN_ACCOUNT_ID', '');
  * Име на подател на имейл, по който да се разпознава че е дошъл от ePay
  */
 defIfNot('EPAY_EMAIL_DOMAIN', 'ntf@epay.bg');
+
+
+/**
+ * Максимален спам рейтинг, за проверка дали имейла е от ePay.bg
+ */
+defIfNot('EPAY_EMAIL_SPAM_SCORE', '3');
 
 
 /**
@@ -48,7 +54,7 @@ class epay_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Интеграция с ePay.bg, In development';
+    public $info = 'In development. Интеграция с ePay.bg';
     
     
     /**
@@ -64,10 +70,11 @@ class epay_Setup extends core_ProtoSetup
         'EPAY_MIN' => array('varchar', 'caption=Настройки за онлайн плащане->MIN'),
         'EPAY_CHECKSUM' => array('varchar', 'caption=Настройки за онлайн плащане->CHECKSUM'),
         'EPAY_OWN_ACCOUNT_ID' => array('key2(mvc=bank_OwnAccounts,select=title,allowEmpty,selectSourceArr=epay_Setup::getOwnAccountsArr)', 'caption=Настройки за онлайн плащане->Сметка|* (BGN)'),
-        'EPAY_EMAIL_DOMAIN' => array('varchar', 'caption=Имейл от който ще се очаква получаване на плащане->Имейл'),
+        'EPAY_EMAIL_DOMAIN' => array('varchar', 'caption=Имейл от който ще се очаква получаване на плащане->Подател'),
+        'EPAY_EMAIL_SPAM_SCORE' => array('double', 'caption=Имейл от който ще се очаква получаване на плащане->Спам рейтинг'),
     );
     
-
+    
     /**
      * Списък с мениджърите, които съдържа пакета
      */
@@ -91,6 +98,20 @@ class epay_Setup extends core_ProtoSetup
     {
         // Само нашите сметки в BGN
         return bank_OwnAccounts::getOwnAccounts(true, 'BGN');
+    }
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+       
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Проверка на постъпили плащания от ePay', 'epay_plg_CheckForPayments', 'email_Incomings', 'private');
+        
+        return $html;
     }
 }
 
