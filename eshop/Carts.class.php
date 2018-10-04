@@ -739,13 +739,6 @@ class eshop_Carts extends core_Master
             eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
         
-        if ($cu && $cu != core_Users::SYSTEM_USER) {
-            core_Users::exitSudo($cu);
-        } else {
-            core_Users::cancelSystemUser();
-        }
-        
-        core_Lg::pop();
         self::activate($rec, $saleRec->id);
         eshop_Carts::logDebug("Активиране на количката", $rec->id);
         
@@ -757,6 +750,13 @@ class eshop_Carts extends core_Master
             eshop_Carts::logDebug("Изпращане на имейл за продажба от онлайн поръчка", $rec->id);
         }
         
+        if ($cu && $cu != core_Users::SYSTEM_USER) {
+            core_Users::exitSudo($cu);
+        } else {
+            core_Users::cancelSystemUser();
+        }
+        
+        core_Lg::pop();
         Mode::pop('eshopFinalize');
         
         // Нишката да остане отворена накрая
@@ -1319,12 +1319,17 @@ class eshop_Carts extends core_Master
             }
         }
         
-        
         if ($action == 'finalize' && isset($rec)) {
             if (empty($rec->personNames) || empty($rec->productCount)) {
                 $requiredRoles = 'no_one';
             } elseif ($rec->deliveryNoVat < 0) {
                 $requiredRoles = 'no_one';
+            } elseif($rec->paidOnline != 'yes') {
+                if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
+                    if($PaymentDriver->isPaymentMandatory($rec->paymentId, $mvc, $rec->id)){
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
         }
         
