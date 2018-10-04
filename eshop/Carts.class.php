@@ -664,7 +664,7 @@ class eshop_Carts extends core_Master
             $Cover = doc_Folders::getCover($folderId);
         }
         
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($rec->domainId);
         $templateId = cls::get('sales_Sales')->getDefaultTemplate((object) array('folderId' => $folderId));
         $templateLang = doc_TplManager::fetchField($templateId, 'lang');
         
