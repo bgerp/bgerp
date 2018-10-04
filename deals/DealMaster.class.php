@@ -1282,7 +1282,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($hasStorable) {
             
             // ... и има избран склад, и потребителя може да се логне в него
-            if (isset($rec->shipmentStoreId) && store_Stores::haveRightFor('select', $rec->shipmentStoreId)) {
+            if (isset($rec->shipmentStoreId) && bgerp_plg_FLB::canUse('store_Stores', $rec->shipmentStoreId)) {
                 
                 // Ако има очаквано авансово плащане, не може да се експедира на момента
                 if (cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
@@ -1305,7 +1305,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // ако има каса, метода за плащане е COD и текущия потребител може да се логне в касата
-        if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)) {
+        if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId)) {
             
             // Може да се плати с продуктите
             $caseName = cash_Cases::getTitleById($rec->caseId);
