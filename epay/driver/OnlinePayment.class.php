@@ -73,7 +73,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
         Request::removeProtected('description,accountId');
         
         //@TODO тестово
-        $action = $okUrl;
+        //$action = $okUrl;
         
         $data = (object)array('action' => $action,
                               'total' => $amount,
@@ -81,6 +81,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
                               'min' => epay_Setup::get('MIN'),
                               'checksum' => epay_Setup::get('CHECKSUM'),
                               'urlOk' => $okUrl,
+                              'BTN_IMAGE' => sbf('epay/img/button.gif', ''),
                               'cancelUrl' => toUrl($cancelUrl, 'absolute'),
         );
         
@@ -88,5 +89,21 @@ class epay_driver_OnlinePayment extends core_BaseClass
         $tpl->placeObject($data);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Задължително ли е онлайн плащането или е опционално
+     * 
+     * @param int $paymentId
+     * @param mixed $initiatorClass
+     * @param int $initiatorId
+     * @return boolean
+     */
+    public function isPaymentMandatory($paymentId, $initiatorClass, $initiatorId)
+    {
+        $isMandatory = epay_Setup::get('MANDATORY_BEFORE_FINALIZATION');
+        
+        return ($isMandatory == 'yes') ? true : false;
     }
 }

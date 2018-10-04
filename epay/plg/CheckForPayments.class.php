@@ -100,7 +100,7 @@ class epay_plg_CheckForPayments extends core_Plugin
         $res = array();
         $text = $rec->textPart;
         
-        $newReason = epay_Tokens::getPaymentReason('eshop_Carts', 244);
+        $newReason = epay_Tokens::getPaymentReason('eshop_Carts', 252);
         $text = str_replace('Bankov prevod 6U7EP0000000ASN 134155', $newReason, $text);
         
         // Извличане на сумата за плащане
