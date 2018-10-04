@@ -540,7 +540,7 @@ class eshop_Carts extends core_Master
         
         $saleRec = self::forceSale($rec);
         
-        // Ако е партньор и има достъп до нишката, директно се реидректва към нея
+        // Ако е партньор и има достъп до нишката, директно се редиректва към нея
         $colabUrl = null;
         if (core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu)) {
             $threadRec = doc_Threads::fetch($saleRec->threadId);
@@ -549,15 +549,9 @@ class eshop_Carts extends core_Master
             }
         }
         
-        // Ако е платено онлайн се създава нов ПБД в нишката на продажбата
-        if($rec->paidOnline == 'yes'){
-            try{
-                $incomeFields = array('reason' => $description, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
-               
-                bank_IncomeDocuments::create($threadRec->id, $incomeFields, true);
-            } catch(core_exception_Expect $e){
-                reportException($e);
-            }
+        // Ако има основание, се форсира ново ПБД
+        if(!empty($description)){
+            self::forceBankIncomeDocument($description, $saleRec, $accountId);
         }
         
         if (is_array($colabUrl) && count($colabUrl)) {
@@ -569,6 +563,73 @@ class eshop_Carts extends core_Master
     }
     
     
+    
+    /**
+     * Форсира нов ПБД към продажбата на количката с подаденото основание.
+     * Ако има ПБД с това основание, нищо не се прави. Ако няма се създава
+     * нов ПБД и се контира ако е подадена сума
+     * 
+     * @param string $reason      - основание за ПБД
+     * @param stdClass $saleRec   - към коя продажба
+     * @param int $accountId      - ид на наша сметка
+     * @param double|null $amount  - сума на ПБД-то, ако няма е тази от продажбата
+     * @return stdClass $bRec     - запис на форсираното ПБД
+     */
+    public static function forceBankIncomeDocument($reason, $saleRec, $accountId, $amount = null)
+    {
+        $reason = trim($reason);
+        
+        // Ако има контиран ПБД с това основания, не се създава нов
+        $bQuery = bank_IncomeDocuments::getQuery();
+        $bQuery->where("#threadId = {$saleRec->threadId} AND #state IN ('active')");
+        while($bRec = $bQuery->fetch()){
+            if($bRec->reason == $reason) {
+                
+                return $bRec;
+            }
+        }
+        
+        // Проверка има ли чернова на ПБД със същото основания
+        $bankRec = null;
+        $bQuery2 = bank_IncomeDocuments::getQuery();
+        $bQuery2->where("#threadId = {$saleRec->threadId} AND #state IN ('draft', 'pending')");
+        while($bRec = $bQuery2->fetch()){
+            if($bRec->reason == $reason){
+                $bankRec = $bRec;
+                break;
+            }
+        }
+        
+        // Ако няма чернова се създава нов ПБД
+        core_Users::forceSystemUser();
+        if(empty($bankRec)){
+            $incomeFields = array('reason' => $reason, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
+            $bankRec = bank_IncomeDocuments::create($saleRec->threadId, $incomeFields, true);
+            
+            bank_IncomeDocuments::logWrite('Създаване към онлайн продажба', $bankRec->id);
+        }
+        
+        // Ако има сума, то сумата на ПБД-то се подменя с тази от пристигналото плащане
+        if(isset($amount)){
+            $fromCurrencyCode = (isset($accountId)) ? bank_OwnAccounts::getOwnAccountInfo($accountId)->currencyCode : $saleRec->currencyId;
+            $amountDeal = currency_CurrencyRates::convertAmount($amount, null, $fromCurrencyCode, $saleRec->currencyId);
+            $bankRec->amount = $amount;
+            $bankRec->amountDeal = $amountDeal;
+            bank_IncomeDocuments::save($bankRec);
+        }
+        
+        // Ако има избрана сметка ПБД-то се контира
+        if(isset($accountId)){
+            bank_IncomeDocuments::conto($bankRec->id);
+            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id);
+        }
+        
+        core_Users::cancelSystemUser();
+        
+        return $bankRec;
+    }
+    
+    
     /**
      * Форсира продажба към количката
      * 
@@ -576,9 +637,9 @@ class eshop_Carts extends core_Master
      * 
      * @return stdClass $saleRec
      */
-    public function forceSale($id)
+    public static function forceSale($id)
     {
-        $rec = $this->fetchRec($id);
+        $rec = static::fetchRec($id);
         if(isset($rec->saleId)) return sales_Sales::fetch($rec->saleId);
         
         expect($rec->state == 'draft');
@@ -632,8 +693,8 @@ class eshop_Carts extends core_Master
         
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
-        
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
+        eshop_Carts::logDebug("Създаване на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
         
         // Добавяне на артикулите от количката в продажбата
         $dQuery = eshop_CartDetails::getQuery();
@@ -670,10 +731,12 @@ class eshop_Carts extends core_Master
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
             cls::get('sales_Sales')->updateMaster($saleRec->id);
+            eshop_Carts::logDebug("Активиране на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
         } else {
             
             // Ако не е става на заявка
             $saleRec = self::makeSalePending($saleId);
+            eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
         
         if ($cu && $cu != core_Users::SYSTEM_USER) {
@@ -683,13 +746,15 @@ class eshop_Carts extends core_Master
         }
         
         core_Lg::pop();
-        self::activate($rec, $saleId);
+        self::activate($rec, $saleRec->id);
+        eshop_Carts::logDebug("Активиране на количката", $rec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
         
         if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
             self::sendEmail($rec, $saleRec);
             doc_Threads::doUpdateThread($saleRec->threadId);
+            eshop_Carts::logDebug("Изпращане на имейл за продажба от онлайн поръчка", $rec->id);
         }
         
         Mode::pop('eshopFinalize');
@@ -794,10 +859,12 @@ class eshop_Carts extends core_Master
         
         email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id);
         cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
+        email_Outgoings::logWrite('Активиране', $emailRec->id);
         
         // Изпращане на имейла
         $options = (object) array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
         email_Outgoings::send($emailRec, $options, $lang);
+        email_Outgoings::logWrite('Send', $emailRec->id);
         Mode::set('isSystemCanSingle', false);
         core_Users::cancelSystemUser();
         
@@ -1775,22 +1842,33 @@ class eshop_Carts extends core_Master
     /**
      * Приемане на плащане към инциаторът (@see eshop_InitiatorPaymentIntf)
      *
-     * @param int $objId
-     * @param string $reason
-     * @param string|null $payer
-     * @param double|null $amount
-     * @param string $currencyCode
+     * @param int $objId           - ид на обекта
+     * @param string $reason       - основания за плащане
+     * @param string|null $payer   - име на наредителя
+     * @param double|null $amount  - сума за нареждане
+     * @param string $currencyCode - валута за нареждане
+     * @param int|NULL $accountId  - ид на наша сметка, или NULL ако няма
      *
      * @return void
      */
-    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode)
+    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = NULL)
     {
         $rec = self::fetch($objId);
+        $rec->paidOnline = 'yes';
+        self::save($rec, 'paidOnline');
         
-        $saleRec = self::forceSale($rec);
-        //bp($saleRec);
-        echo "#Sal{$saleRec->id}";
+        try{
+            $saleRec = self::forceSale($rec);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+        }
         
-        return $res;
+        if(!is_object($saleRec)) return;
+        
+        try{
+            self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+        }
     }
 }
