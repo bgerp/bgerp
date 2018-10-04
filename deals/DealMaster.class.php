@@ -185,7 +185,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $dealerRolesList = implode('|', arr::make($mvc->dealerRolesList, true));
         $dealerRolesForAll = implode('|', arr::make($mvc->dealerRolesForAll, true));
         
-        $mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
+        $mvc->FLD('valior', 'date', 'caption=Дата,notChangeableByContractor');
         $mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         
         // Стойности
@@ -246,7 +246,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->setDefault('valior', dt::now());
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
         
