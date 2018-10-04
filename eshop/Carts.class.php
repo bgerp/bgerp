@@ -602,11 +602,12 @@ class eshop_Carts extends core_Master
         
         // Ако няма чернова се създава нов ПБД
         core_Users::forceSystemUser();
+        $cu = core_Users::getCurrent('id', false);
         if(empty($bankRec)){
             $incomeFields = array('reason' => $reason, 'termDate' => dt::today(), 'operation' => 'customer2bank', 'ownAccountId' => $accountId);
             $bankRec = bank_IncomeDocuments::create($saleRec->threadId, $incomeFields, true);
             
-            bank_IncomeDocuments::logWrite('Създаване към онлайн продажба', $bankRec->id);
+            bank_IncomeDocuments::logWrite('Създаване към онлайн продажба', $bankRec->id, 360, $cu);
         }
         
         // Ако има сума, то сумата на ПБД-то се подменя с тази от пристигналото плащане
@@ -621,7 +622,7 @@ class eshop_Carts extends core_Master
         // Ако има избрана сметка ПБД-то се контира
         if(isset($accountId)){
             bank_IncomeDocuments::conto($bankRec->id);
-            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id);
+            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, $cu);
         }
         
         core_Users::cancelSystemUser();
@@ -676,6 +677,7 @@ class eshop_Carts extends core_Master
         } else {
             core_Users::forceSystemUser();
         }
+        $cu = core_Users::getCurrent('id', false);
         
         // Дефолтни данни на продажбата
         $fields = array('valior' => dt::today(),
@@ -693,7 +695,7 @@ class eshop_Carts extends core_Master
         
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
-        sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId);
+        sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
         eshop_Carts::logDebug("Създаване на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
         
         // Добавяне на артикулите от количката в продажбата
@@ -853,18 +855,19 @@ class eshop_Carts extends core_Master
         
         // Активиране на изходящия имейл
         core_Users::forceSystemUser();
+        $cu = core_Users::getCurrent('id', false);
         Mode::set('isSystemCanSingle', true);
         
         email_Outgoings::save($emailRec);
         
-        email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id);
+        email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id, 360, $cu);
         cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
-        email_Outgoings::logWrite('Активиране', $emailRec->id);
+        email_Outgoings::logWrite('Активиране', $emailRec->id, 360, $cu);
         
         // Изпращане на имейла
         $options = (object) array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
         email_Outgoings::send($emailRec, $options, $lang);
-        email_Outgoings::logWrite('Send', $emailRec->id);
+        email_Outgoings::logWrite('Send', $emailRec->id, 360, $cu);
         Mode::set('isSystemCanSingle', false);
         core_Users::cancelSystemUser();
         

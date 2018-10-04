@@ -73,7 +73,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
         Request::removeProtected('description,accountId');
         
         //@TODO тестово
-        //$action = $okUrl;
+        $action = $okUrl;
         
         $data = (object)array('action' => $action,
                               'total' => $amount,
