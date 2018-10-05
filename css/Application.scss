@@ -5182,7 +5182,6 @@ div.location.public {
 }
 
 .eshop-product-labels span {
-    margin-right:10px;
     @include border-radius(3px);
 	padding: 4px;
 	font-size:0.8em;
@@ -5201,6 +5200,7 @@ div.location.public {
 	background-color:#e6e6e6;
     @include border-radius(3px);
 }
+
 .wide .eshop-product-images {
 	width:30%;
 	height:100%;
@@ -5213,6 +5213,7 @@ div.location.public {
 	display: inline-block;
 	width: 160px;
 	text-align: center;
+    margin-bottom:12px !important;
 }
 
 .eshop-product-labels > a {
@@ -5255,7 +5256,7 @@ div.location.public {
 		display: block;
 	    width: 120px;
 	    height: 120px;
-	    margin: 0 12px 0 0;
+	    margin: 0 12px 10px 0;
 		text-align: center;
 	}
 	.eshop-product-list-name {
