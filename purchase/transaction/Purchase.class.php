@@ -104,6 +104,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             }
         }
         
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        
         $transaction = (object) array(
             'reason' => 'Покупка #' . $rec->id,
             'valior' => $rec->valior,
