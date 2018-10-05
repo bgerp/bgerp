@@ -500,25 +500,24 @@ class planning_Jobs extends core_Master
      */
     private static function getContragentsWithJobs()
     {
-        $oldOptions = core_Cache::get('planning_Jobs', 'contragentsWithJobs');
-        $options = ($oldOptions === false) ? array() : $oldOptions;
+        $lifeTime = 120;
+
+        $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', $lifeTime, array('planning_Jobs'));
         
-        $query = self::getQuery();
-        $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
-        $query->where('#saleId IS NOT NULL');
-        
-        if (count($options)) {
-            $query->notIn('sFolderId', array_keys($options));
-        }
-        
-        while ($jRec = $query->fetch()) {
-            $sRec = sales_Sales::fetch($jRec->saleId, 'folderId');
-            $options[$sRec->folderId] = doc_Folders::getTitleById($sRec->folderId);
-        }
-        
-        if ($oldOptions !== $options) {
-            self::logInfo('Кеширане на папките на контрагентите със задания');
-            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, 120);
+        if(!is_array($options) || !count($options)) {
+            $options = array();
+            $query = self::getQuery();
+            $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
+            $query->groupBy('sFolderId');
+
+            $query->where('#saleId IS NOT NULL');
+            $query->show('sFolderId');
+
+            while ($jRec = $query->fetch()) {
+                $options[$jRec->sFolderId] = doc_Folders::getTitleById($jRec->sFolderId);
+            }
+             
+            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, $lifeTime, array('planning_Jobs'));
         }
         
         return $options;
