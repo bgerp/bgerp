@@ -4598,7 +4598,6 @@ div.location.public {
   margin-top: 10px; }
 
 .eshop-product-labels span {
-  margin-right: 10px;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
@@ -4630,7 +4629,8 @@ div.location.public {
 .narrow .eshop-product-images a {
   display: inline-block;
   width: 160px;
-  text-align: center; }
+  text-align: center;
+  margin-bottom: 12px !important; }
 
 .eshop-product-labels > a {
   font-weight: bold; }
@@ -4665,7 +4665,7 @@ div.location.public {
     display: block;
     width: 120px;
     height: 120px;
-    margin: 0 12px 0 0;
+    margin: 0 12px 10px 0;
     text-align: center; }
   .eshop-product-list .eshop-product-list-name {
     font-weight: bold;
