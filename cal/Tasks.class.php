@@ -1745,8 +1745,8 @@ class cal_Tasks extends embed_Manager
         $now = dt::verbal2mysql();
         
         while ($rec = $query->fetch()) {
-           
-           // Ако веднъж е преизчислено времето да не се прави повторно
+            
+            // Ако веднъж е преизчислено времето да не се прави повторно
             if ($rec->state == 'pending' && !cal_TaskConditions::fetch("#baseId = '{$rec->id}'")) {
                 if (!$rec->timeStart && !$rec->timeEnd && !$rec->timeDuration) {
                     if ($rec->expectationTimeStart && $rec->expectationTimeEnd) {
