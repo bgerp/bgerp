@@ -966,7 +966,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
-            $cuNames = core_Users::getVerbal($rec->createdBy, 'names');
+            $cuNames = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($rec->createdBy, 'names'));
             (core_Users::haveRole('partner', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
             
             // Ако валутата е основната валута да не се показва
