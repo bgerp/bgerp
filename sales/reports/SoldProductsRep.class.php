@@ -498,7 +498,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      
         if (!is_null($recs)) {
             if ($rec->grouping == 'no'){
-                arr::sortObjects($recs, 'code', 'аsc', 'stri');
+                arr::sortObjects($recs, 'code', 'asc', 'stri');
             }
             
             if ($rec->grouping == 'yes'){
