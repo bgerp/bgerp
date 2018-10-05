@@ -103,7 +103,7 @@ class label_CounterItems extends core_Detail
         $this->setDbIndex('counterId, printId');
         $this->setDbIndex('counterId');
         
-        $this->setDbUnique('counterId, printId, number');
+        $this->setDbUnique('counterId, number');
     }
     
     
@@ -133,10 +133,10 @@ class label_CounterItems extends core_Detail
     /**
      * Обновяваме брояча
      *
-     * @param int $counterId - id на брояча
-     * @param int $printId   - id на етикета
-     * @param int $number    - Стойността на брояча
-     * @param boolean $update    - дали да се обновят или добавят нови
+     * @param int  $counterId - id на брояча
+     * @param int  $printId   - id на етикета
+     * @param int  $number    - Стойността на брояча
+     * @param bool $update    - дали да се обновят или добавят нови
      *
      * @return int - id на записа
      */

@@ -136,40 +136,42 @@ class doc_Containers extends core_Manager
     /**
      * Добавя info запис в log_Data
      *
-     * @param string $action
-     * @param int    $objectId
-     * @param int    $lifeDays
+     * @param string   $action
+     * @param int      $objectId
+     * @param int      $lifeDays
+     * @param int|null $cu
      *
      * @see core_Mvc::logRead($action, $objectId, $lifeDays)
      */
-    public static function logRead($action, $objectId = null, $lifeDays = 180)
+    public static function logRead($action, $objectId = null, $lifeDays = 180, $cu = null)
     {
-        if (self::logToDocument('read', $action, $objectId, $lifeDays)) {
+        if (self::logToDocument('read', $action, $objectId, $lifeDays, $cu)) {
             
             return ;
         }
         
-        return parent::logRead($action, $objectId, $lifeDays);
+        return parent::logRead($action, $objectId, $lifeDays, $cu);
     }
     
     
     /**
      * Добавя info запис в log_Data
      *
-     * @param string $action
-     * @param int    $objectId
-     * @param int    $lifeDays
+     * @param string   $action
+     * @param int      $objectId
+     * @param int      $lifeDays
+     * @param int|null $cu
      *
      * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
      */
-    public static function logWrite($action, $objectId = null, $lifeDays = 360)
+    public static function logWrite($action, $objectId = null, $lifeDays = 360, $cu = null)
     {
-        if (self::logToDocument('write', $action, $objectId, $lifeDays)) {
+        if (self::logToDocument('write', $action, $objectId, $lifeDays, $cu)) {
             
             return ;
         }
         
-        return parent::logWrite($action, $objectId, $lifeDays);
+        return parent::logWrite($action, $objectId, $lifeDays, $cu);
     }
     
     
@@ -180,8 +182,9 @@ class doc_Containers extends core_Manager
      * @param string   $action
      * @param int|NULL $objectId
      * @param int|NULL $lifeDays
+     * @param int|NULL $cu
      */
-    protected static function logToDocument($type, $action, $objectId, $lifeDays)
+    protected static function logToDocument($type, $action, $objectId, $lifeDays, $cu = null)
     {
         if (!$objectId) {
             
@@ -203,7 +206,7 @@ class doc_Containers extends core_Manager
             
             $doc = doc_Containers::getDocument($objectId);
             
-            $doc->getInstance()->{$fncName}($action, $doc->that, $lifeDays);
+            $doc->getInstance()->{$fncName}($action, $doc->that, $lifeDays, $cu);
             
             return true;
         } catch (core_exception_Expect $e) {

@@ -30,6 +30,21 @@ class rack_plg_Shipments extends core_Plugin
     
     
     /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        
+        if(isset($form->rec->id)){
+            if (rack_Zones::fetch("#containerId = {$form->rec->containerId}")){
+                $form->setReadOnly($mvc->storeFieldName);
+            }
+        }
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())

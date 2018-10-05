@@ -191,7 +191,7 @@ class cash_Cases extends core_Master
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? ' state-rejected' : ' state-active';
         
         if (isset($fields['-list'])) {
-            if ($mvc->haveRightFor('select', $rec)) {
+            if (bgerp_plg_FLB::canUse($mvc, $rec)) {
                 $caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
                 $rec->blAmount = 0;
                 

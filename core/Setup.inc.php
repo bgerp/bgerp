@@ -794,6 +794,21 @@ if ($step == 3) {
         $log[] = 'err:Недефинирани константи за връзка със сървъра на базата данни';
     }
     
+    // Проверка за връзка с базата за LOG-те
+    $log[] = 'h:Проверка на сървъра за LOG таблиците:';
+    if (defined('LOG_DB_USER') && defined('LOG_DB_HOST') && defined('LOG_DB_PASS') && defined('LOG_DB_NAME')) {
+        $DB = new core_Db();
+        try {
+            $DB->connect(false);
+            $log[] = 'inf:Успешна връзка с LOG сървъра: <b>`' . LOG_DB_HOST .' : '. LOG_DB_NAME . ' `</b>';
+        } catch (core_Exception_Expect $e) {
+            $log[] = 'err: ' . $e->getMessage();
+            reportException($e);
+        }
+    } else {
+        $log[] = 'wrn: Недефинирани константи за връзка със сървъра за LOG таблиците';
+    }
+    
 
     // Ако не са дефинирани някой от константите EF_USERS_PASS_SALT, EF_SALT, EF_USERS_HASH_FACTOR ги дефинираме в bgerp.conf.php
     $consts = array();

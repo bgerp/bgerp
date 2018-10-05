@@ -193,7 +193,7 @@ abstract class bank_Document extends deals_PaymentDocument
      *      o $fields['valior']              - вальор (ако няма е текущата дата)
      * @param boolean $pending               - да се създаде ли директно като заявка
      *        
-     * @return mixed $id/FALSE - ид на запис или FALSE
+     * @return mixed $stdClass/FALSE - Запис или FALSE
      */
     public static function create($threadId, $fields = array(), $pending = false)
     {
@@ -218,7 +218,7 @@ abstract class bank_Document extends deals_PaymentDocument
         }
         
         if(isset($fields['reason'])){
-            $fields['reason'] = core_Type::getByName('varchar')->fromVerbal($fields['reason']);
+            $fields['reason'] = core_Type::getByName('varchar')->fromVerbal(trim($fields['reason']));
         }
         
         $dealCurrencyId = currency_Currencies::getIdByCode($dealInfo->currency);
@@ -303,7 +303,9 @@ abstract class bank_Document extends deals_PaymentDocument
             $rec->pendingSaved = true;
         }
         
-        return self::save($rec);
+        self::save($rec);
+        
+        return $rec;
     }
     
     

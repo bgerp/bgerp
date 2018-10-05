@@ -44,4 +44,18 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
     {
         return $this->class->getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems);
     }
+    
+    
+    /**
+     * Задължително ли е онлайн плащането или е опционално
+     *
+     * @param int $paymentId
+     * @param mixed $initiatorClass
+     * @param int $initiatorId
+     * @return boolean
+     */
+    public function isPaymentMandatory($paymentId, $initiatorClass, $initiatorId)
+    {
+        return $this->class->isPaymentMandatory($paymentId, $initiatorClass, $initiatorId);
+    }
 }
