@@ -171,12 +171,13 @@ class eshop_Setup extends core_ProtoSetup
      */
     public function loadSetupData($itr = '')
     {
+        $res = parent::loadSetupData($itr);
         $config = core_Packs::getConfig('eshop');
         
         $tplArr = array();
         $tplArr[] = array('name' => 'Online sale', 'content' => 'eshop/tpl/OnlineSaleEn.shtml', 'lang' => 'en');
         $tplArr[] = array('name' => 'Онлайн продажба', 'content' => 'eshop/tpl/OnlineSaleBg.shtml', 'lang' => 'bg');
-        $itr .= doc_TplManager::addOnce('sales_Sales', $tplArr);
+        $res .= doc_TplManager::addOnce('sales_Sales', $tplArr);
         
         // Поставяме първия намерен шаблон на английски за дефолтен на продажбата
         if (strlen($config->ESHOP_SALE_DEFAULT_TPL_BG) === 0) {
@@ -190,6 +191,6 @@ class eshop_Setup extends core_ProtoSetup
             core_Packs::setConfig('eshop', array('ESHOP_SALE_DEFAULT_TPL_EN' => $templateEnId));
         }
         
-        return $itr;
+        return $res;
     }
 }
