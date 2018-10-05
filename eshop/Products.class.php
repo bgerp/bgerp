@@ -136,7 +136,7 @@ class eshop_Products extends core_Master
     public function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
-        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,silent,refreshForm');
+        
         $this->FLD('name', 'varchar(128)', 'caption=Продукт, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
@@ -144,7 +144,12 @@ class eshop_Products extends core_Master
         $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация3,column=none');
         $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация4,column=none');
         $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация5,column=none');
+
+        // В кои групи участва продукта
+        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Групи->Основна,mandatory,silent,refreshForm');
+        $this->FLD('sharedInGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Групи->Допълнителни');
         
+        // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
@@ -403,7 +408,7 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->where("#state = 'active' AND #groupId = {$data->groupId}");
+        $pQuery->where("#state = 'active' AND #groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups)");
         
         while ($pRec = $pQuery->fetch()) {
             $data->recs[] = $pRec;
@@ -803,6 +808,11 @@ class eshop_Products extends core_Master
         
         $groups = eshop_Groups::getByDomain();
         $form->setOptions('groupId', array('' => '') + $groups);
+        if($groupId = $form->rec->groupId) {
+            unset($groups[$groupId]);
+        }
+        $form->setSuggestions('sharedInGroups', $groups);
+
         $form->setOptions('measureId', cat_UoM::getUomOptions());
         
         if (isset($form->rec->productId)) {
