@@ -160,7 +160,7 @@ class eshop_Carts extends core_Master
         
         $this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
-        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Телефон,hint=Вашият телефон,mandatory');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty)', 'caption=Контактни данни->Телефон,hint=Вашият телефон,mandatory');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава');
         
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
@@ -1750,6 +1750,7 @@ class eshop_Carts extends core_Master
             $cQuery->orderBy('activatedOn', 'DESC');
             $cQuery->limit(1);
             $cQuery2 = clone $cQuery;
+            $cQuery3 = clone $cQuery;
             
             // Адреса за доставка е този от последната количка
             $cQuery->in('deliveryCountry', $form->countries);
@@ -1761,9 +1762,16 @@ class eshop_Carts extends core_Master
             
             $cQuery2->in('invoiceCountry', $form->countries);
             if ($lastCart2 = $cQuery2->fetch()) {
-                foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress', 'tel') as $field) {
+                foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress') as $field) {
                     $form->setDefault($field, $lastCart2->{$field});
                 }
+            }
+            
+            if ($lastCart3 = $cQuery3->fetch()) {
+                foreach (array('termId', 'paymentId') as $field) {
+                    $form->setDefault($field, $lastCart3->{$field});
+                }
+                $form->rec->tel = $lastCart3->tel;
             }
             
             if (isset($folderId)) {
