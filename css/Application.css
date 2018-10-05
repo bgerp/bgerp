@@ -4569,9 +4569,9 @@ div.location.public {
 .eshop-group-button {
   float: left;
   width: 46%;
-  min-height: 140px;
+  min-height: 180px;
   height: auto \9;
-  margin: 10px 2% 25px;
+  margin: 10px 2% 15px;
   text-align: center; }
   .eshop-group-button .eshop-group-button-title {
     margin-top: 2px; }

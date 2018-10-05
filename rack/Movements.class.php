@@ -1003,7 +1003,7 @@ class rack_Movements extends core_Manager
             }
         }
         
-        if (isset($toQuantity) && $toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal < 0) {
+        if ((!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR) && $toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal < 0) {
             $res->errors = 'Недостатъчно количество за изходящия палет';
             $res->errorFields[] = 'packQuantity,zones';
             

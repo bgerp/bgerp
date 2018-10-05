@@ -19,7 +19,7 @@
 		[#info#]
 		</div>
 		<!--ET_BEGIN PRODUCT_OPT-->
-		<div class="overflow-scroll" style="margin: 10px 0;">
+		<div class="scrolling-holder" style="margin: 10px 0;">
 			[#PRODUCT_OPT#]
 		</div>
 		<!--ET_END PRODUCT_OPT-->
