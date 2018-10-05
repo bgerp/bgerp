@@ -382,21 +382,18 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $gQuery = eshop_Groups::getQuery();
-        
+        $data->groups = array();
         $groups = eshop_Groups::getGroupsByDomain();
         if (count($groups)) {
             $groupList = implode(',', array_keys($groups));
             $gQuery->where("#id IN ({$groupList})");
-        } else {
-            $data->groups = array();
-        }
-        
-        while ($gRec = $gQuery->fetch("#state = 'active'")) {
-            $data->groups[$gRec->id] = new stdClass();
-            $data->groups[$gRec->id]->groupId = $gRec->id;
-            $data->groups[$gRec->id]->groupRec = $gRec;
-            self::prepareGroupList($data->groups[$gRec->id]);
-        }
+            while ($gRec = $gQuery->fetch("#state = 'active'")) {
+                $data->groups[$gRec->id] = new stdClass();
+                $data->groups[$gRec->id]->groupId = $gRec->id;
+                $data->groups[$gRec->id]->groupRec = $gRec;
+                self::prepareGroupList($data->groups[$gRec->id]);
+            }
+        } 
     }
     
     
