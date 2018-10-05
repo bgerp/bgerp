@@ -1119,9 +1119,10 @@ class sales_Sales extends deals_DealMaster
     {
         core_Lg::push($rec->tplLang);
         
-        if (!Mode::isReadOnly() && core_Packs::isInstalled('eshop')) {
-            if ($cartId = eshop_Carts::fetchField("#saleId = {$rec->id}")) {
-                $row->cartId = eshop_Carts::getHyperlink($cartId, true);
+        if (core_Packs::isInstalled('eshop')) {
+            if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId')) {
+                $row->cartId = (Mode::isReadOnly()) ? eshop_Carts::getRecTitle($cartRec) : eshop_Carts::getHyperlink($cartRec->id, true);
+                $row->domainId = cms_Domains::getVerbal($cartRec->domainId, 'domain');
             }
         }
         

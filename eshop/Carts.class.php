@@ -666,7 +666,7 @@ class eshop_Carts extends core_Master
         }
         
         $settings = cms_Domains::getSettings($rec->domainId);
-        $templateId = cls::get('sales_Sales')->getDefaultTemplate((object) array('folderId' => $folderId));
+        $templateId = ($settings->lg == 'bg') ? eshop_Setup::get('SALE_DEFAULT_TPL_BG') : eshop_Setup::get('SALE_DEFAULT_TPL_EN');
         $templateLang = doc_TplManager::fetchField($templateId, 'lang');
         
         core_Lg::push($templateLang);
@@ -681,6 +681,7 @@ class eshop_Carts extends core_Master
         
         // Дефолтни данни на продажбата
         $fields = array('valior' => dt::today(),
+            'template' => $templateId,
             'deliveryTermId' => $rec->termId,
             'deliveryTermTime' => $rec->deliveryTime,
             'paymentMethodId' => $rec->paymentId,

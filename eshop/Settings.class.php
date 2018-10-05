@@ -73,27 +73,27 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "Здравейте [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n
        Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от този [#link#], който изтича след 7 дни.\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "Здравейте [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#].\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "Hello [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#],
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#],
     \nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\nKind regards\nThe team of [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "Hello [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#].\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\nKind regards\nThe team of [#domainId#]";
     
     
     /**
@@ -362,6 +362,7 @@ class eshop_Settings extends core_Manager
         // Ако няма тяло на имейла да се вземат дефолтните
         if (is_object($settingRec)) {
             $lang = cls::get($settingRec->classId)->fetchField($settingRec->objectId, 'lang');
+            $settingRec->lg = $lang;
             
             if (empty($settingRec->emailBodyWithReg)) {
                 $settingRec->emailBodyWithReg = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN;
