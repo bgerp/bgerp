@@ -498,15 +498,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      
         if (!is_null($recs)) {
             if ($rec->grouping == 'no' && $rec->group){
-                arr::sortObjects($recs, 'code', 'desc', 'native');
+                arr::sortObjects($recs, 'code', 'аsc', 'native');
             }
             
             if ($rec->grouping == 'no' && !$rec->group){
-                arr::sortObjects($recs, 'code', 'desc', 'native');
+                arr::sortObjects($recs, 'code', 'аsc', 'native');
             }
             
             if ($rec->grouping == 'yes'){
-                arr::sortObjects($recs, 'code', 'desc', 'native');
+                arr::sortObjects($recs, 'code', 'аsc', 'native');
             }
         }
        
