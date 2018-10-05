@@ -1,0 +1,190 @@
+<div class="scrolling-holder">
+    <table class="innerTable border-table paddingCells">
+        <tbody>
+            <tr>
+                <td class='custom-header-bg' style='width:38%;'>
+                    <b>|Получател|*</b>
+                    <!--ET_BEGIN isPaid-->
+                    <div class='stamp fright'>[#isPaid#]</div>
+                    <!--ET_END isPaid-->
+                </td>
+                <td class="cell centered" rowspan = '2'>
+                    <div class="document-title"> |ОНЛАЙН ПРОДАЖБА|*</div>
+                    <div style="padding-top:5px;">
+                        № <span class="bigData">[#id#]</span> /
+                        <span class="bigData">[#valior#]</span>
+                        <!--ET_BEGIN reff-->
+                        <div>|Ваш реф|*: <span class="bigData">[#reff#]</span></div>
+                        <!--ET_END reff-->
+                    </div>
+                    <!--ET_BEGIN state-->
+                    <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                    <!--ET_END state-->
+                </td>
+                <td class='custom-header-bg' style='width:38%;'>
+                    <b>|Доставчик|*</b>
+                    <!--ET_BEGIN isDelivered-->
+                    <div class='stamp fright'>[#isDelivered#]</div>
+                    <!--ET_END isDelivered-->
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <!--ET_BEGIN contragentName-->
+                    <b>[#contragentName#]</b>
+                    <!--ET_BEGIN contragentAddress-->
+                    <div class='address-block'>
+                        [#contragentAddress#]
+                    </div>
+                    <!--ET_END contragentAddress-->
+                    <!--ET_END contragentName-->
+                    <!--ET_BEGIN vatId-->
+                    <div>|ДДС|* №:<br>
+                        [#vatId#]
+                    </div>
+                    <!--ET_END vatId-->
+                    <!--ET_BEGIN deliveryLocationId-->
+                    <hr style="margin: 3px 0 1px;">
+                    <div>
+                        |До локация|*: [#deliveryLocationId#]
+                    </div>
+                    <!--ET_END deliveryLocationId-->
+                </td>
+                <td>
+                    <!--ET_BEGIN MyCompany-->
+                    <b>[#MyCompany#]</b>
+                    <!--ET_BEGIN MyAddress-->
+                    <div class='address-block'>
+                        [#MyAddress#]
+                    </div>
+                    <!--ET_END MyAddress-->
+                    <!--ET_END MyCompany-->
+                    <!--ET_BEGIN shipmentStoreId-->
+                    <hr style="margin: 3px 0 1px;">
+                    <div>
+                        |От склад|*: [#shipmentStoreId#]
+                    </div>
+                    <!--ET_END shipmentStoreId-->
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="lines"></div>
+<div class="scrolling-holder">
+    <div class="details">
+        [#sales_SalesDetails#]
+    </div>
+</div>
+<div class="lines"></div>
+<div class="scrolling-holder">
+    <table class="innerTable footer-notes paddingCells" style='width:100%;'>
+        <tbody>
+            <tr>
+                <td class="topCell vtop" style='width:33%;'>
+                    <!--ET_BEGIN paymentMethodId-->
+                    <div class='cellRow'>
+                        <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
+                    </div>
+                    <!--ET_END paymentMethodId-->
+                    <!--ET_BEGIN downpayment-->
+                    <div class='cellRow'>
+                        <span class='quiet'>|Авансово|*:</span> [#downpayment#]
+                    </div>
+                    <!--ET_END downpayment-->
+                    <!--ET_BEGIN currencyCode-->
+                    <div class='cellRow'>
+                        <span class='quiet'>|Валута|*: </span>[#currencyCode#]
+                    </div>
+                    <!--ET_END currencyCode-->
+                    <!--ET_BEGIN bankAccountId-->
+                    <hr>
+                    <div class='cellRow'>
+                        <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]<!--ET_BEGIN bank-->,<div>
+                        [#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, <span class="nowrap">BIC: [#bic#]</span><!--ET_END bic--></div>
+                    </div>
+                    <!--ET_END bankAccountId-->
+                    <!--ET_BEGIN caseId-->
+                    <div class='cellRow'>
+                        <span class='quiet'>|Каса|*: </span>[#caseId#]
+                    </div>
+                    <!--ET_END caseId-->
+                </td>
+                <!--ET_BEGIN conditions-->
+                [#conditions#]
+                <td class="topCell first vtop" rowspan="2">
+                    <div>
+                        <b>|Условия|*:</b>
+                        <ol style = 'margin-top:1px'>
+                            <!--ET_BEGIN withVat-->
+                            <li>|Цените са с включен ДДС|*[#withVat#]</li>
+                            <!--ET_END withVat-->
+                            <!--ET_BEGIN sepVat-->
+                            <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
+                            <!--ET_END sepVat-->
+                            <!--ET_BEGIN noVat-->
+                            <li>|Цените са без ДДС|*[#noVat#]</li>
+                            <!--ET_END noVat-->
+                            <!--ET_BEGIN notes-->
+                            [#notes#]
+                            <!--ET_END notes-->
+                            <!--ET_BEGIN cartId-->
+                            <li>[#cartId#]</li>
+                            <!--ET_END cartId-->
+                            <!--ET_BEGIN closedDocuments-->
+                            <li>|Обединява|*: [#closedDocuments#]</li>
+                            <!--ET_END closedDocuments-->
+                            <!--ET_BEGIN deliveryBlock-->
+                            [#deliveryBlock#]
+                            <li>
+                                |Доставка|*: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> |до|* [#deliveryTime#]<!--ET_END deliveryTime-->
+                            </li>
+                            <!--ET_END deliveryBlock-->
+                            <!--ET_BEGIN deliveryTermTime-->
+                            <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>
+                            <!--ET_END deliveryTermTime--> 
+                            <!--ET_BEGIN commonConditionQuote-->
+                            <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
+                            <!--ET_END commonConditionQuote-->
+                        </ol>
+                    </div>
+                </td>
+                <!--ET_END conditions-->
+                <td class="topCell aright vtop" style='width:33%;'>
+                    [#/deals/tpl/DocumentPiceInfo.shtml#]
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table class='signature-table' style='width:1%;'>
+                        <tr>
+                            <td class="nowrap" style='width:1%;'>|За получателя|*:  </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><span class="sign_names nowrap">[#responsible#]</span></td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <table style='width:1%' class='fright signature-table'>
+                        <tr>
+                            <td class="nowrap" style='width:1%;'>|За доставчика|*:  </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><span class="sign_names nowrap"><!--ET_BEGIN domainId-->/ [#domainId#] /<!--ET_END domainId--></span></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr class='footerDocInfo'>
+                <td colspan="3">
+                    <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
