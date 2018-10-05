@@ -1746,7 +1746,7 @@ class eshop_Carts extends core_Master
         
         if(isset($cu)){
             $cQuery = eshop_Carts::getQuery();
-            $cQuery->where("#userId = {$cu} AND #state = 'active'");
+            $cQuery->where("#userId = {$cu} AND #state = 'active' AND #domainId = {$rec->domainId}");
             $cQuery->orderBy('activatedOn', 'DESC');
             $cQuery->limit(1);
             $cQuery2 = clone $cQuery;
