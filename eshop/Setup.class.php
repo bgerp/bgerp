@@ -48,7 +48,7 @@ defIfNot('ESHOP_SALE_DEFAULT_TPL_EN', '');
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -179,13 +179,13 @@ class eshop_Setup extends core_ProtoSetup
         $tplArr[] = array('name' => 'Онлайн продажба', 'content' => 'eshop/tpl/OnlineSaleBg.shtml', 'lang' => 'bg');
         $res .= doc_TplManager::addOnce('sales_Sales', $tplArr);
         
-        // Поставяме първия намерен шаблон на английски за дефолтен на продажбата
+        // Поставяне на първия намерен шаблон на английски за дефолтен на продажбата
         if (strlen($config->ESHOP_SALE_DEFAULT_TPL_BG) === 0) {
             $templateBgId = doc_TplManager::fetchField("#name = 'Онлайн продажба'");
             core_Packs::setConfig('eshop', array('ESHOP_SALE_DEFAULT_TPL_BG' => $templateBgId));
         }
         
-        // Поставяме първия намерен шаблон на английски за дефолтен на продажбата
+        // Поставяне на първия намерен шаблон на английски за дефолтен на продажбата
         if (strlen($config->ESHOP_SALE_DEFAULT_TPL_EN) === 0) {
             $templateEnId = doc_TplManager::fetchField("#name = 'Online sale'");
             core_Packs::setConfig('eshop', array('ESHOP_SALE_DEFAULT_TPL_EN' => $templateEnId));

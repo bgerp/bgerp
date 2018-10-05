@@ -67,7 +67,7 @@ class eshop_Carts extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'eshop,ceo,admin';
+    public $canList = 'eshop,ceo';
     
     
     /**
