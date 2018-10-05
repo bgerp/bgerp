@@ -31,31 +31,31 @@ class rack_Zones extends core_Master
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'admin,ceo';
+    public $canAdd = 'ceo,rackMaster';
     
     
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'admin,ceo';
+    public $canEdit = 'ceo,rackMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'admin,ceo,rack';
+    public $canSingle = 'ceo,rack';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'admin';
+    public $canDelete = 'ceo,rackMaster';
     
     
     /**
      * Кой може да генерира нагласяния?
      */
-    public $canOrderpickup = 'admin,ceo,rack';
+    public $canOrderpickup = 'ceo,rack';
     
     
     /**
@@ -67,7 +67,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin,ceo,rack';
+    public $canList = 'ceo,rack';
     
     
     /**
@@ -93,13 +93,13 @@ class rack_Zones extends core_Master
     /**
      * Кой може да селектира документа
      */
-    public $canSelectdocument = 'admin,ceo,rack';
+    public $canSelectdocument = 'ceo,rack';
     
     
     /**
      * Кой може да премахва докумнета от зоната
      */
-    public $canRemovedocument = 'admin,ceo,rack';
+    public $canRemovedocument = 'ceo,rack';
     
     
     /**

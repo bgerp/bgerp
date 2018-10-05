@@ -30,6 +30,9 @@ class epay_driver_OnlinePayment extends core_BaseClass
     public $title = 'Плащане чрез ePay.bg';
     
     
+    /**
+     * Какъв е домейна на ePay.bg
+     */
     const EPAY_DOMAIN = 'https://www.epay.bg/';
     
     
@@ -57,9 +60,8 @@ class epay_driver_OnlinePayment extends core_BaseClass
         $amount = 0.01;
         $amount = round($amount, 2);
         
-        $token = epay_Tokens::force($initiatorClass, $initiatorId, $paymentId, $currency);
         $action = self::EPAY_DOMAIN;
-        $reason = "Плащане по поръчка #{$token}";
+        $reason = epay_Tokens::getPaymentReason($initiatorClass, $initiatorId);
         $okUrl['description'] = $reason;
         
         if($accountId = epay_Setup::get('OWN_ACCOUNT_ID')){
@@ -75,10 +77,11 @@ class epay_driver_OnlinePayment extends core_BaseClass
         
         $data = (object)array('action' => $action,
                               'total' => $amount,
-                              'description' => "Плащане по поръчка #{$token}",
+                              'description' => $reason,
                               'min' => epay_Setup::get('MIN'),
                               'checksum' => epay_Setup::get('CHECKSUM'),
                               'urlOk' => $okUrl,
+                              'BTN_IMAGE' => sbf('epay/img/button.gif', ''),
                               'cancelUrl' => toUrl($cancelUrl, 'absolute'),
         );
         
@@ -86,5 +89,21 @@ class epay_driver_OnlinePayment extends core_BaseClass
         $tpl->placeObject($data);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Задължително ли е онлайн плащането или е опционално
+     * 
+     * @param int $paymentId
+     * @param mixed $initiatorClass
+     * @param int $initiatorId
+     * @return boolean
+     */
+    public function isPaymentMandatory($paymentId, $initiatorClass, $initiatorId)
+    {
+        $isMandatory = epay_Setup::get('MANDATORY_BEFORE_FINALIZATION');
+        
+        return ($isMandatory == 'yes') ? true : false;
     }
 }
