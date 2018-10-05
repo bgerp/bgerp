@@ -387,6 +387,8 @@ class eshop_Products extends core_Master
         if (count($groups)) {
             $groupList = implode(',', array_keys($groups));
             $gQuery->where("#id IN ({$groupList})");
+        } else {
+            $data->groups = array();
         }
         
         while ($gRec = $gQuery->fetch("#state = 'active'")) {
