@@ -457,7 +457,7 @@ class planning_ObjectResources extends core_Manager
         // Ще се опитаме да намерим средната цена на заместващите артикули
         $priceSum = $count = 0;
         $listId = price_ListRules::PRICE_LIST_COST;
-        price_ListToCustomers::canonizeTime($date);
+        
         foreach ($equivalentProducts as $pId => $pName) {
             $price = price_ListRules::getPrice($listId, $pId, null, $date);
             
