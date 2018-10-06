@@ -1,6 +1,6 @@
 <div class='eshop-group-holder'>
     <div class="eshop-group">
-        <h3 class="eshop-group-name">[#name#]</h3>
+        <h1 class="eshop-group-name">[#name#]</h1>
         <div class="eshop-group-image">[#image#]</div>
         <div class="eshop-group-description">[#description#]</div>
     </div>
