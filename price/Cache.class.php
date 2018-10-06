@@ -38,7 +38,7 @@ class price_Cache extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, listId,  productId, price';
+    public $listFields = 'id, listId,  productId, price,createdOn,createdBy';
     
     
     /**
