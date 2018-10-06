@@ -174,26 +174,34 @@ class bgerp_Bookmark extends core_Manager
      */
     public static function getBtn()
     {
+        $tpl = new ET();
+
         if (self::haveRightFor('add')) {
             $url = toUrl(array(get_called_class(), 'add', 'ret_url' => true));
             $sUrl = addslashes($url);
             
             $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
             $icon = 'star-bg.png';
-            
+            $title = 'Добавяне на връзка';
+
             if (self::$curRec) {
                 $url = toUrl(array(get_called_class(), 'edit', self::$curRec->id, 'ret_url' => true));
                 $sUrl = addslashes($url);
                 $icon = 'edit-fav2.png';
+                $title = 'Редактиране на връзка';
+
+                $attr = array();
+                $attr['class'] = 'bookmarkLink addBookmarkLink';
+                $img = ht::createElement('img', array('src' => sbf('img/32/delete-bg.png', ''), 'title' => 'Изтриване на връзка', 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
+                $tpl->append(ht::createLink($img, array(get_called_class(), 'delete', self::$curRec->id, 'ret_url' => true), 'Наистина ли желаете да премахнете връзката?', $attr));
             }
-            
             
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
             
             $attr['class'] = 'bookmarkLink addBookmarkLink';
-            $img = ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => 'Добавяне на връзка', 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
-            $tpl = ht::createLink($img, $url, false, $attr);
+            $img = ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => $title, 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
+            $tpl->append(ht::createLink($img, $url, false, $attr));
         }
         
         return $tpl;
