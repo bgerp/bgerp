@@ -276,7 +276,6 @@ class price_ListToCustomers extends core_Manager
         }
         
         static::updateStates($rec->cClass, $rec->cId);
-        price_History::removeTimeline();
     }
     
     
@@ -285,7 +284,7 @@ class price_ListToCustomers extends core_Manager
      */
     public static function getListForCustomer($customerClass, $customerId, &$datetime = null)
     {
-        static::canonizeTime($datetime);
+        $datetime = static::canonizeTime($datetime);
         
         $validRec = self::getValidRec($customerClass, $customerId, $datetime);
         $listId = ($validRec) ? $validRec->listId : cat_Setup::get('DEFAULT_PRICELIST');
@@ -466,20 +465,17 @@ class price_ListToCustomers extends core_Manager
     /**
      * Помощна функция, добавяща 23:59:59 ако е зададена дата без час
      */
-    public static function canonizeTime(&$datetime)
+    public static function canonizeTime($datetime = null)
     {
         if (!$datetime) {
-            $datetime = dt::verbal2mysql();
-        } else {
-            if (strlen($datetime) == 10) {
-                list($d, $t) = explode(' ', dt::verbal2mysql());
-                if ($datetime == $d) {
-                    $datetime = dt::verbal2mysql();
-                } else {
-                    $datetime .= ' 23:59:59';
-                }
-            }
+            $datetime = dt::now(false);
         }
+        
+        if (strlen($datetime) == 10) {
+            $datetime .= ' 23:59:59';
+        }
+        
+        return $datetime;
     }
     
     

@@ -310,88 +310,94 @@ class price_ListRules extends core_Detail
      */
     public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null)
     {
-        price_ListToCustomers::canonizeTime($datetime);
-        $datetime = price_History::canonizeTime($datetime);
+        $datetime = price_ListToCustomers::canonizeTime($datetime);
+        $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
         
-        $query = self::getQuery();
-        $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
-        $query->where("#productId = {$productId}");
-        
-        if ($listId != price_ListRules::PRICE_LIST_COST) {
-            $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
-            if (count($groups)) {
-                $query->in('groupId', $groups, false, true);
-            }
-        }
-        
-        $query->orderBy('#priority', 'ASC');
-        $query->orderBy('#validFrom,#id', 'DESC');
-        
-        $query->limit(1);
-        
-        $rec = $query->fetch();
-        $listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge,significantDigits,minDecimals');
-        $round = true;
-        
-        if ($rec) {
-            if ($rec->type == 'value') {
-                $vat = cat_Products::getVat($productId, $datetime);
-                $price = self::normalizePrice($rec, $vat, $datetime);
-                
-                if ($listRec->vat == 'yes') {
-                    $round = false;
-                    $price = $price * (1 + $vat);
-                    $price = price_Lists::roundPrice($listRec, $price);
-                    $price = $price / (1 + $vat);
-                }
-                
-                $validFrom = $rec->validFrom;
-            } else {
-                $validFrom = $rec->validFrom;
-                expect($parent = $listRec->parent);
-                $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
-                
-                if (isset($price)) {
-                    if ($rec->calculation == 'reverse') {
-                        $price = $price / (1 + $rec->discount);
-                    } else {
-                        $price = $price * (1 + $rec->discount);
-                    }
-                }
-            }
-        } else {
-            $defaultSurcharge = $listRec->defaultSurcharge;
+        if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId)) === null) {
+            $query = self::getQuery();
+            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
+            $query->where("#productId = {$productId}");
             
-            // Ако има дефолтна надценка и има наследена политика
-            if (isset($defaultSurcharge)) {
-                if ($parent = $listRec->parent) {
+            if ($listId != price_ListRules::PRICE_LIST_COST) {
+                $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
+                if (count($groups)) {
+                    $query->in('groupId', $groups, false, true);
+                }
+            }
+            
+            $query->orderBy('#priority', 'ASC');
+            $query->orderBy('#validFrom,#id', 'DESC');
+            
+            $query->limit(1);
+            
+            $rec = $query->fetch();
+            $listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge,significantDigits,minDecimals');
+            $round = true;
+            
+            if ($rec) {
+                if ($rec->type == 'value') {
+                    $vat = cat_Products::getVat($productId, $datetime);
+                    $price = self::normalizePrice($rec, $vat, $datetime);
                     
-                    // Ако няма запис за продукта или групата
-                    // му и бащата на ценоразписа е "себестойност"
-                    // връщаме NULL
-                    // Дали е необходима тази защита или тя може да създаде проблеми?
-                    if ($parent == price_ListRules::PRICE_LIST_COST) {
-                        
-                        return;
+                    if ($listRec->vat == 'yes') {
+                        $round = false;
+                        $price = $price * (1 + $vat);
+                        $price = price_Lists::roundPrice($listRec, $price);
+                        $price = $price / (1 + $vat);
                     }
                     
-                    // Питаме бащата за цената
+                    $validFrom = $rec->validFrom;
+                } else {
+                    $validFrom = $rec->validFrom;
+                    expect($parent = $listRec->parent);
                     $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
                     
-                    // Ако има цена добавяме и дефолтната надценка
                     if (isset($price)) {
-                        $price = $price * (1 + $defaultSurcharge);
+                        if ($rec->calculation == 'reverse') {
+                            $price = $price / (1 + $rec->discount);
+                        } else {
+                            $price = $price * (1 + $rec->discount);
+                        }
+                    }
+                }
+            } else {
+                $defaultSurcharge = $listRec->defaultSurcharge;
+                
+                // Ако има дефолтна надценка и има наследена политика
+                if (isset($defaultSurcharge)) {
+                    if ($parent = $listRec->parent) {
+                        
+                        // Ако няма запис за продукта или групата
+                        // му и бащата на ценоразписа е "себестойност"
+                        // връщаме NULL
+                        // Дали е необходима тази защита или тя може да създаде проблеми?
+                        if ($parent == price_ListRules::PRICE_LIST_COST) {
+                            
+                            return;
+                        }
+                        
+                        // Питаме бащата за цената
+                        $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
+                        
+                        // Ако има цена добавяме и дефолтната надценка
+                        if (isset($price)) {
+                            $price = $price * (1 + $defaultSurcharge);
+                        }
                     }
                 }
             }
-        }
-        
-        // Ако има цена
-        if (isset($price)) {
             
-            // Ако има указано закръгляне на ценоразписа, закръгляме
-            if ($round === true) {
-                $price = price_Lists::roundPrice($listRec, $price);
+            // Ако има цена
+            if (isset($price)) {
+                
+                // Ако има указано закръгляне на ценоразписа, закръгляме
+                if ($round === true) {
+                    $price = price_Lists::roundPrice($listRec, $price);
+                }
+                
+                if ($canUseCache) {
+                    price_Cache::setPrice($price, $listId, $productId);
+                }
             }
         }
         
@@ -604,7 +610,16 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = null)
     {
-        price_History::removeTimeline();
+        if ($rec->listId) {
+            if ($rec->validFrom <= dt::now() || empty($rec->validFrom)) {
+                price_Cache::callback_InvalidatePriceList($rec->listId);
+            } else {
+                core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validFrom);
+            }
+            if ($rec->validTo > dt::now()) {
+                core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validTo);
+            }
+        }
     }
     
     

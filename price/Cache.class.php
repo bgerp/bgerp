@@ -2,20 +2,20 @@
 
 
 /**
- * История с кеширани цени
+ * Kеширани цени
  *
  *
  * @category  bgerp
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @title     История с кеширани цени
  */
-class price_History extends core_Manager
+class price_Cache extends core_Manager
 {
     /**
      * Заглавие
@@ -36,15 +36,9 @@ class price_History extends core_Manager
     
     
     /**
-     * Детайла, на модела
-     */
-    public $details = 'price_ListRules';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, listId, validFrom, productId, price';
+    public $listFields = 'id, listId,  productId, price,createdOn,createdBy';
     
     
     /**
@@ -84,28 +78,23 @@ class price_History extends core_Manager
     
     
     /**
-     * Масив с всички ремена, които имат отношение към историята на цените
-     */
-    protected static $timeline = array();
-    
-    
-    /**
      * Масив с кеш на изчислените стойности
      */
     protected static $cache = array();
     
-    
+    public $dbEngine = 'MEMORY';
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис, autoFilter');
-        $this->FLD('validFrom', 'datetime', 'caption=В сила от');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent, autoFilter');
         $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
         
-        $this->setDbUnique('listId,validFrom,productId');
+        $this->setDbUnique('listId,productId');
     }
     
     
@@ -139,85 +128,12 @@ class price_History extends core_Manager
         }
     }
     
-    
-    /**
-     * Връща началото на най-близкия исторически интервал до посоченото време
-     */
-    public static function canonizeTime($datetime)
-    {
-        $timeline = &self::$timeline;
-        
-        // Ако тази стойност вече е извлечена, директно я връщаме
-        if (self::$cache[$datetime]) {
-            
-            return self::$cache[$datetime];
-        }
-        
-        // Ако времевата линия липсва, опитваме се да я извадим от кеша
-        if (!count($timeline)) {
-            self::$timeline = core_Cache::get('price_History', 'timeline');
-        }
-        
-        // Ако времевата линия пак липсва, генерираме я и я записваме в кеша
-        if (!is_array($timeline) || !count($timeline)) {
-            $timeline = array();
-            
-            // Вземаме всички времена от правилата
-            $query = price_ListRules::getQuery();
-            $query->show('validFrom,validUntil');
-            while ($rec = $query->fetch()) {
-                $timeline[$rec->validFrom] = true;
-                if ($rec->validUntil) {
-                    $timeline[$rec->validUntil] = true;
-                }
-            }
-            
-            // Вземаме всички времена от ценоразписите на клиентите
-            $query = price_ListToCustomers::getQuery();
-            $query->show('validFrom');
-            while ($rec = $query->fetch()) {
-                $timeline[$rec->validFrom] = true;
-            }
-            
-            // Сортираме обратно масива, защото очакваме да търсим предимно съвременни цени
-            krsort($timeline);
-            $timeline = array_keys($timeline);
-            core_Cache::set('price_History', 'timeline', $timeline, 300000);
-        }
-        
-        // Връщаме първото срещнато време, което е по-малко от аргумента
-        foreach ($timeline as $t) {
-            if ($datetime >= $t) {
-                self::$cache[$datetime] = $t;
-                
-                return $t;
-            }
-        }
-    }
-    
-    
-    /**
-     * Инвалидира кеша с времевата линия
-     */
-    public static function removeTimeline()
-    {
-        // Изтриваме кеша
-        core_Cache::remove('price_History', 'timeline');
-    }
-    
-    
     /**
      * Връща кешираната цена за продукта
      */
-    public static function getPrice($listId, $datetime, $productId, $packagingId = null)
+    public static function getPrice($listId, $productId, $packagingId = null)
     {
-        $validFrom = self::canonizeTime($datetime);
-        if (!$validFrom) {
-            
-            return;
-        }
-        
-        $cond = "#listId = {$listId} AND #validFrom = '{$validFrom}' AND #productId = {$productId}";
+        $cond = "#listId = {$listId} AND #productId = {$productId}";
         
         $price = self::fetchField($cond, 'price');
         
@@ -228,18 +144,10 @@ class price_History extends core_Manager
     /**
      * Записва кеш за цената на продукта
      */
-    public static function setPrice($price, $listId, $datetime, $productId)
+    public static function setPrice($price, $listId,  $productId)
     {
-        $validFrom = self::canonizeTime($datetime);
-        
-        if (!$validFrom) {
-            
-            return;
-        }
-        
         $rec = new stdClass();
         $rec->listId = $listId;
-        $rec->validFrom = $validFrom;
         $rec->productId = $productId;
         $rec->price = $price;
         self::save($rec, null, 'REPLACE');
@@ -257,7 +165,40 @@ class price_History extends core_Manager
             $data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => true), 'ef_icon=img/16/sport_shuttlecock.png, title=Премахване на кешираните записи');
         }
     }
+
+
+    /**
+     * Изтриване на всички цени за посочената политика, както и тези от дъщерните й политики
+     */
+    public static function callback_InvalidatePriceList($priceListId)
+    {
+        self::delete("#listId = {$priceListId}");
+
+        $plQuery = price_Lists::getQuery();
+        while($plRec = $plQuery->fetch("#parent = {$priceListId}")) {
+            self::callback_InvalidatePriceList($plRec->id);
+        }
+    }
     
+
+    /**
+     * Изтриване на всички цени за посочения продукт
+     */
+    public static function invalidateProduct($productId)
+    {
+        self::delete("#productId = {$productId}");
+    }
+
+
+    /**
+     * Изтрива цените, които са над 24 часа
+     */
+    public static function cron_RemoveExpiredPrices()
+    {
+        $before24h = dt::addSecs(-24*60*60);
+        self::delete("#createdOn < '{$before24h}'");
+    }
+
     
     /**
      * Екшън за изтриване на всички кеширани цени

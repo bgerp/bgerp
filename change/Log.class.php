@@ -80,6 +80,8 @@ class change_Log extends core_Manager
         
         $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none');
         $this->FNC('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, input=none');
+
+        $this->setDbIndex('docClass,docId');
     }
     
     

@@ -147,6 +147,7 @@ function eshopActions() {
 		var val = parseFloat($(input).val());
 		var step = $(this).hasClass('btnUp') ? 1 : -1;
 		var valNew = parseFloat(val) + parseFloat(step);
+        var update = $(input).hasClass('autoUpdate');
 		
 		if (valNew > 0 && (!max || step == -1 || (max && val + step <= max))) {
 			
@@ -154,14 +155,18 @@ function eshopActions() {
 			valNew.toFixed(2);
 			
 			$(input).val(valNew);
-			$(input).css( "color", "green");
+            if(update) {
+			    $(input).css( "color", "green");
+                $("#cart-view-table").css("cursor", "progress");
+            }
 			changeInputWidth();
-            $("#cart-view-table").css("cursor", "progress");
 			if(max > 0 && val >= max) return;
 		}
-
-		// Ръчно инвоукване на ивент на инпут полето
-		input.keyup();
+        
+        if(update) {
+            // Ръчно инвоукване на ивент на инпут полето
+            input.keyup();
+        }
 	});
 
 

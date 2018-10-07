@@ -71,6 +71,15 @@ class price_Setup extends core_ProtoSetup
             'period' => 60,
             'timeLimit' => 360,
         ),
+        array(
+            'systemId' => 'Clean cached prices',
+            'description' => 'Затваряне на неизползваните артикули',
+            'controller' => 'price_Cache',
+            'action' => 'RemoveExpiredPrices',
+            'period' => 180,
+            'offset' => 77,
+            'timeLimit' => 10
+        ),
     );
     
     
@@ -81,10 +90,10 @@ class price_Setup extends core_ProtoSetup
         'price_Lists',
         'price_ListToCustomers',
         'price_ListRules',
-        'price_History',
         'price_ListDocs',
         'price_ProductCosts',
         'price_Updates',
+        'price_Cache',
     );
     
     

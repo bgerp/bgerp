@@ -357,7 +357,7 @@ body {
 
 .bookmarkText {
   margin-right: 5px;
-  font-size: 1.1em; }
+  font-size: 1.05em; }
 
 .inner-fav-panel {
   position: relative; }
@@ -370,7 +370,7 @@ body {
   display: inline-block;
   float: right;
   top: 10px;
-  margin-left: 15px;
+  margin-left: 5px;
   opacity: 0.8;
   transition: opacity 0.5s; }
   .bookmarkLink img {
@@ -379,7 +379,7 @@ body {
     opacity: 1; }
 
 .narrow .bookmarkLink {
-  margin-left: 10px; }
+  margin-left: 8px; }
   .narrow .bookmarkLink img {
     width: 18px;
     height: 18px; }

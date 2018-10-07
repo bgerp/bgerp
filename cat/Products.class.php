@@ -1240,6 +1240,9 @@ class cat_Products extends embed_Manager
     {
         if ($rec->groups) {
             $mvc->addToGroups[$rec->id] = $rec->groups;
+            if ($rec->isPublic = 'yes') {
+                price_Cache::invalidateProduct($rec->id);
+            }
         }
         
         Mode::setPermanent('cat_LastProductCode', $rec->code);
@@ -1488,7 +1491,8 @@ class cat_Products extends embed_Manager
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
         $listId = price_ListRules::PRICE_LIST_COST;
-        price_ListToCustomers::canonizeTime($date);
+        $date = price_ListToCustomers::canonizeTime($date);
+        
         $price = price_ListRules::getPrice($listId, $productId, $packagingId, $date);
         
         // Ако няма цена се опитва да намери от драйвера
