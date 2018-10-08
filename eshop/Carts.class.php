@@ -941,13 +941,14 @@ class eshop_Carts extends core_Master
     {
         $this->requireRightFor('viewexternal');
         $id = Request::get('id', 'int');
+        
         if (empty($id)) {
-            redirect(array($this, 'force'));
+            redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
         }
         
         $rec = self::fetch($id);
         if (empty($rec)) {
-            redirect(array($this, 'force'));
+            redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
         }
         
         // Редирект към ешопа ако количката е активна
