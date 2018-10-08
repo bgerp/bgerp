@@ -1483,27 +1483,31 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Връща цената по себестойност на продукта
+     * Връща себестойноста на артикула
      *
-     * @return float
+     * @param int $productId          - ид на артикул
+     * @param int $packagingId        - ид на опаковка
+     * @param double $quantity        - количество
+     * @param datetime $date          - към коя дата
+     * @return double|NULL $primeCost - себестойност
      */
     public static function getSelfValue($productId, $packagingId = null, $quantity = 1, $date = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
-        $listId = price_ListRules::PRICE_LIST_COST;
-        $date = price_ListToCustomers::canonizeTime($date);
-        
-        $price = price_ListRules::getPrice($listId, $productId, $packagingId, $date);
+        $primeCostlistId = price_ListRules::PRICE_LIST_COST;
         
         // Ако няма цена се опитва да намери от драйвера
-        if (!$price) {
-            if ($Driver = cat_Products::getDriver($productId)) {
-                $price = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $listId);
-            }
+        if ($Driver = cat_Products::getDriver($productId)) {
+            $primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
         }
         
-        // Връщаме цената по себестойност
-        return $price;
+        // Ако няма цена от драйвера, се гледа политика 'Себестойност';
+        if (!$primeCost) {
+            $date = price_ListToCustomers::canonizeTime($date);
+            $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+        }
+        
+        return $primeCost;
     }
     
     
