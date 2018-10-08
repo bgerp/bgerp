@@ -986,6 +986,7 @@ div.acc-detail {
     float: left; }
   .narrow #cmsNavigation .articles-navigation #simpleSearch {
     margin: 0 !important;
+    padding: 0;
     box-shadow: none !important;
     border: none !important;
     position: relative; }
