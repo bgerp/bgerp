@@ -419,7 +419,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         if (empty($bomRec)) {
             $bomRec = cat_Products::getLastActiveBom($productId, 'production');
         }
-       // bp($listId);
+       
         // Ако има рецепта връщаме по нея
         if ($bomRec) {
             if ($listId == price_ListRules::PRICE_LIST_CATALOG) {
