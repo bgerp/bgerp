@@ -275,8 +275,10 @@ class bgerp_Bookmark extends core_Manager
                         "\n<ul class='subBookmark' {$display}>";
                 $openGroup = $rec->id;
             } else {
+
+
                 $link = self::getLinkFromUrl($rec->url, $title, $attr);
-                
+                $rec->url = str_replace('/default', '', $rec->url);
                 if (stripos($rec->url, $localUrl) !== false) {
                     $attr['class'] = 'active';
                     $attr['style'] .= ';background-color:#503A66';
