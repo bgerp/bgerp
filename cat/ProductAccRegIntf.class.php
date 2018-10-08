@@ -88,9 +88,13 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща цената по себестойност на продукта
+     * Връща себестойноста на артикула
      *
-     * @return float
+     * @param int $productId          - ид на артикул
+     * @param int $packagingId        - ид на опаковка
+     * @param double $quantity        - количество
+     * @param datetime $date          - към коя дата
+     * @return double|NULL $primeCost - себестойност
      */
     public function getPrimeCost($productId, $packagingId = null, $quantity = null, $date = null)
     {
