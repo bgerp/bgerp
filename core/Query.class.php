@@ -846,6 +846,8 @@ class core_Query extends core_FieldSet
             // Изпълняваме външни действия, указани за след четене
             $this->mvc->invoke('AfterRead', array(&$rec));
             
+            $this->mvc->lastFetchedRec = $rec;
+            
             return $rec;
         }
     }

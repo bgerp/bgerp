@@ -135,6 +135,12 @@ class core_Mvc extends core_FieldSet
     
     
     /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doNotReplicate = false;
+    
+    
+    /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свързан към базата.
@@ -350,6 +356,17 @@ class core_Mvc extends core_FieldSet
         
         $table = $this->dbTableName;
         
+        $exRec = null;
+        
+        if ($rec->id) {
+            $exRec = $this->_cachedRecords[$rec->id .'|*'];
+            if ($exRec === null && $mvc->lastFetchedRec && $mvc->lastFetchedRec == $rec->id) {
+                $exRec = $mvc->lastFetchedRec;
+            }
+        }
+        
+        $query = '';
+        
         foreach ($fields as $name => $dummy) {
             if ($name == 'id' && !$mode) {
                 continue;
@@ -362,6 +379,14 @@ class core_Mvc extends core_FieldSet
             // Правим MySQL представяне на стойността
             $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
             
+            // Предотвратява двойното записване
+            if ($exRec && property_exists($exRec, $name)) {
+                $exValue = $field->type->toMysql($exRec->{$name}, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
+                if ($exValue === $value) {
+                    continue;
+                }
+            }
+            
             // Ако няма mySQL представяне на тази стойност, то тя не участва в записа
             if ($value === null) {
                 continue;
@@ -369,6 +394,11 @@ class core_Mvc extends core_FieldSet
             
             $mysqlField = str::phpToMysqlName($name);
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
+        }
+        
+        if ($query == '') {
+            
+            return $rec->id;
         }
         
         $mode = str_replace(' ', '_', strtolower($mode));
@@ -420,7 +450,7 @@ class core_Mvc extends core_FieldSet
         }
         
         DEBUG::startTimer($timer);
-        $res = $this->db->query($query);
+        $res = $this->db->query($query, false, $this->doNotReplicate != true);
         DEBUG::stopTimer($timer);
         
         if (!$res) {

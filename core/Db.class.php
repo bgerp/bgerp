@@ -42,6 +42,12 @@ defIfNot('EF_DB_VARCHAR_INDEX_PREFIX', EF_DB_CHARSET == 'utf8mb4' ? 100 : 255);
 
 
 /**
+ * Път по подразбиране за създаване на репликация
+ */
+defIfNot('BGERP_SQL_LOG_PATH', false);
+
+
+/**
  * Клас 'core_Db' - Манипулиране на MySQL-ски бази данни
  *
  *
@@ -224,7 +230,7 @@ class core_Db extends core_BaseClass
      *
      * @return resource
      */
-    public function query($sqlQuery, $silent = false)
+    public function query($sqlQuery, $silent = false, $replication = false)
     {
         if (isDebug() && ($fnd = Request::get('_bp')) && stripos(preg_replace('!\\s+!', ' ', $sqlQuery), $fnd) !== false) {
             bp($sqlQuery);
@@ -239,6 +245,11 @@ class core_Db extends core_BaseClass
         
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
+        
+        if ($replication && ($path = BGERP_SQL_LOG_PATH)) {
+            $path .= '/' . date('Y-m-d_h') . '.sql';
+            file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
+        }
         
         return $dbRes;
     }

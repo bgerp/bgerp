@@ -18,6 +18,12 @@
 class editwatch_Editors extends core_Manager
 {
     /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doNotReplicate = true;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

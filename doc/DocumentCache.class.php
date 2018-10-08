@@ -83,6 +83,12 @@ class doc_DocumentCache extends core_Master
     
     
     /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doNotReplicate = true;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()

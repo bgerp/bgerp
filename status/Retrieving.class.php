@@ -63,6 +63,12 @@ class status_Retrieving extends core_Manager
     
     
     /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doNotReplicate = true;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
