@@ -1110,6 +1110,7 @@ class eshop_Carts extends core_Master
                 $row->freeDeliveryCurrencyId = $settings->currencyId;
             } else {
                 $row->deliveryZero = ' ';
+                unset($row->freeDelivery);
             }
         } else {
             unset($row->freeDelivery);
