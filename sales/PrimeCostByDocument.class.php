@@ -698,15 +698,22 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param int      $packagingId
      * @param float    $quantity
      * @param stdClass $saleRec
-     * @param int      $listId
+     * @param int      $deltaListId
      *
      * @return NULL|float $primeCost
      */
-    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $listId)
+    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $deltaListId)
     {
         $productRec = cat_Products::fetchField($productId, 'isPublic,code');
-        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->valior, $listId);
         
+        // Ако има зададена политика за делта, връща се цената по нея
+        if(isset($deltaListId)){
+            $primeCost = price_ListRules::getPrice($deltaListId, $productId, $packagingId, $saleRec->valior);
+            
+            return $primeCost;
+        }
+        
+        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->valior, price_ListRules::PRICE_LIST_COST);
         if (isset($primeCost)) {
             $costs = sales_Sales::getCalcedTransports($saleRec->threadId);
             if (isset($costs[$productId])) {
@@ -730,11 +737,11 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param int      $packagingId
      * @param float    $quantity
      * @param int      $containerId
-     * @param int|NULL $listId
+     * @param int|NULL $deltaListId
      *
      * @return NULL|float
      */
-    public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId, $listId = null)
+    public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId, $deltaListId = null)
     {
         $threadId = doc_Containers::fetchField($containerId, 'threadId');
         if (empty($threadId)) {
@@ -765,9 +772,9 @@ class sales_PrimeCostByDocument extends core_Manager
             return $sum / $totalQ;
         }
         
-        if (isset($listId)) {
+        if (isset($deltaListId)) {
             
-            return self::getPrimeCostInSale($productId, $packagingId, $quantity, $firstDoc->fetch(), $listId);
+            return self::getPrimeCostInSale($productId, $packagingId, $quantity, $firstDoc->fetch(), $deltaListId);
         }
     }
 }
