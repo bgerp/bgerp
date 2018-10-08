@@ -704,27 +704,8 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $listId)
     {
-        $productRec = cat_Products::fetch($productId, 'isPublic,code');
-        if ($productRec->isPublic == 'yes') {
-            $primeCost = price_ListRules::getPrice($listId, $productId, $packagingId, $saleRec->valior);
-        } else {
-            $Driver = cat_Products::getDriver($productId);
-            if (is_object($Driver)) {
-                $primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $saleRec->valior);
-            }
-            
-            // Ако няма себестойност от драйвера, търсим тази по рецепта
-            if (!isset($primeCost)) {
-                $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-                if (empty($bomRec)) {
-                    $bomRec = cat_Products::getLastActiveBom($productId, 'production');
-                }
-                
-                if ($bomRec) {
-                    $primeCost = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $saleRec->valior, $listId);
-                }
-            }
-        }
+        $productRec = cat_Products::fetchField($productId, 'isPublic,code');
+        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->valior, $listId);
         
         if (isset($primeCost)) {
             $costs = sales_Sales::getCalcedTransports($saleRec->threadId);

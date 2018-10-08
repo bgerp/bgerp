@@ -1485,16 +1485,17 @@ class cat_Products extends embed_Manager
     /**
      * Връща себестойноста на артикула
      *
-     * @param int $productId          - ид на артикул
-     * @param int $packagingId        - ид на опаковка
-     * @param double $quantity        - количество
-     * @param datetime $date          - към коя дата
-     * @return double|NULL $primeCost - себестойност
+     * @param int $productId            - ид на артикул
+     * @param int $packagingId          - ид на опаковка
+     * @param double $quantity          - количество
+     * @param datetime $date            - към коя дата
+     * @param int|null $primeCostlistId - по коя ценова политика да се смята себестойноста
+     * @return double|NULL $primeCost   - себестойност
      */
-    public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null)
+    public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
-        $primeCostlistId = price_ListRules::PRICE_LIST_COST;
+        $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
         
         // Ако няма цена се опитва да намери от драйвера
         if ($Driver = cat_Products::getDriver($productId)) {
