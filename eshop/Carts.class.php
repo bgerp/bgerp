@@ -1103,9 +1103,15 @@ class eshop_Carts extends core_Master
         
         $row = self::recToVerbal($rec);
         $settings = cms_Domains::getSettings();
-        if(!empty($settings->freeDelivery)){
-            $row->freeDelivery = $Double->toVerbal($settings->freeDelivery);
-            $row->freeDeliveryCurrencyId = $settings->currencyId;
+        if(isset($settings->freeDelivery)){
+            if($settings->freeDelivery != 0){
+                $row->freeDelivery = $Double->toVerbal($settings->freeDelivery);
+                $row->freeDeliveryCurrencyId = $settings->currencyId;
+            } else {
+                $row->deliveryZero = ' ';
+            }
+        } else {
+            unset($row->freeDelivery);
         }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
