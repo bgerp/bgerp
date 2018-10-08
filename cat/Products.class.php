@@ -1491,7 +1491,7 @@ class cat_Products extends embed_Manager
      * @param datetime $date          - към коя дата
      * @return double|NULL $primeCost - себестойност
      */
-    public static function getSelfValue($productId, $packagingId = null, $quantity = 1, $date = null)
+    public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
         $primeCostlistId = price_ListRules::PRICE_LIST_COST;
@@ -2415,7 +2415,7 @@ class cat_Products extends embed_Manager
         }
         
         // За артикула, това е цената по себестойност за исканото количество
-        return self::getSelfValue($id, null, $quantity);
+        return self::getPrimeCost($id, null, $quantity);
     }
     
     

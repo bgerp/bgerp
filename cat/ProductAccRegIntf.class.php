@@ -92,9 +92,9 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *
      * @return float
      */
-    public function getSelfValue($productId, $packagingId = null, $quantity = null, $date = null)
+    public function getPrimeCost($productId, $packagingId = null, $quantity = null, $date = null)
     {
-        return $this->class->getSelfValue($productId, $packagingId, $quantity, $date);
+        return $this->class->getPrimeCost($productId, $packagingId, $quantity, $date);
     }
     
     
