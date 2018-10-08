@@ -4208,6 +4208,7 @@ table .eshop-btn {
 	min-height: 300px;
 	height: 100%;
 	padding: 20px 10px 10px;
+	overflow-x: auto;
 	border: 1px solid #ccc;
 	@include border-radius(5px);
 	box-shadow: 0 0 5px rgba(0,0,0,0.2) inset;
