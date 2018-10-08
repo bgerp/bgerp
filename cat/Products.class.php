@@ -1498,19 +1498,7 @@ class cat_Products extends embed_Manager
         // Ако няма цена се опитва да намери от драйвера
         if (!$price) {
             if ($Driver = cat_Products::getDriver($productId)) {
-                $price = $Driver->getPrice($productId, $quantity, 0, 0, $date);
-            }
-        }
-        
-        // Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
-        if (!$price) {
-            $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-            if (empty($bomRec)) {
-                $bomRec = cat_Products::getLastActiveBom($productId, 'production');
-            }
-            
-            if ($bomRec) {
-                $price = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST);
+                $price = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $listId);
             }
         }
         
