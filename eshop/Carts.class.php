@@ -927,10 +927,45 @@ class eshop_Carts extends core_Master
                 $tpl->replace($lastCart->email, 'CHECK_EMAIL');
             }
         }
-        
         core_Lg::pop();
         
+        // Да се рефрешва по Ajax ако количката вече не е чернова
+        core_Ajax::subscribe($tpl, array('eshop_Carts', 'refreshOnChangedState', $rec->id), 'eshop_Carts_Redirect', 1000);
+        
         return $tpl;
+    }
+    
+    
+    /**
+     * Ако количката вече е активна да се прави автоматичен рефреш на страницата
+     * 
+     * @return array
+     */
+    public function act_refreshOnChangedState()
+    {
+        $id = Request::get('id', 'int');
+        if (Request::get('ajax_mode')) {
+            if(!empty($id)){
+                $state = self::fetchField($id, 'state');
+                
+                // Ако състоянието на количката не е чернова, се редиректва
+                if($state != 'draft'){
+                    $resObj = new stdClass();
+                    $resObj->func = 'redirect';
+                    $resObj->arg = array('url' => toUrl(cls::get('eshop_Groups')->getUrlByMenuId(null)));
+                }
+            }
+            
+            $hitTime = Request::get('hitTime', 'int');
+            $idleTime = Request::get('idleTime', 'int');
+            $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+            $res = (isset($resObj->func)) ? array_merge(array($resObj), (array) $statusData) : (array) $statusData;
+            
+            return $res;
+        }
+        
+        expect($id);
+        redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
     }
     
     
@@ -941,13 +976,14 @@ class eshop_Carts extends core_Master
     {
         $this->requireRightFor('viewexternal');
         $id = Request::get('id', 'int');
+        
         if (empty($id)) {
-            redirect(array($this, 'force'));
+            redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
         }
         
         $rec = self::fetch($id);
         if (empty($rec)) {
-            redirect(array($this, 'force'));
+            redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
         }
         
         // Редирект към ешопа ако количката е активна
@@ -1067,9 +1103,15 @@ class eshop_Carts extends core_Master
         
         $row = self::recToVerbal($rec);
         $settings = cms_Domains::getSettings();
-        if(!empty($settings->freeDelivery)){
-            $row->freeDelivery = $Double->toVerbal($settings->freeDelivery);
-            $row->freeDeliveryCurrencyId = $settings->currencyId;
+        if(isset($settings->freeDelivery)){
+            if($settings->freeDelivery != 0){
+                $row->freeDelivery = $Double->toVerbal($settings->freeDelivery);
+                $row->freeDeliveryCurrencyId = $settings->currencyId;
+            } else {
+                $row->deliveryZero = ' ';
+            }
+        } else {
+            unset($row->freeDelivery);
         }
         
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
