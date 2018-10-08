@@ -433,7 +433,7 @@ class rack_Zones extends core_Master
                 $this->updateMaster($zoneRec);
                 
                 // Генериране на движенията за нагласяне
-                self::pickupOrder($storeId, $zoneRec->id);
+                self::pickupOrder($storeId);
             }
             
             // Старата зона се отчуждава от документа
