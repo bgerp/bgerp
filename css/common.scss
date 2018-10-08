@@ -1992,6 +1992,7 @@ td.formElement {
 	padding: 8px;
 	vertical-align: middle !important;
 	word-wrap: break-word;
+	box-sizing: border-box;
 	@include border-radius4(5px, 5px, 0, 0);
 	img {
 		vertical-align: middle !important;

@@ -1818,6 +1818,7 @@ input:focus[type=button] {
   padding: 8px;
   vertical-align: middle !important;
   word-wrap: break-word;
+  box-sizing: border-box;
   -moz-border-radius: 5px 5px 0 0;
   -webkit-border-radius: 5px 5px 0 0;
   border-radius: 5px 5px 0 0; }
