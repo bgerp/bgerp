@@ -203,7 +203,7 @@ class csv_Lib
             
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
             if ($delete) {
-                $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`");
+                $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`", false, $mvc->doReplication);
             }
             
             $cntObj = self::import($mvc, $file, $fields, $defaults, $format, $isLarge);

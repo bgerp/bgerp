@@ -114,6 +114,12 @@ class log_Classes extends core_Manager
     public static function saveActions()
     {
         foreach (self::$classArr as $crc => $class) {
+            
+            // Избягване на заявките за запис, ако вече има такъв
+            if (self::fetch("#crc =  {$crc}")) {
+                continue;
+            }
+            
             $rec = new stdClass();
             $rec->crc = $crc;
             $rec->class = $class;

@@ -137,7 +137,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Дали за този модел ще се прави репликация на SQL заявките
      */
-    public $doNotReplicate = false;
+    public $doReplication = true;
     
     
     /**
@@ -450,7 +450,7 @@ class core_Mvc extends core_FieldSet
         }
         
         DEBUG::startTimer($timer);
-        $res = $this->db->query($query, false, $this->doNotReplicate != true);
+        $res = $this->db->query($query, false, $this->doReplication);
         DEBUG::stopTimer($timer);
         
         if (!$res) {
@@ -509,6 +509,7 @@ class core_Mvc extends core_FieldSet
         
         // Конвертираме всеки запис към стойности в db заявката
         $query = '';
+        $timer = "{$this->dbTableName} INSERT ARRAY";
         foreach ($recs as $rec) {
             $row = '(';
             foreach ($fieldsArr as $key => $field) {
@@ -520,7 +521,10 @@ class core_Mvc extends core_FieldSet
             // Ако надвишаваме максималната заявка или сме изчерпали записите - записваме всичко до сега
             if (strlen($row) + strlen($query) >= $maxLen) {
                 // Изпълняваме заявката
-                if (!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) {
+                DEBUG::startTimer($timer);
+                $res = $this->db->query($queryBegin . rtrim($query, ',') . $queryEnd, false, $this->doReplication);
+                DEBUG::stopTimer($timer);
+                if (!$res) {
                     
                     return false;
                 }
@@ -531,10 +535,8 @@ class core_Mvc extends core_FieldSet
         
         // Ако имаме някакви натрупани стойности - записваме ги и тях
         if ($query) {
-            $timer = "{$this->dbTableName} INSERT ARRAY";
-            
             DEBUG::startTimer($timer);
-            $res = $this->db->query($queryBegin . rtrim($query, ',') . $queryEnd);
+            $res = $this->db->query($queryBegin . rtrim($query, ',') . $queryEnd, false, $this->doReplication);
             DEBUG::stopTimer($timer);
             
             if (!$res) {
@@ -553,7 +555,7 @@ class core_Mvc extends core_FieldSet
     public static function truncate()
     {
         $self = cls::get(get_called_class());
-        $self->db->query("TRUNCATE TABLE `{$self->dbTableName}`");
+        $self->db->query("TRUNCATE TABLE `{$self->dbTableName}`", false, $self->doReplication);
     }
     
     
@@ -1036,7 +1038,7 @@ class core_Mvc extends core_FieldSet
             
             if (!$this->db->tableExists($newTableName)) {
                 if ($this->db->tableExists($oldTableName)) {
-                    $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}");
+                    $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}", false, true);
                     $html .= "<li class='debug-new'>Преименувана е таблицата <b>{$oldTableName}</b> => <b>{$newTableName}</b></li>";
                 }
             }
