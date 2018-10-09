@@ -685,10 +685,6 @@ class price_ListRules extends core_Detail
         // Област
         if (isset($rec->productId)) {
             $row->domain = cat_Products::getShortHyperlink($rec->productId);
-            
-            if (cat_Products::fetchField($rec->productId, 'state') == 'rejected') {
-                $row->domain = "<span class= 'state-rejected-link'>{$row->domain}</span>";
-            }
         } elseif (isset($rec->groupId)) {
             $row->domain = '<b>' . $mvc->getVerbal($rec, 'groupId') . '</b>';
         }
