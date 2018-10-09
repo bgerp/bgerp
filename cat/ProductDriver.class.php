@@ -415,11 +415,8 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         // Ако има рецепта връщаме по нея
         if ($bomRec = $this->getBomForPrice($productId)) {
-            if ($listId == price_ListRules::PRICE_LIST_CATALOG) {
-                $listId = price_ListRules::PRICE_LIST_COST;
-            }
             
-            return cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, $listId);
+            return cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
         }
         
         return null;
