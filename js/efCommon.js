@@ -1673,6 +1673,8 @@ function setFormElementsWidth() {
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth);
+        $('.vFormField .select2-container').css('maxWidth', formElWidth + 20);
+
         $('.formTable select').css('maxWidth', formElWidth);
 
         $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
