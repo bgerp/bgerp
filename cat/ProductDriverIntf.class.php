@@ -210,13 +210,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * @param datetime                                                                           $datetime  - дата
      * @param float                                                                              $rate      - валутен курс
      * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
-     * @param int|NULL                                                                           $listId    - ценова политика
-     *
+     * 
      * @return float|NULL $price  - цена
      */
-    public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null)
+    public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
-        return $this->class->getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime, $rate, $chargeVat, $listId);
+        return $this->class->getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime, $rate, $chargeVat);
     }
     
     
