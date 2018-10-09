@@ -24,10 +24,10 @@ class price_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('price_Lists', 'Политики', 'price,sales,ceo');
+        $this->TAB('price_Lists', 'Политики->Всички политики', 'price,sales,ceo');
+        $this->TAB('price_ListToCustomers', 'Политики->Клиентски политики', 'price,ceo');
         $this->TAB('price_ListDocs', 'Ценоразписи', 'sales, priceDealer, ceo');
-        $this->TAB('price_ListToCustomers', 'Клиентски политики', 'price,ceo');
-        $this->TAB('price_Updates', 'Правила за обновяване', 'priceMaster,ceo');
+        $this->TAB('price_Updates', 'Обновяване', 'priceMaster,ceo');
         $this->TAB('price_Cache', 'Дебъг->Кеш', 'debug');
     }
 }
