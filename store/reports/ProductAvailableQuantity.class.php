@@ -170,7 +170,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             if ($prId->productId) {
                                 
                                 $measureName = cat_UoM::getTitleById(cat_Products::fetchField($prId->productId,'measureId'));
-                                $prName = cat_Products::getTitleById($prId->productId, $escaped = true);
+                             //   $prName = cat_Products::getTitleById($prId->productId,$escaped = true);
+                                $prName = cat_Products::fetchField($prId->productId,'name');
                                 
                                 $grDetails['name'][$k] = $prName;
                                 $grDetails['measure'][$k] = $measureName;
@@ -221,7 +222,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             
                             $grDetails['code'][] = $grProduct->code;
                             
-                            $grDetails['name'][] = cat_Products::getTitleById($grProduct->id);
+                            $grDetails['name'][] = cat_Products::fetchField($grProduct->id,'name');
                             
                             $grDetails['measure'][] = $measureName;
                             
