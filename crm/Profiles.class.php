@@ -1079,17 +1079,9 @@ class crm_Profiles extends core_Master
             $profRec = self::fetch("#userId = {$userId}");
             
             $attr['class'] .= ' profile';
+
             if ($profRec && $profRec->stateDateFrom) {
-                $dateFrom = strstr($profRec->stateDateFrom, ' ', true);
-                $dateTo = strstr($profRec->stateDateTo, ' ', true);
-                $nextWorkingDay =  cal_Calendar::nextWorkingDay(null, 0);
-                $today = dt::now(false);
-              
-                if ($dateFrom <= $today && $today <= $dateTo) {
-                    $attr['class'] .= ' profile-state';
-                } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
-                    $attr['class'] .= ' profile-state-tomorrow';
-                }
+                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo);
             }
             
             $profileId = self::getProfileId($userId);
@@ -1145,12 +1137,29 @@ class crm_Profiles extends core_Master
         
         return $cacheArr[$key];
     }
-    
 
-    public function act_Test()
+
+    /**
+     * Връща клас за ника, според началото на отсъствието и края му
+     */
+    public static function getAbsenceClass($from, $to)
     {
-        bp(cal_Calendar::nextWorkingDay());
+        list($dateFrom,) = explode(' ', $from);
+        list($dateTo,) = explode(' ', $to);
+        $nextWorkingDay =  cal_Calendar::nextWorkingDay(null, 0);
+        $today = dt::now(false);
+        
+        $res = '';
+
+        if ($dateFrom <= $today && $today <= $dateTo) {
+            $res = 'profile-state';
+        } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
+            $res = 'profile-state-tomorrow';
+        }
+       
+        return $res;
     }
+
     
     /**
      * Обработва ника на потребителя, така, че да изглежда добре
