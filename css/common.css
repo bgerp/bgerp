@@ -446,6 +446,9 @@ input::-webkit-calendar-picker-indicator {
   border-radius: 5px;
   box-shadow: 1px 1px 0 rgba(60, 60, 60, 0.1); }
 
+.wide  #all #simpleSearch {
+  padding: 3px 2px 2px; }
+
 #simpleSearch.forumSearch .button {
   top: -1px; }
 
@@ -458,8 +461,6 @@ input::-webkit-calendar-picker-indicator {
 
 #simpleSearch input[type='text'],
 #simpleSearch #searchInput {
-  top: 0.1em;
-  position: absolute;
   display: inline-block;
   border: none !important;
   outline: none;
@@ -468,6 +469,11 @@ input::-webkit-calendar-picker-indicator {
   width: 90%;
   padding: 0px;
   padding-left: 0.2em; }
+
+.narrow #simpleSearch input[type='text'],
+.narrow #simpleSearch #searchInput {
+  top: 0.1em;
+  position: absolute; }
 
 #simpleSearch button,
 #simpleSearch .button {
@@ -1812,6 +1818,7 @@ input:focus[type=button] {
   padding: 8px;
   vertical-align: middle !important;
   word-wrap: break-word;
+  box-sizing: border-box;
   -moz-border-radius: 5px 5px 0 0;
   -webkit-border-radius: 5px 5px 0 0;
   border-radius: 5px 5px 0 0; }

@@ -332,7 +332,8 @@ class price_ListToCustomers extends core_Manager
                 
                 // Ако драйвера може да върне цена, връщаме нея
                 if ($Driver = cat_Products::getDriver($productId)) {
-                    $price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
+                    $price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat, $defPriceListId);
+                   
                     if (isset($price) && $rate > 0) {
                         $newPrice = $price / $rate;
                         if ($chargeVat == 'yes') {
@@ -353,22 +354,6 @@ class price_ListToCustomers extends core_Manager
                         
                         return $rec;
                     }
-                }
-                
-                // Търсим първо активната търговска рецепта, ако няма търсим активната работна
-                $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-                if (empty($bomRec)) {
-                    $bomRec = cat_Products::getLastActiveBom($productId, 'production');
-                }
-                
-                // Ако има рецепта връщаме по нея
-                if ($bomRec) {
-                    $defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
-                    if ($defPriceListId == price_ListRules::PRICE_LIST_CATALOG) {
-                        $defPriceListId = price_ListRules::PRICE_LIST_COST;
-                    }
-                    
-                    $rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
                 }
             } else {
                 $listId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);

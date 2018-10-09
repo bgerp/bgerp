@@ -210,7 +210,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $rec = $data->recs[$id];
             deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state);
             
-            if ($rec->price < cat_Products::getSelfValue($rec->productId, null, $rec->quantity)) {
+            if ($rec->price < cat_Products::getPrimeCost($rec->productId, null, $rec->quantity)) {
                 if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
                 }

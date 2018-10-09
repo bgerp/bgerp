@@ -230,6 +230,7 @@ class eshop_Carts extends core_Master
             $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             
             // Проверка на к-то
+            $warning = '';
             if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
                 $msg = $warning;
                 $success = false;
@@ -1109,6 +1110,7 @@ class eshop_Carts extends core_Master
                 $row->freeDeliveryCurrencyId = $settings->currencyId;
             } else {
                 $row->deliveryZero = ' ';
+                unset($row->freeDelivery);
             }
         } else {
             unset($row->freeDelivery);

@@ -199,7 +199,7 @@ class sales_SalesDetails extends deals_DealDetail
                 }
             }
             
-            if ($rec->price < cat_Products::getSelfValue($rec->productId, null, $rec->quantity)) {
+            if ($rec->price < cat_Products::getPrimeCost($rec->productId, null, $rec->quantity)) {
                 if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
                 }

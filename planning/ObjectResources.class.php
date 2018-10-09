@@ -312,7 +312,7 @@ class planning_ObjectResources extends core_Manager
         }
         
         // Проверяваме имали зададена търговска себестойност
-        $selfValue = cat_Products::getSelfValue($objectId, null, $quantity, $date);
+        $selfValue = cat_Products::getPrimeCost($objectId, null, $quantity, $date);
         
         // Ако няма търговска себестойност: проверяваме за счетоводна
         if (!isset($selfValue)) {
