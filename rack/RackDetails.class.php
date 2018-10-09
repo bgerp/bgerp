@@ -48,7 +48,7 @@ class rack_RackDetails extends core_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, rackMaster';
+    public $canEdit = 'ceo, rack';
     
     
     /**
