@@ -272,7 +272,7 @@ class price_ListRules extends core_Detail
         
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,listId={$data->masterId},selectSource=price_ListRules::getSellableProducts)", 'input,caption=Артикул,silent');
+        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,showAllInListId={$data->masterId},selectSource=price_ListRules::getSellableProducts)", 'input,caption=Артикул,silent');
         $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';
@@ -448,6 +448,7 @@ class price_ListRules extends core_Detail
         $type = $rec->type;
         
         $masterRec = price_Lists::fetch($rec->listId);
+        $form->setFieldTypeParams('productId', array('listId' => $masterRec->id));
         $masterTitle = $masterRec->title;
         
         if ($masterRec->parent) {
@@ -732,9 +733,14 @@ class price_ListRules extends core_Detail
             if($productRec->state == 'template'){
                 $row->domain = ht::createHint($row->domain, 'Артикулът е шаблонен, и няма да може да бъде избиран в документите|*!', 'warning', false);
                 $state = 'template';
+            } elseif($productRec->state == 'rejected'){
+                $row->domain = ht::createHint($row->domain, 'Артикулът е оттеглен, и няма да може да бъде избиран в документите|*!', 'warning', false);
+                $state = 'rejected';
+            } elseif($productRec->state == 'closed'){
+                $row->domain = ht::createHint($row->domain, 'Артикулът е вече закрит, и няма да може да бъде избиран в документите|*!', 'warning', false);
+                $state = 'closed';
             } elseif ($productRec->isPublic == 'no') {
                 $row->domain = ht::createHint($row->domain, 'Артикулът е нестандартен и цената му вече не се определя от ценовата политика|*!', 'warning', false);
-                $state = 'closed';
             }
         }
         
@@ -923,22 +929,37 @@ class price_ListRules extends core_Detail
     {
         $products = array();
         $pQuery = cat_Products::getQuery();
-        $pQuery->where("#state != 'closed' AND #state != 'rejected' AND #isPublic = 'yes' AND #canSell = 'yes'");
         
-        if(!isset($params['showTemplates'])){
-            $pQuery->where("#state != 'template'");
+        // Ако има зададен лист, ще се избират всички артикули в него
+        if(isset($params['showAllInListId'])){
+            $query = self::getQuery();
+            $query->where("#listId = {$params['showAllInListId']} AND #productId IS NOT NULL");
+            $query->show('productId');
+            $query->groupBy('productId');
+            $onlyIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         }
-        //bp($pQuery->where);
+        
         if (is_array($onlyIds)) {
             if (!count($onlyIds)) {
                 
                 return array();
             }
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-            $pQuery->where("#id IN (${ids})");
+            $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $pQuery->where("#id = ${onlyIds}");
+        } else {
+            $pQuery->where("#state != 'closed' AND #state != 'rejected' AND #canSell = 'yes'");
+            if(!isset($params['showTemplates'])){
+                $pQuery->where("#state != 'template'");
+            }
+            
+            // Нестандартните артикули да се показват само в политика 'Себестойност'
+            if(isset($params['listId'])){
+                if($params['listId'] != price_ListRules::PRICE_LIST_COST){
+                    $pQuery->where("#isPublic = 'yes'");
+                }
+            }
         }
         
         $xpr = "CONCAT(' ', #name, ' ', #code)";
