@@ -496,7 +496,7 @@ class rack_Movements extends core_Manager
                 $error[] = 'Невалидно количество';
                 $errorFields['quantity'][$key] = 'Невалидно количество';
             } else {
-                if(!deals_Helper::checkQuantity($packagingId, $q2, $warning)){
+                if(!deals_Helper::checkQuantity($packagingId, $q2, $warning, 'uom')){
                     $error[] = $warning;
                     $errorFields['quantity'][$key] = $warning;
                 }
