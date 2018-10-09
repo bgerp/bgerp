@@ -113,9 +113,9 @@ class rack_Products extends store_Products
     
     
     /**
-     * Връща достъпните продаваеми артикули
+     * Връща достъпните складируеми артикули, налични в текущия склад
      */
-    public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    public static function getStorableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $query = store_Products::getQuery();
         $query->groupBy('productId');
