@@ -230,7 +230,6 @@ class price_ProductCosts extends core_Manager
     private function getDeliveryCosts($productKeys)
     {
         $res = array();
-        $Purchases = cls::get('purchase_Purchases');
         
         // Намираме всички покупки с доставка
         $allPurchases = $this->getPurchasesWithProducts($productKeys, true, false);
@@ -387,7 +386,6 @@ class price_ProductCosts extends core_Manager
     private function getLastBomCosts($productKeys)
     {
         $res = array();
-        $Boms = cls::get('cat_Boms');
         $cache = array();
         $now = dt::now();
         
@@ -533,10 +531,10 @@ class price_ProductCosts extends core_Manager
     /**
      * Намира себестойността на артикула по вида
      *
-     * @param int                                               $productId - ид на артикула
-     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom $priceType - вида на цената
+     * @param int    $productId - ид на артикула
+     * @param string $priceType - вида на цената
      *
-     * @return float $price - намерената себестойност
+     * @return float $price     - намерената себестойност
      */
     public static function getPrice($productId, $priceType)
     {
