@@ -296,51 +296,50 @@ class price_ListToCustomers extends core_Manager
     /**
      * Връща цената за посочения продукт към посочения клиент на посочената дата
      *
-     * @param mixed                                                                              $customerClass       - клас на контрагента
-     * @param int                                                                                $customerId          - ид на контрагента
-     * @param int                                                                                $productId           - ид на артикула
-     * @param int                                                                                $packagingId         - ид на опаковка
-     * @param float                                                                              $quantity            - количество
-     * @param datetime                                                                           $datetime            - дата
-     * @param float                                                                              $rate                - валутен курс
-     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat           - начин на начисляване на ддс
-     * @param int|NULL                                                                           $listId              - ценова политика
-     * @param bool                                                                               $quotationPriceFirst - Дали първо да търси цена от последна оферта
+     * @param mixed        $customerClass       - клас на контрагента
+     * @param int          $customerId          - ид на контрагента
+     * @param int          $productId           - ид на артикула
+     * @param int          $packagingId         - ид на опаковка
+     * @param float        $quantity            - количество
+     * @param datetime     $datetime            - дата
+     * @param float        $rate                - валутен курс
+     * @param string       $chargeVat           - начин на начисляване на ддс
+     * @param int|NULL     $listId              - ценова политика
+     * @param bool         $quotationPriceFirst - дали първо да търси цена от последна оферта
      *
      * @return stdClass $rec->price  - цена
      *                  $rec->discount - отстъпка
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true)
     {
-        $isProductPublic = cat_Products::fetchField($productId, 'isPublic');
         $rec = (object) array('price' => null);
+        $productRec = cat_Products::fetch($productId, 'isPublic,proto');
         
-        // Проверяваме имали последна цена по оферта
+        // Проверява се имали последна цена по оферта
         if ($quotationPriceFirst === true) {
             $rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $datetime, $productId, $packagingId, $quantity);
         }
         
-        // Ако има връщаме нея
+        // Ако няма цена по оферта или не се изисква
         if (empty($rec->price)) {
+            $listId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
             
             // Проверяваме дали артикула е частен или стандартен
-            if ($isProductPublic == 'no') {
+            if ($productRec->isPublic == 'no') {
                 $rec = (object) array('price' => null);
-                
-                $defPriceListId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
-                $deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $defPriceListId);
+                $deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $listId);
                 
                 // Ако драйвера може да върне цена, връщаме нея
                 if ($Driver = cat_Products::getDriver($productId)) {
-                    $price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat, $defPriceListId);
-                   
+                    $price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat, $listId);
+                    
+                    // @TODO хак за закръгляне на цените
                     if (isset($price) && $rate > 0) {
                         $newPrice = $price / $rate;
                         if ($chargeVat == 'yes') {
                             $vat = cat_Products::getVat($productId, $datetime);
                             $newPrice = $newPrice * (1 + $vat);
                         }
-                        
                         $newPrice = round($newPrice, 4);
                         
                         if ($chargeVat == 'yes') {
@@ -348,19 +347,19 @@ class price_ListToCustomers extends core_Manager
                         }
                         
                         $newPrice *= $rate;
-                        
                         $rec->price = $newPrice;
-                        $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
-                        
-                        return $rec;
                     }
                 }
             } else {
-                $listId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
                 
-                // За стандартните артикули търсим себестойността в ценовите политики
+                // За стандартните артикули се търси себестойността в ценовите политики
                 $rec = $this->getPriceByList($listId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
             }
+        }
+        
+        // Ако все още няма цена, но има прототип проверява се има ли цена по политика за прототипа, използва се тя
+        if(is_null($rec->price) && isset($productRec->proto)){
+            $rec = $this->getPriceByList($listId, $productRec->proto, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
         
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
@@ -369,7 +368,7 @@ class price_ListToCustomers extends core_Manager
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
         
-        // Връщаме цената
+        // Връщане на цената
         return $rec;
     }
     

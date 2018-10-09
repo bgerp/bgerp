@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -92,7 +92,7 @@ class price_ListRules extends core_Detail
         $this->FLD('type', 'enum(value,discount,groupDiscount)', 'caption=Тип,input=hidden,silent');
         
         // Цена за продукт
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent,remember=info');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,showTemplates,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Продукт,mandatory,silent,remember=info');
         $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory,silent');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
@@ -272,7 +272,7 @@ class price_ListRules extends core_Detail
         
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,listId={$data->masterId},selectSource=price_ListRules::getProductFilterOptions)", 'input,caption=Артикул,silent');
+        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,showAllInListId={$data->masterId},selectSource=price_ListRules::getSellableProducts)", 'input,caption=Артикул,silent');
         $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';
@@ -293,15 +293,6 @@ class price_ListRules extends core_Detail
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Подготовка на опции за key2
-     */
-    public static function getProductFilterOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
-    {
-        return self::getProductOptions($params['listId'], $limit, $q, $onlyIds);
     }
     
     
@@ -457,6 +448,7 @@ class price_ListRules extends core_Detail
         $type = $rec->type;
         
         $masterRec = price_Lists::fetch($rec->listId);
+        $form->setFieldTypeParams('productId', array('listId' => $masterRec->id));
         $masterTitle = $masterRec->title;
         
         if ($masterRec->parent) {
@@ -466,22 +458,12 @@ class price_ListRules extends core_Detail
         
         if (Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh') {
             $form->setReadOnly('productId');
-        } else {
-            $availableProducts = self::getProductOptions($form->rec->listId);
-            if (isset($rec->productId) && !array_key_exists($rec->productId, $availableProducts)) {
-                $availableProducts[$rec->productId] = cat_Products::getRecTitle(cat_Products::fetch($rec->productId, 'id,name,isPublic,code,createdOn'), false);
-            }
-            
-            if (count($availableProducts)) {
-                $form->setOptions('productId', array('' => '') + $availableProducts);
-            } else {
-                $form->setReadOnly('productId');
-            }
         }
         
         $form->FNC('targetPrice', 'double(Min=0)', 'caption=Желана цена,after=discount,input');
         
         if ($type == 'groupDiscount' || $type == 'discount') {
+            $calcOpt = array();
             $calcOpt['forward'] = "[{$masterTitle}] = [{$parentTitle}] ± %";
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
@@ -641,7 +623,8 @@ class price_ListRules extends core_Detail
         }
         
         if (($action == 'add' || $action == 'delete') && isset($rec->productId)) {
-            if (cat_Products::fetchField($rec->productId, 'state') != 'active') {
+            $state = cat_Products::fetchField($rec->productId, 'state');
+            if (!in_array($state, array('active', 'template'))) {
                 $requiredRoles = 'no_one';
             } else {
                 $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
@@ -683,10 +666,8 @@ class price_ListRules extends core_Detail
                     if ($mvc->fetchField("#listId = {$rec->listId} AND #type = 'groupDiscount' AND #groupId = {$rec->groupId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")) {
                         $state = 'closed';
                     }
-                } else {
-                    if ($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")) {
-                        $state = 'closed';
-                    }
+                } elseif ($mvc->fetchField("#listId = {$rec->listId} AND (#type = 'discount' OR #type = 'value') AND #productId = {$rec->productId} AND #validFrom > '{$rec->validFrom}' AND #validFrom <= '{$now}'")) {
+                    $state = 'closed';
                 }
             }
         }
@@ -702,20 +683,14 @@ class price_ListRules extends core_Detail
         $price = $mvc->getFieldType('price')->toVerbal($rec->price);
         
         // Област
-        if ($rec->productId) {
+        if (isset($rec->productId)) {
             $row->domain = cat_Products::getShortHyperlink($rec->productId);
-            
-            if (cat_Products::fetchField($rec->productId, 'state') == 'rejected') {
-                $row->domain = "<span class= 'state-rejected-link'>{$row->domain}</span>";
-            }
-        } elseif ($rec->groupId) {
+        } elseif (isset($rec->groupId)) {
             $row->domain = '<b>' . $mvc->getVerbal($rec, 'groupId') . '</b>';
         }
         
         $masterRec = price_Lists::fetch($rec->listId);
-        $masterTitle = price_Lists::getVerbal($masterRec, 'title');
-        
-        if ($masterRec->parent) {
+        if (isset($masterRec->parent)) {
             $parentRec = price_Lists::fetch($masterRec->parent);
             $parentTitle = price_Lists::getVerbal($parentRec, 'title');
         }
@@ -736,13 +711,8 @@ class price_ListRules extends core_Detail
                 break;
             
             case 'value':
-                if (!$currency = $rec->currency) {
-                    $currency = price_Lists::fetchField($rec->listId, 'currency');
-                }
-                if (!$vat = $rec->vat) {
-                    $vat = price_Lists::fetchField($rec->listId, 'vat');
-                }
-                
+                $currency = isset($rec->currency) ? $rec->currency : $masterRec->currency;
+                $vat = isset($rec->vat) ? $rec->vat : $masterRec->vat;
                 $vat = ($vat == 'yes') ? 'с ДДС' : 'без ДДС';
                 
                 $row->rule = tr("|*{$price} {$currency} |{$vat}|*");
@@ -754,16 +724,23 @@ class price_ListRules extends core_Detail
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
         }
         
-        if ($rec->productId) {
-            $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
-            if ($isPublic == 'no') {
-                $row->domain = ht::createHint($row->domain, 'Артикулът е нестандартен и цената му вече не се определя от ценовата политика', 'warning', false);
+        if (isset($rec->productId)) {
+            $productRec = cat_Products::fetch($rec->productId, 'isPublic,state');
+            if($productRec->state == 'template'){
+                $row->domain = ht::createHint($row->domain, 'Артикулът е шаблонен, и няма да може да бъде избиран в документите|*!', 'warning', false);
+                $state = 'template';
+            } elseif($productRec->state == 'rejected'){
+                $row->domain = ht::createHint($row->domain, 'Артикулът е оттеглен, и няма да може да бъде избиран в документите|*!', 'warning', false);
+                $state = 'rejected';
+            } elseif($productRec->state == 'closed'){
+                $row->domain = ht::createHint($row->domain, 'Артикулът е вече закрит, и няма да може да бъде избиран в документите|*!', 'warning', false);
                 $state = 'closed';
+            } elseif ($productRec->isPublic == 'no') {
+                $row->domain = ht::createHint($row->domain, 'Артикулът е нестандартен и цената му вече не се определя от ценовата политика|*!', 'warning', false);
             }
         }
         
         $row->ROW_ATTR['class'] .= " state-{$state}";
-        
         if ($state == 'active') {
             $row->rule = "<b>{$row->rule}</b>";
         }
@@ -775,18 +752,16 @@ class price_ListRules extends core_Detail
      *
      * @param int    $productId    - ид на продукт
      * @param float  $primeCost    - себестойност
-     * @param date   $validFrom    - от кога е валидна
+     * @param datetime   $validFrom    - от кога е валидна
      * @param string $currencyCode - код на валута
-     * @param yes|no $vat          - с ДДС или без
+     * @param string $vat          - с ДДС или без
      *
      * @return int - ид на създадения запис
      */
     public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode = null, $vat = 'no')
     {
         // По подразбиране задаваме в текуща валута
-        if (empty($currencyCode)) {
-            $currencyCode = acc_Periods::getBaseCurrencyCode();
-        }
+        $currencyCode = isset($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
         
         // Във всяка API функция проверките за входните параметри са задължителни
         expect(!empty($productId) && !empty($validFrom) && !empty($primeCost), $productId, $primeCost, $validFrom, $currencyCode, $vat);
@@ -815,7 +790,6 @@ class price_ListRules extends core_Detail
         setIfNot($data->masterMvc, $this->Master);
         
         // Ще разделяме записите според техните приоритети
-        $masterRec = $data->masterData->rec;
         $data->recs1 = $data->recs2 = $data->recs3 = array();
         $data->rows1 = $data->rows2 = $data->rows3 = array();
         
@@ -868,7 +842,7 @@ class price_ListRules extends core_Detail
     {
         $masterRec = $data->masterData->rec;
         $tpl = getTplFromFile('price/tpl/ListRules.shtml');
-        $rows = &$data->rows;
+        
         unset($data->listFields['priority']);
         $display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')) ? true : false;
         
@@ -945,28 +919,20 @@ class price_ListRules extends core_Detail
     
     
     /**
-     * Връща масив с възможните за избор артикули (стандартни и продаваеми)
-     *
-     * @param int      $listId  - лист
-     * @param int|NULL $limit   - лимит
-     * @param strint   $q       - стринг за търсене
-     * @param mixed    $onlyIds - само кои ид-та да се извлекат
-     *
-     * @return array $options - избор на артикули
+     * Връща достъпните продаваеми артикули
      */
-    public static function getProductOptions($listId, $limit = null, $q = '', $onlyIds = null)
+    public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $options = array();
+        $products = array();
         $pQuery = cat_Products::getQuery();
-        $pQuery->where("#state = 'active'");
-        $pQuery->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #name, ' ', COALESCE(#code, CONCAT('Art', #id))))");
-        $pQuery->show('id,name,isPublic,code,createdOn');
-        if ($listId != self::PRICE_LIST_COST) {
-            $pQuery->where("#isPublic = 'yes' AND #canSell = 'yes'");
-        }
         
-        if (isset($limit)) {
-            $pQuery->limit($limit);
+        // Ако има зададен лист, ще се избират всички артикули в него
+        if(isset($params['showAllInListId'])){
+            $query = self::getQuery();
+            $query->where("#listId = {$params['showAllInListId']} AND #productId IS NOT NULL");
+            $query->show('productId');
+            $query->groupBy('productId');
+            $onlyIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         }
         
         if (is_array($onlyIds)) {
@@ -974,32 +940,53 @@ class price_ListRules extends core_Detail
                 
                 return array();
             }
-            
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-            $pQuery->where("#id IN (${ids})");
+            $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = {$onlyIds}");
+            $pQuery->where("#id = ${onlyIds}");
+        } else {
+            $pQuery->where("#state != 'closed' AND #state != 'rejected' AND #canSell = 'yes'");
+            if(!isset($params['showTemplates'])){
+                $pQuery->where("#state != 'template'");
+            }
+            
+            // Нестандартните артикули да се показват само в политика 'Себестойност'
+            if(isset($params['listId'])){
+                if($params['listId'] != price_ListRules::PRICE_LIST_COST){
+                    $pQuery->where("#isPublic = 'yes'");
+                }
+            }
         }
+        
+        $xpr = "CONCAT(' ', #name, ' ', #code)";
+        $pQuery->XPR('searchFieldXpr', 'text', $xpr);
+        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if ($q) {
             if ($q{0} == '"') {
                 $strict = true;
             }
-            $q = mb_strtolower(trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q)));
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = mb_strtolower($q);
             $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
             
             $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach ($qArr as $w) {
-                $pQuery->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+                $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
         
-        while ($pRec = $pQuery->fetch()) {
-            $options[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+        if ($limit) {
+            $pQuery->limit($limit);
         }
         
-        return $options;
+        $pQuery->show('id,name,code,isPublic,searchFieldXpr');
+        
+        while ($pRec = $pQuery->fetch()) {
+            $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+        }
+        
+        return $products;
     }
     
     

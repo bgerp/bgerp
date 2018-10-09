@@ -82,6 +82,10 @@ class price_Cache extends core_Manager
      */
     protected static $cache = array();
     
+    
+    /**
+     * Db engine
+     */
     public $dbEngine = 'MEMORY';
     
     
@@ -91,7 +95,7 @@ class price_Cache extends core_Manager
     public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис, autoFilter');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent, autoFilter');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSource=price_ListRules::getSellableProducts)', 'caption=Продукт,mandatory,silent, autoFilter');
         $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
         
         $this->setDbUnique('listId,productId');

@@ -368,9 +368,8 @@ class price_ListDocs extends core_Master
             $data->rec->date .= ' 23:59:59';
         }
         
-        $customerProducts = price_ListRules::getProductOptions($data->rec->policyId);
-        unset($customerProducts['pu']);
-        
+        $params = array();
+        $customerProducts = price_ListRules::getSellableProducts($params);
         $aGroups = cat_Groups::getDescendantArray($rec->productGroups);
         
         if ($customerProducts) {

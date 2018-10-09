@@ -94,7 +94,7 @@ class eshop_ProductDetails extends core_Detail
     public function description()
     {
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Е-артикул,mandatory,silent');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
@@ -179,59 +179,6 @@ class eshop_ProductDetails extends core_Detail
         }
         
         return array_key_exists($domainId, $domainIds);
-    }
-    
-    
-    /**
-     * Връща достъпните продаваеми артикули
-     */
-    public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
-    {
-        $products = array();
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#state != 'closed' AND #state != 'rejected'  AND #state != 'template' AND #isPublic = 'yes' AND #canSell = 'yes'");
-        
-        if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
-                
-                return array();
-            }
-            $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-            $pQuery->where("#id IN (${ids})");
-        } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
-        }
-        
-        $xpr = "CONCAT(' ', #name, ' ', #code)";
-        $pQuery->XPR('searchFieldXpr', 'text', $xpr);
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
-        
-        if ($q) {
-            if ($q{0} == '"') {
-                $strict = true;
-            }
-            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
-            $q = mb_strtolower($q);
-            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
-            
-            $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach ($qArr as $w) {
-                $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
-            }
-        }
-        
-        if ($limit) {
-            $pQuery->limit($limit);
-        }
-        
-        $pQuery->show('id,name,code,isPublic,searchFieldXpr');
-        
-        while ($pRec = $pQuery->fetch()) {
-            $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
-        }
-        
-        return $products;
     }
     
     

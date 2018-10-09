@@ -83,7 +83,7 @@ class rack_Pallets extends core_Manager
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
         $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
@@ -272,7 +272,7 @@ class rack_Pallets extends core_Manager
         $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
         $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('state', 'active');
-        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,silent');
+        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул,silent');
         $data->listFilter->FLD('pos', 'varchar', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
         
         $data->listFilter->showFields = 'productId,pos,state';
