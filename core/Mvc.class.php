@@ -135,6 +135,12 @@ class core_Mvc extends core_FieldSet
     
     
     /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doReplication = true;
+    
+    
+    /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свързан към базата.
@@ -350,6 +356,17 @@ class core_Mvc extends core_FieldSet
         
         $table = $this->dbTableName;
         
+        $exRec = null;
+        
+        if ($rec->id) {
+            $exRec = $this->_cachedRecords[$rec->id .'|*'];
+            if ($exRec === null && $mvc->lastFetchedRec && $mvc->lastFetchedRec == $rec->id) {
+                $exRec = $mvc->lastFetchedRec;
+            }
+        }
+        
+        $query = '';
+        
         foreach ($fields as $name => $dummy) {
             if ($name == 'id' && !$mode) {
                 continue;
@@ -362,6 +379,14 @@ class core_Mvc extends core_FieldSet
             // Правим MySQL представяне на стойността
             $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
             
+            // Предотвратява двойното записване
+            if ($exRec && property_exists($exRec, $name)) {
+                $exValue = $field->type->toMysql($exRec->{$name}, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
+                if ($exValue === $value) {
+                    continue;
+                }
+            }
+            
             // Ако няма mySQL представяне на тази стойност, то тя не участва в записа
             if ($value === null) {
                 continue;
@@ -369,6 +394,11 @@ class core_Mvc extends core_FieldSet
             
             $mysqlField = str::phpToMysqlName($name);
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
+        }
+        
+        if ($query == '') {
+            
+            return $rec->id;
         }
         
         $mode = str_replace(' ', '_', strtolower($mode));
@@ -420,7 +450,7 @@ class core_Mvc extends core_FieldSet
         }
         
         DEBUG::startTimer($timer);
-        $res = $this->db->query($query);
+        $res = $this->db->query($query, false, $this->doReplication);
         DEBUG::stopTimer($timer);
         
         if (!$res) {
@@ -479,6 +509,7 @@ class core_Mvc extends core_FieldSet
         
         // Конвертираме всеки запис към стойности в db заявката
         $query = '';
+        $timer = "{$this->dbTableName} INSERT ARRAY";
         foreach ($recs as $rec) {
             $row = '(';
             foreach ($fieldsArr as $key => $field) {
@@ -490,7 +521,10 @@ class core_Mvc extends core_FieldSet
             // Ако надвишаваме максималната заявка или сме изчерпали записите - записваме всичко до сега
             if (strlen($row) + strlen($query) >= $maxLen) {
                 // Изпълняваме заявката
-                if (!$this->db->query($queryBegin . rtrim($query, ',') . $queryEnd)) {
+                DEBUG::startTimer($timer);
+                $res = $this->db->query($queryBegin . rtrim($query, ',') . $queryEnd, false, $this->doReplication);
+                DEBUG::stopTimer($timer);
+                if (!$res) {
                     
                     return false;
                 }
@@ -501,10 +535,8 @@ class core_Mvc extends core_FieldSet
         
         // Ако имаме някакви натрупани стойности - записваме ги и тях
         if ($query) {
-            $timer = "{$this->dbTableName} INSERT ARRAY";
-            
             DEBUG::startTimer($timer);
-            $res = $this->db->query($queryBegin . rtrim($query, ',') . $queryEnd);
+            $res = $this->db->query($queryBegin . rtrim($query, ',') . $queryEnd, false, $this->doReplication);
             DEBUG::stopTimer($timer);
             
             if (!$res) {
@@ -523,7 +555,7 @@ class core_Mvc extends core_FieldSet
     public static function truncate()
     {
         $self = cls::get(get_called_class());
-        $self->db->query("TRUNCATE TABLE `{$self->dbTableName}`");
+        $self->db->query("TRUNCATE TABLE `{$self->dbTableName}`", false, $self->doReplication);
     }
     
     
@@ -1006,7 +1038,7 @@ class core_Mvc extends core_FieldSet
             
             if (!$this->db->tableExists($newTableName)) {
                 if ($this->db->tableExists($oldTableName)) {
-                    $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}");
+                    $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}", false, true);
                     $html .= "<li class='debug-new'>Преименувана е таблицата <b>{$oldTableName}</b> => <b>{$newTableName}</b></li>";
                 }
             }

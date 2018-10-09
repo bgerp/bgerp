@@ -80,7 +80,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
                 $averageAmount = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $rec->valior, $rec->storeId);
                 
                 if (!isset($averageAmount)) {
-                    $averageAmount = cls::get('cat_Products')->getSelfValue($dRec->productId);
+                    $averageAmount = cat_Products::getPrimeCost($dRec->productId);
                     if (isset($averageAmount)) {
                         $averageAmount = $dRec->quantity * $averageAmount;
                     }

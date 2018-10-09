@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,12 +45,6 @@ class cat_products_PriceDetails extends core_Manager
      */
     public function preparePrices($data)
     {
-        if ($data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template') {
-            $data->hide = true;
-            
-            return;
-        }
-        
         $data->TabCaption = 'Цени';
         $data->Tab = 'top';
         $data->Order = 5;
@@ -70,7 +64,7 @@ class cat_products_PriceDetails extends core_Manager
         $this->preparePriceInfo($listsData);
         $data->listsData = $listsData;
         
-        if (haveRole($this->canSeeprices)) {
+        if (haveRole($this->canSeeprices) && $data->masterData->rec->state != 'template') {
             $this->VatGroups->prepareVatGroups($vatData);
             $data->vatData = $vatData;
         }
@@ -103,6 +97,7 @@ class cat_products_PriceDetails extends core_Manager
      */
     private function preparePriceInfo($data)
     {
+        $validFrom = dt::now();
         $hideIcons = false;
         if (Mode::isReadOnly()) {
             $hideIcons = true;
@@ -127,12 +122,25 @@ class cat_products_PriceDetails extends core_Manager
             $rec = new stdClass();
         }
         
+        $primeCostIsFromTemplate = $catalogCostIsFromTemplate = false;
         $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterId, null, $now, $validFrom);
+        if(is_null($primeCost) && isset($data->masterData->rec->proto)){
+            $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterData->rec->proto, null, $now, $validFrom);
+            $primeCostIsFromTemplate = true;
+        }
+        
         if (isset($primeCost)) {
             $primeCostDate = $validFrom;
         }
         
-        $catalogCost = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $data->masterId, null, $now, $validFrom);
+        $catalogListId = cat_Setup::get('DEFAULT_PRICELIST');
+        $catalogCost = price_ListRules::getPrice($catalogListId, $data->masterId, null, $now, $validFrom);
+        
+        if(is_null($catalogCost) && isset($data->masterData->rec->proto)){
+            $catalogCost = price_ListRules::getPrice($catalogListId, $data->masterData->rec->proto, null, $now, $validFrom);
+            $catalogCostIsFromTemplate = true;
+        }
+        
         if ($catalogCost == 0 && !isset($rec->primeCost)) {
             $catalogCost = null;
         }
@@ -220,6 +228,10 @@ class cat_products_PriceDetails extends core_Manager
                 }
                 
                 $verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, true);
+                if($primeCostIsFromTemplate === true && isset($verbPrice)){
+                    $verbPrice = ht::createHint($verbPrice, 'Себестойността е зададена за шаблонният артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
+                }
+                
                 $priceRow = (is_null($primeCost)) ? $verbPrice : '<b>' . $verbPrice . "</b> {$baseCurrencyCode}";
                 $primeCostRows[] = (object) array('type' => $type,
                     'modifiedOn' => $DateTime->toVerbal($primeCostDate),
@@ -252,13 +264,19 @@ class cat_products_PriceDetails extends core_Manager
         
         if (isset($catalogCost)) {
             $type = tr('Политика "Каталог"');
-            $threadId = price_Lists::fetchField(cat_Setup::get('DEFAULT_PRICELIST'), 'threadId');
+            $threadId = price_Lists::fetchField($catalogListId, 'threadId');
             
             if (doc_Threads::haveRightFor('single', $threadId)) {
                 $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
             }
             
-            $verbPrice = price_Lists::roundPrice(cat_Setup::get('DEFAULT_PRICELIST'), $catalogCost, true);
+            $verbPrice = price_Lists::roundPrice($catalogListId, $catalogCost, true);
+            
+            // Ако каталожната цена е от прототипа, показва се тази информация
+            if($catalogCostIsFromTemplate === true){
+                $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонният артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
+            }
+            
             $primeCostRows[] = (object) array('type' => $type,
                 'modifiedOn' => $DateTime->toVerbal($catalogCostDate),
                 'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",

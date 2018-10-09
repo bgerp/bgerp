@@ -73,7 +73,7 @@ class rack_Racks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num,free=Палет-места->Свободни,used,reserved,total,rows,columns';
+    public $listFields = 'num=Стелаж,free=Палет-места->Свободни,used,reserved,total,rows,columns';
     
     
     /**
@@ -124,7 +124,7 @@ class rack_Racks extends core_Master
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
-        $this->FLD('num', 'int(max=100)', 'caption=Стелаж,mandatory,smartCenter');
+        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,smartCenter');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');

@@ -42,6 +42,12 @@ defIfNot('EF_DB_VARCHAR_INDEX_PREFIX', EF_DB_CHARSET == 'utf8mb4' ? 100 : 255);
 
 
 /**
+ * Път по подразбиране за създаване на репликация
+ */
+defIfNot('BGERP_SQL_LOG_PATH', false);
+
+
+/**
  * Клас 'core_Db' - Манипулиране на MySQL-ски бази данни
  *
  *
@@ -224,7 +230,7 @@ class core_Db extends core_BaseClass
      *
      * @return resource
      */
-    public function query($sqlQuery, $silent = false)
+    public function query($sqlQuery, $silent = false, $replication = false)
     {
         if (isDebug() && ($fnd = Request::get('_bp')) && stripos(preg_replace('!\\s+!', ' ', $sqlQuery), $fnd) !== false) {
             bp($sqlQuery);
@@ -239,6 +245,11 @@ class core_Db extends core_BaseClass
         
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
+        
+        if ($replication && ($path = BGERP_SQL_LOG_PATH)) {
+            $path .= '/' . date('Y-m-d_h') . '.sql';
+            file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
+        }
         
         return $dbRes;
     }
@@ -430,11 +441,11 @@ class core_Db extends core_BaseClass
                 $key = strtoupper($key);
                 if (isset($params[$key]) && strtoupper($params[$key]) != strtoupper($value)) {
                     if ($key == 'ENGINE') {
-                        $dbRes = $this->query("ALTER TABLE `{$tableName}` ENGINE " . $params['ENGINE'] . ';', true);
+                        $dbRes = $this->query("ALTER TABLE `{$tableName}` ENGINE " . $params['ENGINE'] . ';', true, true);
                         $debugLog .= "<li class='debug-new'>Сменен DB ENGINE=" . strtoupper($params['ENGINE']) . '</li>';
                     }
                     if ($key == 'COLLATION') {
-                        $dbRes = $this->query("ALTER TABLE `{$tableName}` COLLATE " . $params['COLLATION'] . ';', true);
+                        $dbRes = $this->query("ALTER TABLE `{$tableName}` COLLATE " . $params['COLLATION'] . ';', true, true);
                         $debugLog .= "<li class='debug-new'>Сменен COLLATE=" . strtoupper($params['COLLATION']) . '</li>';
                     }
                 }
@@ -446,7 +457,7 @@ class core_Db extends core_BaseClass
         // Правим допълнителните параметри към заявката
         $params = 'ENGINE = ' . $params['ENGINE'] . ' CHARACTER SET =' . $params['CHARACTER'] . ' COLLATE ' . $params['COLLATION'] . ';';
         
-        $dbRes = $this->query("CREATE TABLE `${tableName}` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}");
+        $dbRes = $this->query("CREATE TABLE `${tableName}` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}", false, true);
         
         return true;
     }
@@ -627,10 +638,10 @@ class core_Db extends core_BaseClass
         
         if ($field->field) {
             
-            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
+            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}", false, true);
         }
         
-        return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
+        return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}", false, true);
     }
     
     
@@ -651,7 +662,7 @@ class core_Db extends core_BaseClass
         $indexes = $this->getIndexes($tableName);
         
         if ($indexes[$indexName]) {
-            $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`");
+            $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`", false, true);
             $res = true;
         }
         
@@ -675,7 +686,7 @@ class core_Db extends core_BaseClass
             }
             
             // Създаване на Индекса
-            $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})");
+            $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})", false, true);
             $res = true;
         }
         

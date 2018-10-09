@@ -48,7 +48,7 @@ class rack_RackDetails extends core_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, rackMaster';
+    public $canEdit = 'ceo, rack';
     
     
     /**
@@ -81,7 +81,7 @@ class rack_RackDetails extends core_Detail
                                    unusable=Неизползваемо,
                                    reserved=Запазено                                     
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
-        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул,input=none');
         
         $this->setDbUnique('rackId,row,col');
     }

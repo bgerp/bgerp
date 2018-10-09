@@ -408,11 +408,43 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param datetime                                                                           $datetime  - дата
      * @param float                                                                              $rate      - валутен курс
      * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
-     *
+     * 
      * @return float|NULL $price  - цена
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
+        // Ако има рецепта връщаме по нея
+        if ($bomRec = $this->getBomForPrice($productId)) {
+            
+            return cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
+        }
+        
+        return null;
+    }
+    
+    
+    /**
+     * Записа на рецептата на артикула, ако няма на прототипния, ако има
+     * 
+     * @param int $productId - ид на артикул
+     * 
+     * @return boolean|stdClass $bomRec - запис на рецепта
+     */
+    public function getBomForPrice($productId)
+    {
+        // Търсим първо активната търговска рецепта, ако няма търсим активната работна
+        $protoId = cat_Products::fetchField($productId, 'proto');
+        
+        $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+        if (empty($bomRec)) {
+            $bomRec = cat_Products::getLastActiveBom($productId, 'production');
+        }
+        
+        if (empty($bomRec) && isset($protoId)) {
+            $bomRec = $this->getBomForPrice($protoId);
+        }
+        
+        return $bomRec;
     }
     
     
@@ -616,7 +648,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function canCalcTransportFee($productId)
     {
-        return true;
+        $bomRec = $this->getBomForPrice($productId);
+        
+        return is_object($bomRec);
     }
     
     

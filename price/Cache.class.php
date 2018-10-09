@@ -38,7 +38,7 @@ class price_Cache extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, listId,  productId, price,createdOn,createdBy';
+    public $listFields = 'id, listId, productId, price,createdOn,createdBy';
     
     
     /**
@@ -82,16 +82,20 @@ class price_Cache extends core_Manager
      */
     protected static $cache = array();
     
+    
+    /**
+     * Db engine
+     */
     public $dbEngine = 'MEMORY';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис, autoFilter');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent, autoFilter');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSource=price_ListRules::getSellableProducts)', 'caption=Продукт,mandatory,silent, autoFilter');
         $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
         
         $this->setDbUnique('listId,productId');
@@ -128,6 +132,7 @@ class price_Cache extends core_Manager
         }
     }
     
+    
     /**
      * Връща кешираната цена за продукта
      */
@@ -144,7 +149,7 @@ class price_Cache extends core_Manager
     /**
      * Записва кеш за цената на продукта
      */
-    public static function setPrice($price, $listId,  $productId)
+    public static function setPrice($price, $listId, $productId)
     {
         $rec = new stdClass();
         $rec->listId = $listId;
@@ -165,22 +170,22 @@ class price_Cache extends core_Manager
             $data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => true), 'ef_icon=img/16/sport_shuttlecock.png, title=Премахване на кешираните записи');
         }
     }
-
-
+    
+    
     /**
      * Изтриване на всички цени за посочената политика, както и тези от дъщерните й политики
      */
     public static function callback_InvalidatePriceList($priceListId)
     {
         self::delete("#listId = {$priceListId}");
-
+        
         $plQuery = price_Lists::getQuery();
-        while($plRec = $plQuery->fetch("#parent = {$priceListId}")) {
+        while ($plRec = $plQuery->fetch("#parent = {$priceListId}")) {
             self::callback_InvalidatePriceList($plRec->id);
         }
     }
     
-
+    
     /**
      * Изтриване на всички цени за посочения продукт
      */
@@ -188,17 +193,17 @@ class price_Cache extends core_Manager
     {
         self::delete("#productId = {$productId}");
     }
-
-
+    
+    
     /**
      * Изтрива цените, които са над 24 часа
      */
     public static function cron_RemoveExpiredPrices()
     {
-        $before24h = dt::addSecs(-24*60*60);
+        $before24h = dt::addSecs(-24 * 60 * 60);
         self::delete("#createdOn < '{$before24h}'");
     }
-
+    
     
     /**
      * Екшън за изтриване на всички кеширани цени

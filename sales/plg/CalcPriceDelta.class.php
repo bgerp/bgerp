@@ -62,10 +62,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         
         // По коя политика ще се изчислява делтата
         $Cover = doc_Folders::getCover($folderId);
-        $primeCostListId = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'deltaList');
-        if (empty($primeCostListId)) {
-            $primeCostListId = price_ListRules::PRICE_LIST_COST;
-        }
+        $deltaListId = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'deltaList');
         
         // Намиране на детайлите
         $Detail = cls::get($mvc->mainDetail);
@@ -76,9 +73,9 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $valior = $rec->{$mvc->valiorFld};
         while ($dRec = $query->fetch()) {
             if ($mvc instanceof sales_Sales) {
-                $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $primeCostListId);
+                $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId);
             } else {
-                $primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $primeCostListId);
+                $primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $deltaListId);
             }
             
             $sellCost = $dRec->{$mvc->detailSellPriceFld};

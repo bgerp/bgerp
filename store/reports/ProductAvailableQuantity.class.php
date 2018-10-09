@@ -56,11 +56,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('limmits', 'enum(no=Без лимити,yes=С лимити)', 'caption=Вид на справката,removeAndRefreshForm,after=title,silent');
+        $fieldset->FLD('limmits', 'enum(no=Без лимити,yes=С лимити)', 'caption=Вид,removeAndRefreshForm,after=title,silent');
         
-        $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 'caption=Количество за показване,maxRadio=2,columns=2,after=limmits');
+        $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 'caption=Количество,maxRadio=2,columns=2,after=limmits');
         
-        $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на артикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', 'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none');
+        $fieldset->FLD('additional', 'table(columns=code|name|measure|minQuantity|maxQuantity,captions=Код на артикула|Наименование|Мярка|Мин к-во|Макс к-во,widths=5em|20em|5em|5em|5em)', 'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none');
         
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
@@ -135,7 +135,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     if (is_array($details->minQuantity)) {
                         foreach ($details->minQuantity as $v) {
-                            $v = (int) trim($v);
+                            $v = trim($v);
                             
                             if ($v < 0) {
                                 $form->setError('additional', 'Количествата трябва  да са положителни');
@@ -145,7 +145,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     if (is_array($details->maxQuantity)) {
                         foreach ($details->maxQuantity as $v) {
-                            $v = (int) trim($v);
+                            $v = trim($v);
                             
                             if ($v < 0) {
                                 $form->setError('additional', 'Количествата трябва  да са положителни');
@@ -168,9 +168,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             $prId = cat_Products::getByCode($grDetails['code'][$k]);
                             
                             if ($prId->productId) {
-                                $prName = cat_Products::getTitleById($prId->productId, $escaped = true);
+                                
+                                $measureName = cat_UoM::getTitleById(cat_Products::fetchField($prId->productId,'measureId'));
+                             //   $prName = cat_Products::getTitleById($prId->productId,$escaped = true);
+                                $prName = cat_Products::fetchField($prId->productId,'name');
                                 
                                 $grDetails['name'][$k] = $prName;
+                                $grDetails['measure'][$k] = $measureName;
                             }
                         }
                     }
@@ -213,9 +217,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
                         
                         while ($grProduct = $rQuery->fetch()) {
+                            
+                            $measureName = cat_UoM::getTitleById(cat_Products::fetchField($grProduct->id,'measureId'));
+                            
                             $grDetails['code'][] = $grProduct->code;
                             
-                            $grDetails['name'][] = cat_Products::getTitleById($grProduct->id);
+                            $grDetails['name'][] = cat_Products::fetchField($grProduct->id,'name');
+                            
+                            $grDetails['measure'][] = $measureName;
                             
                             $grDetails['minQuantity'][] = $grProduct->minQuantity;
                             
@@ -229,6 +238,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 if ($details['code'] && in_array($v, $details['code'])) {
                                     unset($grDetails['code'][$k]);
                                     unset($grDetails['name'][$k]);
+                                    unset($grDetails['measure'][$k]);
                                     unset($grDetails['minQuantity'][$k]);
                                     unset($grDetails['maxQuantity'][$k]);
                                 }
@@ -246,6 +256,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 if (!$grDetails['code'][$k] || $isPublic == 'no') {
                                     unset($grDetails['code'][$k]);
                                     unset($grDetails['name'][$k]);
+                                    unset($grDetails['measure'][$k]);
                                     unset($grDetails['minQuantity'][$k]);
                                     unset($grDetails['maxQuantity'][$k]);
                                 }
@@ -264,6 +275,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 if ($count > self::NUMBER_OF_ITEMS_TO_ADD) {
                                     unset($grDetails['code'][$k]);
                                     unset($grDetails['name'][$k]);
+                                    unset($grDetails['measure'][$k]);
                                     unset($grDetails['minQuantity'][$k]);
                                     unset($grDetails['maxQuantity'][$k]);
                                     $countUnset++;
@@ -272,6 +284,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                 
                                 $details['code'][] = $grDetails['code'][$k];
                                 $details['name'][] = $grDetails['name'][$k];
+                                $details['measure'][] = $grDetails['measure'][$k];
                                 $details['minQuantity'][] = $grDetails['minQuantity'][$k];
                                 $details['maxQuantity'][] = $grDetails['maxQuantity'][$k];
                             }
@@ -366,8 +379,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     'productId' => $productId,
                     'storeId' => $rec->storeId,
                     'quantity' => $quantity,
-                    'minQuantity' => (int) $minQuantity[$key],
-                    'maxQuantity' => (int) $maxQuantity[$key],
+                    'minQuantity' => $minQuantity[$key],
+                    'maxQuantity' => $maxQuantity[$key],
                     'code' => $recProduct->code,
                 );
             }
@@ -457,7 +470,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if (isset($dRec->maxQuantity)) {
             $row->maxQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->maxQuantity);
         }
-        
+      // bp($dRec->minQuantity);
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
             $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>{$dRec->conditionQuantity}</span>";
         }

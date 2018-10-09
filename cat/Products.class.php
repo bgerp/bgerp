@@ -1483,39 +1483,32 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Връща цената по себестойност на продукта
+     * Връща себестойноста на артикула
      *
-     * @return float
+     * @param int $productId            - ид на артикул
+     * @param int $packagingId          - ид на опаковка
+     * @param double $quantity          - количество
+     * @param datetime $date            - към коя дата
+     * @param int|null $primeCostlistId - по коя ценова политика да се смята себестойноста
+     * @return double|NULL $primeCost   - себестойност
      */
-    public static function getSelfValue($productId, $packagingId = null, $quantity = 1, $date = null)
+    public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
-        $listId = price_ListRules::PRICE_LIST_COST;
-        $date = price_ListToCustomers::canonizeTime($date);
-        
-        $price = price_ListRules::getPrice($listId, $productId, $packagingId, $date);
+        $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
         
         // Ако няма цена се опитва да намери от драйвера
-        if (!$price) {
-            if ($Driver = cat_Products::getDriver($productId)) {
-                $price = $Driver->getPrice($productId, $quantity, 0, 0, $date);
-            }
+        if ($Driver = cat_Products::getDriver($productId)) {
+            $primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
         }
         
-        // Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
-        if (!$price) {
-            $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-            if (empty($bomRec)) {
-                $bomRec = cat_Products::getLastActiveBom($productId, 'production');
-            }
-            
-            if ($bomRec) {
-                $price = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST);
-            }
+        // Ако няма цена от драйвера, се гледа политика 'Себестойност';
+        if (!$primeCost) {
+            $date = price_ListToCustomers::canonizeTime($date);
+            $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
         
-        // Връщаме цената по себестойност
-        return $price;
+        return $primeCost;
     }
     
     
@@ -2423,7 +2416,7 @@ class cat_Products extends embed_Manager
         }
         
         // За артикула, това е цената по себестойност за исканото количество
-        return self::getSelfValue($id, null, $quantity);
+        return self::getPrimeCost($id, null, $quantity);
     }
     
     

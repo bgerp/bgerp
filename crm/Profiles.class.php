@@ -477,26 +477,10 @@ class crm_Profiles extends core_Master
         
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
-        
+
         if (isset($data->rec->stateInfo, $data->rec->stateDateFrom, $data->rec->stateDateTo)) {
-            $Date = cls::get('type_Date');
-            
-            list($dateFrom, $hoursFrom) = explode(' ', $data->rec->stateDateFrom);
-            list($dateTo, $hoursTo) = explode(' ', $data->rec->stateDateTo);
-            
-            list($today, $hoursToday) = explode(' ', dt::verbal2mysql());
-            list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
-            list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
-            
-            if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
-                $state = tr(static::$map[$data->rec->stateInfo]) . '  '. $mvc->getVerbal($data->rec, 'stateDateFrom');
-            } elseif ($dateFrom == $dateTo) {
-                $state = tr(static::$map[$data->rec->stateInfo]) . ' ' . tr('на') . ' '. $mvc->getVerbal($data->rec, 'stateDateFrom');
-            } else {
-                $state = tr(static::$map[$data->rec->stateInfo]) . ' ' . tr('от') . ' '. $mvc->getVerbal($data->rec, 'stateDateFrom') . ' ' . tr('до') . ' '. $mvc->getVerbal($data->rec, 'stateDateTo');
-            }
-            
-            $tpl->append($state, 'userStatus');
+            $status = self::getVerbalStatus($data->rec->stateInfo, $data->rec->stateDateFrom, $data->rec->stateDateTo);
+            $tpl->append($status, 'userStatus');
             $tpl->append('statusClass', 'userClass');
         }
         
@@ -569,6 +553,40 @@ class crm_Profiles extends core_Master
         }
     }
     
+
+    /**
+     * Връща вербална инфирмация за отсъствието
+     *
+     * @param string $type - вид на отсъствието
+     * @param string $from - начална дата
+     * @param string $to   - крайна дата
+     *
+     * @return string;
+     */
+    public static function getVerbalStatus($type, $from, $to)
+    { 
+            $Date = cls::get('type_Date');
+            
+            list($dateFrom, $hoursFrom) = explode(' ', $from);
+            list($dateTo, $hoursTo) = explode(' ', $to);
+            
+            list($today, $hoursToday) = explode(' ', dt::verbal2mysql());
+            list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
+            list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
+            
+            $status = tr(static::$map[$type]) . ' ';
+
+            if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
+                $status .= dt::mysql2verbal($from, 'smartDate');
+            } elseif ($dateFrom == $dateTo) {
+                $status .= tr('на') . ' ' . dt::mysql2verbal($from, 'smartDate');
+            } else {
+                $status .=  tr('от') . ' ' . dt::mysql2verbal($from, 'smartDate') . ' ' . tr('до') . ' ' . dt::mysql2verbal($to, 'smartDate');
+            }
+            
+            return $status;
+    }
+
     
     /**
      * Екшън за смяна на парола
@@ -1061,17 +1079,9 @@ class crm_Profiles extends core_Master
             $profRec = self::fetch("#userId = {$userId}");
             
             $attr['class'] .= ' profile';
+
             if ($profRec && $profRec->stateDateFrom) {
-                $dateFrom = strstr($profRec->stateDateFrom, ' ', true);
-                $dateTo = strstr($profRec->stateDateTo, ' ', true);
-                $nextWorkingDay =  cal_Calendar::nextWorkingDay(null, 0);
-                $today = dt::now(false);
-              
-                if ($dateFrom <= $today && $today <= $dateTo) {
-                    $attr['class'] .= ' profile-state';
-                } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
-                    $attr['class'] .= ' profile-state-tomorrow';
-                }
+                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo);
             }
             
             $profileId = self::getProfileId($userId);
@@ -1127,12 +1137,29 @@ class crm_Profiles extends core_Master
         
         return $cacheArr[$key];
     }
-    
 
-    public function act_Test()
+
+    /**
+     * Връща клас за ника, според началото на отсъствието и края му
+     */
+    public static function getAbsenceClass($from, $to)
     {
-        bp(cal_Calendar::nextWorkingDay());
+        list($dateFrom,) = explode(' ', $from);
+        list($dateTo,) = explode(' ', $to);
+        $nextWorkingDay =  cal_Calendar::nextWorkingDay(null, 0);
+        $today = dt::now(false);
+        
+        $res = '';
+
+        if ($dateFrom <= $today && $today <= $dateTo) {
+            $res = 'profile-state';
+        } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
+            $res = 'profile-state-tomorrow';
+        }
+       
+        return $res;
     }
+
     
     /**
      * Обработва ника на потребителя, така, че да изглежда добре
@@ -1231,46 +1258,9 @@ class crm_Profiles extends core_Master
                     $row->personId = ht::createLink($row->personId, $personLink, null, array('ef_icon' => 'img/16/vcard.png'));
                     
                     if (isset($rec->stateDateFrom, $rec->stateDateTo)) {
-                        list($dateFrom, $hoursFrom) = explode(' ', $rec->stateDateFrom);
-                        list($dateTo, $hoursTo) = explode(' ', $rec->stateDateTo);
-                        
-                        $stateInfo = tr(static::$map[$rec->stateInfo]);
-                        $on = tr('на');
-                        $from = tr('от');
-                        $to = tr('до');
-                        
-                        if ($dateFrom == $dateTo) {
-                            $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . '</span>';
-                            
-                            if ($hoursFrom != '00:00:00') {
-                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . '</span>';
-                            }
-                            
-                            if ($hoursTo != '23:59:59') {
-                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . '</span>';
-                            }
-                            
-                            if ($hoursFrom != '00:00:00' && $hoursTo != '23:59:59') {
-                                $stateData = "<span class='small'>" . $stateInfo . " {$on} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . '</span>';
-                            }
-                        } else {
-                            $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). '</span>';
-                            
-                            if ($hoursFrom == '00:00:00') {
-                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). '</span>';
-                            }
-                            
-                            if ($hoursTo == '23:59:59') {
-                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'd M'). '</span>';
-                            }
-                            
-                            if ($hoursFrom == '00:00:00' && $hoursTo == '23:59:59') {
-                                $stateData = "<span class='small'>" . $stateInfo . " {$from} ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  .  " {$to} ". dt::mysql2verbal($rec->stateDateTo, 'd M') . '</span>';
-                            }
-                        }
-                        
+                        $status = self::getVerbalStatus($rec->stateInfo, $rec->stateDateFrom, $rec->stateDateTo);
                         $link = static::createLink($rec->userId, null, false, array('ef_icon' => $mvc->singleIcon));
-                        $row->userId = ht::createHint($link, '|*' . $stateData, 'notice');
+                        $row->userId = ht::createHint($link, '|*' . $status, 'notice');
                     } else {
                         $row->userId = static::createLink($rec->userId, null, false, array('ef_icon' => $mvc->singleIcon));
                     }

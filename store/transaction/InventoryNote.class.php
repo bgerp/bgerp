@@ -82,7 +82,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             
             // Ако разликата е положителна, тоест имаме излишък
             if ($dRec->delta > 0) {
-                $amount = cat_Products::getSelfValue($dRec->productId, null, $dRec->delta, $rec->valior);
+                $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
                 if (!$amount) {
                     if (Mode::get('saveTransaction')) {
                         $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
