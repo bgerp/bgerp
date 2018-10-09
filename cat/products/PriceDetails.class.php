@@ -45,12 +45,6 @@ class cat_products_PriceDetails extends core_Manager
      */
     public function preparePrices($data)
     {
-        if ($data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template') {
-            $data->hide = true;
-            
-            return;
-        }
-        
         $data->TabCaption = 'Цени';
         $data->Tab = 'top';
         $data->Order = 5;
@@ -70,7 +64,7 @@ class cat_products_PriceDetails extends core_Manager
         $this->preparePriceInfo($listsData);
         $data->listsData = $listsData;
         
-        if (haveRole($this->canSeeprices)) {
+        if (haveRole($this->canSeeprices) && $data->masterData->rec->state != 'template') {
             $this->VatGroups->prepareVatGroups($vatData);
             $data->vatData = $vatData;
         }
