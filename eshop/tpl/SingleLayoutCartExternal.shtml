@@ -16,6 +16,11 @@
             <!--ET_BEGIN freeDelivery-->
             <div>|Безплатна доставка за поръчки над|* <b>[#freeDelivery#]</b> [#freeDeliveryCurrencyId#]</div>
             <!--ET_END freeDelivery-->
+            
+            <!--ET_BEGIN deliveryZero-->
+            <div>|Безплатна доставка, съгласно "Общите условия"|* [#deliveryZero#]</div>
+            <!--ET_END deliveryZero-->
+            
             <!--ET_BEGIN COMMON_TEXT-->
             <div class="richtext-holder"> [#COMMON_TEXT#]</div>
             <!--ET_END COMMON_TEXT-->

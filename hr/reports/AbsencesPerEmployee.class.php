@@ -502,6 +502,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        if(!isset($dRec->personId)) return;
         $res->absencesDays = ($dRec->numberOfTripsesDays + $dRec->numberOfSickdays + $dRec->numberOfLeavesDays);
         
         $employee = crm_Persons::getContragentData($dRec->personId)->person;

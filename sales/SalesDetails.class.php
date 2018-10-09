@@ -199,10 +199,10 @@ class sales_SalesDetails extends deals_DealDetail
                 }
             }
             
-            if ($rec->price < cat_Products::getSelfValue($rec->productId, null, $rec->quantity)) {
-                if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
+            if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
+               if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $masterRec->valior)){
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
-                }
+               }
             }
             
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт

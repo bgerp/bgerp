@@ -296,10 +296,10 @@ class plg_Search extends core_Plugin
                         $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
                     } else {
                         if ($mode == '+') {
-                            $query->where("match(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)");
+                            $query->where("MATCH(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)");
                         }
                         if ($mode == '"') {
-                            $query->where("match(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
+                            $query->where("MATCH(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
                         }
                         if ($mode == '-') {
                             $query->where("LOCATE('{$w}', #{$field}) = 0");
