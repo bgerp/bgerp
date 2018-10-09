@@ -135,7 +135,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     if (is_array($details->minQuantity)) {
                         foreach ($details->minQuantity as $v) {
-                            $v = (int) trim($v);
+                            $v = trim($v);
                             
                             if ($v < 0) {
                                 $form->setError('additional', 'Количествата трябва  да са положителни');
@@ -145,7 +145,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     
                     if (is_array($details->maxQuantity)) {
                         foreach ($details->maxQuantity as $v) {
-                            $v = (int) trim($v);
+                            $v = trim($v);
                             
                             if ($v < 0) {
                                 $form->setError('additional', 'Количествата трябва  да са положителни');
@@ -366,8 +366,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     'productId' => $productId,
                     'storeId' => $rec->storeId,
                     'quantity' => $quantity,
-                    'minQuantity' => (int) $minQuantity[$key],
-                    'maxQuantity' => (int) $maxQuantity[$key],
+                    'minQuantity' => $minQuantity[$key],
+                    'maxQuantity' => $maxQuantity[$key],
                     'code' => $recProduct->code,
                 );
             }
@@ -457,7 +457,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if (isset($dRec->maxQuantity)) {
             $row->maxQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->maxQuantity);
         }
-        
+      // bp($dRec->minQuantity);
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
             $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>{$dRec->conditionQuantity}</span>";
         }
