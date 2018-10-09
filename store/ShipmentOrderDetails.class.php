@@ -205,13 +205,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             return;
         }
         
-        $storeId = $data->masterData->rec->storeId;
+        $masterRec = $data->masterData->rec;
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state);
+            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state);
             
-            if ($rec->price < cat_Products::getPrimeCost($rec->productId, null, $rec->quantity)) {
-                if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
+            if (!core_Users::haveRole('partner') && isset($row->packPrice)) {
+                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $masterRec->valior)){
                     $row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', false);
                 }
             }

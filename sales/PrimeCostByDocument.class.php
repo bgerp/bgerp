@@ -99,6 +99,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('contragentId', 'int', 'caption=Контрагент,tdClass=leftCol');
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         
+        $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
@@ -748,8 +749,8 @@ class sales_PrimeCostByDocument extends core_Manager
             
             return;
         }
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
         
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
         if (!$firstDoc->isInstanceOf('sales_Sales')) {
             
             return;
@@ -757,7 +758,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         $containerId = $firstDoc->fetchField('containerId');
         $query = self::getQuery();
-        $query->where("#containerId = {$containerId} AND #productId = {$productId}");
+        $query->where("#productId = {$productId} AND #containerId = {$containerId}");
         $query->show('quantity,primeCost');
         $sum = $totalQ = 0;
         
@@ -776,5 +777,28 @@ class sales_PrimeCostByDocument extends core_Manager
             
             return self::getPrimeCostInSale($productId, $packagingId, $quantity, $firstDoc->fetch(), $deltaListId);
         }
+    }
+    
+    
+    /**
+     * Дали цената е под себестойноста на артикула в продажбата
+     * 
+     * @param double $price
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @param int $containerId
+     * @param datetime $valior
+     * @return double $primeCost
+     */
+    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior)
+    {
+        $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
+       
+        if(empty($primeCost)){
+            $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $valior);
+        }
+        
+        return (round($price, 4) < round($primeCost, 4));
     }
 }
