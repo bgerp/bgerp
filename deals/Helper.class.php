@@ -930,20 +930,27 @@ abstract class deals_Helper
      * @param int    $packagingId  - ид на мярка/опаковка
      * @param float  $packQuantity - к-во опаковка
      * @param string $warning      - предупреждение, ако има
+     * @param string $type         - само за опаковки или мерки, или null за всички
      *
      * @return bool - дали к-то е допустимо или не
      */
-    public static function checkQuantity($packagingId, $packQuantity, &$warning = null)
+    public static function checkQuantity($packagingId, $packQuantity, &$warning = null, $type = null)
     {
         $decLenght = strlen(substr(strrchr($packQuantity, '.'), 1));
-        $decimals = cat_UoM::fetchField($packagingId, 'round');
+        $uomRec = cat_UoM::fetch($packagingId, 'round,type');
         
-        if (isset($decimals) && $decLenght > $decimals) {
-            if ($decimals == 0) {
+        // Ако е указано да се проверява само за опаковка или мярка, и записа не е такъв, не се прави проверка
+        if(isset($type) && $uomRec->type != $type) {
+            
+            return true;
+        }
+        
+        if (isset($uomRec->round) && $decLenght > $uomRec->round) {
+            if ($uomRec->round == 0) {
                 $warning = 'Количеството трябва да е цяло число';
             } else {
-                $decimals = cls::get('type_Int')->toVerbal($decimals);
-                $warning = "Количеството трябва да е с точност до|* <b>{$decimals}</b> |цифри след десетичния знак|*";
+                $round = cls::get('type_Int')->toVerbal($uomRec->round);
+                $warning = "Количеството трябва да е с точност до|* <b>{$round}</b> |цифри след десетичния знак|*";
             }
             
             return false;
