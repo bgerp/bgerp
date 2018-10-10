@@ -457,7 +457,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function canAutoCalcPrimeCost($productId)
     {
-        return false;
+        $bomRec = $this->getBomForPrice($productId);
+        
+        return is_object($bomRec);
     }
     
     
@@ -648,9 +650,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function canCalcTransportFee($productId)
     {
-        $bomRec = $this->getBomForPrice($productId);
-        
-        return is_object($bomRec);
+        return true;
     }
     
     
