@@ -535,7 +535,7 @@ class support_Systems extends core_Master
             
             // Бутон за нов сигнал към съответния ресурс
             if (cal_Tasks::haveRightFor('add')) {
-                $row->name .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png'));
+                $row->name .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
             }
             
             // Бутон към филтриране на изгледа
@@ -546,7 +546,7 @@ class support_Systems extends core_Master
                     $search = cls::get('support_TaskType')->withoutResStr;
                 }
                 
-                $row->name .= ht::createLink('', array('support_Tasks', 'list', 'systemId' => $data->masterData->rec->id, 'search' => $search), $false, array('ef_icon' => 'img/16/page_white_text.png'));
+                $row->name .= ht::createLink('', array('support_Tasks', 'list', 'systemId' => $data->masterData->rec->id, 'search' => $search), $false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
             }
             
             // Броя на отворените нишки
