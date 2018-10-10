@@ -552,7 +552,7 @@ class support_Systems extends core_Master
             // Броя на отворените нишки
             if ($assertResourceArr[$id]) {
                 $class = $assertResourceArr[$id]['priority'] . '_priority';
-                $row->name .= "<span class='{$class}'>{$assertResourceArr[$id]['openedCnt']}</span>";
+                $row->name .= "<span class='systemFlag {$class}'>{$assertResourceArr[$id]['openedCnt']}</span>";
             }
             
             // Времето на последната промяна
