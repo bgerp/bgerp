@@ -28,7 +28,7 @@ class store_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('deals_OpenDeals', 'show' => 'store'), 'Документи->Чакащи', 'store,ceo');
         $this->TAB('store_ShipmentOrders', 'Документи->Експедиции');
         $this->TAB('store_Receipts', 'Документи->Получавания');
-        $this->TAB('store_Transfers', 'Документи->Трансфери');
+        $this->TAB('store_Transfers', 'Документи->Междускладови трансфери');
         $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене');
         $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация');
         
