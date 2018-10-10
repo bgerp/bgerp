@@ -147,9 +147,13 @@ class support_Tasks extends core_Manager
         $default = $data->listFilter->getField('maintainers')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('maintainers', $default);
         
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->view = 'vertical';
+        
+        $data->listFilter->title = 'Търсене';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input(null, true);
         
         $data->listFilter->input();
         
