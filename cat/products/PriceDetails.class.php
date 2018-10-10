@@ -229,7 +229,7 @@ class cat_products_PriceDetails extends core_Manager
                 
                 $verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, true);
                 if($primeCostIsFromTemplate === true && isset($verbPrice)){
-                    $verbPrice = ht::createHint($verbPrice, 'Себестойността е зададена за шаблонният артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
+                    $verbPrice = ht::createHint($verbPrice, 'Себестойността е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
                 }
                 
                 $priceRow = (is_null($primeCost)) ? $verbPrice : '<b>' . $verbPrice . "</b> {$baseCurrencyCode}";
@@ -274,7 +274,7 @@ class cat_products_PriceDetails extends core_Manager
             
             // Ако каталожната цена е от прототипа, показва се тази информация
             if($catalogCostIsFromTemplate === true){
-                $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонният артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
+                $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
             }
             
             $primeCostRows[] = (object) array('type' => $type,

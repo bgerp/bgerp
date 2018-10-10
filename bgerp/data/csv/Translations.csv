@@ -595,6 +595,7 @@ en,Живот,Lifetime
 en,Журнал,Journal
 en,Жълт фон,Yellow background
 en,ЗДДС №,VAT ID
+en,ДДС №,VAT ID
 en,За артикул,For article
 en,За всички потр_93adb,For all users
 en,За да изпратит_e780e,You must fill the field
@@ -2768,23 +2769,26 @@ en,"Сигурни ли сте, че искате да изтриете парт
 en,Изтриване на нова партидна дефиниция,Delete batch definition
 en,Добавяне на нова партидна дефиниция,Add new batch definition
 en,Палет-места,Pallet spaces
-en,Брой палети на една основа,Number of pallets on one basis
+en,Брой палети на една основа,Number of pallets on one base
 en,Стелажи в склад,Rack in the wharehouse
 en,Невалиден синтаксис,Non-valide syntax
 en,Несъществуващ номер на стeлаж в този склад,No rack number in this store
 en,Несъществуващ ред на стeлажа,No rack row
 en,Несъществуваща колона на стeлажа,No rack column
 en,Мястото е неизползваемо,The place is unusable
-en,Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита,All the information for reserved on unusable places outide new sizes will be deleted
+en,Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита,All the information for reserved or unusable places outide the new sizes will be deleted
 en,Запазено място,Reserved place
 en,Запазено място за,Reserved place for
-en,Очаква се палет,Pallet expected
-en,Предстои преместване,Moving expected
+en,Очаква се палет,Pallet is expected
+en,Предстои преместване,Expected movement
 en,Палетно складово стопанство,Rack storage 
-en,Връзка между ЕН-то и палетния склад,Link between document and rack storage
+en,Връзка между ЕН-то и палетния склад,Link between the shipment order and rack storage
 en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
 en,Направете поръчка,Place order
 en,Безплатна доставка за поръчки над,Free shipping for orders over
 en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
+en,Невалиден VAT номер,Invalid VAT ID,
+en,Игнорирай предупреждението,Ignore the warning
+ен,Редактиране на данните за поръчка,Edit order details
