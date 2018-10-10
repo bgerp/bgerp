@@ -239,7 +239,7 @@ class trans_Lines extends core_Master
         
         if (!$data->toolbar->haveButton('btnActivate')) {
             if (self::countDocumentsByState($rec->id, 'pending,draft,rejected')) {
-                $data->toolbar->addBtn('Активиране', array(), false, 'error=В линията има неконтирани документи|*!,ef_icon = img/16/lightning.png,title=Активиране на документа');
+                $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В линията има документи, които не са контирани|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на документа'));
             }
         }
     }

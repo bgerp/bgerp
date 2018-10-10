@@ -1018,7 +1018,7 @@ class eshop_Carts extends core_Master
     {
         $rec = self::fetchRec($rec);
         
-        $row = self::recToVerbal($rec);
+        $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
         $tpl->replace($row->termId, 'termId');
         $tpl->replace($row->paymentId, 'paymentId');
         if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
@@ -1102,7 +1102,7 @@ class eshop_Carts extends core_Master
         $rec = self::fetchRec($id, '*', false);
         if(empty($rec->productCount) && empty($rec->personNames)) return;
         
-        $row = self::recToVerbal($rec);
+        $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
         $settings = cms_Domains::getSettings();
         if(isset($settings->freeDelivery)){
             if($settings->freeDelivery != 0){
@@ -1238,7 +1238,7 @@ class eshop_Carts extends core_Master
         $rec = self::fetchRec($rec);
         
         $tpl = new core_ET('');
-        $row = self::recToVerbal($rec);
+        $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
         $data = (object) array('rec' => $rec, 'row' => $row);
         self::prepareExternalCart($data);
         $tpl = self::renderExternalCart($data);
