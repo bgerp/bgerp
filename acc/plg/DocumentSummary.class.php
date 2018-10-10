@@ -389,7 +389,10 @@ class acc_plg_DocumentSummary extends core_Plugin
         if ($data->listSummary->summary) {
             $tpl = self::renderSummary($data->listSummary->summary);
         }
-        jquery_Jquery::run($tpl, 'setFormElementsWidth();');
+        
+        if(isset($tpl)){
+            jquery_Jquery::run($tpl, 'setFormElementsWidth();');
+        }
     }
     
     
