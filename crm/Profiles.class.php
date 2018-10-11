@@ -944,6 +944,15 @@ class crm_Profiles extends core_Master
             }
             Mode::pop('preventNotifications');
             
+            // Синхронизираме профила при промяна на `core_Users`
+            if ($person->id) {
+                $profile = static::fetch("#personId = {$person->id}");
+                if ($profile) {
+                    $profile->_syncUser = false;
+                    self::save($profile, 'searchKeywords');
+                }
+            }
+            
             return $person->id;
         }
     }
