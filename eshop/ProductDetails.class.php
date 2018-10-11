@@ -269,7 +269,6 @@ class eshop_ProductDetails extends core_Detail
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
-        $splitProducts = array();
         $query = self::getQuery();
         $query->where("#eshopProductId = {$data->rec->id} AND #state = 'active'");
         $query->orderBy('productId');
@@ -351,7 +350,8 @@ class eshop_ProductDetails extends core_Detail
         $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
 
         $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->catalogPrice = core_Type::getByName('double(smartRound)')->toVerbal($catalogPriceInfo->price);
+        
+        $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
         $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         $row->orderPrice = $catalogPriceInfo->price;
         $row->orderCode = $fullCode;
@@ -373,7 +373,7 @@ class eshop_ProductDetails extends core_Detail
         }
         
         if (!empty($catalogPriceInfo->discount)) {
-            $style = ($rec->_listView === true) ? 'style="display:inline-block"' : '';
+            $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
             
             $row->catalogPrice = "<span class='{$class} eshop-discounted-price'>{$row->catalogPrice}</span>";
             $discountType = type_Set::toArray($settings->discountType);
@@ -389,7 +389,7 @@ class eshop_ProductDetails extends core_Detail
             }
             
             if (isset($discountType['percent'])) {
-                $discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($catalogPriceInfo->discount);
+                $discountPercent = core_Type::getByName('percent(decimals=0)')->toVerbal($catalogPriceInfo->discount);
                 $discountPercent = str_replace('&nbsp;', '', $discountPercent);
                 $row->catalogPrice .= "<div class='{$class} external-discount-percent' {$style}> (-{$discountPercent})</div>";
             }
