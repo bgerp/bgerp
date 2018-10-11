@@ -375,7 +375,7 @@ class eshop_ProductDetails extends core_Detail
         if (!empty($catalogPriceInfo->discount)) {
             $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
             
-            $row->catalogPrice = "<span class='{$class} eshop-discounted-price'>{$row->catalogPrice}</span>";
+            $row->catalogPrice = "<b class='{$class} eshop-discounted-price'>{$row->catalogPrice}</b>";
             $discountType = type_Set::toArray($settings->discountType);
             $row->catalogPrice .= "<div class='{$class} external-discount' {$style}>";
             if (isset($discountType['amount'])) {

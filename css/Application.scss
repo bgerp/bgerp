@@ -3401,9 +3401,35 @@ fieldset.sharing-history {
 	color:#c00;
 }
 
+.eshop-product-list .external-discount {
+	margin-left: 10px;
+}
+
+.option-not-in-stock {
+	background-color: rgba(230,0,0,0.8) !important;
+	text-shadow: none !important;
+	color: #fff;
+	border-radius: 5px !important;
+	padding: 4px;
+	font-size: 0.7em !important;
+	background-color: #e6e6e6;
+	border: solid 1px #d8d8d8;
+	text-shadow: 1px 1px 1px #cccccc;
+	display: inline-block;
+	margin-bottom: 5px;
+	text-align: center;
+
+}
+
+.small .colorBox {
+	width: 12px !important;
+	height: 12px !important;
+}
+
 .external-discount-percent {
 	display: inline-block;
 }
+
 .btnUp, .btnDown {
 	display: flex;
 	justify-content: center;
