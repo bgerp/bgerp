@@ -949,7 +949,7 @@ class crm_Profiles extends core_Master
                 $profile = static::fetch("#personId = {$person->id}");
                 if ($profile) {
                     $profile->_syncUser = false;
-                    $profile->_skipUserUpdate = false;
+                    $profile->_skipUserUpdate = true;
                     self::save($profile, 'searchKeywords');
                 }
             }
@@ -1009,7 +1009,7 @@ class crm_Profiles extends core_Master
         // Синхронизираме профила при промяна на `core_Users`
         if ($profile) {
             $profile->_syncUser = false;
-            $profile->_skipUserUpdate = false;
+            $profile->_skipUserUpdate = true;
             self::save($profile, 'searchKeywords');
         }
         
