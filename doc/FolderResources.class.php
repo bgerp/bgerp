@@ -145,6 +145,10 @@ class doc_FolderResources extends core_Manager
                 $data->newUrl = array('planning_AssetResources', 'add', 'folderId' => $folderId, 'ret_url' => true);
             }
         }
+        
+        if (is_object($data->masterMvc)) {
+            $data->masterMvc->invoke('AfterPrepareResourceData', array($data, $DetailName));
+        }
     }
     
     

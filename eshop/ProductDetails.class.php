@@ -241,7 +241,7 @@ class eshop_ProductDetails extends core_Detail
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         	
-            if (!$price = self::getPublicDisplayPrice($rec->productId)) {
+            if (!self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
             }
         }
@@ -370,6 +370,7 @@ class eshop_ProductDetails extends core_Detail
         }
         
         if (!empty($catalogPriceInfo->discount)) {
+            $row->catalogPrice = "<span class='eshop-discounted-price'>{$row->catalogPrice}</span>";
             $discountType = type_Set::toArray($settings->discountType);
             $row->catalogPrice .= "<div class='external-discount'>";
             if (isset($discountType['amount'])) {
@@ -378,7 +379,7 @@ class eshop_ProductDetails extends core_Detail
                 $row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
             }
             
-            if (isset($discountType['amount'], $discountType['percent'])) {
+            if (isset($discountType['amount']) && isset($discountType['percent'])) {
                 $row->catalogPrice .= ' / ';
             }
             
@@ -388,6 +389,7 @@ class eshop_ProductDetails extends core_Detail
                 $row->catalogPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
             }
             $row->catalogPrice .= '</div>';
+            
         }
         
         return $row;

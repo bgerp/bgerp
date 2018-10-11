@@ -666,27 +666,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     private static function getDefaultDebitPrice($rec)
     {
-        if ($Driver = cat_Products::getDriver($rec->productId)) {
-            $price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
-            if (isset($price)) {
-                
-                return $price;
-            }
-        }
-        
-        $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
-        if (isset($price)) {
-            
-            return $price;
-        }
+        return cat_Products::getPrimeCost($rec->productId, $rec->packagingId, $rec->jobQuantity, $rec->valior);
     }
     
     
     /**
-     * Екшън изискващ подаване на себестойност, когато се опитваме да произведем артикул
-     * без да сме специфицирали неговите материали
-     *
-     * @return core_ET $tpl
+     * Екшън изискващ подаване на себестойност, когато се опитваме да произведем артикул, без да сме специфицирали неговите материали
      */
     public function act_addDebitAmount()
     {
@@ -757,7 +742,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         cat_Boms::requireRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->originId));
         
         // Подготвяме детайлите на рецептата
-        $details = array();
         $dQuery = planning_DirectProductNoteDetails::getQuery();
         $dQuery->where("#noteId = {$id}");
         
@@ -888,10 +872,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Създаване на протокол за производство на артикул
      * Ако може след създаването ще зареди артикулите от активната рецепта и/или задачите
      *
-     * @param int   $jobId     - ид на задание
-     * @param int   $productId - ид на артикул
-     * @param float $quantity  - к-во за произвеждане
-     * @param date  $valior    - вальор
+     * @param int       $jobId     - ид на задание
+     * @param int       $productId - ид на артикул
+     * @param float     $quantity  - к-во за произвеждане
+     * @param datetime  $valior    - вальор
      * @param array $fields    - допълнителни параметри
      *                         ['storeId']       - ид на склад за засклаждане
      *                         ['expenseItemId'] - ид на перо на разходен обект
@@ -916,7 +900,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         expect($rec->quantity = $Double->fromVerbal($quantity));
         if ($productRec->canStore == 'yes') {
             expect($fields['storeId'], 'За складируем артикул е нужен склад');
-            expect($storeRec = store_Stores::fetch($fields['storeId']), "Несъществуващ склад {$fields['storeId']}");
+            expect(store_Stores::fetch($fields['storeId']), "Несъществуващ склад {$fields['storeId']}");
             $rec->storeId = $fields['storeId'];
         } else {
             if ($rec->canConvert == 'yes') {
@@ -1030,7 +1014,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     public function getContoWarning_($id, $isContable)
     {
         $warning = null;
-        $rec = $this->fetchRec($id);
         $dQuery = planning_DirectProductNoteDetails::getQuery();
         $dQuery->where("#noteId = {$id} AND #storeId IS NOT NULL");
         

@@ -290,10 +290,8 @@ class store_ShipmentOrders extends store_DocumentMaster
             $row->locationId = crm_Locations::getHyperLink($rec->locationId);
         }
         
-        if (isset($rec->createdBy)) {
-            $row->username = core_Users::fetchField($rec->createdBy, 'names');
-            $row->username = core_Lg::transliterate($row->username);
-        }
+        // Кой е съставителя на документа
+        $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
         
         if (isset($fields['-single'])) {
             $logisticData = $mvc->getLogisticData($rec);

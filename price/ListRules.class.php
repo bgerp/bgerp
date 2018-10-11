@@ -2,7 +2,7 @@
 
 
 /**
- * Правилата за ценоразписите за продуктите от каталога
+ * Правилата за ценоразписите за артикулите от каталога
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Правилата за ценоразписите за продуктите от каталога
+ * @title     Правилата за ценоразписите за артикулите от каталога
  */
 class price_ListRules extends core_Detail
 {
@@ -92,7 +92,7 @@ class price_ListRules extends core_Detail
         $this->FLD('type', 'enum(value,discount,groupDiscount)', 'caption=Тип,input=hidden,silent');
         
         // Цена за продукт
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,showTemplates,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Продукт,mandatory,silent,remember=info');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,showTemplates,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Aртикул,mandatory,silent,remember=info');
         $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory,silent');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
@@ -926,8 +926,8 @@ class price_ListRules extends core_Detail
         $products = array();
         $pQuery = cat_Products::getQuery();
         
-        // Ако има зададен лист, ще се избират всички артикули в него
-        if(isset($params['showAllInListId'])){
+        // Ако има зададен лист, ще се избират всички артикули в него (освен ако вече няма филтър)
+        if(isset($params['showAllInListId']) && empty($onlyIds)){
             $query = self::getQuery();
             $query->where("#listId = {$params['showAllInListId']} AND #productId IS NOT NULL");
             $query->show('productId');

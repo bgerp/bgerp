@@ -20,6 +20,8 @@ class support_TaskType extends core_Mvc
     
     public $title = 'Сигнал';
     
+    public $withoutResStr = 'without resources';
+    
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -266,7 +268,7 @@ class support_TaskType extends core_Mvc
         }
         $data->form->setOptions('assetResourceId', $assetResArr);
         
-        if ($data->form->cmd == 'refresh') {
+        if (($data->form->cmd == 'refresh') || (!$data->form->cmd && $data->form->rec->assetResourceId)) {
             // При избор на компонент, да са избрани споделените потребители, които са отговорници
             if ($data->form->rec->assetResourceId) {
                 $assetId = planning_AssetResources::fetchField($data->form->rec->assetResourceId, 'id');
@@ -458,6 +460,21 @@ class support_TaskType extends core_Mvc
     public function on_AfterGetSearchKeywords($Driver, $mvc, &$res, $rec)
     {
         $sTxt = $rec->name . ' ' . $rec->email . ' ' . $rec->ip . ' ' . $rec->url;
+        
+        if ($rec->typeId) {
+            $sTxt .= ' ' . support_IssueTypes::fetchField($rec->typeId, 'type');
+        }
+        
+        if ($rec->assetResourceId) {
+            $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
+            $sTxt .= ' ' . $pRec->code . ' ' . $pRec->name;
+        } else {
+            $sTxt .= ' ' . $Driver->withoutResStr;
+        }
+        
+        if ($rec->systemId) {
+            $sTxt .= ' ' . support_Systems::fetchField($rec->systemId, 'name');
+        }
         
         if (trim($sTxt)) {
             $res .= ' ' . plg_Search::normalizeText($sTxt);

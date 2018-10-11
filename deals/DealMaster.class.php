@@ -967,7 +967,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             $cuNames = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($rec->createdBy, 'names'));
-            (core_Users::haveRole('partner', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
+            $row->responsible = (core_Users::haveRole('partner', $rec->createdBy)) ? $cuNames : null;
             
             // Ако валутата е основната валута да не се показва
             if ($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)) {
@@ -1057,6 +1057,7 @@ abstract class deals_DealMaster extends deals_DealBase
             // За да се използва езика на фактурата
             $noInvStr = tr('без фактуриране');
             
+            $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
             $row->username = core_Lg::transliterate($row->username);
             $row->responsible = core_Lg::transliterate($row->responsible);
             
