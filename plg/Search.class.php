@@ -212,6 +212,7 @@ class plg_Search extends core_Plugin
                 
                 $mode = '+';
                 
+                $beginMark = false;
                 if ($w{0} == '"') {
                     $mode = '"';
                     $w = substr($w, 1);
@@ -219,6 +220,7 @@ class plg_Search extends core_Plugin
                         continue;
                     }
                     $wordEnd = ' ';
+                    $beginMark = true;
                 }
                 
                 if ($w{0} == '*') {
@@ -269,7 +271,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if ($mode != '"') {
+                    if (!$beginMark) {
                         // Разделяме думите по интервал и тогава ги преброяваме
                         $wArr = explode(' ', $w);
                     } else {
@@ -287,7 +289,7 @@ class plg_Search extends core_Plugin
                         if ($wLen < $shortWordLen) {
                             $shortWordsCnt++;
                         } else {
-                            if (!$isStopWord || $mode == '"') {
+                            if (!$isStopWord || $beginMark) {
                                 $longWordsCnt++;
                             }
                         }
