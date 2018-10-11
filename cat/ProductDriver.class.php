@@ -417,7 +417,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         if ($bomRec = $this->getBomForPrice($productId)) {
             
             // Рецептата ще се преизчисли за текущия артикул
-            // Вслучай че рецептата му всъщност идва от генеричния му артикул (ако има)
+            // В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
             $bomRec->productId = $productId;
             
             return cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
