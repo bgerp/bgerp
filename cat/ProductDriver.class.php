@@ -433,15 +433,17 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getBomForPrice($productId)
     {
         // Търсим първо активната търговска рецепта, ако няма търсим активната работна
-        $protoId = cat_Products::fetchField($productId, 'proto');
+        $productRec = cat_Products::fetchRec($productId, 'proto,id');
         
-        $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-        if (empty($bomRec)) {
-            $bomRec = cat_Products::getLastActiveBom($productId, 'production');
+        if(isset($productRec->id)){
+            $bomRec = cat_Products::getLastActiveBom($productRec->id, 'sales');
+            if (empty($bomRec)) {
+                $bomRec = cat_Products::getLastActiveBom($productRec->id, 'production');
+            }
         }
-        
-        if (empty($bomRec) && isset($protoId)) {
-            $bomRec = $this->getBomForPrice($protoId);
+       
+        if (empty($bomRec) && isset($productRec->proto)) {
+            $bomRec = $this->getBomForPrice($productRec->proto);
         }
         
         return $bomRec;
