@@ -1223,7 +1223,6 @@ class blast_ListDetails extends doc_Detail
                     $csvArr[] = $email . ',' . $name . ',' . $countryName;
                 }
             }
-            bp();
         }
         
         core_Lg::pop();
