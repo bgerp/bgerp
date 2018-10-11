@@ -269,11 +269,15 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
+                    if ($mode != '"') {
+                        // Разделяме думите по интервал и тогава ги преброяваме
+                        $wArr = explode(' ', $w);
+                    } else {
+                        $wArr = array($w);
+                    }
                     
-                    // Разделяме думите по интервал и тогава ги приброяваме
-                    $wArr = explode(' ', $w);
                     foreach ($wArr as $wIn) {
-                        if (self::isStopWord($wIn)) {
+                        if ($isStopWord = self::isStopWord($wIn)) {
                             $stopWordsCnt++;
                         } else {
                             $notStopWordsCnt++;
@@ -283,7 +287,9 @@ class plg_Search extends core_Plugin
                         if ($wLen < $shortWordLen) {
                             $shortWordsCnt++;
                         } else {
-                            $longWordsCnt++;
+                            if (!$isStopWord || $mode == '"') {
+                                $longWordsCnt++;
+                            }
                         }
                     }
                     
@@ -308,10 +314,51 @@ class plg_Search extends core_Plugin
                 }
             }
             
-            if (($stopWordsCnt >= 2) || ($shortWordsCnt && !$longWordsCnt)) {
+            if (!$longWordsCnt && self::isBigTable($query)) {
                 $query->isSlowQuery = true;
             }
         }
+    }
+    
+    
+    /**
+     * Проверява дали таблицата е голяма, за да се използва разделяне на заявката
+     *
+     * @param core_Query $query
+     *
+     * @return bool
+     */
+    protected static function isBigTable($query)
+    {
+        $mvc = $query->mvc;
+        
+        if (!$mvc) {
+            
+            return false;
+        }
+        
+        $key = 'tableMaxId|' . $mvc->className;
+        
+        $maxId = core_Permanent::get($key);
+        
+        // Намираме максималното id на записа
+        if (!isset($maxId) || ($maxId === false)) {
+            $q = $mvc->getQuery();
+            $q->XPR('maxId', 'int', 'max(#id)');
+            $q->show('maxId');
+            $qRec = $q->fetch();
+            
+            $maxId = $qRec->maxId;
+            
+            core_Permanent::set($key, $maxId, 1000);
+        }
+        
+        if ($maxId <= 1000000) {
+            
+            return false;
+        }
+        
+        return true;
     }
     
     
