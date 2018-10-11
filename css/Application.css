@@ -2914,12 +2914,15 @@ span.sharing-history-title {
     color: #444444; }
 
 .external-discount {
-  color: #999999;
-  font-size: 0.7em; }
+  color: #333333;
+  font-size: 0.8em; }
 
 .external-discount-amount {
   text-decoration: line-through;
   display: inline-block; }
+
+.eshop-discounted-price {
+  color: #cc0000; }
 
 .external-discount-percent {
   display: inline-block; }

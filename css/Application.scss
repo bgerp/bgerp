@@ -3388,13 +3388,17 @@ fieldset.sharing-history {
 }
 
 .external-discount {
-	color: #999;
-	font-size: 0.7em;
+	color: #333;
+	font-size: 0.8em;
 }
 
 .external-discount-amount {
 	text-decoration: line-through;
 	display: inline-block;
+}
+
+.eshop-discounted-price {
+	color:#c00;
 }
 
 .external-discount-percent {
