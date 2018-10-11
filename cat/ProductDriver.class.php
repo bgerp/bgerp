@@ -426,7 +426,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     /**
      * Записа на рецептата на артикула, ако няма на прототипния, ако има
      * 
-     * @param int $productId - ид на артикул
+     * @param int|stdClass $productId - ид на артикул
      * 
      * @return boolean|stdClass $bomRec - запис на рецепта
      */
