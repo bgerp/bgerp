@@ -409,13 +409,18 @@ class email_Inboxes extends core_Master
         }
         
         // Всички вътрешни кутии към тази сметка
-        $allBoxes = static::getAllInboxes($accId);
+        $allBoxes = static::getAllInboxes();
         
         // Търсим във всички съществуващи кутии
         foreach ($emailsArr as  &$eml) {
+            // Първия имейл, който отговаря на кутия е $toBox
+            if ($allBoxes[$eml]) {
+                
+                return $eml;
+            }
+            
             $eml = self::replaceDomains($eml);
             
-            // Първия имейл, който отговаря на кутия е $toBox
             if ($allBoxes[$eml]) {
                 
                 return $eml;
