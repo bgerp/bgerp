@@ -862,6 +862,7 @@ class marketing_Inquiries2 extends embed_Manager
         $form->FLD('drvId', 'class', 'input=hidden,silent');
         $form->FLD('quantityCount', 'double', 'input=hidden,silent');
         $form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
+        cms_Domains::addMandatoryText2Form($form);
         
         foreach (array('measureId', 'moq', 'drvId', 'quantityCount', 'protos') as $fld){
             $form->setDefault($fld, $sourceData[$fld]);
