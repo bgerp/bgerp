@@ -169,6 +169,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
         $this->FLD('freeDelivery', 'double', 'caption=Безплатна доставка->Сума');
+        $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
         $this->setDbIndex('classId, objectId');
     }
