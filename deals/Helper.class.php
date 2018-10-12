@@ -1725,4 +1725,20 @@ abstract class deals_Helper
         
         return $quantityInStore - $quantity;
     }
+    
+    
+    public static function getIssuer($createdBy, $activatedBy)
+    {
+        $selected = deals_Setup::get('ISSUER');//$selected = 'createdBy';
+        $userId = ($selected == 'activatedBy') ? $activatedBy : $createdBy;
+        $userId = (!core_Users::isContractor($userId)) ? $userId : $activatedBy;
+        
+        $names = null;
+        if(isset($userId)){
+            $names = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($userId, 'names'));
+        } 
+        
+        return $names;
+        
+    }
 }

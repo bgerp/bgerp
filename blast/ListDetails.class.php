@@ -1175,6 +1175,17 @@ class blast_ListDetails extends doc_Detail
                     }
                 }
                 
+                // Ако има зададена група, филтрираме по нея
+                $catGroupsWhere = '';
+                if ($groupIds) {
+                    $groupIdsArr = type_Keylist::toArray($groupIds);
+                    if (!empty($groupIdsArr)) {
+                        $catGroupsWhere = "";
+                        foreach ($groupIdsArr as $gId) {
+                            $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
+                        }
+                    }
+                }
                 while ($rec = $query->fetch()) {
                     $email = trim($rec->email);
                     
@@ -1184,6 +1195,11 @@ class blast_ListDetails extends doc_Detail
                     
                     if ($allEmailArr[$email]) {
                         continue;
+                    }
+                    
+                    // Гледаме дали е в някоя група от зададените
+                    if ($catGroupsWhere) {
+                        if (!cat_Products::fetch("(#originId = '{$rec->containerId}') AND ({$catGroupsWhere})")) continue;
                     }
                     
                     $allEmailArr[$email] = $email;

@@ -8,6 +8,12 @@ defIfNot('DEALS_BALANCE_TOLERANCE', '0.01');
 
 
 /**
+ * Кой потребител да излиза като съставител на документите
+ */
+defIfNot('DEALS_ISSUER', 'activatedBy');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -59,6 +65,8 @@ class deals_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+        'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Избор'),
+        
     );
     
     

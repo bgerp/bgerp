@@ -69,6 +69,7 @@ class cal_Setup extends core_ProtoSetup
         'cal_ReminderSnoozes',
         'cal_TaskConditions',
         'cal_LinkedPostponed',
+        'migrate::repairSerchKeywords',
     );
     
     
@@ -271,5 +272,15 @@ class cal_Setup extends core_ProtoSetup
         core_Cache::set($type, $handler, $res, $keepMinutes, $depends);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSerchKeywords()
+    {
+        $callOn = dt::addSecs(1200);
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'cal_Tasks', $callOn);
     }
 }

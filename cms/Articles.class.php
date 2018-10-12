@@ -123,7 +123,7 @@ class cms_Articles extends core_Master
         $this->FLD('level', 'order(11)', 'caption=№,tdClass=rowtools-column,mandatory');
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
-        $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
+        $this->FLD('body', 'richtext(bucket=Notes,hideTextAfterLength=10000000)', 'caption=Текст,column=none');
         
         $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във футъра->Заглавие,autohide');
         

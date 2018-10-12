@@ -106,9 +106,9 @@
 		                    <!--ET_BEGIN depositor-->
                               <div>|Броил|*: [#depositor#]</div>
                             <!--ET_END depositor-->
-                            <!--ET_BEGIN activatedBy-->
-                              <div>|Касиер|*: [#activatedBy#]</div>
-                             <!--ET_END activatedBy-->
+                            <!--ET_BEGIN issuer-->
+                              <div>|Касиер|*: [#issuer#]</div>
+                             <!--ET_END issuer-->
 		                    </td>
 		                </tr>
 		            </table>

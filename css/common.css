@@ -2294,6 +2294,25 @@ div.alphabet div.tab-page {
     .single-thread .document .docStatistic .detail-info .stateIndicator.state-closed {
       background-color: #dddddd; }
 
+.systemFlag {
+  border-radius: 5px;
+  font-weight: bold;
+  padding: 1px 3px 2px;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+  font-size: 0.9em; }
+  .systemFlag.critical_priority {
+    background: #ee0000;
+    color: white; }
+  .systemFlag.high_priority {
+    background: #ee701e;
+    color: white; }
+  .systemFlag.normal_priority {
+    background: #eecf2c;
+    color: black; }
+  .systemFlag.low_priority {
+    background: #999999;
+    color: black; }
+
 /*
  * вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки
  */

@@ -1495,6 +1495,7 @@ class cat_Products extends embed_Manager
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
+       
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
         
         // Ако няма цена се опитва да намери от драйвера
@@ -1503,9 +1504,16 @@ class cat_Products extends embed_Manager
         }
         
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
+        $date = price_ListToCustomers::canonizeTime($date);
         if (!$primeCost) {
-            $date = price_ListToCustomers::canonizeTime($date);
             $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+        }
+        
+        // Ако няма себестойност, но има прототип, гледа се неговата себестойност
+        if (!$primeCost) {
+            if($proto = cat_Products::fetchField($productId, 'proto')){
+                $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
+            }
         }
         
         return $primeCost;

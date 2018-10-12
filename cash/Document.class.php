@@ -492,12 +492,8 @@ abstract class cash_Document extends deals_PaymentDocument
                 $row->{$fld} = $headerInfo[$fld];
             }
             
-            // Извличаме имената на създателя на документа (касиера)
-            if (isset($rec->activatedBy)) {
-                $cashierRec = core_Users::fetch($rec->activatedBy);
-                $cashierRow = core_Users::recToVerbal($cashierRec);
-                $row->activatedBy = $cashierRow->names;
-            }
+            // Кой е съставителя на документа
+            $row->issuer = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
             
             if (isset($rec->peroCase)) {
                 $row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
