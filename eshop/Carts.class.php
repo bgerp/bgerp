@@ -693,7 +693,9 @@ class eshop_Carts extends core_Master
             'deliveryLocationId' => $rec->locationId,
         );
         
-        $fields['dealerId'] = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
+        if(!empty($settings->dealerId)){
+            $fields['dealerId'] = $settings->dealerId;
+        }
         
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);

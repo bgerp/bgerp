@@ -227,7 +227,7 @@ class cat_products_PriceDetails extends core_Manager
                     $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
                 }
                 
-                $verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost, true);
+                $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($primeCost);
                 if($primeCostIsFromTemplate === true && isset($verbPrice)){
                     $verbPrice = ht::createHint($verbPrice, 'Себестойността е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
                 }
@@ -241,7 +241,7 @@ class cat_products_PriceDetails extends core_Manager
             }
             
             if (isset($futurePrimeCost)) {
-                $verbPrice = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $futurePrimeCost, true);
+                $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($futurePrimeCost);
                 $primeCostRows[] = (object) array('type' => tr('|Бъдеща|* |себестойност|*'),
                     'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate),
                     'price' => '<b>' . $verbPrice . "</b> {$baseCurrencyCode}",
@@ -270,7 +270,7 @@ class cat_products_PriceDetails extends core_Manager
                 $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
             }
             
-            $verbPrice = price_Lists::roundPrice($catalogListId, $catalogCost, true);
+            $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogCost);
             
             // Ако каталожната цена е от прототипа, показва се тази информация
             if($catalogCostIsFromTemplate === true){

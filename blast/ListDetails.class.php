@@ -1128,7 +1128,7 @@ class blast_ListDetails extends doc_Detail
                     $allEmailArr[$email] = $email;
                     
                     $countryName = '';
-                    if ($cInstRec) {
+                    if ($cInstRec && $cInstRec->country) {
                         $countryName = $cInst->getVerbal($cInstRec, 'country');
                     }
                     
