@@ -1392,7 +1392,6 @@ table.listTable {
     line-height: normal;
     font-family: Arial, Verdana;
     vertical-align: middle;
-    max-width: 400px;
     word-wrap: break-word; }
   table.listTable .document h2 {
     margin-top: 3px; }
@@ -1401,6 +1400,8 @@ table.listTable {
   table.listTable .rowNumColumn {
     width: 1%; }
 
+.listAction table.listTable > tbody > tr > td {
+  max-width: 400px; }
 
 .detailNumbering {
   text-align: right;
