@@ -175,7 +175,7 @@ class bgerp_Bookmark extends core_Manager
     public static function getBtn()
     {
         $tpl = new ET();
-
+        
         if (self::haveRightFor('add')) {
             $url = toUrl(array(get_called_class(), 'add', 'ret_url' => true));
             $sUrl = addslashes($url);
@@ -183,13 +183,13 @@ class bgerp_Bookmark extends core_Manager
             $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
             $icon = 'star-bg.png';
             $title = 'Добавяне на връзка';
-
+            
             if (self::$curRec) {
                 $url = toUrl(array(get_called_class(), 'edit', self::$curRec->id, 'ret_url' => true));
                 $sUrl = addslashes($url);
                 $icon = 'edit-fav2.png';
                 $title = 'Редактиране на връзка';
-
+                
                 $attr = array();
                 $attr['class'] = 'bookmarkLink addBookmarkLink';
                 $img = ht::createElement('img', array('src' => sbf('img/32/delete-bg.png', ''), 'title' => 'Изтриване на връзка', 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
@@ -235,7 +235,7 @@ class bgerp_Bookmark extends core_Manager
             $query->limit((int) $limit);
         }
         
-        $localUrl = str_replace('/default', '', toUrl(getCurrentUrl(), 'local'));
+        $localUrl = str_replace(array('/default', '//'), array('', '/'), toUrl(getCurrentUrl(), 'local'));
         
         $opened = array();
         if ($cookie) {
@@ -275,11 +275,10 @@ class bgerp_Bookmark extends core_Manager
                         "\n<ul class='subBookmark' {$display}>";
                 $openGroup = $rec->id;
             } else {
-
-
                 $link = self::getLinkFromUrl($rec->url, $title, $attr);
                 $rec->url = str_replace('/default', '', $rec->url);
-                if (stripos($rec->url, $localUrl) !== false) {
+                
+                if (stripos(str_replace('//', '/', $rec->url), $localUrl) !== false) {
                     $attr['class'] = 'active';
                     $attr['style'] .= ';background-color:#503A66';
                     self::$curRec = $rec;

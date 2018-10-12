@@ -416,6 +416,10 @@ abstract class cat_ProductDriver extends core_BaseClass
         // Ако има рецепта връщаме по нея
         if ($bomRec = $this->getBomForPrice($productId)) {
             
+            // Рецептата ще се преизчисли за текущия артикул
+            // В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
+            $bomRec->productId = $productId;
+            
             return cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
         }
         
@@ -426,22 +430,24 @@ abstract class cat_ProductDriver extends core_BaseClass
     /**
      * Записа на рецептата на артикула, ако няма на прототипния, ако има
      * 
-     * @param int $productId - ид на артикул
+     * @param int|stdClass $productId - ид на артикул
      * 
      * @return boolean|stdClass $bomRec - запис на рецепта
      */
     public function getBomForPrice($productId)
     {
         // Търсим първо активната търговска рецепта, ако няма търсим активната работна
-        $protoId = cat_Products::fetchField($productId, 'proto');
+        $productRec = cat_Products::fetchRec($productId, 'proto,id');
         
-        $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-        if (empty($bomRec)) {
-            $bomRec = cat_Products::getLastActiveBom($productId, 'production');
+        if(isset($productRec->id)){
+            $bomRec = cat_Products::getLastActiveBom($productRec->id, 'sales');
+            if (empty($bomRec)) {
+                $bomRec = cat_Products::getLastActiveBom($productRec->id, 'production');
+            }
         }
-        
-        if (empty($bomRec) && isset($protoId)) {
-            $bomRec = $this->getBomForPrice($protoId);
+       
+        if (empty($bomRec) && isset($productRec->proto)) {
+            $bomRec = $this->getBomForPrice($productRec->proto);
         }
         
         return $bomRec;

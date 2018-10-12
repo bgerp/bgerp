@@ -112,9 +112,9 @@
                                 <td></td>
                                 <td>
                                 <span class='sign_names nowrap'>
-                                <!--ET_BEGIN activatedBy-->
-                                ([#activatedBy#] )
-                                <!--ET_END activatedBy-->
+                                <!--ET_BEGIN issuer-->
+                                ([#issuer#] )
+                                <!--ET_END issuer-->
                                 </span>
                                 </td>
                             </tr>

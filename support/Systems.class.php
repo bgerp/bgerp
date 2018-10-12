@@ -448,4 +448,128 @@ class support_Systems extends core_Master
     {
         return arr::make('assets', true);
     }
+    
+    
+    /**
+     * Променяме данните, които да се показват в ресурсите
+     * 
+     * @param support_Systems $mvc
+     * @param stdClass $data
+     * @param string $detailName
+     */
+    public static function on_AfterPrepareResourceData($mvc, $data, $detailName)
+    {
+        if ($detailName != 'planning_AssetResources') {
+            
+            return ;
+        }
+        
+        $priorityLevelMap = array('normal' => 1, 'low' => 2, 'high' => 3, 'critical' => 4);
+        
+        $folderId = $data->masterData->rec->folderId;
+        
+        $detailInst = cls::get($detailName);
+        
+        $Tasks = cls::get('cal_Tasks');
+        $taskField = $Tasks->driverClassField;
+        $supportTaskId = support_TaskType::getClassId();
+        
+        $assertResourceArr = array();
+        if (doc_Folders::haveRightFor('single', $folderId)) {
+            $tQuery = cal_Tasks::getQuery();
+            $tQuery->where(array("#folderId = '[#1#]'", $folderId));
+            $tQuery->where(array("#{$taskField} = '[#1#]'", $supportTaskId));
+            
+            $tLastQuery = clone $tQuery;
+            
+            $tQuery->EXT('threadState', 'doc_Threads', 'externalName=state,externalKey=threadId');
+            $tQuery->where("#threadState = 'opened'");
+            
+            while ($tRec = $tQuery->fetch()) {
+                $assertResourceArr[(int) $tRec->assetResourceId]['openedCnt']++;
+                
+                if (!$assertResourceArr[(int) $tRec->assetResourceId]['priority']) {
+                    $assertResourceArr[(int) $tRec->assetResourceId]['priority'] = $tRec->priority;
+                } else {
+                    $maxPriorityVal = $priorityLevelMap[$assertResourceArr[(int) $tRec->assetResourceId]['priority']];
+                    $currPriorityVal = $priorityLevelMap[$tRec->priority];
+                    if ($currPriorityVal > $maxPriorityVal) {
+                        $assertResourceArr[(int) $tRec->assetResourceId]['priority'] = $tRec->priority;
+                    }
+                }
+            }
+            
+            while ($tLastRec = $tLastQuery->fetch()) {
+                if ($assertResourceArr[(int) $tLastRec->assetResourceId]['modifiedOn'] < $tLastRec->modifiedOn) {
+                    $assertResourceArr[(int) $tLastRec->assetResourceId]['modifiedOn'] = $tLastRec->modifiedOn;
+                    $assertResourceArr[(int) $tLastRec->assetResourceId]['modifiedBy'] = $tLastRec->modifiedBy;
+                }
+            }
+        }
+        
+        // Ресурс, когато няма избран
+        if (isset($assertResourceArr[0])) {
+            $data->rows[0] = new stdClass();
+            $data->rows[0]->code = '';
+            $data->rows[0]->name = tr('Без ресурс');
+            $data->rows[0]->ROW_ATTR = array('class' => 'state-active');
+        }
+        
+        foreach ((array) $data->rows as $id => $row) {
+            $nameLink = $row->code . ' ';
+            if ($id) {
+                $nameLink .= str::limitLen(type_Varchar::escape($data->recs[$id]->name), 32);
+                $urlArr = $detailInst->getSingleUrlArray($id);
+            } else {
+                $nameLink = $row->name;
+                $urlArr = array();
+            }
+            
+            $nameLink = ht::createLink($nameLink, $urlArr, null, array('ef_icon' => $detailInst->getIcon($id)));
+            
+            $row->name = $nameLink;
+            
+            if (!$mvc->haveRightFor('single', $data->masterData->rec)) {
+                continue;
+            }
+            
+            // Бутон за нов сигнал към съответния ресурс
+            if (cal_Tasks::haveRightFor('add')) {
+                $row->name .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
+            }
+            
+            // Бутон към филтриране на изгледа
+            if (support_Tasks::haveRightFor('list')) {
+                if ($id) {
+                    $search = $data->recs[$id]->code . ' ' . $data->recs[$id]->name;
+                } else {
+                    $search = cls::get('support_TaskType')->withoutResStr;
+                }
+                
+                $row->name .= ht::createLink('', array('support_Tasks', 'list', 'systemId' => $data->masterData->rec->id, 'search' => $search), $false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
+            }
+            
+            // Броя на отворените нишки
+            if ($assertResourceArr[$id]) {
+                $class = $assertResourceArr[$id]['priority'] . '_priority';
+                $row->name .= "<span class='systemFlag {$class}'>{$assertResourceArr[$id]['openedCnt']}</span>";
+            }
+            
+            // Времето на последната промяна
+            if ($assertResourceArr[$id]['modifiedOn']) {
+                $row->modified = dt::mysql2verbal($assertResourceArr[$id]['modifiedOn'], 'smartTime');
+                
+                $row->modified .= ' ' . tr('от') . ' ' . crm_Profiles::createLink($assertResourceArr[$id]['modifiedBy']);
+            }
+            
+            $row->_modifiedOnOrder = $assertResourceArr[$id]['modifiedOn'];
+        }
+        
+        core_Array::sortObjects($data->rows, '_modifiedOnOrder', 'desc');
+        
+        $data->listFields = arr::make($data->listFields);
+        unset($data->listFields['code']);
+        unset($data->listFields['created']);
+        $data->listFields['modified'] = 'Последно';
+    }
 }

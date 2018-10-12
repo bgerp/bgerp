@@ -241,7 +241,7 @@ class eshop_ProductDetails extends core_Detail
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         	
-            if (!$price = self::getPublicDisplayPrice($rec->productId)) {
+            if (!self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
             }
         }
@@ -269,7 +269,6 @@ class eshop_ProductDetails extends core_Detail
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
-        $splitProducts = array();
         $query = self::getQuery();
         $query->where("#eshopProductId = {$data->rec->id} AND #state = 'active'");
         $query->orderBy('productId');
@@ -336,7 +335,7 @@ class eshop_ProductDetails extends core_Detail
      *
      * @return stdClass $row
      */
-    private static function getExternalRow($rec)
+    public static function getExternalRow($rec)
     {
         $settings = cms_Domains::getSettings();
         $row = new stdClass();
@@ -351,42 +350,50 @@ class eshop_ProductDetails extends core_Detail
         $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
 
         $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->catalogPrice = core_Type::getByName('double(smartRound)')->toVerbal($catalogPriceInfo->price);
+        
+        $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
         $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         $row->orderPrice = $catalogPriceInfo->price;
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         
         $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        if($rec->_listView !== true){
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        }
+        $class = ($rec->_listView === true) ? 'group-row' : '';
         
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if (isset($settings->storeId) && $canStore == 'yes') {
             $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
             if ($quantity < $rec->quantityInPack) {
                 $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                $row->btn = "<span class='option-not-in-stock'>" . $notInStock . ' </span>';
+                $row->btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
             }
         }
         
         if (!empty($catalogPriceInfo->discount)) {
+            $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
+            
+            $row->catalogPrice = "<b class='{$class} eshop-discounted-price'>{$row->catalogPrice}</b>";
             $discountType = type_Set::toArray($settings->discountType);
-            $row->catalogPrice .= "<div class='external-discount'>";
+            $row->catalogPrice .= "<div class='{$class} external-discount' {$style}>";
             if (isset($discountType['amount'])) {
                 $amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
                 $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
-                $row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
+                $row->catalogPrice .= "<div class='{$class} external-discount-amount' {$style}> {$discountAmount}</div>";
             }
             
-            if (isset($discountType['amount'], $discountType['percent'])) {
+            if (isset($discountType['amount']) && isset($discountType['percent'])) {
                 $row->catalogPrice .= ' / ';
             }
             
             if (isset($discountType['percent'])) {
-                $discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($catalogPriceInfo->discount);
+                $discountPercent = core_Type::getByName('percent(decimals=0)')->toVerbal($catalogPriceInfo->discount);
                 $discountPercent = str_replace('&nbsp;', '', $discountPercent);
-                $row->catalogPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
+                $row->catalogPrice .= "<div class='{$class} external-discount-percent' {$style}> (-{$discountPercent})</div>";
             }
+            
             $row->catalogPrice .= '</div>';
         }
         

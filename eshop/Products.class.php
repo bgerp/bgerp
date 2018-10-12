@@ -478,17 +478,19 @@ class eshop_Products extends core_Master
                 
                 // Ако мярката е брой и е показано да се показва
                 if (isset($minPackagingId)) {
-                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, $minQuantityInPack)) {
-                        $singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
+                    if (eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, $minQuantityInPack)) {
+                        $pRecClone = clone $dRec;
+                        $pRecClone->packagingId = $minPackagingId;
+                        $pRecClone->quantityInPack = $minQuantityInPack;
+                        $pRecClone->_listView = true;
+                        $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
+                        
                         $settings = cms_Domains::getSettings();
-                        $pRow->singlePrice = $singlePrice;
-                        $pRow->singleCurrencyId = $settings->currencyId;
-                        $pRow->measureId = tr(cat_UoM::getShortName($minPackagingId));
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
-                        
-                        $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-                        $pRow->addBtn = ht::createFnBtn($settings->addToCartBtn, null, false, array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $minPackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+                        $pRow->catalogPrice = $dRow->catalogPrice;
+                        $pRow->packagingId = $dRow->packagingId;
+                        $pRow->btn = $dRow->btn;
                     }
                 }
             }
