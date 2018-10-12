@@ -654,6 +654,6 @@ class cms_Domains extends core_Embedder
         $mandatoryAgreeText = self::fetchField($domainId, 'mandatoryAgreeText');
         if(empty($mandatoryAgreeText)) return;
         
-        $form->FLD('mandatoryAgreeText', cls::get('type_Check', array('params' => array('label' => "|*" . $mandatoryAgreeText, 'displayAsRichtext' => true, 'errorIfNotChecked' => 'За да продължите, трябва да сте съгласни с общите условия'))), 'mandatory,caption=Общи условия');
+        $form->FLD('mandatoryAgreeText', cls::get('type_Check', array('params' => array('label' => "|*" . $mandatoryAgreeText, 'displayAsRichtext' => true, 'errorIfNotChecked' => 'За да продължите, трябва да сте съгласни с общите условия'))), 'mandatory,caption=Общи условия,displayInBottom');
     }
 }

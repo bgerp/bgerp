@@ -1514,6 +1514,13 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .inputError {
   border: solid 1px red; }
 
+.formBottom {
+  margin-bottom: 15px; }
+  .formBottom input[type=checkbox].inputError + label .richtext {
+    color: red !important; }
+    .formBottom input[type=checkbox].inputError + label .richtext a {
+      color: red !important; }
+
 .formFooter {
   font-size: 0.9em;
   padding-bottom: 10px; }
