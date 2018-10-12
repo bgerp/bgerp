@@ -4604,7 +4604,7 @@ div.location.public {
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img img {
-    height: auto;
+    width: auto;
     width: 100% \9;
     max-height: 220px; }
 
