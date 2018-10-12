@@ -527,7 +527,7 @@ class support_Systems extends core_Master
             
             $nameLink = ht::createLink($nameLink, $urlArr, null, array('ef_icon' => $detailInst->getIcon($id)));
             
-            $row->name = $nameLink;
+            $row->name = '';
             
             if (!$mvc->haveRightFor('single', $data->masterData->rec)) {
                 continue;
@@ -538,7 +538,6 @@ class support_Systems extends core_Master
                 $row->name .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
             }
             
-            // Бутон към филтриране на изгледа
             if (support_Tasks::haveRightFor('list')) {
                 if ($id) {
                     $search = $data->recs[$id]->code . ' ' . $data->recs[$id]->name;
@@ -546,13 +545,16 @@ class support_Systems extends core_Master
                     $search = cls::get('support_TaskType')->withoutResStr;
                 }
                 
-                $row->name .= ht::createLink('', array('support_Tasks', 'list', 'systemId' => $data->masterData->rec->id, 'search' => $search), $false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
+                $listUrl = array('support_Tasks', 'list', 'systemId' => $data->masterData->rec->id, 'search' => $search);
             }
             
-            // Броя на отворените нишки
-            if ($assertResourceArr[$id]) {
+            // Бутон към филтриране на изгледа и броя на отворените нишки
+            if ($assertResourceArr[$id] && $assertResourceArr[$id]['openedCnt']) {
                 $class = $assertResourceArr[$id]['priority'] . '_priority';
-                $row->name .= "<span class='systemFlag {$class}'>{$assertResourceArr[$id]['openedCnt']}</span>";
+                $opendCntLink = ht::createLink($assertResourceArr[$id]['openedCnt'], $listUrl, $false, array('title' => 'Разглеждане на сигналите'));
+                $row->name .= "<span class='systemFlag {$class}'>{$opendCntLink}</span>";
+            } else {
+                $row->name .= ht::createLink('', $listUrl, $false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
             }
             
             // Времето на последната промяна
@@ -563,6 +565,8 @@ class support_Systems extends core_Master
             }
             
             $row->_modifiedOnOrder = $assertResourceArr[$id]['modifiedOn'];
+            
+            $row->name .= $nameLink;
         }
         
         core_Array::sortObjects($data->rows, '_modifiedOnOrder', 'desc');
