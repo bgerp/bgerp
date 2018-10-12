@@ -459,10 +459,11 @@ class core_Form extends core_FieldSet
         }
         
         if ($result['error']) {
+            $captions = ($field->noCaption) ? ' ' : "<b>'|" . $captions . "|*'</b>";
+            
             $haveErr = true;
             $this->setError($name, 'Некоректна стойност на полето|' .
-                "* <b>'|" . $captions .
-                "|*'</b>!<br><small style='color:red'>" . '|' .
+                "* {$captions}!<br><small style='color:red'>" . '|' .
                 $result['error'] .
                 ($result['warning'] ? ('|*<br>|' .
                         $result['warning']) : '') . '|*</small>');
@@ -851,11 +852,7 @@ class core_Form extends core_FieldSet
                     $input = $type->renderInput($name, $value, $attr);
                 }
                 
-                if (!empty($field->displayInBottom)) {
-                    $fieldsLayout->append($input, 'FORM_BOTTOM');
-                } else {
-                    $fieldsLayout->replace($input, $name);
-                }
+                $fieldsLayout->replace($input, $name);
             }
             
             if (Mode::is('staticFormView')) {
@@ -1012,6 +1009,14 @@ class core_Form extends core_FieldSet
                     $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
                     $tpl->prepend($fld, $field->inlineTo);
                     $tpl->prepend(' inlineTo', $field->inlineTo . '_INLINETO_CLASS');
+                } elseif($field->displayInBottom){
+                    if($field->noCaption){
+                        $fld = new ET("[#{$field->name}#]{$unit}");
+                    } else {
+                        $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
+                    }
+                    
+                    $tpl->append($fld, 'FORM_BOTTOM');
                 } else {
                     $tpl->append($fld, 'FIELDS');
                 }
