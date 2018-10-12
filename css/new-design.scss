@@ -37,12 +37,17 @@
     height: 100%;
     width: 200px;
     z-index: 1000;
-    overflow-y: auto;
+}
+
+.wide .sidemenu {
+    overflow-y: scroll;
 }
 
 .narrow .sidemenu {
     width: 170px;
+    overflow-y: auto;
 }
+
 /*движение на менюто*/
 .sidemenu-left {
     left: -200px;
