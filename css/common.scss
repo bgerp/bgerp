@@ -1487,8 +1487,10 @@ table.listTable {
 	}
 }
 
-.listAction table.listTable > tbody > tr > td {
-	max-width: 400px;
+.listAction table.listTable, .listActiontable.listTable  {
+	> tbody > tr > td {
+		max-width: 400px ;
+	}
 }
 
 .detailNumbering {

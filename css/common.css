@@ -1400,8 +1400,9 @@ table.listTable {
   table.listTable .rowNumColumn {
     width: 1%; }
 
-.listAction table.listTable > tbody > tr > td {
-  max-width: 400px; }
+  .listAction table.listTable > tbody > tr > td,
+  .listActiontable.listTable > tbody > tr > td {
+    max-width: 400px; }
 
 .detailNumbering {
   text-align: right;
