@@ -253,6 +253,7 @@ class core_Session
             // ini_set('session.cookie_secure', 1);
             ini_set('session.cookie_httponly', 1);
             ini_set('session.use_only_cookies', 1);
+            //ini_set('session.cookie_domain', '.localhost.local' );
             @session_start();
             
             $this->_started = true;
@@ -270,7 +271,12 @@ class core_Session
         static $prefix;
         
         if (!$prefix) {
-            $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
+            if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+                $prefix = BGERP_ABSOLUTE_HTTP_HOST;
+            } else {
+                $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
+            }
+            
             $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
             $prefix = substr($prefix, 0, 10);
         }
