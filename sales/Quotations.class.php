@@ -642,13 +642,13 @@ class sales_Quotations extends core_Master
             
             if (is_array($items)) {
                 $row->transportCurrencyId = $row->currencyId;
-                if ($rec->currencyRate) {
-                    $rec->hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-                    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-                    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
-                }
                 
-                sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+                $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
+                $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
+                $visibleTransportCost = $mvc->getVisibleTransportCost($rec);
+                
+                $leftTransportCost = 0;
+                sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost, $rec->currencyRate);
                 
                 // Ако има транспорт за начисляване
                 if ($leftTransportCost > 0) {
@@ -717,7 +717,7 @@ class sales_Quotations extends core_Master
         $products = $query->fetchAll();
         
         // Изчисляване на общото тегло на офертата
-        $total = sales_TransportValues::getTotalWeightAndVolume($products);
+        $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $rec->deliveryTermId, $products);
         
         $locationId = null;
         if (isset($rec->deliveryPlaceId)) {
@@ -730,7 +730,7 @@ class sales_Quotations extends core_Master
         
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
-            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $params);
+            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params);
             
             // Сумира се, ако е изчислен
             if (is_array($fee) && $fee['totalFee'] > 0) {
@@ -790,7 +790,7 @@ class sales_Quotations extends core_Master
      */
     protected function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-        $hasTransport = !empty($data->rec->hiddenTransportCost) || !empty($data->rec->expectedTransportCost) || !empty($data->rec->visibleTransportCost);
+        $hasTransport = !empty($data->row->hiddenTransportCost) || !empty($data->row->expectedTransportCost) || !empty($data->row->visibleTransportCost);
         
         $isReadOnlyMode = Mode::isReadOnly();
         

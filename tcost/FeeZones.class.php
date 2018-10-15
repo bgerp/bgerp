@@ -176,17 +176,23 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param float $weight - Тегло на товара
-     * @param float $volume - Обем  на товара
-     * @param float|null $coefficient - коефициент за отношение, null за глобалната константа
+     * @param float $weight        - Тегло на товара
+     * @param float $volume        - Обем  на товара
+     * @param int $deliveryTermId  - Условие на доставка
+     * @param array $params        - допълнителни параметри
      *
      * @return float - Обемно тегло на товара
      */
-    public function getVolumicWeight($weight, $volume, $coefficient = null)
+    public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
         $volumicWeight = null;
         if (!empty($weight) || !empty($volume)) {
-            $multiplier = !empty($coefficient) ? $coefficient : self::V2C;
+            $multiplier = self::V2C;
+            if($zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
+                if($zoneRec->volume2quantity){
+                    $multiplier = $zoneRec->volume2quantity;
+                }
+            }
             
             $volumicWeight = max($weight, $volume * $multiplier);
         }
@@ -198,37 +204,32 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int   $deliveryTermId - условие на доставка
-     * @param float $singleWeight   - тегло
-     * @param float $singleVolume   - обем
-     * @param int   $totalWeight    - Общо тегло на товара
-     * @param int   $totalVolume    - Общ обем на товара
-     * @param array $params         - Други параметри
+     * @param int   $deliveryTermId     - условие на доставка
+     * @param float $volumicWeight      - единичното обемно тегло
+     * @param int   $totalVolumicWeight - Общото обемно тегло
+     * @param array $params             - други параметри
      *
      * @return array
      *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      *               ['deliveryTime'] - срока на доставка в секунди ако го има
      *               ['explain']      - текстово обяснение на изчислението
      */
-    public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $params = array())
+    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
     {
         $toCountry = $params['deliveryCountry'];
         $toPostalCode = $params['deliveryPCode'];
         
         // Определяне на зоната на транспорт, за зададеното условие на доставка
-        $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $toCountry, $toPostalCode);
-        $singleWeightOld = $singleWeight;
-        $singleWeight = $this->getVolumicWeight($singleWeight, $singleVolume, $zoneRec->volume2quantity);
+        $singleWeight = $volumicWeight;
         
         // Ако няма, цената няма да може да се изчисли
         if (empty($singleWeight)) {
             return array('fee' => cond_TransportCalc::EMPTY_WEIGHT_ERROR);
         }
         
-        $totalWeight = $this->getVolumicWeight($totalWeight, $totalVolume);
-        
         // Опит за калкулиране на цена по посочените данни
-        $fee = tcost_Fees::calcFee($zoneRec, $totalWeight, $singleWeight);
+        $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $toCountry, $toPostalCode);
+        $fee = tcost_Fees::calcFee($zoneRec, $totalVolumicWeight, $singleWeight);
         
         $zoneId = $fee[2];
         $deliveryTime = ($fee[3]) ? $fee[3] : null;
