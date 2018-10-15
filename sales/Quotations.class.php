@@ -716,9 +716,6 @@ class sales_Quotations extends core_Master
         
         $products = $query->fetchAll();
         
-        // Изчисляване на общото тегло на офертата
-        $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $rec->deliveryTermId, $products);
-        
         $locationId = null;
         if (isset($rec->deliveryPlaceId)) {
             $locationId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id');
@@ -727,6 +724,10 @@ class sales_Quotations extends core_Master
         
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
+        
+        // Изчисляване на общото тегло на офертата
+        $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $products, $rec->deliveryTermId, $params);
+        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT) return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
