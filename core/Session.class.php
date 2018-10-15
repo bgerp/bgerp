@@ -253,7 +253,6 @@ class core_Session
             // ini_set('session.cookie_secure', 1);
             ini_set('session.cookie_httponly', 1);
             ini_set('session.use_only_cookies', 1);
-            //ini_set('session.cookie_domain', '.localhost.local' );
             @session_start();
             
             $this->_started = true;
