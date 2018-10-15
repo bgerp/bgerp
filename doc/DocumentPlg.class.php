@@ -1657,7 +1657,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterPrepareRetUrl($mvc, $data)
     {
         //Ако създаваме копие, редиректваме до създаденото копие
-        if (is_object($data->form) && $data->form->isSubmitted()) {
+        if ($data->form->cmd != 'save_n_new' && is_object($data->form) && $data->form->isSubmitted()) {
             //TODO променя URL'то когато записваме и нов имейл
             $data->retUrl = array($mvc, 'single', $data->form->rec->id);
         }
