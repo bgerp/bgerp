@@ -1627,11 +1627,14 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .formBottom {
 	margin-bottom: 15px;
-	input[type=checkbox].inputError + label .richtext {
-		color: red !important;
-		a {
-			color: red !important;
-		}
+	padding: 5px;
+	/margin: 10px -15px 0;
+	background: #a1bef9;
+	border: 1px solid #5c8ef4;
+	text-align: center;
+	&.bottomErrorClass {
+		border: 1px solid #c00;
+		background-color: #ff6d6b !important;
 	}
 }
 
