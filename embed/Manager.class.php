@@ -354,6 +354,7 @@ class embed_Manager extends core_Master
                 case 'afterrestore':
                 case 'afterreject':
                 case 'aftergetdefaultdata':
+                case 'aftergetdefaultassignusers':
                     
                     $driverClass = $args[1]->{$this->driverClassField};
                     break;
