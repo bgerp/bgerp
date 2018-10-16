@@ -241,12 +241,12 @@ class tcost_FeeZones extends core_Master
         
         $explain = null;
         if ($fee > 0) {
-            $taxes = self::getTaxesByZone($zoneId, $singleWeight, $totalWeight);
+            $taxes = self::getTaxesByZone($zoneId, $singleWeight, $totalVolumicWeight);
             $fee = $taxes['tax'] + $taxes['addPerKg'] + $fee;
             
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
-            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOL_WT = '{$singleWeight}', TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}, S_WT = '{$singleWeightOld}', S_VOL = '{$singleVolume}', T_WT = '{$totalWeight}', T_VOL = '{$totalVolume}'";
+            $explain = ", {$termCode}, ZONE = '{$zoneName}', VOL_WT = '{$singleWeight}', TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}, TOTAL_VOL_WT = '{$totalVolumicWeight}'";
         }
         
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
