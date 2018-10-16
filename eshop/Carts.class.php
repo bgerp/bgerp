@@ -1453,6 +1453,7 @@ class eshop_Carts extends core_Master
         $form = &$data->form;
         $form->title = 'Данни за поръчка';
         $form->countries = $countries;
+        cms_Domains::addMandatoryText2Form($form);
         
         self::prepareOrderForm($form);
         

@@ -58,11 +58,14 @@
   bottom: 0;
   height: 100%;
   width: 200px;
-  z-index: 1000;
-  overflow-y: auto; }
+  z-index: 1000; }
+
+.wide .sidemenu {
+  overflow-y: scroll; }
 
 .narrow .sidemenu {
-  width: 170px; }
+  width: 170px;
+  overflow-y: auto; }
 
 /*
  * движение на менюто

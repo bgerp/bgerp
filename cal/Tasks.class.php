@@ -277,7 +277,7 @@ class cal_Tasks extends embed_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         
         $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
         
@@ -404,6 +404,8 @@ class cal_Tasks extends embed_Manager
         if ($rec->allDay == 'yes') {
             list($rec->timeStart, ) = explode(' ', $rec->timeStart);
         }
+        
+        $data->form->setField('title', 'mandatory');
     }
     
     

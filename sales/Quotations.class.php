@@ -613,13 +613,16 @@ class sales_Quotations extends core_Master
             } else {
                 if (isset($rec->deliveryTermId)) {
                     $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-                    
                     $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $mvc);
                 }
             }
             
+            if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
+                $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
+            }
+            
             if (!empty($deliveryAdress)) {
-                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ', ') : '';
+                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
                 $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
                 $row->deliveryTermId = $deliveryAdress;
             }

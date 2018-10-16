@@ -1392,7 +1392,6 @@ table.listTable {
     line-height: normal;
     font-family: Arial, Verdana;
     vertical-align: middle;
-    max-width: 400px;
     word-wrap: break-word; }
   table.listTable .document h2 {
     margin-top: 3px; }
@@ -1400,6 +1399,10 @@ table.listTable {
     color: #990000; }
   table.listTable .rowNumColumn {
     width: 1%; }
+
+  .listAction table.listTable > tbody > tr > td,
+  .listActiontable.listTable > tbody > tr > td {
+    max-width: 400px; }
 
 .detailNumbering {
   text-align: right;
@@ -1513,6 +1516,19 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .inputError {
   border: solid 1px red; }
+
+.formBottom {
+  margin-bottom: 15px;
+  padding: 5px;
+    /*
+   * 
+   */
+  background: #a1bef9;
+  border: 1px solid #5c8ef4;
+  text-align: center; }
+  .formBottom.bottomErrorClass {
+    border: 1px solid #cc0000;
+    background-color: #ff6d6b !important; }
 
 .formFooter {
   font-size: 0.9em;

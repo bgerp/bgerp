@@ -459,10 +459,11 @@ class core_Form extends core_FieldSet
         }
         
         if ($result['error']) {
+            $captions = ($field->noCaption) ? ' ' : "<b>'|" . $captions . "|*'</b>";
+            
             $haveErr = true;
             $this->setError($name, 'Некоректна стойност на полето|' .
-                "* <b>'|" . $captions .
-                "|*'</b>!<br><small style='color:red'>" . '|' .
+                "* {$captions}!<br><small style='color:red'>" . '|' .
                 $result['error'] .
                 ($result['warning'] ? ('|*<br>|' .
                         $result['warning']) : '') . '|*</small>');
@@ -509,7 +510,8 @@ class core_Form extends core_FieldSet
                     "<!--ET_BEGIN FORM_INFO-->\n<div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                    "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">" .
+                    "\n<!--ET_BEGIN FORM_BOTTOM--><div class=\"formBottom [#FORM_BOTTOM_CLASS#]\">[#FORM_BOTTOM#]</div><!--ET_END FORM_BOTTOM--></td></tr>" .
+                    "<!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">" .
                     "\n<!--ET_BEGIN FORM_FOOTER--><div class=\"formFooter\">[#FORM_FOOTER#]</div><!--ET_END FORM_FOOTER-->".
                     '[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>' .
                     '[#AFTER_MAIN_TABLE#]' .
@@ -767,9 +769,17 @@ class core_Form extends core_FieldSet
                     if ($this->errors[$name]->ignorable) {
                         $attr['class'] .= ' inputWarning';
                         $attr['errorClass'] .= ' inputWarning';
+                        
+                        if(isset($field->displayInBottom)){
+                            $fieldsLayout->replace('bottomWarningClass', 'FORM_BOTTOM_CLASS');
+                        }
                     } else {
                         $attr['class'] .= ' inputError';
                         $attr['errorClass'] .= ' inputError';
+                        
+                        if(isset($field->displayInBottom)){
+                            $fieldsLayout->replace('bottomErrorClass', 'FORM_BOTTOM_CLASS');
+                        }
                     }
                     
                     if (!$firstError) {
@@ -850,11 +860,7 @@ class core_Form extends core_FieldSet
                     $input = $type->renderInput($name, $value, $attr);
                 }
                 
-                if (!empty($field->displayInToolbar)) {
-                    $fieldsLayout->append($input, 'FORM_FOOTER');
-                } else {
-                    $fieldsLayout->replace($input, $name);
-                }
+                $fieldsLayout->replace($input, $name);
             }
             
             if (Mode::is('staticFormView')) {
@@ -1011,6 +1017,14 @@ class core_Form extends core_FieldSet
                     $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
                     $tpl->prepend($fld, $field->inlineTo);
                     $tpl->prepend(' inlineTo', $field->inlineTo . '_INLINETO_CLASS');
+                } elseif($field->displayInBottom){
+                    if($field->noCaption){
+                        $fld = new ET("[#{$field->name}#]{$unit}");
+                    } else {
+                        $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
+                    }
+                    
+                    $tpl->append($fld, 'FORM_BOTTOM');
                 } else {
                     $tpl->append($fld, 'FIELDS');
                 }

@@ -21,11 +21,15 @@ class type_Check extends type_Enum
      * Параметър по подразбиране
      */
     public function init($params = array())
-    {
+    {//bp($params);
         $yesCaption = isset($params['params']['label']) ? $params['params']['label'] : 'Да';
         $this->options = array('no' => 'Не е направен избор', 'yes' => $yesCaption);
         if (!empty($params['params']['errorIfNotChecked'])) {
             $this->params['errorIfNotChecked'] = $params['params']['errorIfNotChecked'];
+        }
+        
+        if (!empty($params['params']['displayAsRichtext'])) {
+            $this->params['displayAsRichtext'] = $params['params']['displayAsRichtext'];
         }
         parent::init($this->params);
     }
@@ -36,7 +40,10 @@ class type_Check extends type_Enum
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        $caption = tr($this->options['yes']);
+        $caption = $this->options['yes'];
+        $caption = tr($caption);
+        $caption = (isset($this->params['displayAsRichtext'])) ? core_Type::getByName('richtext')->toVerbal($caption) : $caption = core_Type::getByName('vacrhar')->toVerbal($caption);
+          
         $attr['class'] .= ' checkbox';
         ht::setUniqId($attr);
         
@@ -55,6 +62,7 @@ class type_Check extends type_Enum
         $value = ($value == 'yes') ? 'yes' : 'no';
         
         if (isset($this->params['mandatory']) && $value != 'yes') {
+           
             $error = ($this->params['errorIfNotChecked']) ? $this->params['errorIfNotChecked'] : 'Стойността трябва да е избрана|*!';
             $this->error = $error;
             

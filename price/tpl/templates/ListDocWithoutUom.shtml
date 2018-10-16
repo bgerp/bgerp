@@ -1,17 +1,17 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <table>
-        <!--ET_BEGIN policyId-->
-        <tr>
-            <td style='width:150px'>|Политика|*</td>
-            <td>[#policyId#]</td>
-        </tr>
-        <!--ET_END policyId-->
         <!--ET_BEGIN date-->
         <tr>
-            <td>|Дата|*</td>
+            <td>|Към дата|*</td>
             <td>[#date#]</td>
         </tr>
         <!--ET_END date-->
+        <!--ET_BEGIN policyId-->
+        <tr>
+            <td style='width:150px'>|Ценова политика|*</td>
+            <td>[#policyId#]</td>
+        </tr>
+        <!--ET_END policyId-->
         <!--ET_BEGIN productGroups-->
         <tr>
             <td style='width:150px'>|Групи продукти|*</td>
@@ -24,19 +24,6 @@
             <td>[#packagings#]</td>
         </tr>
         <!--ET_END packagings-->
-        <!--ET_BEGIN currencyId-->
-        <tr>
-            <td>|Валута|*</td>
-            <td><span class='cCode'>[#currencyId#]</span></td>
-        </tr>
-        <!--ET_END currencyId-->
-        <!--ET_BEGIN createdOn-->
-        <tr>
-            <td>|Създаване|* </td>
-            <td>[#createdOn#] |от|* [#createdBy#]</td>
-        </tr>
-        <!--ET_END createdOn-->
-        
         <!--ET_BEGIN round-->
         <tr>
             <td>|Закръгляне на цена за основна мярка|*</td>
@@ -54,12 +41,14 @@
         <!--ET_BEGIN printHeader-->
         <tr>
             <td colspan = '2'><span class = 'print-header'>[#printHeader#]</span><br>
-                <span id = 'sub-title'>№[#number#] &nbsp; |Дата|* &nbsp;[#created#] &nbsp;&nbsp;|Валута|*  &nbsp;[#currency#]</span>
+                <span id = 'sub-title'>№[#number#] &nbsp; |Дата|* &nbsp;[#created#] &nbsp;&nbsp;|Валута|*  &nbsp;[#currencyPrint#]&nbsp;&nbsp;[#vatPrint#]</span>
             </td>
         </tr>
         <!--ET_END printHeader-->
     </table>
-    <div style='margin-top:10px;'>|Всички цени са|* [#vat#] |ДДС|* </div>
+    <!--ET_BEGIN currencyId-->
+    <div style='margin-top:10px;'>|Всички цени са в|* [#currencyId#], [#vat#]</div>
+    <!--ET_END currencyId-->
     [#PAGER_TOP#]
     <div class='scrolling-holder'>
         <table class = 'norm-table' style='width:100%'>
