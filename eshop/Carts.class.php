@@ -148,7 +148,7 @@ class eshop_Carts extends core_Master
     {
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Магазин,input=none');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Магазин,input=hidden,silent');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
@@ -1798,6 +1798,7 @@ class eshop_Carts extends core_Master
         }
         
         if(isset($cu)){
+            
             $cQuery = eshop_Carts::getQuery();
             $cQuery->where("#userId = {$cu} AND #state = 'active' AND #domainId = {$rec->domainId}");
             $cQuery->orderBy('activatedOn', 'DESC');
