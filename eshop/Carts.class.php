@@ -1122,10 +1122,14 @@ class eshop_Carts extends core_Master
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
         $deliveryNoVat = currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
         $vatAmount = $total - $totalNoVat;
+        
+        
+        
+        
         $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
-        
+       
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $row->deliveryCaption = tr('Доставка||Shipping');
@@ -1135,13 +1139,13 @@ class eshop_Carts extends core_Master
                 $row->deliveryAmount = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
                 unset($row->deliveryCurrencyId);
                 $row->deliveryColspan = "colspan=2";
-            } else {
+            } else { 
                if($settings->chargeVat == 'yes'){
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                     $transportVat = cat_Products::getVat($transportId);
-                    $transportVatAmount = $rec->deliveryNoVat * $transportVat;
+                    
                     $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
-                    $amountWithoutDelivery -= $transportVatAmount;
+                    $amountWithoutDelivery -= $deliveryAmount;
                 } else {
                     $deliveryAmount = $rec->deliveryNoVat;
                     $amountWithoutDelivery -= $deliveryNoVat;
@@ -1166,6 +1170,8 @@ class eshop_Carts extends core_Master
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
         unset($row->invoiceVatNo);
+        
+        
         $tpl->placeObject($row);
         
         return $tpl;
