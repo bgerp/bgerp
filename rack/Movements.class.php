@@ -971,6 +971,15 @@ class rack_Movements extends core_Manager
                 return $res;
             }
             
+            // Ако се мести от склада, и количеството е над наличното, се показва предупреждение
+            if($transaction->from == rack_PositionType::FLOOR){
+                $availableQuantity = rack_Products::getQuantity($transaction->productId, $transaction->storeId, true);
+                if(round($transaction->quantity, 4) > round($availableQuantity, 4)){
+                    $res->warnings[] = "|Въведеното количество е над наличното в склада|*!";
+                    $res->warningFields[] = 'quantity';
+                }
+            }
+            
             // Ако към новата позиция има чакащо движение
             if (self::fetchField("#positionTo = '{$transaction->to}' AND #storeId = {$transaction->storeId} AND #state = 'pending' AND #id != '{$transaction->id}'")) {
                 $res->warnings[] = "Към новата позиция|* <b>{$transaction->to}</b> |има насочено друго чакащо движение|*";

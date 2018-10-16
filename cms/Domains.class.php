@@ -152,6 +152,7 @@ class cms_Domains extends core_Embedder
         
         // Заглавие
         $this->XPR('titleExt', 'varchar(70)', "CONCAT(#domain, ', ', #lang)");
+        $this->FLD('mandatoryAgreeText', 'richtext(rows=1)', 'caption=Задължителен текст за съгласие->Текст');
         
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');
@@ -636,5 +637,23 @@ class cms_Domains extends core_Embedder
         $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
         
         return eshop_Settings::getSettings('cms_Domains', $domainId, $date);
+    }
+    
+    
+    
+    /**
+     * Добавя задължителенно поле за съгласяване с въведените условия
+     *
+     * @param core_FieldSet $form
+     * @param int|NULL $domainId
+     * @return void
+     */
+    public static function addMandatoryText2Form(core_FieldSet &$form, $domainId = NULL)
+    {
+        $domainId = ($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+        $mandatoryAgreeText = self::fetchField($domainId, 'mandatoryAgreeText');
+        if(empty($mandatoryAgreeText)) return;
+        
+        $form->FLD('mandatoryAgreeText', cls::get('type_Check', array('params' => array('label' => "|*" . $mandatoryAgreeText, 'displayAsRichtext' => true, 'errorIfNotChecked' => 'За да продължите, трябва да сте съгласни с общите условия'))), 'mandatory,displayInBottom,noCaption');
     }
 }

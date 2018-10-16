@@ -464,7 +464,22 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function canAutoCalcPrimeCost($productId)
     {
         if(isset($productId)){
+            
+            // Ако има рецепта, може да се сметне цената
             $bomRec = $this->getBomForPrice($productId);
+            if(is_object($bomRec)){
+                
+                return true;
+            }
+            
+            // Ако няма рецепта, но артикула има прототип и той има цена по каталог
+            $productRec = cat_Products::fetchRec($productId, 'proto,id');
+            if(!empty($productRec->proto)){
+                if(price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $productRec->proto)){
+                    
+                    return true;
+                }
+            }
             
             return is_object($bomRec);
         }

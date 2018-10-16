@@ -151,11 +151,11 @@ class accda_Da extends core_Master
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent,refreshForm');
-        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,input=hidden');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none,silent,refreshForm');
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=В употреба от,mandatory');
-        $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,width=400px');
+        $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent,refreshForm,remember');
+        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,input=hidden,remember');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none,silent,refreshForm,remember');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=В употреба от,mandatory,remember');
+        $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,width=400px,remember');
         $this->FLD('num', 'varchar(32)', 'caption=Наш номер, mandatory');
         $this->FLD('serial', 'varchar', 'caption=Сериен номер');
         
