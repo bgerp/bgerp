@@ -1518,11 +1518,17 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   border: solid 1px red; }
 
 .formBottom {
-  margin-bottom: 15px; }
-  .formBottom input[type=checkbox].inputError + label .richtext {
-    color: red !important; }
-    .formBottom input[type=checkbox].inputError + label .richtext a {
-      color: red !important; }
+  margin-bottom: 15px;
+  padding: 5px;
+    /*
+   * 
+   */
+  background: #a1bef9;
+  border: 1px solid #5c8ef4;
+  text-align: center; }
+  .formBottom.bottomErrorClass {
+    border: 1px solid #cc0000;
+    background-color: #ff6d6b !important; }
 
 .formFooter {
   font-size: 0.9em;

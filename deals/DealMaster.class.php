@@ -1030,6 +1030,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
+            if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
+                $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
+            }
+            
             if (!empty($deliveryAdress)) {
                 $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
                 $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
