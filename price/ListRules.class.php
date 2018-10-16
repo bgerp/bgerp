@@ -949,12 +949,20 @@ class price_ListRules extends core_Detail
             if(!isset($params['showTemplates'])){
                 $pQuery->where("#state != 'template'");
             }
+            if(isset($params['onlyPublic'])){
+                $pQuery->where("#isPublic = 'yes'");
+            }
             
             // Нестандартните артикули да се показват само в политика 'Себестойност'
             if(isset($params['listId'])){
                 if($params['listId'] != price_ListRules::PRICE_LIST_COST){
                     $pQuery->where("#isPublic = 'yes'");
                 }
+            }
+            
+            // Ако има подадени групи се филтрира по тях
+            if(!empty($params['groups'])){
+                $pQuery->likeKeylist('groups', $params['groups']);
             }
         }
         
@@ -980,7 +988,7 @@ class price_ListRules extends core_Detail
             $pQuery->limit($limit);
         }
         
-        $pQuery->show('id,name,code,isPublic,searchFieldXpr');
+        $pQuery->show('id,name,code,isPublic');
         
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
