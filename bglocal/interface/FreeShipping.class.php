@@ -46,6 +46,7 @@ class bglocal_interface_FreeShipping extends core_BaseClass
      */
     public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
+        return max($weight, $volume);
     }
     
     
