@@ -372,10 +372,9 @@ class price_ListDocs extends core_Master
         if(!empty($rec->productGroups)){
             $params['groups'] = $rec->productGroups;
         }
-        $sellableProducts = price_ListRules::getSellableProducts($params);
         
-        if(is_array($sellableProducts)) {
-            foreach ($sellableProducts as $id => $productName) {
+        $sellableProducts = price_ListRules::getSellableProducts($params);
+        foreach ($sellableProducts as $id => $productName) {
                 $productRec = cat_Products::fetch($id, 'groups,code, measureId');
                 $arr = (!empty($productRec->groups)) ? keylist::toArray($productRec->groups) : array('0' => '0');
                 
@@ -387,7 +386,6 @@ class price_ListDocs extends core_Master
                     'pack' => null,
                     'groups' => $arr);
             }
-        }
     }
     
     
