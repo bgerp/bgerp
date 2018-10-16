@@ -235,6 +235,11 @@ class accda_Da extends core_Master
                 }
             }
         }
+        
+        // Показваме бутон за контиране, ако има съответните права
+        if ($mvc->haveRightFor('conto', $form->rec)) {
+            $form->toolbar->addSbBtn('Контиране', 'save_n_conto', array('id' => 'btnConto'), "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
+        }
     }
     
     
@@ -251,6 +256,58 @@ class accda_Da extends core_Master
             if ($gps = exif_Reader::getGps($rec->image)) {
                 // Ако има GPS коодинати в снимката ги извличаме
                 $rec->gpsCoords = $gps['lat'] . ', ' . $gps['lon'];
+            }
+        }
+        
+        // Ако сме натиснали бутона за контиране
+        if ($form->isSubmitted()) {
+            if ($form->cmd == 'save_n_conto') {
+                $form->rec->_conto = true;
+            }
+            
+            // При Запис и Нов да контира
+            if ($form->cmd == 'save_n_new' && $mvc->haveRightFor('conto', $form->rec)) {
+                $form->rec->_conto_n_new = true;
+            }
+        }
+    }
+    
+    
+    /**
+     * Промяне УРЛ-то за редирект след запис, ако се контира документа
+     * 
+     * @param accda_Da $mvc
+     * @param stdClass $data
+     */
+    public function on_AfterPrepareRetUrl($mvc, $data)
+    {
+        // След натискане на бутона контиране във формата - да прави съответното действие
+        if ($data->form->rec->id && $data->form->rec->_conto) {
+            
+            $contoUrl = $mvc->getContoUrl($data->form->rec->id);
+            
+            if ($contoUrl) {
+                $data->retUrl = $contoUrl;
+            }
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след запис на документ
+     * 
+     * @param accda_Da $mvc
+     * @param integer $id
+     * @param stdClass $rec
+     * @param null|string|array $fields
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
+    {
+        // След запис и нов да се контира
+        if ($rec->_conto_n_new) {
+            $contoUrl = $mvc->getContoUrl($rec->id);
+            if ($contoUrl) {
+                Request::forward($contoUrl);
             }
         }
     }
