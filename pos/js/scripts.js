@@ -15,12 +15,7 @@ function posActions() {
 			calculateWidth();
 		});
 	} 
-	
-	
-	// Ширина на контейнера на бързите бутони в мобилен
-	var width = (parseInt($('.pos-product').length) + 1) * 45 ;
-	$('.narrow #pos-products').css('width',width);
-	
+
 	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(document.body).on('click', ".pos-sale", function(e){
@@ -245,8 +240,6 @@ function posActions() {
 				counter++;
 			});
 		}
-		var width = parseInt((counter+1) * 45 );
-		$('.narrow #pos-products > div').css('width',width);
 	});
 	
 	
@@ -270,7 +263,7 @@ function posActions() {
 	var tabContent = $('#tools-wide-tabs li.active a').attr('href');
 	$('.tab-content.active').find('input[type=text]').focus();
 	$(tabContent).addClass('active');
-	
+
 	// Скриване на табовете
 	$(document.body).on('click', ".pos-tabs a ", function(e){
 		var currentAttrValue= $(this).attr('href');
@@ -278,7 +271,7 @@ function posActions() {
 		
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
 		$('.tab-content' + currentAttrValue).find('input[type=text]').focus();
-		if($('body').hasClass('wide')){
+		if($('body').hasClass('wide')) {
 			calculateWidth();
 		}
 		e.preventDefault();
