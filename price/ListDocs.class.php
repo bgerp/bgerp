@@ -548,6 +548,10 @@ class price_ListDocs extends core_Master
     {
         $tplFile = ($data->rec->showUoms == 'yes') ? $mvc->singleLayoutFile : $mvc->singleLayoutFile2;
         $tpl = getTplFromFile($tplFile);
+        
+        if(Mode::is('printing')){
+            $tpl->removeBlock('HEADER');
+        }
     }
     
     
@@ -752,18 +756,6 @@ class price_ListDocs extends core_Master
             $row->vatPrint = $row->vat;
             $row->created = $row->date;
             $row->number = $row->id;
-            unset($row->productGroups);
-            unset($row->currencyId);
-            unset($row->packagings);
-            unset($row->createdOn);
-            unset($row->createdBy);
-            unset($row->policyId);
-            unset($row->date);
-            unset($row->vat);
-        }
-        
-        if ($fields['-single']) {
-            $row->singleTitle = $row->title;
         }
     }
     
