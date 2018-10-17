@@ -48,6 +48,12 @@ class trans_Vehicles extends core_Master
     
     
     /**
+     * Кой има право да разглежда?
+     */
+    public $canList = 'ceo, trans';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, trans';
