@@ -115,12 +115,6 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Работен кеш
-     */
-    public $cache = array();
-    
-    
-    /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
@@ -788,18 +782,6 @@ class price_ListDocs extends core_Master
         $row->recTitle = $row->title;
         
         return $row;
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function getHandle($id)
-    {
-        $rec = static::fetch($id);
-        $self = cls::get(get_called_class());
-        
-        return $self->abbr . $rec->id;
     }
     
     
