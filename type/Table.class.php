@@ -153,8 +153,10 @@ class type_Table extends type_Blob
         $tpl = str_replace("\n", '', $tpl);
         
         $id = 'table_' . $name;
-        $btn = ht::createElement('input', array('id' => 'dblRow_' . $name, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));
         
+        if (!$this->params['btnOff']) {
+            $btn = ht::createElement('input', array('id' => 'dblRow_' . $name, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));
+        }
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
         $attrTable['style'] .= ';margin-bottom:5px;';
@@ -196,12 +198,11 @@ class type_Table extends type_Blob
             
             return;
         }
-         
+        
         if (($columns = $this->params['mandatory']) && ($columns != 'mandatory')) {
-            
             $value = self::toArray($value);
-
-           
+            
+            
             $columns = explode('|', $columns);
             $errFld = array();
             
@@ -238,7 +239,7 @@ class type_Table extends type_Blob
      * Връща вербално представяне на стойността на двоичното поле
      */
     public function toVerbal($value)
-    { 
+    {
         if (empty($value)) {
             
             return;
@@ -247,7 +248,7 @@ class type_Table extends type_Blob
         if (is_string($value)) {
             $value = @json_decode($value, true);
         }
-         
+        
         if ($this->params['render']) {
             $res = call_user_func_array($this->params['render'], array($value, $this));
             
@@ -343,7 +344,7 @@ class type_Table extends type_Blob
             
             $i++;
         } while ($isset);
-      
+        
         $res = @json_encode($res);
         
         if ($res == '[]') {
@@ -370,12 +371,12 @@ class type_Table extends type_Blob
         if (isset($this->params['widths'])) {
             $widthsArr = explode('|', $this->params['widths']);
         }
-
+        
         $mandatoryArr = array();
         if (isset($this->params['mandatory'])) {
             $mandatoryArr = explode('|', $this->params['mandatory']);
         }
-
+        
         $res = array();
         
         foreach ($colsArr as $i => $c) {
