@@ -53,8 +53,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Банкова сметка,placeholder=Всички,after=title');
-        $fieldset->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholder=Всички,after=accountId');
+        $fieldset->FLD('accountId', 'keylist(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Банкова сметка,placeholder=Всички,after=title');
+        $fieldset->FLD('caseId', 'keylist(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholder=Всички,after=accountId');
         $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,placeholder=Всички,after=caseId');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
     }
@@ -71,7 +71,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $form = &$data->form;
         $accounts = self::getContableAccounts($form->rec);
-        $form->setOptions('accountId', array('' => '') + $accounts);
+        $form->setSuggestions('accountId', array('' => '') + $accounts);
         
         $documents = array('cash_Pko','cash_Rko','bank_SpendingDocuments','bank_IncomeDocuments');
         
@@ -145,10 +145,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $docClasses = $caseRecs = $bankRecs = $recs = array();
+       
+        $accountsId = isset($rec->accountId) ? keylist::toArray($rec->accountId) : array_keys(self::getContableAccounts($rec));
         
-        $accountsId = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
-        
-        $casesId = isset($rec->caseId) ? array($rec->caseId => $rec->caseId) : array_keys(self::getContableCases($rec));
+        $casesId = isset($rec->caseId) ? keylist::toArray($rec->caseId) : array_keys(self::getContableCases($rec));
         
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
         
