@@ -183,12 +183,12 @@ class unit_MinkPPrices extends core_Manager
         $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
         $browser->press('Чернова');
         $browser->press('Активиране');
-        if (strpos($browser->gettext(), 'work час 18,4896')) {
+        if (strpos($browser->gettext(), 'Труд час 18,4896')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
-        if (strpos($browser->gettext(), 'dds9 бр. 11,663')) {
+        if (strpos($browser->gettext(), 'Артикул ДДС 9 бр. 11,663')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
@@ -261,14 +261,14 @@ class unit_MinkPPrices extends core_Manager
         $browser->press('Чернова');
         $browser->press('Активиране');
         
-        if (strpos($browser->gettext(), 'plik7 бр. 0,66126')) {
+        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,66126')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
         
         //Проверка за ДДС 9%
-        if (strpos($browser->gettext(), 'dds9 бр. 12,01289')) {
+        if (strpos($browser->gettext(), 'Артикул ДДС 9 бр. 12,01289')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
