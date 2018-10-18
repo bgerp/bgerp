@@ -159,13 +159,19 @@ class type_Table extends type_Blob
         }
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
-        $attrTable['style'] .= ';margin-bottom:5px;';
+        $attrTable['style'] .= ';float:left; margin-bottom:5px;';
         $attrTable['id'] = $id;
         unset($attrTable['value']);
         
         $res = ht::createElement('table', $attrTable, "<tr style=\"background-color:rgba(200, 200, 200, 0.3);\">{$row0}</tr><tr>{$row1}</tr>{$rows}");
-        $res = "<div class='scrolling-holder'>" . $res . '</div>';
-        $res .= "\n{$btn}\n";
+        $res = "<div class='scrolling-holder'>" . $res ;
+        
+        if ($this->params['unit']) {
+            $unit = $this->params['unit'];
+            $res .= "<div style='display:inline-block;float:left;padding-top:25px;padding-left: 5px;'>" ."{$unit}\n".'</div>';
+        }
+        $res .= "</div>\n{$btn}\n";
+        
         $res = ht::createElement('div', $attrDiv, $res);
         
         $res = new ET($res);
