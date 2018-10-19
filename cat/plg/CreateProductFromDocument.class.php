@@ -120,9 +120,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             if (isset($form->rec->innerClass)) {
                 $protos = cat_Categories::getProtoOptions($form->rec->innerClass, $mvc->filterProtoByMeta, null, $masterRec->folderId);
                 $Driver = cls::get($form->rec->innerClass);
-                if ($Driver->canAutoCalcPrimeCost($form->rec) !== true) {
-                    $form->setField('packPrice', 'mandatory');
-                }
             } else {
                 $protos = array();
             }
@@ -277,6 +274,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                 if (empty($form->rec->packagingId)) {
                     $form->rec->packagingId =  $form->rec->measureId;
+                }
+                
+                if ($Driver->canAutoCalcPrimeCost($form->rec) !== true) {
+                    $form->setField('packPrice', 'mandatory');
                 }
                 
                 $Products->invoke('AfterInputEditForm', array($form));

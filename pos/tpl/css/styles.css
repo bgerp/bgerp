@@ -818,7 +818,14 @@ only screen and (max-width: 640px) {
 
   .wide #single-receipt,
   .wide #tools-holder .tabs-holder-content {
-    width: 100% !important; } }
+    width: 100% !important; }
+
+  .narrow .pos-product {
+    width: 74px !important;
+    height: 74px !important; }
+    .narrow .pos-product img {
+      width: 74px !important;
+      height: 74px !important; } }
 
 @media handheld,
 only screen and (max-width: 533px) {
@@ -840,7 +847,17 @@ only screen and (max-width: 360px) {
     margin-top: -48px; }
 
   .narrow .colum-btn {
-    margin-top: 0; } }
+    margin-top: 0; }
+
+  .tab-content {
+    padding: 10px; }
+
+  .narrow .pos-product {
+    width: 73px !important;
+    height: 73px !important; }
+    .narrow .pos-product img {
+      width: 73px !important;
+      height: 73px !important; } }
 
   .printing #single-receipt {
     width: 100%; }

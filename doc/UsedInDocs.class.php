@@ -54,6 +54,8 @@ class doc_UsedInDocs extends core_Manager
         $this->FLD('last', 'datetime', 'caption=Последно, input=none');
         
         $this->setDbUnique('userId, containerId');
+        $this->setDbIndex('containerId, userId');
+        $this->setDbIndex('containerId');
     }
     
     
@@ -142,7 +144,7 @@ class doc_UsedInDocs extends core_Manager
             }
             
             foreach ($cidDataArr as $cId => $dataArr) {
-                $rec = self::fetch(array("#userId = '[#1#]' AND #containerId = '[#2#]'", $userId, $cId));
+                $rec = self::fetch(array("#containerId = '[#1#]' AND #userId = '[#2#]'", $cId, $userId));
                 
                 if (!$rec) {
                     if (!$dataArr) {

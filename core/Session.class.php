@@ -270,11 +270,8 @@ class core_Session
         static $prefix;
         
         if (!$prefix) {
-            if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
-                $prefix = BGERP_ABSOLUTE_HTTP_HOST;
-            } else {
-                $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
-            }
+
+            $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
             
             $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
             $prefix = substr($prefix, 0, 10);
