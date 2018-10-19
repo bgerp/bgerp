@@ -687,12 +687,14 @@ class rack_Zones extends core_Master
     {
         // Какви са очакваните количества
         $expected = self::getExpectedProducts($storeId, $zoneIds);
+        $systemUserId = core_Users::SYSTEM_USER;
         
         // Изчистване на заявките към зоните
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending'");
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId} AND #modifiedBy = {$systemUserId}");
         $mQuery->likeKeylist('zoneList', $expected->zones);
         $mQuery->show('id');
+        
         while ($mRec = $mQuery->fetch()) {
             rack_Movements::delete($mRec->id);
         }
@@ -727,9 +729,13 @@ class rack_Zones extends core_Master
             
             // Ако има генерирани движения се записват
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $storeId);
+            
+            // Движенията се създават от името на системата
+            core_Users::forceSystemUser();
             foreach ($movements as $movementRec) {
                 rack_Movements::save($movementRec);
             }
+            core_Users::cancelSystemUser();
         }
     }
     
