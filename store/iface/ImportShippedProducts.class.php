@@ -87,7 +87,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             $dQuery = $Detail->getQuery();
             $dQuery->EXT('containerId', $Master, "externalName=containerId,externalKey={$Detail->masterKey}");
             $dQuery->where("#containerId = {$rec->doc}");
-            $dQuery->show('productId,packagingId,quantityInPack,quantity,price');
+            $dQuery->show('productId,packagingId,quantityInPack,quantity,price,discount');
             while ($dRec = $dQuery->fetch()) {
                 $caption = str_replace(',', ' ', cat_Products::getTitleById($dRec->productId));
                 $key = "product{$dRec->productId}+{$dRec->packagingId}+{$dRec->id}";

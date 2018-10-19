@@ -978,12 +978,15 @@ abstract class deals_InvoiceMaster extends core_Master
                 $row->cNum = tr('|ЕИК|* / <i>UIC</i>');
             }
             
-            $userRec = core_Users::fetch($rec->createdBy);
-            $usernames = core_Users::recToVerbal($userRec, 'names')->names;
-            $row->username = core_Lg::transliterate($usernames);
+            $issuerId = null;
+            $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId);
+            $row->username = core_Lg::transliterate($row->username);
             
-            $row->userCode = abs(crc32("{$usernames}|{$userRec->id}"));
-            $row->userCode = substr($row->userCode, 0, 6);
+            // От потребителя се прави уникален код
+            if(!empty($issuerId)){
+                $row->userCode = abs(crc32("{$row->username}|{$issuerId}"));
+                $row->userCode = substr($row->userCode, 0, 6);
+            }
             
             if ($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)) {
                 $originRec = $mvc->getSourceOrigin($rec)->fetch();

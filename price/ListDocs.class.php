@@ -115,12 +115,6 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Работен кеш
-     */
-    public $cache = array();
-    
-    
-    /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
@@ -372,10 +366,9 @@ class price_ListDocs extends core_Master
         if(!empty($rec->productGroups)){
             $params['groups'] = $rec->productGroups;
         }
-        $sellableProducts = price_ListRules::getSellableProducts($params);
         
-        if(is_array($sellableProducts)) {
-            foreach ($sellableProducts as $id => $productName) {
+        $sellableProducts = price_ListRules::getSellableProducts($params);
+        foreach ($sellableProducts as $id => $productName) {
                 $productRec = cat_Products::fetch($id, 'groups,code, measureId');
                 $arr = (!empty($productRec->groups)) ? keylist::toArray($productRec->groups) : array('0' => '0');
                 
@@ -387,7 +380,6 @@ class price_ListDocs extends core_Master
                     'pack' => null,
                     'groups' => $arr);
             }
-        }
     }
     
     
@@ -556,6 +548,10 @@ class price_ListDocs extends core_Master
     {
         $tplFile = ($data->rec->showUoms == 'yes') ? $mvc->singleLayoutFile : $mvc->singleLayoutFile2;
         $tpl = getTplFromFile($tplFile);
+        
+        if(Mode::is('printing')){
+            $tpl->removeBlock('HEADER');
+        }
     }
     
     
@@ -760,18 +756,6 @@ class price_ListDocs extends core_Master
             $row->vatPrint = $row->vat;
             $row->created = $row->date;
             $row->number = $row->id;
-            unset($row->productGroups);
-            unset($row->currencyId);
-            unset($row->packagings);
-            unset($row->createdOn);
-            unset($row->createdBy);
-            unset($row->policyId);
-            unset($row->date);
-            unset($row->vat);
-        }
-        
-        if ($fields['-single']) {
-            $row->singleTitle = $row->title;
         }
     }
     
@@ -790,18 +774,6 @@ class price_ListDocs extends core_Master
         $row->recTitle = $row->title;
         
         return $row;
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public static function getHandle($id)
-    {
-        $rec = static::fetch($id);
-        $self = cls::get(get_called_class());
-        
-        return $self->abbr . $rec->id;
     }
     
     

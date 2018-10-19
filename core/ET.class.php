@@ -940,4 +940,18 @@ class core_ET extends core_BaseClass
         
         return $matches[1];
     }
+    
+    
+    /**
+     * Премахва блоковете и местата
+     * 
+     * @return core_ET
+     */
+    public function removeBlocksAndPlaces()
+    {
+        $this->removeBlocks();
+        $this->removePlaces();
+        
+        return $this;
+    }
 }

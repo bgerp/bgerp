@@ -99,8 +99,27 @@ class bgerp_F extends core_Manager
         
         Mode::push('saveObjectsToCid', $actRec->containerId);
         
+        // Форсираме потребителя, който е изпратил документа
+        $sudo = false;
+        if ($actRec) {
+            if (!$actRec->createdBy > 0) {
+                $userId = $actRec->createdBy;
+            } else {
+                $options = bgerp_L::getDocOptions($actRec->containerId, $actRec->mid);
+                $userId = $options['__userId'];
+            }
+            
+            if ($userId > 0) {
+                $sudo = core_Users::sudo($userId);
+            }
+        }
+        
         // Вземаме линкнатите файлове в документите
         $linkedFiles = $doc->getLinkedFiles();
+        
+        if ($sudo) {
+            core_Users::exitSudo();
+        }
         
         Mode::pop('saveObjectsToCid');
         
