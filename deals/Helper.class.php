@@ -1727,9 +1727,17 @@ abstract class deals_Helper
     }
     
     
-    public static function getIssuer($createdBy, $activatedBy)
+    /**
+     * Кой потребител да се показва, като съставителя на документа
+     * 
+     * @param int $createdBy       - ид на създателя
+     * @param int $activatedBy     - ид на активаторът
+     * @param int|null $userId     - ид на избрания потребител от двата
+     * @return null|string $names  - имената на съставителя, или null ако няма
+     */
+    public static function getIssuer($createdBy, $activatedBy, &$userId = null)
     {
-        $selected = deals_Setup::get('ISSUER');//$selected = 'createdBy';
+        $selected = deals_Setup::get('ISSUER');
         $userId = ($selected == 'activatedBy') ? $activatedBy : $createdBy;
         $userId = (!core_Users::isContractor($userId)) ? $userId : $activatedBy;
         
