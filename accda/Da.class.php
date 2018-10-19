@@ -354,7 +354,7 @@ class accda_Da extends core_Master
         if ($rec->assetGroupId && $rec->brState != 'rejected') {
             if ($rec->assetCode) {
                 if (planning_AssetResources::fetch(array("#code = '[#1#]'", $form->rec->assetCode))) {
-                    status_Messages::newStatus('Не може да се добави "Оборудване", защото има запис с такъв код', 'warning');
+                    status_Messages::newStatus('|Не може да се добави "Оборудване", защото има запис с такъв код', 'warning');
                 } else {
                     $nRec = new stdClass();
                     $nRec->name = $rec->title;
@@ -381,7 +381,7 @@ class accda_Da extends core_Master
                             }
                         }
                     } else {
-                        status_Messages::newStatus('Грешка при добавяне на оборудване', 'warning');
+                        status_Messages::newStatus('|Грешка при добавяне на оборудване', 'warning');
                     }
                 }
             }
