@@ -2,7 +2,7 @@
 	<div style='padding-bottom:5px'><b>[#title#]</b></div>
 	<fieldset>
 	    <legend class='groupTitle'>|Обща информация|*</legend>
-	    <table class='simpleTable'>
+        <table class='simpleTable'>
         <tr>
             <td class='quiet nowrap'>|Наш номер|*:</td>
             <td>[#num#]</td>
@@ -54,6 +54,10 @@
     	<tr>
             <td class='quiet'>|Вальор|*:</td>
             <td>[#valior#]</td>
+        </tr>
+        <tr>
+            <td class='quiet nowrap'>|Вид|*:</td>
+            <td>[#type#]</td>
         </tr>
         <tr>
             <td class='quiet'>|Сметка|*:</td>
