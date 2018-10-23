@@ -146,7 +146,7 @@ class planning_AssetResources extends core_Master
         
         if (empty($rec->id)) {
             $form->FNC('users', 'userList', 'caption=Потребители,input,after=folderId');
-            $suggestions = doc_FolderResources::getFolderSuggestions($forType);
+            $suggestions = doc_FolderResources::getFolderSuggestions('assets');
             $form->setField('folderId', 'mandatory,input');
             $form->setOptions('folderId', array('' => '') + $suggestions);
             $form->setDefault('folderId', planning_Centers::getUndefinedFolderId());
