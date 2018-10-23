@@ -526,4 +526,32 @@ class store_ConsignmentProtocols extends core_Master
         
         return $warning;
     }
+    
+    
+    /**
+     * Обобщение на артикулите в документа
+     *
+     * @param core_Mvc $mvc
+     * @param array $res
+     * @param stdClass $rec
+     * @return void
+     */
+    public function getProductsSummary($rec)
+    {
+        $res = array();
+        $rec = $this->fetchRec($rec);
+        
+        $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
+        $dQuery->where("#protocolId = {$rec->id}");
+        
+        while($dRec = $dQuery->fetch()){
+            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            if(!array_key_exists($key, $res)){
+                $res[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
+            }
+            $res[$key]->quantity += $dRec->packQuantity * $dRec->quantityInPack;
+        }
+        
+        return $res;
+    }
 }
