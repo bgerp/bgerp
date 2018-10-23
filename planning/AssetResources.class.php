@@ -234,7 +234,7 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      *
-     * @param int $folderId - ид на папка
+     * @param int|null $folderId - ид на папка
      *
      * @return array $option    - налично оборудване
      */
