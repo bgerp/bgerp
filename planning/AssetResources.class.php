@@ -393,6 +393,10 @@ class planning_AssetResources extends core_Master
     protected static function on_AfterCreate($mvc, $rec)
     {
         planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId, $rec->users);
+    
+        if(isset($rec->protocolId)){
+            accda_Da::logWrite('Създаване на ново оборудване', $rec->protocolId);
+        }
     }
     
     

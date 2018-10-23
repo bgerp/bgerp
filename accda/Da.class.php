@@ -117,7 +117,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'valior,handler=Документ,title,num,serial,location,createdOn,createdBy';
+    public $listFields = 'valior=В употреба от,handler=Документ,title,num,serial,location,createdOn,createdBy';
     
     
     /**
@@ -180,7 +180,7 @@ class accda_Da extends core_Master
         
         $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код');
         $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember');
-        $this->FLD('assetoResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Център на дейност,silent,remember');
+        $this->FLD('assetoResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember');
         $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember');
         
         $this->setDbUnique('num');
@@ -258,40 +258,13 @@ class accda_Da extends core_Master
             $form->toolbar->addSbBtn('Контиране', 'save_n_conto', array('id' => 'btnConto'), "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
         }
         
-        // Папките на центровете на дейност
-        $cQuery = planning_Centers::getQuery();
-        $cQuery->where("#state != 'rejected' AND #state != 'closed' AND #folderId IS NOT NULL");
-        $cQuery->show('folderId');
-        $resourceSuggestionsArr = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
-        
-        // Твърдо забитите папки с ресурси
-        $fQuery = planning_FoldersWithResources::getQuery();
-        $fQuery->where('#folderId IS NOT NULL');
-        $fQuery->where("LOCATE('assets', #type)");
-        $fQuery->show('folderId');
-        $resourceSuggestionsArr += arr::extractValuesFromArray($fQuery->fetchAll(), 'folderId');
-        
-        foreach ($resourceSuggestionsArr as $key => &$v) {
-            $fRec = doc_Folders::fetch($key, 'coverClass,title');
-            if (empty($fRec->coverClass)) {
-                continue;
-            }
-            $v = $fRec->title;
-        }
+        // Какви са достъпните папки за оборудване
+        $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
         $form->setOptions('assetoResourceFolderId', array('' => '') + $resourceSuggestionsArr);
         
-        // Папките за поддръжка
-        $sQuery = support_Systems::getQuery();
-        $sQuery->where("#state != 'rejected' AND #state != 'closed' AND #folderId IS NOT NULL");
-        $sQuery->show('folderId');
-        $supportSuggestionsArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'folderId');
-        foreach ($supportSuggestionsArr as $key => &$v) {
-            $fRec = doc_Folders::fetch($key, 'coverClass,title');
-            if (empty($fRec->coverClass)) {
-                continue;
-            }
-            $v = $fRec->title;
-        }
+        // Какви са достъпните папки за поддръжка
+        $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems'); 
+        $supportSuggestionsArr = doc_Folders::getSelectArr($supportFolderParams);
         $form->setOptions('assetSupportFolderId', array('' => '') + $supportSuggestionsArr);
     }
     
@@ -352,7 +325,6 @@ class accda_Da extends core_Master
             }
         }
     }
-    
     
     
     /**
@@ -450,13 +422,9 @@ class accda_Da extends core_Master
         $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
         if (count($ourLocations)) {
             $data->listFilter->addAttr('location', array('formOrder' => 11));
-            
             $data->listFilter->fields['location']->formOrder = 11;
-            
             $data->listFilter->setOptions('location', array('' => '') + $ourLocations);
-            
             $data->listFilter->showFields .= ',location';
-            
             $data->listFilter->input('location');
             
             if ($data->listFilter->rec->location) {
@@ -624,21 +592,25 @@ class accda_Da extends core_Master
                     $row->location = crm_Locations::getHyperlink($rec->location, true);
                 }
                 
+                if(isset($rec->assetSupportFolderId)){
+                    $row->assetSupportFolderId = doc_Folders::recToVerbal($rec->assetSupportFolderId)->title;
+                }
+                
+                // Ако има информация за оборудване, тя се показва само ако е чернова
                 if($rec->state == 'draft'){
                     if(isset($rec->assetGroupId)){
                         $row->assetGroupId = planning_AssetGroups::getHyperlink($rec->assetGroupId, true);
                     }
-                   
                     if(isset($rec->assetoResourceFolderId)){
                         $row->assetoResourceFolderId = doc_Folders::recToVerbal($rec->assetoResourceFolderId)->title;
                     }
-                    
-                    if(isset($rec->assetSupportFolderId)){
-                        $row->assetSupportFolderId = doc_Folders::recToVerbal($rec->assetSupportFolderId)->title;
-                    }
                 } else {
-                    unset($row->assetGroupId, $row->assetCode, $row->assetoResourceFolderId, $row->assetSupportFolderId);
+                    unset($row->assetGroupId, $row->assetCode, $row->assetoResourceFolderId);
                 }
+            }
+            
+            if ($assetId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')) {
+                $row->assetId = planning_AssetResources::getHyperlink($assetId, true);
             }
         }
     }
@@ -657,10 +629,6 @@ class accda_Da extends core_Master
         $folderId = planning_AssetResources::canFolderHaveAsset($rec->folderId) ? $rec->folderId : null;
         if (planning_AssetResources::haveRightFor('add', (object) array('protocolId' => $rec->id, 'folderId' => $folderId))) {
             $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'protocolId' => $rec->id, 'folderId' => $folderId), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
-        }
-        
-        if ($hRecId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')) {
-            $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'single', $hRecId, 'ret_url' => true), 'ef_icon = img/16/equipment.png,title=Към оборудването');
         }
     }
 }
