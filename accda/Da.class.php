@@ -607,6 +607,8 @@ class accda_Da extends core_Master
                 } else {
                     unset($row->assetGroupId, $row->assetCode, $row->assetoResourceFolderId);
                 }
+                
+                $row->type = isset($rec->storeId) ? tr('Дълготраен материален актив') : tr('Дълготраен нематериален актив');
             }
             
             if ($assetId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')) {
