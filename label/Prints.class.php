@@ -138,6 +138,12 @@ class label_Prints extends core_Master
     
     
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'barcode_SearchIntf';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1312,5 +1318,68 @@ class label_Prints extends core_Master
         $this->logRead('Отпечатване', $rec->id);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Търси по подадения баркод
+     *
+     * @param string $str
+     *
+     * @return array
+     * ->title - заглавие на резултата
+     * ->url - линк за хипервръзка
+     * ->comment - html допълнителна информация
+     * ->priority - приоритет
+     */
+    public function searchByCode($str)
+    {
+        $resArr = array();
+        
+        $str = trim($str);
+        $oStr = $str;
+        $str = ltrim($str, 0);
+        
+        $counterItemsQuery = label_CounterItems::getQuery();
+        $counterItemsQuery->where(array("#number = '[#1#]'", $str));
+        
+        while($cRec = $counterItemsQuery->fetch()) {
+            if (!$cRec->printId) continue;
+            
+            $pRec = $this->fetch($cRec->printId);
+            
+            $res = new stdClass();
+            
+            if ($this->haveRightFor('single', $pRec)) {
+                $res->url = array($this, 'single', $pRec->id);
+            }
+            
+            $res->title = $pRec->title;
+            
+            $res->priority = 1;
+            if ($pRec->state == 'active') {
+                $res->priority = 2;
+            } else if ($pRec->state == 'rejected') {
+                $res->priority = 0;
+            }
+            
+            if ($pRec->classId && $pRec->objectId) {
+                $res->priority = 3;
+                
+                $vRec = $this->recToVerbal($pRec, 'source');
+                
+                $res->comment = tr('Източник') . ': ' . $vRec->source;
+            }
+            
+            if (strlen($cRec->number) != strlen($oStr)) {
+                if ($res->priority) {
+                    $res->priority /= 2;
+                }
+            }
+            
+            $resArr[] = $res;
+        }
+        
+        return $resArr;
     }
 }
