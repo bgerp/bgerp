@@ -9,7 +9,7 @@
  * @package   accda
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -39,7 +39,7 @@ class accda_Da extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, plg_Clone, doc_DocumentPlg, plg_Search,
-                     bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin';
+                     bgerp_plg_Blank, acc_plg_Registry, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin';
     
     
     /**
@@ -97,6 +97,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * Файл за единичен изглед при печат
+     */
+    public $singleLayoutPrintFile = 'accda/tpl/SingleLayoutDABlank.shtml';
+    
+    
+    /**
      * Поле за търсене
      */
     public $searchFields = 'num, serial, title, productId, accountId';
@@ -147,6 +153,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -166,8 +178,8 @@ class accda_Da extends core_Master
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         
-        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember');
         $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код');
+        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember');
         $this->FLD('assetoResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Център на дейност,silent,remember');
         $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember');
         
@@ -585,14 +597,49 @@ class accda_Da extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->handler = $mvc->getLink($rec->id, 0);
         
         if ($rec->image) {
             $row->imgThumb = fancybox_Fancybox::getImage($rec->image, array(790, 790), array(1200, 1200));
+        }
+        
+        if(isset($fields['-single'])){
+            if(!Mode::isReadOnly()){
+                $row->productId = cat_Products::getHyperlink($rec->productId, true);
+                $row->accountId = acc_Balances::getAccountLink($rec->accountId, null, true,true);
+                
+                if(isset($rec->storeId)){
+                    $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+                }
+                
+                if(isset($rec->location)){
+                    $row->location = crm_Locations::getHyperlink($rec->location, true);
+                }
+                
+                if($rec->state == 'draft'){
+                    if(isset($rec->assetGroupId)){
+                        $row->assetGroupId = planning_AssetGroups::getHyperlink($rec->assetGroupId, true);
+                    }
+                   
+                    if(isset($rec->assetoResourceFolderId)){
+                        $row->assetoResourceFolderId = doc_Folders::recToVerbal($rec->assetoResourceFolderId)->title;
+                    }
+                    
+                    if(isset($rec->assetSupportFolderId)){
+                        $row->assetSupportFolderId = doc_Folders::recToVerbal($rec->assetSupportFolderId)->title;
+                    }
+                } else {
+                    unset($row->assetGroupId, $row->assetCode, $row->assetoResourceFolderId, $row->assetSupportFolderId);
+                }
+            }
         }
     }
     
