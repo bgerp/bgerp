@@ -247,7 +247,7 @@ class core_Db extends core_BaseClass
         DEBUG::stopTimer('DB::query()');
         
         if ($replication && ($path = BGERP_SQL_LOG_PATH)) {
-            $path .= '/' . date('Y-m-d_h') . '.sql';
+            $path .= '/' . date('Y-m-d_H') . '.sql';
             file_put_contents($path, $sqlQuery . ";\n\r", FILE_APPEND);
         }
         
