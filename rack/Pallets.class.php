@@ -741,7 +741,7 @@ class rack_Pallets extends core_Manager
         
         $res = new stdClass();
         
-        $res->title = cat_Products::getVerbal($prodAndPack->productId, 'name') . ' (' . cat_Products::getHandle($prodAndPack->productId) . ')';
+        $res->title = cat_Products::getTitleById($prodAndPack->productId);
         
         $res->priority = 1;
         
@@ -777,7 +777,7 @@ class rack_Pallets extends core_Manager
         }
         
         if ($res->comment) {
-            $res->comment .= ' ' . tr('в склад') . ' "' . store_Stores::fetchField($storeId, 'name') . '"';
+            $res->comment .= ' ' . tr('в склад') . ' "' . store_Stores::getHyperlink($storeId, true) . '"';
         }
         
         $resArr[] = $res;
