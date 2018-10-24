@@ -660,7 +660,7 @@ class core_Debug
                 if ($canList) {
                     $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
                     
-                    $dUrl = fileman_Download::getDownloadUrl($state['_debugFileName'], 1, 'path');
+                    $dUrl = log_Debug::getDownalodUrl($bName);
                     if ($dUrl) {
                         $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
                     }
