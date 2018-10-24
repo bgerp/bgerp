@@ -721,7 +721,7 @@ class rack_Pallets extends core_Manager
         
         $storeId = store_Stores::getCurrent('id', false);
         
-        if (!$storeId || !store_Stores::haveRightFor('list', $storeId)) return false;
+        if (!$storeId || !store_Stores::haveRightFor('list', $storeId)) return $resArr;
         
         $str = trim($str);
         
