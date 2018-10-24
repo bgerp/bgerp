@@ -177,7 +177,7 @@ class store_Products extends core_Detail
     {
         // Подготвяме формата
         cat_Products::expandFilter($data->listFilter);
-        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани,reserved=Запазени');
+        $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
         $data->listFilter->setOptions('order', $orderOptions);
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         
@@ -264,6 +264,10 @@ class store_Products extends core_Detail
                         break;
                     case 'reserved':
                         $data->query->where("#reservedQuantity IS NOT NULL");
+                        break;
+                    case 'free':
+                        $data->query->XPR('free', 'double', 'ROUND(COALESCE(#quantity, 0) - COALESCE(#reservedQuantity, 0), 2)');
+                        $data->query->orderBy('free', 'ASC');
                         break;
                     default:
                         $data->query->where("#isPublic = 'yes'");
