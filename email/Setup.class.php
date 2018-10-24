@@ -224,6 +224,12 @@ defIfNot('EMAIL_SHOW_THREAD_EMAIL_LIMITATION', 'yes');
 
 
 /**
+ * Имейли изпратени на какъв език да се превеждат?
+ */
+defIfNot('EMAIL_INCOMINGS_TRANSLATE_LG', '');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -314,6 +320,8 @@ class email_Setup extends core_ProtoSetup
         
         // Максимален размер на прикачените файлове и документи
         'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
+        
+        'EMAIL_INCOMINGS_TRANSLATE_LG' => array('keylist(mvc=drdata_Languages,select=languageName,allowEmpty)', 'caption=Превеждане на имейли от->Езици, customizeBy=powerUser'),
         
         'EMAIL_DEFAULT_SENT_INBOX' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
         
