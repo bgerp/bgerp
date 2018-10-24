@@ -696,6 +696,12 @@ class cat_products_Packagings extends core_Detail
         $productData = cat_Products::getByCode($str);
         if(!is_object($productData)) return $resArr;
         
+        // Извличане на най-важната информация за артикула
+        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,isPublic,folderId,state');
+        
+        // Само за активните артикули ще се връщат резултати
+        if($productRec->state != 'active') return $resArr;
+        
         // Има ли последно посещавани нишки от текущия потребител?
         $threadIds = bgerp_Recently::getLastThreadsId(null, null, 3600);
         if (!count($threadIds)) return $resArr;
@@ -716,8 +722,6 @@ class cat_products_Packagings extends core_Detail
         $containers = $cQuery->fetchAll();
         if (!count($containers)) return $resArr;
         
-        // Извличане на най-важната информация за артикула
-        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,isPublic,folderId');
         $onlyInFolders = cat_products_SharedInFolders::getSharedFolders($productRec);
         
         $productLink = cat_Products::getHyperlink($productData->productId, true);
