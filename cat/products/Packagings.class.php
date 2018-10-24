@@ -692,7 +692,114 @@ class cat_products_Packagings extends core_Detail
     {
         $resArr = array();
         
-        // @todo
+        // Има ли артикул с такъв код?
+        $productData = cat_Products::getByCode($str);
+        if(!is_object($productData)) return $resArr;
+        
+        // Има ли последно посещавани нишки от текущия потребител?
+        $threadIds = bgerp_Recently::getLastThreadsId(null, null, 3600);
+        if (!count($threadIds)) return $resArr;
+        
+        // Кои документи, ще се разглеждат
+        $DocumentIds = array();
+        $Documents = array('sales_Sales', 'sales_Invoices', 'sales_Services', 'purchase_Purchases', 'purchase_Services', 'purchase_Invoices', 'store_Receipts', 'store_ShipmentOrders', 'store_Transfers', 'planning_ReturnNotes', 'planning_ConsumptionNotes');
+        foreach ($Documents as $docName){
+            $DocumentIds[$docName] = $docName::getClassId();
+        }
+        
+        // Има ли чернови документи в посочение нишки?
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#state = 'draft'");
+        $cQuery->in("threadId", $threadIds);
+        $cQuery->in("docClass", $DocumentIds);
+        $cQuery->show('id,folderId');
+        $containers = $cQuery->fetchAll();
+        if (!count($containers)) return $resArr;
+        
+        // Извличане на най-важната информация за артикула
+        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,isPublic,folderId');
+        $onlyInFolders = cat_products_SharedInFolders::getSharedFolders($productRec);
+        
+        $productLink = cat_Products::getHyperlink($productData->productId, true);
+        $packagingName = tr(cat_UoM::getTitleById($productData->packagingId));
+        $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        
+        // За всеки намерен документ
+        foreach($containers as $containerRec){
+            $isReverse = 'no';
+            try{
+                // Извличане на документа и проверка може ли артикула да се добави към него
+                $Doc = doc_Containers::getDocument($containerRec->id);
+                if ($Doc->isInstanceOf('sales_Sales') || $Doc->isInstanceOf('sales_Invoices')){
+                   if($productRec->canSell != 'yes') continue;
+                } elseif($Doc->isInstanceOf('purchase_Purchases') || $Doc->isInstanceOf('purchase_Invoices')){
+                    if($productRec->canBuy != 'yes') continue;
+                }
+                
+                if($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('store_Receipts') || $Doc->isInstanceOf('store_Transfers') || $Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes')){
+                    if($productRec->canStore != 'yes') continue;
+                }
+                
+                if($Doc->isInstanceOf('sales_Services') || $Doc->isInstanceOf('purchase_Services')){
+                    if($productRec->canStore != 'no') continue;
+                }
+                
+                if($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('store_Receipts') || $Doc->isInstanceOf('sales_Services') || $Doc->isInstanceOf('purchase_Services')){
+                    $isReverse = $Doc->fetchField('isReverse');
+                    $meta = ($Doc->isInstanceOf('store_ShipmentOrders') || $Doc->isInstanceOf('sales_Services')) ? (($isReverse == 'no') ? 'canSell' : 'canBuy') : (($isReverse == 'no') ? 'canBuy' : 'canSell');
+                    if($productRec->{$meta} != 'yes') continue;
+                }
+                
+                if($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes')){
+                    if($productRec->canConvert != 'yes') continue;
+                }
+                
+                // Ако артикула е достъпен само към избрани папки, документа трябва да е в тях
+                if(count($onlyInFolders) && !($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))){
+                    $folderId = $Doc->fetchField('folderId');
+                    if(!array_key_exists($folderId, $onlyInFolders)) continue;
+                }
+                
+                if(isset($Doc->mainDetail)){
+                    $Detail = cls::get($Doc->mainDetail);
+                    
+                    // Ако може да се добавя артикула към детайла на документа
+                    if(!$Detail->haveRightFor('add', (object)array($Detail->masterKey => $Doc->that))) continue;
+                    
+                    $comment = "{$productLink} {$packagingName}";
+                    if($productRec->canStore == 'yes'){
+                         if($storeId = $Doc->fetchField($Doc->storeFieldName)){
+                             $quantity = store_Products::getQuantity($productRec->id, $storeId, true);
+                             $packQuantity = $quantity / $quantityInPack;
+                             $packQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($packQuantity);
+                             $comment .= ", " . tr('Разполагаемо в') . " " . store_Stores::getHyperlink($storeId, true) .  " {$packQuantityVerbal} " . str::getPlural($packQuantity, $packagingName, true);
+                         }
+                    }
+                        
+                    // Ако ще може да му се показва продажната цена
+                    if(!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))){
+                         $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
+                         $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
+                            
+                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);
+                         if(!isset($policyInfo->price)){
+                             $price = 'N/A';
+                         } else {
+                             $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($policyInfo->price * $quantityInPack);
+                         }
+                            
+                         $comment .= ", " . tr('Ед. цена') . ": {$price} {$docRec->currencyId}";
+                    }
+                        
+                    // Връщане на резултат за документа
+                    $url = array($Detail, 'add', "{$Detail->masterKey}" => $Doc->that, "{$Detail->productFld}" => $productData->productId, 'packagingId' => $productData->packagingId);
+                    $resArr[] = (object)array('title' => "#" . $Doc->getHandle(), 'url' => $url, 'priority' => 0, 'comment' => $comment);
+                }
+            } catch(core_exception_Expect $e){
+              continue;
+            }
+        }
         
         return $resArr;
     }
