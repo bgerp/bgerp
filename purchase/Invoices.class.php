@@ -214,15 +214,9 @@ class purchase_Invoices extends deals_InvoiceMaster
         $origin = $mvc->getOrigin($form->rec);
         
         if ($origin->isInstanceOf('findeals_AdvanceReports')) {
-            $form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Освободено, no=Без начисляване'));
-            $form->setField('vatRate', 'input');
-            $form->setDefault('vatRate', 'separate');
-            
-            if (isset($form->rec->id)) {
-                if (purchase_InvoiceDetails::fetch("#invoiceId = {$form->rec->id}")) {
-                    $form->setReadOnly('vatRate');
-                }
-            }
+            $form->setDefault('vatRate', $origin->fetchField('chargeVat'));
+            $additionalInfo = tr('|Към авансов отчет|*: #') . $origin->getHandle() . PHP_EOL;
+            $form->setDefault('additionalInfo', $additionalInfo);
         }
         
         // Ако ф-та не е към служебен аванс не искаме да се сменя контрагента

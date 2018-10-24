@@ -77,6 +77,12 @@ class rack_Pallets extends core_Manager
     
     
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'barcode_SearchIntf';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -695,5 +701,87 @@ class rack_Pallets extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+    /**
+     * Търси по подадения баркод
+     *
+     * @param string $str
+     *
+     * @return array
+     * ->title - заглавие на резултата
+     * ->url - линк за хипервръзка
+     * ->comment - html допълнителна информация
+     * ->priority - приоритет
+     */
+    public function searchByCode($str)
+    {
+        $resArr = array();
+        
+        $storeId = store_Stores::getCurrent('id', false);
+        
+        if (!$storeId || !store_Stores::haveRightFor('list', $storeId)) return $resArr;
+        
+        $str = trim($str);
+        
+        $prodAndPack = cat_Products::getByCode($str);
+        
+        if (!$prodAndPack || !$prodAndPack->productId) return $resArr;
+        
+        $query = $this->getQuery();
+        $query->where(array("#productId = '[#1#]'", $prodAndPack->productId));
+        $query->where(array("#storeId = '[#1#]'", $storeId));
+        
+        $pCnt = $query->count();
+        
+        $query->groupBy('productId');
+        
+        $query->limit(1);
+        
+        $res = new stdClass();
+        
+        $res->title = cat_Products::getVerbal($prodAndPack->productId, 'name') . ' (' . cat_Products::getHandle($prodAndPack->productId) . ')';
+        
+        $res->priority = 1;
+        
+        // Показваме палетираните
+        while($rec = $query->fetch()) {
+            
+            if ($rec->state == 'active') {
+                $res->priority = 2;
+            } else if ($rec->state == 'rejected') {
+                $res->priority = 0;
+            }
+            
+            if ($this->haveRightFor('list', $rec)) {
+                $res->url = array($this, 'list', 'productId' => $rec->productId, 'state' => '');
+                
+                $res->comment = str::getPlural($pCnt, 'палет');
+            }
+        }
+        
+        // Показваме непалетираните
+        $quantityNotOnPallets = rack_Products::fetchField(array("#productId = '[#1#]' AND #storeId = '[#2#]'", $prodAndPack->productId, $storeId), 'quantityNotOnPallets');
+        if ($quantityNotOnPallets) {
+            $measureId = cat_Products::fetchField($prodAndPack->productId, 'measureId');
+            
+            $packName = cat_UoM::getVerbal($measureId, 'name');
+            
+            $quantityNotOnPallets = str::getPlural($quantityNotOnPallets, $packName);
+            
+            $res->comment .= $res->comment ? ' ' . tr('и') . ' ' : '';
+            $res->comment .= $quantityNotOnPallets . ' ' . tr('непалетирани');
+            
+            $res->priority *= 2;
+        }
+        
+        if ($res->comment) {
+            $res->comment .= ' ' . tr('в склад') . ' "' . store_Stores::fetchField($storeId, 'name') . '"';
+        }
+        
+        $resArr[] = $res;
+        
+        return $resArr;
     }
 }

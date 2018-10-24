@@ -903,7 +903,7 @@ class findeals_Deals extends deals_DealBase
             $contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, false);
             $result = (object) array(
                 'num' => $objectId . ' ' . mb_strtolower($self->abbr),
-                'title' => static::getRecTitle($objectId),
+                'title' => static::getRecTitle($rec),
                 'features' => array('Контрагент' => $contragentName)
             );
         }
@@ -918,8 +918,10 @@ class findeals_Deals extends deals_DealBase
     public static function getRecTitle($rec, $escaped = true)
     {
         $createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-        $detailedName = $rec->id . '.' . str::limitLen($rec->contragentName, 16) . " / {$createdOn} / " . str::limitLen($rec->dealName, 16);
-        $detailedName = trim($detailedName, '/ ');
+        $detailedName = self::getHandle($rec->id) . '/' . str::limitLen($rec->contragentName, 16) . "/{$createdOn}";
+        if(!empty($rec->dealName)){
+            $detailedName .= "/{$rec->dealName}";
+        }
         
         return $detailedName;
     }

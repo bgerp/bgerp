@@ -354,7 +354,6 @@ abstract class deals_DealBase extends core_Master
             
             if (!$form->gotErrors()) {
                 $this->save($rec);
-                $this->invoke('AfterActivation', array($rec));
                 
                 if (!empty($form->rec->closeWith)) {
                     core_App::setTimeLimit(1000);
@@ -369,6 +368,8 @@ abstract class deals_DealBase extends core_Master
                         $CloseDoc->conto($clId);
                     }
                 }
+                
+                $this->invoke('AfterActivation', array($rec));
                 
                 // Записваме, че потребителя е разглеждал този списък
                 $this->logWrite('Приключване на сделка с друга сделка', $id);

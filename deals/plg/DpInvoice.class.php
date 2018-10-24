@@ -430,7 +430,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $tpl->removeBlock('NO_ROWS');
         }
         
-        $reason = (!empty($data->masterData->rec->dpReason)) ? $data->masterData->rec->dpReason : self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation);
+        $reason = (!empty($data->masterData->rec->dpReason)) ? $data->masterData->rec->dpReason : ht::createHint(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation), 'Основанието ще бъде записано при контиране');
         
         if ($data->dpInfo->dpOperation == 'accrued') {
             $colspan = count($data->listFields) - 1;

@@ -20,7 +20,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'label_SequenceIntf=cat_interface_PackLabelImpl';
+    public $interfaces = 'label_SequenceIntf=cat_interface_PackLabelImpl, barcode_SearchIntf';
     
     
     /**
@@ -674,5 +674,26 @@ class cat_products_Packagings extends core_Detail
         
         // Връщаме резултат
         return $isUsed;
+    }
+    
+    
+    /**
+     * Търси по подадения баркод
+     *
+     * @param string $str
+     *
+     * @return array
+     * ->title - заглавие на резултата
+     * ->url - линк за хипервръзка
+     * ->comment - html допълнителна информация
+     * ->priority - приоритет
+     */
+    public function searchByCode($str)
+    {
+        $resArr = array();
+        
+        // @todo
+        
+        return $resArr;
     }
 }
