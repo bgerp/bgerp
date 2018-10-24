@@ -9,7 +9,7 @@
  * @package   accda
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -39,7 +39,7 @@ class accda_Da extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, plg_Clone, doc_DocumentPlg, plg_Search,
-                     bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin';
+                     bgerp_plg_Blank, acc_plg_Registry, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder,change_Plugin';
     
     
     /**
@@ -97,6 +97,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * Файл за единичен изглед при печат
+     */
+    public $singleLayoutPrintFile = 'accda/tpl/SingleLayoutDABlank.shtml';
+    
+    
+    /**
      * Поле за търсене
      */
     public $searchFields = 'num, serial, title, productId, accountId';
@@ -111,7 +117,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'valior,handler=Документ,title,num,serial,location,createdOn,createdBy';
+    public $listFields = 'valior=В употреба от,handler=Документ,title,num,serial,location,createdOn,createdBy';
     
     
     /**
@@ -147,6 +153,12 @@ class accda_Da extends core_Master
     
     
     /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -166,9 +178,9 @@ class accda_Da extends core_Master
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         
-        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember');
         $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код');
-        $this->FLD('assetoResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Център на дейност,silent,remember');
+        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember');
+        $this->FLD('assetoResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember');
         $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember');
         
         $this->setDbUnique('num');
@@ -246,40 +258,13 @@ class accda_Da extends core_Master
             $form->toolbar->addSbBtn('Контиране', 'save_n_conto', array('id' => 'btnConto'), "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
         }
         
-        // Папките на центровете на дейност
-        $cQuery = planning_Centers::getQuery();
-        $cQuery->where("#state != 'rejected' AND #state != 'closed' AND #folderId IS NOT NULL");
-        $cQuery->show('folderId');
-        $resourceSuggestionsArr = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
-        
-        // Твърдо забитите папки с ресурси
-        $fQuery = planning_FoldersWithResources::getQuery();
-        $fQuery->where('#folderId IS NOT NULL');
-        $fQuery->where("LOCATE('assets', #type)");
-        $fQuery->show('folderId');
-        $resourceSuggestionsArr += arr::extractValuesFromArray($fQuery->fetchAll(), 'folderId');
-        
-        foreach ($resourceSuggestionsArr as $key => &$v) {
-            $fRec = doc_Folders::fetch($key, 'coverClass,title');
-            if (empty($fRec->coverClass)) {
-                continue;
-            }
-            $v = $fRec->title;
-        }
+        // Какви са достъпните папки за оборудване
+        $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
         $form->setOptions('assetoResourceFolderId', array('' => '') + $resourceSuggestionsArr);
         
-        // Папките за поддръжка
-        $sQuery = support_Systems::getQuery();
-        $sQuery->where("#state != 'rejected' AND #state != 'closed' AND #folderId IS NOT NULL");
-        $sQuery->show('folderId');
-        $supportSuggestionsArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'folderId');
-        foreach ($supportSuggestionsArr as $key => &$v) {
-            $fRec = doc_Folders::fetch($key, 'coverClass,title');
-            if (empty($fRec->coverClass)) {
-                continue;
-            }
-            $v = $fRec->title;
-        }
+        // Какви са достъпните папки за поддръжка
+        $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems'); 
+        $supportSuggestionsArr = doc_Folders::getSelectArr($supportFolderParams);
         $form->setOptions('assetSupportFolderId', array('' => '') + $supportSuggestionsArr);
     }
     
@@ -340,7 +325,6 @@ class accda_Da extends core_Master
             }
         }
     }
-    
     
     
     /**
@@ -438,13 +422,9 @@ class accda_Da extends core_Master
         $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
         if (count($ourLocations)) {
             $data->listFilter->addAttr('location', array('formOrder' => 11));
-            
             $data->listFilter->fields['location']->formOrder = 11;
-            
             $data->listFilter->setOptions('location', array('' => '') + $ourLocations);
-            
             $data->listFilter->showFields .= ',location';
-            
             $data->listFilter->input('location');
             
             if ($data->listFilter->rec->location) {
@@ -585,14 +565,55 @@ class accda_Da extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->handler = $mvc->getLink($rec->id, 0);
         
         if ($rec->image) {
             $row->imgThumb = fancybox_Fancybox::getImage($rec->image, array(790, 790), array(1200, 1200));
+        }
+        
+        if(isset($fields['-single'])){
+            if(!Mode::isReadOnly()){
+                $row->productId = cat_Products::getHyperlink($rec->productId, true);
+                $row->accountId = acc_Balances::getAccountLink($rec->accountId, null, true,true);
+                
+                if(isset($rec->storeId)){
+                    $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+                }
+                
+                if(isset($rec->location)){
+                    $row->location = crm_Locations::getHyperlink($rec->location, true);
+                }
+                
+                if(isset($rec->assetSupportFolderId)){
+                    $row->assetSupportFolderId = doc_Folders::recToVerbal($rec->assetSupportFolderId)->title;
+                }
+                
+                // Ако има информация за оборудване, тя се показва само ако е чернова
+                if($rec->state == 'draft'){
+                    if(isset($rec->assetGroupId)){
+                        $row->assetGroupId = planning_AssetGroups::getHyperlink($rec->assetGroupId, true);
+                    }
+                    if(isset($rec->assetoResourceFolderId)){
+                        $row->assetoResourceFolderId = doc_Folders::recToVerbal($rec->assetoResourceFolderId)->title;
+                    }
+                } else {
+                    unset($row->assetGroupId, $row->assetCode, $row->assetoResourceFolderId);
+                }
+                
+                $row->type = isset($rec->storeId) ? tr('Дълготраен материален актив') : tr('Дълготраен нематериален актив');
+            }
+            
+            if ($assetId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')) {
+                $row->assetId = planning_AssetResources::getHyperlink($assetId, true);
+            }
         }
     }
     
@@ -610,10 +631,6 @@ class accda_Da extends core_Master
         $folderId = planning_AssetResources::canFolderHaveAsset($rec->folderId) ? $rec->folderId : null;
         if (planning_AssetResources::haveRightFor('add', (object) array('protocolId' => $rec->id, 'folderId' => $folderId))) {
             $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'protocolId' => $rec->id, 'folderId' => $folderId), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
-        }
-        
-        if ($hRecId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')) {
-            $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'single', $hRecId, 'ret_url' => true), 'ef_icon = img/16/equipment.png,title=Към оборудването');
         }
     }
 }

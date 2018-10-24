@@ -38,6 +38,20 @@ abstract class deals_ManifactureDetail extends doc_Detail
     
     
     /**
+     * След описанието на модела
+     */
+    public static function on_AfterDescription(&$mvc)
+    {
+        // Дефолтни имена на полетата от модела
+        setIfNot($mvc->packQuantityFld, 'packQuantity');
+        setIfNot($mvc->packagingIdFld, 'packagingId');
+        setIfNot($mvc->quantityInPackFld, 'quantityInPack');
+        setIfNot($mvc->productIdFld, 'productId');
+        setIfNot($mvc->quantityFld, 'quantity');
+    }
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function setDetailFields($mvc)

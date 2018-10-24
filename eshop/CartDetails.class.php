@@ -575,23 +575,29 @@ class eshop_CartDetails extends core_Detail
             return;
         }
         
-        // Колко е общото тегло и обем за доставка
-        $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
-        $total = sales_TransportValues::getTotalWeightAndVolume($products);
         $deliveryData = array('deliveryCountry' => $masterRec->deliveryCountry, 'deliveryPCode' => $masterRec->deliveryPCode, 'deliveryPlace' => $masterRec->deliveryPlace, 'deliveryAddress' => $masterRec->deliveryAddress);
         $deliveryData += $masterRec->deliveryData;
         
-        // За всеки артикул се изчислява очаквания му транспорт
-        $transportAmount = 0;
-        foreach ($products as $p1) {
-            $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total['weight'], $total['volume'], $deliveryData);
+        // Колко е общото тегло и обем за доставка
+        $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
+        $total = sales_TransportValues::getTotalWeightAndVolume($TransCalc, $products, $masterRec->termId, $deliveryData);
+        
+        if($total > 0) {
             
-            
-            if (is_array($fee)) {
-                $transportAmount += $fee['totalFee'];
+            // За всеки артикул се изчислява очаквания му транспорт
+            $transportAmount = 0;
+            foreach ($products as $p1) {
+                $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData);
+                
+                
+                if (is_array($fee)) {
+                    $transportAmount += $fee['totalFee'];
+                }
             }
+        } else {
+            $transportAmount = cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         }
-       
+        
         $res = array('amount' => $transportAmount);
         if (isset($fee['deliveryTime'])) {
             $res['deliveryTime'] = $fee['deliveryTime'];

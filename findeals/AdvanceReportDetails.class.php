@@ -10,7 +10,7 @@
  * @package   findeals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,7 +38,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering,acc_plg_ExpenseAllocation';
+    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering,acc_plg_ExpenseAllocation,cat_plg_ShowCodes';
     
     
     /**
@@ -81,6 +81,12 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
      * Полета свързани с цени
      */
     public $priceFields = 'price,amount,discount,packPrice';
+    
+    
+    /**
+     * Да се показва ли кода като в отделна колона
+     */
+    public $showCodeColumn = true;
     
     
     /**
@@ -138,9 +144,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $masterRec = findeals_AdvanceReports::fetch($rec->reportId);
-        $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
-        $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
+        $row->productId = cat_Products::getVerbal($rec->productId, 'name');
         
         if ($rec->notes) {
             $row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";

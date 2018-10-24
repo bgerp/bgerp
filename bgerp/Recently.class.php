@@ -537,15 +537,16 @@ class bgerp_Recently extends core_Manager
     /**
      * Връща id-тата на последно използваните нишки
      *
-     * @param int $count  - Броя нишки
-     * @param int $userId - За потребителя
+     * @param int|null $count       - броя нишки
+     * @param int|null $userId      - за потребителя
+     * @param int|null $lastSeconds - в последните колко секунди
      *
      * @return array
      */
-    public static function getLastThreadsId($count = 5, $userId = null)
+    public static function getLastThreadsId($count = 5, $userId = null, $lastSeconds = null)
     {
         // Броя трябва да е положителен
-        expect($count > 0);
+        expect((isset($count) && $count > 0) || isset($lastSeconds));
         
         // Масив с нишките
         $threadsArr = array();
@@ -562,6 +563,11 @@ class bgerp_Recently extends core_Manager
         $query->where("#userId = '{$userId}'");
         $query->where("#type = 'document'");
         $query->orderBy('last', 'DESC');
+        
+        if(isset($lastSeconds)){
+            $fromDate = dt::addSecs(-1 * $lastSeconds);
+            $query->where("#last >= '{$fromDate}'");
+        }
         
         // Брояч
         $cnt = 0;
@@ -583,7 +589,7 @@ class bgerp_Recently extends core_Manager
             $cnt++;
             
             // Ако сме достигнали лимита, прекъсваме
-            if ($cnt == $count) {
+            if (isset($count) && $cnt == $count) {
                 break;
             }
         }
