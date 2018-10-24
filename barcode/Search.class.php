@@ -82,7 +82,7 @@ class barcode_Search extends core_Manager
                 
                 $Intf = cls::getInterface('barcode_SearchIntf', $clsInst);
                 
-                $resArr += array_merge($resArr, $Intf->searchByCode($form->rec->search));
+                $resArr = array_merge($resArr, $Intf->searchByCode($form->rec->search));
             }
             
             if (!empty($resArr)) {
