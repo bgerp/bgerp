@@ -74,7 +74,7 @@ class barcode_Search extends core_Manager
             
             $intfArr = core_Classes::getOptionsByInterface('barcode_SearchIntf');
 
-            $tableTpl = new ET("<table  class='listTable'>");
+            $tableTpl = new ET("<table  class='listTable barcodeSearch'>");
             $resArr = array();
 
             foreach ($intfArr as $intfClsId => $intfCls) {
@@ -93,7 +93,7 @@ class barcode_Search extends core_Manager
             }
 
             foreach ($resArr as $r) {
-                $resTpl  = new ET("<tr><td colspan='3'>[#title#]</td><td>[#comment#]</td></tr>");
+                $resTpl  = new ET("<tr><td>[#title#]</td><td>[#comment#]</td></tr>");
 
                 if (!$r->title) {
                     $r->title = tr('Липсва заглавие');

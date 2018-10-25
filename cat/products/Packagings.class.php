@@ -706,12 +706,14 @@ class cat_products_Packagings extends core_Detail
         $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
         deals_helper::getPackInfo($packagingName, $productData->productId, $productData->packagingId, $quantityInPack);
-        $obj->comment .= "<div class='barcode-search-packagingId'>{$packagingName}</div>";
-        
-        $preview = cat_Products::getPreview($productData->productId);
-        //$obj->comment .= " " . $preview;
-        
-        
+
+        $obj->comment .= $packagingName;
+        if ($preview = cat_Products::getPreview($productData->productId, array(200, 200))) {
+            $obj->comment .= "</td><tr><td colspan='2' align = 'left'>" . $preview ;
+        }
+
+        $obj->comment .= "</td><tr><td colspan='2' class='noPadding'>";
+
         $resArr[] = $obj;
         
         // Само за активните артикули ще се връщат резултати
@@ -824,10 +826,10 @@ class cat_products_Packagings extends core_Detail
         
         if(count($documentRows)){
             $fieldset = new core_FieldSet();
-            $fieldset->FLD('addLink', 'varchar');
-            $fieldset->FLD('free', 'double');
-            $fieldset->FLD('price', 'double');
-            $fieldset->FLD('storeId', 'double');
+            $fieldset->FLD('addLink', 'varchar', 'tdClass=centered');
+            $fieldset->FLD('free', 'varchar', 'smartCenter');
+            $fieldset->FLD('price', 'double', 'smartCenter');
+            $fieldset->FLD('storeId', 'varchar');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
             
             $fields = arr::make("addLink=Документи,price=Ед. цена,free=Разполагаемо|* ({$packagingNameShort}),storeId=Склад", true);

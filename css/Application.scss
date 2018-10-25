@@ -4657,6 +4657,23 @@ div.location.public {
 	margin-bottom: 10px;
 }
 
+.barcodeSearch {
+	position: relative;
+	.productPreviewHolder {
+		float: none;
+
+	}
+	.noPadding {
+		padding: 0px !important;
+		border: 1px solid transparent !important;
+
+	}
+	.listTable {
+		width: 100%;
+		margin-bottom: 0 !important;
+	}
+
+}
 /*шаблон за пускане в експлоатация на ДА*/
 .sign-holder {
 	display: inline-block;
