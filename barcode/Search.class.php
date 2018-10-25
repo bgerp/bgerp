@@ -74,7 +74,7 @@ class barcode_Search extends core_Manager
             
             $intfArr = core_Classes::getOptionsByInterface('barcode_SearchIntf');
 
-            $tableTpl = new ET("<table  class='listTable barcodeSearch'>");
+            $tableTpl = new ET("<div class='barcodeSearchHolder'><table class='listTable barcodeSearch'>");
             $resArr = array();
 
             foreach ($intfArr as $intfClsId => $intfCls) {
@@ -106,9 +106,10 @@ class barcode_Search extends core_Manager
                 $resTpl->removeBlocksAndPlaces();
                 $tableTpl->append($resTpl);
             }
+            $tableTpl->append("</table></div>");
         }
 
-        $tableTpl->append("</table");
+
 
         if ($haveRes === false) {
             $tpl->append(tr('Няма открити съвпадания в базата'));
