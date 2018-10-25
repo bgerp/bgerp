@@ -4660,7 +4660,7 @@ div.location.public {
 	position: relative;
 	display: inline-block;
 	padding-right: 210px;
-	.productPreviewHolder {
+	.imgPreview img {
 		float: none;
 		position: absolute;
 		right: 0;
@@ -4668,13 +4668,13 @@ div.location.public {
 
 	}
 }
-.narrow .productPreviewHolder {
+
+.narrow .imgPreview img {
 	float: none;
 	text-align: center;
 }
+
 .barcodeSearch {
-
-
 	.noPadding {
 		padding: 0px !important;
 

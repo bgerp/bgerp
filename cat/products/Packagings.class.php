@@ -710,9 +710,9 @@ class cat_products_Packagings extends core_Detail
         $obj->comment .= $packagingName;
         if ($preview = cat_Products::getPreview($productData->productId, array(200, 200))) {
             if (Mode::is('screenMode', 'wide')) {
-                $obj->comment .=  $preview ;
+                $obj->comment .=  "<span class='imgPreview'>" . $preview . "</span>";
             } else {
-                $obj->comment .= "</td><tr><td colspan='2' align = 'left'>" . $preview ;
+                $obj->comment .= "</td><tr><td colspan='2' align = 'left'><span class='imgPreview'>" . $preview . "</span>";
             }
         }
 

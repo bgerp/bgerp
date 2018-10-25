@@ -4094,13 +4094,13 @@ div.location.public {
   position: relative;
   display: inline-block;
   padding-right: 210px; }
-  .wide .barcodeSearchHolder .productPreviewHolder {
+  .wide .barcodeSearchHolder .imgPreview img {
     float: none;
     position: absolute;
     right: 0;
     top: 0; }
 
-.narrow .productPreviewHolder {
+.narrow .imgPreview img {
   float: none;
   text-align: center; }
 
