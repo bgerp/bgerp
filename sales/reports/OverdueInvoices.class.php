@@ -56,8 +56,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Филтри->Контрагент,placeholder=Всички,single=none,after=dealer');
         $fieldset->FLD(
             'countryGroup',
-            'key(mvc=drdata_CountryGroups,select=name,single=none, allowEmpty)',
-            'caption=Група държави,placeholder=Всички,after=contragent'
+            'key(mvc=drdata_CountryGroups,select=name, allowEmpty)',
+            'caption=Група държави,placeholder=Всички,single=none,after=contragent'
             );
         $fieldset->FLD('salesTotalOverDue', 'double', 'input=none,single=none');
     }
