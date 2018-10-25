@@ -1487,7 +1487,7 @@ table.listTable {
 	}
 }
 
-.listAction table.listTable, .listActiontable.listTable  {
+.listAction table.listTable, table.listTable.listAction  {
 	> tbody > tr > td {
 		max-width: 400px ;
 	}

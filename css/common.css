@@ -1401,7 +1401,7 @@ table.listTable {
     width: 1%; }
 
   .listAction table.listTable > tbody > tr > td,
-  .listActiontable.listTable > tbody > tr > td {
+  table.listTable.listAction > tbody > tr > td {
     max-width: 400px; }
 
 .detailNumbering {
