@@ -736,60 +736,43 @@ class rack_Pallets extends core_Manager
             return $resArr;
         }
         
+        setIfNot($prodAndPack->packagingId, cat_Products::fetchField($prodAndPack->productId, 'measureId'));
+        
         $query = $this->getQuery();
-        $query->where(array("#productId = '[#1#]'", $prodAndPack->productId));
-        $query->where(array("#storeId = '[#1#]'", $storeId));
+        $query->where("#productId = {$prodAndPack->productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $palletCount = $query->count();
+        $palletCountVerbal = core_Type::getByName('int')->toVerbal($palletCount);
         
-        $pCnt = $query->count();
         
-        $query->groupBy('productId');
+        $res = (object)array('title' => cat_Products::getHyperlink($prodAndPack->productId, true), 
+                             'url' => array(), 
+                             'comment' => '',
+                             'priority' => 1);
         
-        $query->limit(1);
+        $quantityNotOnPallets = rack_Products::fetchField(array("#productId = '[#1#]' AND #storeId = '[#2#]'", $prodAndPack->productId, $storeId), 'quantityNotOnPallets');
         
-        $res = new stdClass();
-        
-        $res->title = cat_Products::getTitleById($prodAndPack->productId);
-        
-        $res->priority = 1;
-        
-        // Показваме палетираните
-        while ($rec = $query->fetch()) {
-            if ($rec->state == 'active') {
-                $res->priority = 2;
-            } elseif ($rec->state == 'rejected') {
-                $res->priority = 0;
-            }
-            
-            if ($this->haveRightFor('list', $rec)) {
-                $res->url = array($this, 'list', 'productId' => $rec->productId, 'state' => '');
-                
-                $res->comment = str::getPlural($pCnt, 'палет');
-            }
+        if(!empty($palletCount)){
+            $res->comment .= "{$palletCountVerbal} " . str::getPlural($palletCount, tr('палет'), true);
         }
         
-        // Показваме непалетираните
-        $quantityNotOnPallets = rack_Products::fetchField(array("#productId = '[#1#]' AND #storeId = '[#2#]'", $prodAndPack->productId, $storeId), 'quantityNotOnPallets');
-        if ($quantityNotOnPallets) {
+        if (!empty($quantityNotOnPallets)) {
+            $quantityNotOnPalletsVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantityNotOnPallets);
             $measureId = cat_Products::fetchField($prodAndPack->productId, 'measureId');
-            
-            $packName = cat_UoM::getVerbal($measureId, 'name');
-            
-            $quantityNotOnPallets = str::getPlural($quantityNotOnPallets, $packName);
-            
+            $packName = tr(cat_UoM::getVerbal($measureId, 'name'));
+          
+            $quantityNotOnPalletsVerbal .= " " . str::getPlural($quantityNotOnPallets, $packName, true);
             $res->comment .= $res->comment ? ' ' . tr('и') . ' ' : '';
-            $res->comment .= $quantityNotOnPallets . ' ' . tr('непалетирани');
-            
+            $res->comment .= $quantityNotOnPalletsVerbal . ' ' . tr('непалетирани');
             $res->priority *= 2;
         }
         
-        if ($res->comment) {
-            $res->comment .= ' ' . tr('в склад') . ' "' . store_Stores::getHyperlink($storeId, true) . '"';
+        if (!empty($res->comment)) {
+            $res->comment .= ' ' . tr('в склад') . ' ' . store_Stores::getHyperlink($storeId, true);
         }
         
-        if (!$res->url) {
-            if (cat_Products::haveRightFor('single')) {
-                $res->url = array('cat_Products', 'single', $prodAndPack->productId);
-            }
+        if ($this->haveRightFor('list') && !empty($res->comment)) {
+            $filterUrl = array($this, 'list', 'productId' => $prodAndPack->productId, 'state' => '');
+            $res->comment .= " " . ht::createBtn('Филтриране', $filterUrl, false, false, 'title=Филтриране на палети в склада,ef_icon=img/16/funnel.png');
         }
         
         $resArr[] = $res;
