@@ -15,6 +15,12 @@
 class cat_Serials extends core_Manager
 {
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'barcode_SearchIntf';
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'label_Serials';
@@ -209,5 +215,72 @@ class cat_Serials extends core_Manager
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Търси по подадения баркод
+     *
+     * @param string $str
+     *
+     * @return array
+     *               ->title - заглавие на резултата
+     *               ->url - линк за хипервръзка
+     *               ->comment - html допълнителна информация
+     *               ->priority - приоритет
+     */
+    public function searchByCode($str)
+    {
+        $resArr = array();
+        
+        $str = trim($str);
+        $oStr = $str;
+        $str = ltrim($str, 0);
+        
+        $cQuery = cat_Serials::getQuery();
+        $cQuery->where(array("#serial = '[#1#]'", $str));
+        
+        while ($catRec = $cQuery->fetch()) {
+            if (!$catRec->sourceClassId || !$catRec->sourceObjectId) {
+                continue;
+            }
+            
+            $clsIntf = cls::getInterface('label_SequenceIntf', $catRec->sourceClassId);
+            
+            $res = new stdClass();
+            $res->title = $clsIntf->getLabelName($catRec->sourceObjectId);
+            
+            $clsInst = cls::get($catRec->sourceClassId);
+            $clsRec = $clsInst->fetch($catRec->sourceObjectId);
+            
+            $res->priority = 1;
+            if ($clsRec->state == 'active') {
+                $res->priority = 2;
+            } elseif ($clsRec->state == 'rejected') {
+                $res->priority = 0;
+            }
+            
+            if (strlen($catRec->serial) != strlen($oStr)) {
+                if ($res->priority) {
+                    $res->priority /= 2;
+                }
+            }
+            
+            if ($clsInst instanceof core_Master && $clsInst->haveRightFor('single', $clsRec)) {
+                $res->url = array($clsInst, 'single', $clsRec->id);
+            } elseif ($clsInst instanceof core_Detail) {
+                if ($mId = $clsRec->{$clsInst->masterKey}) {
+                    $clsInst->Master = cls::get($clsInst->Master);
+                    $mRec = $clsInst->Master->fetch($mId);
+                    if ($clsInst->Master->haveRightFor('single', $mRec)) {
+                        $res->url = array($clsInst->Master, 'single', $mRec->id);
+                    }
+                }
+            }
+            
+            $resArr[] = $res;
+        }
+        
+        return $resArr;
     }
 }
