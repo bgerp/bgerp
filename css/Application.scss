@@ -4656,16 +4656,27 @@ div.location.public {
 .printListFilter {
 	margin-bottom: 10px;
 }
-
-.barcodeSearch {
+.wide .barcodeSearchHolder {
 	position: relative;
+	display: inline-block;
+	padding-right: 210px;
 	.productPreviewHolder {
 		float: none;
+		position: absolute;
+		right: 0;
+		top: 0;
 
 	}
+}
+.narrow .productPreviewHolder {
+	float: none;
+	text-align: center;
+}
+.barcodeSearch {
+
+
 	.noPadding {
 		padding: 0px !important;
-		border: 1px solid transparent !important;
 
 	}
 	.listTable {

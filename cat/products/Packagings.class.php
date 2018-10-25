@@ -709,10 +709,14 @@ class cat_products_Packagings extends core_Detail
 
         $obj->comment .= $packagingName;
         if ($preview = cat_Products::getPreview($productData->productId, array(200, 200))) {
-            $obj->comment .= "</td><tr><td colspan='2' align = 'left'>" . $preview ;
+            if (Mode::is('screenMode', 'wide')) {
+                $obj->comment .=  $preview ;
+            } else {
+                $obj->comment .= "</td><tr><td colspan='2' align = 'left'>" . $preview ;
+            }
         }
 
-        $obj->comment .= "</td><tr><td colspan='2' class='noPadding'>";
+        $obj->comment .= "</td><tr><td colspan='2' class='noPadding'><div class='scrolling-holder'>";
 
         $resArr[] = $obj;
         
@@ -836,7 +840,11 @@ class cat_products_Packagings extends core_Detail
             $fields = core_TableView::filterEmptyColumns($documentRows, $fields, 'free,price,storeId');
             $docTableTpl = $table->get($documentRows, $fields);
             
-            $resArr[0]->comment .= $docTableTpl;
+            $resArr[0]->comment .= $docTableTpl .  "</div>";
+            $resArr[0]->comment =  new ET($resArr[0]->comment);
+            if (Mode::is('screenMode', 'narrow')) {
+                jquery_Jquery::run($resArr[0]->comment, 'setBarcodeHolderWidth()');
+            }
         }
         
         return $resArr;

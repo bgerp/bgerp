@@ -4090,13 +4090,22 @@ div.location.public {
 .printListFilter {
   margin-bottom: 10px; }
 
-.barcodeSearch {
-  position: relative; }
-  .barcodeSearch .productPreviewHolder {
-    float: none; }
+.wide .barcodeSearchHolder {
+  position: relative;
+  display: inline-block;
+  padding-right: 210px; }
+  .wide .barcodeSearchHolder .productPreviewHolder {
+    float: none;
+    position: absolute;
+    right: 0;
+    top: 0; }
+
+.narrow .productPreviewHolder {
+  float: none;
+  text-align: center; }
+
   .barcodeSearch .noPadding {
-    padding: 0px !important;
-    border: 1px solid rgba(0, 0, 0, 0) !important; }
+    padding: 0px !important; }
   .barcodeSearch .listTable {
     width: 100%;
     margin-bottom: 0 !important; }
