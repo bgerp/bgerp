@@ -696,8 +696,17 @@ class cat_products_Packagings extends core_Detail
         $productData = cat_Products::getByCode($str);
         if(!is_object($productData)) return $resArr;
         
+        $obj = (object)array('title' => cat_Products::getHyperlink($productData->productId, true), 'url' => array(), 'priority' => 0, 'comment' => '');
+        
         // Извличане на най-важната информация за артикула
         $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,isPublic,folderId,state');
+        $packagingName = tr(cat_UoM::getTitleById($productData->packagingId));
+        $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        deals_helper::getPackInfo($packagingName, $productData->productId, $productData->packagingId, $quantityInPack);
+        $obj->comment .= $packagingName;
+        
+        $resArr[] = $obj;
         
         // Само за активните артикули ще се връщат резултати
         if($productRec->state != 'active') return $resArr;
@@ -705,7 +714,7 @@ class cat_products_Packagings extends core_Detail
         // Има ли последно посещавани нишки от текущия потребител?
         $threadIds = bgerp_Recently::getLastThreadsId(null, null, 3600);
         if (!count($threadIds)) return $resArr;
-        
+       
         // Кои документи, ще се разглеждат
         $DocumentIds = array();
         $Documents = array('sales_Sales', 'sales_Invoices', 'sales_Services', 'purchase_Purchases', 'purchase_Services', 'purchase_Invoices', 'store_Receipts', 'store_ShipmentOrders', 'store_Transfers', 'planning_ReturnNotes', 'planning_ConsumptionNotes');
@@ -723,11 +732,6 @@ class cat_products_Packagings extends core_Detail
         if (!count($containers)) return $resArr;
         
         $onlyInFolders = cat_products_SharedInFolders::getSharedFolders($productRec);
-        
-        $productLink = cat_Products::getHyperlink($productData->productId, true);
-        $packagingName = tr(cat_UoM::getTitleById($productData->packagingId));
-        $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
-        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
         
         // За всеки намерен документ
         foreach($containers as $containerRec){
@@ -771,7 +775,26 @@ class cat_products_Packagings extends core_Detail
                     // Ако може да се добавя артикула към детайла на документа
                     if(!$Detail->haveRightFor('add', (object)array($Detail->masterKey => $Doc->that))) continue;
                     
-                    $comment = "{$productLink} {$packagingName}";
+                    $addUrl = array($Detail, 'add', "{$Detail->masterKey}" => $Doc->that, "{$Detail->productFld}" => $productData->productId, 'packagingId' => $productData->packagingId);
+                    $addLink = ht::createBtn("#" . $Doc->getHandle(), $addUrl, false, false, 'ef_icon=img/16/shopping.png');
+                    $comment = "<br>{$addLink}";
+                    
+                    // Ако ще може да му се показва продажната цена
+                    if(!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))){
+                        
+                        $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
+                        $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
+                        
+                        $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);
+                        if(!isset($policyInfo->price)){
+                            $price = 'N/A';
+                        } else {
+                            $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($policyInfo->price * $quantityInPack);
+                        }
+                        
+                        $comment .= " " . tr('Ед. цена') . ": {$price} {$docRec->currencyId}";
+                    }
+                    
                     if($productRec->canStore == 'yes'){
                          if($storeId = $Doc->fetchField($Doc->storeFieldName)){
                              $quantity = store_Products::getQuantity($productRec->id, $storeId, true);
@@ -780,25 +803,10 @@ class cat_products_Packagings extends core_Detail
                              $comment .= ", " . tr('Разполагаемо в') . " " . store_Stores::getHyperlink($storeId, true) .  " {$packQuantityVerbal} " . str::getPlural($packQuantity, $packagingName, true);
                          }
                     }
-                        
-                    // Ако ще може да му се показва продажната цена
-                    if(!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))){
-                         $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
-                         $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
-                            
-                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);
-                         if(!isset($policyInfo->price)){
-                             $price = 'N/A';
-                         } else {
-                             $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($policyInfo->price * $quantityInPack);
-                         }
-                            
-                         $comment .= ", " . tr('Ед. цена') . ": {$price} {$docRec->currencyId}";
+                    
+                    if(!empty($comment)){
+                        $resArr[0]->comment .= "{$comment}";
                     }
-                        
-                    // Връщане на резултат за документа
-                    $url = array($Detail, 'add', "{$Detail->masterKey}" => $Doc->that, "{$Detail->productFld}" => $productData->productId, 'packagingId' => $productData->packagingId);
-                    $resArr[] = (object)array('title' => "#" . $Doc->getHandle(), 'url' => $url, 'priority' => 0, 'comment' => $comment);
                 }
             } catch(core_exception_Expect $e){
               continue;
