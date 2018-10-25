@@ -699,12 +699,18 @@ class cat_products_Packagings extends core_Detail
         $obj = (object)array('title' => cat_Products::getHyperlink($productData->productId, true), 'url' => array(), 'priority' => 0, 'comment' => '');
         
         // Извличане на най-важната информация за артикула
-        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,isPublic,folderId,state');
-        $packagingName = tr(cat_UoM::getTitleById($productData->packagingId));
+        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,isPublic,folderId,state,measureId');
+        setIfNot($productData->packagingId, $productRec->measureId);
+        
+        $packagingName = $packagingNameShort = tr(cat_UoM::getTitleById($productData->packagingId));
         $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
         deals_helper::getPackInfo($packagingName, $productData->productId, $productData->packagingId, $quantityInPack);
-        $obj->comment .= $packagingName;
+        $obj->comment .= "<div class='barcode-search-packagingId'>{$packagingName}</div>";
+        
+        $preview = cat_Products::getPreview($productData->productId);
+        //$obj->comment .= " " . $preview;
+        
         
         $resArr[] = $obj;
         
@@ -732,6 +738,7 @@ class cat_products_Packagings extends core_Detail
         if (!count($containers)) return $resArr;
         
         $onlyInFolders = cat_products_SharedInFolders::getSharedFolders($productRec);
+        $documentRows = array();
         
         // За всеки намерен документ
         foreach($containers as $containerRec){
@@ -777,7 +784,8 @@ class cat_products_Packagings extends core_Detail
                     
                     $addUrl = array($Detail, 'add', "{$Detail->masterKey}" => $Doc->that, "{$Detail->productFld}" => $productData->productId, 'packagingId' => $productData->packagingId);
                     $addLink = ht::createBtn("#" . $Doc->getHandle(), $addUrl, false, false, 'ef_icon=img/16/shopping.png');
-                    $comment = "<br>{$addLink}";
+                    
+                    $documentRow = (object)array('addLink' => $addLink);
                     
                     // Ако ще може да му се показва продажната цена
                     if(!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))){
@@ -790,27 +798,43 @@ class cat_products_Packagings extends core_Detail
                             $price = 'N/A';
                         } else {
                             $price = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($policyInfo->price * $quantityInPack);
+                            $price .= " <span class='cCode'>{$docRec->currencyId}</span>";
                         }
                         
-                        $comment .= " " . tr('Ед. цена') . ": {$price} {$docRec->currencyId}";
+                        $documentRow->price = $price;
                     }
                     
                     if($productRec->canStore == 'yes'){
                          if($storeId = $Doc->fetchField($Doc->storeFieldName)){
                              $quantity = store_Products::getQuantity($productRec->id, $storeId, true);
                              $packQuantity = $quantity / $quantityInPack;
-                             $packQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($packQuantity);
-                             $comment .= ", " . tr('Разполагаемо в') . " " . store_Stores::getHyperlink($storeId, true) .  " {$packQuantityVerbal} " . str::getPlural($packQuantity, $packagingName, true);
+                             $packQuantityVerbal = (empty($packQuantity)) ? tr("няма наличност") : core_Type::getByName('double(smartRound)')->toVerbal($packQuantity);
+                             
+                             $documentRow->free = $packQuantityVerbal;
+                             $documentRow->storeId = store_Stores::getHyperlink($storeId, true);
                          }
                     }
                     
-                    if(!empty($comment)){
-                        $resArr[0]->comment .= "{$comment}";
-                    }
+                    $documentRows[] = $documentRow;
                 }
             } catch(core_exception_Expect $e){
               continue;
             }
+        }
+        
+        if(count($documentRows)){
+            $fieldset = new core_FieldSet();
+            $fieldset->FLD('addLink', 'varchar');
+            $fieldset->FLD('free', 'double');
+            $fieldset->FLD('price', 'double');
+            $fieldset->FLD('storeId', 'double');
+            $table = cls::get('core_TableView', array('mvc' => $fieldset));
+            
+            $fields = arr::make("addLink=Документи,price=Ед. цена,free=Разполагаемо|* ({$packagingNameShort}),storeId=Склад", true);
+            $fields = core_TableView::filterEmptyColumns($documentRows, $fields, 'free,price,storeId');
+            $docTableTpl = $table->get($documentRows, $fields);
+            
+            $resArr[0]->comment .= $docTableTpl;
         }
         
         return $resArr;
