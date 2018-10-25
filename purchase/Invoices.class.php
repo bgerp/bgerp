@@ -215,6 +215,9 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         if ($origin->isInstanceOf('findeals_AdvanceReports')) {
             $form->setDefault('vatRate', $origin->fetchField('chargeVat'));
+            $form->setDefault('currencyId', $origin->fetchField('currencyId'));
+            $form->setDefault('rate', $origin->fetchField('currencyRate'));
+            
             $additionalInfo = tr('|Към авансов отчет|*: #') . $origin->getHandle() . PHP_EOL;
             $form->setDefault('additionalInfo', $additionalInfo);
         }
@@ -235,7 +238,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
-        
+      
         if ($data->aggregateInfo) {
             if ($data->aggregateInfo->get('bankAccountId')) {
                 $form->rec->accountId = $data->aggregateInfo->get('bankAccountId');
@@ -267,6 +270,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             $fRec = fileman::fetchByFh($clonedFh);
             doc_DocumentPlg::showOriginalFile($fRec, $form);
         }
+        
     }
     
     
