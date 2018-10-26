@@ -136,7 +136,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             
             $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
             
-            if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $unitedCheck) {
+            if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
+                ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
+                ! $unitedCheck) {
                 continue;
             }
             
@@ -251,7 +253,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             
             $purUnitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $purchasesUN);
             
-            if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $purUnitedCheck) {
+            if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
+                ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
+                ! $purUnitedCheck) {
                 continue;
             }
             
