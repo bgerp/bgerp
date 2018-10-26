@@ -306,6 +306,32 @@ class cat_products_SharedInFolders extends core_Manager
     
     
     /**
+     * Кои са споделените папки към един артикул
+     *
+     * @param int $folderId - ид на папка
+     *
+     * @return array $res - масив със споделените артикули
+     */
+    public static function getSharedFolders($productId)
+    {
+        $res = array();
+        $productRec = cat_Products::fetchRec($productId, 'isPublic,folderId');
+        if($productRec->isPublic == 'yes') return $res;
+        
+        $res[$productRec->folderId] = $productRec->folderId;
+        
+        $query = self::getQuery();
+        $query->where(array('#productId = [#1#]', $productRec->id));
+        $query->orderBy('id', 'DESC');
+        while ($rec = $query->fetch()) {
+            $res[$rec->folderId] = $rec->folderId;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Кои са споделените артикули към дадена папка
      *
      * @param int $folderId - ид на папка

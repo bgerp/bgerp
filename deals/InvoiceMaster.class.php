@@ -630,7 +630,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         $form->setDefault('type', $type);
         
-        if ($firstDocument->haveInterface('bgerp_DealAggregatorIntf')) {
+        if ($firstDocument->haveInterface('bgerp_DealAggregatorIntf') && !$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $aggregateInfo = $firstDocument->getAggregateDealInfo();
             
             $form->rec->vatRate = $aggregateInfo->get('vatType');

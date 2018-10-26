@@ -108,9 +108,9 @@ class rack_Pallets extends core_Manager
     /**
      * Връща наличните палети за артикула
      *
-     * @param int $productId                   - ид на артикул
-     * @param int $storeId                     - ид на склад
-     * @param boolean $withoutPendingMovements - към които да има или няма чакащи движения
+     * @param int  $productId               - ид на артикул
+     * @param int  $storeId                 - ид на склад
+     * @param bool $withoutPendingMovements - към които да има или няма чакащи движения
      *
      * @return array $pallets - масив с палети
      */
@@ -124,8 +124,10 @@ class rack_Pallets extends core_Manager
         while ($rec = $query->fetch()) {
             
             // Ако се изискват само палети, към които няма чакащи движения, другите се пропускат
-            if($withoutPendingMovements === true){
-                if(rack_Movements::fetchField("#palletId = {$rec->id} AND #state = 'pending'")) continue;
+            if ($withoutPendingMovements === true) {
+                if (rack_Movements::fetchField("#palletId = {$rec->id} AND #state = 'pending'")) {
+                    continue;
+                }
             }
             
             $pallets[$rec->id] = (object) array('quantity' => $rec->quantity, 'position' => $rec->position);
@@ -253,7 +255,7 @@ class rack_Pallets extends core_Manager
         }
         
         // Ако има полета за обновяване, обновяват се
-        if($saveAgain === true){
+        if ($saveAgain === true) {
             $mvc->save_($rec, $updateFields);
         }
         
@@ -402,7 +404,7 @@ class rack_Pallets extends core_Manager
             $rRec->state = 'active';
         }
         
-        if($save === true){
+        if ($save === true) {
             rack_Products::save($rRec);
         }
         
@@ -621,10 +623,9 @@ class rack_Pallets extends core_Manager
         }
         
         if (empty($quantity)) {
-            
             $query = rack_Pallets::getQuery();
             $query->where("#productId = {$productId} AND #storeId = {$storeId}");
-            if(isset($excludePosition)){
+            if (isset($excludePosition)) {
                 $query->where("#position != '{$excludePosition}'");
             }
             
@@ -696,8 +697,8 @@ class rack_Pallets extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'edit' && isset($rec)){
-            if($rec->state == 'closed'){
+        if ($action == 'edit' && isset($rec)) {
+            if ($rec->state == 'closed') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -710,10 +711,10 @@ class rack_Pallets extends core_Manager
      * @param string $str
      *
      * @return array
-     * ->title - заглавие на резултата
-     * ->url - линк за хипервръзка
-     * ->comment - html допълнителна информация
-     * ->priority - приоритет
+     *               ->title - заглавие на резултата
+     *               ->url - линк за хипервръзка
+     *               ->comment - html допълнителна информация
+     *               ->priority - приоритет
      */
     public function searchByCode($str)
     {
@@ -721,63 +722,57 @@ class rack_Pallets extends core_Manager
         
         $storeId = store_Stores::getCurrent('id', false);
         
-        if (!$storeId || !store_Stores::haveRightFor('list', $storeId)) return $resArr;
+        if (!$storeId || !store_Stores::haveRightFor('list', $storeId)) {
+            
+            return $resArr;
+        }
         
         $str = trim($str);
         
         $prodAndPack = cat_Products::getByCode($str);
         
-        if (!$prodAndPack || !$prodAndPack->productId) return $resArr;
-        
-        $query = $this->getQuery();
-        $query->where(array("#productId = '[#1#]'", $prodAndPack->productId));
-        $query->where(array("#storeId = '[#1#]'", $storeId));
-        
-        $pCnt = $query->count();
-        
-        $query->groupBy('productId');
-        
-        $query->limit(1);
-        
-        $res = new stdClass();
-        
-        $res->title = cat_Products::getVerbal($prodAndPack->productId, 'name') . ' (' . cat_Products::getHandle($prodAndPack->productId) . ')';
-        
-        $res->priority = 1;
-        
-        // Показваме палетираните
-        while($rec = $query->fetch()) {
+        if (!$prodAndPack || !$prodAndPack->productId) {
             
-            if ($rec->state == 'active') {
-                $res->priority = 2;
-            } else if ($rec->state == 'rejected') {
-                $res->priority = 0;
-            }
-            
-            if ($this->haveRightFor('list', $rec)) {
-                $res->url = array($this, 'list', 'productId' => $rec->productId, 'state' => '');
-                
-                $res->comment = str::getPlural($pCnt, 'палет');
-            }
+            return $resArr;
         }
         
-        // Показваме непалетираните
+        setIfNot($prodAndPack->packagingId, cat_Products::fetchField($prodAndPack->productId, 'measureId'));
+        
+        $query = $this->getQuery();
+        $query->where("#productId = {$prodAndPack->productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $palletCount = $query->count();
+        $palletCountVerbal = core_Type::getByName('int')->toVerbal($palletCount);
+        
+        
+        $res = (object)array('title' => cat_Products::getHyperlink($prodAndPack->productId, true), 
+                             'url' => array(), 
+                             'comment' => '',
+                             'priority' => 1);
+        
         $quantityNotOnPallets = rack_Products::fetchField(array("#productId = '[#1#]' AND #storeId = '[#2#]'", $prodAndPack->productId, $storeId), 'quantityNotOnPallets');
-        if ($quantityNotOnPallets) {
+        
+        if(!empty($palletCount)){
+            $res->comment .= "{$palletCountVerbal} " . str::getPlural($palletCount, tr('палет'), true);
+        }
+        
+        if (!empty($quantityNotOnPallets)) {
+            $quantityNotOnPalletsVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantityNotOnPallets);
             $measureId = cat_Products::fetchField($prodAndPack->productId, 'measureId');
-            
-            $packName = cat_UoM::getVerbal($measureId, 'name');
-            
-            $quantityNotOnPallets = str::getPlural($quantityNotOnPallets, $packName);
-            
+            $packName = tr(cat_UoM::getVerbal($measureId, 'name'));
+          
+            $quantityNotOnPalletsVerbal .= " " . str::getPlural($quantityNotOnPallets, $packName, true);
             $res->comment .= $res->comment ? ' ' . tr('и') . ' ' : '';
-            $res->comment .= $quantityNotOnPallets . ' ' . tr('непалетирани');
-            
+            $res->comment .= $quantityNotOnPalletsVerbal . ' ' . tr('непалетирани');
             $res->priority *= 2;
         }
         
-        if ($res->comment) {
-            $res->comment .= ' ' . tr('в склад') . ' "' . store_Stores::fetchField($storeId, 'name') . '"';
+        if (!empty($res->comment)) {
+            $res->comment .= ' ' . tr('в склад') . ' ' . store_Stores::getHyperlink($storeId, true);
+        }
+        
+        if ($this->haveRightFor('list') && !empty($res->comment)) {
+            $filterUrl = array($this, 'list', 'productId' => $prodAndPack->productId, 'state' => '');
+            $res->comment .= " " . ht::createBtn('Филтриране', $filterUrl, false, false, 'title=Филтриране на палети в склада,ef_icon=img/16/funnel.png');
         }
         
         $resArr[] = $res;

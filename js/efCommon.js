@@ -1736,7 +1736,18 @@ function setThreadElemWidth() {
     $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
+
 }
+
+
+/**
+ * Задава ширина на таблицата за резултатите на баркодовете в мобилен
+ */
+function setBarcodeHolderWidth(){
+    var scrollWidth = parseInt($(window).width()) - 20;
+    $('.barcodeSearchHolder .scrolling-holder').css('maxWidth', scrollWidth);
+}
+
 
 function checkForElementWidthChange() {
     $(window).resize(function(){
