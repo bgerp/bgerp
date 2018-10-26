@@ -139,8 +139,8 @@ class sales_TransportValues extends core_Manager
         $weight = cat_Products::getTransportWeight($productId, $quantity);
         $volume = cat_Products::getTransportVolume($productId, $quantity);
         $volumicWeight = $TransportCostDriver->getVolumicWeight($weight, $volume, $deliveryTermId, $deliveryData);
-       
-        $totalVolumicWeight = self::normalizeTotalWeight($totalVolumicWeight, $productId, $TransportCostDriver);
+        
+        $totalVolumicWeight = self::normalizeTotalWeight($totalVolumicWeight, $productId, $TransportCostDriver, $deliveryTermId, $deliveryData);
         $totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $deliveryData);
         
         $fee = $totalFee['fee'];
@@ -170,7 +170,7 @@ class sales_TransportValues extends core_Manager
      * @param float              $totalWeight
      * @param cond_TransportCalc $TransportCostDriver
      */
-    private static function normalizeTotalWeight($totalWeight, $productId, cond_TransportCalc $TransportCostDriver)
+    private static function normalizeTotalWeight($totalWeight, $productId, cond_TransportCalc $TransportCostDriver, $deliveryTermId, $deliveryData)
     {
         // Ако продукта има параметър със сис ид aggregateQuantity, то взема общото влуметрично тегло и го сравнява с $totalWeight
         $aggregateQuantityId = cat_Params::force('aggregateQuantity', 'Обобщено количество', 'double', null, '');
@@ -180,7 +180,7 @@ class sales_TransportValues extends core_Manager
             $aggregateWeight = cat_Products::getTransportWeight($productId, $aggregateQuantity);
             $aggregateVolume = cat_Products::getTransportVolume($productId, $aggregateQuantity);
             if ($aggregateWeight && $aggregateVolume) {
-                $aggregateWeight = $TransportCostDriver->getVolumicWeight($aggregateWeight, $aggregateVolume);
+                $aggregateWeight = $TransportCostDriver->getVolumicWeight($aggregateWeight, $aggregateVolume, $deliveryTermId, $deliveryData);
             }
             if ($aggregateWeight > $totalWeight) {
                 $totalWeight = $aggregateWeight;
