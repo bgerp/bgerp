@@ -61,13 +61,13 @@ class rack_Movements extends core_Manager
     /**
      * Кой може да приключи движение
      */
-    public $canDone = 'ceo,admin,rack';
+    public $canDone = 'ceo,rack';
     
     
     /**
      * Кой може да заяви движение
      */
-    public $canToggle = 'ceo,admin,rack';
+    public $canToggle = 'ceo,rack';
     
     
     /**
@@ -80,6 +80,18 @@ class rack_Movements extends core_Manager
      * Полета по които да се търси
      */
     public $searchFields = 'palletId,position,positionTo,note';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,rack';
+    
+    
+    /**
+     * Кой има право да изтрива системните данни?
+     */
+    public $canDeletesysdata = 'ceo,rack';
     
     
     /**
