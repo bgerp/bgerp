@@ -19,8 +19,6 @@ class email_plg_IncomingsTranslate extends core_Plugin
 {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
-        if (Request::get('ajax_mode')) return ;
-        
         $translateLg = email_Setup::get('INCOMINGS_TRANSLATE_LG');
         $translateLgArr = type_Keylist::toArray($translateLg);
         
@@ -42,9 +40,11 @@ class email_plg_IncomingsTranslate extends core_Plugin
                         google_Translate1::getMarkupTpl($row->textPart)
                     );
                 
-                $row->textPart->push(google_Translate1::getElementJsUrl(), 'JS');
-                $row->textPart->appendOnce(google_Translate1::getInitJs(), 'SCRIPTS');
-                $row->textPart->appendOnce(google_Translate1::getCss(), 'STYLES');
+                if (!Request::get('ajax_mode')) {
+                    $row->textPart->push(google_Translate1::getElementJsUrl(), 'JS');
+                    $row->textPart->appendOnce(google_Translate1::getInitJs(), 'SCRIPTS');
+                    $row->textPart->appendOnce(google_Translate1::getCss(), 'STYLES');
+                }
             }
         }
     }
