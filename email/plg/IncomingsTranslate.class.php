@@ -19,6 +19,8 @@ class email_plg_IncomingsTranslate extends core_Plugin
 {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
+        if (Request::get('ajax_mode')) return ;
+        
         $translateLg = email_Setup::get('INCOMINGS_TRANSLATE_LG');
         $translateLgArr = type_Keylist::toArray($translateLg);
         
