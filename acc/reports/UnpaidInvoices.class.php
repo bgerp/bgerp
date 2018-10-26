@@ -107,7 +107,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $sQuery->where("#state != 'rejected'");
         
         $sQuery->where(array(
-            "#createdOn < '[#1#]'",
+            "#date < '[#1#]'",
             $rec->checkDate . ' 23:59:59'
         ));
         
@@ -216,8 +216,8 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $iRec = array();
         
         $purchasesQuery = purchase_Purchases::getQuery();
-
-//         $purchasesQuery->where("#closedDocuments != ''");
+        
+        $purchasesQuery->where("#closedDocuments != ''");
         
         $pQuery = purchase_Invoices::getQuery();
         
