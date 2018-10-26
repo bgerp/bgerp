@@ -50,6 +50,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $form = &$data->form;
         $rec = &$form->rec;
         
+        if(empty($rec->name) && !empty($rec->proto)){
+            $form->setDefault('name', cat_Products::fetchField($rec->proto, 'name'));
+        }
+        
         if (cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)) {
             $form->setField('photo', 'input=none');
             $form->setField('measureId', 'display=hidden');

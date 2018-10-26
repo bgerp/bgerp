@@ -73,8 +73,10 @@ class barcode_Search extends core_Manager
             $haveRes = false;
             
             $intfArr = core_Classes::getOptionsByInterface('barcode_SearchIntf');
-            
+
+            $tableTpl = new ET("<div class='barcodeSearchHolder'><table class='listTable barcodeSearch'>");
             $resArr = array();
+
             foreach ($intfArr as $intfClsId => $intfCls) {
                 if (!cls::load($intfClsId, TRUE)) continue;
                 
@@ -84,16 +86,15 @@ class barcode_Search extends core_Manager
                 
                 $resArr = array_merge($resArr, $Intf->searchByCode($form->rec->search));
             }
-            
+
             if (!empty($resArr)) {
                 core_Array::sortObjects($resArr, 'priority', 'desc');
                 $haveRes = true;
             }
-            
+
             foreach ($resArr as $r) {
-                
-                $rowTpl = new ET("<div><span>[#title#]</span><span style='margin-left: 15px;'>[#comment#]</span></div>");
-                
+                $resTpl  = new ET("<tr><td>[#title#]</td><td>[#comment#]</td></tr>");
+
                 if (!$r->title) {
                     $r->title = tr('Липсва заглавие');
                 }
@@ -101,15 +102,19 @@ class barcode_Search extends core_Manager
                 if ($r->url) {
                     $r->title = ht::createLink($r->title, $r->url);
                 }
-                
-                $rowTpl->placeObject($r);
-                
-                $tpl->append($rowTpl);
+                $resTpl->placeObject($r);
+                $resTpl->removeBlocksAndPlaces();
+                $tableTpl->append($resTpl);
             }
+            $tableTpl->append("</table></div>");
         }
-        
+
+
+
         if ($haveRes === false) {
             $tpl->append(tr('Няма открити съвпадания в базата'));
+        } else {
+            $tpl->append($tableTpl);
         }
         
         return $this->renderWrapping($tpl);
