@@ -203,6 +203,40 @@ class eshop_Carts extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
+        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,input,silent');
+        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител)', 'caption=Вид,input,silent');
+        $data->listFilter->input();
+        
+        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
+        
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'domain,type';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->domain)){
+                $data->query->where("#domainId = {$filter->domain}");
+            }
+            
+            if(!empty($filter->type)){
+                switch($filter->type){
+                    case 'active':
+                    case 'draft':
+                        $data->query->where("#state = '{$filter->type}'");
+                        break;
+                    case 'empty':
+                        $data->query->where("#productCount = 0 OR #productCount IS NULL");
+                        break;
+                    case 'users':
+                        $data->query->where("#userId IS NOT NULL OR (#email IS NOT NULL OR #email != '')");
+                        break;
+                    case 'anonymous':
+                        $data->query->where("#userId IS NULL AND #email IS NULL");
+                        break;
+                }
+            }
+        }
     }
 
     
@@ -1422,20 +1456,24 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
-        
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
-        if (isset($rec->saleId)) {
-            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
-        }
-        $row->domainId = cms_Domains::getHyperlink($rec->domainId);
-        
-        $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
-        
-        foreach (array('total', 'totalNoVat', 'deliveryNoVat') as $fld){
-            if(isset($rec->{$fld})){
-                ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
-                $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
+        if(isset($fields['-list'])){
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            if (isset($rec->saleId)) {
+                $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            }
+            $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+            
+            $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
+            foreach (array('total', 'totalNoVat', 'deliveryNoVat') as $fld){
+                if(isset($rec->{$fld})){
+                    ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
+                    $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
+                }
+            }
+            
+            if(!empty($rec->email) && $rec->state == 'draft'){
+                $row->id = ht::createHint($row->id, 'Има попълнени данни за поръчка|*!', 'notice', false);
             }
         }
     }
