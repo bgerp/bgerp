@@ -515,7 +515,6 @@ class marketing_Inquiries2 extends embed_Manager
     		*
     		* @see #Sig281
     		*/
-            $Driver = $this->getDriver($rec->id);
             $body = $this->getDocumentBody($rec->id, 'xhtml');
             $body = $body->getContent();
             
