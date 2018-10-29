@@ -385,9 +385,15 @@ body {
 }
 
 .inner-fav-panel {
-    padding: 15px;
+    padding: 12px;
 }
-
+.narrow .inner-fav-panel {
+    padding: 8px;
+    .bookmarkText {
+      font-size: 0.95em;
+      margin-right: 3px;
+    }
+}
 .sideBarTitle {
     color: #fffb99;
 }
@@ -410,7 +416,7 @@ body {
     display: inline-block;
     float: right;
     top: 10px;
-    margin-left: 5px;
+    margin-left: 3px;
     opacity: 0.8;
     transition: opacity 0.5s;
     img {
@@ -421,7 +427,7 @@ body {
     }
 }
 .narrow .bookmarkLink {
-	margin-left: 7px;
+	margin-left: 5px;
     margin-top: 2px;
 	img {
 	   width: 16px;
