@@ -151,12 +151,14 @@ class barcode_Search extends core_Manager
     {
         $this->requireRightFor('list');
         
+        $retUrl = array($this, 'search' => $search);
+        
         $search = Request::get('search');
         
-        if (!trim($search)) {
+        $userAgent = log_Browsers::getUserAgentOsName();
+        
+        if (!trim($search) && ($userAgent == 'Android')) {
             $retUrl = $this->getScannerActivateUrl();
-        } else {
-            $retUrl = array($this, 'search' => $search);
         }
         
         return new Redirect($retUrl);
