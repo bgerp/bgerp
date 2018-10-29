@@ -283,10 +283,6 @@ class eshop_Settings extends core_Manager
             
             $placeholderValue = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
             $form->setParams('addProductText', array('placeholder' => $placeholderValue));
-            
-            $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
-            $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
-            $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
         }
         
         if(isset($rec->currencyId)){
@@ -306,6 +302,10 @@ class eshop_Settings extends core_Manager
                 $form->setDefault('inboxId', $defaultInboxId);
             }
         }
+        
+        $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
+        $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
+        $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
     }
     
     
