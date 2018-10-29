@@ -276,6 +276,8 @@ class eshop_Carts extends core_Master
 
                 $msg = $addText->getContent();
                 $success = true;
+                
+                vislog_History::add("Добавяне на артикул «{$productName}» в количка №{$cartId}");
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $msg = '|Артикулът не е добавен|*!';
@@ -340,6 +342,9 @@ class eshop_Carts extends core_Master
             $ip = core_Users::getRealIpAddr();
             $rec = (object) array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft', 'productCount' => 0);
             self::save($rec);
+            
+            $domainName = cms_Domains::getVerbal($domainId, 'titleExt');
+            vislog_History::add("Създаване на количка №{$rec->id} в {$domainName}");
         }
         
         return $rec->id;
@@ -554,6 +559,8 @@ class eshop_Carts extends core_Master
         if(!empty($description)){
             self::forceBankIncomeDocument($description, $saleRec, $accountId);
         }
+        
+        vislog_History::add("Финализиране на количка №{$rec->id}");
         
         if (is_array($colabUrl) && count($colabUrl)) {
             
@@ -1001,8 +1008,9 @@ class eshop_Carts extends core_Master
         $tpl = self::renderView($rec);
         $tpl->prepend("<div id = 'cart-view-single'>");
         $tpl->append('</div>');
-        
         Mode::set('wrapper', 'cms_page_External');
+        
+        vislog_History::add("Разглеждане на количка №{$rec->id}");
         
         return $tpl;
     }
@@ -1447,6 +1455,7 @@ class eshop_Carts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $this->requireRightFor('checkout', $rec);
+        vislog_History::add("Въвеждане на данни за количка №{$rec->id}");
         
         $settings = cms_Domains::getSettings();
         $countries = keylist::toArray($settings->countries);
