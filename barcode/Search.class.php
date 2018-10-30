@@ -151,9 +151,9 @@ class barcode_Search extends core_Manager
     {
         $this->requireRightFor('list');
         
-        $retUrl = array($this, 'search' => $search);
-        
         $search = Request::get('search');
+        
+        $retUrl = array($this, 'search' => $search);
         
         $userAgent = log_Browsers::getUserAgentOsName();
         
