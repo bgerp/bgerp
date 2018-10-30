@@ -211,7 +211,7 @@ class eshop_Settings extends core_Manager
                 if (!empty($rec->{$name})) {
                     $missing = array();
                     foreach ($placeholders as $placeholder) {
-                        if (strpos($rec->emailBodyWithReg, $placeholder) === false) {
+                        if (strpos($rec->{$name}, $placeholder) === false) {
                             $missing[] = $placeholder;
                         }
                     }
