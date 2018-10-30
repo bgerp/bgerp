@@ -131,6 +131,11 @@ class eshop_Settings extends core_Manager
     
     
     /**
+     * Колко секунди преди изтриване да се изпраща нотифициращ имейл
+     */
+    const DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION = 86400;
+    
+    /**
      * Колко секунди да е живота на забравените празни колички
      */
     const DEFAULT_LIFETIME_EMPTY_CARTS = 3600;
@@ -177,10 +182,12 @@ class eshop_Settings extends core_Manager
         $this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
         $this->FLD('emailBodyWithReg', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->С регистрация');
         $this->FLD('emailBodyWithoutReg', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Без регистрация');
-        $this->FLD('emailBodyNotify', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Незавършена');
         $this->FLD('lifetimeForEmptyDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->Празни');
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
+        $this->FLD('emailBodyNotify', 'richtext(rows=3)', 'caption=Нотификация за незаръвшена поръчка->Имейл');
+        $this->FLD('timeBeforeDelete', 'time', 'caption=Нотификация за незаръвшена поръчка->Изпращане,unit=преди изтриване');
+        
         $this->FLD('freeDelivery', 'double', 'caption=Безплатна доставка->Сума');
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
@@ -326,6 +333,7 @@ class eshop_Settings extends core_Manager
         $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
         $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
         $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
+        $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION));
     }
     
     
@@ -411,6 +419,10 @@ class eshop_Settings extends core_Manager
             
             if (empty($settingRec->lifetimeForEmptyDraftCarts)) {
                 $settingRec->lifetimeForEmptyDraftCarts = self::DEFAULT_LIFETIME_EMPTY_CARTS;
+            }
+            
+            if (empty($settingRec->timeBeforeDelete)) {
+                $settingRec->timeBeforeDelete = self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION;
             }
             
             if (empty($settingRec->addToCartBtn)) {

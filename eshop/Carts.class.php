@@ -209,7 +209,6 @@ class eshop_Carts extends core_Master
         
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
-        
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'domain,type';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -1902,7 +1901,6 @@ class eshop_Carts extends core_Master
             
             // Колко е очаквания и 'живот'
             $settings = cms_Domains::getSettings($rec->domainId);
-            
             if(empty($rec->productCount)){
                 $lifetime = $settings->lifetimeForEmptyDraftCarts;
             } else {
@@ -1913,9 +1911,18 @@ class eshop_Carts extends core_Master
            
             // Ако и е изтекла продължителността и е чернова се изтрива
             $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
+            $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $endOfLife);
             
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
+            } elseif(!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now){
+                
+                // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
+                $isNotified = core_Cache::get('eshop_Carts', "isNotified{$rec->id}");
+                if ($isNotified !== 'y') {
+                    self::sendNotificationEmail($rec);
+                    core_Cache::set('eshop_Carts', "isNotified{$rec->id}", 'y', 10080);
+                }
             }
         }
     }
@@ -1990,5 +1997,62 @@ class eshop_Carts extends core_Master
         } catch(core_exception_Expect $e){
             reportException($e);
         }
+    }
+    
+    
+    /**
+     * Изпращане на напомнящ имейл за забравена поръчка
+     *
+     * @param stdClass $rec
+     */
+    private function sendNotificationEmail($rec)
+    {
+        // Има ли настройки за изпращане на имейл
+        $settings = cms_Domains::getSettings($rec->domainId);
+        if (empty($rec->email) || empty($settings->inboxId)) {
+            
+            return;
+        }
+        
+        $domainName = '';
+        $selfUrl = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        
+        $lang = cms_Domains::fetchField($rec->domainId, 'lang');
+        core_Lg::push($lang);
+        
+        // Подготовка на тялото на имейла
+        $body = (object)array('html' => new core_ET($settings->emailBodyNotify), 'text' => new core_ET($settings->emailBodyNotify));
+        foreach (array('html' => 'xhtml', 'text' => 'plain') as $var => $mode){
+            Mode::push('text', $mode);
+            
+            $link = ht::createLink($domainName, $selfUrl)->getContent();
+            if($mode == 'plain'){
+                $link = html2text_Converter::toRichText($link);
+                $link = cls::get('type_Richtext')->toVerbal($link);
+            }
+            
+            $body->{$var}->replace(core_Type::getByName('varchar')->toVerbal($rec->personNames), 'NAME');
+            $body->{$var}->replace($link, 'LINK');
+            $body->{$var}->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
+            Mode::pop('text');
+            
+            $body->{$var} = $body->{$var}->getContent();
+        }
+        
+        $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true);
+        $subject = tr("Незавършена поръчка в") . " {$domainName}";
+        
+        // Опит за изпращане на имейл-а
+        $error = null;
+        $isSended = email_Sent::sendOne($settings->inboxId, $rec->email, $subject, $body, $options, null, $error);
+        
+        if ($isSended) {
+            eshop_Carts::logWrite('АВТОМАТИЧНО изпращане на имейл за забравена поръчка', $rec->id);
+        } else {
+            eshop_Carts::logErr("Грешка при изпращане на имейл за забравена поръчка: '{$error}'", $rec->id);
+        }
+        core_Lg::pop();
+        
+        return $isSended;
     }
 }
