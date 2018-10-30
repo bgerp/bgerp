@@ -555,7 +555,7 @@ class eshop_CartDetails extends core_Detail
      *
      * @param stdClass $masterRec
      *
-     * @return NULL|float
+     * @return NULL|array
      */
     public static function getDeliveryInfo($masterRec)
     {

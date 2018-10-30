@@ -413,7 +413,7 @@ class eshop_Carts extends core_Master
      *
      * @param int $id първичен ключ на статия
      *
-     * @return int $id ид-то на обновения запис
+     * @return int|false $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
