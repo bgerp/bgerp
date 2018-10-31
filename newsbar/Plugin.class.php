@@ -110,13 +110,15 @@ class newsbar_Plugin extends core_Plugin
             }
             $articlesArr = type_Keylist::toArray($nRec->articles);
             
-            if (!$articlesArr[$nRec->id]) {
+            if (!$articlesArr[$rec->id]) {
                 continue;
             }
             
             $html = self::getMarqueeText($nRec, 'articlesNewsbar');
             
             $res->prepend($html);
+            
+            break;
         }
     }
 }
