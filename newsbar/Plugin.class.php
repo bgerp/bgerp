@@ -52,7 +52,7 @@ class newsbar_Plugin extends core_Plugin
                     }
                     
                     if (!$haveFooter && $headerAndFooter['footer']) {
-                        $htmlFooter = self::getMarqueeText($nRec, 'newsbarFooter');
+                        $htmlFooter = self::getMarqueeText($nRec, 'newsbarCustom');
                         $invoker->appendOnce($htmlFooter, 'PAGE_FOOTER');
                         
                         $haveFooter = true;
@@ -94,7 +94,7 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'articleNewsbar');
+            $html = self::getMarqueeText($nRec, 'newsbarCustom articleNewsbar');
             
             if ($res instanceof core_ET) {
                 $res->prepend($html);
@@ -134,7 +134,7 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'menuNewsbar');
+            $html = self::getMarqueeText($nRec, 'newsbarCustom');
             
             if ($res instanceof core_ET) {
                 $res->prepend($html);
@@ -178,7 +178,7 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'eshopGroupsNewsbar');
+            $html = self::getMarqueeText($nRec, 'newsbarCustom eshopGroupsNewsbar');
             
             if ($res instanceof core_ET) {
                 $res->prepend($html);
@@ -217,7 +217,7 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'eshopGroupsNewsbar');
+            $html = self::getMarqueeText($nRec, 'newsbarCustom eshopGroupsNewsbar');
             
             if ($res instanceof core_ET) {
                 $res->prepend($html);

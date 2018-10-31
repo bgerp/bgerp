@@ -3449,6 +3449,18 @@ table .eshop-btn {
 .narrow .newsbar {
   padding-bottom: 8px; }
 
+.newsbarCustom {
+  font-size: 0.9em;
+  padding-top: 10px;
+  padding-bottom: 8px; }
+  .newsbarCustom h2,
+  .newsbarCustom h3 {
+    margin-bottom: 0; }
+  .newsbarCustom.articleNewsbar,
+  .newsbarCustom.eshopGroupsNewsbar {
+    margin-bottom: 10px;
+    margin-top: 3px; }
+
 /*
  * край на newsbar
  */
