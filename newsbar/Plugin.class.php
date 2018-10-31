@@ -19,6 +19,10 @@
  */
 class newsbar_Plugin extends core_Plugin
 {
+    /**
+     *
+     * @param core_ET $invoker
+     */
     public static function on_Output(&$invoker)
     {
         if (!($invoker instanceof cms_page_External)) {
@@ -29,9 +33,9 @@ class newsbar_Plugin extends core_Plugin
         // взимаме всички нови новини
         $newsArr = newsbar_News::getAllNews();
         
+        $haveFooter = $haveHeader = false;
+        
         foreach ($newsArr as $nRec) {
-            $haveFooter = $haveHeader = false;
-            
             if ($nRec->news !== null && $nRec->color !== null && $nRec->transparency !== null) {
                 if (!$nRec->catGroups && !$nRec->eshopGroups && !$nRec->menu && !$nRec->articles && !$nRec->headerAndFooter) {
                     $nRec->headerAndFooter = 'header';
@@ -39,7 +43,6 @@ class newsbar_Plugin extends core_Plugin
                 $headerAndFooter = type_Set::toArray($nRec->headerAndFooter);
                 
                 if (!empty($headerAndFooter)) {
-                    
                     if (!$haveHeader && $headerAndFooter['header']) {
                         $html = self::getMarqueeText($nRec);
                         
@@ -65,8 +68,174 @@ class newsbar_Plugin extends core_Plugin
     
     
     /**
+     * След като е готово вербалното представяне
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET  $res
+     * @param stdClass $rec
+     * @param string   $part
+     */
+    public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
+    {
+        if (!($mvc instanceof cms_Articles) || ($part != 'body')) {
+            
+            return ;
+        }
+        
+        $newsArr = newsbar_News::getAllNews();
+        
+        foreach ($newsArr as $nRec) {
+            if (!$nRec->articles) {
+                continue;
+            }
+            $articlesArr = type_Keylist::toArray($nRec->articles);
+            
+            if (!$articlesArr[$rec->id]) {
+                continue;
+            }
+            
+            $html = self::getMarqueeText($nRec, 'articleNewsbar');
+            
+            if ($res instanceof core_ET) {
+                $res->prepend($html);
+            } else {
+                $res = $html . $res;
+            }
+            
+            break;
+        }
+    }
+    
+    
+    /**
+     * След като се приготви менюто
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET  $res
+     */
+    public static function on_AfterGetLayout($mvc, &$res)
+    {
+        if (!($mvc instanceof cms_Content)) {
+            
+            return ;
+        }
+        
+        $cMenuId = Mode::get('cMenuId');
+        
+        $newsArr = newsbar_News::getAllNews();
+        
+        foreach ($newsArr as $nRec) {
+            if (!$nRec->menu) {
+                continue;
+            }
+            $menusArr = type_Keylist::toArray($nRec->menu);
+            
+            if (!$menusArr[$cMenuId]) {
+                continue;
+            }
+            
+            $html = self::getMarqueeText($nRec, 'menuNewsbar');
+            
+            if ($res instanceof core_ET) {
+                $res->prepend($html);
+            } else {
+                $res = $html . $res;
+            }
+            
+            break;
+        }
+    }
+    
+    
+    /**
+     * След като се рендира групата в магазина
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET  $res
+     * @param stdClass $data
+     */
+    public static function on_AfterRenderGroup($mvc, &$res, $data)
+    {
+        if (!($mvc instanceof eshop_Groups)) {
+            
+            return ;
+        }
+        
+        if (!$data->rec->id) {
+            
+            return ;
+        }
+        
+        $newsArr = newsbar_News::getAllNews();
+        
+        foreach ($newsArr as $nRec) {
+            if (!$nRec->eshopGroups) {
+                continue;
+            }
+            $eshopGroupsArr = type_Keylist::toArray($nRec->eshopGroups);
+            
+            if (!$eshopGroupsArr[$data->rec->id]) {
+                continue;
+            }
+            
+            $html = self::getMarqueeText($nRec, 'eshopGroupsNewsbar');
+            
+            if ($res instanceof core_ET) {
+                $res->prepend($html);
+            } else {
+                $res = $html . $res;
+            }
+            
+            break;
+        }
+    }
+    
+    
+    /**
+     * След като се рендира продукта в онлайн магазина
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET  $res
+     * @param stdClass $data
+     */
+    public static function on_AfterRenderProduct($mvc, &$res, $data)
+    {
+        if (!($mvc instanceof eshop_Products)) {
+            
+            return ;
+        }
+        
+        $newsArr = newsbar_News::getAllNews();
+        
+        foreach ($newsArr as $nRec) {
+            if (!$nRec->eshopProducts) {
+                continue;
+            }
+            $eshopGroupsArr = type_Keylist::toArray($nRec->eshopProducts);
+            
+            if (!$eshopGroupsArr[$data->rec->id]) {
+                continue;
+            }
+            
+            $html = self::getMarqueeText($nRec, 'eshopGroupsNewsbar');
+            
+            if ($res instanceof core_ET) {
+                $res->prepend($html);
+            } else {
+                $res = $html . $res;
+            }
+            
+            break;
+        }
+    }
+    
+    
+    /**
+     * Помощна функция за подготвяне на текста
      *
      * @param stdClass $nRec
+     * @param string   $class
+     * @param bool     $marquee
      *
      * @return string
      */
@@ -89,36 +258,5 @@ class newsbar_Plugin extends core_Plugin
         }
         
         return $resArr[$hash];
-    }
-    
-    
-    /**
-     * След като е готово вербалното представяне
-     */
-    public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
-    {
-        if (!($mvc instanceof cms_Articles) || ($part != 'body')) {
-            
-            return ;
-        }
-        
-        $newsArr = newsbar_News::getAllNews();
-        
-        foreach ($newsArr as $nRec) {
-            if (!$nRec->articles) {
-                continue;
-            }
-            $articlesArr = type_Keylist::toArray($nRec->articles);
-            
-            if (!$articlesArr[$rec->id]) {
-                continue;
-            }
-            
-            $html = self::getMarqueeText($nRec, 'articlesNewsbar');
-            
-            $res->prepend($html);
-            
-            break;
-        }
     }
 }
