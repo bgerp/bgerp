@@ -212,6 +212,12 @@ class newsbar_News extends core_Master
                 $form->setError('endTime', 'Непопълнено крайно време за видимост на новината');
             }
         }
+        
+        if ($form->isSubmitted()) {
+            if (!$form->rec->eshopProducts && !$form->rec->eshopGroups && !$form->rec->menu && !$form->rec->articles && !$form->rec->headerAndFooter) {
+                $form->setError('eshopProducts, eshopGroups, menu, articles, headerAndFooter', 'Трябва да изберете поне едно място, където да се показва');
+            }
+        }
     }
     
     
