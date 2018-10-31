@@ -37,7 +37,7 @@ class newsbar_Plugin extends core_Plugin
         
         foreach ($newsArr as $nRec) {
             if ($nRec->news !== null && $nRec->color !== null && $nRec->transparency !== null) {
-                if (!$nRec->catGroups && !$nRec->eshopGroups && !$nRec->menu && !$nRec->articles && !$nRec->headerAndFooter) {
+                if (!$nRec->eshopProducts && !$nRec->eshopGroups && !$nRec->menu && !$nRec->articles && !$nRec->headerAndFooter) {
                     $nRec->headerAndFooter = 'header';
                 }
                 $headerAndFooter = type_Set::toArray($nRec->headerAndFooter);
