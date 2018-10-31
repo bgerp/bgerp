@@ -79,37 +79,16 @@ class plg_RowTools2 extends core_Plugin
         }
         
         if ($mvc->haveRightFor('delete', $rec)) {
-            $deleteUrl = array(
-                $mvc,
-                'delete',
-                'id' => $rec->id,
-                'ret_url' => $retUrl
-            );
-            
-            
+            $deleteUrl = array($mvc, 'delete', 'id' => $rec->id, 'ret_url' => $retUrl);
             $ddTools->addLink('Изтриване', $deleteUrl, "ef_icon=img/16/delete.png,warning=Наистина ли желаете записът да бъде изтрит?,id=del{$rec->id},title=Изтриване на|* {$singleTitle}");
         } else {
-            if ($mvc->fields['state']->type->options['rejected']) {
+            if ($mvc->fields['state']->type->options['rejected'] && !($mvc instanceof core_Master)) {
                 if ($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id)) {
-                    $rejectUrl = array(
-                        $mvc,
-                        'reject',
-                        'id' => $rec->id,
-                        'ret_url' => $retUrl);
-                    
-                    if (!($mvc instanceof core_Master)) {
-                        $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$rec->id},title=Оттегляне на|* {$singleTitle}");
-                    }
+                    $rejectUrl = array($mvc, 'reject', 'id' => $rec->id, 'ret_url' => $retUrl);
+                    $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$rec->id},title=Оттегляне на|* {$singleTitle}");
                 } elseif ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)) {
-                    $restoreUrl = array(
-                        $mvc,
-                        'restore',
-                        'id' => $rec->id,
-                        'ret_url' => $retUrl);
-                    
-                    if (!($mvc instanceof core_Master)) {
-                        $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");
-                    }
+                    $restoreUrl = array($mvc, 'restore', 'id' => $rec->id, 'ret_url' => $retUrl);
+                    $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");
                 }
             }
         }
