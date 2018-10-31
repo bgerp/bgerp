@@ -43,8 +43,8 @@ class price_ListDocs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg,cond_plg_DefaultValues,
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_TplManager';
     
     
     /**
@@ -134,6 +134,12 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array('template' => 'defMethod');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -146,10 +152,34 @@ class price_ListDocs extends core_Master
         $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Продукти->Опаковки,columns=3');
         $this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
-        $this->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)', 'caption=Шаблон,notNull,default=yes');
         
         $this->FLD('round', 'int', 'caption=Закръгляне на цена->В мярка');
         $this->FLD('roundPack', 'int', 'caption=Закръгляне на цена->В опаковка');
+    }
+    
+    
+    /**
+     * Метод по подразбиране за намиране на дефолт шаблона
+     */
+    public function getDefaultTemplate_($rec)
+    {
+        $bgTemplates = doc_TplManager::getTemplates($this, 'bg');
+        $defaultTemplateId = key($bgTemplates);
+        
+        // Ако папката е на контрагент от чужбина, то и шаблона ще е на английски
+        if (isset($rec->folderId)) {
+            $Cover = doc_Folders::getCover($rec->folderId);
+            if($Cover->haveInterface('doc_ContragentDataIntf')){
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+                if(!empty($cData->countryId) && $cData->countryId != $bgId){
+                    $enTemplates = doc_TplManager::getTemplates($this, 'en');
+                    $defaultTemplateId = key($enTemplates);
+                }
+            }
+        }
+        
+        return $defaultTemplateId;
     }
     
     
@@ -295,6 +325,7 @@ class price_ListDocs extends core_Master
             return;
         }
         
+        $this->pushTemplateLg($data->rec->template);
         $recs = $data->rec->products;
         $data->rec->products = new stdClass();
         $data->rec->products->recs = $recs;
@@ -317,6 +348,8 @@ class price_ListDocs extends core_Master
                 $count++;
             }
         }
+        
+        core_Lg::pop();
     }
     
     
@@ -454,12 +487,6 @@ class price_ListDocs extends core_Master
                         $count++;
                    }
                 }
-            } else {
-                
-                // Ако продукта няма опаковки и се показват всички опаковки добавяме го
-                if ($rec->showUoms == 'yes' && $product->priceM) {
-                    $rec->details->recs[] = $product;
-                }
             }
         }
     }
@@ -545,16 +572,6 @@ class price_ListDocs extends core_Master
         }
         
         return $row;
-    }
-    
-    
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-        $tplFile = ($data->rec->showUoms == 'yes') ? $mvc->singleLayoutFile : $mvc->singleLayoutFile2;
-        $tpl = getTplFromFile($tplFile);
     }
     
     
@@ -836,5 +853,22 @@ class price_ListDocs extends core_Master
         $threadRec = doc_Threads::fetch($threadId);
         
         return self::canAddToFolder($threadRec->folderId);
+    }
+    
+    
+    /**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    public function loadSetupData()
+    {
+        $tplArr = array();
+        $tplArr[] = array('name' => 'Ценоразпис', 'content' => 'price/tpl/templates/ListDoc.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Ценоразпис без основна мярка', 'content' => 'price/tpl/templates/ListDocWithoutUom.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Price list', 'content' => 'price/tpl/templates/ListDocEn.shtml', 'lang' => 'en');
+        $tplArr[] = array('name' => 'Price list without measure', 'content' => 'price/tpl/templates/ListDocWithoutUomEn.shtml', 'lang' => 'en');
+        
+        $res = doc_TplManager::addOnce($this, $tplArr);
+        
+        return $res;
     }
 }
