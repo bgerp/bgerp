@@ -137,12 +137,12 @@ class price_ListDocs extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input');
         $this->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=ДДС');
         $this->FLD('title', 'varchar(155)', 'caption=Заглавие');
-        $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
-        $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Продукти->Опаковки,columns=3');
+        $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2,placeholder=Всички');
+        $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Продукти->Опаковки,columns=3,placeholder=Всички');
         $this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
         
-        $this->FLD('round', 'int', 'caption=Закръгляне на цена->В мярка');
-        $this->FLD('roundPack', 'int', 'caption=Закръгляне на цена->В опаковка');
+        $this->FLD('round', 'int', 'caption=Закръгляне на цените->В мярка,after=template,autohide');
+        $this->FLD('roundPack', 'int', 'caption=Закръгляне на цените->В опаковка,after=template,autohide');
     }
     
     
