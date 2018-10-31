@@ -102,18 +102,6 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Файл с шаблон за единичен изглед
-     */
-    public $singleLayoutFile = 'price/tpl/templates/ListDoc.shtml';
-    
-    
-    /**
-     * Файл с шаблон за единичен изглед
-     */
-    public $singleLayoutFile2 = 'price/tpl/templates/ListDocWithoutUom.shtml';
-    
-    
-    /**
      * Работен кеш
      */
     public $cache = array();
@@ -136,7 +124,7 @@ class price_ListDocs extends core_Master
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array('template' => 'defMethod');
+    public static $defaultStrategies = array('template' => 'defMethod', 'currencyId' => 'CoverMethod', 'vat' => 'defMethod');
     
     
     /**
@@ -155,6 +143,15 @@ class price_ListDocs extends core_Master
         
         $this->FLD('round', 'int', 'caption=Закръгляне на цена->В мярка');
         $this->FLD('roundPack', 'int', 'caption=Закръгляне на цена->В опаковка');
+    }
+    
+    
+    /**
+     * Дали да се начислява ДДС
+     */
+    public function getDefaultVat($rec)
+    {
+        return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
     
     
@@ -213,8 +210,6 @@ class price_ListDocs extends core_Master
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
         $defaultList = price_ListToCustomers::getListForCustomer($folderClassId, $coverId);
         $form->setDefault('policyId', $defaultList);
-        
-        $form->setDefault('currencyId', $mvc->getDefaultCurrency($form->rec));
     }
     
     
@@ -228,9 +223,7 @@ class price_ListDocs extends core_Master
         
         if (cls::haveInterface('doc_ContragentDataIntf', $folderClass)) {
             $coverId = doc_Folders::fetchCoverId($rec->folderId);
-            
-            $currencyCode = $folderClass::getDefaultCurrencyId($coverId);
-            $currencyId = currency_Currencies::getIdByCode($currencyCode);
+            $currencyId = $folderClass::getDefaultCurrencyId($coverId);
         }
         
         return ($currencyId) ? $currencyId : acc_Periods::getBaseCurrencyCode($rec->date);
@@ -767,7 +760,9 @@ class price_ListDocs extends core_Master
             $row->handler = $mvc->getLink($rec->id, 0);
         }
         
+        $mvc->pushTemplateLg($rec->template);
         $row->productGroups = (empty($rec->productGroups)) ? tr('Всички') : implode(' ', cat_Groups::getLinks($rec->productGroups));
+        core_Lg::pop();
         
         // Модифицираме данните които показваме при принтиране
         if (Mode::is('printing')) {
