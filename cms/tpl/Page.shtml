@@ -29,7 +29,7 @@
             <!--ET_END USERLINK-->
             [#CMS_LAYOUT#]
         </div>
-
+        [#PAGE_FOOTER#]
         <div id="cmsBottom">
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]

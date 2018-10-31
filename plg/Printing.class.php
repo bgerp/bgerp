@@ -136,7 +136,7 @@ class plg_Printing extends core_Plugin
     /**
      * Променяме шаблона в зависимост от мода
      *
-     * @param blast_Emails $mvc
+     * @param core_Mvc $mvc
      * @param core_ET      $tpl
      * @param object       $data
      */

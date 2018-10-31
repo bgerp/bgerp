@@ -203,6 +203,39 @@ class eshop_Carts extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
+        $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,input,silent');
+        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител)', 'caption=Вид,input,silent');
+        $data->listFilter->input();
+        
+        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'domain,type';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->domain)){
+                $data->query->where("#domainId = {$filter->domain}");
+            }
+            
+            if(!empty($filter->type)){
+                switch($filter->type){
+                    case 'active':
+                    case 'draft':
+                        $data->query->where("#state = '{$filter->type}'");
+                        break;
+                    case 'empty':
+                        $data->query->where("#productCount = 0 OR #productCount IS NULL");
+                        break;
+                    case 'users':
+                        $data->query->where("#userId IS NOT NULL OR (#email IS NOT NULL OR #email != '')");
+                        break;
+                    case 'anonymous':
+                        $data->query->where("#userId IS NULL AND #email IS NULL");
+                        break;
+                }
+            }
+        }
     }
 
     
@@ -276,6 +309,8 @@ class eshop_Carts extends core_Master
 
                 $msg = $addText->getContent();
                 $success = true;
+                
+                vislog_History::add("Добавяне на артикул «{$productName}» в количка №{$cartId}");
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $msg = '|Артикулът не е добавен|*!';
@@ -340,6 +375,9 @@ class eshop_Carts extends core_Master
             $ip = core_Users::getRealIpAddr();
             $rec = (object) array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft', 'productCount' => 0);
             self::save($rec);
+            
+            $domainName = cms_Domains::getVerbal($domainId, 'titleExt');
+            vislog_History::add("Създаване на количка №{$rec->id} в {$domainName}");
         }
         
         return $rec->id;
@@ -375,7 +413,7 @@ class eshop_Carts extends core_Master
      *
      * @param int $id първичен ключ на статия
      *
-     * @return int $id ид-то на обновения запис
+     * @return int|false $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
@@ -554,6 +592,8 @@ class eshop_Carts extends core_Master
         if(!empty($description)){
             self::forceBankIncomeDocument($description, $saleRec, $accountId);
         }
+        
+        vislog_History::add("Финализиране на количка №{$rec->id}");
         
         if (is_array($colabUrl) && count($colabUrl)) {
             
@@ -1001,8 +1041,9 @@ class eshop_Carts extends core_Master
         $tpl = self::renderView($rec);
         $tpl->prepend("<div id = 'cart-view-single'>");
         $tpl->append('</div>');
-        
         Mode::set('wrapper', 'cms_page_External');
+        
+        vislog_History::add("Разглеждане на количка №{$rec->id}");
         
         return $tpl;
     }
@@ -1414,20 +1455,24 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
-        
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
-        if (isset($rec->saleId)) {
-            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
-        }
-        $row->domainId = cms_Domains::getHyperlink($rec->domainId);
-        
-        $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
-        
-        foreach (array('total', 'totalNoVat', 'deliveryNoVat') as $fld){
-            if(isset($rec->{$fld})){
-                ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
-                $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
+        if(isset($fields['-list'])){
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            if (isset($rec->saleId)) {
+                $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            }
+            $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+            
+            $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
+            foreach (array('total', 'totalNoVat', 'deliveryNoVat') as $fld){
+                if(isset($rec->{$fld})){
+                    ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
+                    $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
+                }
+            }
+            
+            if(!empty($rec->email) && $rec->state == 'draft'){
+                $row->id = ht::createHint($row->id, 'Има попълнени данни за поръчка|*!', 'notice', false);
             }
         }
     }
@@ -1447,6 +1492,7 @@ class eshop_Carts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $this->requireRightFor('checkout', $rec);
+        vislog_History::add("Въвеждане на данни за количка №{$rec->id}");
         
         $settings = cms_Domains::getSettings();
         $countries = keylist::toArray($settings->countries);
@@ -1855,18 +1901,28 @@ class eshop_Carts extends core_Master
             
             // Колко е очаквания и 'живот'
             $settings = cms_Domains::getSettings($rec->domainId);
-            
             if(empty($rec->productCount)){
                 $lifetime = $settings->lifetimeForEmptyDraftCarts;
             } else {
-                $lifetime = isset($rec->userId) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
+                
+                // Потребителските колички са тези създадени от потребител или тези с въведен имейл за връзка
+                $lifetime = (isset($rec->userId) || !empty($rec->email)) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
             }
            
             // Ако и е изтекла продължителността и е чернова се изтрива
             $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
+            $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $endOfLife);
             
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
+            } elseif(!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now){
+                
+                // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
+                $isNotified = core_Cache::get('eshop_Carts', "isNotified{$rec->id}");
+                if ($isNotified !== 'y') {
+                    self::sendNotificationEmail($rec);
+                    core_Cache::set('eshop_Carts', "isNotified{$rec->id}", 'y', 10080);
+                }
             }
         }
     }
@@ -1941,5 +1997,62 @@ class eshop_Carts extends core_Master
         } catch(core_exception_Expect $e){
             reportException($e);
         }
+    }
+    
+    
+    /**
+     * Изпращане на напомнящ имейл за забравена поръчка
+     *
+     * @param stdClass $rec
+     */
+    private static function sendNotificationEmail($rec)
+    {
+        // Има ли настройки за изпращане на имейл
+        $settings = cms_Domains::getSettings($rec->domainId);
+        if (empty($rec->email) || empty($settings->inboxId)) {
+            
+            return;
+        }
+        
+        $domainName = '';
+        $selfUrl = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        
+        $lang = cms_Domains::fetchField($rec->domainId, 'lang');
+        core_Lg::push($lang);
+        
+        // Подготовка на тялото на имейла
+        $body = (object)array('html' => new core_ET($settings->emailBodyNotify), 'text' => new core_ET($settings->emailBodyNotify));
+        foreach (array('html' => 'xhtml', 'text' => 'plain') as $var => $mode){
+            Mode::push('text', $mode);
+            
+            $link = ht::createLink($domainName, $selfUrl)->getContent();
+            if($mode == 'plain'){
+                $link = html2text_Converter::toRichText($link);
+                $link = cls::get('type_Richtext')->toVerbal($link);
+            }
+            
+            $body->{$var}->replace(core_Type::getByName('varchar')->toVerbal($rec->personNames), 'NAME');
+            $body->{$var}->replace($link, 'LINK');
+            $body->{$var}->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
+            Mode::pop('text');
+            
+            $body->{$var} = $body->{$var}->getContent();
+        }
+        
+        $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true);
+        $subject = tr("Незавършена поръчка в") . " {$domainName}";
+        
+        // Опит за изпращане на имейл-а
+        $error = null;
+        $isSended = email_Sent::sendOne($settings->inboxId, $rec->email, $subject, $body, $options, null, $error);
+        
+        if ($isSended) {
+            eshop_Carts::logWrite('АВТОМАТИЧНО изпращане на имейл за забравена поръчка', $rec->id);
+        } else {
+            eshop_Carts::logErr("Грешка при изпращане на имейл за забравена поръчка: '{$error}'", $rec->id);
+        }
+        core_Lg::pop();
+        
+        return $isSended;
     }
 }

@@ -44,7 +44,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити, eanCode=';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити';
     
     
     /**
@@ -438,7 +438,9 @@ class cat_products_Packagings extends core_Detail
         }
         
         if (!empty($rec->eanCode)) {
-            $row->code = $row->eanCode;
+            if(barcode_Search::haveRightFor('list')){
+                $row->eanCode = ht::createLink($row->eanCode, array('barcode_Search', 'search' => $rec->eanCode));
+            }
         }
         
         if ($netWeight = cat_Products::convertToUom($rec->productId, 'kg')) {

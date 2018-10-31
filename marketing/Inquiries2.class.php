@@ -500,22 +500,16 @@ class marketing_Inquiries2 extends embed_Manager
             // Имейла съответстващ на избраната кутия
             $sentFrom = email_Inboxes::fetchField($sentFromBox, 'email');
             
-            // Тяло на имейла html и text
-            
-            $fields = $this->selectFields();
-            $fields['-single'] = true;
-            
             // Изпращане на имейл с phpmailer
             $PML = email_Accounts::getPML($sentFrom);
             
-            /*
+           /*
     		* Ако не е зададено е 8bit
     		* Проблема се появява при дълъг стринг - без интервали и на кирилица.
     		* Понеже е entity се режи грешно от phpmailer -> class.smtpl.php - $max_line_length = 998;
     		*
     		* @see #Sig281
     		*/
-            $Driver = $this->getDriver($rec->id);
             $body = $this->getDocumentBody($rec->id, 'xhtml');
             $body = $body->getContent();
             
@@ -605,7 +599,6 @@ class marketing_Inquiries2 extends embed_Manager
         
         $fieldset = $this->getForm();
         $Driver->addFields($fieldset);
-        $params = $fieldset->selectFields();
         
         $arr = (array) $rec;
         foreach ($arr as $name => $value) {
@@ -636,11 +629,7 @@ class marketing_Inquiries2 extends embed_Manager
     private function getTitle($id)
     {
         $rec = $this->fetchRec($id);
-        
-        $Driver = $this->getDriver($rec->id);
-        
         $name = $this->getFieldType('personNames')->toVerbal((($rec->company) ? $rec->company : $rec->personNames));
-        
         $subject = "{$name} / {$rec->title}";
         
         $Varchar = cls::get('type_Varchar');
