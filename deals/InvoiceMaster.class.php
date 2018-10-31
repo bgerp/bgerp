@@ -1298,7 +1298,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // Не може да се променя в затворен период
         if ($action == 'changerec' && isset($rec) && $res != 'no_one') {
-            $periodState = acc_Periods::fetchByDate($rec->date)->state;
+            $periodState = acc_Periods::fetchByDate($mvc->getValiorValue($rec))->state;
             if ($periodState == 'closed' || $periodState == 'draft' || is_null($periodState)) {
                 $res = 'no_one';
             }
