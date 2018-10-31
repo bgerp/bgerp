@@ -247,7 +247,7 @@ class core_CallOnTime extends core_Manager
                 
                 // Изпълняваме подадената функция с префикс callback_
                 $callback = array($class, 'callback_' . $rec->methodName);
-                $res .= call_user_func($callback, $rec->data) . "\n";
+                $res .= @call_user_func($callback, $rec->data) . "\n";
                 
                 // Изтриваме след като се изпълни веднъж
                 self::delete($rec->id);
