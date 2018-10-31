@@ -48,7 +48,7 @@ class newsbar_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'newsbar_News',
-    
+        'migrate::setDefaultView',
     );
     
     
@@ -84,6 +84,9 @@ class newsbar_Setup extends core_ProtoSetup
         // Инсталираме клавиатурата към password полета
         $html .= $Plugins->installPlugin('Лента с Новини във външната част', 'newsbar_Plugin', 'cms_page_External', 'private');
         $html .= $Plugins->installPlugin('Лента с Новини в статиите', 'newsbar_Plugin', 'cms_Articles', 'private');
+        $html .= $Plugins->installPlugin('Лента с Новини в менюто', 'newsbar_Plugin', 'cms_Content', 'private');
+        $html .= $Plugins->installPlugin('Лента с Новини в онлайн магазин', 'newsbar_Plugin', 'eshop_Groups', 'private');
+        $html .= $Plugins->installPlugin('Лента с Новини в продукти', 'newsbar_Plugin', 'eshop_Products', 'private');
         
         return $html;
     }
@@ -98,5 +101,25 @@ class newsbar_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Задаваме стойност за полето "Показване"
+     */
+    public static function setDefaultView()
+    {
+        $nQuery = newsbar_News::getQuery();
+        $nQuery->where('#eshopProducts IS NULL');
+        $nQuery->where('#eshopGroups IS NULL');
+        $nQuery->where('#menu IS NULL');
+        $nQuery->where('#articles IS NULL');
+        $nQuery->where('#headerAndFooter IS NULL');
+        
+        while ($nRec = $nQuery->fetch()) {
+            $nRec->headerAndFooter = 'header';
+            
+            cls::get('newsbar_News')->save_($nRec, 'headerAndFooter');
+        }
     }
 }

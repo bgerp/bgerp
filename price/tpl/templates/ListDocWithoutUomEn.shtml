@@ -2,38 +2,38 @@
     <table>
         <!--ET_BEGIN date-->
         <tr>
-            <td>Към дата</td>
+            <td>Date</td>
             <td>[#date#]</td>
         </tr>
         <!--ET_END date-->
         <!--ET_BEGIN policyId-->
         <tr>
-            <td style='width:150px'>Политика</td>
+            <td style='width:150px'>Price list</td>
             <td>[#policyId#]</td>
         </tr>
         <!--ET_END policyId-->
         <!--ET_BEGIN productGroups-->
         <tr>
-            <td style='width:150px'>Групи продукти</td>
+            <td style='width:150px'>Groups of items</td>
             <td>[#productGroups#]</td>
         </tr>
         <!--ET_END productGroups-->
         <!--ET_BEGIN packagings-->
         <tr>
-            <td>Опаковки</td>
+            <td>Packagings</td>
             <td>[#packagings#]</td>
         </tr>
         <!--ET_END packagings-->
         <!--ET_BEGIN round-->
         <tr>
-            <td>Закръгляне на цена за основна мярка</td>
+            <td>Round price for base measure</td>
             <td>[#round#]</td>
         </tr>
         <!--ET_END round-->
         
         <!--ET_BEGIN roundPack-->
         <tr>
-            <td>Закръгляне на цена за опаковка</td>
+            <td>Round price for packaging</td>
             <td>[#roundPack#]</td>
         </tr>
         <!--ET_END roundPack-->
@@ -41,28 +41,25 @@
         <!--ET_BEGIN printHeader-->
         <tr>
             <td colspan = '2'><span class = 'print-header'>[#printHeader#]</span><br>
-                <span id = 'sub-title'>№[#number#] &nbsp; Дата &nbsp;[#created#] &nbsp;&nbsp;Валута  &nbsp;[#currencyPrint#]&nbsp;&nbsp;[#vatPrint#]</span>
+                <span id = 'sub-title'>№[#number#] &nbsp; Date &nbsp;[#created#] &nbsp;&nbsp;Currency  &nbsp;[#currencyPrint#]&nbsp;&nbsp;[#vatPrint#]</span>
             </td>
         </tr>
         <!--ET_END printHeader-->
     </table>
-    
     <!--ET_BEGIN currencyId-->
-    <div style='margin-top:10px;'>Всички цени са в [#currencyId#], [#vat#]</div>
+    <div style='margin-top:10px;'>All the prices are in [#currencyId#], [#vat#]</div>
     <!--ET_END currencyId-->
     [#PAGER_TOP#]
-    <div class='overflow-scroll'>
+    <div class='scrolling-holder'>
         <table class = 'norm-table' style='width:100%'>
             <tr>
-            	<th>Код</th>
-                <th style='width:380px !important'>Артикул</th>
-                <th>Мярка</th>
-                <th>Цена</th>
+            	<th>Code</th>
+                <th style='width:380px !important'>Item</th>
                 <!--ET_BEGIN showEAN-->
-                <th>ЕАН [#showEAN#]</th>
+                <th>EAN[#showEAN#]</th>
                 <!--ET_END showEAN-->
-                <th>Опаковка</th>
-                <th>Цена</th>
+                <th>Packaging</th>
+                <th>Price</th>
             </tr>
             <!--ET_BEGIN GROUP-->
             [#GROUP#]
@@ -73,8 +70,6 @@
             <tr>
             	<td class = 'product-code-style'>[#code#]</td>
                 <td>[#productId#]</td>
-                <td class='norm-row-cell'>[#measureId#]</td>
-                <td class='aright'>[#priceM#]</td>
                 <!--ET_BEGIN eanCode-->
                 <td class = 'product-code-style'>[#eanCode#]</td>
                 <!--ET_END eanCode-->
@@ -85,5 +80,10 @@
             <!--ET_END GROUP-->
         </table>
     </div>
+    <!--ET_BEGIN DETAILS-->
     [#PAGER#]
-[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+</div>

@@ -175,11 +175,14 @@ class eshop_Groups extends core_Master
             redirect(array('cms_Content'), false, '|Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
         }
         
-        if (!$opt[$form->rec->menuId]) {
+        if ($form->rec->menuId && !$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
         
-        $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+        if ($form->rec->menuId) {
+            $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+        }
+        
         
         $data->query->orderBy('#menuId');
     }

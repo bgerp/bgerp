@@ -314,13 +314,13 @@ class change_Plugin extends core_Plugin
             if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
                 
                 // Титлата на документа
-                $title = $mvc->getDocumentRow($fRec->id)->title;
+                $title = $mvc->getFormTitleLink($fRec->id);
                 
                 // Ако има открито заглавие
                 if ($title) {
                     
                     // Титлата на формата
-                    $form->title .= " на|*: <i>{$title}</i>";
+                    $form->title .= " на|*: {$title}";
                 }
             }
         } catch (core_exception_Expect $e) {

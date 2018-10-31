@@ -94,6 +94,7 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
+        'migrate::addPriceListTemplates',
     );
     
     
@@ -134,4 +135,34 @@ class price_Setup extends core_ProtoSetup
         
         return $res;
     }
+    
+    
+    /**
+     * Добавя шаблони на ценоразписите
+     */
+    public function addPriceListTemplates()
+    {
+        core_App::setTimeLimit(600);
+        $Lists = cls::get('price_ListDocs');
+        $Lists->setupMvc();
+        $Lists->loadSetupData();
+        if(!price_ListDocs::count()) return;
+        
+        $templateBgUomId = doc_TplManager::fetchField("#name = 'Ценоразпис' AND #docClassId ={$Lists->getClassId()}");
+        $templateBgWithoutUomId = doc_TplManager::fetchField("#name = 'Ценоразпис без основна мярка' AND #docClassId ={$Lists->getClassId()}");
+        
+        $lists = array();
+        $query = price_ListDocs::getQuery();
+        $query->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)');
+        $query->show('showUoms,template');
+        while($listRec = $query->fetch()){
+            $listRec->template = ($listRec->showUoms == 'yes') ? $templateBgUomId : $templateBgWithoutUomId;
+            $lists[$listRec->id] = $listRec;
+        }
+        
+        if(count($lists)){
+            $Lists->saveArray($lists, 'id,template');
+        }
+    }
+    
 }

@@ -75,9 +75,9 @@ class newsbar_News extends core_Master
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter');
         $this->FLD('headerAndFooter', 'set(header=Хедър, footer=Футър)', 'caption=Показване в->Основни');
         $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Показване в->Меню');
-        $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Показване в->Статии'); // от последните 2 години
+        $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Показване в->Статии');
         $this->FLD('eshopGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Показване в->Ешоп групи');
-        $this->FLD('catGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Показване в->Продуктови групи');
+        $this->FLD('eshopProducts', 'keylist(mvc=eshop_Products,select=name)', 'caption=Показване в->Продуктови групи');
         
         $this->FLD('color', 'color_Type', 'caption=Оформление->Фон,unit=rgb');
         $this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Оформление->Непрозрачност');
@@ -210,6 +210,12 @@ class newsbar_News extends core_Master
                 
                 // Сетваме грешката
                 $form->setError('endTime', 'Непопълнено крайно време за видимост на новината');
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            if (!$form->rec->eshopProducts && !$form->rec->eshopGroups && !$form->rec->menu && !$form->rec->articles && !$form->rec->headerAndFooter) {
+                $form->setError('eshopProducts, eshopGroups, menu, articles, headerAndFooter', 'Трябва да изберете поне едно място, където да се показва');
             }
         }
     }
