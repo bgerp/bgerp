@@ -95,6 +95,18 @@ class eshop_Settings extends core_Manager
     
     
     /**
+     * Дефолтен шаблон за имейл на български, за уведомление за незавършена поръчка
+     */
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#CART_LINK#].\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    
+    
+    /**
+     * Дефолтен шаблон за имейл на английски, за уведомление за незавършена поръчка
+     */
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\nYou have unfinished order in [#LINK#].\nKind regards\nThe team of [#domainId#]";
+    
+    
+    /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
     const DEFAULT_ADD_TO_CART_TEXT_BG = 'Вече има [#packQuantity#] [#packagingId#] от [#productName#] в количката';
@@ -117,6 +129,11 @@ class eshop_Settings extends core_Manager
      */
     const DEFAULT_LIFETIME_NO_USER_CARTS = 86400;
     
+    
+    /**
+     * Колко секунди преди изтриване да се изпраща нотифициращ имейл
+     */
+    const DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION = 86400;
     
     /**
      * Колко секунди да е живота на забравените празни колички
@@ -168,6 +185,9 @@ class eshop_Settings extends core_Manager
         $this->FLD('lifetimeForEmptyDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->Празни');
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
+        $this->FLD('emailBodyNotify', 'richtext(rows=3)', 'caption=Нотификация за незавършена поръчка->Имейл');
+        $this->FLD('timeBeforeDelete', 'time', 'caption=Нотификация за незавършена поръчка->Изпращане,unit=преди изтриване');
+        
         $this->FLD('freeDelivery', 'double', 'caption=Безплатна доставка->Сума');
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Търговец');
         
@@ -185,16 +205,20 @@ class eshop_Settings extends core_Manager
     {
         $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            if (!empty($rec->emailBodyWithReg)) {
-                $missing = array();
-                foreach (array('[#SALE_HANDLER#]', '[#NAME#]', '[#link#]') as $placeholder) {
-                    if (strpos($rec->emailBodyWithReg, $placeholder) === false) {
-                        $missing[] = $placeholder;
+            
+            $fieldArray = array('emailBodyWithReg' => array('[#SALE_HANDLER#]', '[#link#]'), 'emailBodyWithoutReg' => array('[#SALE_HANDLER#]'), 'emailBodyNotify' => array('[#LINK#]'));
+            foreach ($fieldArray as $name => $placeholders){
+                if (!empty($rec->{$name})) {
+                    $missing = array();
+                    foreach ($placeholders as $placeholder) {
+                        if (strpos($rec->{$name}, $placeholder) === false) {
+                            $missing[] = $placeholder;
+                        }
                     }
-                }
-                
-                if (count($missing)) {
-                    $form->setWarning('emailBodyWithReg', 'Пропуснати са следните плейсхолдъри|*: <b>' . implode(', ', $missing) . '</b>');
+                    
+                    if (count($missing)) {
+                        $form->setWarning($name, 'Пропуснати са следните плейсхолдъри|*: <b>' . implode(', ', $missing) . '</b>');
+                    }
                 }
             }
         }
@@ -283,10 +307,9 @@ class eshop_Settings extends core_Manager
             
             $placeholderValue = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
             $form->setParams('addProductText', array('placeholder' => $placeholderValue));
-            
-            $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
-            $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
-            $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
+        
+            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG : self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN;
+            $form->setParams('emailBodyNotify', array('placeholder' => $placeholderValue));
         }
         
         if(isset($rec->currencyId)){
@@ -306,6 +329,11 @@ class eshop_Settings extends core_Manager
                 $form->setDefault('inboxId', $defaultInboxId);
             }
         }
+        
+        $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
+        $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
+        $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
+        $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION));
     }
     
     
@@ -371,6 +399,10 @@ class eshop_Settings extends core_Manager
                 $settingRec->emailBodyWithoutReg = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
             }
             
+            if (empty($settingRec->emailBodyNotify)) {
+                $settingRec->emailBodyNotify = ($lang == 'bg') ? self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG : self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN;
+            }
+            
             if (empty($settingRec->addProductText)) {
                 $settingRec->addProductText = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
             }
@@ -387,6 +419,10 @@ class eshop_Settings extends core_Manager
             
             if (empty($settingRec->lifetimeForEmptyDraftCarts)) {
                 $settingRec->lifetimeForEmptyDraftCarts = self::DEFAULT_LIFETIME_EMPTY_CARTS;
+            }
+            
+            if (empty($settingRec->timeBeforeDelete)) {
+                $settingRec->timeBeforeDelete = self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION;
             }
             
             if (empty($settingRec->addToCartBtn)) {

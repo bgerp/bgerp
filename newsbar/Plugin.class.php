@@ -10,8 +10,8 @@
  * @category  bgerp
  * @package   newsbar
  *
- * @author    Gabriela Petrova <gpetrova@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Gabriela Petrova <gpetrova@experta.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -21,20 +21,102 @@ class newsbar_Plugin extends core_Plugin
 {
     public static function on_Output(&$invoker)
     {
-        // взимаме всички нови новини
-        $str = newsbar_News::getTopNews();
+        if (!($invoker instanceof cms_page_External)) {
+            
+            return ;
+        }
         
-        if ($str->news !== null && $str->color !== null && $str->transparency !== null) {
+        // взимаме всички нови новини
+        $newsArr = newsbar_News::getAllNews();
+        
+        foreach ($newsArr as $nRec) {
+            $haveFooter = $haveHeader = false;
+            
+            if ($nRec->news !== null && $nRec->color !== null && $nRec->transparency !== null) {
+                if (!$nRec->catGroups && !$nRec->eshopGroups && !$nRec->menu && !$nRec->articles && !$nRec->headerAndFooter) {
+                    $nRec->headerAndFooter = 'header';
+                }
+                $headerAndFooter = type_Set::toArray($nRec->headerAndFooter);
+                
+                if (!empty($headerAndFooter)) {
+                    
+                    if (!$haveHeader && $headerAndFooter['header']) {
+                        $html = self::getMarqueeText($nRec);
+                        
+                        $invoker->appendOnce($html, 'PAGE_HEADER');
+                        
+                        $haveHeader = true;
+                    }
+                    
+                    if (!$haveFooter && $headerAndFooter['footer']) {
+                        $htmlFooter = self::getMarqueeText($nRec, 'newsbarFooter');
+                        $invoker->appendOnce($htmlFooter, 'PAGE_FOOTER');
+                        
+                        $haveFooter = true;
+                    }
+                }
+                
+                if ($haveFooter && $haveHeader) {
+                    break;
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     *
+     * @param stdClass $nRec
+     *
+     * @return string
+     */
+    protected static function getMarqueeText($nRec, $class = 'newsbar', $marquee = true)
+    {
+        static $resArr = array();
+        $hash = md5(serialize($nRec) . '|' . $class . '|' . $marquee);
+        
+        if (!$resArr[$hash]) {
             $convertText = cls::get('type_Richtext');
-            $barNews = $convertText->toVerbal($str->news);
             
-            $html = newsbar_News::generateHTML($str);
-            $html->replace('newsbar', 'class');
-            $html->replace("<marquee scrollamount='4'>", 'marquee');
-            $html->replace('</marquee>', 'marquee2');
+            $html = newsbar_News::generateHTML($nRec);
+            $html->replace($class, 'class');
+            if ($marquee) {
+                $html->replace("<marquee scrollamount='4'>", 'marquee');
+                $html->replace('</marquee>', 'marquee2');
+            }
             
+            $resArr[$hash] = $html->getContent();
+        }
+        
+        return $resArr[$hash];
+    }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
+    {
+        if (!($mvc instanceof cms_Articles) || ($part != 'body')) {
             
-            $invoker->appendOnce($html, 'PAGE_HEADER');
+            return ;
+        }
+        
+        $newsArr = newsbar_News::getAllNews();
+        
+        foreach ($newsArr as $nRec) {
+            if (!$nRec->articles) {
+                continue;
+            }
+            $articlesArr = type_Keylist::toArray($nRec->articles);
+            
+            if (!$articlesArr[$nRec->id]) {
+                continue;
+            }
+            
+            $html = self::getMarqueeText($nRec, 'articlesNewsbar');
+            
+            $res->prepend($html);
         }
     }
 }

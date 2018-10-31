@@ -97,7 +97,7 @@ en,SNM « Сайт,SNM « Site
 en,title,title
 en,Таблица,Table
 en,Тел. код,Tel. code
-en,Търсене на доку_d783,Document search
+en,Търсене на доку_d783,Search documents
 en,URL адрес,URL address
 en,URL на услугата,Service URL
 en,VAT,VAT
@@ -2804,3 +2804,4 @@ en,Данъчно събитие,Tax event
 en,Дълготраен материален актив,Tangible fixed asset,
 en,Дълготраен нематериален актив,Intangible fixed asset,
 en,Дълготрайни нематериални активи,Intangible fixed assets
+en,Търсене на баркод,Search barcodes
