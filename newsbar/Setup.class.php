@@ -48,7 +48,7 @@ class newsbar_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'newsbar_News',
-    
+        'migrate::setDefaultView',
     );
     
     
@@ -101,5 +101,25 @@ class newsbar_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Задаваме стойност за полето "Показване"
+     */
+    public static function setDefaultView()
+    {
+        $nQuery = newsbar_News::getQuery();
+        $nQuery->where('#eshopProducts IS NULL');
+        $nQuery->where('#eshopGroups IS NULL');
+        $nQuery->where('#menu IS NULL');
+        $nQuery->where('#articles IS NULL');
+        $nQuery->where('#headerAndFooter IS NULL');
+        
+        while ($nRec = $nQuery->fetch()) {
+            $nRec->headerAndFooter = 'header';
+            
+            cls::get('newsbar_News')->save_($nRec, 'headerAndFooter');
+        }
     }
 }
