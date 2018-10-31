@@ -7,8 +7,8 @@
  * @category  bgerp
  * @package   newsbar
  *
- * @author    Gabriela Petrova <gpetrova@experta.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Gabriela Petrova <gpetrova@experta.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -71,9 +71,18 @@ class newsbar_News extends core_Master
         $this->FLD('news', 'richtext(rows=2,bucket=Notes)', 'caption=Новина,mandatory');
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Показване на новината->Начало, mandatory');
         $this->FLD('endTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,mandatory');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
-        $this->FLD('color', 'color_Type', 'caption=Фон->Цвят,unit=rgb');
-        $this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Непрозрачност');
+        
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('headerAndFooter', 'set(header=Хедър, footer=Футър)', 'caption=Показване в->Основни');
+        $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Показване в->Меню');
+        $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Показване в->Статии'); // от последните 2 години
+        $this->FLD('eshopGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Показване в->Ешоп групи');
+        $this->FLD('catGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Показване в->Продуктови групи');
+        
+        $this->FLD('color', 'color_Type', 'caption=Оформление->Фон,unit=rgb');
+        $this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Оформление->Непрозрачност');
+        $this->FLD('border', 'color_Type', 'caption=Оформление->Бордер,unit=rgb');
+        $this->FLD('padding', 'int', 'caption=Оформление->Падинг');
     }
     
     
@@ -109,7 +118,37 @@ class newsbar_News extends core_Master
         $news = $query->fetch();
         
         // Връщаме стринг от всички новини
-        return (object) array('news' => $news->news, 'color' => $news->color, 'transparency' => $news->transparency);
+        return $news;
+    }
+    
+    
+    /**
+     * Създаване на лентата за новини
+     *
+     * @return array
+     */
+    public static function getAllNews()
+    {
+        static $resArr = null;
+        
+        if (!isset($resArr)) {
+            // Правим заявка към базата
+            $query = static::getQuery();
+            
+            $nowTime = dt::now();
+            
+            $domainId = cms_Domains::getPublicDomain('id');
+            $query->where("#state = 'active'");
+            $query->where(array("#startTime <= '[#1#]' AND  #endTime >= '[#1#]'", $nowTime));
+            $query->where(array("#domainId = '[#1#]'", $domainId));
+            
+            $query->XPR('order', 'double', 'RAND()');
+            $query->orderBy('order');
+            
+            $resArr = $query->fetchAll();
+        }
+        
+        return $resArr;
     }
     
     
@@ -206,6 +245,22 @@ class newsbar_News extends core_Master
         if (!$rec->transparency) {
             $form->setDefault('transparency', 0.5);
         }
+        
+        // Показваме статиите до преди 2 год и текущата, която се редактира
+        $aQuery = cms_Articles::getQuery();
+        $before = dt::addDays(-2 * 365);
+        $aQuery->where(array("#modifiedOn >= '[#1#]'", $before));
+        if ($data->form->rec->articles) {
+            $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
+        }
+        $aQuery->orderBy('modifiedOn', 'DESC');
+        
+        $aArr = array();
+        while ($aRec = $aQuery->fetch()) {
+            $aArr[$aRec->id] = $aRec->title;
+        }
+        
+        $data->form->setSuggestions('articles', $aArr);
     }
     
     
@@ -218,7 +273,7 @@ class newsbar_News extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->news = self::generateHTML($rec);
+        $row->news = self::generateHTML($rec)->getContent();
     }
     
     
@@ -240,17 +295,20 @@ class newsbar_News extends core_Master
         
         $html = new ET("<div class=\"[#class#]\" style=\"background-color: rgb([#r#], [#g#], [#b#]); 
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
-           											   background:transparent\0; 
+                                                       <!--ET_BEGIN borderColor--> border-color: [#borderColor#];
+                                                       border-style: solid;<!--ET_END borderColor-->
                           filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
                           -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#])';
                           zoom: 1;\">
-            [#marquee#]<b>[#1#]</b>[#marquee2#]
+            [#marquee#]<b<!--ET_BEGIN padding--> style=\"padding: [#padding#]px;\" <!--ET_END padding-->>[#1#]</b>[#marquee2#]
             </div><div class='clearfix21'></div>", $rt->toHtml('[color=white]' . $rec->news . '[/color]'));
         
         $html->replace($rgb[0], 'r');
         $html->replace($rgb[1], 'g');
         $html->replace($rgb[2], 'b');
         $html->replace($rec->transparency, 'transparency');
+        $html->replace($rec->border, 'borderColor');
+        $html->replace($rec->padding, 'padding');
         $html->replace($forIE, 'ie');
         
         return $html;
