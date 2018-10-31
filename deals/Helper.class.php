@@ -1650,8 +1650,11 @@ abstract class deals_Helper
     {
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+        if(cls::haveInterface(crm_ContragentAccRegIntf, $Class)){
+            return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+        }
         
-        return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+        return 'yes';
     }
     
     

@@ -1404,6 +1404,9 @@ table.listTable {
   table.listTable.listAction > tbody > tr > td {
     max-width: 400px; }
 
+  .single-thread  table.listTable > tbody > tr > td {
+    max-width: none; }
+
 .detailNumbering {
   text-align: right;
   display: block; }
