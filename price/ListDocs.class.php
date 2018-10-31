@@ -214,23 +214,6 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Валута по подразбиране: ако е контрагент - дефолт валутата му,
-     * в противен случай основната валута за периода
-     */
-    private function getDefaultCurrency($rec)
-    {
-        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
-        
-        if (cls::haveInterface('doc_ContragentDataIntf', $folderClass)) {
-            $coverId = doc_Folders::fetchCoverId($rec->folderId);
-            $currencyId = $folderClass::getDefaultCurrencyId($coverId);
-        }
-        
-        return ($currencyId) ? $currencyId : acc_Periods::getBaseCurrencyCode($rec->date);
-    }
-    
-    
-    /**
      * Подготвя всички политики до които има достъп потребителя
      *
      * @param stdClass $rec - запис от модела
