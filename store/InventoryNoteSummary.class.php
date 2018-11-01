@@ -647,7 +647,7 @@ class store_InventoryNoteSummary extends doc_Detail
      *
      * @return void
      */
-    public static function filterRecs($selectedGroups, &$recs)
+    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups')
     {
         // Ако няма записи не правим нищо
         if (!is_array($recs)) {
@@ -664,8 +664,9 @@ class store_InventoryNoteSummary extends doc_Detail
         foreach ($groups as $grId => $groupName) {
             
             // Отделяме тези записи, които съдържат текущия маркер
-            $res = array_filter($recs, function (&$e) use ($grId, $groupName) {
-                if (keylist::isIn($grId, $e->groups)) {
+            $res = array_filter($recs, function (&$e) use ($grId, $groupName, $groupFld) {
+                
+                if (keylist::isIn($grId, $e->{$groupFld})) {
                     $e->groupName = $groupName;
                     
                     return true;
@@ -682,7 +683,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 
                 // Проверяваме как трябва да се сортират артикулите вътре по код или по име
                 $orderProductBy = cat_Groups::fetchField($grId, 'orderProductBy');
-                $field = ($orderProductBy === 'code') ? 'orderCode' : 'orderName';
+                $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
                 
                 // Сортираме артикулите в маркера
                 arr::sortObjects($res, $field, 'asc', 'stri');
