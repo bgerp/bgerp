@@ -221,20 +221,8 @@ class acc_BalanceRepairs extends core_Master
         
         return false;
     }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = true)
-    {
-        $self = cls::get(get_called_class());
-        $title = acc_Periods::fetchField($rec->periodId, 'title');
+   
         
-        return tr("Корекция на грешки за|* \"{$title}\"");
-    }
-    
-    
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
@@ -245,13 +233,25 @@ class acc_BalanceRepairs extends core_Master
         $row = new stdClass();
         
         $row->title = $this->getRecTitle($rec);
-        
+        $row->subTitle = $this->getVerbal($rec, 'periodId');
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
         
         return $row;
+    }
+ 
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $self = cls::get(get_called_class());
+        $title = acc_Periods::fetchField($rec->periodId, 'title');
+        
+        return tr("Корекция на грешки за|* \"{$title}\"");
     }
     
     
