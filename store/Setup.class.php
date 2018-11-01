@@ -113,7 +113,8 @@ class store_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity,store_iface_ImportShippedProducts,store_reports_DeficitInStores';
+    public $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity,
+store_iface_ImportShippedProducts,store_reports_DeficitInStores,store_reports_UnfulfilledQuantities';
     
     
     /**
