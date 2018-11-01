@@ -3461,6 +3461,9 @@ table .eshop-btn {
     margin-bottom: 10px;
     margin-top: 3px; }
 
+.menuNewsbar {
+  clear: both; }
+
 /*
  * край на newsbar
  */
