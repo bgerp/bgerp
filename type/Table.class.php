@@ -159,7 +159,13 @@ class type_Table extends type_Blob
         }
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
-        $attrTable['style'] .= ';float:left; margin-bottom:5px;';
+
+        if ($this->params['unit']) {
+            $attrTable['style'] .= 'float:left; margin-bottom:5px;';
+        } else {
+            $attrTable['style'] .= 'margin-bottom:5px;';
+        }
+
         $attrTable['id'] = $id;
         unset($attrTable['value']);
         
