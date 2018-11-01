@@ -229,9 +229,8 @@ class acc_BalanceRepairs extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $self = cls::get(get_called_class());
-        $title = acc_Periods::fetchField($rec->periodId, 'title');
         
-        return tr("Корекция на грешки за|* \"{$title}\"");
+        return tr($self->singleTitle) . " №{$rec->id}";
     }
     
     
