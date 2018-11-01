@@ -44,7 +44,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Заглавие,balanceId';
+    public $listFields = 'balanceId';
     
     
     /**
