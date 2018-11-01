@@ -642,12 +642,12 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Филтрираме записи по подходящ начин
      *
-     * @param stdClass $masterRec
+     * @param string|null $selectedGroups
      * @param array    $recs
      *
      * @return void
      */
-    private function filterRecs($masterRec, &$recs)
+    public function filterRecs($selectedGroups, &$recs)
     {
         // Ако няма записи не правим нищо
         if (!is_array($recs)) {
@@ -657,7 +657,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $ordered = array();
         
         // Вербализираме и подреждаме групите
-        $groups = keylist::toArray($masterRec->groups);
+        $groups = keylist::toArray($selectedGroups);
         cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
         
         // За всеки маркер
@@ -723,7 +723,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public function prepareListRows_(&$data)
     {
         // Филтрираме записите
-        $this->filterRecs($data->masterData->rec, $data->recs);
+        $this->filterRecs($data->masterData->rec->groups, $data->recs);
         
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
