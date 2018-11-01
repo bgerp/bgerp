@@ -1493,6 +1493,12 @@ table.listTable {
 	}
 }
 
+.single-thread  table.listTable {
+	> tbody > tr > td {
+		max-width: none;
+	}
+}
+
 .detailNumbering {
 	text-align:right;
 	//padding-top: 2px;

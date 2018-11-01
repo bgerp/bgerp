@@ -97,7 +97,7 @@ en,SNM « Сайт,SNM « Site
 en,title,title
 en,Таблица,Table
 en,Тел. код,Tel. code
-en,Търсене на доку_d783,Document search
+en,Търсене на доку_d783,Search documents
 en,URL адрес,URL address
 en,URL на услугата,Service URL
 en,VAT,VAT
@@ -2458,6 +2458,7 @@ en,тегло,weight
 en,дължина,length
 en,Дължина,Length
 en,Включено ДДС в цените, Prices are with applied VAT
+en,с включено ДДС, with applied VAT
 en,До 1 месец след фактуриране, Until 1 month after invoicing
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
@@ -2804,3 +2805,4 @@ en,Данъчно събитие,Tax event
 en,Дълготраен материален актив,Tangible fixed asset,
 en,Дълготраен нематериален актив,Intangible fixed asset,
 en,Дълготрайни нематериални активи,Intangible fixed assets
+en,Търсене на баркод,Search barcodes

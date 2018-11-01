@@ -144,7 +144,7 @@ class eshop_Products extends core_Master
         $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация3,column=none');
         $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация4,column=none');
         $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация5,column=none');
-
+        
         // В кои групи участва продукта
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Групи->Основна,mandatory,silent,refreshForm');
         $this->FLD('sharedInGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Групи->Допълнителни');
@@ -398,7 +398,7 @@ class eshop_Products extends core_Master
                 $data->groups[$gRec->id]->groupRec = $gRec;
                 self::prepareGroupList($data->groups[$gRec->id]);
             }
-        } 
+        }
     }
     
     
@@ -556,7 +556,7 @@ class eshop_Products extends core_Master
                 $pTpl->placeObject($row);
                 $pTpl->removePlaces();
                 $pTpl->removeBlocks();
-
+                
                 $layout->append($pTpl);
             }
         }
@@ -564,10 +564,10 @@ class eshop_Products extends core_Master
         if ($data->addUrl) {
             $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
-
+        
         $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
         $layout->replace($toggleLink, 'TOGGLE_BTN');
-
+        
         return $layout;
     }
     
@@ -706,7 +706,7 @@ class eshop_Products extends core_Master
     /**
      * Рендира продукта
      */
-    public function renderProduct($data)
+    public function renderProduct_($data)
     {
         if (Mode::is('screenMode', 'wide')) {
             $tpl = getTplFromFile('eshop/tpl/ProductShow.shtml');
@@ -810,11 +810,11 @@ class eshop_Products extends core_Master
         
         $groups = eshop_Groups::getByDomain();
         $form->setOptions('groupId', array('' => '') + $groups);
-        if($groupId = $form->rec->groupId) {
+        if ($groupId = $form->rec->groupId) {
             unset($groups[$groupId]);
         }
         $form->setSuggestions('sharedInGroups', $groups);
-
+        
         $form->setOptions('measureId', cat_UoM::getUomOptions());
         
         if (isset($form->rec->productId)) {

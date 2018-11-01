@@ -419,13 +419,6 @@ class core_page_InternalModern extends core_page_Active
             $searchLink .= ht::createLink(tr('Търсене на документи'), array('doc_Search', 'list'), null, $attr);
         }
         
-        // Бутон за търсене по баркод
-        if (barcode_Search::haveRightFor('list')) {
-            $attr['ef_icon'] = 'img/16/barcode-icon.png';
-            $attr['id'] = 'modern-barcode-search';
-            $searchLink .= ht::createLink(tr('Търсене на баркод'), array('barcode_Search', 'list'), null, $attr);
-        }
-        
         if (doc_Folders::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/folder_open_icon.png';
             $attr['id'] = 'modern-folder-search';
@@ -442,6 +435,13 @@ class core_page_InternalModern extends core_page_Active
             $attr['ef_icon'] = 'img/16/vcard-black.png';
             $attr['id'] = 'modern-person-seach';
             $searchLink .= ht::createLink(tr('Търсене на лица'), array('crm_Persons', 'list'), null, $attr);
+        }
+        
+        // Бутон за търсене по баркод
+        if (barcode_Search::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/barcode-icon.png';
+            $attr['id'] = 'modern-barcode-search';
+            $searchLink .= ht::createLink(tr('Търсене на баркод'), array('barcode_Search', 'list'), null, $attr);
         }
         
         $tpl->replace($searchLink, 'SEARCH_LINK');
