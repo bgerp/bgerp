@@ -647,7 +647,7 @@ class store_InventoryNoteSummary extends doc_Detail
      *
      * @return void
      */
-    public function filterRecs($selectedGroups, &$recs)
+    public static function filterRecs($selectedGroups, &$recs)
     {
         // Ако няма записи не правим нищо
         if (!is_array($recs)) {
@@ -723,7 +723,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public function prepareListRows_(&$data)
     {
         // Филтрираме записите
-        $this->filterRecs($data->masterData->rec->groups, $data->recs);
+        self::filterRecs($data->masterData->rec->groups, $data->recs);
         
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
