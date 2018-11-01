@@ -153,17 +153,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $querySaleDetails->where("#isPublic = 'yes'");
         
         $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn');
-        
-        
-        //Експедиционни нареждания
-        $queryShipmentOrderDetails = store_ShipmentOrderDetails::getQuery();
-        
-        $queryShipmentOrderDetails->EXT('threadId', 'store_ShipmentOrders', 'externalName=threadId,externalKey=shipmentId');
-        
-        $queryShipmentOrderDetails->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
-        
-        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn');
-        
+       
         while ($saleArt = $querySaleDetails->fetch()) {
             $saleThreadsIds[] = $saleArt->threadId;
             $saleKey = $saleArt->threadId.'|'.$saleArt->productId;
@@ -187,12 +177,24 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
         
+        
+        //Експедиционни нареждания
+        $queryShipmentOrderDetails = store_ShipmentOrderDetails::getQuery();
+        
+        $queryShipmentOrderDetails->EXT('threadId', 'store_ShipmentOrders', 'externalName=threadId,externalKey=shipmentId');
+        
+        $queryShipmentOrderDetails->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
+        
+        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn');
+      
         while ($shipmentDet = $queryShipmentOrderDetails->fetch()) {
             $threadId = $shipmentDet->threadId;
             
             $saleIdShip = doc_Threads::getFirstDocument($threadId)->that;
             
             $firstDocumentName = doc_Threads::getFirstDocument($threadId)->className;
+            
+            if ($firstDocumentName != 'sales_Sales')continue;
             
             $shipKey = $shipmentDet->threadId.'|'.$shipmentDet->productId;
             
