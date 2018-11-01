@@ -58,11 +58,6 @@ class acc_BalanceRepairs extends core_Master
      */
     public $rowToolsField = 'tools';
     
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
     
     /**
      * Детайла, на модела
