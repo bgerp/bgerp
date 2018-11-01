@@ -221,27 +221,7 @@ class acc_BalanceRepairs extends core_Master
         
         return false;
     }
-   
-        
-    /**
-     * Интерфейсен метод на doc_DocumentInterface
-     */
-    public function getDocumentRow($id)
-    {
-        $rec = $this->fetch($id);
-        
-        $row = new stdClass();
-        
-        $row->title = $this->getRecTitle($rec);
-        $row->subTitle = $this->getVerbal($rec, 'periodId');
-        $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->recTitle = $row->title;
-        $row->state = $rec->state;
-        
-        return $row;
-    }
- 
+    
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -252,6 +232,26 @@ class acc_BalanceRepairs extends core_Master
         $title = acc_Periods::fetchField($rec->periodId, 'title');
         
         return tr("Корекция на грешки за|* \"{$title}\"");
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_DocumentInterface
+     */
+    public function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $row = new stdClass();
+        
+        $row->title = $this->getRecTitle($rec);
+        
+        $row->authorId = $rec->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->recTitle = $row->title;
+        $row->state = $rec->state;
+        
+        return $row;
     }
     
     
