@@ -710,6 +710,10 @@ class frame2_Reports extends embed_Manager
             if (in_array($rec->state, array('rejected', 'closed'))) {
                 $requiredRoles = 'no_one';
             }
+            
+            if(!$mvc->haveRightFor('edit', $rec)){
+                $requiredRoles = 'no_one';
+            }
         }
         
         // Документа може да бъде създаван ако потребителя може да избере поне един драйвер
@@ -721,7 +725,7 @@ class frame2_Reports extends embed_Manager
         }
         
         // За модификация, потребителя трябва да има права и за драйвера
-        if (in_array($action, array('write', 'refresh')) && isset($rec->driverClass)) {
+        if (in_array($action, array('write')) && isset($rec->driverClass)) {
             if ($Driver = $mvc->getDriver($rec)) {
                 if (!$Driver->canSelectDriver($userId)) {
                     $requiredRoles = 'no_one';
