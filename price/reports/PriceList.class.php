@@ -242,11 +242,8 @@ class price_reports_PriceList extends frame2_driver_TableData
    {
        $row = new stdClass();
        
-       if($rec->displayDetailed == 'yes'){
-           $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, 'detailed', 'public', $rec->lang, null, false);
-       } else {
-           $row->productId = cat_Products::getShortHyperlink($dRec->productId);
-       }
+       $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
+       $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
        
        $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
        $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
