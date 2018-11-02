@@ -57,6 +57,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Какъв да е класа на групирания ред
+     */
+    protected $groupByFieldClass = null;
+    
+    
+    /**
      * Дали групиращото поле да е на отделен ред или не
      */
     protected $groupedFieldOnNewRow = true;
@@ -322,6 +328,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         $newRows = $rowAttr = array();
         $rowAttr['class'] = ' group-by-field-row';
+        if(isset($this->groupByFieldClass)){
+            $rowAttr['class'] .= " {$this->groupByFieldClass}";
+        }
         foreach ($groups as $groupId => $groupVerbal) {
             if ($data->groupedFieldOnNewRow === true) {
                 $groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
