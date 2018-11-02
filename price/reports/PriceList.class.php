@@ -26,20 +26,6 @@ class price_reports_PriceList extends frame2_driver_TableData
     
     
     /**
-     * Полета от таблицата за скриване, ако са празни
-     *
-     * @var int
-     */
-    //protected $filterEmptyListFields = 'dueDates';
-    
-    
-    /**
-     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
-     */
-    //protected $changeableFields = 'dealers,countries,precision,horizon,orderBy';
-    
-    
-    /**
      * Полета за хеширане на таговете
      *
      * @see uiext_Labels
@@ -78,11 +64,12 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandatory,after=date');
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=ДДС,after=currencyId,single=none');
-        $fieldset->FLD('displayDetailed', 'enum(no=Съкратен,yes=Разширен)', 'caption=Артикули->Изглед,after=currencyId,single=none');
-        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Артикули->Групи,columns=2,placeholder=Всички,after=vat,single=none');
-        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Артикули->Опаковки,columns=3,placeholder=Всички,after=productGroups,single=none');
-        $fieldset->FLD('lang', 'enum(bg=Български,en=Английски)', 'caption=Допълнително->Език,autohide,after=packagings');
-        $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,autohide,after=lang');
+        $fieldset->FLD('displayDetailed', 'enum(no=Съкратен,yes=Разширен)', 'caption=Изглед,after=vat,single=none');
+        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Групи,columns=2,placeholder=Всички,after=displayDetailed,single=none');
+        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки,columns=3,placeholder=Всички,after=productGroups,single=none');
+        $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=packagings');
+        $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=lang');
+        $fieldset->FLD('showEan', 'enum(yes=Показване ако има,no=Да не се показва)', 'caption=Допълнително->EAN|*?,after=lang');
         $fieldset->FLD('round', 'int', 'caption=Допълнително->Точност,autohide,after=showMeasureId');
    }
     
@@ -115,6 +102,10 @@ class price_reports_PriceList extends frame2_driver_TableData
        $form = &$data->form;
        $form->setDefault('date', dt::now());
        $form->setField('round', "placeholder=" . self::DEFAULT_ROUND);
+       $form->setDefault('lang', 'auto');
+       $form->setDefault('showEan', 'yes');
+       $form->setDefault('showMeasureId', 'yes');
+       $form->setDefault('displayDetailed', 'no');
        
        $suggestions = cat_UoM::getPackagingOptions();
        $form->setSuggestions('packagings', $suggestions);
@@ -124,7 +115,6 @@ class price_reports_PriceList extends frame2_driver_TableData
        if($Cover->haveInterface('crm_ContragentAccRegIntf')){
            $defaultList = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
            $form->setDefault('policyId', $defaultList);
-           
            $form->setDefault('vat', deals_Helper::getDefaultChargeVat($form->rec->folderId));
            $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
        }
@@ -186,6 +176,8 @@ class price_reports_PriceList extends frame2_driver_TableData
                        $obj->packs[$packRec->packagingId] = $packRec;
                    }
                    
+                   if($rec->showMeasureId != 'yes' && !count($obj->packs)) continue;
+                   
                    $recs[$id] = $obj;
                }
            }
@@ -204,6 +196,7 @@ class price_reports_PriceList extends frame2_driver_TableData
        return $recs;
    }
     
+   
    /**
     * Вербализиране на редовете, които ще се показват на текущата страница в отчета
     *
@@ -247,10 +240,11 @@ class price_reports_PriceList extends frame2_driver_TableData
    private function getPackTable($rec, $dRec)
    {
        $rows = array();
+       
+       // Вербализиране на опаковките ако има
        foreach ($dRec->packs as $packRec){
            $packName = cat_UoM::getVerbal($packRec->packagingId, 'name');
            deals_Helper::getPackInfo($packName, $dRec->productId, $packRec->packagingId, $packRec->quantity);
-           
            $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
            $rows[$packRec->packagingId] = (object)array('packagingId' => $packName, 'price' => core_Type::getByName("double(decimals={$decimals})")->toVerbal($packRec->price));
            if(!empty($packRec->eanCode)){
@@ -258,11 +252,20 @@ class price_reports_PriceList extends frame2_driver_TableData
            }
        }
        
-       $table = cls::get('core_TableView');
+       $fieldset = new core_FieldSet();
+       $fieldset->FLD('eanCode', 'varchar', 'tdClass=small');
+       $fieldset->FLD('price', 'varchar', 'smartCenter');
+       
+       // Рендиране на таблицата, в която ще се показват опаковките
+       $table = cls::get('core_TableView', array('mvc' => $fieldset));
        $table->tableClass = 'pricelist-report-pack-table';
        $table->thHide = true;
        $listFields = arr::make('eanCode=ЕАН,packagingId=Опаковка,price=Цена', true);
        $listFields = core_TableView::filterEmptyColumns($rows, $listFields, 'eanCode');
+       if($rec->showEan != 'yes'){
+           unset($listFields['eanCode']);
+       }
+       
        $tpl = $table->get($rows, $listFields);
        
        return $tpl;
@@ -286,8 +289,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             $fld->FLD('groups', 'key(mvc=cat_Groups,select=name)', 'caption=Група,tdClass=centered');
         }
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap');
-        $fld->FLD('price', "double(decimals={$decimals})", 'caption=Цена');
+        
+        if($rec->showMeasureId == 'yes'){
+            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap');
+            $fld->FLD('price', "double(decimals={$decimals})", 'caption=Цена');
+        }
         
         if($export === false){
             $fld->FLD('packs', 'html', 'caption=Опаковки');
@@ -306,7 +312,7 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     public function getRenderLang($rec)
     {
-        return $rec->lang;
+        return ($rec->lang == 'auto') ? null : $rec->lang;
     }
     
     
@@ -322,7 +328,6 @@ class price_reports_PriceList extends frame2_driver_TableData
         $tpl = parent::renderTable($rec, $data);
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
         $beforeRow = tr("Всички цени са в|* {$rec->currencyId}, |{$vatRow}|*");
-        
         $tpl->prepend($beforeRow, 'TABLE_BEFORE');
         
         return $tpl;
@@ -360,7 +365,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                 <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <div>|Групи|*: [#productGroups#]<!--ET_END productGroups--></div><div>|Опаковки|*: [#packagings#]</div>"));
+							    <small><div>|Групи|*: [#productGroups#]<!--ET_END productGroups--></div><div>|Опаковки|*: [#packagings#]</div></small>"));
     
         $fieldTpl->replace($data->row->productGroups, 'productGroups');
         $fieldTpl->replace($data->row->packagings, 'packagings');
