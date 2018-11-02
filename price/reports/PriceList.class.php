@@ -265,7 +265,6 @@ class price_reports_PriceList extends frame2_driver_TableData
        $table->tableClass = 'pricelist-report-pack-table';
        $table->thHide = true;
        $listFields = arr::make('eanCode=ЕАН,packagingId=Опаковка,price=Цена', true);
-       $listFields = core_TableView::filterEmptyColumns($rows, $listFields, 'eanCode');
        if($rec->showEan != 'yes'){
            unset($listFields['eanCode']);
        }
@@ -374,5 +373,22 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldTpl->replace($data->row->productGroups, 'productGroups');
         $fieldTpl->replace($data->row->packagings, 'packagings');
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+    }
+    
+    
+    /**
+     * При събмитване на формата
+     *
+     * @param frame2_driver_Proto $Driver   $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_Form           $form
+     */
+    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+    {
+        if ($form->isSubmitted()) {
+            if (cat_Groups::checkForNestedGroups($form->rec->productGroups)) {
+                $form->setError('productGroups', 'Избрани са вложени групи');
+            }
+        }
     }
 }
