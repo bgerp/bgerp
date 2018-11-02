@@ -118,7 +118,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     public function renderData($rec)
     {
-        $tpl = new core_ET('[#TABS#][#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]');
+        $tpl = new core_ET('[#TABS#][#PAGER_TOP#][#TABLE_BEFORE#][#TABLE#][#TABLE_AFTER#][#PAGER_BOTTOM#]');
         
         $data = (is_object($rec->data)) ? $rec->data : new stdClass();
         setIfNot($data->chartTabCaption, $this->chartTabCaption);
