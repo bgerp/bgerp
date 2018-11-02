@@ -2,11 +2,11 @@
 
 
 /**
- * Драйвер за готовност за експедиция на документи
+ * Драйвер за Ценоразписи
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
@@ -287,18 +287,24 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
-        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         if($export === true){
-            $fld->FLD('groups', 'key(mvc=cat_Groups,select=name)', 'caption=Група,tdClass=centered');
+            $fld->FLD('groupName', 'varchar', 'caption=Група');
         }
+        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         
-        if($rec->showMeasureId == 'yes'){
+        if($export === true){
+            $fld->FLD('eanCode', 'varchar', 'caption=ЕАН');
+        }
+        
+        if($rec->showMeasureId == 'yes' || $export === true){
             $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap');
             $fld->FLD('price', "double(decimals={$decimals})", 'caption=Цена');
         }
         
-        if($export === false){
+        if($export === true){
+            $fld->FLD('currencyId', 'varchar', 'caption=Валута');
+        } else {
             $fld->FLD('packs', 'html', 'caption=Опаковки');
         }
         
@@ -390,5 +396,38 @@ class price_reports_PriceList extends frame2_driver_TableData
                 $form->setError('productGroups', 'Избрани са вложени групи');
             }
         }
+    }
+    
+    
+    /**
+     * Връща редовете, които ще се експортират от справката
+     *
+     * @param stdClass       $rec         - запис
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     *
+     * @return array                      - записите за експорт
+     */
+    protected function getRecsForExport($rec, $ExportClass)
+    {
+        $exportRecs = array();
+        foreach ($rec->data->recs as $dRec){
+            $clone = clone $dRec;
+            $clone->currencyId = $rec->currencyId;
+            
+            $exportRecs[] = $clone;
+            if(count($dRec->packs)){
+                foreach ($dRec->packs as $packRec){
+                    $clone1 = clone $clone;
+                    $clone1->packs = array();
+                    $clone1->price = $packRec->price;
+                    $clone1->eanCode = $packRec->eanCode;
+                    $clone1->measureId = $packRec->packagingId;
+                    
+                    $exportRecs[] = $clone1;
+                }
+            }
+        }
+        
+        return $exportRecs;
     }
 }
