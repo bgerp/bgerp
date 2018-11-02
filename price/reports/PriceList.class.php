@@ -62,6 +62,12 @@ class price_reports_PriceList extends frame2_driver_TableData
     
     
     /**
+     * Какъв да е класа на групирания ред
+     */
+    protected $groupByFieldClass = 'pricelist-group-label';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -253,10 +259,11 @@ class price_reports_PriceList extends frame2_driver_TableData
        }
        
        $table = cls::get('core_TableView');
-       //$table->tableClass = 'simpleTable';
+       $table->tableClass = 'pricelist-report-pack-table';
        $table->thHide = true;
-       $tpl = $table->get($rows, 'eanCode=ЕАН,packagingId=Опаковка,price=Цена');
-       
+       $listFields = arr::make('eanCode=ЕАН,packagingId=Опаковка,price=Цена', true);
+       $listFields = core_TableView::filterEmptyColumns($rows, $listFields, 'eanCode');
+       $tpl = $table->get($rows, $listFields);
        
        return $tpl;
    }
@@ -279,7 +286,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $fld->FLD('groups', 'key(mvc=cat_Groups,select=name)', 'caption=Група,tdClass=centered');
         }
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+        $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap');
         $fld->FLD('price', "double(decimals={$decimals})", 'caption=Цена');
         
         if($export === false){
