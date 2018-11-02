@@ -4633,6 +4633,8 @@ div.location.public {
     border: none !important;
     padding: 0 5px;
     vertical-align: middle !important; }
+  .pricelist-report-pack-table .small {
+    width: 90px; }
 
 /*
  * край на бъгфиксове

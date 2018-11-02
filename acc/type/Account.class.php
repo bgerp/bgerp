@@ -42,7 +42,7 @@ class acc_type_Account extends type_Key
     {
         if (isset($this->options)) {
             
-            return $this->options;
+            return parent::prepareOptions();
         }
         
         $mvc = cls::get($this->params['mvc']);
