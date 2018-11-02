@@ -435,15 +435,30 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     public function getExportRecs($rec, $ExportClass)
     {
         expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
+        $recsToExport = $this->getRecsForExport($rec, $ExportClass);
         
         $recs = array();
-        if (is_array($rec->data->recs)) {
-            foreach ($rec->data->recs as $dRec) {
+        if (is_array($recsToExport)) {
+            foreach ($recsToExport as $dRec) {
                 $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
             }
         }
         
         return $recs;
+    }
+    
+    
+    /**
+     * Връща редовете, които ще се експортират от справката
+     *
+     * @param stdClass       $rec         - запис
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     *
+     * @return array                      - записите за експорт
+     */
+    protected function getRecsForExport($rec, $ExportClass)
+    {
+        return $rec->data->recs;
     }
     
     
