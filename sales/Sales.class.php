@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -863,7 +863,7 @@ class sales_Sales extends deals_DealMaster
         // Отново вкарваме езика на шаблона в сесията
         core_Lg::push($rec->tplLang);
         
-        $hasTransport = !empty($rec->hiddenTransportCost) || !empty($rec->expectedTransportCost) || !empty($rec->visibleTransportCost);
+        $hasTransport = !empty($data->row->hiddenTransportCost) || !empty($data->row->expectedTransportCost) || !empty($data->row->visibleTransportCost);
         if (Mode::isReadOnly() || $hasTransport === false || core_Users::haveRole('partner')) {
             $tpl->removeBlock('TRANSPORT_BAR');
         }
@@ -1119,9 +1119,10 @@ class sales_Sales extends deals_DealMaster
     {
         core_Lg::push($rec->tplLang);
         
-        if (!Mode::isReadOnly() && core_Packs::isInstalled('eshop')) {
-            if ($cartId = eshop_Carts::fetchField("#saleId = {$rec->id}")) {
-                $row->cartId = eshop_Carts::getHyperlink($cartId, true);
+        if (core_Packs::isInstalled('eshop')) {
+            if ($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}", 'id,domainId')) {
+                $row->cartId = (Mode::isReadOnly()) ? eshop_Carts::getRecTitle($cartRec) : eshop_Carts::getHyperlink($cartRec->id, true);
+                $row->domainId = cms_Domains::getVerbal($cartRec->domainId, 'domain');
             }
         }
         
@@ -1163,14 +1164,13 @@ class sales_Sales extends deals_DealMaster
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
             
-            if ($rec->currencyRate) {
-                $row->transportCurrencyId = $row->currencyId;
-                $rec->hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-                $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-                $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
-            }
+            $row->transportCurrencyId = $row->currencyId;
+            $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
+            $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
+            $visibleTransportCost = $mvc->getVisibleTransportCost($rec);
             
-            sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+            $leftTransportCost = 0;
+            sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost, $rec->currencyRate);
             
             // Ако има транспорт за начисляване
             if ($leftTransportCost > 0) {
@@ -1236,16 +1236,17 @@ class sales_Sales extends deals_DealMaster
         $query->where("#canStore = 'yes'");
         $products = $query->fetchAll();
         
-        // Изчисляване на общото тегло на офертата
-        $total = sales_TransportValues::getTotalWeightAndVolume($products);
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
-        
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         
+        // Изчисляване на общото тегло на офертата
+        $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $products, $rec->deliveryTermId, $params);
+        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT) return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
-            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $params);
+            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params);
             
             // Сумира се, ако е изчислен
             if (is_array($fee) && $fee['totalFee'] > 0) {

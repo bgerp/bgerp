@@ -58,11 +58,14 @@
   bottom: 0;
   height: 100%;
   width: 200px;
-  z-index: 1000;
-  overflow-y: auto; }
+  z-index: 1000; }
+
+.wide .sidemenu {
+  overflow-y: scroll; }
 
 .narrow .sidemenu {
-  width: 170px; }
+  width: 170px;
+  overflow-y: auto; }
 
 /*
  * движение на менюто
@@ -350,14 +353,20 @@ body {
   box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.4); }
 
 .inner-fav-panel {
-  padding: 15px; }
+  padding: 12px; }
+
+.narrow .inner-fav-panel {
+  padding: 8px; }
+  .narrow .inner-fav-panel .bookmarkText {
+    font-size: 0.95em;
+    margin-right: 3px; }
 
 .sideBarTitle {
   color: #fffb99; }
 
 .bookmarkText {
   margin-right: 5px;
-  font-size: 1.1em; }
+  font-size: 1.05em; }
 
 .inner-fav-panel {
   position: relative; }
@@ -370,7 +379,7 @@ body {
   display: inline-block;
   float: right;
   top: 10px;
-  margin-left: 15px;
+  margin-left: 3px;
   opacity: 0.8;
   transition: opacity 0.5s; }
   .bookmarkLink img {
@@ -379,10 +388,11 @@ body {
     opacity: 1; }
 
 .narrow .bookmarkLink {
-  margin-left: 10px; }
+  margin-left: 5px;
+  margin-top: 2px; }
   .narrow .bookmarkLink img {
-    width: 18px;
-    height: 18px; }
+    width: 16px;
+    height: 16px; }
 
 .narrow .sidebar-row {
   margin-top: 47px;

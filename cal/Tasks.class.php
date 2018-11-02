@@ -277,7 +277,7 @@ class cal_Tasks extends embed_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         
         $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
         
@@ -404,6 +404,8 @@ class cal_Tasks extends embed_Manager
         if ($rec->allDay == 'yes') {
             list($rec->timeStart, ) = explode(' ', $rec->timeStart);
         }
+        
+        $data->form->setField('title', 'mandatory');
     }
     
     
@@ -1086,7 +1088,6 @@ class cal_Tasks extends embed_Manager
     
     
     /**
-     *
      * Функция, която се извиква преди активирането на документа
      *
      * @param cal_Tasks $mvc
@@ -1397,6 +1398,18 @@ class cal_Tasks extends embed_Manager
         
         if ($newRec->notifySent === 'yes') {
             $newRec->notifySent = 'no';
+        }
+        
+        // Ако отговаря на условията да се активира, вместо да е заявка
+        if ($oldRec->state == 'pending' && $newRec->state == 'pending') {
+            $canActivate = $mvc->canActivateTask($newRec);
+            if ($canActivate !== null) {
+                $now = dt::now();
+                if (dt::addDays(-1 * cal_Tasks::$taskShowPeriod, $canActivate) <= $now) {
+                    $newRec->state = 'active';
+                    $newRec->timeActivated = dt::now();
+                }
+            }
         }
     }
     

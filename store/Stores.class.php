@@ -154,7 +154,7 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name, chiefs,activateRoles,selectUsers,selectRoles';
+    public $listFields = 'name, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
     
     
     /**
@@ -279,11 +279,10 @@ class store_Stores extends core_Master
     {
         if ($action == 'select' && $rec) {
             
-            // Ако не може да избира склада, проверяваме дали е складов работник, и имали още тази роля
-
+            // Ако не може да избира склада, проверяваме дали е складов работник
             $cu = core_Users::getCurrent();
-            if (keylist::isIn($cu, $rec->workersIds) || keylist::isIn($cu, $rec->shared)) {
-                $res = 'ceo,storeWorker,store';
+            if (keylist::isIn($cu, $rec->workersIds)) {
+                $res = $mvc->canSelect;
             }
         }
     }

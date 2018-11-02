@@ -141,6 +141,7 @@ class eshop_CartDetails extends core_Detail
             Mode::set('wrapper', 'cms_page_External');
             $lang = cms_Domains::getPublicDomain('lang');
             core_Lg::push($lang);
+            vislog_History::add("Ръчно добавяне на артикул в количка №{$rec->cartId}");
         }
         
         $form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
@@ -389,7 +390,7 @@ class eshop_CartDetails extends core_Detail
             
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
-            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . '</span>';
+            $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity}") . $plus . '</span>';
             
             self::updatePriceInfo($rec, null, true);
             
@@ -454,12 +455,13 @@ class eshop_CartDetails extends core_Detail
         
         if (isset($id)) {
             $this->delete($id);
-            $msg = '|Артикулът е премахнат|*!';
+            vislog_History::add("Изтриване на артикул от количка №{$cartId}");
         } else {
             $this->delete("#cartId = {$cartId}");
             cls::get('eshop_Carts')->updateMaster($cartId);
             eshop_Carts::delete($cartId);
             $msg = '|Успешно изчистване|*!';
+            vislog_History::add("Изтриване на количка от №{$cartId}");
         }
         
         core_Statuses::newStatus($msg);
@@ -534,6 +536,7 @@ class eshop_CartDetails extends core_Detail
         $rec = self::fetch($id);
         $rec->quantity = $quantity * $rec->quantityInPack;
         self::save($rec, 'quantity');
+        vislog_History::add("Обновяване на количество в количка №{$rec->id}");
         
         Mode::set('currentExternalTab', 'eshop_Carts');
         
@@ -552,7 +555,7 @@ class eshop_CartDetails extends core_Detail
      *
      * @param stdClass $masterRec
      *
-     * @return NULL|float
+     * @return NULL|array
      */
     public static function getDeliveryInfo($masterRec)
     {
@@ -575,23 +578,29 @@ class eshop_CartDetails extends core_Detail
             return;
         }
         
-        // Колко е общото тегло и обем за доставка
-        $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
-        $total = sales_TransportValues::getTotalWeightAndVolume($products);
         $deliveryData = array('deliveryCountry' => $masterRec->deliveryCountry, 'deliveryPCode' => $masterRec->deliveryPCode, 'deliveryPlace' => $masterRec->deliveryPlace, 'deliveryAddress' => $masterRec->deliveryAddress);
         $deliveryData += $masterRec->deliveryData;
         
-        // За всеки артикул се изчислява очаквания му транспорт
-        $transportAmount = 0;
-        foreach ($products as $p1) {
-            $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total['weight'], $total['volume'], $deliveryData);
+        // Колко е общото тегло и обем за доставка
+        $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
+        $total = sales_TransportValues::getTotalWeightAndVolume($TransCalc, $products, $masterRec->termId, $deliveryData);
+        
+        if($total > 0) {
             
-            
-            if (is_array($fee)) {
-                $transportAmount += $fee['totalFee'];
+            // За всеки артикул се изчислява очаквания му транспорт
+            $transportAmount = 0;
+            foreach ($products as $p1) {
+                $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData);
+                
+                
+                if (is_array($fee)) {
+                    $transportAmount += $fee['totalFee'];
+                }
             }
+        } else {
+            $transportAmount = cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         }
-       
+        
         $res = array('amount' => $transportAmount);
         if (isset($fee['deliveryTime'])) {
             $res['deliveryTime'] = $fee['deliveryTime'];

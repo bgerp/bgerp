@@ -114,7 +114,7 @@ class rack_ZoneDetails extends core_Detail
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
    
         // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
-        $overQuantity = $rec->movementQuantity - $rec->documentQuantity;
+        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 5);
         if($overQuantity > 0){
             $overQuantity *= -1;
             $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
@@ -122,7 +122,6 @@ class rack_ZoneDetails extends core_Detail
             $zonesDefault = $ZoneType->fromVerbal($zonesDefault);
             
             $row->status = ht::createLink('', array('rack_Movements', 'add', 'movementType' => 'zone2floor', 'productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'ret_url' => true, 'defaultZones' => $zonesDefault), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
-            
         }
     }
     

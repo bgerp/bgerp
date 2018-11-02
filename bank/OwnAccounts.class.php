@@ -194,7 +194,7 @@ class bank_OwnAccounts extends core_Master
         $row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
         
         if (isset($fields['-list'])) {
-            if ($mvc->haveRightFor('select', $rec)) {
+            if (bgerp_plg_FLB::canUse($mvc, $rec)) {
                 $bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
                 $rec->blAmount = 0;
                 

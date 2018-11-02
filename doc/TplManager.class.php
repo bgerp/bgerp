@@ -384,6 +384,7 @@ class doc_TplManager extends core_Master
     public static function addOnce($mvc, $tplArr, &$added = 0, &$updated = 0, &$skipped = 0)
     {
         $skipped = $added = $updated = 0;
+        $mvc = cls::get($mvc);
         
         foreach ($tplArr as $object) {
             $object['docClassId'] = $mvc->getClassId();

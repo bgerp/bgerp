@@ -88,6 +88,12 @@ class log_System extends core_Manager
     
     
     /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doReplication = false;
+    
+    
+    /**
      * Описание на полетата на модела
      */
     public function description()

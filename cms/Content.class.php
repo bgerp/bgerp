@@ -107,7 +107,7 @@ class cms_Content extends core_Manager
         $this->FLD('url', 'varchar(128)', 'caption=URL,input=none');
         $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
         
-        $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=title)', 'caption=Споделяне с,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=titleExt)', 'caption=Споделяне с,notNull,defValue=bg,mandatory,autoFilter');
         
         $this->setDbUnique('menu,domainId');
     }
@@ -444,7 +444,7 @@ class cms_Content extends core_Manager
     /**
      * Връща футера на страницата
      */
-    public static function getLayout()
+    public static function getLayout_()
     {
         $layoutPath = Mode::get('cmsLayout');
         
@@ -692,11 +692,11 @@ class cms_Content extends core_Manager
                         $domainHost = cms_Domains::fetch($rec->domainId)->domain;
                         Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
                         $domainTitle = cms_Domains::fetch($rec->domainId)->domain;
-                        if($domainTitle != 'localhost') {
+                        if ($domainTitle != 'localhost') {
                             $domainName = ' (' . $domainTitle . ')';
                         }
                     }
-
+                    
                     $html .= "<h2>Резултати в <strong style='color:green'>" . type_Varchar::escape($rec->menu) . $domainName . '</strong></h2>';
                     $html .= '<ul>';
                     foreach ($res as $o) {

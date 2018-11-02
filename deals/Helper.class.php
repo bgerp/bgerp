@@ -930,20 +930,27 @@ abstract class deals_Helper
      * @param int    $packagingId  - ид на мярка/опаковка
      * @param float  $packQuantity - к-во опаковка
      * @param string $warning      - предупреждение, ако има
+     * @param string $type         - само за опаковки или мерки, или null за всички
      *
      * @return bool - дали к-то е допустимо или не
      */
-    public static function checkQuantity($packagingId, $packQuantity, &$warning = null)
+    public static function checkQuantity($packagingId, $packQuantity, &$warning = null, $type = null)
     {
         $decLenght = strlen(substr(strrchr($packQuantity, '.'), 1));
-        $decimals = cat_UoM::fetchField($packagingId, 'round');
+        $uomRec = cat_UoM::fetch($packagingId, 'round,type');
         
-        if (isset($decimals) && $decLenght > $decimals) {
-            if ($decimals == 0) {
+        // Ако е указано да се проверява само за опаковка или мярка, и записа не е такъв, не се прави проверка
+        if(isset($type) && $uomRec->type != $type) {
+            
+            return true;
+        }
+        
+        if (isset($uomRec->round) && $decLenght > $uomRec->round) {
+            if ($uomRec->round == 0) {
                 $warning = 'Количеството трябва да е цяло число';
             } else {
-                $decimals = cls::get('type_Int')->toVerbal($decimals);
-                $warning = "Количеството трябва да е с точност до|* <b>{$decimals}</b> |цифри след десетичния знак|*";
+                $round = cls::get('type_Int')->toVerbal($uomRec->round);
+                $warning = "Количеството трябва да е с точност до|* <b>{$round}</b> |цифри след десетичния знак|*";
             }
             
             return false;
@@ -1643,8 +1650,11 @@ abstract class deals_Helper
     {
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+        if(cls::haveInterface(crm_ContragentAccRegIntf, $Class)){
+            return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+        }
         
-        return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+        return 'yes';
     }
     
     
@@ -1717,5 +1727,29 @@ abstract class deals_Helper
         $quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
         
         return $quantityInStore - $quantity;
+    }
+    
+    
+    /**
+     * Кой потребител да се показва, като съставителя на документа
+     * 
+     * @param int $createdBy       - ид на създателя
+     * @param int $activatedBy     - ид на активаторът
+     * @param int|null $userId     - ид на избрания потребител от двата
+     * @return null|string $names  - имената на съставителя, или null ако няма
+     */
+    public static function getIssuer($createdBy, $activatedBy, &$userId = null)
+    {
+        $selected = deals_Setup::get('ISSUER');
+        $userId = ($selected == 'activatedBy') ? $activatedBy : $createdBy;
+        $userId = (!core_Users::isContractor($userId)) ? $userId : $activatedBy;
+        
+        $names = null;
+        if(isset($userId)){
+            $names = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($userId, 'names'));
+        } 
+        
+        return $names;
+        
     }
 }

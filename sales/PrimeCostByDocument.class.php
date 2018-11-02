@@ -99,6 +99,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('contragentId', 'int', 'caption=Контрагент,tdClass=leftCol');
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         
+        $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
@@ -698,34 +699,22 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param int      $packagingId
      * @param float    $quantity
      * @param stdClass $saleRec
-     * @param int      $listId
+     * @param int      $deltaListId
      *
      * @return NULL|float $primeCost
      */
-    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $listId)
+    public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $deltaListId)
     {
-        $productRec = cat_Products::fetch($productId, 'isPublic,code');
-        if ($productRec->isPublic == 'yes') {
-            $primeCost = price_ListRules::getPrice($listId, $productId, $packagingId, $saleRec->valior);
-        } else {
-            $Driver = cat_Products::getDriver($productId);
-            if (is_object($Driver)) {
-                $primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $saleRec->valior);
-            }
+        $productRec = cat_Products::fetchField($productId, 'isPublic,code');
+        
+        // Ако има зададена политика за делта, връща се цената по нея
+        if(isset($deltaListId)){
+            $primeCost = price_ListRules::getPrice($deltaListId, $productId, $packagingId, $saleRec->valior);
             
-            // Ако няма себестойност от драйвера, търсим тази по рецепта
-            if (!isset($primeCost)) {
-                $bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-                if (empty($bomRec)) {
-                    $bomRec = cat_Products::getLastActiveBom($productId, 'production');
-                }
-                
-                if ($bomRec) {
-                    $primeCost = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $saleRec->valior, $listId);
-                }
-            }
+            return $primeCost;
         }
         
+        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->valior, price_ListRules::PRICE_LIST_COST);
         if (isset($primeCost)) {
             $costs = sales_Sales::getCalcedTransports($saleRec->threadId);
             if (isset($costs[$productId])) {
@@ -749,19 +738,19 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param int      $packagingId
      * @param float    $quantity
      * @param int      $containerId
-     * @param int|NULL $listId
+     * @param int|NULL $deltaListId
      *
      * @return NULL|float
      */
-    public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId, $listId = null)
+    public static function getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId, $deltaListId = null)
     {
         $threadId = doc_Containers::fetchField($containerId, 'threadId');
         if (empty($threadId)) {
             
             return;
         }
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
         
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
         if (!$firstDoc->isInstanceOf('sales_Sales')) {
             
             return;
@@ -769,7 +758,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         $containerId = $firstDoc->fetchField('containerId');
         $query = self::getQuery();
-        $query->where("#containerId = {$containerId} AND #productId = {$productId}");
+        $query->where("#productId = {$productId} AND #containerId = {$containerId}");
         $query->show('quantity,primeCost');
         $sum = $totalQ = 0;
         
@@ -784,9 +773,32 @@ class sales_PrimeCostByDocument extends core_Manager
             return $sum / $totalQ;
         }
         
-        if (isset($listId)) {
+        if (isset($deltaListId)) {
             
-            return self::getPrimeCostInSale($productId, $packagingId, $quantity, $firstDoc->fetch(), $listId);
+            return self::getPrimeCostInSale($productId, $packagingId, $quantity, $firstDoc->fetch(), $deltaListId);
         }
+    }
+    
+    
+    /**
+     * Дали цената е под себестойноста на артикула в продажбата
+     * 
+     * @param double $price
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @param int $containerId
+     * @param datetime $valior
+     * @return double $primeCost
+     */
+    public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior)
+    {
+        $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
+       
+        if(empty($primeCost)){
+            $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $valior);
+        }
+        
+        return (round($price, 4) < round($primeCost, 4));
     }
 }

@@ -464,6 +464,9 @@ input::-webkit-calendar-picker-indicator {
 	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
 
+.wide  #all #simpleSearch {
+	padding: 3px 2px 2px;
+}
 #simpleSearch.forumSearch .button {
 	top: -1px;
 }
@@ -478,8 +481,6 @@ input::-webkit-calendar-picker-indicator {
 }
 
 #simpleSearch input[type='text'], #simpleSearch #searchInput {
-	top:0.1em;
-	position:absolute;
 	display:inline-block;
 	border:none !important;
 	outline:none;
@@ -489,7 +490,10 @@ input::-webkit-calendar-picker-indicator {
 	padding:0px;
 	padding-left:0.2em;
 }
-
+.narrow #simpleSearch input[type='text'], .narrow #simpleSearch #searchInput {
+	top:0.1em;
+	position:absolute;
+}
 #simpleSearch button, #simpleSearch .button {
 	width:10%;
 	margin-right:0px;
@@ -1470,7 +1474,6 @@ table.listTable {
 	    line-height: normal; 
 	    font-family: Arial,Verdana;
 		vertical-align: middle;
-		max-width: 400px;
 		word-wrap: break-word;
 	}
 	.document h2 {
@@ -1481,6 +1484,18 @@ table.listTable {
     }
 	.rowNumColumn {
 		width: 1%;
+	}
+}
+
+.listAction table.listTable, table.listTable.listAction  {
+	> tbody > tr > td {
+		max-width: 400px ;
+	}
+}
+
+.single-thread  table.listTable {
+	> tbody > tr > td {
+		max-width: none;
 	}
 }
 
@@ -1614,6 +1629,19 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .inputError {
     border: solid 1px red;
+}
+
+.formBottom {
+	margin-bottom: 15px;
+	padding: 5px;
+	/margin: 10px -15px 0;
+	background: #a1bef9;
+	border: 1px solid #5c8ef4;
+	text-align: center;
+	&.bottomErrorClass {
+		border: 1px solid #c00;
+		background-color: #ff6d6b !important;
+	}
 }
 
 .formFooter {
@@ -1988,6 +2016,7 @@ td.formElement {
 	padding: 8px;
 	vertical-align: middle !important;
 	word-wrap: break-word;
+	box-sizing: border-box;
 	@include border-radius4(5px, 5px, 0, 0);
 	img {
 		vertical-align: middle !important;
@@ -2510,6 +2539,29 @@ div.alphabet div.tab-page {
 		&.state-closed {
 			background-color: $gray3;
 		}
+	}
+}
+.systemFlag {
+	border-radius: 5px;
+	font-weight:bold;
+	padding: 1px 3px 2px;
+	box-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+	font-size: 0.9em;
+	&.critical_priority {
+		background: #e00;
+		color: #fff;
+	}
+	&.high_priority {
+		background: #ee701e;
+		color: #fff;
+	}
+	&.normal_priority {
+		background: #eecf2c;
+		color: #000;
+	}
+	&.low_priority {
+		background: #999;
+		color: #000;
 	}
 }
 

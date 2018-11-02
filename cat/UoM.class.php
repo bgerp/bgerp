@@ -485,7 +485,7 @@ class cat_UoM extends core_Manager
         $arr[] = "LOWER(#shortName) = LOWER('[#1#]')";
         $arr[] = "LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'";
         $arr[] = "LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#2#]|%'";
-        $rec = self::fetch(array(implode(' || ', $arr), $unit, $unitAscii));
+        $rec = self::fetch(array(implode(' OR ', $arr), $unit, $unitAscii));
         
         return $rec;
     }

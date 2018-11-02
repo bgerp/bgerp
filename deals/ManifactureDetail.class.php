@@ -38,12 +38,26 @@ abstract class deals_ManifactureDetail extends doc_Detail
     
     
     /**
+     * След описанието на модела
+     */
+    public static function on_AfterDescription(&$mvc)
+    {
+        // Дефолтни имена на полетата от модела
+        setIfNot($mvc->packQuantityFld, 'packQuantity');
+        setIfNot($mvc->packagingIdFld, 'packagingId');
+        setIfNot($mvc->quantityInPackFld, 'quantityInPack');
+        setIfNot($mvc->productIdFld, 'productId');
+        setIfNot($mvc->quantityFld, 'quantity');
+    }
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function setDetailFields($mvc)
     {
         $mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-        $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden');
+        $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
         $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         

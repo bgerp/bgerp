@@ -716,9 +716,7 @@ class core_Query extends core_FieldSet
         $db = $temp->mvc->db;
         
         DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
-        
         $dbRes = $db->query($query);
-        
         DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
         
         $r = $db->fetchObject($dbRes);
@@ -770,7 +768,7 @@ class core_Query extends core_FieldSet
         
         DEBUG::startTimer(cls::getClassName($this->mvc) . ' DELETE ');
         
-        $db->query($query);
+        $db->query($query, false, $this->mvc->doReplication);
         
         DEBUG::stopTimer(cls::getClassName($this->mvc) . ' DELETE ');
         
@@ -845,6 +843,8 @@ class core_Query extends core_FieldSet
             
             // Изпълняваме външни действия, указани за след четене
             $this->mvc->invoke('AfterRead', array(&$rec));
+            
+            $this->mvc->lastFetchedRec = $rec;
             
             return $rec;
         }

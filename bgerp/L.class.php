@@ -93,7 +93,7 @@ class bgerp_L extends core_Manager
      *
      * @return array
      */
-    protected static function getDocOptions($cId, $mId)
+    public static function getDocOptions($cId, $mId)
     {
         // Трасираме стека с действията докато намерим SEND екшън
         $i = 0;

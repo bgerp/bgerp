@@ -404,9 +404,9 @@ class trans_Cmrs extends core_Master
     {
         $Contragent = cls::get($contragentClassId);
         $verbal = $Contragent->fetch($contragentId, 'pCode,place,address');
-        $contragentAddress = ($verbal->address) ? transliterate($verbal->address) . "\n" : '';
+        $contragentAddress = ($verbal->address) ? transliterate(tr($verbal->address)) . "\n" : '';
         $contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
-        $contragentAddress .= ($verbal->place) ? ' ' . transliterate($verbal->place) : '';
+        $contragentAddress .= ($verbal->place) ? ' ' . transliterate(tr($verbal->place)) : '';
         
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
         $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');

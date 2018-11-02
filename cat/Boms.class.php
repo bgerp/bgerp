@@ -1246,7 +1246,7 @@ class cat_Boms extends core_Master
      * @param float $quantity    - количеството
      * @param float $minDelta    - минималната търговска отстъпка
      * @param float $maxDelta    - максималната търговска надценка
-     * @param date  $date        - към коя дата
+     * @param datetime  $date        - към коя дата
      * @param int   $priceListId - ид на ценоразпис
      * @param array $materials   - какви материали са вложени
      *
@@ -1254,7 +1254,6 @@ class cat_Boms extends core_Master
      */
     public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array())
     {
-        $baseAmount = null;
         $price = null;
         $primeCost1 = $primeCost2 = null;
         

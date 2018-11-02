@@ -197,17 +197,18 @@ class doc_Folders extends core_Master
     /**
      * Добавя info запис в log_Data
      *
-     * @param string $action
-     * @param int    $objectId
-     * @param int    $lifeDays
+     * @param string   $action
+     * @param int      $objectId
+     * @param int      $lifeDays
+     * @param int|null $cu
      *
      * @see core_Mvc::logRead($action, $objectId, $lifeDays)
      */
-    public static function logRead($action, $objectId = null, $lifeDays = 180)
+    public static function logRead($action, $objectId = null, $lifeDays = 180, $cu = null)
     {
-        if (!self::logToFolder('read', $action, $objectId, $lifeDays)) {
+        if (!self::logToFolder('read', $action, $objectId, $lifeDays, $cu)) {
             
-            return parent::logRead($action, $objectId, $lifeDays);
+            return parent::logRead($action, $objectId, $lifeDays, $cu);
         }
     }
     
@@ -215,17 +216,18 @@ class doc_Folders extends core_Master
     /**
      * Добавя info запис в log_Data
      *
-     * @param string $action
-     * @param int    $objectId
-     * @param int    $lifeDays
+     * @param string   $action
+     * @param int      $objectId
+     * @param int      $lifeDays
+     * @param int|null $cu
      *
      * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
      */
-    public static function logWrite($action, $objectId = null, $lifeDays = 360)
+    public static function logWrite($action, $objectId = null, $lifeDays = 360, $cu = null)
     {
-        if (!self::logToFolder('write', $action, $objectId, $lifeDays)) {
+        if (!self::logToFolder('write', $action, $objectId, $lifeDays, $cu)) {
             
-            return parent::logWrite($action, $objectId, $lifeDays);
+            return parent::logWrite($action, $objectId, $lifeDays, $cu);
         }
     }
     
@@ -237,8 +239,9 @@ class doc_Folders extends core_Master
      * @param string   $action
      * @param int|NULL $objectId
      * @param int|NULL $lifeDays
+     * @param int|NULL $cu
      */
-    protected static function logToFolder($type, $action, $objectId, $lifeDays)
+    protected static function logToFolder($type, $action, $objectId, $lifeDays, $cu = null)
     {
         if (!$objectId) {
             
@@ -266,7 +269,7 @@ class doc_Folders extends core_Master
             
             $inst = cls::get($rec->coverClass);
             
-            $inst->$fncName($action, $rec->coverId, $lifeDays);
+            $inst->$fncName($action, $rec->coverId, $lifeDays, $cu);
             
             return true;
         } catch (core_exception_Expect $e) {

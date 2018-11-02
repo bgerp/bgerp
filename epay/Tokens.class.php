@@ -62,7 +62,7 @@ class epay_Tokens extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'token,initiatorId=Източник,createdOn=Създадено на';
+    public $listFields = 'id,token,initiatorId=Източник,createdOn=Създаване';
     
     
     /**
@@ -99,6 +99,22 @@ class epay_Tokens extends core_Manager
      * @param int $initiatorId      - ид на обекта от класа инициатор
      * @return string               - генерираният токен
      */
+    public static function getPaymentReason($initiatorClass, $initiatorId)
+    {
+        $token = self::force($initiatorClass, $initiatorId);
+        $reason = "Плащане по поръчка #{$token}";
+        
+        return $reason;
+    }
+
+
+    /**
+     * Форсира нов токен за обекта-инициатор
+     * 
+     * @param mixed $initiatorClass - клас инициатор
+     * @param int $initiatorId      - ид на обекта от класа инициатор
+     * @return string               - генерираният токен
+     */
     public static function force($initiatorClass, $initiatorId)
     {
         // Има ли токен за този обект
@@ -117,18 +133,30 @@ class epay_Tokens extends core_Manager
     
     
     /**
-     * Генерира нов уникален токен
+     * Връща нов неизползван досега токен
      *
      * @return string $token - генерираният токен
      */
     public static function getNewToken()
     {
-        $token = str::getRand('AAA') . str::getRand('########');
-       
         // Докато не се получи уникален токен, се генерира нов
+        $token = self::generate();
         while(self::fetch("#token = '{$token}'")){
-            $token = str::getRand('AAA') . str::getRand('########');
+            $token = self::generate();
         }
+        
+        return $token;
+    }
+    
+    
+    /**
+     * Генериане на произволен токен
+     * 
+     * @return $token - генерианият токен
+     */
+    public static function generate()
+    {
+        $token = str::getRand('AAA') . str::getRand('########');
         
         return $token;
     }
@@ -160,5 +188,29 @@ class epay_Tokens extends core_Manager
         }
         
         return false;
+    }
+    
+    
+    /**
+     * Изтриване по разпоисание на токените към несъществуващи обекти
+     */
+    public function cron_DeleteOldTokens()
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch()){
+            $delete = false;
+            if(empty($rec->initiatorClassId) || empty($rec->initiatorId) || (isset($rec->initiatorClassId) && !cls::load($rec->initiatorClassId, true))){
+                $delete = true;
+            } elseif(isset($rec->initiatorClassId) && isset($rec->initiatorId)){
+                $initId = cls::get($rec->initiatorClassId)->fetchField($rec->initiatorId);
+                if(empty($initId)){
+                    $delete = true;
+                }
+            }
+            
+            if($delete === true){
+                self::delete($rec->id);
+            }
+        }
     }
 }

@@ -408,11 +408,49 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param datetime                                                                           $datetime  - дата
      * @param float                                                                              $rate      - валутен курс
      * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
-     *
+     * 
      * @return float|NULL $price  - цена
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
+        // Ако има рецепта връщаме по нея
+        if ($bomRec = $this->getBomForPrice($productId)) {
+            
+            // Рецептата ще се преизчисли за текущия артикул
+            // В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
+            $bomRec->productId = $productId;
+            
+            return cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
+        }
+        
+        return null;
+    }
+    
+    
+    /**
+     * Записа на рецептата на артикула, ако няма на прототипния, ако има
+     * 
+     * @param int|stdClass $productId - ид на артикул
+     * 
+     * @return boolean|stdClass $bomRec - запис на рецепта
+     */
+    public function getBomForPrice($productId)
+    {
+        // Търсим първо активната търговска рецепта, ако няма търсим активната работна
+        $productRec = cat_Products::fetchRec($productId, 'proto,id');
+        
+        if(isset($productRec->id)){
+            $bomRec = cat_Products::getLastActiveBom($productRec->id, 'sales');
+            if (empty($bomRec)) {
+                $bomRec = cat_Products::getLastActiveBom($productRec->id, 'production');
+            }
+        }
+       
+        if (empty($bomRec) && isset($productRec->proto)) {
+            $bomRec = $this->getBomForPrice($productRec->proto);
+        }
+        
+        return $bomRec;
     }
     
     
@@ -425,6 +463,27 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function canAutoCalcPrimeCost($productId)
     {
+        if(isset($productId)){
+            
+            // Ако има рецепта, може да се сметне цената
+            $bomRec = $this->getBomForPrice($productId);
+            if(is_object($bomRec)){
+                
+                return true;
+            }
+            
+            // Ако няма рецепта, но артикула има прототип и той има цена по каталог
+            $productRec = cat_Products::fetchRec($productId, 'proto,id');
+            if(!empty($productRec->proto)){
+                if(price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $productRec->proto)){
+                    
+                    return true;
+                }
+            }
+            
+            return is_object($bomRec);
+        }
+        
         return false;
     }
     

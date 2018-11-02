@@ -437,6 +437,13 @@ class core_page_InternalModern extends core_page_Active
             $searchLink .= ht::createLink(tr('Търсене на лица'), array('crm_Persons', 'list'), null, $attr);
         }
         
+        // Бутон за търсене по баркод
+        if (barcode_Search::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/barcode-icon.png';
+            $attr['id'] = 'modern-barcode-search';
+            $searchLink .= ht::createLink(tr('Търсене на баркод'), array('barcode_Search', 'list'), null, $attr);
+        }
+        
         $tpl->replace($searchLink, 'SEARCH_LINK');
     }
     

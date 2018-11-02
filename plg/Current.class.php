@@ -292,17 +292,29 @@ class plg_Current extends core_Plugin
             $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
             $row->ROW_ATTR['class'] .= ' state-active';
         } elseif ($mvc->haveRightFor('select', $rec)) {
-            
+           
             // Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор
-            $row->currentPlg = ht::createBtn('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), null, null, 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
+            $row->currentPlg = ht::createBtn('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => true), null, null, 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
             $row->ROW_ATTR['class'] .= ' state-closed';
             
             core_RowToolbar::createIfNotExists($row->_rowTools);
-            $row->_rowTools->addLink('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
+            $row->_rowTools->addLink('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => true), 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
         } else {
             
             // Ако записа не е текущия обект и не може да бъде избран оставяме го така
             $row->ROW_ATTR['class'] .= ' state-closed';
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара за единичен изглед
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $currentId = $mvc->getCurrent('id', false);
+        if($currentId != $data->rec->id && $mvc->haveRightFor('select', $data->rec)){
+            $data->toolbar->addBtn('Избор||Select', array($mvc, 'SetCurrent', $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
         }
     }
     

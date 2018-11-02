@@ -37,33 +37,33 @@ class bglocal_interface_FreeShipping extends core_BaseClass
     /**
      * Определяне на обемното тегло, на база на обема на товара
      *
-     * @param float $weight - Тегло на товара
-     * @param float $volume - Обем  на товара
-     * @param float|null $coefficient - коефициент за отношение, null за глобалната константа
+     * @param float $weight        - Тегло на товара
+     * @param float $volume        - Обем  на товара
+     * @param int $deliveryTermId  - Условие на доставка
+     * @param array $params        - допълнителни параметри
      *
      * @return float - Обемно тегло на товара
      */
-    public function getVolumicWeight($weight, $volume, $coefficient = null)
+    public function getVolumicWeight($weight, $volume, $deliveryTermId, $params)
     {
+        return max($weight, $volume);
     }
     
     
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int   $deliveryTermId - условие на доставка
-     * @param float $singleWeight   - тегло
-     * @param float $singleVolume   - обем
-     * @param int   $totalWeight    - Общо тегло на товара
-     * @param int   $totalVolume    - Общ обем на товара
-     * @param array $params         - Други параметри
+     * @param int   $deliveryTermId     - условие на доставка
+     * @param float $volumicWeight      - единичното обемно тегло
+     * @param int   $totalVolumicWeight - Общото обемно тегло
+     * @param array $params             - други параметри
      *
      * @return array
      *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      *               ['deliveryTime'] - срока на доставка в секунди ако го има
      *               ['explain']      - текстово обяснение на изчислението
      */
-    public function getTransportFee($deliveryTermId, $singleWeight, $singleVolume, $totalWeight, $totalVolume, $params)
+    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
     {
         return array('fee' => 0);
     }

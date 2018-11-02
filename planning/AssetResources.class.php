@@ -146,7 +146,7 @@ class planning_AssetResources extends core_Master
         
         if (empty($rec->id)) {
             $form->FNC('users', 'userList', 'caption=Потребители,input,after=folderId');
-            $suggestions = doc_FolderResources::getFolderSuggestions($forType);
+            $suggestions = doc_FolderResources::getFolderSuggestions('assets');
             $form->setField('folderId', 'mandatory,input');
             $form->setOptions('folderId', array('' => '') + $suggestions);
             $form->setDefault('folderId', planning_Centers::getUndefinedFolderId());
@@ -234,7 +234,7 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      *
-     * @param int $folderId - ид на папка
+     * @param int|null $folderId - ид на папка
      *
      * @return array $option    - налично оборудване
      */
@@ -393,6 +393,10 @@ class planning_AssetResources extends core_Master
     protected static function on_AfterCreate($mvc, $rec)
     {
         planning_AssetResourceFolders::addDefaultFolder($mvc->getClassId(), $rec->id, $rec->folderId, $rec->users);
+    
+        if(isset($rec->protocolId)){
+            accda_Da::logWrite('Създаване на ново оборудване', $rec->protocolId);
+        }
     }
     
     

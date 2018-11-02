@@ -230,7 +230,7 @@ class backup_Start extends core_Manager
         foreach ($ungetedBinLogs as $binLogFileName) {
             $binLogFileNameGz = self::$conf->BACKUP_PREFIX . '_' . EF_DB_NAME . '_' . $binLogFileName . '.gz';
             
-            $cmdBinLog = 'mysqlbinlog --read-from-remote-server -u'
+            $cmdBinLog = 'mysqlbinlog --database=' . EF_DB_NAME . ' --read-from-remote-server -u'
                 . self::$conf->BACKUP_MYSQL_USER_NAME
                 . ' -p' . self::$conf->BACKUP_MYSQL_USER_PASS . " {$binLogFileName} -h"
                 . self::$conf->BACKUP_MYSQL_HOST . ' | gzip -1 > ' . EF_TEMP_PATH . '/' . $binLogFileNameGz;

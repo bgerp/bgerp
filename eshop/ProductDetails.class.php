@@ -94,7 +94,7 @@ class eshop_ProductDetails extends core_Detail
     public function description()
     {
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Е-артикул,mandatory,silent');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=eshop_ProductDetails::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=price_ListRules::getSellableProducts)', 'caption=Артикул,silent,removeAndRefreshForm=packagings,mandatory');
         $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки/Мерки,mandatory');
         $this->FLD('title', 'varchar(nullIfEmpty)', 'caption=Заглавие');
         $this->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
@@ -183,59 +183,6 @@ class eshop_ProductDetails extends core_Detail
     
     
     /**
-     * Връща достъпните продаваеми артикули
-     */
-    public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
-    {
-        $products = array();
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#state != 'closed' AND #state != 'rejected'  AND #state != 'template' AND #isPublic = 'yes' AND #canSell = 'yes'");
-        
-        if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
-                
-                return array();
-            }
-            $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-            $pQuery->where("#id IN (${ids})");
-        } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
-        }
-        
-        $xpr = "CONCAT(' ', #name, ' ', #code)";
-        $pQuery->XPR('searchFieldXpr', 'text', $xpr);
-        $pQuery->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
-        
-        if ($q) {
-            if ($q{0} == '"') {
-                $strict = true;
-            }
-            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
-            $q = mb_strtolower($q);
-            $qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
-            
-            $pBegin = type_Key2::getRegexPatterForSQLBegin();
-            foreach ($qArr as $w) {
-                $pQuery->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
-            }
-        }
-        
-        if ($limit) {
-            $pQuery->limit($limit);
-        }
-        
-        $pQuery->show('id,name,code,isPublic,searchFieldXpr');
-        
-        while ($pRec = $pQuery->fetch()) {
-            $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);
-        }
-        
-        return $products;
-    }
-    
-    
-    /**
      * Каква е цената във външната част
      *
      * @param int      $productId
@@ -294,7 +241,7 @@ class eshop_ProductDetails extends core_Detail
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         	
-            if (!$price = self::getPublicDisplayPrice($rec->productId)) {
+            if (!self::getPublicDisplayPrice($rec->productId)) {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена и няма да се показва във външната част', 'warning');
             }
         }
@@ -322,7 +269,6 @@ class eshop_ProductDetails extends core_Detail
         $fields = cls::get(get_called_class())->selectFields();
         $fields['-external'] = $fields;
         
-        $splitProducts = array();
         $query = self::getQuery();
         $query->where("#eshopProductId = {$data->rec->id} AND #state = 'active'");
         $query->orderBy('productId');
@@ -389,7 +335,7 @@ class eshop_ProductDetails extends core_Detail
      *
      * @return stdClass $row
      */
-    private static function getExternalRow($rec)
+    public static function getExternalRow($rec)
     {
         $settings = cms_Domains::getSettings();
         $row = new stdClass();
@@ -399,45 +345,55 @@ class eshop_ProductDetails extends core_Detail
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
         
         $row->packagingId = tr(cat_UoM::getShortName($rec->packagingId));
-        $row->quantity = ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", null, 'size=4,class=eshop-product-option,placeholder=1');
-        
+        $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
+        $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
+        $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
+
         $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->catalogPrice = core_Type::getByName('double(smartRound)')->toVerbal($catalogPriceInfo->price);
+        
+        $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
         $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
         $row->orderPrice = $catalogPriceInfo->price;
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         
         $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        if($rec->_listView !== true){
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        }
+        $class = ($rec->_listView === true) ? 'group-row' : '';
         
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if (isset($settings->storeId) && $canStore == 'yes') {
             $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
             if ($quantity < $rec->quantityInPack) {
                 $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
-                $row->btn = "<span class='option-not-in-stock'>" . $notInStock . ' </span>';
+                $row->btn = "<span class='{$class} option-not-in-stock'>" . $notInStock . ' </span>';
             }
         }
         
         if (!empty($catalogPriceInfo->discount)) {
+            $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
+            
+            $row->catalogPrice = "<b class='{$class} eshop-discounted-price'>{$row->catalogPrice}</b>";
             $discountType = type_Set::toArray($settings->discountType);
-            $row->catalogPrice .= "<div class='external-discount'>";
+            $row->catalogPrice .= "<div class='{$class} external-discount' {$style}>";
             if (isset($discountType['amount'])) {
                 $amountWithoutDiscount = $catalogPriceInfo->price / (1 - $catalogPriceInfo->discount);
                 $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
-                $row->catalogPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
+                $row->catalogPrice .= "<div class='{$class} external-discount-amount' {$style}> {$discountAmount}</div>";
             }
             
-            if (isset($discountType['amount'], $discountType['percent'])) {
+            if (isset($discountType['amount']) && isset($discountType['percent'])) {
                 $row->catalogPrice .= ' / ';
             }
             
             if (isset($discountType['percent'])) {
-                $discountPercent = core_Type::getByName('percent(smartRound)')->toVerbal($catalogPriceInfo->discount);
+                $discountPercent = core_Type::getByName('percent(decimals=0)')->toVerbal($catalogPriceInfo->discount);
                 $discountPercent = str_replace('&nbsp;', '', $discountPercent);
-                $row->catalogPrice .= "<div class='external-discount-percent'> (-{$discountPercent})</div>";
+                $row->catalogPrice .= "<div class='{$class} external-discount-percent' {$style}> (-{$discountPercent})</div>";
             }
+            
             $row->catalogPrice .= '</div>';
         }
         
@@ -455,15 +411,13 @@ class eshop_ProductDetails extends core_Detail
     public static function renderExternal($data)
     {
         $tpl = new core_ET('');
-        $count = count($data->rows);
         
         $fieldset = cls::get(get_called_class());
         $fieldset->FNC('code', 'varchar');
         $fieldset->FNC('catalogPrice', 'double');
         $fieldset->FNC('btn', 'varchar', 'tdClass=small-field');
         $fieldset->FNC('packagingId', 'varchar', 'tdClass=centered');
-        $fieldset->FLD('quantity', 'varchar');
-        $fieldset->setField('quantity', 'tdClass=quantity-input-column');
+        $fieldset->FLD('quantity', 'varchar', 'tdClass=quantity-input-column small-field');
         
         $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'optionsTable'));
         
@@ -473,6 +427,7 @@ class eshop_ProductDetails extends core_Detail
         }
         
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->paramListFields);
+        
         $listFields = &$data->listFields;
         array_walk(array_keys($data->commonParams), function($paramId) use (&$listFields){unset($listFields["param{$paramId}"]);});
         

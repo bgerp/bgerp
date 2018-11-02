@@ -73,17 +73,14 @@ class type_UserList extends type_Keylist
             return $this->suggestions;
         }
         
-        // извличане на потребителите с информация
+        // Извличане на  информация за отсъствията на потребителите
+        $this->profileInfo = array();
         $pQuery = crm_Profiles::getQuery();
-        $pQuery->show('id');
-        while ($rec = $pQuery->fetch('#stateInfo IS NOT NULL')) {
-            $dayBefore = strstr(dt::addDays(1, $rec->sateDateFrom), ' ', true);
-            if ($dayBefore == strstr(dt::now(), ' ', true)) {
-                $iUsers[$rec->id] = $rec->id;
-            }
+        $pQuery->show('userId,stateDateFrom,stateDateTo');
+        while ($rec = $pQuery->fetch('#stateInfo IS NOT NULL')) { 
+            $this->profileInfo[$rec->userId] = crm_Profiles::getAbsenceClass($rec->stateDateFrom, $rec->stateDateTo);
         }
-        $this->info = $iUsers;
-        
+ 
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип
         if (!haveRole($this->params['rolesForAll'])) {
             $ownRoles = core_Users::getCurrent('roles');
@@ -283,7 +280,7 @@ class type_UserList extends type_Keylist
             $valuesArr = explode($value{0}, trim($value, $value{0}));
             
             $nValArr = array();
-            
+             
             foreach ($valuesArr as $uId) {
                 $roles = core_Users::fetchField($uId, 'roles');
                 

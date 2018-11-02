@@ -7,5 +7,5 @@
 	<input type="hidden" name="URL_CANCEL" value="[#cancelUrl#]">
 	<input type="hidden" name="ENCODING" value="utf8">
 	<input type="hidden" name="CHECKSUM" value="[#checksum#]">
-	<input type="image" src="https://online.datamax.bg/epaynow/a04.gif" title="|Онлайн плащане чрез ePay.bg|*" alt="|Плащане on-line|*">
+	<input type="image" src="[#BTN_IMAGE#]" title="|Онлайн плащане чрез ePay.bg|*" alt="|Плащане on-line|*">
 </form>

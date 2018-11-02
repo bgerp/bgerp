@@ -1033,7 +1033,7 @@ class acc_Items extends core_Manager
         // Инвалидираме кешираните записи, за да няма обърквания по-нататък
         $Items->_cachedRecords = array();
         
-        $Items->db->query($query);
+        $Items->db->query($query, false, $Items->doReplication);
     }
     
     

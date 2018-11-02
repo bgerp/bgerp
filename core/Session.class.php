@@ -270,7 +270,9 @@ class core_Session
         static $prefix;
         
         if (!$prefix) {
+
             $prefix = strtolower(str_replace('www.', '', $_SERVER['HTTP_HOST']));
+            
             $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
             $prefix = substr($prefix, 0, 10);
         }

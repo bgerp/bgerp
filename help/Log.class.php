@@ -104,7 +104,7 @@ class help_Log extends core_Master
             $rec->closedOn = null;
         }
         
-        if ($rec->seeCnt < max($conf->HELP_MAX_CLOSE_DISPLAY_CNT, $conf->HELP_MAX_OPEN_DISPLAY_CNT)) {
+        if ((!$rec->closedOn) && $rec->seeCnt < max($conf->HELP_MAX_CLOSE_DISPLAY_CNT, $conf->HELP_MAX_OPEN_DISPLAY_CNT)) {
             if ($increasSeeCnt) {
                 $rec->seeCnt++;
             }

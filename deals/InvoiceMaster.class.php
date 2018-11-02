@@ -101,7 +101,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
-        $mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Освободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
+        $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -630,7 +630,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         $form->setDefault('type', $type);
         
-        if ($firstDocument->haveInterface('bgerp_DealAggregatorIntf')) {
+        if ($firstDocument->haveInterface('bgerp_DealAggregatorIntf') && !$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $aggregateInfo = $firstDocument->getAggregateDealInfo();
             
             $form->rec->vatRate = $aggregateInfo->get('vatType');
@@ -978,12 +978,15 @@ abstract class deals_InvoiceMaster extends core_Master
                 $row->cNum = tr('|ЕИК|* / <i>UIC</i>');
             }
             
-            $userRec = core_Users::fetch($rec->createdBy);
-            $usernames = core_Users::recToVerbal($userRec, 'names')->names;
-            $row->username = core_Lg::transliterate($usernames);
+            $issuerId = null;
+            $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId);
+            $row->username = core_Lg::transliterate($row->username);
             
-            $row->userCode = abs(crc32("{$usernames}|{$userRec->id}"));
-            $row->userCode = substr($row->userCode, 0, 6);
+            // От потребителя се прави уникален код
+            if(!empty($issuerId)){
+                $row->userCode = abs(crc32("{$row->username}|{$issuerId}"));
+                $row->userCode = substr($row->userCode, 0, 6);
+            }
             
             if ($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)) {
                 $originRec = $mvc->getSourceOrigin($rec)->fetch();
@@ -1295,8 +1298,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // Не може да се променя в затворен период
         if ($action == 'changerec' && isset($rec) && $res != 'no_one') {
-            $valior = acc_Journal::fetchByDoc($mvc, $rec->id)->valior;
-            $periodState = acc_Periods::fetchByDate($valior)->state;
+            $periodState = acc_Periods::fetchByDate($mvc->getValiorValue($rec))->state;
             if ($periodState == 'closed' || $periodState == 'draft' || is_null($periodState)) {
                 $res = 'no_one';
             }

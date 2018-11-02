@@ -2,6 +2,12 @@
 
 
 /**
+ * Сол за хеширане на файла в URL
+ */
+defIfNot('DEBUG_PROTECT_HASH', md5(EF_SALT . 'logDebug'));
+
+
+/**
  * Клас 'log_Debug' - Мениджър за запис на действията на потребителите
  *
  *
@@ -331,7 +337,7 @@ class log_Debug extends core_Manager
         if ($debugFile) {
             $fPath = $this->getDebugFilePath($debugFile);
             if ($fPath) {
-                $dUrl = fileman_Download::getDownloadUrl($fPath, 1, 'path');
+                $dUrl = $this->getDownalodUrl($debugFile);
                 
                 if ($dUrl) {
                     $tpl->replace(ht::createLink(tr('Сваляне'), $dUrl, null, 'ef_icon=img/16/debug_download.png'), 'DOWNLOAD_FILE');
@@ -727,7 +733,7 @@ class log_Debug extends core_Manager
                 if ($canList) {
                     $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
                     
-                    $dUrl = fileman_Download::getDownloadUrl($state['_debugFileName'], 1, 'path');
+                    $dUrl = $this->getDownalodUrl($bName);
                     if ($dUrl) {
                         $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
                     }
@@ -750,6 +756,44 @@ class log_Debug extends core_Manager
         $res = $tpl->render($data);
         
         return $res;
+    }
+    
+    
+    /**
+     * Връща защитено URL за сваляне на файла
+     *
+     * @param string $debugFile
+     *
+     * @return string
+     */
+    public static function getDownalodUrl($debugFile)
+    {
+        $debugFileHash = str::addHash($debugFile, 8, DEBUG_PROTECT_HASH);
+        
+        return toUrl(array(get_called_class(), 'Download', $debugFileHash), 'absolute');
+    }
+    
+    
+    /**
+     * Екшън за сваляне на дебъг файла
+     *
+     * @return Redirect
+     */
+    public function act_Download()
+    {
+        $debugFile = Request::get('id');
+        
+        expect($debugFile);
+        
+        $debugFile = str::checkHash($debugFile, 8, DEBUG_PROTECT_HASH);
+        
+        $fPath = self::getDebugFilePath($debugFile);
+        
+        expect($debugFile);
+        
+        $dUrl = fileman_Download::getDownloadUrl($fPath, 1, 'path');
+        
+        return new Redirect($dUrl);
     }
     
     

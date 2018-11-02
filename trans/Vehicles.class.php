@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'trans_vehicles'
+ * Клас 'trans_Vehicles'
  *
  * Мениджър за транспортни средства
  *
@@ -10,7 +10,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -42,9 +42,21 @@ class trans_Vehicles extends core_Master
     
     
     /**
+     * Кой има право да разглежда?
+     */
+    public $canSingle = 'ceo, trans';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, trans';
+    
+    
+    /**
+     * Кой има право да разглежда?
+     */
+    public $canList = 'ceo, trans';
     
     
     /**

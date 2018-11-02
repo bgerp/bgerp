@@ -77,13 +77,19 @@ class rack_Pallets extends core_Manager
     
     
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'barcode_SearchIntf';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
         $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
@@ -102,9 +108,9 @@ class rack_Pallets extends core_Manager
     /**
      * Връща наличните палети за артикула
      *
-     * @param int $productId                   - ид на артикул
-     * @param int $storeId                     - ид на склад
-     * @param boolean $withoutPendingMovements - към които да има или няма чакащи движения
+     * @param int  $productId               - ид на артикул
+     * @param int  $storeId                 - ид на склад
+     * @param bool $withoutPendingMovements - към които да има или няма чакащи движения
      *
      * @return array $pallets - масив с палети
      */
@@ -118,8 +124,10 @@ class rack_Pallets extends core_Manager
         while ($rec = $query->fetch()) {
             
             // Ако се изискват само палети, към които няма чакащи движения, другите се пропускат
-            if($withoutPendingMovements === true){
-                if(rack_Movements::fetchField("#palletId = {$rec->id} AND #state = 'pending'")) continue;
+            if ($withoutPendingMovements === true) {
+                if (rack_Movements::fetchField("#palletId = {$rec->id} AND #state = 'pending'")) {
+                    continue;
+                }
             }
             
             $pallets[$rec->id] = (object) array('quantity' => $rec->quantity, 'position' => $rec->position);
@@ -247,7 +255,7 @@ class rack_Pallets extends core_Manager
         }
         
         // Ако има полета за обновяване, обновяват се
-        if($saveAgain === true){
+        if ($saveAgain === true) {
             $mvc->save_($rec, $updateFields);
         }
         
@@ -272,7 +280,7 @@ class rack_Pallets extends core_Manager
         $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
         $data->listFilter->FLD('state', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('state', 'active');
-        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getSellableProducts)', 'caption=Артикул,silent');
+        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул,silent');
         $data->listFilter->FLD('pos', 'varchar', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
         
         $data->listFilter->showFields = 'productId,pos,state';
@@ -396,7 +404,7 @@ class rack_Pallets extends core_Manager
             $rRec->state = 'active';
         }
         
-        if($save === true){
+        if ($save === true) {
             rack_Products::save($rRec);
         }
         
@@ -615,10 +623,9 @@ class rack_Pallets extends core_Manager
         }
         
         if (empty($quantity)) {
-            
             $query = rack_Pallets::getQuery();
             $query->where("#productId = {$productId} AND #storeId = {$storeId}");
-            if(isset($excludePosition)){
+            if (isset($excludePosition)) {
                 $query->where("#position != '{$excludePosition}'");
             }
             
@@ -690,10 +697,86 @@ class rack_Pallets extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'edit' && isset($rec)){
-            if($rec->state == 'closed'){
+        if ($action == 'edit' && isset($rec)) {
+            if ($rec->state == 'closed') {
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+    /**
+     * Търси по подадения баркод
+     *
+     * @param string $str
+     *
+     * @return array
+     *               ->title - заглавие на резултата
+     *               ->url - линк за хипервръзка
+     *               ->comment - html допълнителна информация
+     *               ->priority - приоритет
+     */
+    public function searchByCode($str)
+    {
+        $resArr = array();
+        
+        $storeId = store_Stores::getCurrent('id', false);
+        
+        if (!$storeId || !store_Stores::haveRightFor('list', $storeId)) {
+            
+            return $resArr;
+        }
+        
+        $str = trim($str);
+        
+        $prodAndPack = cat_Products::getByCode($str);
+        
+        if (!$prodAndPack || !$prodAndPack->productId) {
+            
+            return $resArr;
+        }
+        
+        setIfNot($prodAndPack->packagingId, cat_Products::fetchField($prodAndPack->productId, 'measureId'));
+        
+        $query = $this->getQuery();
+        $query->where("#productId = {$prodAndPack->productId} AND #storeId = {$storeId} AND #state != 'closed'");
+        $palletCount = $query->count();
+        $palletCountVerbal = core_Type::getByName('int')->toVerbal($palletCount);
+        
+        
+        $res = (object)array('title' => cat_Products::getHyperlink($prodAndPack->productId, true), 
+                             'url' => array(), 
+                             'comment' => '',
+                             'priority' => 1);
+        
+        $quantityNotOnPallets = rack_Products::fetchField(array("#productId = '[#1#]' AND #storeId = '[#2#]'", $prodAndPack->productId, $storeId), 'quantityNotOnPallets');
+        
+        if(!empty($palletCount)){
+            $res->comment .= "{$palletCountVerbal} " . str::getPlural($palletCount, tr('палет'), true);
+        }
+        
+        if (!empty($quantityNotOnPallets)) {
+            $quantityNotOnPalletsVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantityNotOnPallets);
+            $measureId = cat_Products::fetchField($prodAndPack->productId, 'measureId');
+            $packName = tr(cat_UoM::getVerbal($measureId, 'name'));
+          
+            $quantityNotOnPalletsVerbal .= " " . str::getPlural($quantityNotOnPallets, $packName, true);
+            $res->comment .= $res->comment ? ' ' . tr('и') . ' ' : '';
+            $res->comment .= $quantityNotOnPalletsVerbal . ' ' . tr('непалетирани');
+            $res->priority *= 2;
+        }
+        
+        if (!empty($res->comment)) {
+            $res->comment .= ' ' . tr('в склад') . ' ' . store_Stores::getHyperlink($storeId, true);
+        }
+        
+        if ($this->haveRightFor('list') && !empty($res->comment)) {
+            $filterUrl = array($this, 'list', 'productId' => $prodAndPack->productId, 'state' => '');
+            $res->comment .= " " . ht::createBtn('Филтриране', $filterUrl, false, false, 'title=Филтриране на палети в склада,ef_icon=img/16/funnel.png');
+        }
+        
+        $resArr[] = $res;
+        
+        return $resArr;
     }
 }

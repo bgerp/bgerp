@@ -148,7 +148,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             }
             
             // Себестойност: ако има по политика "себестойност", ако не: от драйвера, ако не: по рецептура
-            $selfPrice = cat_Products::getSelfValue($sallProductId, null, $saleProducts->quantity, null);
+            $selfPrice = cat_Products::getPrimeCost($sallProductId, null, $saleProducts->quantity, null);
             
             $isPublic = $saleProducts->isPublic;
             
@@ -303,7 +303,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             }
             
             // Себестойност: ако има по политика "себестойност", ако не: от драйвера, ако не: по рецептура
-            $expSelfPrice = cat_Products::getSelfValue($expProductId, null, $expProducts->quantity, null);
+            $expSelfPrice = cat_Products::getPrimeCost($expProductId, null, $expProducts->quantity, null);
             
             // цена на артикула за клиента
             $contragentFuturePrice = cls::get('price_ListToCustomers')->getPriceInfo(

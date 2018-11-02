@@ -35,15 +35,18 @@ class type_Url extends type_Varchar
             return;
         }
         
-        $attr = array();
-        $attr['target'] = '_blank';
-        $attr['class'] = 'out';
-        if (!strpos($value, '://')) {
-            $url = 'http://' . $value;
-        } else {
-            $url = $value;
+        if (!Mode::is('text', 'plain')) {
+            $attr = array();
+            $attr['target'] = '_blank';
+            $attr['class'] = 'out';
+            if (!strpos($value, '://')) {
+                $url = 'http://' . $value;
+            } else {
+                $url = $value;
+            }
+            
+            $value = HT::createLink($value, $url, false, $attr);
         }
-        $value = HT::createLink($value, $url, false, $attr);
         
         return $value;
     }

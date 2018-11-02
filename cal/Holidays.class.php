@@ -395,8 +395,10 @@ class cal_Holidays extends core_Master
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
         
-        // Обновяваме празниците в календара
-        $res .= '<li> ' . static::updateCalendarHolidays() . '</li>';
+        if ($cntObj->created || $cntObj->updated) {
+            // Обновяваме празниците в календара
+            $res .= '<li> ' . static::updateCalendarHolidays() . '</li>';
+        }
     }
     
     

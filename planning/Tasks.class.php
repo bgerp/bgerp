@@ -198,6 +198,12 @@ class planning_Tasks extends core_Master
     
     
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'barcode_SearchIntf';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1185,5 +1191,59 @@ class planning_Tasks extends core_Master
     public static function getCoversAndInterfacesForNewDoc()
     {
         return array('folderClass' => 'planning_Centers');
+    }
+    
+    
+    /**
+     * Търси по подадения баркод
+     *
+     * @param string $str
+     *
+     * @return array
+     * ->title - заглавие на резултата
+     * ->url - линк за хипервръзка
+     * ->comment - html допълнителна информация
+     * ->priority - приоритет
+     */
+    public function searchByCode($str)
+    {
+        $resArr = array();
+        
+        $str = trim($str);
+        
+        $taskDetilQuery = planning_ProductionTaskDetails::getQuery();
+        $taskDetilQuery->where(array("#serial = '[#1#]'", $str));
+        
+        while($dRec = $taskDetilQuery->fetch()) {
+            
+            $res = new stdClass();
+            
+            $tRec = $this->fetch($dRec->taskId);
+            
+            $res->title = $tRec->title;
+            
+            if ($this->haveRightFor('single', $tRec)) {
+                $res->url = array('planning_Tasks', 'single', $dRec->taskId);
+                
+                $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
+                $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
+                
+                if ($tRec->progress) {
+                    $progress = $this->getVerbal($tRec, 'progress');
+                    $res->title .= ' (' . $progress . ')';
+                }
+            }
+            
+            $res->priority = 1;
+            if ($dRec->state == 'active') {
+                $res->priority = 2;
+            } else if ($dRec->state == 'rejected') {
+                $res->priority = 0;
+            }
+            
+            $resArr[] = $res;
+        }
+        
+        return $resArr;
     }
 }

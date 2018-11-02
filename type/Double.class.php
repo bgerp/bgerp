@@ -151,15 +151,15 @@ class type_Double extends core_Type
             $decimals = min($decimals, $this->params['maxDecimals']);
         }
        
-        // Ограничаване на минималния брой знаци след десетичната точка
-        if(isset($this->params['minDecimals'])) {
-            $decimals = max($decimals, $this->params['minDecimals']);
-        }
-        
         // Ако закръгляме умно
         if ($this->params['smartRound']) {
             // Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
             $decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
+        }
+        
+        // Ограничаване на минималния брой знаци след десетичната точка
+        if(isset($this->params['minDecimals'])) {
+            $decimals = max($decimals, $this->params['minDecimals']);
         }
         
         // Закръгляме числото преди да го обърнем в нормален вид

@@ -69,7 +69,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,storeMaster,inventory';
+    public $canConto = 'ceo,store,inventory';
     
     
     /**

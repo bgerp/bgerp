@@ -230,4 +230,19 @@ class sens2_Scripts extends core_Master
             }
         }
     }
+
+
+    /**
+     * Подготвя иконата за единичния изглед
+     */
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+        if (!Mode::isReadOnly()) {
+            
+            // Изчистваме нотификацията за събуждане
+            $url = array($mvc, 'single', $data->rec->id);
+ 
+            bgerp_Notifications::clear($url);
+        }
+    }
 }

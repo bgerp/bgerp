@@ -128,12 +128,19 @@ class label_Counters extends core_Master
     /**
      * Към максималния брояч в модела добавя стъпката и връща резултата
      *
-     * @param int $counterId - id на записа
+     * @param int  $counterId     - id на записа
+     * @param bool $updateCounter
      *
      * @return int - Нов номер
      */
-    public static function getCurrent($counterId)
+    public static function getCurrent($counterId, $updateCounter = true)
     {
+        if ($updateCounter) {
+            static $maxVal = null;
+        } else {
+            $maxVal = null;
+        }
+        
         // Вземае записа
         $cRec = self::fetch($counterId);
         
@@ -146,7 +153,9 @@ class label_Counters extends core_Master
         // Флага, указващ дали има други стойности за брояча
         $haveCounter = false;
         
-        $maxVal = label_CounterItems::getMax($counterId);
+        if (!isset($maxVal)) {
+            $maxVal = label_CounterItems::getMax($counterId);
+        }
         
         // Ако няма запис
         if (isset($maxVal)) {
@@ -239,7 +248,7 @@ class label_Counters extends core_Master
         if (self::haveCounterPlace($str)) {
             
             // Вземаем текущия брояч
-            $counter = self::getCurrent($counterId);
+            $counter = self::getCurrent($counterId, $updateCounter);
             
             // Ако е зададено да не се обновява
             if ($updateCounter === false) {

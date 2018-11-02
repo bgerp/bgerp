@@ -31,31 +31,31 @@ class rack_Zones extends core_Master
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'admin,ceo';
+    public $canAdd = 'ceo,rackMaster';
     
     
     /**
      * Кой може да редактира?
      */
-    public $canEdit = 'admin,ceo';
+    public $canEdit = 'ceo,rackMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'admin,ceo,rack';
+    public $canSingle = 'ceo,rack';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'admin';
+    public $canDelete = 'ceo,rackMaster';
     
     
     /**
      * Кой може да генерира нагласяния?
      */
-    public $canOrderpickup = 'admin,ceo,rack';
+    public $canOrderpickup = 'ceo,rack';
     
     
     /**
@@ -67,7 +67,7 @@ class rack_Zones extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin,ceo,rack';
+    public $canList = 'ceo,rack';
     
     
     /**
@@ -93,13 +93,13 @@ class rack_Zones extends core_Master
     /**
      * Кой може да селектира документа
      */
-    public $canSelectdocument = 'admin,ceo,rack';
+    public $canSelectdocument = 'ceo,rack';
     
     
     /**
      * Кой може да премахва докумнета от зоната
      */
-    public $canRemovedocument = 'admin,ceo,rack';
+    public $canRemovedocument = 'ceo,rack';
     
     
     /**
@@ -309,7 +309,7 @@ class rack_Zones extends core_Master
         $data->query->orderBy('num', 'asc');
         
         // Добавяне на филтър по артикулите
-        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
+        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'productId';
         $data->listFilter->view = 'horizontal';
@@ -433,7 +433,7 @@ class rack_Zones extends core_Master
                 $this->updateMaster($zoneRec);
                 
                 // Генериране на движенията за нагласяне
-                self::pickupOrder($storeId, $zoneRec->id);
+                self::pickupOrder($storeId);
             }
             
             // Старата зона се отчуждава от документа
@@ -687,12 +687,14 @@ class rack_Zones extends core_Master
     {
         // Какви са очакваните количества
         $expected = self::getExpectedProducts($storeId, $zoneIds);
+        $systemUserId = core_Users::SYSTEM_USER;
         
         // Изчистване на заявките към зоните
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending'");
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId} AND #modifiedBy = {$systemUserId}");
         $mQuery->likeKeylist('zoneList', $expected->zones);
         $mQuery->show('id');
+        
         while ($mRec = $mQuery->fetch()) {
             rack_Movements::delete($mRec->id);
         }
@@ -727,9 +729,13 @@ class rack_Zones extends core_Master
             
             // Ако има генерирани движения се записват
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $storeId);
+            
+            // Движенията се създават от името на системата
+            core_Users::forceSystemUser();
             foreach ($movements as $movementRec) {
                 rack_Movements::save($movementRec);
             }
+            core_Users::cancelSystemUser();
         }
     }
     

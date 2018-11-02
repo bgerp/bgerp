@@ -226,6 +226,11 @@ class type_Keylist extends core_Type
                 $values[$key] = $key;
             }
             
+            $minusUrl = sbf('img/16/toggle2.png', '');
+            $plusUrl = sbf('img/16/toggle1.png', '');
+            $checkedUrl = sbf('img/16/checked.png', '');
+            $uncheckedUrl = sbf('img/16/unchecked.png', '');
+            
             foreach ($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
@@ -245,16 +250,12 @@ class type_Keylist extends core_Type
                         $html .= '</table></td>';
                     }
                     
-                    $minusUrl = sbf('img/16/toggle2.png', '');
                     $minusImg = ht::createElement('img', array('src' => $minusUrl,  'class' => 'btns-icon minus'));
                     
-                    $plusUrl = sbf('img/16/toggle1.png', '');
                     $plusImg = ht::createElement('img', array('src' => $plusUrl, 'class' => 'btns-icon plus'));
                     
-                    $checkedUrl = sbf('img/16/checked.png', '');
                     $checkImg = ht::createElement('img', array('src' => $checkedUrl, 'class' => 'btns-icon invert-checkbox checked hidden'));
                     
-                    $uncheckedUrl = sbf('img/16/unchecked.png', '');
                     $uncheckImg = ht::createElement('img', array('src' => $uncheckedUrl, 'class' => 'btns-icon invert-checkbox unchecked hidden'));
                     
                     // Класа за групите
@@ -269,8 +270,9 @@ class type_Keylist extends core_Type
                     
                     $addKeylistWide = true;
                     
-                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group noSelect'><div>" . $checkImg  . $uncheckImg . "<span class='invertTitle'>". $v->title . '</span>' .  $plusImg . $minusImg . '</div></td></tr>' .
-                        "<tr><td><table class='inner-keylist'>";
+                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group noSelect'><div>" . 
+                        $checkImg  . $uncheckImg . "<span class='invertTitle'>". $v->title . '</span>' .  $plusImg . 
+                        $minusImg . '</div></td></tr>' . "<tr><td><table class='inner-keylist'>";
                     
                     $groupOpen = 1;
                     $haveChecked = false;
@@ -299,10 +301,10 @@ class type_Keylist extends core_Type
                     }
                     
                     $v = type_Varchar::escape($v);
-                    
-                    list(, $uId) = explode('_', $key);
-                    if ($this->info[$uId]) {
-                        $v = "<span class='profile-state'>" . $v . '</span>';
+
+                    list(, $uId) = explode('_', $key);  
+                    if ($class = $this->profileInfo[$uId]) {
+                        $v = "<span class='{$class}'>" . $v . '</span>';
                     }
                     
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");

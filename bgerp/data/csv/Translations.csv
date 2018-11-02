@@ -97,7 +97,7 @@ en,SNM « Сайт,SNM « Site
 en,title,title
 en,Таблица,Table
 en,Тел. код,Tel. code
-en,Търсене на доку_d783,Document search
+en,Търсене на доку_d783,Search documents
 en,URL адрес,URL address
 en,URL на услугата,Service URL
 en,VAT,VAT
@@ -502,6 +502,7 @@ en,Добави,Add
 en,Добавки към публичната страница,Supplements public page
 en,Добавки,Additions
 en,Добавяне,Add
+en,Добавяне в,Add in
 en,Добавяне на вр_ef44b,Add link
 en,Добавяне на документ/и от системата,Add document/s from the system
 en,Добавяне на за_4524f,"Add an entry in ""Catering Companies"""
@@ -565,6 +566,7 @@ en,Е-маг,E-shop
 en,ЕАН,EAN
 en,ЕГН,EGN
 en,ЕИК,UIC
+en,ЕИК №,TAX ID
 en,Език на интерф_82872,Interface language after logging
 en,Език,Language
 en,Езици,Languages
@@ -593,6 +595,7 @@ en,Живот,Lifetime
 en,Журнал,Journal
 en,Жълт фон,Yellow background
 en,ЗДДС №,VAT ID
+en,ДДС №,VAT ID
 en,За артикул,For article
 en,За всички потр_93adb,For all users
 en,За да изпратит_e780e,You must fill the field
@@ -958,6 +961,7 @@ en,Логове,Logs
 en,Локации на кон_142df,Locations of partners
 en,Локации,Locations
 en,Локация,Location
+en,локация,location
 en,МВР по страната,MVR in Bulgaria
 en,МВР,MVR
 en,МКП,MOQ
@@ -1154,7 +1158,7 @@ en,Нов търговски _b9167,New point of sale
 en,Нов,New
 en,Нов...,New...
 en,Нова валута,New currency
-en,Нова локация на ,New location on 
+en,Нова локация на ,New location of 
 en,Нова нишка,New thread
 en,Нова папка на л_4ecb,New person folder
 en,Нова папка на ф_bbf2,New company folder
@@ -1741,7 +1745,7 @@ en,Редактиране на_7b58,Edit of user profile
 en,Редактиране на_8821,Editing user login information
 en,Редактиране на_8a70,Edit user data
 en,Редактиране на_a0d5,Editing label from teplate
-en,Редактиране на_b8ea,Record editing
+en,Редактиране на_b8ea,Edit a record
 en,Редактиране,Edit
 en,Редакция,Edit
 en,Редактиране на профила,Edit profile
@@ -1851,7 +1855,7 @@ en,Снимка,Picture
 en,Снимки,Pictures
 en,Собственици,Owners
 en,Сорс,Source
-en,Соц,Soc
+en,Соц,Social
 en,Спам,Spam
 en,Специалност,Speciality
 en,Спецификации,Specifications
@@ -1951,7 +1955,7 @@ en,Съдържа се в,Contained in
 en,Съдържание,Content
 en,Създаване на н_9b9a7,Create a new authorization for online service
 en,Създаване на,Creating a
-en,Създаване,Creation
+en,Създаване,Create
 en,Създаване->На,Created->On
 en,Създаване->От,Created->By
 en,Създаден на,Created on
@@ -2033,7 +2037,7 @@ en,Транспортна линия,Transport line
 en,Транспортна фирма,Transport company
 en,Транспортни линии,Transport lines
 en,Транспортни средства,Means of transport
-en,Трансфери,Store receipts
+en,Трансфери,Transfers
 en,Труд,Labor
 en,Трудов договор,Employment Contract
 en,Трудов стаж,Work experience
@@ -2454,6 +2458,7 @@ en,тегло,weight
 en,дължина,length
 en,Дължина,Length
 en,Включено ДДС в цените, Prices are with applied VAT
+en,с включено ДДС, with applied VAT
 en,До 1 месец след фактуриране, Until 1 month after invoicing
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
@@ -2495,6 +2500,7 @@ en,Универсален артикул,General item
 en,Добавяне или промяна на файлове,Add or change files
 en,Грешка при експорт,Export error
 en,Кошница,Basket
+en,Кошници,Baskets
 en,Количка,Cart
 en,Печат на документа,Document printing
 en,Експорт на документа,Document exporting
@@ -2762,23 +2768,41 @@ en,Изчерпано,Out of stock
 en,Всички складове,All stores
 en,Хронология на движенията,Chronology of movements
 en,"Сигурни ли сте, че искате да изтриете партидната дефиниция","Do you really want to delete the batch definition"
-en,Изтриване на нова партидна дефиниция,Delete new batch definition
+en,Изтриване на нова партидна дефиниция,Delete batch definition
 en,Добавяне на нова партидна дефиниция,Add new batch definition
 en,Палет-места,Pallet spaces
-en,Брой палети на една основа,Number of pallets on one basis
+en,Брой палети на една основа,Number of pallets on one base
 en,Стелажи в склад,Rack in the wharehouse
 en,Невалиден синтаксис,Non-valide syntax
 en,Несъществуващ номер на стeлаж в този склад,No rack number in this store
 en,Несъществуващ ред на стeлажа,No rack row
 en,Несъществуваща колона на стeлажа,No rack column
 en,Мястото е неизползваемо,The place is unusable
-en,Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита,All the information for reserved on unusable places outide new sizes will be deleted
+en,Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита,All the information for reserved or unusable places outide the new sizes will be deleted
 en,Запазено място,Reserved place
 en,Запазено място за,Reserved place for
-en,Очаква се палет,Pallet expected
-en,Предстои преместване,Moving expected
+en,Очаква се палет,Pallet is expected
+en,Предстои преместване,Expected movement
 en,Палетно складово стопанство,Rack storage 
-en,Връзка между ЕН-то и палетния склад,Link between document and rack storage
+en,Връзка между ЕН-то и палетния склад,Link between the shipment order and rack storage
 en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
+en,Направете поръчка,Place order
+en,Безплатна доставка за поръчки над,Free shipping for orders over
+en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
+en,Невалиден VAT номер,Invalid VAT ID,
+en,Игнорирай предупреждението,Ignore the warning
+en,Редактиране на данните за поръчка,Edit order details
+en,кутия,box
+en,бандерол,banderole
+en,по договори,according to contracts
+en,по фактури,according to invoices
+en,по фактура,according to invoice
+en,по проформи,according to proforma invoices
+en,по проформа,according to proforma invoice
+en,Данъчно събитие,Tax event
+en,Дълготраен материален актив,Tangible fixed asset,
+en,Дълготраен нематериален актив,Intangible fixed asset,
+en,Дълготрайни нематериални активи,Intangible fixed assets
+en,Търсене на баркод,Search barcodes

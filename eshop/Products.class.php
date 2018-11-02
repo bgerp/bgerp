@@ -136,7 +136,7 @@ class eshop_Products extends core_Master
     public function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
-        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Група,mandatory,silent,refreshForm');
+        
         $this->FLD('name', 'varchar(128)', 'caption=Продукт, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
@@ -145,6 +145,11 @@ class eshop_Products extends core_Master
         $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация4,column=none');
         $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация5,column=none');
         
+        // В кои групи участва продукта
+        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Групи->Основна,mandatory,silent,refreshForm');
+        $this->FLD('sharedInGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Групи->Допълнителни');
+        
+        // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
@@ -382,18 +387,17 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $gQuery = eshop_Groups::getQuery();
-        
+        $data->groups = array();
         $groups = eshop_Groups::getGroupsByDomain();
         if (count($groups)) {
             $groupList = implode(',', array_keys($groups));
             $gQuery->where("#id IN ({$groupList})");
-        }
-        
-        while ($gRec = $gQuery->fetch("#state = 'active'")) {
-            $data->groups[$gRec->id] = new stdClass();
-            $data->groups[$gRec->id]->groupId = $gRec->id;
-            $data->groups[$gRec->id]->groupRec = $gRec;
-            self::prepareGroupList($data->groups[$gRec->id]);
+            while ($gRec = $gQuery->fetch("#state = 'active'")) {
+                $data->groups[$gRec->id] = new stdClass();
+                $data->groups[$gRec->id]->groupId = $gRec->id;
+                $data->groups[$gRec->id]->groupRec = $gRec;
+                self::prepareGroupList($data->groups[$gRec->id]);
+            }
         }
     }
     
@@ -404,7 +408,7 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->where("#state = 'active' AND #groupId = {$data->groupId}");
+        $pQuery->where("#state = 'active' AND #groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups)");
         
         while ($pRec = $pQuery->fetch()) {
             $data->recs[] = $pRec;
@@ -474,17 +478,19 @@ class eshop_Products extends core_Master
                 
                 // Ако мярката е брой и е показано да се показва
                 if (isset($minPackagingId)) {
-                    if ($singlePrice = eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, $minQuantityInPack)) {
-                        $singlePrice = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice->price);
+                    if (eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $minPackagingId, $minQuantityInPack)) {
+                        $pRecClone = clone $dRec;
+                        $pRecClone->packagingId = $minPackagingId;
+                        $pRecClone->quantityInPack = $minQuantityInPack;
+                        $pRecClone->_listView = true;
+                        $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
+                        
                         $settings = cms_Domains::getSettings();
-                        $pRow->singlePrice = $singlePrice;
-                        $pRow->singleCurrencyId = $settings->currencyId;
-                        $pRow->measureId = tr(cat_UoM::getShortName($minPackagingId));
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
-                        
-                        $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-                        $pRow->addBtn = ht::createFnBtn($settings->addToCartBtn, null, false, array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Добавяне на артикул', 'data-url' => $addUrl, 'data-productid' => $dRec->productId, 'data-packagingid' => $minPackagingId, 'data-eshopproductpd' => $pRec->id, 'class' => 'eshop-btn productBtn'));
+                        $pRow->catalogPrice = $dRow->catalogPrice;
+                        $pRow->packagingId = $dRow->packagingId;
+                        $pRow->btn = $dRow->btn;
                     }
                 }
             }
@@ -550,7 +556,7 @@ class eshop_Products extends core_Master
                 $pTpl->placeObject($row);
                 $pTpl->removePlaces();
                 $pTpl->removeBlocks();
-
+                
                 $layout->append($pTpl);
             }
         }
@@ -558,10 +564,10 @@ class eshop_Products extends core_Master
         if ($data->addUrl) {
             $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
-
+        
         $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
         $layout->replace($toggleLink, 'TOGGLE_BTN');
-
+        
         return $layout;
     }
     
@@ -700,7 +706,7 @@ class eshop_Products extends core_Master
     /**
      * Рендира продукта
      */
-    public function renderProduct($data)
+    public function renderProduct_($data)
     {
         if (Mode::is('screenMode', 'wide')) {
             $tpl = getTplFromFile('eshop/tpl/ProductShow.shtml');
@@ -804,6 +810,11 @@ class eshop_Products extends core_Master
         
         $groups = eshop_Groups::getByDomain();
         $form->setOptions('groupId', array('' => '') + $groups);
+        if ($groupId = $form->rec->groupId) {
+            unset($groups[$groupId]);
+        }
+        $form->setSuggestions('sharedInGroups', $groups);
+        
         $form->setOptions('measureId', cat_UoM::getUomOptions());
         
         if (isset($form->rec->productId)) {

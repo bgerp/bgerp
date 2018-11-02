@@ -107,7 +107,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $sQuery->where("#state != 'rejected'");
         
         $sQuery->where(array(
-            "#createdOn < '[#1#]'",
+            "#date < '[#1#]'",
             $rec->checkDate . ' 23:59:59'
         ));
         
@@ -136,7 +136,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             
             $unitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $salesUN);
             
-            if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $unitedCheck) {
+            if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
+                ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
+                ! $unitedCheck) {
                 continue;
             }
             
@@ -224,7 +226,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         $pQuery->where("#state != 'rejected'");
         
         $pQuery->where(array(
-            "#createdOn < '[#1#]'",
+            "#date < '[#1#]'",
             $rec->checkDate . ' 23:59:59'
         ));
         
@@ -251,7 +253,9 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             
             $purUnitedCheck = keylist::isIn($className::fetchField($firstDocument->that), $purchasesUN);
             
-            if (($className::fetchField($firstDocument->that, 'state') == 'closed') && ! $purUnitedCheck) {
+            if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
+                ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
+                ! $purUnitedCheck) {
                 continue;
             }
             

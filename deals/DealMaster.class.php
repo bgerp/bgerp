@@ -185,7 +185,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $dealerRolesList = implode('|', arr::make($mvc->dealerRolesList, true));
         $dealerRolesForAll = implode('|', arr::make($mvc->dealerRolesForAll, true));
         
-        $mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
+        $mvc->FLD('valior', 'date', 'caption=Дата,notChangeableByContractor');
         $mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         
         // Стойности
@@ -246,7 +246,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->setDefault('valior', dt::now());
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
         
@@ -967,8 +966,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
-            $cuNames = core_Users::getVerbal($rec->createdBy, 'names');
-            (core_Users::haveRole('partner', $rec->createdBy)) ? $row->responsible = $cuNames : $row->username = $cuNames;
+            $cuNames = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($rec->createdBy, 'names'));
+            $row->responsible = (core_Users::haveRole('partner', $rec->createdBy)) ? $cuNames : null;
             
             // Ако валутата е основната валута да не се показва
             if ($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)) {
@@ -1031,6 +1030,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
             
+            if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
+                $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
+            }
+            
             if (!empty($deliveryAdress)) {
                 $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
                 $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
@@ -1058,6 +1061,7 @@ abstract class deals_DealMaster extends deals_DealBase
             // За да се използва езика на фактурата
             $noInvStr = tr('без фактуриране');
             
+            $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
             $row->username = core_Lg::transliterate($row->username);
             $row->responsible = core_Lg::transliterate($row->responsible);
             
@@ -1282,7 +1286,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($hasStorable) {
             
             // ... и има избран склад, и потребителя може да се логне в него
-            if (isset($rec->shipmentStoreId) && store_Stores::haveRightFor('select', $rec->shipmentStoreId)) {
+            if (isset($rec->shipmentStoreId) && bgerp_plg_FLB::canUse('store_Stores', $rec->shipmentStoreId)) {
                 
                 // Ако има очаквано авансово плащане, не може да се експедира на момента
                 if (cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
@@ -1305,7 +1309,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // ако има каса, метода за плащане е COD и текущия потребител може да се логне в касата
-        if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)) {
+        if ($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $rec->caseId)) {
             
             // Може да се плати с продуктите
             $caseName = cash_Cases::getTitleById($rec->caseId);

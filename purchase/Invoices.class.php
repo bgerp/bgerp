@@ -214,15 +214,12 @@ class purchase_Invoices extends deals_InvoiceMaster
         $origin = $mvc->getOrigin($form->rec);
         
         if ($origin->isInstanceOf('findeals_AdvanceReports')) {
-            $form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Освободено, no=Без начисляване'));
-            $form->setField('vatRate', 'input');
-            $form->setDefault('vatRate', 'separate');
+            $form->setDefault('vatRate', $origin->fetchField('chargeVat'));
+            $form->setDefault('currencyId', $origin->fetchField('currencyId'));
+            $form->setDefault('rate', $origin->fetchField('currencyRate'));
             
-            if (isset($form->rec->id)) {
-                if (purchase_InvoiceDetails::fetch("#invoiceId = {$form->rec->id}")) {
-                    $form->setReadOnly('vatRate');
-                }
-            }
+            $additionalInfo = tr('|Към авансов отчет|*: #') . $origin->getHandle() . PHP_EOL;
+            $form->setDefault('additionalInfo', $additionalInfo);
         }
         
         // Ако ф-та не е към служебен аванс не искаме да се сменя контрагента
@@ -241,7 +238,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
-        
+      
         if ($data->aggregateInfo) {
             if ($data->aggregateInfo->get('bankAccountId')) {
                 $form->rec->accountId = $data->aggregateInfo->get('bankAccountId');
@@ -273,6 +270,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             $fRec = fileman::fetchByFh($clonedFh);
             doc_DocumentPlg::showOriginalFile($fRec, $form);
         }
+        
     }
     
     

@@ -37,6 +37,13 @@ function generatePath(data,el){
 	    		oldCoord = value;
 	    	}
 
+			if(coords[i].info && i % 100 == 0){
+				var temp = {};
+				temp.latLng = [value[0],value[1]];
+				temp.data = coords[i].info;
+				markers.push(temp);
+			}
+
 	    	// генерираме необходимата ни структура
 	    	path = {}, options = {};
 	    	options.strokeColor ="#" + color;

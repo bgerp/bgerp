@@ -105,8 +105,8 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Отговорник');
         $this->FLD('priority', 'enum(normal, warning, alert)', 'caption=Приоритет');
         $this->FLD('cnt', 'int', 'caption=Брой');
-        $this->FLD('url', 'varchar', 'caption=URL->Ключ');
-        $this->FLD('customUrl', 'varchar', 'caption=URL->Обект');
+        $this->FLD('url', 'varchar(ci)', 'caption=URL->Ключ');
+        $this->FLD('customUrl', 'varchar(ci)', 'caption=URL->Обект');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
         $this->FLD('lastTime', 'datetime', 'caption=Предишното време, input=none');

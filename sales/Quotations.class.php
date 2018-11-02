@@ -613,13 +613,16 @@ class sales_Quotations extends core_Master
             } else {
                 if (isset($rec->deliveryTermId)) {
                     $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-                    
                     $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $mvc);
                 }
             }
             
+            if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
+                $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
+            }
+            
             if (!empty($deliveryAdress)) {
-                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ', ') : '';
+                $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
                 $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
                 $row->deliveryTermId = $deliveryAdress;
             }
@@ -642,13 +645,13 @@ class sales_Quotations extends core_Master
             
             if (is_array($items)) {
                 $row->transportCurrencyId = $row->currencyId;
-                if ($rec->currencyRate) {
-                    $rec->hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-                    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-                    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
-                }
                 
-                sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
+                $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
+                $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
+                $visibleTransportCost = $mvc->getVisibleTransportCost($rec);
+                
+                $leftTransportCost = 0;
+                sales_TransportValues::getVerbalTransportCost($row, $leftTransportCost, $hiddenTransportCost, $expectedTransportCost, $visibleTransportCost, $rec->currencyRate);
                 
                 // Ако има транспорт за начисляване
                 if ($leftTransportCost > 0) {
@@ -716,9 +719,6 @@ class sales_Quotations extends core_Master
         
         $products = $query->fetchAll();
         
-        // Изчисляване на общото тегло на офертата
-        $total = sales_TransportValues::getTotalWeightAndVolume($products);
-        
         $locationId = null;
         if (isset($rec->deliveryPlaceId)) {
             $locationId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id');
@@ -728,9 +728,13 @@ class sales_Quotations extends core_Master
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         
+        // Изчисляване на общото тегло на офертата
+        $total = sales_TransportValues::getTotalWeightAndVolume($TransportCalc, $products, $rec->deliveryTermId, $params);
+        if($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT) return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
+        
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
-            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total['weight'], $total['volume'], $params);
+            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params);
             
             // Сумира се, ако е изчислен
             if (is_array($fee) && $fee['totalFee'] > 0) {
@@ -790,7 +794,7 @@ class sales_Quotations extends core_Master
      */
     protected function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-        $hasTransport = !empty($data->rec->hiddenTransportCost) || !empty($data->rec->expectedTransportCost) || !empty($data->rec->visibleTransportCost);
+        $hasTransport = !empty($data->row->hiddenTransportCost) || !empty($data->row->expectedTransportCost) || !empty($data->row->visibleTransportCost);
         
         $isReadOnlyMode = Mode::isReadOnly();
         

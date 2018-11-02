@@ -306,7 +306,7 @@ class cat_ListingDetails extends doc_Detail
         
         // Ако има първи елемент, взима се той
         $firstFound = $res[key($res)];
-        $reff = (is_object($firstFound)) ? (object) array('productId' => $firstFound->productId, 'packagingId' => $firstFound->packagingId) : null;
+        $reff = (is_object($firstFound)) ? (object) array('productId' => $firstFound->productId, 'packagingId' => $firstFound->packagingId, 'price' => $firstFound->price) : null;
         
         return $reff;
     }

@@ -3144,7 +3144,7 @@ class crm_Persons extends core_Master
      *
      * @return void
      */
-    public static function updateContactDataByFolderId($folderId, $name, $egn, $countryId, $pCode, $place, $address)
+    public static function updateContactDataByFolderId($folderId, $name, $egn, $uicNo, $countryId, $pCode, $place, $address)
     {
         $saveFields = array();
         $rec = self::fetch("#folderId = {$folderId}");

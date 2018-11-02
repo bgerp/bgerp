@@ -73,7 +73,7 @@ class rack_Racks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num,free=Палет-места->Свободни,used,reserved,total,rows,columns';
+    public $listFields = 'num=Стелаж,free=Палет-места->Свободни,used,reserved,total,rows,columns';
     
     
     /**
@@ -124,7 +124,7 @@ class rack_Racks extends core_Master
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
-        $this->FLD('num', 'int(max=100)', 'caption=Стелаж,mandatory,smartCenter');
+        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,smartCenter');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
@@ -730,5 +730,16 @@ class rack_Racks extends core_Master
         $rowBeforeTpl = new core_ET("<tr style='background-color:#aaa;color:white;text-align:center;'><td colspan='2'></td><td><b>[#freeTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td><td><b>[#totalTotal#]</b></td><td colspan='2'></td></tr>");
         $rowBeforeTpl->placeObject($rowBefore);
         $tpl->replace($rowBeforeTpl, 'ROW_BEFORE');
+    }
+    
+    
+    /**
+     * Преди подготовка на сингъла
+     */
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {
+        if($data->rec->storeId != store_Stores::getCurrent()){
+           redirect(array('rack_Racks', 'list'));
+        }
     }
 }

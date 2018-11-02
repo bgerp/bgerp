@@ -125,10 +125,17 @@
       
       <!--ET_BEGIN invoiceVatNo-->
       <tr>
-         <td><span class="title-style nowrap">|Данни за фактура|*: |VAT/EIC|*</span> </td>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |ДДС №|*</span> </td>
          <td>[#invoiceVatNo#]</td>
       </tr>
       <!--ET_END invoiceVatNo-->
+      
+      <!--ET_BEGIN invoiceUicNo-->
+      <tr>
+         <td><span class="title-style nowrap">|Данни за фактура|*: |ЕИК №|*</span> </td>
+         <td>[#invoiceUicNo#]</td>
+      </tr>
+      <!--ET_END invoiceUicNo-->
       
       <!--ET_BEGIN invoiceCountry-->
       <tr>

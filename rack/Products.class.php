@@ -41,6 +41,12 @@ class rack_Products extends store_Products
     
     
     /**
+     * Кой може да преизчислява кешираните количества?
+     */
+    public $canRecalccachecquantity = 'admin,debug,rackMaster';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -97,6 +103,47 @@ class rack_Products extends store_Products
             $row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт');
             $row->quantityOnPallets = ht::createLink('', array('rack_Pallets', 'list', 'productId' => $rec->productId, 'ret_url' => true), false, 'ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт') . '&nbsp;' . $row->quantityOnPallets;
         }
+        
+        // Добавяне на бутони за преизчисляване на кешираните количества
+        if($mvc->haveRightFor('recalccachecquantity', $rec->id)){
+            $row->_rowTools->addLink('К-во по зони', array('rack_Products', 'recalcquantityonzones', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на количеството по зони');
+            $row->_rowTools->addLink('К-во по палети', array('rack_Products', 'recalcquantityonpallets', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на количеството по палети');
+        }
+    }
+    
+    
+    /**
+     * Екшън преизчисляващ количеството по палети
+     */
+    public function act_Recalcquantityonpallets()
+    {
+        $this->requireRightFor('recalccachecquantity');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('recalccachecquantity', $rec);
+        
+        // Преизчисляване на количеството по палети
+        rack_Pallets::recalc($rec->productId, $rec->storeId);
+        
+        return followRetUrl(NULL, 'Количеството по палети е преизчислено успешно|*!');
+    }
+    
+    
+    /**
+     * Екшън преизчисляващ количеството по зони
+     */
+    public function act_Recalcquantityonzones()
+    {
+        $this->requireRightFor('recalccachecquantity');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('recalccachecquantity', $rec);
+        
+        // Преизчисляване на количеството по зони
+        $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $rec->storeId);
+        $this->save($rec, 'id,quantityOnZones');
+        
+        return followRetUrl(NULL, 'Количеството по зони е преизчислено успешно|*!');
     }
     
     
@@ -113,9 +160,9 @@ class rack_Products extends store_Products
     
     
     /**
-     * Връща достъпните продаваеми артикули
+     * Връща достъпните складируеми артикули, налични в текущия склад
      */
-    public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    public static function getStorableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $query = store_Products::getQuery();
         $query->groupBy('productId');

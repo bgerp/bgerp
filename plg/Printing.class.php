@@ -134,6 +134,22 @@ class plg_Printing extends core_Plugin
     
     
     /**
+     * Променяме шаблона в зависимост от мода
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET      $tpl
+     * @param object       $data
+     */
+    public function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        // Ако при принтиране има указан шаблон специално за принтиране, използва се той
+        if(Mode::is('printing') && isset($mvc->singleLayoutPrintFile)){
+            $mvc->singleLayoutFile = $mvc->singleLayoutPrintFile;
+        }
+    }
+    
+    
+    /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, $tpl)

@@ -59,9 +59,9 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Обработваме елементите линковете, които сочат към докъментната система
      */
-    public function on_BeforeCatchRichElements($mvc, &$html)
+    public function on_BeforeCatchRichElements($rt, &$html)
     {
-        $html = self::truncateText($html);
+        $html = self::truncateText($html, $rt);
     }
     
     
@@ -72,7 +72,7 @@ class doc_RichTextPlg extends core_Plugin
      *
      * @return string
      */
-    protected static function truncateText($html)
+    protected static function truncateText($html, $rt)
     {
         // Във външната част и при принтиране да не сработва
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
@@ -80,9 +80,12 @@ class doc_RichTextPlg extends core_Plugin
             return $html;
         }
         
-        $conf = core_Packs::getConfig('doc');
-        $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
-        
+        $hideLen = $rt->params['hideTextAfterLength'];
+        if(!$hideLen) {
+            $conf = core_Packs::getConfig('doc');
+            $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
+        }
+
         if (mb_strlen($html) <= $hideLen) {
             
             return $html;

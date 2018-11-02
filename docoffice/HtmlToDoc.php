@@ -30,7 +30,7 @@ class HTML_TO_DOC
      *
      * @return void
      */
-    function HTML_TO_DOC() {
+    function __construct() {
         $this->title = "Untitled Document";
         $this->htmlHead = "";
         $this->htmlBody = "";

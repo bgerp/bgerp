@@ -74,7 +74,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Активен таб
      */
-    public $currentTab = 'Трансфери';
+    public $currentTab = 'Междускладови трансфери';
     
     
     /**

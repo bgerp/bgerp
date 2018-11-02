@@ -102,6 +102,12 @@ class core_Cron extends core_Manager
     
     
     /**
+     * Дали за този модел ще се прави репликация на SQL заявките
+     */
+    public $doReplication = false;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -328,7 +334,6 @@ class core_Cron extends core_Manager
             
             if ((($currentMinute % $rec->period) == $rec->offset) || ($rec->period > $maxRemain && $lastSchedule > $lastStarting && $maxRemain < $remainMinutes)) {
                 if (($maxRemain < $remainMinutes) && (($currentMinute % $rec->period) != $rec->offset)) {
-                    
                     if ($mCnt-- <= 0) {
                         continue;
                     }
