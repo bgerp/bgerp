@@ -4631,7 +4631,8 @@ div.location.public {
   width: 100%; }
   .pricelist-report-pack-table td {
     border: none !important;
-    padding: 0 5px; }
+    padding: 0 5px;
+    vertical-align: middle !important; }
 
 /*
  * край на бъгфиксове
