@@ -4504,6 +4504,9 @@ table .eshop-btn {
 	.name-box {
 		font-size: 0.8em;
 		max-width:100px;
+		word-wrap: break-word;
+		word-break: break-word;
+		hyphens: auto;
 	}
 
 	.date-box {

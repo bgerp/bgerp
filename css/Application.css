@@ -3961,7 +3961,10 @@ table .eshop-btn {
   margin: 0 auto; }
   .wide-profile-info .name-box {
     font-size: 0.8em;
-    max-width: 100px; }
+    max-width: 100px;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto; }
   .wide-profile-info .date-box {
     font-size: 0.8em;
     margin-left: 2px;
