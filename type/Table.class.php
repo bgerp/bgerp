@@ -104,7 +104,7 @@ class type_Table extends type_Blob
                 $tpl .= '<td>' . ht::createCombo($attr[$field]['name'], null, $attr[$field], $sgt[$field]) . '</td>';
                 
                 if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])) {
-                    $row1 .= '<td>' . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][0]))) . '</td>';
+                    $row1 .= '<td>' . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][0]))) . '</td>';
                 } else {
                     $row1 .= '<td>' . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), array('' => '') + $sgt[$field]) . '</td>';
                 }
@@ -159,7 +159,13 @@ class type_Table extends type_Blob
         }
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
-        $attrTable['style'] .= ';float:left; margin-bottom:5px;';
+
+        if ($this->params['unit']) {
+            $attrTable['style'] .= 'float:left; margin-bottom:5px;';
+        } else {
+            $attrTable['style'] .= 'margin-bottom:5px;';
+        }
+
         $attrTable['id'] = $id;
         unset($attrTable['value']);
         
@@ -306,7 +312,7 @@ class type_Table extends type_Blob
      * Показва таблицата
      */
     public function fromVerbal($value)
-    {
+    {  
         if (is_string($value)) {
             $len = strlen($value);
             
@@ -319,7 +325,7 @@ class type_Table extends type_Blob
         }
         
         $columns = $this->getColumns();
-        
+      
         if ($len && !is_array($value)) {
             $this->error = 'Некоректни таблични данни';
             
@@ -332,17 +338,20 @@ class type_Table extends type_Blob
         do {
             $isset = false;
             $empty = true;
-            
+            $emptyMandatory = false;
+
             foreach ($columns as $field => $fObj) {
                 if (isset($value[$field][$i])) {
                     $isset = true;
                 }
-                if (strlen($value[$field][$i]) && $fObj->mandatory) {
+                if (strlen($value[$field][$i])) {
                     $empty = false;
+                } elseif($fObj->mandatory) {
+                    $emptyMandatory = true;
                 }
             }
-            
-            if (!$empty) {
+             
+            if (!$empty && !$emptyMandatory) {
                 foreach ($columns as $field => $fObj) {
                     $res[$field][] = trim($value[$field][$i]);
                 }
@@ -356,7 +365,7 @@ class type_Table extends type_Blob
         if ($res == '[]') {
             $res = null;
         }
-        
+    
         return $res;
     }
     

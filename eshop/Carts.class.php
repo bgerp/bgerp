@@ -1906,7 +1906,7 @@ class eshop_Carts extends core_Master
             } else {
                 
                 // Потребителските колички са тези създадени от потребител или тези с въведен имейл за връзка
-                $lifetime = (isset($rec->userId) || !empty($rec->email)) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForUserDraftCarts;
+                $lifetime = (isset($rec->userId) || !empty($rec->email)) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForNoUserDraftCarts;
             }
            
             // Ако и е изтекла продължителността и е чернова се изтрива
