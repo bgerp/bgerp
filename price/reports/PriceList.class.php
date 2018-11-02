@@ -248,7 +248,11 @@ class price_reports_PriceList extends frame2_driver_TableData
            $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
            $rows[$packRec->packagingId] = (object)array('packagingId' => $packName, 'price' => core_Type::getByName("double(decimals={$decimals})")->toVerbal($packRec->price));
            if(!empty($packRec->eanCode)){
-               $rows[$packRec->packagingId]->eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
+               $eanCode = core_Type::getByName('varchar')->toVerbal($packRec->eanCode);
+               if(!Mode::isReadOnly() && barcode_Search::haveRightFor('list')){
+                   $eanCode = ht::createLink($eanCode, array('barcode_Search', 'search' => $eanCode));
+               }
+               $rows[$packRec->packagingId]->eanCode = $eanCode;
            }
        }
        
