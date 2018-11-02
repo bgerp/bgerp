@@ -196,4 +196,17 @@ abstract class frame2_driver_Proto extends core_BaseClass
         
         return arr::make($changeableFields, true);
     }
+    
+    
+    /**
+     * Какъв ще е езика с който ще се рендират данните на шаблона
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null езика с който да се рендират данните
+     */
+    public function getRenderLang($rec)
+    {
+        return null;
+    }
 }

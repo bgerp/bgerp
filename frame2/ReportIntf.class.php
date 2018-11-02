@@ -164,4 +164,17 @@ class frame2_ReportIntf extends embed_DriverIntf
     {
         return $this->class->getChangeableFields($rec);
     }
+    
+    
+    /**
+     * Какъв ще е езика с който ще се рендират данните на шаблона
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null езика с който да се рендират данните
+     */
+    public function getRenderLang($rec)
+    {
+        return $this->class->getRenderLang($rec);
+    }
 }
