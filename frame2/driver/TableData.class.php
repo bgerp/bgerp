@@ -182,8 +182,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * рендиране на таблицата
      * 
-     * @param stdCLass $rec
-     * @param stdCLass $data
+     * @param stdClass $rec
+     * @param stdClass $data
      * @return core_ET $tpl
      */
     protected function renderTable($rec, &$data)
