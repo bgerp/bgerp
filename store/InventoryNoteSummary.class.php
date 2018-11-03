@@ -702,8 +702,8 @@ class store_InventoryNoteSummary extends doc_Detail
                 $r1->groupName = tr('Други');
             }
             
-            // Подреждаме ги по име
-            arr::sortObjects($rest, 'orderCode');
+            // Подреждаме ги по код
+            arr::sortObjects($rest, $codeFld);
             
             // Добавяме ги най-накрая
             $ordered += $rest;

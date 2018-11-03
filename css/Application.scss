@@ -4504,6 +4504,9 @@ table .eshop-btn {
 	.name-box {
 		font-size: 0.8em;
 		max-width:100px;
+		word-wrap: break-word;
+		word-break: break-word;
+		hyphens: auto;
 	}
 
 	.date-box {
@@ -5211,6 +5214,26 @@ div.location.public {
 	   color: #888 !important;
 	}
 }
+
+.pricelist-group-label {
+	background-color: #636363 !important;
+	color: white;
+	line-height: 24px;
+	text-indent: 5px;
+}
+
+.pricelist-report-pack-table  {
+	width: 100%;
+	td {
+		border: none !important;
+		padding: 0 5px;
+		vertical-align: middle !important;
+	}
+	.small {
+		width: 90px;
+	}
+}
+
 /*край на бъгфиксове*/
 
 

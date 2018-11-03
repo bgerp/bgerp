@@ -86,8 +86,14 @@ class frame2_CsvExport extends core_Mvc
         }
         
         // Подготовка на данните
+        $lang = null;
         $csvRecs = $fields = array();
         if ($Driver = $Frame->getDriver($frameRec)) {
+            $lang = $Driver->getRenderLang($frameRec);
+            if(isset($lang)){
+                core_Lg::push($lang);
+            }
+            
             $csvRecs = $Driver->getExportRecs($frameRec, $this);
             $fields = $Driver->getCsvExportFieldset($frameRec);
         }
@@ -98,6 +104,10 @@ class frame2_CsvExport extends core_Mvc
             // Създаване на csv-то
             $csv = csv_Lib::createCsv($csvRecs, $fields);
             $csv .= "\n";
+            
+            if(isset($lang)){
+                core_Lg::pop();
+            }
             
             // Подсигуряване че енкодига е UTF8
             $csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
