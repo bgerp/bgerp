@@ -166,26 +166,12 @@ class rack_MovementGenerator extends core_Manager
                     }
                     
                     // Търси палет на първия ред, който има най-малко бройки
-                    foreach ($p as $pI => $pQ) {
+                    foreach ($p as $pI => $pQ) {  
                         if (stripos($pI, 'a')) {
                             $qNew = $p[$pI] ? $p[$pI] : 0;
-                            if (($quantityPerPallet && $quantityPerPallet > $pQ + $q) || ($pQ + $q < 1.3 * $q)) {
+                            if (($quantityPerPallet && $quantityPerPallet > 1.1 * ($pQ + $q)) || (($pQ + $q) < 1.3 * $q)) {
                                 $o->retPos = $pI;
                                 
-                                // Ако връщаме към палет, който сега има 0 количество, повече, от колкото е имал в началото,
-                                // то обединяваме движенията
-                                if ($pQ == 0 && $pOrig <= $q) {
-                                    foreach ($res as $id => $mv) {
-                                        if ($mv->pallet == $pI) {
-                                            foreach ($mv->zones as $zI => $zQ) {
-                                                $o->zones[$zI] += $zQ;
-                                                $o->ret -= $zQ;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    unset($res[$id]);
-                                }
                                 break;
                             }
                         }
@@ -193,7 +179,7 @@ class rack_MovementGenerator extends core_Manager
                 }
             }
         }
-        
+      
         return $res;
     }
     
@@ -421,7 +407,7 @@ class rack_MovementGenerator extends core_Manager
             
             $res[] = $newRec;
         }
-        
+      
         return $res;
     }
 }
