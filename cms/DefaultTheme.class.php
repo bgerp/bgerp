@@ -25,6 +25,12 @@ class cms_DefaultTheme extends core_ProtoInner
      * Дали темата носи собствени заглавни картинки
      */
     public $haveOwnHeaderImages = false;
+
+
+    /**
+     * Общ лейаут за темата
+     */
+    public $layout = 'cms/tpl/Page.shtml';
     
     
     /**
