@@ -206,18 +206,18 @@ class rack_MovementGenerator extends core_Manager
         
         asort($p);
         asort($z);
-                
+        $sumZ = array_sum($z);
+        
         // Вземаме от най-ниския палет, с изключение на случаиите, когато, количеството което трябва да оставим е по-голямо от 0.8 от цял палет.
-        if (!$quantityPerPallet || $quantityPerPallet * self::ALMOST_FULL >= array_sum($z)) {
+        if (!$quantityPerPallet || $quantityPerPallet * self::ALMOST_FULL >= $sumZ) {
             foreach ($p as $pos => $q) {
-                if (stripos($pos, 'a')) {
+                if (stripos($pos, 'a') || stripos($pos, 'а')) {
                     unset($p[$pos]);
                     $p = array_merge(array($pos => $q), $p);
                     break;
                 }
             }
         }
-        
         
         $pCombi = array();
         $cnt = count($p);
@@ -281,6 +281,15 @@ class rack_MovementGenerator extends core_Manager
         }
         
         return $moves;
+    }
+    
+    
+    /**
+     * Изчислява най-големият общ делител на $a и $b
+     */
+    public static function gcd($a, $b)
+    {
+        return ($a % $b) ? self::gcd($b, $a % $b) : $b;
     }
     
     
