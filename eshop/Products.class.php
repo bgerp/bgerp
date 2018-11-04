@@ -608,7 +608,10 @@ class eshop_Products extends core_Master
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
         $rec = clone($data->rec);
-        setIfNot($rec->seoTitle, $data->row->name);
+        if (!$rec->seoTitle) {
+            $rec->seoTitle = $data->row->name;
+        }
+        
         if (!$rec->seoDescription) {
             $rec->seoDescription = $this->getVerbal($rec, 'info');
         }
@@ -700,6 +703,29 @@ class eshop_Products extends core_Master
         
         // Навигация до артикула
         $data->row->productPath = $menuLink . ' » ' . $groupLink;
+    }
+    
+    
+    /**
+     * След извличане на ключовите думи
+     */
+    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        
+        if (!isset($searchKeywords)) {
+            $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+        }
+        
+        if ($rec->groupId) {
+            $gRec = eshop_Groups::fetch($rec->groupId);
+            
+            $handleNormalized = plg_Search::normalizeText($gRec->name);
+            
+            if (strpos($searchKeywords, $handleNormalized) === false) {
+                $searchKeywords .= ' ' . $handleNormalized;
+            }
+        }
     }
     
     

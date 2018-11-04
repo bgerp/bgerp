@@ -837,7 +837,9 @@ class core_ET extends core_BaseClass
      */
     public function translate($lg = null)
     {
-        $this->content = tr('|*' . $this->content);
+        if (strpos($this->content, '|') !== false) {
+            $this->content = tr('|*' . $this->content);
+        }
     }
     
     
@@ -944,7 +946,7 @@ class core_ET extends core_BaseClass
     
     /**
      * Премахва блоковете и местата
-     * 
+     *
      * @return core_ET
      */
     public function removeBlocksAndPlaces()

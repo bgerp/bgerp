@@ -29,6 +29,12 @@ class rack_MovementGenerator extends core_Manager
     
     
     /**
+     * Какъв процент от количеството трябва да е на палета, за да го смятаме за почти пълен?
+     */
+    const ALMOST_FULL = 0.85;
+    
+    
+    /**
      * Екшън за тест
      */
     public function act_Default()
@@ -121,7 +127,7 @@ class rack_MovementGenerator extends core_Manager
         
         do {
             $fullPallets = self::getFullPallets($p, $quantityPerPallet);
-            $res = self::p2q($p, $z, $fullPallets);
+            $res = self::p2q($p, $z, $fullPallets, $quantityPerPallet);
             
             $moves = arr::combine($moves, $res);
             $i++;
@@ -152,7 +158,7 @@ class rack_MovementGenerator extends core_Manager
                 // само това, което ни трябва за зоните. Тук трябва да се проеми това ограничение по зададено максимално тегло
                 // на вземането от палета, което може да стане ръчно. Функцията трябва да получава макс количество,
                 // при което не се взема целия палет, а само необходимата част
-                if ($q >= 0.8 * $o->quantity) {
+                if ($q >= self::ALMOST_FULL * $o->quantity) {
                     $o->quantity = array_sum($o->zones);
                 } else {
                     $o->ret = $q;
@@ -165,27 +171,15 @@ class rack_MovementGenerator extends core_Manager
                         }
                     }
                     
+                    //bp($p, $o, $quantityPerPallet);
                     // Търси палет на първия ред, който има най-малко бройки
                     foreach ($p as $pI => $pQ) {
                         if (stripos($pI, 'a')) {
                             $qNew = $p[$pI] ? $p[$pI] : 0;
-                            if (($quantityPerPallet && $quantityPerPallet > $pQ + $q) || ($pQ + $q < 1.3 * $q)) {
+                            
+                            if (($quantityPerPallet && $quantityPerPallet >= self::ALMOST_FULL * ($pQ + $q)) || (($pQ + $q) * self::ALMOST_FULL < $q)) {
                                 $o->retPos = $pI;
                                 
-                                // Ако връщаме към палет, който сега има 0 количество, повече, от колкото е имал в началото,
-                                // то обединяваме движенията
-                                if ($pQ == 0 && $pOrig <= $q) {
-                                    foreach ($res as $id => $mv) {
-                                        if ($mv->pallet == $pI) {
-                                            foreach ($mv->zones as $zI => $zQ) {
-                                                $o->zones[$zI] += $zQ;
-                                                $o->ret -= $zQ;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    unset($res[$id]);
-                                }
                                 break;
                             }
                         }
@@ -201,7 +195,7 @@ class rack_MovementGenerator extends core_Manager
     /**
      * Връща масив от масиви. Вторите масиви, са движения, които изчепват или P или Q
      */
-    public static function p2q(&$p, &$z, $fullPallets)
+    public static function p2q(&$p, &$z, $fullPallets, $quantityPerPallet)
     {
         $moves = array();
         
@@ -212,6 +206,18 @@ class rack_MovementGenerator extends core_Manager
         
         asort($p);
         asort($z);
+        $sumZ = array_sum($z);
+        
+        // Вземаме от най-ниския палет, с изключение на случаиите, когато, количеството което трябва да оставим е по-голямо от 0.8 от цял палет.
+        if (!$quantityPerPallet || $quantityPerPallet * self::ALMOST_FULL >= $sumZ) {
+            foreach ($p as $pos => $q) {
+                if (stripos($pos, 'a') || stripos($pos, 'а')) {
+                    unset($p[$pos]);
+                    $p = array_merge(array($pos => $q), $p);
+                    break;
+                }
+            }
+        }
         
         $pCombi = array();
         $cnt = count($p);
@@ -275,6 +281,15 @@ class rack_MovementGenerator extends core_Manager
         }
         
         return $moves;
+    }
+    
+    
+    /**
+     * Изчислява най-големият общ делител на $a и $b
+     */
+    public static function gcd($a, $b)
+    {
+        return ($a % $b) ? self::gcd($b, $a % $b) : $b;
     }
     
     

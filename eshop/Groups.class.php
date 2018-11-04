@@ -448,8 +448,10 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
-        setIfNot($data->rec->seoTitle, $data->rec->name);
-        
+        if(!$data->rec->seoTitle) {
+            $data->rec->seoTitle = $data->rec->name;
+        }
+         
         cms_Content::setSeo($groupTpl, $data->rec);
         
         return $groupTpl;

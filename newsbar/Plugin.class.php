@@ -134,10 +134,10 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'newsbarCustom');
+            $html = self::getMarqueeText($nRec, 'newsbarCustom menuNewsbar');
             
             if ($res instanceof core_ET) {
-                $res->prepend($html);
+                $res->append($html, 'NEWSBAR_MENU');
             } else {
                 $res = $html . $res;
             }

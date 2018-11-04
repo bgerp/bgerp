@@ -199,7 +199,7 @@ class price_ListDocs extends core_Master
     {
         $form = &$data->form;
         $form->setDefault('date', dt::now());
-        $form->setOptions('policyId', $mvc->getDefaultPolicies($form->rec));
+        $form->setOptions('policyId', self::getDefaultPolicies($form->rec));
         $folderClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
         
         $suggestions = cat_UoM::getPackagingOptions();
@@ -220,7 +220,7 @@ class price_ListDocs extends core_Master
      *
      * @return array $options - масив с опции
      */
-    private function getDefaultPolicies($rec)
+    public static function getDefaultPolicies($rec)
     {
         $options = array();
         $polQuery = price_Lists::getQuery();

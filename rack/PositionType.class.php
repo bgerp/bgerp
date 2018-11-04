@@ -45,13 +45,19 @@ class rack_PositionType extends type_Varchar
             return;
         }
         
-        core_Lg::push('en');
-        $checkValue = strtolower(tr($value));
-        core_Lg::pop('en');
-        
-        if($checkValue == self::FLOOR){
-            return self::FLOOR;
+        // Ако в позицията няма число, опитваме се да извлечем "Под"
+        if (!preg_match('/[0-9]/', $value)) {
+            core_Lg::push('en');
+            $checkValue = strtolower(tr($value));
+            core_Lg::pop('en');
+            
+            if ($checkValue == self::FLOOR) {
+                
+                return self::FLOOR;
+            }
         }
+        
+        $value = str_replace(array('а', 'А', 'б', 'Б', 'ц', 'Ц', 'д', 'Д', 'е', 'Е', 'ф', 'Ф'), array('a', 'a', 'b', 'b', 'c', 'c', 'd', 'd', 'e', 'e', 'f', 'f'), $value);
         
         $matches = array();
         preg_match('/([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})/i', $value, $matches);
@@ -71,7 +77,7 @@ class rack_PositionType extends type_Varchar
      */
     public function toVerbal($value)
     {
-        if($value == self::FLOOR){
+        if ($value == self::FLOOR) {
             $value = tr('Под');
         }
         
@@ -83,7 +89,7 @@ class rack_PositionType extends type_Varchar
         list($n, $r, $c) = explode('-', $value);
         
         $storeId = store_Stores::getCurrent();
-        if(!rack_Racks::checkPosition($value, null, $storeId, $error)){
+        if (!rack_Racks::checkPosition($value, null, $storeId, $error)) {
             $res = ht::createHint($value, 'Позицията, вече е премахната от стелажа|*!', 'warning', false);
         } else {
             $res = ht::createLink($value, array('rack_Racks', 'show', $n, 'pos' => "{$n}-{$r}-{$c}"));
