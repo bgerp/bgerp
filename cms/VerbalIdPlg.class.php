@@ -138,4 +138,69 @@ class cms_VerbalIdPlg extends core_Plugin
             Request::push(array('id' => $id));
         }
     }
+    
+    
+    /**
+     * След извличане на ключовите думи
+     */
+    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+        $syn = cms_Setup::get('SEO_SYNONYMS');
+        
+        if ($syn) {
+            $cKey = md5($syn);
+            
+            if (!($synArr = core_Cache::get('SEO-SYN', $cKey))) {
+                $syn = json_decode($syn);
+                $i = 0;
+                while ($syn->s1[$i]) {
+                    $synArr[$i] = array();
+                    $synArr[$i][] = plg_Search::normalizeText($syn->s1[$i]);
+                    if ($syn->s2[$i]) {
+                        $synArr[$i][] = plg_Search::normalizeText($syn->s2[$i]);
+                    }
+                    if ($syn->s3[$i]) {
+                        $synArr[$i][] = plg_Search::normalizeText($syn->s3[$i]);
+                    }
+                    if ($syn->s4[$i]) {
+                        $synArr[$i][] = plg_Search::normalizeText($syn->s4[$i]);
+                    }
+                    if ($syn->s5[$i]) {
+                        $synArr[$i][] = plg_Search::normalizeText($syn->s5[$i]);
+                    }
+                    $i++;
+                }
+                core_Cache::set('SEO-SYN', $cKey, $synArr, 24 * 60);
+            }
+            
+            $rec = $mvc->fetchRec($rec);
+            
+            if (!isset($searchKeywords)) {
+                $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+            }
+            
+            if ($searchKeywords && count($synArr)) {
+                foreach ($synArr as $group) {
+                    foreach ($group as $word) {
+                        if (strpos($searchKeywords, $word) !== false) {
+                            self::addKeyWords($searchKeywords, $group);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Добавя без повторение масив от думи към стринг с ключови думи
+     */
+    private static function addKeyWords(&$searchKeywords, $group)
+    {
+        foreach ($group as $word) {
+            if (strpos($searchKeywords, $word) === false) {
+                $searchKeywords .= ' ' . $word;
+            }
+        }
+    }
 }

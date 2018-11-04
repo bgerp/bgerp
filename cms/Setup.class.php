@@ -38,6 +38,12 @@ defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
 
 /**
+ * Синоними за СЕО оптимизация
+ */
+defIfNot('CMS_SEO_SYNONYMS', '');
+
+
+/**
  * class cms_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -95,6 +101,8 @@ class cms_Setup extends core_ProtoSetup
         'CMS_COPY_DISABLE_FOR' => array('keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Добавка при копиране->Изключване за'),
         
         'CMS_OGRAPH_IMAGE' => array('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
+        
+        'CMS_SEO_SYNONYMS' => array('table(columns=s1|s2|s3|s4|s5,captions=Синоним1|Синоним2|Синоним3|Синоним4|Синоним5,widths=8em|8em|8em|8em|8em)', 'caption=SEO синоним->Групи'),
     );
     
     
