@@ -159,13 +159,13 @@ class type_Table extends type_Blob
         }
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
-
+        
         if ($this->params['unit']) {
             $attrTable['style'] .= 'float:left; margin-bottom:5px;';
         } else {
             $attrTable['style'] .= 'margin-bottom:5px;';
         }
-
+        
         $attrTable['id'] = $id;
         unset($attrTable['value']);
         
@@ -312,7 +312,7 @@ class type_Table extends type_Blob
      * Показва таблицата
      */
     public function fromVerbal($value)
-    {  
+    {
         if (is_string($value)) {
             $len = strlen($value);
             
@@ -325,7 +325,7 @@ class type_Table extends type_Blob
         }
         
         $columns = $this->getColumns();
-      
+        
         if ($len && !is_array($value)) {
             $this->error = 'Некоректни таблични данни';
             
@@ -339,18 +339,18 @@ class type_Table extends type_Blob
             $isset = false;
             $empty = true;
             $emptyMandatory = false;
-
+            
             foreach ($columns as $field => $fObj) {
                 if (isset($value[$field][$i])) {
                     $isset = true;
                 }
                 if (strlen($value[$field][$i])) {
                     $empty = false;
-                } elseif($fObj->mandatory) {
+                } elseif ($fObj->mandatory) {
                     $emptyMandatory = true;
                 }
             }
-             
+            
             if (!$empty && !$emptyMandatory) {
                 foreach ($columns as $field => $fObj) {
                     $res[$field][] = trim($value[$field][$i]);
@@ -365,7 +365,7 @@ class type_Table extends type_Blob
         if ($res == '[]') {
             $res = null;
         }
-    
+        
         return $res;
     }
     
@@ -398,7 +398,7 @@ class type_Table extends type_Blob
             $obj = new stdClass();
             $obj->caption = $captionArr[$i] ? $captionArr[$i] : $c;
             $obj->width = $widthsArr[$i];
-            $obj->mandatory = (!count($mandatoryArr)) || in_array($c, $mandatoryArr);
+            $obj->mandatory = count($mandatoryArr) && in_array($c, $mandatoryArr) || $i == 0 && !count($mandatoryArr);
             $res[$c] = $obj;
         }
         
