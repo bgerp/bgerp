@@ -3461,6 +3461,9 @@ table .eshop-btn {
     margin-bottom: 10px;
     margin-top: 3px; }
 
+.menuNewsbar {
+  clear: both; }
+
 /*
  * край на newsbar
  */
@@ -3958,7 +3961,10 @@ table .eshop-btn {
   margin: 0 auto; }
   .wide-profile-info .name-box {
     font-size: 0.8em;
-    max-width: 100px; }
+    max-width: 100px;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto; }
   .wide-profile-info .date-box {
     font-size: 0.8em;
     margin-left: 2px;
@@ -4614,6 +4620,21 @@ div.location.public {
   .price_ListRules .state-closed font,
   .price_ListRules .state-closed a {
     color: #888888 !important; }
+
+.pricelist-group-label {
+  background-color: #636363 !important;
+  color: white;
+  line-height: 24px;
+  text-indent: 5px; }
+
+.pricelist-report-pack-table {
+  width: 100%; }
+  .pricelist-report-pack-table td {
+    border: none !important;
+    padding: 0 5px;
+    vertical-align: middle !important; }
+  .pricelist-report-pack-table .small {
+    width: 90px; }
 
 /*
  * край на бъгфиксове
