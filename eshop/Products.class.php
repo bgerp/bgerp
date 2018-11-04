@@ -608,7 +608,10 @@ class eshop_Products extends core_Master
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
         $rec = clone($data->rec);
-        setIfNot($rec->seoTitle, $data->row->name);
+        if(!$rec->seoTitle) {
+            $rec->seoTitle = $data->row->name;
+        }
+        
         if (!$rec->seoDescription) {
             $rec->seoDescription = $this->getVerbal($rec, 'info');
         }

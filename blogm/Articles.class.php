@@ -388,7 +388,9 @@ class blogm_Articles extends core_Master
         $tpl = $this->renderArticle($data, $layout);
         
         $rec = clone($data->rec);
-        setIfNot($rec->seoTitle, $data->ogp->siteInfo['Title']);
+        if(!$rec->seoTitle) {
+           $rec->seoTitle = $data->ogp->siteInfo['Title'];
+        }
         cms_Content::setSeo($tpl, $rec);
         
         
