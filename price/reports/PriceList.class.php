@@ -181,7 +181,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                // Ако има избран период в който да се гледа променена ли е цената
                if(isset($dateBefore)){
                    $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
-                   $oldPrice = round($oldPrice, 2);
+                   $oldPrice = round($oldPrice, $round);
                    
                    // Колко процента е промяната спрямо старата цена
                    if(empty($oldPrice)){
