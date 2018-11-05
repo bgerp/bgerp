@@ -223,7 +223,13 @@ class price_reports_PriceList extends frame2_driver_TableData
            }
            
            // Филтриране на артикулите според избраните групи
+           if($rec->lang != 'auto'){
+               core_Lg::push($rec->lang);
+           }
            store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name');
+           if($rec->lang != 'auto'){
+               core_Lg::pop();
+           }
        }
        
        return $recs;
@@ -333,7 +339,6 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        
         if($export === true){
             $fld->FLD('eanCode', 'varchar', 'caption=ЕАН');
         }
