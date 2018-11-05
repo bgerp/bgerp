@@ -520,8 +520,8 @@ class plg_TreeObject extends core_Plugin
             $title = $num;
             $i = 0;
             
-            while ($parent && ($pRec = $mvc->fetch($parent, "{$mvc->parentFieldName},{$mvc->nameField}"))) {
-                $pName = type_Varchar::escape($pRec->{$mvc->nameField});
+            while ($parent && ($pRec = $mvc->fetch($parent))) {
+                $pName = type_Varchar::escape($mvc->getVerbal($pRec, $mvc->nameField));
                 $title = $pName . ' » ' . $title;
                 $parent = $pRec->{$mvc->parentFieldName};
                 $i++;
