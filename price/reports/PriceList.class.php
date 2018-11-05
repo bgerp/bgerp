@@ -109,16 +109,21 @@ class price_reports_PriceList extends frame2_driver_TableData
        
        $suggestions = cat_UoM::getPackagingOptions();
        $form->setSuggestions('packagings', $suggestions);
-       $form->setOptions('policyId', price_ListDocs::getDefaultPolicies($form->rec));
        
        // Ако е в папка на контрагент
+       $defaultListId = price_ListRules::PRICE_LIST_CATALOG;
        $Cover = doc_Folders::getCover($form->rec->folderId);
        if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-           $defaultList = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-           $form->setDefault('policyId', $defaultList);
+           $defaultListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
            $form->setDefault('vat', deals_Helper::getDefaultChargeVat($form->rec->folderId));
            $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
+           $listOptions = price_Lists::getAccessibleOptions($Cover->className, $Cover->that);
+       } else {
+           $listOptions = price_Lists::getAccessibleOptions(null, null, false);
        }
+       
+       $form->setOptions('policyId', $listOptions);
+       $form->setDefault('policyId', $defaultListId);
        
        // Ако е в папка с контрагентски данни
        if($Cover->haveInterface('doc_ContragentDataIntf')){
