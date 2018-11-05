@@ -392,18 +392,20 @@ class price_Lists extends core_Master
      * Намираме ценовите политики, които може да избира потребителя
      * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
      *
-     * @param mixed $cClass - клас на контрагента
-     * @param int   $cId    - ид на контрагента
+     * @param mixed $cClass           - клас на контрагента
+     * @param int|null $cId           - ид на контрагента
+     * @param boolean $filterByPublic - да се филтрира ли по публичните политики
      *
      * @return array $options - опции за избор
      */
-    public static function getAccessibleOptions($cClass = null, $cId = null)
+    public static function getAccessibleOptions($cClass = null, $cId = null, $filterByPublic = true)
     {
         $options = array();
         $query = static::getQuery();
-        
-        // Оставяме да се избират само публичните политики
-        $query->where("#public = 'yes'");
+        $query->show('title');
+        if($filterByPublic === true){
+            $query->where("#public = 'yes'");
+        }
         
         // Ако има данни за контрагент и тези, които са към него
         if (isset($cClass, $cId)) {
