@@ -89,6 +89,12 @@ class cat_Groups extends core_Manager
     
     
     /**
+     * Кое поле е за името на английски?
+     */
+    public $nameFieldEn = 'nameEn';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -369,23 +375,5 @@ class cat_Groups extends core_Manager
         }
         
         return false;
-    }
-    
-    
-    /**
-     * Превръща стойността на посоченото поле във вербална
-     */
-    public static function getVerbal($rec, $fieldName)
-    {
-        if ($fieldName == 'name') {
-            $gRec = self::fetchRec($rec, 'name,nameEn');
-            
-            $lg = core_Lg::getCurrent();
-            if($lg == 'en' && !empty($gRec->nameEn)){
-                return self::getVerbal($gRec, 'nameEn');
-            }
-        }
-        
-        return parent::getVerbal($rec, $fieldName);
     }
 }
