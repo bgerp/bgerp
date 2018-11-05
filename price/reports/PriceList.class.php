@@ -150,6 +150,10 @@ class price_reports_PriceList extends frame2_driver_TableData
            $params['groups'] = $rec->productGroups;
        }
        $sellableProducts = array_keys(price_ListRules::getSellableProducts($params));
+      
+       // Вдигане на времето за изпълнение, според броя записи
+       $timeLimit = count($sellableProducts) * 0.7;
+       core_App::setTimeLimit($timeLimit, false, 600);
        
        $recs = array();
        if(is_array($recs)) {
