@@ -1,16 +1,19 @@
 <div class='cms-row'>
     <div class='eightcol cms-last searchContent' style='margin-right:2%;'>
+        [#TOP_ARTICLE_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
+        [#BOTTOM_ARTICLE_CONTENT#]
     </div>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol articles-menu' id='cmsNavigation' style='margin-left:2%'>
         [#SEARCH_BOX#]
         [#NAVIGATION#]
         [#BEFORE_FOOTER_INFO#]
+        [#BOTTOM_ARTICLE_NAV#]
         <div class='bulletin-link'></div>
     </div>
     <!--ET_END NAVIGATION-->

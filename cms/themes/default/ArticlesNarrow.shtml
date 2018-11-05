@@ -8,10 +8,12 @@
         </div>
         <div class="narrowNav">
             [#NAVIGATION#]
+            [#BOTTOM_ARTICLE_NAV#]
         </div>
     </div>
     <!--ET_END NAVIGATION-->
     <div style="padding:2% ">
+        [#TOP_ARTICLE_CONTENT#]
         <!--ET_BEGIN CURRENT_PAGE--><div style="margin-bottom: 10px;  font-weight: bold">[#CURRENT_PAGE#]</div><!--ET_END CURRENT_PAGE-->
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
@@ -20,5 +22,6 @@
         <!--ET_END SOCIAL-->
         <div class='bulletin-link'></div>
         [#BEFORE_FOOTER_INFO#]
+        [#BOTTOM_ARTICLE_CONTENT#]
     </div>
 </div>
