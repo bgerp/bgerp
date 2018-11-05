@@ -1458,9 +1458,6 @@ class eshop_Carts extends core_Master
         if(isset($fields['-list'])){
             $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
-            if (isset($rec->saleId)) {
-                $row->saleId = sales_Sales::getLink($rec->saleId, 0);
-            }
             $row->domainId = cms_Domains::getHyperlink($rec->domainId);
             
             $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
@@ -1474,6 +1471,10 @@ class eshop_Carts extends core_Master
             if(!empty($rec->email) && $rec->state == 'draft'){
                 $row->id = ht::createHint($row->id, 'Има попълнени данни за поръчка|*!', 'notice', false);
             }
+        }
+        
+        if (isset($rec->saleId)) {
+            $row->saleId = sales_Sales::getLink($rec->saleId, 0);
         }
     }
     
