@@ -524,6 +524,8 @@ class plg_TreeObject extends core_Plugin
                 if($lg == 'en' && !empty($gRec->{$mvc->nameFieldEn})){
                     $num = $mvc->getVerbal($gRec, $mvc->nameFieldEn);
                 }
+                
+                $num = tr($num);
             }
             
             $parent = $mvc->fetchField($id, $mvc->parentFieldName);
