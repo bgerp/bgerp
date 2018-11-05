@@ -447,7 +447,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                 <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div>|Цени към дата|*: <b>[#date#]</b></div>
+							    <small><div>|Цени към|*: <b>[#date#]</b></div>
                                 <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
                                 <div>|Групи|*: [#productGroups#]</div><div>|Опаковки|*: [#packagings#]</div></small>"));
     

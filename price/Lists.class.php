@@ -400,9 +400,9 @@ class price_Lists extends core_Master
      */
     public static function getAccessibleOptions($cClass = null, $cId = null, $filterByPublic = true)
     {
-        $options = array();
         $query = static::getQuery();
         $query->show('title');
+        $query->where("#state != 'rejected'");
         if($filterByPublic === true){
             $query->where("#public = 'yes'");
         }
@@ -413,7 +413,8 @@ class price_Lists extends core_Master
             $query->orWhere("#public = 'no' AND #cClass = {$Class->getClassId()} AND #cId = {$cId}");
         }
         
-        // От тях оставяме тези до които имаме достъп
+        // От тях остават, само тези достъпни до потребителя
+        $options = array();
         while ($rec = $query->fetch()) {
             if (static::haveRightFor('single', $rec->id)) {
                 $options[$rec->id] = static::getVerbal($rec, 'title');
