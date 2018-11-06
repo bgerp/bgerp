@@ -412,7 +412,7 @@ class price_Lists extends core_Master
             $Class = cls::get($cClass);
             $query->orWhere("#public = 'no' AND #cClass = {$Class->getClassId()} AND #cId = {$cId}");
         }
-        bp($query->where);
+       
         // От тях остават, само тези достъпни до потребителя
         $options = array();
         while ($rec = $query->fetch()) {
