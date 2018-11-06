@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -248,9 +248,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Обхождане на всички документи за продажба
         foreach ($documents as $Master => $Detail) {
-            $masterClasId = $Master::getClassId();
             $Detail = cls::get($Detail);
-            $detailClassId = $Detail->getClassId();
             
             // За всеки документ, му извличаме детайлите ако той е променян след $timeline
             $dQuery = $Detail->getQuery();
@@ -391,7 +389,7 @@ class sales_PrimeCostByDocument extends core_Manager
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
