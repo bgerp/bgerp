@@ -109,16 +109,21 @@ class price_reports_PriceList extends frame2_driver_TableData
        
        $suggestions = cat_UoM::getPackagingOptions();
        $form->setSuggestions('packagings', $suggestions);
-       $form->setOptions('policyId', price_ListDocs::getDefaultPolicies($form->rec));
        
        // Ако е в папка на контрагент
+       $defaultListId = price_ListRules::PRICE_LIST_CATALOG;
        $Cover = doc_Folders::getCover($form->rec->folderId);
        if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-           $defaultList = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-           $form->setDefault('policyId', $defaultList);
+           $defaultListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
            $form->setDefault('vat', deals_Helper::getDefaultChargeVat($form->rec->folderId));
            $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
+           $listOptions = price_Lists::getAccessibleOptions($Cover->className, $Cover->that);
+       } else {
+           $listOptions = price_Lists::getAccessibleOptions(null, null, false);
        }
+       
+       $form->setOptions('policyId', $listOptions);
+       $form->setDefault('policyId', $defaultListId);
        
        // Ако е в папка с контрагентски данни
        if($Cover->haveInterface('doc_ContragentDataIntf')){
@@ -150,6 +155,10 @@ class price_reports_PriceList extends frame2_driver_TableData
            $params['groups'] = $rec->productGroups;
        }
        $sellableProducts = array_keys(price_ListRules::getSellableProducts($params));
+      
+       // Вдигане на времето за изпълнение, според броя записи
+       $timeLimit = count($sellableProducts) * 0.7;
+       core_App::setTimeLimit($timeLimit, false, 600);
        
        $recs = array();
        if(is_array($recs)) {
@@ -177,7 +186,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                // Ако има избран период в който да се гледа променена ли е цената
                if(isset($dateBefore)){
                    $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
-                   $oldPrice = round($oldPrice, 2);
+                   $oldPrice = round($oldPrice, $round);
                    
                    // Колко процента е промяната спрямо старата цена
                    if(empty($oldPrice)){
@@ -269,6 +278,10 @@ class price_reports_PriceList extends frame2_driver_TableData
            $row->packs = $this->getPackTable($rec, $dRec);
        }
        
+       if(!Mode::isReadOnly()){
+           $row->ROW_ATTR['class'] = 'state-active';
+       }
+       
        // Показване на процента промяна
        if(!empty($rec->period)){
            if($dRec->type == 'new'){
@@ -355,7 +368,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $fld->FLD('eanCode', 'varchar', 'caption=ЕАН');
         }
         if($rec->showMeasureId == 'yes' || $export === true){
-            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap');
+            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap small quiet');
             $fld->FLD('price', "double(decimals={$decimals})", 'caption=Цена');
         }
         if($export === true){
@@ -438,7 +451,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                 <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div>|Цени към дата|*: <b>[#date#]</b></div>
+							    <small><div>|Цени към|*: <b>[#date#]</b></div>
                                 <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
                                 <div>|Групи|*: [#productGroups#]</div><div>|Опаковки|*: [#packagings#]</div></small>"));
     

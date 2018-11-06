@@ -319,10 +319,13 @@ class hr_Departments extends core_Master
     {
         $rec = self::fetch(self::ROOT_DEPARTMENT_ID);
         
+        $mode = null;
+        
         if (empty($rec)) {
             $rec = new stdClass();
             $rec->id = self::ROOT_DEPARTMENT_ID;
             $rec->state = 'active';
+            $mode = 'replace';
         }
         
         if ($rec->name != $myCompanyName) {
@@ -344,7 +347,7 @@ class hr_Departments extends core_Master
             }
             
             core_Users::forceSystemUser();
-            self::save($rec);
+            self::save($rec, null, $mode);
             core_Users::cancelSystemUser();
         }
         
