@@ -13,6 +13,8 @@
  *
  * @since     v 0.1
  * @title     Документ "Ценоразпис"
+ * 
+ * @deprecated
  */
 class price_ListDocs extends core_Master
 {
@@ -68,7 +70,7 @@ class price_ListDocs extends core_Master
     /**
      * Кой може да го промени?
      */
-    public $canWrite = 'sales, priceDealer, ceo';
+    public $canWrite = 'no_one';
     
     
     /**
