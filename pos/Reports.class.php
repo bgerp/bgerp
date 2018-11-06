@@ -2,14 +2,14 @@
 
 
 /**
- * Модел Отчети
+ * Модел Отчети за POS продажби
  *
  *
  * @category  bgerp
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -299,7 +299,7 @@ class pos_Reports extends core_Master
             }
         }
         
-        foreach ($data->row->statisticArr as $cr => &$rRec) {
+        foreach ($data->row->statisticArr as &$rRec) {
             $rRec->receiptTotal = $Double->toVerbal($rRec->receiptTotal);
         }
     }
@@ -323,7 +323,7 @@ class pos_Reports extends core_Master
         if ($detail->rows) {
              
              // Подготвяме поле по което да сортираме
-            foreach ($detail->rows as $key => &$value) {
+            foreach ($detail->rows as &$value) {
                 if ($value->action == 'sale') {
                     $value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
                 }
@@ -383,10 +383,7 @@ class pos_Reports extends core_Master
     {
         $row = new stdClass();
         
-        $varchar = cls::get('type_Varchar');
-        $double = cls::get('type_Double');
-        $double->params['decimals'] = 2;
-        
+        $double = core_Type::getByName('double(decimals=2)');
         $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
         $row->quantity = "<span style='float:right'>" . $double->toVerbal($obj->quantity) . '</span>';
         if ($obj->action == 'sale') {
