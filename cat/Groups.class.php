@@ -100,7 +100,7 @@ class cat_Groups extends core_Manager
     public function description()
     {
         $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование->Основно, mandatory');
-        $this->FLD('nameEn', 'varchar(64,ci)', 'caption=Наименование->Международно');
+        $this->FLD('nameEn', 'varchar(64,ci,nullIfEmpty)', 'caption=Наименование->Международно');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
         $this->FLD('orderProductBy', 'enum(name=Име,code=Код)', 'caption=Сортиране по,notNull,value=name,after=parentId');
