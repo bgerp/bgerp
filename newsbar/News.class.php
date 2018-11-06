@@ -42,7 +42,7 @@ class newsbar_News extends core_Master
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'news=Новина,position=Позиция,startTime,endTime,lang,color,transparency,state';
+    public $listFields = 'news=Новина,position=Позиция,moving,startTime,endTime,lang,color,transparency,state';
     
     
     /**
@@ -70,6 +70,7 @@ class newsbar_News extends core_Master
     {
         $this->FLD('news', 'richtext(rows=2,bucket=Notes)', 'caption=Новина->Текст');
         $this->FLD('newsHtml', 'html(rows=2)', 'caption=Новина->HTML');
+        $this->FLD('moving', 'enum(yes=Да, no=Не)', 'caption=Новина->Движение,notNull,mandatory');
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Показване на новината->Начало, mandatory');
         $this->FLD('endTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,mandatory');
         

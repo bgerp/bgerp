@@ -263,7 +263,7 @@ class newsbar_Plugin extends core_Plugin
             
             $html = newsbar_News::generateHTML($nRec);
             $html->replace($class, 'class');
-            if (!trim($nRec->newsHtml)) {
+            if ($nRec->moving != 'no') {
                 $html->replace("<marquee scrollamount='4'>", 'marquee');
                 $html->replace('</marquee>', 'marquee2');
             }
