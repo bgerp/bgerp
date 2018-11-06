@@ -37,7 +37,7 @@ class pos_Reports extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
+    public $loadList = 'pos_Wrapper, plg_Printing, sales_plg_CalcPriceDelta, doc_DocumentPlg, bgerp_plg_Blank, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
     
     
     /**
@@ -439,7 +439,7 @@ class pos_Reports extends core_Master
      */
     public static function getHandle($id)
     {
-        $rec = static::fetch($id);
+        $rec = static::fetchRec($id);
         $self = cls::get(get_called_class());
         
         return $self->abbr . $rec->id;
@@ -752,5 +752,56 @@ class pos_Reports extends core_Master
             $rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
             $this->save($rec, 'state,closedOn');
         }
+    }
+    
+    
+    /**
+     * Какви записи ще се направят в делтите
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getDeltaRecs($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        
+        $res = array();
+        
+        $valior = dt::verbal2mysql($rec->activatedOn, false);
+        $classId = pos_Receipts::getClassId();
+        
+        // Обхождат се продадените артикули
+        if(is_array($rec->details['receiptDetails'])){
+            foreach ($rec->details['receiptDetails'] as $dRec){
+                if($dRec->action != 'sale') continue;
+                
+                $r = (object) array('valior' => $valior,
+                    'detailClassId' => $classId,
+                    'detailRecId' => "{$rec->id}000{$dRec->value}",
+                    'quantity' => $dRec->quantity * $dRec->quantityInPack,
+                    'productId' => $dRec->value,
+                    'sellCost' => $dRec->amount,
+                    'state'    => 'active',
+                    'isPublic' => cat_Products::fetchField($dRec->value, 'isPublic'),
+                    'contragentId' => $dRec->contragentId,
+                    'contragentClassId' => $dRec->contragentClassId,);
+                
+                // Търговецът е създателя на документа
+                $r->dealerId = $rec->createdBy;
+                
+                // Изчисляване на себестойността на артикула
+                $productRec = cat_Products::fetchField($dRec->value, 'isPublic,code');
+                if ($productRec->code == 'surcharge') {
+                    $r->primeCost = 0;
+                } else {
+                    $r->primeCost = cat_Products::getPrimeCost($dRec->value, $dRec->pack, $r->quantity, $valior, price_ListRules::PRICE_LIST_COST);
+                }
+                
+                $res[] = $r;
+            }
+        }
+        
+        return $res;
     }
 }
