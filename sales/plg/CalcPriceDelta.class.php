@@ -47,6 +47,11 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 $dRec->threadId = $clone->threadId;
                 $dRec->folderId = $clone->folderId;
                 $dRec->containerId = $clone->containerId;
+                
+                $id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$dRec->detailClassId} AND #detailRecId = {$dRec->detailRecId}");
+                if (!empty($id)) {
+                    $dRec->id = $id;
+                }
             }
         }
         
@@ -137,11 +142,6 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             
             $r->dealerId = $persons['dealerId'];
             $r->initiatorId = $persons['initiatorId'];
-            
-            $id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
-            if (!empty($id)) {
-                $r->id = $id;
-            }
             
             $res[] = $r;
         }
