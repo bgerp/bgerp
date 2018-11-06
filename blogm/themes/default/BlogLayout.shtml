@@ -6,6 +6,7 @@
     </div>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation' style='margin-left:2%'>
+        [#TOP_NAV#]
         [#NAVIGATION#]
         <div class='bulletin-link'></div>
         [#BOTTOM_NAV#]

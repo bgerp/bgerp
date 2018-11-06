@@ -5,8 +5,8 @@
         <span class="agree">Съгласен съм</span>
 </div>
 <!--ET_END cookies-->
+[#TOP_PAGE#]
 <div class='background-holder'>
-
     <div class='clearfix21' id='all'>
         <div id="cmsTop" [#TOP_CLASS#]>
             [#HEADER_IMG#]
@@ -46,5 +46,6 @@
             [#FOOTER_CENTER_NARROW#]
         </div>
         <!--ET_END FOOTER_CENTER_NARROW-->
+        [#AFTER_FOOTER#]
     </div>
 </div>

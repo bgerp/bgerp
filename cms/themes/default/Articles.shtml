@@ -10,6 +10,7 @@
     </div>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol articles-menu' id='cmsNavigation' style='margin-left:2%'>
+        [#TOP_NAV#]
         [#SEARCH_BOX#]
         [#NAVIGATION#]
         [#BEFORE_FOOTER_INFO#]

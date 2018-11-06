@@ -2,6 +2,7 @@
     <!--ET_BEGIN NAVIGATION-->
 
     <div   id='cmsNavigation' class='articles-menu'  style='margin:2%'>
+        [#TOP_NAV#]
         <div class='articles-navigation'>
              [#SEARCH_BOX#] [#TOGGLE_BTN#]
             <div class="clearfix21"></div>
