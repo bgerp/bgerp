@@ -278,6 +278,10 @@ class price_reports_PriceList extends frame2_driver_TableData
            $row->packs = $this->getPackTable($rec, $dRec);
        }
        
+       if(!Mode::isReadOnly()){
+           $row->ROW_ATTR['class'] = 'state-active';
+       }
+       
        // Показване на процента промяна
        if(!empty($rec->period)){
            if($dRec->type == 'new'){
@@ -364,7 +368,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $fld->FLD('eanCode', 'varchar', 'caption=ЕАН');
         }
         if($rec->showMeasureId == 'yes' || $export === true){
-            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap');
+            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap small quiet');
             $fld->FLD('price', "double(decimals={$decimals})", 'caption=Цена');
         }
         if($export === true){
