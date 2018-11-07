@@ -160,9 +160,9 @@ class acc_type_Item extends type_Key
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        $this->prepareOptions();
-        
-        $conf = core_Packs::getConfig('core');
+        if (!is_array($this->options) || !count($this->options)) {
+            $this->prepareOptions();
+        }
         
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
