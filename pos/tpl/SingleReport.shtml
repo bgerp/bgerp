@@ -3,17 +3,22 @@
 		<tr>
 			<td>|Точка на продажба|*:</td>
 			<td></td>
-			<td><b>[#pointId#]</b></td>
+			<td>[#pointId#]</td>
 		</tr>
 		<tr>
 			<td>|Каса|*:</td>
 			<td></td>
-			<td><b>[#caseId#]</b></td>
+			<td>[#caseId#]</td>
 		</tr>
 		<tr>
 			<td>|Склад|*:</td>
 			<td></td>
-			<td><b>[#storeId#]</b></td>
+			<td>[#storeId#]</td>
+		</tr>
+		<tr>
+			<td>|Търговец|*:</td>
+			<td></td>
+			<td>[#dealerId#]</td>
 		</tr>
 		<tr>
 			<td>|Продадено|*:</td>
@@ -44,7 +49,6 @@
 		<!--ET_END ROW-->
 	    <!--ET_END STATISTIC-->
 	</table>
-	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
 	<div class='overflow-scroll' style='margin: 15px 0;'>
 		[#SALES#]
 	<!--ET_BEGIN SALE_PAGINATOR-->

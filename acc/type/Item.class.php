@@ -124,8 +124,6 @@ class acc_type_Item extends type_Key
             $this->options += $closedOptions;
         }
         
-        $this->handler = md5($this->getSelectFld() . '|' . $where . $this->params['mvc'] . '|' . implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
-        
         $this->options = parent::prepareOptions();
         
         return $this->options;
@@ -162,9 +160,9 @@ class acc_type_Item extends type_Key
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        $this->prepareOptions();
-        
-        $conf = core_Packs::getConfig('core');
+        if (!is_array($this->options) || !count($this->options)) {
+            $this->prepareOptions();
+        }
         
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {

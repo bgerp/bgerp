@@ -66,7 +66,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=ДДС,after=currencyId,single=none');
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Групи,columns=2,placeholder=Всички,after=vat,single=none');
         $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки,columns=3,placeholder=Всички,after=productGroups,single=none');
-        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец)', 'caption=Изменени цени,after=packagings,single=none');
+        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Изменени цени,after=packagings,single=none');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=period');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=lang,single=none');
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
@@ -109,16 +109,21 @@ class price_reports_PriceList extends frame2_driver_TableData
        
        $suggestions = cat_UoM::getPackagingOptions();
        $form->setSuggestions('packagings', $suggestions);
-       $form->setOptions('policyId', price_ListDocs::getDefaultPolicies($form->rec));
        
        // Ако е в папка на контрагент
+       $defaultListId = price_ListRules::PRICE_LIST_CATALOG;
        $Cover = doc_Folders::getCover($form->rec->folderId);
        if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-           $defaultList = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-           $form->setDefault('policyId', $defaultList);
+           $defaultListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
            $form->setDefault('vat', deals_Helper::getDefaultChargeVat($form->rec->folderId));
            $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
+           $listOptions = price_Lists::getAccessibleOptions($Cover->className, $Cover->that);
+       } else {
+           $listOptions = price_Lists::getAccessibleOptions(null, null, false);
        }
+       
+       $form->setOptions('policyId', $listOptions);
+       $form->setDefault('policyId', $defaultListId);
        
        // Ако е в папка с контрагентски данни
        if($Cover->haveInterface('doc_ContragentDataIntf')){
@@ -150,6 +155,10 @@ class price_reports_PriceList extends frame2_driver_TableData
            $params['groups'] = $rec->productGroups;
        }
        $sellableProducts = array_keys(price_ListRules::getSellableProducts($params));
+      
+       // Вдигане на времето за изпълнение, според броя записи
+       $timeLimit = count($sellableProducts) * 0.7;
+       core_App::setTimeLimit($timeLimit, false, 600);
        
        $recs = array();
        if(is_array($recs)) {
@@ -171,10 +180,32 @@ class price_reports_PriceList extends frame2_driver_TableData
                
                // Изчислява се цената по избраната политика
                $priceByPolicy = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $date);
-               
                $obj->name = cat_Products::getVerbal($productRec, 'name');
                $obj->price = deals_Helper::getDisplayPrice($priceByPolicy, $obj->vat, $currencyRate, $rec->vat);
                
+               // Ако има избран период в който да се гледа променена ли е цената
+               if(isset($dateBefore)){
+                   $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
+                   $oldPrice = round($oldPrice, $round);
+                   
+                   // Колко процента е промяната спрямо старата цена
+                   if(empty($oldPrice)){
+                       $obj->type = 'new';
+                       $difference = 1;
+                   } elseif(!empty($oldPrice) && empty($priceByPolicy)){
+                       $obj->type = 'removed';
+                       $difference = -1;
+                   } else {
+                       $difference = (round(trim($priceByPolicy), $round) - trim($oldPrice)) / $oldPrice;
+                       $difference = round($difference, 2);
+                   }
+                   
+                   // Ако няма промяна, артикулът не се показва
+                   if($difference == 0) continue;
+                   $obj->difference = $difference;
+               }
+               
+               // Ако има цена, показват се и избраните опаковки с техните цени
                if(!empty($priceByPolicy)) {
                    $packQuery = cat_products_Packagings::getQuery();
                    $packQuery->where("#productId = {$productRec->id}");
@@ -186,44 +217,34 @@ class price_reports_PriceList extends frame2_driver_TableData
                        $obj->packs[$packRec->packagingId] = $packRec;
                    }
                    
-                   // Ако ще се скрива мярката и няма опаковки, няма какво да се показва
+                   // Ако ще се скрива мярката и няма опаковки, няма какво да се показва, освен ако артикула не е бил премахнат
                    if($rec->showMeasureId != 'yes' && !count($obj->packs)) continue;
-                   
-                   // Ако има избран период в който да се гледа променена ли е цената
-                   if(isset($dateBefore)){
-                       $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
-                       $oldPrice = round($oldPrice, 2);
-                       
-                       // Колко процента е промяната спрямо старата цена
-                       if(empty($oldPrice)){
-                           $difference = 1;
-                       } else {
-                           $difference = (round(trim($priceByPolicy), $round) - trim($oldPrice)) / $oldPrice;
-                           $difference = round($difference, 2);
-                       }
-                       
-                       // Ако няма промяна, артикулът не се показва
-                       if($difference == 0) continue;
-                       $obj->difference = $difference;
-                   }
-                   
-                   $recs[$id] = $obj;
                }
+               
+               if($obj->type != 'removed' && empty($priceByPolicy)) continue;
+               
+               $recs[$id] = $obj;
            }
        }
-     
+      
        // Ако има подговени записи
        if(count($recs)){
-           $productGroups = $rec->productGroups;
            
            // Ако няма избрани групи, търсят се всички
+           $productGroups = $rec->productGroups;
            if(empty($productGroups)){
                $productGroups = arr::extractValuesFromArray(cat_Groups::getQuery()->fetchAll(), 'id');
                $productGroups = keylist::fromArray($productGroups);
            }
            
            // Филтриране на артикулите според избраните групи
+           if($rec->lang != 'auto'){
+               core_Lg::push($rec->lang);
+           }
            store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name');
+           if($rec->lang != 'auto'){
+               core_Lg::pop();
+           }
        }
        
        return $recs;
@@ -257,13 +278,23 @@ class price_reports_PriceList extends frame2_driver_TableData
            $row->packs = $this->getPackTable($rec, $dRec);
        }
        
+       if(!Mode::isReadOnly()){
+           $row->ROW_ATTR['class'] = 'state-active';
+       }
+       
        // Показване на процента промяна
        if(!empty($rec->period)){
-           $row->difference = core_Type::getByName('percent')->toVerbal($dRec->difference);
-           if($dRec->difference > 0){
-               $row->difference = "<span class='green'>+{$row->difference}</span>";
-           } else {
-               $row->difference = "<span class='red'>{$row->difference}</span>";
+           if($dRec->type == 'new'){
+               $row->difference = "<span class='price-list-new-item'>" . tr('Нов') . "</span>";
+           } elseif($dRec->type == 'removed'){
+               $row->difference = "<span class='price-list-removed-item'>" . tr('Премахнат') . "</span>";
+           }else {
+               $row->difference = core_Type::getByName('percent')->toVerbal($dRec->difference);
+               if($dRec->difference > 0){
+                   $row->difference = "<span class='green'>+{$row->difference}</span>";
+               } else {
+                   $row->difference = "<span class='red'>{$row->difference}</span>";
+               }
            }
        }
        
@@ -311,6 +342,7 @@ class price_reports_PriceList extends frame2_driver_TableData
        }
        
        $tpl = $table->get($rows, $listFields);
+       $tpl->removeBlocksAndPlaces();
        
        return $tpl;
    }
@@ -333,12 +365,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        
         if($export === true){
             $fld->FLD('eanCode', 'varchar', 'caption=ЕАН');
         }
         if($rec->showMeasureId == 'yes' || $export === true){
-            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap');
+            $fld->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered nowrap small quiet');
             $fld->FLD('price', "double(decimals={$decimals})", 'caption=Цена');
         }
         if($export === true){
@@ -347,7 +378,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             $fld->FLD('packs', 'html', 'caption=Опаковки');
         }
         if(!empty($rec->period)){
-            $fld->FLD('difference', 'percent', 'caption=Промяна');
+            if($export === false){
+                $fld->FLD('difference', 'varchar', "caption=Промяна");
+            } else {
+                $fld->FLD('difference', 'percent', "caption=Промяна");
+            }
         }
         
         return $fld;
@@ -399,9 +434,10 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
         $row->packagings = (!empty($rec->packagings)) ? core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal($rec->packagings): tr('Всички');
-        
+         
         if(!empty($rec->period)){
             $row->period = core_Type::getByName('time')->toVerbal($rec->period);
+            $row->periodDate = dt::mysql2verbal(dt::addSecs(-1 * $rec->period, $rec->date, false), 'd.m.Y');
         }
     }
     
@@ -420,11 +456,14 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                 <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div>|Групи|*: [#productGroups#]</div><div>|Опаковки|*: [#packagings#]</div><!--ET_BEGIN period--><div>|Изменени цени|*: [#period#]<!--ET_END period--></div></small>"));
+							    <small><div>|Цени към|*: <b>[#date#]</b></div>
+                                <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
+                                <div>|Групи|*: [#productGroups#]</div><div>|Опаковки|*: [#packagings#]</div></small>"));
     
-        $fieldTpl->replace($data->row->period, 'period');
-        $fieldTpl->replace($data->row->productGroups, 'productGroups');
-        $fieldTpl->replace($data->row->packagings, 'packagings');
+        foreach (array('periodDate', 'date', 'period', 'productGroups', 'packagings') as $field){
+            $fieldTpl->replace($data->row->{$field}, $field);
+        }
+            
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
