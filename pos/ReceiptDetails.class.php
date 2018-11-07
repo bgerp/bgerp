@@ -442,7 +442,6 @@ class pos_ReceiptDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $varchar = cls::get('type_Varchar');
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = true;
         $receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');

@@ -182,6 +182,9 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
+        
+        bp($rec->details['receipts'][0]->createdOn);
+        
         $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn);
         $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn);
         
@@ -489,7 +492,7 @@ class pos_Reports extends core_Master
         while ($rec = $query->fetch()) {
             
             // запомняме кои бележки сме обиколили
-            $receipts[] = (object) array('id' => $rec->id, 'createdOn' => $rec->valior, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
+            $receipts[] = (object) array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
             
             // Добавяме детайлите на бележката
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
