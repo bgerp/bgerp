@@ -778,11 +778,11 @@ class pos_Reports extends core_Master
                     'detailRecId' => "{$rec->id}000{$dRec->value}",
                     'quantity' => $dRec->quantity * $dRec->quantityInPack,
                     'productId' => $dRec->value,
-                    'sellCost' => $dRec->amount,
                     'state'    => 'active',
                     'isPublic' => cat_Products::fetchField($dRec->value, 'isPublic'),
                     'contragentId' => $dRec->contragentId,
                     'contragentClassId' => $dRec->contragentClassId,);
+                $r->sellCost = $dRec->amount / $r->quantity;
                 
                 // Търговецът е създателя на документа
                 $r->dealerId = $rec->createdBy;
