@@ -416,6 +416,8 @@ class pos_Receipts extends core_Master
         if ($action == 'terminal' && isset($rec)) {
             if ($rec->state != 'draft') {
                 $res = 'no_one';
+            } elseif(!pos_Points::haveRightFor('select', $rec->pointId)){
+                $res = 'no_one';
             }
         }
         
@@ -498,7 +500,7 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-        pos_Points::requireRightFor('select', $rec->pointId);
+        $this->requireRightFor('terminal', $rec);
         
         // Имаме ли достъп до терминала
         if (!$this->haveRightFor('terminal', $rec)) {
