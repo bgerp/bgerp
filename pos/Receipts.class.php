@@ -244,7 +244,7 @@ class pos_Receipts extends core_Master
                     });
                     
                     if ($found) {
-                        $row->inReport = pos_Reports::getHyperlink($rRec->id, true);
+                        $row->inReport = pos_Reports::getLink($rRec->id, 0);
                         break;
                     }
                 }

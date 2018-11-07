@@ -6,7 +6,7 @@
                             |Информация|*
                         </td>
                         <td class = 'sum-th'>
-                            |Продавачи|*
+                            |Обобщение|*
                         </td>
                         <td class = 'sum-th'>
                             |Продадено|*, [#baseCurrency#]
@@ -33,6 +33,7 @@
 								[#ROW#]
 						     	<div style='font-weight:normal'>[#receiptBy#]: [#receiptTotal#] <span class='cCode'>[#baseCurrency#]</span></div>
 						     <!--ET_END ROW-->
+						     <div style='font-weight:normal'><hr></div><div style='font-weight:normal'>[#receiptIds#]</div>
                         </td>
                         <td class = 'nowrap'>[#total#]</td>
                         <td class = 'nowrap'>[#paid#] </td>

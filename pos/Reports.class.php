@@ -285,6 +285,16 @@ class pos_Reports extends core_Master
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
         
+        $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
+        $data->row->receiptIds = array();
+        foreach ($receiptIds as $receiptId){
+            $data->row->receiptIds[$receiptId] = pos_Receipts::getHyperlink($receiptId)->getContent();
+        }
+        
+        if(count($data->row->receiptIds)){
+            $data->row->receiptIds = implode('<br>', $data->row->receiptIds);
+        }
+        
         /*
     	 * Обработваме статистиката за това всеки касиер, колко е продал
     	 */

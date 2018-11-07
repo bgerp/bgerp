@@ -41,7 +41,7 @@
 			<tr>
 				<td>|Приключено с|*:</td>
 				<td></td>
-				<td><b>[#inReport#]</b></td>
+				<td>[#inReport#]</td>
 			</tr>
 			<!--ET_END inReport-->
 			
