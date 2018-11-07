@@ -1623,7 +1623,9 @@ class pos_Receipts extends core_Master
         $query->where("#pointId = {$data->masterId}");
         $query->where("#state = 'waiting' OR #state = 'draft'");
         $query->orderBy('#state');
-        
+        if($count = $query->count()){
+            $data->count = core_Type::getByName('int')->toVerbal($count);
+        }
         $conf = core_Packs::getConfig('pos');
         
         while ($rec = $query->fetch()) {
@@ -1632,9 +1634,9 @@ class pos_Receipts extends core_Master
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array($this, 'terminal', $rec->id));
+                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, "title=Продължаване на бележката");
                 } elseif ($this->haveRightFor('single', $rec)) {
-                    $num = ht::createLink($num, array($this, 'single', $rec->id));
+                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Към бележка №{$rec->id}");
                 }
             }
             
@@ -1662,6 +1664,7 @@ class pos_Receipts extends core_Master
         $tpl = new ET('');
         $str = implode('', $data->rows);
         $tpl->append($str);
+        $tpl->replace($data->count, 'waitingCount');
         
         return $tpl;
     }
