@@ -16,17 +16,17 @@
 			<tr>
 				<td>|Точка на продажба|*:</td>
 				<td></td>
-				<td><b>[#pointId#]</b></td>
+				<td>[#pointId#]</td>
 			</tr>
 			<tr>
 				<td>|Каса|*:</td>
 				<td></td>
-				<td><b>[#caseId#]</b></td>
+				<td>[#caseId#]</td>
 			</tr>
 			<tr>
 				<td>|Склад|*:</td>
 				<td></td>
-				<td><b>[#storeId#]</b></td>
+				<td>[#storeId#]</td>
 			</tr>
 			
 			<!--ET_BEGIN transferedIn-->
