@@ -200,7 +200,7 @@ class spas_Client
                 );
             }
         } else {
-            throw new spas_client_Exception('Could not parse response header');
+            throw new spas_client_Exception('Could not parse response header' . $header);
         }
         
         if (preg_match('/Content-length: (\d+)/', $header, $matches)) {
