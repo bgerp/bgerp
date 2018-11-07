@@ -183,8 +183,8 @@ class pos_Reports extends core_Master
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
         
-        $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn);
-        $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn);
+        $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn, 'd.m.Y H:i');
+        $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
