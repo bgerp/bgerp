@@ -250,7 +250,7 @@ class newsbar_News extends core_Master
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
         
-        $progressArr[''] = '';
+        $progressArr = array('' => '');
         
         for ($i = 0; $i <= 100; $i += 10) {
             if ($rec->transparency > ($i / 100)) {
