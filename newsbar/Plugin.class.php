@@ -20,6 +20,12 @@
 class newsbar_Plugin extends core_Plugin
 {
     /**
+     * Името на полето в сесията
+     */
+    public static $newsArrToShowName = 'newsArrToShow';
+    
+    
+    /**
      *
      * @param core_ET $invoker
      */
@@ -33,35 +39,58 @@ class newsbar_Plugin extends core_Plugin
         // взимаме всички нови новини
         $newsArr = newsbar_News::getAllNews();
         
-        $haveFooter = $haveHeader = false;
-        
+        // Ако е зададено да се показва във външната част
         foreach ($newsArr as $nRec) {
-            if ($nRec->news !== null && $nRec->color !== null && $nRec->transparency !== null) {
-                if (!$nRec->eshopProducts && !$nRec->eshopGroups && !$nRec->menu && !$nRec->articles && !$nRec->headerAndFooter) {
-                    $nRec->headerAndFooter = 'header';
-                }
-                $headerAndFooter = type_Set::toArray($nRec->headerAndFooter);
-                
-                if (!empty($headerAndFooter)) {
-                    if (!$haveHeader && $headerAndFooter['header']) {
-                        $html = self::getMarqueeText($nRec);
-                        
-                        $invoker->appendOnce($html, 'PAGE_HEADER');
-                        
-                        $haveHeader = true;
-                    }
-                    
-                    if (!$haveFooter && $headerAndFooter['footer']) {
-                        $htmlFooter = self::getMarqueeText($nRec, 'newsbarCustom');
-                        $invoker->appendOnce($htmlFooter, 'PAGE_FOOTER');
-                        
-                        $haveFooter = true;
-                    }
-                }
-                
-                if ($haveFooter && $haveHeader) {
+            if (!$nRec->eshopProducts && !$nRec->eshopGroups && !$nRec->menu && !$nRec->articles && !$nRec->headerAndFooter) {
+                self::addNewsToShow($nRec);
+            }
+        }
+        
+        // Показваме всички добавяни данни в сесията
+        $newsArr = Mode::get(self::$newsArrToShowName);
+        if ($newsArr) {
+            foreach ($newsArr as $nRec) {
+                switch ($nRec->position) {
+                    case 'bottomHeader':
+                        $placeholderName = 'BOTTOM_HEADER';
+                        break;
+                    case 'topPage':
+                        $placeholderName = 'TOP_PAGE';
+                        break;
+                    case 'bottomMenu':
+                        $placeholderName = 'BOTTOM_MENU';
+                        break;
+                    case 'topConten':
+                        $placeholderName = 'TOP_CONTENT';
+                        break;
+                    case 'bottomContent':
+                        $placeholderName = 'BOTTOM_CONTENT';
+                        break;
+                    case 'topNav':
+                        $placeholderName = 'TOP_NAV';
+                        break;
+                    case 'bottomNav':
+                        $placeholderName = 'BOTTOM_NAV';
                     break;
+                    case 'beforeFooter':
+                        $placeholderName = 'BEFORE_FOOTER';
+                        break;
+                    case 'footer':
+                        if (Mode::is('screenMode', 'narrow')) {
+                            $placeholderName = 'FOOTER_CENTER_NARROW';
+                        } else {
+                            $placeholderName = 'FOOTER_CENTER_WIDE';
+                        }
+                        break;
+                    case 'afterFooter':
+                        $placeholderName = 'AFTER_FOOTER';
+                        break;
+                    default:
+                        $placeholderName = 'BOTTOM_HEADER';
+                        break;
                 }
+                $html = self::getTextToShow($nRec, $placeholderName);
+                $invoker->appendOnce($html, $placeholderName);
             }
         }
     }
@@ -94,15 +123,7 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'newsbarCustom articleNewsbar');
-            
-            if ($res instanceof core_ET) {
-                $res->prepend($html);
-            } else {
-                $res = $html . $res;
-            }
-            
-            break;
+            self::addNewsToShow($nRec);
         }
     }
     
@@ -134,15 +155,7 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'newsbarCustom menuNewsbar');
-            
-            if ($res instanceof core_ET) {
-                $res->append($html, 'NEWSBAR_MENU');
-            } else {
-                $res = $html . $res;
-            }
-            
-            break;
+            self::addNewsToShow($nRec);
         }
     }
     
@@ -178,15 +191,7 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'newsbarCustom eshopGroupsNewsbar');
-            
-            if ($res instanceof core_ET) {
-                $res->prepend($html);
-            } else {
-                $res = $html . $res;
-            }
-            
-            break;
+            self::addNewsToShow($nRec);
         }
     }
     
@@ -217,16 +222,25 @@ class newsbar_Plugin extends core_Plugin
                 continue;
             }
             
-            $html = self::getMarqueeText($nRec, 'newsbarCustom eshopGroupsNewsbar');
-            
-            if ($res instanceof core_ET) {
-                $res->prepend($html);
-            } else {
-                $res = $html . $res;
-            }
-            
-            break;
+            self::addNewsToShow($nRec);
         }
+    }
+    
+    
+    /**
+     * Помощна функция за добавяне на записа в сесията
+     *
+     * @param stdClass $nRec
+     */
+    protected static function addNewsToShow($nRec)
+    {
+        $newsArr = Mode::get(self::$newsArrToShowName);
+        if (!$newsArr) {
+            $newsArr = array();
+        }
+        $newsArr[$nRec->position] = $nRec;
+        
+        Mode::set(self::$newsArrToShowName, $newsArr);
     }
     
     
@@ -239,17 +253,17 @@ class newsbar_Plugin extends core_Plugin
      *
      * @return string
      */
-    protected static function getMarqueeText($nRec, $class = 'newsbar', $marquee = true)
+    protected static function getTextToShow($nRec, $class = 'newsbar')
     {
         static $resArr = array();
-        $hash = md5(serialize($nRec) . '|' . $class . '|' . $marquee);
+        $hash = md5(serialize($nRec) . '|' . $class);
         
         if (!$resArr[$hash]) {
             $convertText = cls::get('type_Richtext');
             
             $html = newsbar_News::generateHTML($nRec);
             $html->replace($class, 'class');
-            if ($marquee) {
+            if ($nRec->moving != 'no') {
                 $html->replace("<marquee scrollamount='4'>", 'marquee');
                 $html->replace('</marquee>', 'marquee2');
             }

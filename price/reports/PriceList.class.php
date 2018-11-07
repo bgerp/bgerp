@@ -66,7 +66,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=ДДС,after=currencyId,single=none');
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Групи,columns=2,placeholder=Всички,after=vat,single=none');
         $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки,columns=3,placeholder=Всички,after=productGroups,single=none');
-        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец)', 'caption=Изменени цени,after=packagings,single=none');
+        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Изменени цени,after=packagings,single=none');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=period');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=lang,single=none');
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
@@ -342,6 +342,7 @@ class price_reports_PriceList extends frame2_driver_TableData
        }
        
        $tpl = $table->get($rows, $listFields);
+       $tpl->removeBlocksAndPlaces();
        
        return $tpl;
    }
@@ -377,7 +378,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             $fld->FLD('packs', 'html', 'caption=Опаковки');
         }
         if(!empty($rec->period)){
-            $fld->FLD('difference', 'percent', "caption=Промяна");
+            if($export === false){
+                $fld->FLD('difference', 'varchar', "caption=Промяна");
+            } else {
+                $fld->FLD('difference', 'percent', "caption=Промяна");
+            }
         }
         
         return $fld;

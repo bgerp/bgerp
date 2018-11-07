@@ -2,14 +2,14 @@
 
 
 /**
- * Модел Отчети
+ * Модел Отчети за POS продажби
  *
  *
  * @category  bgerp
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class pos_Reports extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
+    public $loadList = 'pos_Wrapper, plg_Printing, sales_plg_CalcPriceDelta, doc_DocumentPlg, bgerp_plg_Blank, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
     
     
     /**
@@ -50,12 +50,6 @@ class pos_Reports extends core_Master
      * Икона на единичния обект
      */
     public $singleIcon = 'img/16/report.png';
-    
-    
-    /**
-     *  Брой елементи на страница
-     */
-    public $listItemsPerPage = '40';
     
     
     /**
@@ -101,7 +95,7 @@ class pos_Reports extends core_Master
     
     
     /**
-     * Полета, които ще се показват в листов изглед
+     * Полета, които ще се показват в листов изгле,д
      */
     public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
     
@@ -141,6 +135,8 @@ class pos_Reports extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен,stopped=Спряно)', 'caption=Състояние,input=none,width=8em');
         $this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
         $this->FLD('closedOn', 'datetime', 'input=none');
+        
+        $this->FLD('dealerId', "user(roles=ceo|sales|pos,allowEmpty)", 'caption=Търговец,mandatory');
     }
     
     
@@ -150,6 +146,10 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $data->form->setReadOnly('pointId');
+        
+        if(haveRole('pos,sales')){
+            $data->form->setDefault('dealerId', core_Users::getCurrent());
+        }
     }
     
     
@@ -182,7 +182,6 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        
         $row->period = dt::mysql2verbal($rec->details['receipts'][0]->createdOn) . ' - ' . dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn);
         
         if ($fields['-single']) {
@@ -190,6 +189,7 @@ class pos_Reports extends core_Master
             $row->storeId = store_Stores::getHyperLink($pointRec->storeId, true);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+            setIfNot($row->dealerId, $row->createdBy);
         }
     }
     
@@ -299,7 +299,7 @@ class pos_Reports extends core_Master
             }
         }
         
-        foreach ($data->row->statisticArr as $cr => &$rRec) {
+        foreach ($data->row->statisticArr as &$rRec) {
             $rRec->receiptTotal = $Double->toVerbal($rRec->receiptTotal);
         }
     }
@@ -323,7 +323,7 @@ class pos_Reports extends core_Master
         if ($detail->rows) {
              
              // Подготвяме поле по което да сортираме
-            foreach ($detail->rows as $key => &$value) {
+            foreach ($detail->rows as &$value) {
                 if ($value->action == 'sale') {
                     $value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
                 }
@@ -383,10 +383,7 @@ class pos_Reports extends core_Master
     {
         $row = new stdClass();
         
-        $varchar = cls::get('type_Varchar');
-        $double = cls::get('type_Double');
-        $double->params['decimals'] = 2;
-        
+        $double = core_Type::getByName('double(decimals=2)');
         $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
         $row->quantity = "<span style='float:right'>" . $double->toVerbal($obj->quantity) . '</span>';
         if ($obj->action == 'sale') {
@@ -439,7 +436,7 @@ class pos_Reports extends core_Master
      */
     public static function getHandle($id)
     {
-        $rec = static::fetch($id);
+        $rec = static::fetchRec($id);
         $self = cls::get(get_called_class());
         
         return $self->abbr . $rec->id;
@@ -752,5 +749,58 @@ class pos_Reports extends core_Master
             $rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
             $this->save($rec, 'state,closedOn');
         }
+    }
+    
+    
+    /**
+     * Какви записи ще се направят в делтите
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return array $res
+     */
+    public function getDeltaRecs($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        
+        $res = array();
+        
+        $valior = dt::verbal2mysql($rec->activatedOn, false);
+        $classId = pos_Receipts::getClassId();
+        
+        // Обхождат се продадените артикули
+        if(is_array($rec->details['receiptDetails'])){
+            foreach ($rec->details['receiptDetails'] as $dRec){
+                if($dRec->action != 'sale') continue;
+                
+                $r = (object) array('valior' => $valior,
+                    'detailClassId' => $classId,
+                    'detailRecId' => "{$rec->id}000{$dRec->value}",
+                    'quantity' => $dRec->quantity * $dRec->quantityInPack,
+                    'productId' => $dRec->value,
+                    'state'    => 'active',
+                    'isPublic' => cat_Products::fetchField($dRec->value, 'isPublic'),
+                    'contragentId' => $dRec->contragentId,
+                    'contragentClassId' => $dRec->contragentClassId,);
+                
+                $r->sellCost = $dRec->amount / $r->quantity;
+                
+                $dealerId = $rec->dealerId;
+                setIfNot($dealerId, $rec->createdBy);
+                $r->dealerId = $dealerId;
+                
+                // Изчисляване на себестойността на артикула
+                $productRec = cat_Products::fetchField($dRec->value, 'isPublic,code');
+                if ($productRec->code == 'surcharge') {
+                    $r->primeCost = 0;
+                } else {
+                    $r->primeCost = cat_Products::getPrimeCost($dRec->value, $dRec->pack, $r->quantity, $valior, price_ListRules::PRICE_LIST_COST);
+                }
+                
+                $res[] = $r;
+            }
+        }
+        
+        return $res;
     }
 }
