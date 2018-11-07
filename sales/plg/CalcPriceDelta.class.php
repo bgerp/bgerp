@@ -105,9 +105,22 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $valior = $rec->{$mvc->valiorFld};
         while ($dRec = $query->fetch()) {
             if ($mvc instanceof sales_Sales) {
+                
+                // Ако документа е продажба, изчислява се каква му е себестойноста
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId);
             } else {
+                
+                // Ако документа е към продажба, то се взима себестойноста от продажбата
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $deltaListId);
+                if(empty($primeCost)){
+                    
+                    // Ако артикулът няма себестойност в продажбата, то се изчислява себестоността му към момента
+                    if(isset($deltaListId)){
+                        $primeCost = price_ListRules::getPrice($deltaListId, $dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $valior);
+                    } else {
+                        $primeCost = cat_Products::getPrimeCost($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $valior, price_ListRules::PRICE_LIST_COST);
+                    }
+                }
             }
             
             $sellCost = $dRec->{$mvc->detailSellPriceFld};
