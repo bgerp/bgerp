@@ -899,7 +899,7 @@ class cms_Articles extends core_Master
         }
         
         $links = implode(' | ', $links);
-        $tpl = new core_ET("<div class='footer-links'>[#FOOTER_LINKS#]</div>");
+        $tpl = new core_ET("[#FOOTER_LINKS#]");
         $tpl->append($links, 'FOOTER_LINKS');
         
         return $tpl;

@@ -3988,36 +3988,34 @@ table .eshop-btn {
     margin:0px;
     display:block;
     font-size:0.9em;
-    padding-top:12px;
-    padding-bottom:10px;
     left: 0;
     z-index: 100;
-	h2, h3 {
-		margin-bottom: 0;
+	.richtext{
+		line-height:1.1em;
+		white-space: nowrap;
 	}
 }
 
-.newsbar .richtext{
-    line-height:1.1em;
-    white-space: nowrap;
+.defaultNewsbar {
+	background-color: #fff;
+	color: #000;
+	clear: both;
+	h1, h2, h3, h4, h5, h6, p {
+		margin: 0;
+	}
+	.richtext {
+		font-family: Verdana, Helvetica, Arial, Sans-serif;
+	}
+
 }
 
-.narrow .newsbar{
-    padding-bottom:8px;
+#cmsNavigation .defaultNewsbar a.fancybox {
+	&:hover {
+		background: none !important;
+		border: 1px solid transparent !important;
+	}
 }
 
-.newsbarCustom {
-	font-size:0.9em;
-	padding-top:10px;
-	padding-bottom:8px;
-	h2, h3 {
-		margin-bottom: 0;
-	}
-	&.articleNewsbar, &.eshopGroupsNewsbar {
-		margin-bottom: 10px;
-		margin-top: 3px;
-	}
-}
 
 .menuNewsbar {
 	clear: both;
