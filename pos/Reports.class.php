@@ -182,7 +182,8 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        $row->period = dt::mysql2verbal($rec->details['receipts'][0]->createdOn) . ' - ' . dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn);
+        $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn);
+        $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn);
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
@@ -290,9 +291,9 @@ class pos_Reports extends core_Master
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $data->row->statisticArr = array();
-        foreach ($detail->receipts as $id => $receiptRec) {
+        foreach ($detail->receipts as $receiptRec) {
             if (!array_key_exists($receiptRec->createdBy, $data->row->statisticArr)) {
-                $data->row->statisticArr[$receiptRec->createdBy] = (object) array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
+                $data->row->statisticArr[$receiptRec->createdBy] = (object) array('receiptBy' => crm_Profiles::createLink($receiptRec->createdBy),
                     'receiptTotal' => $receiptRec->total);
             } else {
                 $data->row->statisticArr[$receiptRec->createdBy]->receiptTotal += $receiptRec->total;
