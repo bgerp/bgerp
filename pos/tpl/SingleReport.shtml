@@ -17,9 +17,9 @@
                     </tr>
                     <tr>
                     	<td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;width:1%'>
-                        	<span style='font-weight:normal'>|Точка|*: [#pointId#]</span>
-                        	<br><span style='font-weight:normal'>|От|*: [#from#]</span>
+                        	<span style='font-weight:normal'>|От|*: [#from#]</span>
                         	<br><span style='font-weight:normal'>|До|*: [#to#]</span>
+                        	<br><span style='font-weight:normal'>|Точка|*: [#pointId#]</span>
                         	<br><span style='font-weight:normal'>|Каса|*: [#caseId#]</span>
                         	<br><span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
                         	<br><span style='font-weight:normal'>|Търговец|*: [#dealerId#]</span>
