@@ -342,6 +342,7 @@ class price_reports_PriceList extends frame2_driver_TableData
        }
        
        $tpl = $table->get($rows, $listFields);
+       $tpl->removeBlocksAndPlaces();
        
        return $tpl;
    }
@@ -377,7 +378,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             $fld->FLD('packs', 'html', 'caption=Опаковки');
         }
         if(!empty($rec->period)){
-            $fld->FLD('difference', 'percent', "caption=Промяна");
+            if($export === false){
+                $fld->FLD('difference', 'varchar', "caption=Промяна");
+            } else {
+                $fld->FLD('difference', 'percent', "caption=Промяна");
+            }
         }
         
         return $fld;
