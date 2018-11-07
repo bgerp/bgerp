@@ -4619,6 +4619,10 @@ div.location.public {
   .price_ListRules .state-closed a {
     color: #888888 !important; }
 
+.price-list-new-item {
+  text-align: center;
+  display: block; }
+
 .pricelist-group-label {
   background-color: #636363 !important;
   color: white;
