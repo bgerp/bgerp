@@ -767,7 +767,7 @@ class pos_Reports extends core_Master
         $res = array();
         
         $valior = dt::verbal2mysql($rec->activatedOn, false);
-        $classId = pos_Receipts::getClassId();
+        $classId = pos_Reports::getClassId();
         
         // Обхождат се продадените артикули
         if(is_array($rec->details['receiptDetails'])){
