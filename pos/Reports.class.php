@@ -53,12 +53,6 @@ class pos_Reports extends core_Master
     
     
     /**
-     *  Брой елементи на страница
-     */
-    public $listItemsPerPage = '40';
-    
-    
-    /**
      * Брой продажби на страница
      */
     public $listDetailsPerPage = '50';
@@ -101,7 +95,7 @@ class pos_Reports extends core_Master
     
     
     /**
-     * Полета, които ще се показват в листов изглед
+     * Полета, които ще се показват в листов изгле,д
      */
     public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
     
@@ -141,6 +135,8 @@ class pos_Reports extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен,stopped=Спряно)', 'caption=Състояние,input=none,width=8em');
         $this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
         $this->FLD('closedOn', 'datetime', 'input=none');
+        
+        $this->FLD('dealerId', "user(roles=ceo|sales|pos,allowEmpty)", 'caption=Търговец,mandatory');
     }
     
     
@@ -150,6 +146,10 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $data->form->setReadOnly('pointId');
+        
+        if(haveRole('pos,sales')){
+            $data->form->setDefault('dealerId', core_Users::getCurrent());
+        }
     }
     
     
@@ -182,7 +182,6 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        
         $row->period = dt::mysql2verbal($rec->details['receipts'][0]->createdOn) . ' - ' . dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn);
         
         if ($fields['-single']) {
@@ -190,6 +189,7 @@ class pos_Reports extends core_Master
             $row->storeId = store_Stores::getHyperLink($pointRec->storeId, true);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+            setIfNot($row->dealerId, $row->createdBy);
         }
     }
     
@@ -782,10 +782,12 @@ class pos_Reports extends core_Master
                     'isPublic' => cat_Products::fetchField($dRec->value, 'isPublic'),
                     'contragentId' => $dRec->contragentId,
                     'contragentClassId' => $dRec->contragentClassId,);
+                
                 $r->sellCost = $dRec->amount / $r->quantity;
                 
-                // Търговецът е създателя на документа
-                $r->dealerId = $rec->createdBy;
+                $dealerId = $rec->dealerId;
+                setIfNot($dealerId, $rec->createdBy);
+                $r->dealerId = $dealerId;
                 
                 // Изчисляване на себестойността на артикула
                 $productRec = cat_Products::fetchField($dRec->value, 'isPublic,code');
