@@ -124,8 +124,6 @@ class acc_type_Item extends type_Key
             $this->options += $closedOptions;
         }
         
-        $this->handler = md5($this->getSelectFld() . '|' . $where . $this->params['mvc'] . '|' . implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
-        
         $this->options = parent::prepareOptions();
         
         return $this->options;
