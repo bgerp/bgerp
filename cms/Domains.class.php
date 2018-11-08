@@ -624,7 +624,7 @@ class cms_Domains extends core_Embedder
                     if(preg_match("/[a-z0-9\\-\\_\\.]+/i", $e->path)) {
                         $fh = $inst->getFile($i);
                         $fiContent = fileman_Files::getContent($fh);
-                        core_Webroot::register($fiContent, '', $e->path, $id);
+                        core_Webroot::register($fiContent, '', strtolower($e->path), $id);
                         $rec->toRemove[$e->path] = $e->path;
                     }
                 }
