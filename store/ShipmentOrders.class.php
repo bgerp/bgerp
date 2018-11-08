@@ -263,9 +263,13 @@ class store_ShipmentOrders extends store_DocumentMaster
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         core_Lg::push($rec->tplLang);
+        $row->deliveryTo = '';
+        if ($row->country) {
+            $row->deliveryTo .= $row->country;
+        }
         
         if ($row->pCode) {
-            $row->deliveryTo .= $row->pCode;
+            $row->deliveryTo .= (($row->deliveryTo) ? ", " : "") . $row->pCode;
         }
         
         if ($row->pCode) {
