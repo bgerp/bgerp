@@ -110,8 +110,8 @@ class cms_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'cms_Domains',
         'cms_Content',
+        'cms_Domains',
         'cms_Objects',
         'cms_Articles',
         'cms_Feeds',
