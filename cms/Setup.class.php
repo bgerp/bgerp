@@ -137,6 +137,22 @@ class cms_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'UpdateSitemaps',
+            'description' => 'Обновяване на sitemap.xml',
+            'controller' => 'cms_Content',
+            'action' => 'UpdateSitemap',
+            'period' => 180,
+            'offset' => 77,
+            'timeLimit' => 20
+        ),
+    );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()

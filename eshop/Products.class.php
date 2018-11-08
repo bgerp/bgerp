@@ -724,6 +724,7 @@ class eshop_Products extends core_Master
             
             if (strpos($searchKeywords, $handleNormalized) === false) {
                 $searchKeywords .= ' ' . $handleNormalized;
+                cms_VerbalIdPlg::on_AfterGetSearchKeywords($mvc, $searchKeywords, $rec);
             }
         }
     }

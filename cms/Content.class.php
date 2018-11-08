@@ -716,4 +716,93 @@ class cms_Content extends core_Manager
         
         return  $res;
     }
+    
+    public function act_Test()
+    {
+        return '<pre>' . $this->getSitemapXml(cms_Domains::fetch(1)) . '</pre>';
+    }
+    
+    
+    /**
+     * Връща съдържанието на sitemap.xml за подадения домейн
+     */
+    public function getSitemapXml($dRec)
+    {
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND #domainId = {$dRec->id}");
+        
+        $domainHost = $dRec->domain;
+        Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
+        
+        $res = '<?xml version="1.0" encoding="UTF-8"?>';
+        $res .= "\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
+        
+        
+        while ($rec = $query->fetch()) {
+            $class = cls::getClassName($rec->source);
+            if (!$class) {
+                continue;
+            }
+            
+            
+            $source = cls::get($rec->source);
+            if (!$source) {
+                continue;
+            }
+            if (!cls::existsMethod($source, 'getSitemapEntries')) {
+                continue;
+            }
+            $entries = $source->getSitemapEntries($rec->id);
+            foreach ($entries as $eRec) {
+                $res .= "\n<url>";
+                
+                $res .= "\n<loc>" . str_replace('&', '&amp;', toUrl($eRec->loc, 'absolute')) . '</loc>';
+                $res .= "\n<lastmod>" . $eRec->lastmod . '</lastmod>';
+                
+                if ($eRec->changefreq) {
+                    $res .= "\n<changefreq>" . $eRec->changefreq . '</changefreq>';
+                }
+                
+                if ($eRec->priority) {
+                    $res .= "\n<priority>" . $eRec->priority . '</priority>';
+                }
+                
+                $res .= "\n</url>";
+            }
+        }
+        $res .= "\n</urlset>";
+        
+        Mode::pop('BGERP_CURRENT_DOMAIN');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Генерира и регистрира sitemap.xml за посочения домейн
+     */
+    public static function registerSitemap($dRec)
+    {
+        if ($dRec->sitemap) {
+            // Регистриране на sitemap.xml
+            $xml = cms_Content::getSitemapXml($dRec);
+            core_Webroot::register($xml, '', $dRec->sitemap, $dRec->id);
+        } else {
+            // Премахване на публичния
+            core_Webroot::remove(cms_Domains::CMS_PUBLIC_SITEMAP_NAME, $dRec->id);
+        }
+    }
+    
+    
+    /**
+     * Обновява sitemap.xml-ите за всички домейни
+     */
+    public function cron_UpdateSitemap()
+    {
+        $dQuery = cms_Domains::getQuery();
+        
+        while ($dRec = $dQuery->fetch()) {
+            self::registerSitemap($dRec);
+        }
+    }
 }

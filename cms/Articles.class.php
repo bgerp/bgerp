@@ -436,7 +436,9 @@ class cms_Articles extends core_Master
             } else {
                 $navTpl->append('<span>' . $l->title .'</span>');
             }
-            if($selected) $currentPage = $l->title;
+            if ($selected) {
+                $currentPage = $l->title;
+            }
             if ($l->editLink) {
                 // Добавяме интервал
                 $navTpl->append('&nbsp;');
@@ -903,5 +905,27 @@ class cms_Articles extends core_Master
         $tpl->append($links, 'FOOTER_LINKS');
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     */
+    public function getSitemapEntries($menuId)
+    {
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND #menuId = {$menuId}");
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            $resObj = new stdClass();
+            $resObj->loc = $this->getUrl($rec, true);
+            $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+            $resObj->priority = 0.5;
+            $res[] = $resObj;
+        }
+        
+        return $res;
     }
 }
