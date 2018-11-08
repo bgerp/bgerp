@@ -23,9 +23,10 @@ class core_App
     {
         $boot = trim(getBoot(), '/\\');
         $vUrl = trim($_GET['virtual_url'], '/\\');
-        if (strlen($boot) && strpos($vUrl, $boot) === 0) {
+        if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
+
         if (preg_match('/[a-z0-9_\\-]\\.[a-z0-9]{3,4}/', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
