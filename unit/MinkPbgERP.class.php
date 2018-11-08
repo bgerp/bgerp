@@ -699,6 +699,7 @@ class unit_MinkPbgERP extends core_Manager
         $browser->press('Нов запис');
         $browser->setValue('name', 'Други проекти');
         $browser->setValue('Бележки', true);
+        $browser->setValue('Справки', true);
         $browser->press('Запис');
         if (strpos($browser->getText(), 'Вече съществува запис със същите данни')) {
             $browser->press('Отказ');
@@ -1545,7 +1546,7 @@ class unit_MinkPbgERP extends core_Manager
         // активиране на продажбата
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
-        
+        //return $browser->getHtml();
         if (strpos($browser->gettext(), 'ДДС 20%: BGN 7,20')) {
         } else {
             

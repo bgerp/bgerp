@@ -94,7 +94,7 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
-        'migrate::addPriceListTemplates',
+        'migrate::updateGroupNames',
     );
     
     
@@ -126,6 +126,12 @@ class price_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'price_reports_PriceList';
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     public function deinstall()
@@ -136,33 +142,29 @@ class price_Setup extends core_ProtoSetup
         return $res;
     }
     
-    
     /**
      * Добавя шаблони на ценоразписите
      */
-    public function addPriceListTemplates()
+    public function updateGroupNames()
     {
-        core_App::setTimeLimit(600);
-        $Lists = cls::get('price_ListDocs');
-        $Lists->setupMvc();
-        $Lists->loadSetupData();
-        if(!price_ListDocs::count()) return;
+        $Groups = cls::get('cat_Groups');
+        $Groups->setupMvc();
         
-        $templateBgUomId = doc_TplManager::fetchField("#name = 'Ценоразпис' AND #docClassId ={$Lists->getClassId()}");
-        $templateBgWithoutUomId = doc_TplManager::fetchField("#name = 'Ценоразпис без основна мярка' AND #docClassId ={$Lists->getClassId()}");
-        
-        $lists = array();
-        $query = price_ListDocs::getQuery();
-        $query->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)');
-        $query->show('showUoms,template');
-        while($listRec = $query->fetch()){
-            $listRec->template = ($listRec->showUoms == 'yes') ? $templateBgUomId : $templateBgWithoutUomId;
-            $lists[$listRec->id] = $listRec;
+        $toSave = array();
+        $query = $Groups->getQuery();
+        $query->where("#nameEn = '' OR #nameEn IS NULL");
+        $query->show('name,nameEn');
+        while($rec = $query->fetch()){
+            if(strpos($rec->name, "||") !== false){
+                list($nameBg, $nameEn) = explode("||", $rec->name);
+                $rec->name = $nameBg;
+                $rec->nameEn = $nameEn;
+                $toSave[$rec->id] = $rec;
+            }
         }
         
-        if(count($lists)){
-            $Lists->saveArray($lists, 'id,template');
+        if(count($toSave)){
+            $Groups->saveArray($toSave, 'id,name,nameEn');
         }
     }
-    
 }

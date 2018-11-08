@@ -37,9 +37,43 @@ class sales_plg_CalcPriceDelta extends core_Plugin
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-        $save = array();
+        $clone = clone $rec;
+        $clone->threadId = (isset($clone->threadId)) ? $clone->threadId : $mvc->fetchField($clone->id, 'threadId');
+        $clone->folderId = (isset($clone->folderId)) ? $clone->folderId : $mvc->fetchField($clone->id, 'folderId');
+        
+        $save = $mvc->getDeltaRecs($clone);
+        if(is_array($save)){
+            foreach ($save as &$dRec) {
+                $dRec->threadId = $clone->threadId;
+                $dRec->folderId = $clone->folderId;
+                $dRec->containerId = $clone->containerId;
+                
+                $id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$dRec->detailClassId} AND #detailRecId = {$dRec->detailRecId}");
+                if (!empty($id)) {
+                    $dRec->id = $id;
+                }
+            }
+        }
+        
+        // Запис на делтите
+        cls::get('sales_PrimeCostByDocument')->saveArray($save);
+    }
+    
+    
+    /**
+     * Метод по подразбиране за подготовка на записите за делта
+     * 
+     * @param core_Mvc $mvc
+     * @param array|null $res
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function on_AfterGetDeltaRecs($mvc, &$res, $rec)
+    {
+        if(is_array($res)) return $res;
+        
+        $res = array();
         $onlySelfValue = false;
-        $threadId = (isset($rec->threadId)) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
         
         if ($mvc instanceof sales_Sales) {
             
@@ -51,17 +85,15 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         } else {
             
             // Ако не е продажба но документа НЕ е в нишка на продажба, не се записва нищо
-            $firstDoc = doc_Threads::getFirstDocument($threadId);
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if (!$firstDoc->isInstanceOf('sales_Sales')) {
                 
                 return;
             }
         }
         
-        $folderId = (isset($rec->folderId)) ? $rec->folderId : $mvc->fetchField($rec->id, 'folderId');
-        
         // По коя политика ще се изчислява делтата
-        $Cover = doc_Folders::getCover($folderId);
+        $Cover = doc_Folders::getCover($rec->folderId);
         $deltaListId = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'deltaList');
         
         // Намиране на детайлите
@@ -73,9 +105,22 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $valior = $rec->{$mvc->valiorFld};
         while ($dRec = $query->fetch()) {
             if ($mvc instanceof sales_Sales) {
+                
+                // Ако документа е продажба, изчислява се каква му е себестойноста
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId);
             } else {
+                
+                // Ако документа е към продажба, то се взима себестойноста от продажбата
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostFromSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec->containerId, $deltaListId);
+                if(!isset($primeCost)){
+                    
+                    // Ако артикулът няма себестойност в продажбата, то се изчислява себестоността му към момента
+                    if(isset($deltaListId)){
+                        $primeCost = price_ListRules::getPrice($deltaListId, $dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $valior);
+                    } else {
+                        $primeCost = cat_Products::getPrimeCost($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $valior, price_ListRules::PRICE_LIST_COST);
+                    }
+                }
             }
             
             $sellCost = $dRec->{$mvc->detailSellPriceFld};
@@ -97,13 +142,10 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             $r = (object) array('valior' => $valior,
                 'detailClassId' => $detailClassId,
                 'detailRecId' => $dRec->id,
-                'containerId' => $rec->containerId,
                 'quantity' => $dRec->{$mvc->detailQuantityFld},
                 'productId' => $dRec->{$mvc->detailProductFld},
                 'sellCost' => $sellCost,
                 'state'    => 'active',
-                'folderId' => $folderId,
-                'threadId' => $threadId,
                 'isPublic' => cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic'),
                 'contragentId' => $Cover->that,
                 'contragentClassId' => $Cover->getClassId(),
@@ -114,16 +156,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             $r->dealerId = $persons['dealerId'];
             $r->initiatorId = $persons['initiatorId'];
             
-            $id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
-            if (!empty($id)) {
-                $r->id = $id;
-            }
-            
-            $save[] = $r;
+            $res[] = $r;
         }
-        
-        // Запис
-        cls::get('sales_PrimeCostByDocument')->saveArray($save);
     }
     
     
@@ -133,7 +167,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (haveRole('admin,ceo,debug') && ($data->rec->state == 'active' || $data->rec->state == 'closed')) {
-            $data->toolbar->addBtn('Делти', array('sales_PrimeCostByDocument', 'list', 'documentId' => '#' . $mvc->getHandle($data->rec)), 'ef_icon=img/16/bug.png,title=Делти по документа,row=2');
+            $data->toolbar->addBtn('Делти', array('sales_PrimeCostByDocument', 'list', 'documentId' => '#' . $mvc->getHandle($data->rec->id)), 'ef_icon=img/16/bug.png,title=Делти по документа,row=2');
         }
     }
     

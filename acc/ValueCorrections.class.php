@@ -343,8 +343,14 @@ class acc_ValueCorrections extends core_Master
         $chargeVat = $firstDoc->fetchField('chargeVat');
         $form->setDefault('currencyId', $firstDoc->fetchField('currencyId'));
         
-        if ($form->cmd !== 'refresh') {
-            $form->setDefault('rate', $firstDoc->fetchField('currencyRate'));
+        // Ако избраната валута е основната за периода, не се показва курса
+        if($rec->currencyId == acc_Periods::getBaseCurrencyCode()){
+            $form->setField('rate', "input=hidden");
+        }
+        
+        // Курса е винаги актуалния
+        if(isset($rec->currencyId)){
+            $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
         }
         
         if (isset($rec->id, $rec->rate)) {

@@ -42,7 +42,7 @@ class newsbar_News extends core_Master
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'news,startTime,endTime,lang,color,transparency,state';
+    public $listFields = 'news=Новина,position=Позиция,moving,startTime,endTime,lang,color,transparency,state';
     
     
     /**
@@ -68,12 +68,14 @@ class newsbar_News extends core_Master
      */
     public function description()
     {
-        $this->FLD('news', 'richtext(rows=2,bucket=Notes)', 'caption=Новина,mandatory');
+        $this->FLD('news', 'richtext(rows=2,bucket=Notes)', 'caption=Новина->Текст');
+        $this->FLD('newsHtml', 'html(rows=2)', 'caption=Новина->HTML');
+        $this->FLD('moving', 'enum(yes=Да, no=Не)', 'caption=Новина->Движение,notNull,mandatory');
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Показване на новината->Начало, mandatory');
         $this->FLD('endTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,mandatory');
         
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter');
-        $this->FLD('headerAndFooter', 'set(header=Хедър, footer=Футър)', 'caption=Показване в->Основни');
+        $this->FLD('position', 'enum(bottomHeader=Над менюто, topPage=В началото, bottomMenu=Под менюто, topConten=Преди съдържанието, bottomContent=След съдържанието, topNav=Над навигацията, bottomNav=Под навигацията, beforeFooter=Преди футър, footer=Футър, afterFooter=След футър)', 'caption=Показване в->Позиция, notNull, mandatory');
         $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Показване в->Меню');
         $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Показване в->Статии');
         $this->FLD('eshopGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Показване в->Ешоп групи');
@@ -88,11 +90,32 @@ class newsbar_News extends core_Master
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
+     *
+     * @param newsbar_News $mvc
+     * @param stdClass     $data
      */
     public function on_AfterPrepareListFilter($mvc, $data)
     {
-        $domainId = cms_Domains::getCurrent();
-        $data->query->where("#domainId = {$domainId}");
+        $data->listFilter->addAttr('domainId', array('refreshForm' => 'refreshForm'));
+        
+        $data->listFilter->fields['domainId']->type->params['allowEmpty'] = 'allowEmpty';
+        
+        $data->listFilter->fields['domainId']->caption = 'Домейн';
+        
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->showFields = 'domainId';
+        
+        $data->listFilter->input($data->listFilter->showFields);
+        
+        $rec = $data->listFilter->rec;
+        
+        if ($rec->domainId) {
+            $data->query->where(array("#domainId = '[#1#]'", $rec->domainId));
+        }
+        
         $data->query->orderBy('#createdOn', 'DESC');
     }
     
@@ -194,12 +217,6 @@ class newsbar_News extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            if (empty($form->rec->news)) {
-                
-                // Сетваме грешката
-                $form->setError('news', 'Непопълнен текст за новина');
-            }
-            
             if (empty($form->rec->startTime)) {
                 
                 // Сетваме грешката
@@ -214,8 +231,8 @@ class newsbar_News extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            if (!$form->rec->eshopProducts && !$form->rec->eshopGroups && !$form->rec->menu && !$form->rec->articles && !$form->rec->headerAndFooter) {
-                $form->setError('eshopProducts, eshopGroups, menu, articles, headerAndFooter', 'Трябва да изберете поне едно място, където да се показва');
+            if (!$form->rec->news && !$form->rec->newsHtml) {
+                $form->setError('news, newsHtml', 'Трябва да има попълнен текст за новина');
             }
         }
     }
@@ -229,11 +246,15 @@ class newsbar_News extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $form->rec->domainId = cms_Domains::getCurrent();
-        $form->setReadOnly('domainId');
+        if (!$form->rec->id) {
+            $form->setDefault('domainId', cms_Domains::getCurrent());
+        }
+
+        if (!$form->rec->padding) {
+            $form->setDefault('padding', 10);
+        }
         
-        
-        $progressArr[''] = '';
+        $progressArr = array('' => '');
         
         for ($i = 0; $i <= 100; $i += 10) {
             if ($rec->transparency > ($i / 100)) {
@@ -297,17 +318,26 @@ class newsbar_News extends core_Master
         $hexTransparency = dechex($rec->transparency * 255);
         $forIE = '#'. $hexTransparency. str_replace('#', '', $rec->color);
         
-        $rt = cls::get('type_Richtext');
+        $text = '';
         
-        $html = new ET("<div class=\"[#class#]\" style=\"background-color: rgb([#r#], [#g#], [#b#]); 
+        if ($rec->news) {
+            $rt = cls::get('type_Richtext');
+            $text = $rt->toHtml('[color=white]' . $rec->news . '[/color]');
+        }
+        
+        if ($rec->newsHtml) {
+            $text .= hclean_Purifier::clean($rec->newsHtml, 'UTF-8');
+        }
+        
+        $html = new ET("<div class=\"defaultNewsbar [#class#]\" style=\"<!--ET_BEGIN padding-->padding: [#padding#]px;<!--ET_END padding-->background-color: rgb([#r#], [#g#], [#b#]);
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
-                                                       <!--ET_BEGIN borderColor--> border-color: [#borderColor#];
+                                                       <!--ET_BEGIN borderColor--> border: 1px solid [#borderColor#];
                                                        border-style: solid;<!--ET_END borderColor-->
                           filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
                           -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#])';
                           zoom: 1;\">
-            [#marquee#]<b<!--ET_BEGIN padding--> style=\"padding: [#padding#]px;\" <!--ET_END padding-->>[#1#]</b>[#marquee2#]
-            </div><div class='clearfix21'></div>", $rt->toHtml('[color=white]' . $rec->news . '[/color]'));
+            [#marquee#][#1#][#marquee2#]
+            </div><div class='clearfix21'></div>", $text);
         
         $html->replace($rgb[0], 'r');
         $html->replace($rgb[1], 'g');

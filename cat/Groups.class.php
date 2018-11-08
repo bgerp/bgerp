@@ -31,13 +31,13 @@ class cat_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,productCnt,orderProductBy';
+    public $listFields = 'name=Наименование,productCnt,orderProductBy';
     
     
     /**
@@ -89,11 +89,18 @@ class cat_Groups extends core_Manager
     
     
     /**
+     * Кое поле е за името на английски?
+     */
+    public $nameFieldEn = 'nameEn';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование->Основно, mandatory');
+        $this->FLD('nameEn', 'varchar(64,ci,nullIfEmpty)', 'caption=Наименование->Международно');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
         $this->FLD('orderProductBy', 'enum(name=Име,code=Код)', 'caption=Сортиране по,notNull,value=name,after=parentId');
@@ -215,6 +222,7 @@ class cat_Groups extends core_Manager
             0 => 'name',
             1 => 'sysId',
             2 => 'csv_parentId',
+            3 => 'nameEn',
         );
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);

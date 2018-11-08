@@ -165,7 +165,7 @@ class unit_MinkPPrices extends core_Manager
     
     
     /**
-     * 3. Създаване на ценоразпис от менюто
+     * 3. Създаване на ценоразпис от папка на проект
      */
     //http://localhost/unit_MinkPPrices/AddPriceListDoc/
     public function act_AddPriceListDoc()
@@ -173,25 +173,24 @@ class unit_MinkPPrices extends core_Manager
         // Логване
         $browser = $this->SetUp();
         
-        //създаване на ценоразпис от менюто
-        $browser->click('Ценообразуване');
-        $browser->click('Ценоразписи');
-        $browser->press('Нов запис');
-        $browser->setValue('folderId', 'Ценоразписи');
-        $browser->press('Напред');
+        //създаване на ценоразпис 
+        $browser->click('Всички');
+        $browser->click('Други проекти');
+        $browser->press('Справка');
+        $browser->setValue('driverClass', 'Продажби >> Ценоразписи');
         $browser->setValue('policyId', 'Ценова политика 2017');
         $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
-        $browser->press('Чернова');
-        $browser->press('Активиране');
-        if (strpos($browser->gettext(), 'Труд час 18,4896')) {
+        $browser->press('Запис');
+        if (strpos($browser->gettext(), 'час 18,4896')) {
+        //    if (strpos($browser->gettext(), 'Труд час 18,4896')) {
         } else {
             
-            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис 1', 'warning');
         }
-        if (strpos($browser->gettext(), 'Артикул ДДС 9 бр. 11,663')) {
+        if (strpos($browser->gettext(), 'Артикул ДДС 9 	бр.	11,66300')) {
         } else {
             
-            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис 2', 'warning');
         }
     }
     
@@ -250,28 +249,29 @@ class unit_MinkPPrices extends core_Manager
         
         //Отваряне на папката на клиента
         $browser->click($Company);
-        
-        //$browser->press('Папка');
+        //return $browser->getHtml();
+        $browser->press('Папка');
         $browser->press('Нов');
         
         // Създаване на ценоразпис в папката на клиента
-        $browser->press('Ценоразпис');
+        $browser->press('Справка');
+        $browser->setValue('driverClass', 'Продажби>>Ценоразписи');
         $browser->setValue('policyId', 'Ценова политика за Фирма с локация');
         $browser->setValue('title', 'Ценоразпис за Фирма с локация');
         $browser->press('Чернова');
         $browser->press('Активиране');
         
-        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,66126')) {
+        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,661260')) {
         } else {
             
-            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис 1', 'warning');
         }
         
         //Проверка за ДДС 9%
         if (strpos($browser->gettext(), 'Артикул ДДС 9 бр. 12,01289')) {
         } else {
             
-            return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешен ценоразпис 2', 'warning');
         }
     }
 }

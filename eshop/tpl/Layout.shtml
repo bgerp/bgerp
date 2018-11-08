@@ -1,14 +1,18 @@
 <div class='cms-row'>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation'  style='margin-left:2%'>
-        [#NAVIGATION#] 
+        [#TOP_NAV#]
+        [#NAVIGATION#]
+        [#BOTTOM_NAV#]
     </div>
     <!--ET_END NAVIGATION-->
     <div class='eightcol cms-last searchContent' style='margin-right:2%;'>
+        [#TOP_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
     </div>
 </div>
