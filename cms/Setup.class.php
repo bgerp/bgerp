@@ -110,8 +110,8 @@ class cms_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'cms_Domains',
         'cms_Content',
+        'cms_Domains',
         'cms_Objects',
         'cms_Articles',
         'cms_Feeds',
@@ -133,6 +133,22 @@ class cms_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
         array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', 'cms, ceo, admin'),
+    );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'UpdateSitemaps',
+            'description' => 'Обновяване на sitemap.xml',
+            'controller' => 'cms_Content',
+            'action' => 'UpdateSitemap',
+            'period' => 180,
+            'offset' => 77,
+            'timeLimit' => 20
+        ),
     );
     
     

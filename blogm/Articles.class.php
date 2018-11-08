@@ -388,8 +388,8 @@ class blogm_Articles extends core_Master
         $tpl = $this->renderArticle($data, $layout);
         
         $rec = clone($data->rec);
-        if(!$rec->seoTitle) {
-           $rec->seoTitle = $data->ogp->siteInfo['Title'];
+        if (!$rec->seoTitle) {
+            $rec->seoTitle = $data->ogp->siteInfo['Title'];
         }
         cms_Content::setSeo($tpl, $rec);
         
@@ -1163,5 +1163,44 @@ class blogm_Articles extends core_Master
             $rec->state = 'active';
             self::save($rec);
         }
+    }
+    
+    
+    /**
+     * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     */
+    public function getSitemapEntries($menuId)
+    {
+        $cRec = cms_Content::fetch($menuId);
+        
+        $categories = blogm_Categories::getCategoriesByDomain($cRec->domainId);
+        $used = array();
+        
+        foreach ($categories as $id => $title) {
+            $query = self::getQuery();
+            $query->where("#state = 'active' AND #categories LIKE '%|{$id}|%'");
+            $lastMod = '';
+            while ($rec = $query->fetch()) {
+                if ($used[$id]) {
+                    continue;
+                }
+                $resObj = new stdClass();
+                $resObj->loc = $this->getUrl($rec, true);
+                $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+                $resObj->priority = 0.5;
+                $res[] = $resObj;
+                $lastMod = max($lastMod, $rec->modifiedOn);
+            }
+            
+            if ($lastMod) {
+                $resObj = new stdClass();
+                $resObj->loc = array('blogom_Articles', 'browse', 'category' => $id);
+                $resObj->lastmod = date('c', dt::mysql2timestamp($lastMod));
+                $resObj->priority = 0.5;
+                $res[] = $resObj;
+            }
+        }
+        
+        return $res;
     }
 }

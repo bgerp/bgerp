@@ -106,7 +106,6 @@ class eshop_Groups extends core_Master
     public $canDelete = 'no_one';
     
     
-    
     /**
      * Описание на модела
      */
@@ -193,13 +192,13 @@ class eshop_Groups extends core_Master
      */
     protected function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if (isset($fields['-list'])){
-        	$row->name = $mvc->getHyperlink($rec, true);
-        	
-        	if (haveRole('powerUser') && $rec->state != 'closed') {
-        		core_RowToolbar::createIfNotExists($row->_rowTools);
-        		$row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
-        	}
+        if (isset($fields['-list'])) {
+            $row->name = $mvc->getHyperlink($rec, true);
+            
+            if (haveRole('powerUser') && $rec->state != 'closed') {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
+            }
         }
     }
     
@@ -212,9 +211,9 @@ class eshop_Groups extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if (haveRole('powerUser') && $data->rec->state != 'closed') {
-    		$data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
-    	}
+        if (haveRole('powerUser') && $data->rec->state != 'closed') {
+            $data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
+        }
     }
     
     
@@ -448,10 +447,10 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
-        if(!$data->rec->seoTitle) {
+        if (!$data->rec->seoTitle) {
             $data->rec->seoTitle = $data->rec->name;
         }
-         
+        
         cms_Content::setSeo($groupTpl, $data->rec);
         
         return $groupTpl;
@@ -791,5 +790,45 @@ class eshop_Groups extends core_Master
         }
         
         return $groups;
+    }
+    
+    
+    public function act_Test()
+    {
+        requireRole('admin');
+        bp($this->getSitemapEntries(4));
+    }
+    
+    
+    /**
+     * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     */
+    public function getSitemapEntries($menuId)
+    {
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND #menuId = {$menuId}");
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            $resObj = new stdClass();
+            $resObj->loc = $this->getUrl($rec, true);
+            $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+            $resObj->priority = 0.5;
+            $res[] = $resObj;
+            
+            $Products = cls::get('eshop_Products');
+            $pQuery = eshop_Products::getQuery();
+            $pQuery->where("#state = 'active' AND #groupId = {$rec->id}");
+            while ($pRec = $pQuery->fetch()) {
+                $resObj = new stdClass();
+                $resObj->loc = $Products->getUrl($pRec, true);
+                $resObj->lastmod = date('c', dt::mysql2timestamp($pRec->modifiedOn));
+                $resObj->priority = 0.5;
+                $res[] = $resObj;
+            }
+        }
+        
+        return $res;
     }
 }

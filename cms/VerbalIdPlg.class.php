@@ -143,7 +143,7 @@ class cms_VerbalIdPlg extends core_Plugin
     /**
      * След извличане на ключовите думи
      */
-    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         $syn = cms_Setup::get('SEO_SYNONYMS');
         

@@ -199,7 +199,11 @@ class sales_PrimeCostByDocument extends core_Manager
             // Кой е първия документ в нишката
             $threadId = $Document->fetchField('threadId');
             $firstDoc = doc_Threads::getFirstDocument($threadId);
-            $firstDocRec = $firstDoc->fetch('dealerId, initiatorId, folderId');
+            $fields = 'dealerId, folderId';
+            if($firstDoc->getInstance()->getField('initiatorId', false)){
+                $fields .= ", initiatorId";
+            }
+            $firstDocRec = $firstDoc->fetch($fields);
             
             // Ако няма дилър това е отговорника на папката ако има права `sales`
             if (empty($firstDocRec->dealerId)) {
@@ -287,6 +291,25 @@ class sales_PrimeCostByDocument extends core_Manager
                 $iQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId IN (${ids})", $or);
                 $or = true;
             }
+        }
+        
+        // Добаване и на ПОС отчетите
+        $posIds = array();
+        $posQuery = pos_Reports::getQuery();
+        $posQuery->where("#modifiedOn >= '{$timeline}'");
+        $posQuery->show('modifiedOn,state,containerId,details');
+        while ($pRec = $posQuery->fetch()) {
+            $masters[$pRec->containerId] = array(doc_Containers::getDocument($pRec->containerId), $pRec->state, null);
+            foreach ($pRec->details['receiptDetails'] as $pdRec){
+                if($pdRec->action != 'sale') continue;
+                $key = "{$pRec->id}000{$pdRec->value}";
+                $posIds[$key] = $key;
+            }
+        }
+        
+        if (count($posIds)) {
+            $posIds = implode(',', $posIds);
+            $iQuery->where("#detailClassId = " . pos_Reports::getClassId() . " AND #detailRecId IN ($posIds)", $or);
         }
         
         // Връщане на готовата заявка

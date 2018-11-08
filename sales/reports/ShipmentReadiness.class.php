@@ -503,6 +503,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             usort($recs, function ($a, $b) {
                 if ($a->contragentName == $b->contragentName) {
                     if ($a->readiness == $b->readiness) {
+                        if ($a->deliveryTime == $b->deliveryTime) {
+                            return ($a->containerId < $b->containerId) ? -1 : 1;
+                        }
                         
                         return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
                     }
@@ -513,9 +516,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
             });
         } elseif ($rec->orderBy == 'execDate') {
+            arr::sortObjects($recs, 'containerId', 'asc');
             arr::sortObjects($recs, 'execDate', 'asc');
             $data->groupByField = 'contragentName';
         } elseif ($rec->orderBy == 'dueDate') {
+            arr::sortObjects($recs, 'containerId', 'asc');
             arr::sortObjects($recs, 'dueDateMin', 'asc');
             $data->groupByField = 'contragentName';
         } else {
@@ -524,6 +529,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             usort($recs, function ($a, $b) {
                 if ($a->readiness === $b->readiness) {
                     if ($a->contragentName == $b->contragentName) {
+                        if ($a->deliveryTime == $b->deliveryTime) {
+                            return ($a->containerId < $b->containerId) ? -1 : 1;
+                        }
                         
                         return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
                     }

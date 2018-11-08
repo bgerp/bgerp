@@ -21,9 +21,20 @@ class core_App
     
     public static function run()
     {
-        // Ако имаме заявка за статичен ресурс, веднага го сервираме и
-        // приключване. Ако не - продъжаваме със зареждането на фреймуърка
-        if (isset($_GET[EF_SBF]) && !empty($_GET[EF_SBF])) {
+        $boot = trim(getBoot(), '/\\');
+        $vUrl = trim($_GET['virtual_url'], '/\\');
+        if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
+            $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
+        }
+
+        if (preg_match('/[a-z0-9_\\-]\\.[a-z0-9]{3,4}/', $filename)) {
+            
+            // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
+            core_Webroot::serve($filename);
+        } elseif (isset($_GET[EF_SBF]) && !empty($_GET[EF_SBF])) {
+            // Ако имаме заявка за статичен ресурс, веднага го сервираме и
+            // приключване. Ако не - продъжаваме със зареждането на фреймуърка
+            
             core_Sbf::serveStaticFile($_GET[EF_SBF]);
         } else {
             
@@ -128,11 +139,11 @@ class core_App
             $script = '/' . basename($_SERVER['SCRIPT_NAME']);
             
             if (($pos = strpos($_GET['virtual_url'], $script)) === false) {
-                $pos = strpos($_GET['virtual_url'], '/?');
+                $pos = strpos($_GET['virtual_url'], '?');
             }
             
             if ($pos) {
-                $_GET['virtual_url'] = substr($_GET['virtual_url'], 0, $pos + 1);
+                $_GET['virtual_url'] = rtrim(substr($_GET['virtual_url'], 0, $pos + 1), '?/') . '/';
             }
         }
         
@@ -148,12 +159,6 @@ class core_App
             
             if (!strlen($vUrl[$cnt - 1])) {
                 unset($vUrl[$cnt - 1]);
-            } else {
-                if ($vUrl[0] != EF_SBF && (strpos($vUrl[$cnt - 1], '?') === false)) {
-                    // Ако не завършва на '/' и не става дума за статичен ресурс
-                    // редиректваме към каноничен адрес
-                    static::redirect(static::getSelfURL() . '/');
-                }
             }
             
             if (defined('EF_APP_NAME')) {
@@ -981,6 +986,8 @@ class core_App
         if ($urlHash) {
             $urlQuery .= '#' . $urlHash;
         }
+        
+        $pre = rtrim($pre, '/');
         
         switch ($type) {
             case 'local':

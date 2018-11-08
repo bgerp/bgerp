@@ -91,14 +91,6 @@ class acc_type_Item extends type_Key
             // Показваме само активните, само ако е не е зададено в типа 'showAll'
             if (empty($this->params['showAll'])) {
                 $query->where("#state = 'active'");
-            } else {
-                
-                // Ако има затворен период, остават за избор само активните пера,
-                // и затворените след крайната дата на последния затворен период
-                $lastClosedPeriod = acc_Periods::getLastClosedPeriod();
-                if (!empty($lastClosedPeriod)) {
-                    $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn IS NOT NULL AND #closedOn > '{$lastClosedPeriod->end}')");
-                }
             }
             
             while ($itemRec = $query->fetch()) {

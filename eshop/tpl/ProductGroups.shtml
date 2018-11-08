@@ -10,11 +10,13 @@
     </div>
     <!--ET_END NAVIGATION-->
     <div class='eightcol cms-last' style='margin-right:2%;'>
+        [#TOP_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
         <div class='clearfix21'></div>
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
     </div>
 </div>

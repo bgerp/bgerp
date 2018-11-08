@@ -244,7 +244,7 @@ class pos_Receipts extends core_Master
                     });
                     
                     if ($found) {
-                        $row->inReport = pos_Reports::getHyperlink($rRec->id, true);
+                        $row->inReport = pos_Reports::getLink($rRec->id, 0);
                         break;
                     }
                 }
@@ -416,6 +416,8 @@ class pos_Receipts extends core_Master
         if ($action == 'terminal' && isset($rec)) {
             if ($rec->state != 'draft') {
                 $res = 'no_one';
+            } elseif(!pos_Points::haveRightFor('select', $rec->pointId)){
+                $res = 'no_one';
             }
         }
         
@@ -498,7 +500,7 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-        pos_Points::requireRightFor('select', $rec->pointId);
+        $this->requireRightFor('terminal', $rec);
         
         // Имаме ли достъп до терминала
         if (!$this->haveRightFor('terminal', $rec)) {
@@ -1621,7 +1623,9 @@ class pos_Receipts extends core_Master
         $query->where("#pointId = {$data->masterId}");
         $query->where("#state = 'waiting' OR #state = 'draft'");
         $query->orderBy('#state');
-        
+        if($count = $query->count()){
+            $data->count = core_Type::getByName('int')->toVerbal($count);
+        }
         $conf = core_Packs::getConfig('pos');
         
         while ($rec = $query->fetch()) {
@@ -1630,9 +1634,9 @@ class pos_Receipts extends core_Master
             
             if (!Mode::isReadOnly()) {
                 if ($this->haveRightFor('terminal', $rec)) {
-                    $num = ht::createLink($num, array($this, 'terminal', $rec->id));
+                    $num = ht::createLink($num, array($this, 'terminal', $rec->id), false, "title=Продължаване на бележката");
                 } elseif ($this->haveRightFor('single', $rec)) {
-                    $num = ht::createLink($num, array($this, 'single', $rec->id));
+                    $num = ht::createLink($num, array($this, 'single', $rec->id), false, "title=Към бележка №{$rec->id}");
                 }
             }
             
@@ -1660,6 +1664,7 @@ class pos_Receipts extends core_Master
         $tpl = new ET('');
         $str = implode('', $data->rows);
         $tpl->append($str);
+        $tpl->replace($data->count, 'waitingCount');
         
         return $tpl;
     }
