@@ -28,7 +28,7 @@ class core_App
         }
 
         if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{3,4}$/i', $filename)) {
-           echo $filename; die; 
+ 
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
         } elseif (isset($_GET[EF_SBF]) && !empty($_GET[EF_SBF])) {
