@@ -721,7 +721,7 @@ class cms_Content extends core_Manager
     /**
      * Връща съдържанието на sitemap.xml за подадения домейн
      */
-    public function getSitemapXml($dRec)
+    public static function getSitemapXml($dRec)
     {
         $query = self::getQuery();
         $query->where("#state = 'active' AND #domainId = {$dRec->id}");
