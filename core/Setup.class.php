@@ -339,6 +339,7 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'migrate::removeFaviconFromRoot'
     );
     
     
@@ -392,18 +393,6 @@ class core_Setup extends core_ProtoSetup
                 $html .= self::addUniqLines($src, $dest);
             }
         }
-        
-        // Иконата
-        $dest = EF_INDEX_PATH . '/favicon.ico';
-        if (!file_exists($dest)) {
-            $src = getFullPath('img/favicon.ico');
-            if (copy($src, $dest)) {
-                $html .= "<li class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-            } else {
-                $html .= "<li class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
-            }
-        }
-        
         
         // Изтриване на старите файлове от sbf директорията
         $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2 * 30 * 24 * 60 * 60, "#^_[a-z0-9\-\/_]+#i");
@@ -574,5 +563,19 @@ class core_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Премахване на favicon от рута
+     */
+    function removeFaviconFromRoot()
+    {
+        // Иконата
+        $dest = EF_INDEX_PATH . '/favicon.ico';
+        
+        if (file_exists($dest)) {
+            unlink($dest);
+        }
     }
 }
