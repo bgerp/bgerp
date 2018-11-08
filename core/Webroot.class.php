@@ -98,6 +98,7 @@ class core_Webroot
     {
         if (!file_exists(WEBROOT_FILES_PATH)) {
             mkdir(WEBROOT_FILES_PATH, 0777, true);
+            expect(is_writable(WEBROOT_FILES_PATH));
         }
 
         if(is_numeric($domain)) {
