@@ -593,6 +593,10 @@ class cms_Domains extends core_Embedder
         }
         $rec->toRemove = array();
         
+        if($rec->domain != 'localhost') {
+            Mode::push('BGERP_CURRENT_DOMAIN', $rec->domain);
+        }
+
         // robots.txt
         $fiContent = $mvc->getRobotsTxt($rec);
         
@@ -646,6 +650,10 @@ class cms_Domains extends core_Embedder
         
         if(count($rec->toRemove)) {
             $mvc->save_($rec, 'toRemove');
+        }
+
+        if($rec->domain != 'localhost') {
+            Mode::pop('BGERP_CURRENT_DOMAIN');
         }
     }
     
