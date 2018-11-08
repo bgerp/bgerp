@@ -117,7 +117,7 @@ class core_Webroot
 
         $domain = trim(strtolower(preg_replace("/[^a-z0-9]+/", '_', $domain)), '_');
 
-        $path = rtrim(WEBROOT_FILES_PATH, '/') . '/' . $domain . '_' . $filename;
+        $path = rtrim(WEBROOT_FILES_PATH, '/') . '/' . $domain . '_' . $filename; 
 
         return $path;
     }
