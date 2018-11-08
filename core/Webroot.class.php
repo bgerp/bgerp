@@ -36,7 +36,7 @@ class core_Webroot
         }
 
         if(strpos($headers, 'Content-Length:') === false) {
-            $headers .= "\nContent-Type: " . filesize($path);
+            $headers .= "\nContent-Length: " . filesize($path);
         }
         
         file_put_contents($path . '.headers', $headers);
@@ -117,7 +117,7 @@ class core_Webroot
 
         $domain = trim(strtolower(preg_replace("/[^a-z0-9]+/", '_', $domain)), '_');
 
-        $path = trim(WEBROOT_FILES_PATH, '/') . '/' . $domain . '_' . $filename;
+        $path = rtrim(WEBROOT_FILES_PATH, '/') . '/' . $domain . '_' . $filename; 
 
         return $path;
     }
