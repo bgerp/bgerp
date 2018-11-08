@@ -795,6 +795,7 @@ class eshop_Groups extends core_Master
     
     public function act_Test()
     {
+        requireRole('admin');
         bp($this->getSitemapEntries(4));
     }
     

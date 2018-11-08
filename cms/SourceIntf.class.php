@@ -64,6 +64,6 @@ class cms_SourceIntf
      */
     public function getSitemapEntries($menuId)
     {
-        return $this->class->getSitemapEntries($menuId, $q, $maxLimit);
+        return $this->class->getSitemapEntries($menuId);
     }
 }

@@ -721,13 +721,15 @@ class cms_Content extends core_Manager
     /**
      * Връща съдържанието на sitemap.xml за подадения домейн
      */
-    public function getSitemapXml($dRec)
+    public static function getSitemapXml($dRec)
     {
         $query = self::getQuery();
         $query->where("#state = 'active' AND #domainId = {$dRec->id}");
         
         $domainHost = $dRec->domain;
-        Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
+        if($dRec->domain != 'localhost') {
+            Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
+        }
         
         $res = '<?xml version="1.0" encoding="UTF-8"?>';
         $res .= "\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
@@ -769,7 +771,9 @@ class cms_Content extends core_Manager
         
         $res .= "\n</urlset>";
         
-        Mode::pop('BGERP_CURRENT_DOMAIN');
+        if($dRec->domain != 'localhost') {
+            Mode::pop('BGERP_CURRENT_DOMAIN');
+        }
         
         return $res;
     }

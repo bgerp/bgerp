@@ -36,7 +36,7 @@ class core_Webroot
         }
 
         if(strpos($headers, 'Content-Length:') === false) {
-            $headers .= "\nContent-Type: " . filesize($path);
+            $headers .= "\nContent-Length: " . filesize($path);
         }
         
         file_put_contents($path . '.headers', $headers);
