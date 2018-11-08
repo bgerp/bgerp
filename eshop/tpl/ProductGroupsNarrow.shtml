@@ -11,11 +11,13 @@
     </div>
     <!--ET_END NAVIGATION-->
     <div style='margin:0 2%;'>
+        [#TOP_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
         [#BEFORE_FOOTER_INFO#]
     </div>
 </div>

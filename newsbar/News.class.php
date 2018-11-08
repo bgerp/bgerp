@@ -249,6 +249,10 @@ class newsbar_News extends core_Master
         if (!$form->rec->id) {
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
+
+        if (!$form->rec->padding) {
+            $form->setDefault('padding', 10);
+        }
         
         $progressArr = array('' => '');
         
@@ -325,14 +329,14 @@ class newsbar_News extends core_Master
             $text .= hclean_Purifier::clean($rec->newsHtml, 'UTF-8');
         }
         
-        $html = new ET("<div class=\"[#class#]\" style=\"background-color: rgb([#r#], [#g#], [#b#]); 
+        $html = new ET("<div class=\"defaultNewsbar [#class#]\" style=\"<!--ET_BEGIN padding-->padding: [#padding#]px;<!--ET_END padding-->background-color: rgb([#r#], [#g#], [#b#]);
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
-                                                       <!--ET_BEGIN borderColor--> border-color: [#borderColor#];
+                                                       <!--ET_BEGIN borderColor--> border: 1px solid [#borderColor#];
                                                        border-style: solid;<!--ET_END borderColor-->
                           filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
                           -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#])';
                           zoom: 1;\">
-            [#marquee#]<b<!--ET_BEGIN padding--> style=\"padding: [#padding#]px;\" <!--ET_END padding-->>[#1#]</b>[#marquee2#]
+            [#marquee#][#1#][#marquee2#]
             </div><div class='clearfix21'></div>", $text);
         
         $html->replace($rgb[0], 'r');

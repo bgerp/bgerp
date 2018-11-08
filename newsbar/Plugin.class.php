@@ -71,7 +71,7 @@ class newsbar_Plugin extends core_Plugin
                         break;
                     case 'bottomNav':
                         $placeholderName = 'BOTTOM_NAV';
-                    break;
+                        break;
                     case 'beforeFooter':
                         $placeholderName = 'BEFORE_FOOTER';
                         break;
@@ -89,7 +89,8 @@ class newsbar_Plugin extends core_Plugin
                         $placeholderName = 'BOTTOM_HEADER';
                         break;
                 }
-                $html = self::getTextToShow($nRec, $placeholderName);
+                $className = ($placeholderName == 'BOTTOM_HEADER') ? 'newsbar' : 'newsbarCustom';
+                $html = self::getTextToShow($nRec, $className);
                 $invoker->appendOnce($html, $placeholderName);
             }
         }

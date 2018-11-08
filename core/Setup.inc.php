@@ -108,8 +108,8 @@ $appUri = $selfUrl;
 if (strpos($selfUrl, 'core_Packs/systemUpdate') !== false) {
     $appUri = substr($selfUrl, 0, strpos($selfUrl, 'core_Packs/systemUpdate'));
 }
-if (strpos($appUri, '/?') !== false) {
-    $appUri = substr($appUri, 0, strpos($appUri, '/?'));
+if (strpos($appUri, '?') !== false) {
+    $appUri = substr($appUri, 0, strpos($appUri, '?'));
 }
 
 if (isset($_REQUEST['cancel'])) {
@@ -1652,6 +1652,7 @@ function addParams($url, $newParams)
     $res .= $purl['path'];
     
     if (isset($purl['query'])) {
+        $res = rtrim($res, '/');
         $res .= '?' . $purl['query'];
     }
     

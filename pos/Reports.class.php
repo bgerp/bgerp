@@ -182,7 +182,9 @@ class pos_Reports extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
-        $row->period = dt::mysql2verbal($rec->details['receipts'][0]->createdOn) . ' - ' . dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn);
+        
+        $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn, 'd.m.Y H:i');
+        $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
@@ -284,15 +286,25 @@ class pos_Reports extends core_Master
         $mvc->prepareDetail($detail);
         $data->rec->details = $detail;
         
+        $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
+        $data->row->receiptIds = array();
+        foreach ($receiptIds as $receiptId){
+            $data->row->receiptIds[$receiptId] = pos_Receipts::getHyperlink($receiptId)->getContent();
+        }
+        
+        if(count($data->row->receiptIds)){
+            $data->row->receiptIds = implode('<br>', $data->row->receiptIds);
+        }
+        
         /*
     	 * Обработваме статистиката за това всеки касиер, колко е продал
     	 */
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $data->row->statisticArr = array();
-        foreach ($detail->receipts as $id => $receiptRec) {
+        foreach ($detail->receipts as $receiptRec) {
             if (!array_key_exists($receiptRec->createdBy, $data->row->statisticArr)) {
-                $data->row->statisticArr[$receiptRec->createdBy] = (object) array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
+                $data->row->statisticArr[$receiptRec->createdBy] = (object) array('receiptBy' => crm_Profiles::createLink($receiptRec->createdBy),
                     'receiptTotal' => $receiptRec->total);
             } else {
                 $data->row->statisticArr[$receiptRec->createdBy]->receiptTotal += $receiptRec->total;
@@ -478,7 +490,7 @@ class pos_Reports extends core_Master
         while ($rec = $query->fetch()) {
             
             // запомняме кои бележки сме обиколили
-            $receipts[] = (object) array('id' => $rec->id, 'createdOn' => $rec->valior, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
+            $receipts[] = (object) array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
             
             // Добавяме детайлите на бележката
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
@@ -766,7 +778,7 @@ class pos_Reports extends core_Master
         $res = array();
         
         $valior = dt::verbal2mysql($rec->activatedOn, false);
-        $classId = pos_Receipts::getClassId();
+        $classId = pos_Reports::getClassId();
         
         // Обхождат се продадените артикули
         if(is_array($rec->details['receiptDetails'])){

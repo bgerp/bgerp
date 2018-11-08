@@ -95,9 +95,9 @@ class cms_page_External extends core_page_Active
         // Къде да добавим линковете
         $footerLinks = cms_Articles::addFooterLinks();
         if (Mode::is('screenMode', 'narrow')) {
-            $this->replace($footerLinks, 'FOOTER_CENTER_NARROW');
+            $this->append($footerLinks, 'FOOTER_CENTER_NARROW');
         } else {
-            $this->replace($footerLinks, 'FOOTER_CENTER_WIDE');
+            $this->append($footerLinks, 'FOOTER_CENTER_WIDE');
         }
         
         // Ако е логнат потребител, който не е powerUser
