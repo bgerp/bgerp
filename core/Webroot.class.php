@@ -3,7 +3,7 @@
 /**
  * Път до директория, където ще се съхраняват записите от камерите
  */
-defIfNot('WEBROOT_FILES_PATH', EF_UPLOADS_PATH . '/' . EF_APP_NAME . '/wrfiles');
+defIfNot('WEBROOT_FILES_PATH', EF_UPLOADS_PATH . '/wrfiles');
 
 /**
  * Клас 'core_Webroot' - Виртуални статични файлове в коренната директория на уеб-сървъра
@@ -105,14 +105,14 @@ class core_Webroot
         if(is_numeric($domain)) {
             $dRec = cms_Domains::fetch($domain);
             if($dRec) {
-                $domain = $dRec->titleExt;
+                $domain = cms_Domains::getReal($dRec->domain) . '_' . $dRec->lang;
             } else {
                 $domain = '';
             }
         }
 
         if(!$domain) {
-            $domain = cms_Domains::getPublicDomain('domain') . '_' . cms_Domains::getPublicDomain('lang');
+            $domain = cms_Domains::getReal(cms_Domains::getPublicDomain('domain')) . '_' . cms_Domains::getPublicDomain('lang');
         }
 
         $domain = trim(strtolower(preg_replace("/[^a-z0-9]+/", '_', $domain)), '_');
