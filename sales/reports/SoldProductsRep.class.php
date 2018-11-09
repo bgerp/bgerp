@@ -65,14 +65,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,single=none,input=none');
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,mandatory');
+        //$fieldset->FLD('dealers', 'userOrRole(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal, rolesType=team)', 'caption=Търговци,after=to,mandatory');
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,after=to,mandatory');
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
         $fieldset->FLD('grouping', 'enum(yes=Групирано, no=По артикули)', 'caption=Показване,maxRadio=2,after=articleType,single=none');
-        
-        // $fieldset->FLD('contragent', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,single=none,after=dealers');
+        $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=grouping,single=none');
     }
     
     
@@ -135,6 +135,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $form->setDefault('grouping', 'no');
         
+        $form->setDefault('seeDelta', 'no');
+        
         $salesQuery = sales_Sales::getQuery();
         
         $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
@@ -165,6 +167,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        // Дасе показват ли делтите
+        if (is_null($rec->seeDelta)) {
+            $rec->seeDelta = 'no';
+        }
+        
         if (($rec->grouping == 'no') && $rec->group) {
             $this->groupByField = 'group';
         }
@@ -219,6 +226,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $query->where("#state != 'rejected'");
         
+        //Филтър за ДИЛЪР
         if (isset($rec->dealers)) {
             if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
                 $dealers = keylist::toArray($rec->dealers);
@@ -227,6 +235,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
         
+        //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
             $contragentsArr = array();
             $contragentsId = array();
@@ -261,6 +270,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
         
+        //Филтър по групи артикули
         if (isset($rec->group)) {
             $query->likeKeylist('groupMat', $rec->group);
         }
@@ -374,7 +384,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         
         foreach ($recs as $v) {
-            
             if (!$rec->group) {
                 if (keylist::isKeylist(($v->group))) {
                     $v->group = keylist::toArray($v->group);
@@ -403,7 +412,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $totalDeltaLastYear += $v->deltaLastYear;
             } else {
                 
-                //изчислява обща стойност на артикулите от избраните грули продадени
+                //изчислява обща стойност на артикулите от избраните групи продадени
                 //през избрания период, и стойността по групи
                 $grArr = array();
                 
@@ -451,7 +460,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $tempArr[] = $v;
                 }
             }
-           
+            
             $recs = $tempArr;
             
             unset($v);
@@ -478,7 +487,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         if ($rec->grouping == 'yes') {
-            
             $recs = array();
             foreach ($groupValues as $k => $v) {
                 $recs[$k] = (object) array(
@@ -495,17 +503,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 );
             }
         }
-     
+        
         if (!is_null($recs)) {
-            if ($rec->grouping == 'no'){
+            if ($rec->grouping == 'no') {
                 arr::sortObjects($recs, 'code', 'asc', 'stri');
             }
             
-            if ($rec->grouping == 'yes'){
+            if ($rec->grouping == 'yes') {
                 arr::sortObjects($recs, 'primeCost', 'desc', 'native');
             }
         }
-       
+        
         $totalArr['total'] = (object) array(
             'totalValue' => $totalValue,
             'totalDelta' => $totalDelta,
@@ -552,27 +560,49 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 if ($rec->compare != 'no') {
                     $fld->FLD('quantity', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
                     $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
-                    $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+                    
+                    if ($rec->seeDelta == 'yes') {
+                        $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+                    }
                     $fld->FLD('quantityCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Продажби,tdClass=newCol");
                     $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
-                    $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
+                    
+                    if ($rec->seeDelta == 'yes') {
+                        $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
+                    }
+                    
                     $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
-                    $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                    
+                    if ($rec->seeDelta == 'yes') {
+                        $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                    }
                 } else {
                     $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
                     $fld->FLD('primeCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
-                    $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+                    
+                    if ($rec->seeDelta == 'yes') {
+                        $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+                    }
                 }
             } else {
                 $fld->FLD('group', 'varchar', 'caption=Група');
                 $fld->FLD('primeCost', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Стойност");
-                $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
                 
+                
+                if ($rec->seeDelta == 'yes') {
+                    $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+                }
                 if ($rec->compare != 'no') {
                     $fld->FLD('primeCostCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Стойност,tdClass=newCol");
-                    $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
+                    
+                    if ($rec->seeDelta == 'yes') {
+                        $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
+                    }
                     $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
-                    $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                    
+                    if ($rec->seeDelta == 'yes') {
+                        $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                    }
                 }
             }
         } else {
