@@ -130,7 +130,7 @@ class rack_Zones extends core_Master
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,smartCenter,input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,smartCenter,input=none');
-        $this->FLD('groupGathering', 'enum(no=Самостоятелно,yes=Групово)', 'caption=Събиране,notNull,value=yes');
+        $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,selec=name,allowEmpty)', 'caption=Група,placeholder=Без групиране');
         
         $this->setDbUnique('num,storeId');
         $this->setDbIndex('storeId');
@@ -203,14 +203,17 @@ class rack_Zones extends core_Master
     /**
      * Връща зоните към подадения склад
      *
-     * @param int|NULL $storeId        
-     * @param int|NULL $onlyFree
-     * @param boolean|NULL $groupable
-     *
+     * @param int|NULL $storeId       - ид на склад     
+     * @param boolean $onlyFree       - само наличното или цялото количество
+     * 
+     * @param boolean|NULL $groupable - Дали да се групират, null за всички
+     * @param boolean|NULL $groupId   - конкретна група, по която да се филтрират
+     * 
      * @return array $options
      */
-    public static function getZones($storeId = null, $onlyFree = false, $groupable = null)
+    public static function getZones($storeId = null, $onlyFree = false, $groupable = null, $groupId = null)
     {
+        $options = array();
         $query = self::getQuery();
         $query->where("#state != 'closed'");
         if ($onlyFree === true) {
@@ -222,16 +225,14 @@ class rack_Zones extends core_Master
         
         if(isset($groupable)){
             expect(is_bool($groupable));
-            if($groupable === true){
-                $query->where("#groupGathering = 'yes'");
+            if(isset($groupId)){
+                $query->where("#groupId = {$groupId}");
             } else {
-                $query->where("#groupGathering = 'no'");
+                $query->where("#groupId IS NULL");
             }
         }
-        
         $query->orderBy('num', 'ASC');
         
-        $options = array();
         while ($rec = $query->fetch()) {
             $options[$rec->id] = self::getRecTitle($rec, false);
         }
@@ -246,7 +247,12 @@ class rack_Zones extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $num = self::getVerbal($rec, 'num');
+        $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
+        
         $title = "Z-{$num}";
+        if(!empty($groupName)){
+            $title .= " ({$groupName})";
+        }
         
         if ($escaped) {
             $title = type_Varchar::escape($title);
@@ -265,16 +271,36 @@ class rack_Zones extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->setDefault('storeId', store_Stores::getCurrent('id', $form->rec ? $form->rec->storeId : null));
+        $rec = $form->rec;
+        $form->setDefault('storeId', store_Stores::getCurrent('id', $rec ? $rec->storeId : null));
         
         // Ако има работен запис към зоната не може да се сменя склада
-        if (isset($form->rec->containerId)) {
+        if (isset($rec->containerId)) {
             $form->setReadOnly('storeId');
         }
         
-        $form->setDefault('num', $mvc->getNextNumber($form->rec->storeId));
+        $form->setDefault('num', $mvc->getNextNumber($rec->storeId));
+        if(!rack_ZoneGroups::count()){
+            $form->setField('groupId', 'input=none');
+        }
     }
 
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            if(empty($form->rec->groupId) && rack_ZoneGroups::count()){
+                $form->setWarning('groupId', 'Сигурни ли сте, че не искате да изберете група|*?');
+            }
+        }
+    }
+    
     
     /**
      * След рендиране на лист таблицата
@@ -323,23 +349,51 @@ class rack_Zones extends core_Master
         
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
+        
+        if(rack_ZoneGroups::count()){
+            $data->listFilter->setField('groupId', 'input');
+        }
+        
+        $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
+        $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
+        $gQuery = rack_ZoneGroups::getQuery();
+        while($gRec = $gQuery->fetch()){
+            $groupingOptions[$gRec->id] = $gRec->name;
+        }
+        
+        $data->listFilter->setOptions('grouping', $groupingOptions);
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'productId';
+        $data->listFilter->showFields = 'productId,grouping';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->input('productId');
+        $data->listFilter->input(null, 'silent');
+        $data->listFilter->input('productId,grouping');
         
         // Ако се филтрира по артикул
-        if($productId = $data->listFilter->rec->productId){
+        if($filter = $data->listFilter->rec){
             
-            // Оставят се само тези зони където се среща артикула
-            $dQuery = rack_ZoneDetails::getQuery();
-            $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
-            $dQuery->where("#productId={$productId} AND #storeId = {$storeId}");
-            $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
-            if(count($zoneIdsWithProduct)){
-                $data->query->in('id', $zoneIdsWithProduct);
-            } else {
-                $data->query->where("1=2");
+            if(isset($filter->productId)){
+                
+                // Оставят се само тези зони където се среща артикула
+                $dQuery = rack_ZoneDetails::getQuery();
+                $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
+                $dQuery->where("#productId={$filter->productId} AND #storeId = {$storeId}");
+                $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
+                if(count($zoneIdsWithProduct)){
+                    $data->query->in('id', $zoneIdsWithProduct);
+                } else {
+                    $data->query->where("1=2");
+                }
+            }
+            
+            if(!empty($filter->grouping)){
+                switch($filter->grouping){
+                    case 'no':
+                        $data->query->where("#groupId IS NULL");
+                        break;
+                    case is_numeric($filter->grouping):
+                        $data->query->where("#groupId = {$filter->grouping}");
+                        break;
+                }
             }
         }
     }
@@ -445,17 +499,14 @@ class rack_Zones extends core_Master
                 rack_ZoneDetails::syncWithDoc($zoneRec->id, $containerId);
                 $this->updateMaster($zoneRec);
                 
-                if($zoneRec->groupGathering == 'yes'){
-                    $selectedZones = self::getZones($storeId, false, true);
-                    if(count($selectedZones)){
-                        $selectedZones = arr::make(array_keys($selectedZones), true);
-                    } else {
-                        $selectedZones = null;
-                    }
+                // Ако групата е с групиране, се извличат всички зони от същата група
+                if(isset($zoneRec->groupId)){
+                    $selectedZones = self::getZones($storeId, false, true, $zoneRec->groupId);
+                    $selectedZones = arr::make(array_keys($selectedZones), true);
                 } else {
                     $selectedZones = $zoneRec->id;
                 }
-                
+               
                 // Генериране на движенията за нагласяне
                 self::pickupOrder($storeId, $selectedZones);
             }
@@ -694,15 +745,19 @@ class rack_Zones extends core_Master
         expect($storeId = Request::get('storeId', 'int'));
         $this->requireRightFor('orderpickup', (object) array('storeId' => $storeId));
         
-        // Всички зони, които са за групиране се групират
-        $groupableZones = self::getZones($storeId, false, true);
-        if(count($groupableZones)){
-            $groupableZones = arr::make(array_keys($groupableZones), true);
-            self::pickupOrder($storeId, $groupableZones);
+        // Групиране по групи на зоните
+        $gQuery = rack_ZoneGroups::getQuery();
+        $gQuery->orderBy('order', 'ASC');
+        while($gRec = $gQuery->fetch()){
+            $groupableZones = self::getZones($storeId, false, true, $gRec->id);
+            if(count($groupableZones)){
+                $groupableZones = arr::make(array_keys($groupableZones), true);
+                self::pickupOrder($storeId, $groupableZones);
+            }
         }
         
         // Всички зони, които са за самостоятелно групиране
-        $nonGroupableZones = array_keys(self::getZones($storeId, false, false));
+        $nonGroupableZones = array_keys(self::getZones($storeId, false, true));
         foreach ($nonGroupableZones as $zoneId){
             self::pickupOrder($storeId, $zoneId);
         }
