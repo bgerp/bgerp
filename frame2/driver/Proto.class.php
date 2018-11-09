@@ -211,4 +211,10 @@ abstract class frame2_driver_Proto extends core_BaseClass
     {
         return null;
     }
+    
+    
+    public function getLabelTemplates($id)
+    {
+        return label_Templates::getTemplatesByClass($this);
+    }
 }

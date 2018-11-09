@@ -1085,4 +1085,39 @@ class frame2_Reports extends embed_Manager
         
         return $lastUsedDate;
     }
+    
+    
+    /**
+     * Кои са достъпните шаблони за печат на етикети
+     * 
+     * @param int $id     - ид на обекта
+     * @return array $res - списък със шаблоните
+     */
+    public function getLabelTemplates($id)
+    {
+        $res = array();
+        
+        // Проверка има ли шаблон за драйвера
+        if($Driver = static::getDriver($id)){
+            $res = $Driver->getLabelTemplates($id);
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Какви ще са параметрите на източника на етикета
+     * 
+     * @param stdClass $rec
+     * @return array $res -
+     *               ['class'] - клас
+     *               ['id] - ид
+     */
+    public function getLabelSource($rec)
+    {
+        if($Driver = static::getDriver($rec)){
+            return array('class' => $Driver, 'id' => $rec->id);
+        }
+    }
 }

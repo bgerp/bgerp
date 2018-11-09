@@ -20,6 +20,12 @@ class price_reports_PriceList extends frame2_driver_TableData
     
 
     /**
+     * Какви интерфейси поддържа този мениджър
+     */
+    public $interfaces = 'frame2_ReportIntf,label_SequenceIntf=price_interface_LabelImpl';
+
+    
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'sales, priceDealer, ceo';
@@ -519,5 +525,18 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         
         return $exportRecs;
+    }
+    
+    
+    /**
+     * Заглавие от източника на етикета
+     *
+     * @param mixed    $id
+     *
+     * @return void
+     */
+    public function getLabelSourceLink($id)
+    {
+        return frame2_Reports::getLabelSourceLink($id);
     }
 }
