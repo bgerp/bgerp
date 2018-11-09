@@ -656,6 +656,33 @@ class cms_Domains extends core_Embedder
             Mode::pop('BGERP_CURRENT_DOMAIN');
         }
     }
+
+
+    /**
+     * Замества хост
+     */
+    public static function getReal($domain)
+    {
+        if($domain == 'localhost') {
+
+            $host = strtolower($_SERVER['SERVER_NAME']);
+            
+            if(self::fetch(array("#domain = '[#1#]'", $host))) {
+                
+                if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+                    $host = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST);
+                } else {
+                    $host = '';
+                }
+            }
+
+            if($host && !preg_match("/[0-9\\.]+/", $host)) {
+                $domain = $host;
+            }
+        }
+ 
+        return $domain;
+    }
     
     
     /**
