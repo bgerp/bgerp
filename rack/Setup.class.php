@@ -57,6 +57,7 @@ class rack_Setup extends core_ProtoSetup
         'rack_Pallets',
         'rack_Racks',
         'rack_RackDetails',
+        'rack_ZoneGroups',
         'rack_Zones',
         'rack_ZoneDetails',
         'migrate::truncateOldRecs',
