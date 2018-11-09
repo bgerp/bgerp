@@ -987,7 +987,9 @@ class core_App
             $urlQuery .= '#' . $urlHash;
         }
         
-        $pre = rtrim($pre, '/');
+        if(substr($pre, -2) != '//') {
+            $pre = rtrim($pre, '/');
+        }
         
         switch ($type) {
             case 'local':
