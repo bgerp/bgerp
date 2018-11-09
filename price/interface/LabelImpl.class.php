@@ -40,8 +40,10 @@ class price_interface_LabelImpl
     public function getLabelPlaceholders($objId = null)
     {
         $placeholders = array();
-        $placeholders['PRODUCTID'] = (object) array('type' => 'text', 'hidden' => true);
-        $placeholders['PRICE'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['EAN'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['NAME'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['CATALOG_CURRENCY'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['CATALOG_PRICE'] = (object) array('type' => 'text', 'hidden' => true);
         
         return $placeholders;
     }
@@ -61,15 +63,24 @@ class price_interface_LabelImpl
         $resArr = array();
         $rec = frame2_Reports::fetchRec($id);
         $recs = $rec->data->recs;
-       
+        
         $currentCount = 0;
         foreach ($recs as $pRec){
-            if($currentCount == $cnt) break;
+            $name = cat_Products::getVerbal($pRec->productId, 'name');
             
-            $res = array('PRODUCTID' => cat_Products::getTitleById($pRec->productId), 'PRICE' => $pRec->price);
-            $currentCount++;
+            if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
+                $res = array('EAN' => '', 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId,'CATALOG_PRICE' => $pRec->price);
+                $resArr[] = $res;
+                $currentCount++;
+                if($currentCount == $cnt) break;
+            }
             
-            $resArr[] = $res;
+            foreach ($pRec->packs as $packRec){
+                $res = array('EAN' => $packRec->eanCode, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $packRec->price);
+                $resArr[] = $res;
+                $currentCount++;
+                if($currentCount == $cnt) break;
+            }
         }
         
         return $resArr;
@@ -87,7 +98,15 @@ class price_interface_LabelImpl
     {
         $rec = frame2_Reports::fetchRec($id);
         
-        return count($rec->data->recs);
+        $count = 0;
+        foreach ($rec->data->recs as $dRec){
+            if($rec->showMeasureId == 'yes' && !empty($dRec->price)){
+                $count++;
+            }
+            $count += count($dRec->packs);
+        }
+        
+        return $count;
     }
     
     
