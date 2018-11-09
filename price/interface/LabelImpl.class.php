@@ -69,14 +69,14 @@ class price_interface_LabelImpl
             $name = cat_Products::getVerbal($pRec->productId, 'name');
             
             if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
-                $res = array('EAN' => '', 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId,'CATALOG_PRICE' => $pRec->price);
+                $res = array('EAN' => '', 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId,'CATALOG_PRICE' => round($pRec->price, $rec->round));
                 $resArr[] = $res;
                 $currentCount++;
                 if($currentCount == $cnt) break;
             }
             
             foreach ($pRec->packs as $packRec){
-                $res = array('EAN' => $packRec->eanCode, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $packRec->price);
+                $res = array('EAN' => $packRec->eanCode, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => round($packRec->price, $rec->round));
                 $resArr[] = $res;
                 $currentCount++;
                 if($currentCount == $cnt) break;
