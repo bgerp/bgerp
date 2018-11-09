@@ -211,7 +211,7 @@ class core_App
                     continue;
                 }
                 
-                if ((count($vUrl) - $id) % 2) {
+                if ((count($vUrl) - $id) % 2 || floor($prm) > 0) {
                     if (!isset($q['id']) && !$name) {
                         $q['id'] = decodeUrl($prm);
                     } else {
@@ -246,7 +246,7 @@ class core_App
         if (empty($_GET['App']) && defined('EF_DEFAULT_APP_NAME')) {
             $_GET['App'] = EF_DEFAULT_APP_NAME;
         }
-        
+
         return $q;
     }
     
@@ -986,10 +986,8 @@ class core_App
         if ($urlHash) {
             $urlQuery .= '#' . $urlHash;
         }
-        
-        if(substr($pre, -2) != '//') {
-            $pre = rtrim($pre, '/');
-        }
+            
+        $pre = rtrim($pre, '/');
         
         switch ($type) {
             case 'local':
