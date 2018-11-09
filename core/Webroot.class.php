@@ -3,7 +3,7 @@
 /**
  * Път до директория, където ще се съхраняват записите от камерите
  */
-defIfNot('WEBROOT_FILES_PATH', EF_UPLOADS_PATH . '/wrfiles');
+defIfNot('WEBROOT_FILES_PATH', EF_UPLOADS_PATH . '/' . EF_APP_NAME . '/wrfiles');
 
 /**
  * Клас 'core_Webroot' - Виртуални статични файлове в коренната директория на уеб-сървъра
