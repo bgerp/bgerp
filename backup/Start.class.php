@@ -409,6 +409,7 @@ class backup_Start extends core_Manager
                     fileman_Data::setArchived($fileObj->id);
                 } else {
                     self::logErr("backup не записва файл {$fileObj->path} в " . 'backup_' . self::$conf->BACKUP_STORAGE_TYPE);
+                    fileman_Data::setArchived($fileObj->id);
                 }
             } else {
                 self::logWarning("backup: несъществуващ файл във файлмен-а: {$fileObj->path}");
