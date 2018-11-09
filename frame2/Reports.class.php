@@ -1116,6 +1116,7 @@ class frame2_Reports extends embed_Manager
      */
     public function getLabelSource($rec)
     {
+        // Източника на етикета ще е драйвера
         if($Driver = static::getDriver($rec)){
             return array('class' => $Driver, 'id' => $rec->id);
         }
