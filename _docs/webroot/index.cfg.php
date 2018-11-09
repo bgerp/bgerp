@@ -3,6 +3,9 @@
 DEFINE('CORE_ERROR_REPORTING_LEVEL', E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 error_reporting(CORE_ERROR_REPORTING_LEVEL);
 
+// Път за записване на дебъг-а
+// DEFINE('DEBUG_FATAL_ERRORS_PATH', '/tmp/bgerp/err');
+
 // Дали да са включени финкциите за дебъг и настройка
 DEFINE('EF_DEBUG', true);
 

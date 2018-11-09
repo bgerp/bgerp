@@ -980,7 +980,7 @@ class core_App
         }
         
         if ($urlQuery) {
-            $urlQuery = '?' . $urlQuery;
+            $urlQuery = '/?' . $urlQuery;
         }
         
         if ($urlHash) {
