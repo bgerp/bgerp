@@ -118,7 +118,7 @@ class modbus_Tester extends core_Manager
      *
      * @return float Value from two registers.
      */                    
-    protected static function registersToFloat($vals, $f = 'G')
+    protected static function registersToFloat($vals, $f = 'f', $u = 'vv')
     {
         /** @var array Packet binary data. $bin_data */
         $bin_data = null;
@@ -128,7 +128,7 @@ class modbus_Tester extends core_Manager
         $value = NAN;
         if (isset($vals[0])) {
             if (isset($vals[1])) {
-                $bin_data = pack('vv', $vals[0], $vals[1]);
+                $bin_data = pack($u, $vals[0], $vals[1]);
             }
         }
         if ($bin_data != null) {

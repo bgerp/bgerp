@@ -299,6 +299,8 @@ class blogm_Articles extends core_Master
      */
     public function act_Article()
     {
+
+
         // Имаме ли въобще права за Article екшън?
         $this->requireRightFor('article');
         
@@ -313,7 +315,8 @@ class blogm_Articles extends core_Master
             
             return $this->act_Browse();
         }
-        
+                 
+
         // Създаваме празен $data обект
         $data = new stdClass();
         $data->query = $this->getQuery();
@@ -327,6 +330,14 @@ class blogm_Articles extends core_Master
             return $this->act_Browse();
         }
         
+        if($data->rec->categories) {
+            $catId = (int) trim($data->rec->categories, '|');
+            $catRec = blogm_Categories::fetch($catId);
+            if($catRec) {
+                $menuId = cms_Content::getDefaultMenuId($this, $catRec->domainId);
+                cms_Content::setCurrent($menuId);
+            }
+        }
         
         // Определяме езика на статията от първата и категория
         $catArr = keylist::toArray($data->rec->categories);
@@ -1194,7 +1205,7 @@ class blogm_Articles extends core_Master
             
             if ($lastMod) {
                 $resObj = new stdClass();
-                $resObj->loc = array('blogom_Articles', 'browse', 'category' => $id);
+                $resObj->loc = array('blogm_Articles', 'browse', 'category' => $id);
                 $resObj->lastmod = date('c', dt::mysql2timestamp($lastMod));
                 $resObj->priority = 0.5;
                 $res[] = $resObj;
