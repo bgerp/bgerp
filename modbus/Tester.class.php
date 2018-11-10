@@ -78,17 +78,18 @@ class modbus_Tester extends core_Manager
         
         foreach ($values as $addr => $val) {
             $text .= "{$addr} : {$val}\n";
+            $vArr[] = $val;
         }
 
-        $v = self::registersToFloat($values);
-        $text .= "float : {$v}\n";
+        $v = self::registersToFloat($vArr);
+        $text .= "float : " . $v . "\n";
 
         
         $rec->data = $text;
         
         $this->save($rec, 'data');
         
-        return new Redirect(array($this), '|Данните са прочетени');
+        return new Redirect(array($this), '|Данните са прочетени1');
     }
 
     
