@@ -228,6 +228,19 @@ class sens2_Controllers extends core_Master
         return  $ap[$controllerId . '_' . $type];
     }
     
+
+    /**
+     * Преди подготовка на сингъла
+     */
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {   
+        $driver = cls::get($data->rec->driver);
+        
+        if(!$driver->hasDetail) {
+            $data->details = $mvc->details = array();
+        }
+    }
+
     
     /**
      * Подготвя конфигурационната форма на посочения драйвер
@@ -242,7 +255,7 @@ class sens2_Controllers extends core_Master
         
         $drv->prepareConfigForm($form);
         
-        if (!$drv->hasDetail) {
+        if (!$drv->hasDetail && !$drv->notExpandForm) {
             $ports = $drv->getInputPorts();
             
             if (!$ports) {
