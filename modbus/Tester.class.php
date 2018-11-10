@@ -81,10 +81,27 @@ class modbus_Tester extends core_Manager
             $vArr[] = $val;
         }
 
-        $v = self::registersToFloat($vArr);
-        $text .= "float : " . $v . "\n";
+        $v = self::registersToFloat($vArr, 'f');
+        $text .= "float (f): " . $v . "\n";
 
-        
+        $v = self::registersToFloat($vArr, 'g');
+        $text .= "float (g): " . $v . "\n";
+ 
+        $v = self::registersToFloat($vArr, 'G');
+        $text .= "float (G): " . $v . "\n";
+
+        list($vArr[1], $vArr[0]) = $vArr;
+
+        $v = self::registersToFloat($vArr, 'f');
+        $text .= "float (-f): " . $v . "\n";
+
+        $v = self::registersToFloat($vArr, 'g');
+        $text .= "float (-g): " . $v . "\n";
+ 
+        $v = self::registersToFloat($vArr, 'G');
+        $text .= "float (-G): " . $v . "\n";
+
+ 
         $rec->data = $text;
         
         $this->save($rec, 'data');
@@ -101,7 +118,7 @@ class modbus_Tester extends core_Manager
      *
      * @return float Value from two registers.
      */                    
-    protected static function registersToFloat($vals)
+    protected static function registersToFloat($vals, $f = 'G')
     {
         /** @var array Packet binary data. $bin_data */
         $bin_data = null;
@@ -115,7 +132,7 @@ class modbus_Tester extends core_Manager
             }
         }
         if ($bin_data != null) {
-            $value = unpack('G', $bin_data)[1];
+            $value = unpack($f, $bin_data)[1];
         }
         
         return $value;
