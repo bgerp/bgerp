@@ -128,7 +128,7 @@ class modbus_Tester extends core_Manager
         $value = NAN;
         if (isset($vals[0])) {
             if (isset($vals[1])) {
-                $bin_data = pack('nn', $vals[0], $vals[1]);
+                $bin_data = pack('vv', $vals[0], $vals[1]);
             }
         }
         if ($bin_data != null) {
