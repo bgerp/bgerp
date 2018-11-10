@@ -27,7 +27,7 @@ class core_App
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
 
-        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{3,4}$/i', $filename)) {
+        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,4}$/i', $filename)) {
  
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
@@ -918,10 +918,6 @@ class core_App
         
         // Зпочваме подготовката на URL-то
         
-        if (EF_APP_NAME_FIXED !== true) {
-            $pre = '/' . ($params['App'] ? $params['App'] : EF_APP_NAME);
-        }
-        
         // Махаме префикса на пакета по подразбиране
         $appPref = EF_APP_CODE_NAME . '_';
         
@@ -988,22 +984,22 @@ class core_App
         }
             
         $pre = rtrim($pre, '/');
-        
+     
         switch ($type) {
             case 'local':
                 $url = ltrim($pre . $urlQuery, '/');
                 break;
             
             case 'relative':
-                $url = rtrim(static::getBoot(false), '/') . $pre . $urlQuery;
+                $url = rtrim(static::getBoot(false, false, true), '/') . $pre . $urlQuery;
                 break;
             
             case 'absolute':
-                $url = rtrim(static::getBoot(true), '/') . $pre . $urlQuery;
+                $url = rtrim(static::getBoot(true, false, true), '/') . $pre . $urlQuery;
                 break;
             
             case 'absolute-force':
-                $url = rtrim(static::getBoot(true, true), '/') . $pre . $urlQuery;
+                $url = rtrim(static::getBoot(true, true, true), '/') . $pre . $urlQuery;
                 break;
         }
         
@@ -1032,7 +1028,7 @@ class core_App
      *
      * @return string
      */
-    public static function getBoot($absolute = false, $forceHttpHost = false)
+    public static function getBoot($absolute = false, $forceHttpHost = false, $addAppName = false)
     {
         static $relativeWebRoot = null;
         
@@ -1073,7 +1069,11 @@ class core_App
         }
         
         $boot = rtrim($boot, '/');
-        
+                
+        if (EF_APP_NAME_FIXED !== true && $addAppName) {
+            $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
+        }
+ 
         return $boot;
     }
     

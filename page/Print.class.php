@@ -48,7 +48,7 @@ class page_Print extends page_Html
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         
-        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=\"" . getBoot(true) . '/favicon.ico"' . ' type="image/x-icon">', 'HEAD');
+        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=\"" . getBoot(true, true, true) . '/favicon.ico"' . ' type="image/x-icon">', 'HEAD');
         
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
