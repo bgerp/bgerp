@@ -78,9 +78,10 @@ class modbus_Tester extends core_Manager
         
         foreach ($values as $addr => $val) {
             $text .= "{$addr} : {$val}\n";
+            $vArr[] = $val;
         }
 
-        $v = self::registersToFloat($values);
+        $v = self::registersToFloat($vArr);
         $text .= "float : {$v}\n";
 
         
