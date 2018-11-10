@@ -86,7 +86,7 @@ class core_Webroot
             // Прекъсваме изпълнението
             shutdown();
         } else {
-            error('404 @Липсващ файл', $filename, $_GET, $_POST);
+            error('404 @Липсващ файл', $filename, $_GET, $_POST, $domain);
         }
     }
 
