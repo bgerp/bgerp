@@ -82,14 +82,14 @@ class modbus_Tester extends core_Manager
         }
 
         $v = self::registersToFloat($vArr);
-        $text .= "float : {$v}\n";
+        $text .= "float : " . $v . "\n";
 
         
         $rec->data = $text;
         
         $this->save($rec, 'data');
         
-        return new Redirect(array($this), '|Данните са прочетени');
+        return new Redirect(array($this), '|Данните са прочетени1');
     }
 
     
