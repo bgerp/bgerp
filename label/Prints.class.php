@@ -235,7 +235,7 @@ class label_Prints extends core_Master
         
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
-            $templatesArr = label_Templates::getTemplatesByDocument($classId, $objId);
+            $templatesArr = cls::get($classId)->getLabelTemplates($objId);
             if (!count($templatesArr)) {
                 
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
@@ -873,7 +873,7 @@ class label_Prints extends core_Master
         
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             if ($rec->classId && $rec->objectId) {
-                if (!label_Templates::getTemplatesByDocument($rec->classId, $rec->objectId)) {
+                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId)) {
                     $requiredRoles = 'no_one';
                 }
             }

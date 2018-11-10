@@ -981,12 +981,7 @@ class type_Richtext extends type_Blob
         // Ако нямаме схема на URL-то
         if (!preg_match("/^[a-z0-9]{0,12}\:\/\//i", $url)) {
             if ($url{0} == '/') {
-                $httpBoot = getBoot(true);
-                if (EF_APP_NAME_FIXED !== true) {
-                    $app = Request::get('App');
-                    $httpBoot .= '/' . ($app ? $app : EF_APP_NAME);
-                }
-                
+                $httpBoot = getBoot(true, false, true);                
                 $url = $httpBoot . $url;
             } else {
                 $url = "http://{$url}";

@@ -20,6 +20,12 @@ class price_reports_PriceList extends frame2_driver_TableData
     
 
     /**
+     * Какви интерфейси поддържа този мениджър
+     */
+    public $interfaces = 'frame2_ReportIntf,label_SequenceIntf=price_interface_LabelImpl';
+
+    
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'sales, priceDealer, ceo';
@@ -117,6 +123,7 @@ class price_reports_PriceList extends frame2_driver_TableData
            $defaultListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
            $form->setDefault('vat', deals_Helper::getDefaultChargeVat($form->rec->folderId));
            $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
+           
            $listOptions = price_Lists::getAccessibleOptions($Cover->className, $Cover->that);
        } else {
            $listOptions = price_Lists::getAccessibleOptions(null, null, false);
@@ -479,7 +486,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
             if(empty($form->rec->date)){
-                $form->rec->date = dt::now();
+                $form->rec->date = dt::today();
             }
             
             if (cat_Groups::checkForNestedGroups($form->rec->productGroups)) {
@@ -519,5 +526,18 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         
         return $exportRecs;
+    }
+    
+    
+    /**
+     * Заглавие от източника на етикета
+     *
+     * @param mixed    $id
+     *
+     * @return void
+     */
+    public function getLabelSourceLink($id)
+    {
+        return frame2_Reports::getLabelSourceLink($id);
     }
 }
