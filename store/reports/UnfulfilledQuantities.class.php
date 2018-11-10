@@ -54,8 +54,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         //$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=to');
-        $fieldset->FLD('tolerance', 'double', 'caption=Толеранс,after=contragent,unit = %,single=none,mandatory');
+        $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=to');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=contragent');
+        $fieldset->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група артикули,placeholder=Всички,after=storeId,single=none');
+        $fieldset->FLD('tolerance', 'double', 'caption=Толеранс,after=group,unit = %,single=none,mandatory');
     }
     
     
@@ -140,9 +142,13 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         
         $querySaleDetails->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
         
+        $querySaleDetails->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+        
         $querySaleDetails->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
         
         $querySaleDetails->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+        
+        $querySaleDetails->where("#state != 'rejected'");
         
         if (!is_null($rec->contragent)) {
             $checkedContragents = keylist::toArray($rec->contragent);
@@ -153,7 +159,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $querySaleDetails->where("#isPublic = 'yes'");
         
         $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn');
-       
+        
         while ($saleArt = $querySaleDetails->fetch()) {
             $saleThreadsIds[] = $saleArt->threadId;
             $saleKey = $saleArt->threadId.'|'.$saleArt->productId;
@@ -181,12 +187,33 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         //Експедиционни нареждания
         $queryShipmentOrderDetails = store_ShipmentOrderDetails::getQuery();
         
+        $queryShipmentOrderDetails->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        
         $queryShipmentOrderDetails->EXT('threadId', 'store_ShipmentOrders', 'externalName=threadId,externalKey=shipmentId');
         
-        $queryShipmentOrderDetails->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
+        $queryShipmentOrderDetails->EXT('shipmentOrderActivatedOn', 'store_ShipmentOrders', 'externalName=activatedOn,externalKey=shipmentId');
         
-        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn');
-      
+        $queryShipmentOrderDetails->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
+        
+        $queryShipmentOrderDetails->EXT('storeId', 'store_ShipmentOrders', 'externalName=storeId,externalKey=shipmentId');
+        
+        $queryShipmentOrderDetails->where("#state = 'active'");
+        
+        $queryShipmentOrderDetails->where(array("#shipmentOrderActivatedOn >= '[#1#]' AND #shipmentOrderActivatedOn <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
+        
+        //филтър по склад
+        if ($rec->storeId) {
+            $queryShipmentOrderDetails->where("#storeId = {$rec->storeId}");
+        }
+        
+        //Филтър по групи артикули
+        if (isset($rec->group)) {
+            $queryShipmentOrderDetails->where('#groups IS NOT NULL');
+            $queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
+        }
+        
+        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn');
+        
         while ($shipmentDet = $queryShipmentOrderDetails->fetch()) {
             $threadId = $shipmentDet->threadId;
             
@@ -194,7 +221,9 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             
             $firstDocumentName = doc_Threads::getFirstDocument($threadId)->className;
             
-            if ($firstDocumentName != 'sales_Sales')continue;
+            if ($firstDocumentName != 'sales_Sales') {
+                continue;
+            }
             
             $shipKey = $shipmentDet->threadId.'|'.$shipmentDet->productId;
             

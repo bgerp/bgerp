@@ -280,9 +280,6 @@ class rack_Zones extends core_Master
         }
         
         $form->setDefault('num', $mvc->getNextNumber($rec->storeId));
-        if(!rack_ZoneGroups::count()){
-            $form->setField('groupId', 'input=none');
-        }
     }
 
     
@@ -295,7 +292,7 @@ class rack_Zones extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            if(empty($form->rec->groupId) && rack_ZoneGroups::count()){
+            if(empty($form->rec->groupId)){
                 $form->setWarning('groupId', 'Сигурни ли сте, че не искате да изберете група|*?');
             }
         }
@@ -349,11 +346,6 @@ class rack_Zones extends core_Master
         
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
-        
-        if(rack_ZoneGroups::count()){
-            $data->listFilter->setField('groupId', 'input');
-        }
-        
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
         $gQuery = rack_ZoneGroups::getQuery();
@@ -363,7 +355,7 @@ class rack_Zones extends core_Master
         
         $data->listFilter->setOptions('grouping', $groupingOptions);
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'productId,grouping';
+        $data->listFilter->showFields = 'productId,groupId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input('productId,grouping');
