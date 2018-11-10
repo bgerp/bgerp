@@ -32,7 +32,8 @@ class modbus_Setup extends core_ProtoSetup
     
     
     /**
-     * Пакет без инсталация
+     * Дефинирани класове, които имат интерфейси
      */
-    public $noInstall = true;
+    public $defClasses = 'modbus_GenericTCP';
+
 }

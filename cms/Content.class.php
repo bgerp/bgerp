@@ -482,10 +482,13 @@ class cms_Content extends core_Manager
      *
      * @return int $menuId id-то на менюто
      */
-    public static function getDefaultMenuId($class)
+    public static function getDefaultMenuId($class, $domainId = null)
     {
+        if(!$domainId) {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
+        
         $classId = core_Classes::getId($class);
-        $domainId = cms_Domains::getPublicDomain('id');
         $query = self::getQuery();
         $query->orderBy('#order', 'ASC');
         $rec = $query->fetch("#source = {$classId} AND #domainId = {$domainId}");
@@ -723,8 +726,16 @@ class cms_Content extends core_Manager
      */
     public static function getSitemapXml($dRec)
     {
+        $dQuery = cms_Domains::getQuery();
+
+        while($d = $dQuery->fetch("#domain = '{$dRec->domain}'") ) {
+            $dIds[] = $d->id;
+        }
+
+        $dIds = implode(',', $dIds);
+
         $query = self::getQuery();
-        $query->where("#state = 'active' AND #domainId = {$dRec->id}");
+        $query->where("#state = 'active' AND #domainId IN ({$dIds})");
         
         $domainHost = $dRec->domain;
         if($dRec->domain != 'localhost') {

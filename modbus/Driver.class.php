@@ -39,6 +39,9 @@ class modbus_Driver extends core_BaseClass
      */
     public function read($startAddr, $quantity)
     {
+
+        return array(400031 => 2784, 400032 => 17084);
+
         $Plc = $this->getAndInitPlc();
         
         $values = $Plc->ReadModbus($startAddr, $quantity);     // Lecture de 50 mots a partir de 400001
