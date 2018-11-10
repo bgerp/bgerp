@@ -79,6 +79,10 @@ class modbus_Tester extends core_Manager
         foreach ($values as $addr => $val) {
             $text .= "{$addr} : {$val}\n";
         }
+
+        $v = self::registersToFloat($values);
+        $text .= "float : {$v}\n";
+
         
         $rec->data = $text;
         
@@ -86,4 +90,34 @@ class modbus_Tester extends core_Manager
         
         return new Redirect(array($this), '|Данните са прочетени');
     }
+
+    
+    /**
+     * Convert two registers to float.
+     *
+     * @param int $reg_value1 Register 1.
+     * @param int $reg_value2 Register 2.
+     *
+     * @return float Value from two registers.
+     */                    
+    protected static function registersToFloat($vals)
+    {
+        /** @var array Packet binary data. $bin_data */
+        $bin_data = null;
+        
+        
+        /** @var float Unpacked float value. $value */
+        $value = NAN;
+        if (isset($vals[0])) {
+            if (isset($vals[1])) {
+                $bin_data = pack('nn', $vals[0], $vals[1]);
+            }
+        }
+        if ($bin_data != null) {
+            $value = unpack('G', $bin_data)[1];
+        }
+        
+        return $value;
+    }
+
 }
