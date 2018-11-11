@@ -175,8 +175,8 @@ class modbus_GenericTCP extends sens2_ProtoDriver
             $res[] = (object) array(
                     'name' => $port->name,
                     'uom' => $port->uom,
-                    'readPeriod' => (int) $port->read,
-                    'logPeriod' => (int) $port->write,
+                    'readPeriod' => 60 * (int) $port->read,
+                    'logPeriod' => 60 * (int) $port->write,
                     'readable' => true,
                     'scale' => $port->scale,
                 );
