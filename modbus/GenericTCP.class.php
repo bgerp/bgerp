@@ -103,7 +103,7 @@ class modbus_GenericTCP extends sens2_ProtoDriver
 
 
     /**
-     * Конвертира флоат
+     * Конвертира float
      */
     public function convertFloat($vArr)
     {
@@ -112,6 +112,15 @@ class modbus_GenericTCP extends sens2_ProtoDriver
 
 
 
+    /**
+     * Конверира int стойност
+     */
+    public function convertInt($vArr)
+    {
+        $res = $vArr[0] + $vArr[1] * 65536;
+
+        return $res;
+    }
 
 
     /**
@@ -150,7 +159,7 @@ class modbus_GenericTCP extends sens2_ProtoDriver
      * @return array масив с обекти имащи следните полета:
      *               o name     - име на променливата
      *               о slot     - име на слота
-     *               о suffix   - стринг, който се изписва след променливата (%, V, W, ...)
+     *               о uom      - стринг, който се изписва след променливата (%, V, W, ...)
      *               o prefix   - стринг, който се изписва преди променливата
      *               о options  - масив с възможни стоийнисти
      *               о min      - минимална стойност
@@ -165,7 +174,7 @@ class modbus_GenericTCP extends sens2_ProtoDriver
         foreach($portsArr as $port) {
             $res[] = (object) array(
                     'name' => $port->name,
-                    'suffix' => $port->uom,
+                    'uom' => $port->uom,
                     'readPeriod' => (int) $port->read,
                     'logPeriod' => (int) $port->write,
                     'readable' => true,

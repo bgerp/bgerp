@@ -442,7 +442,7 @@ class sens2_Controllers extends core_Master
                 
                 // Скалиране на стойността
                 if (($expr = $ports[$port]->scale) && is_numeric($value)) {
-                    $expr = str_replace('X', $value, $expr);
+                    $expr = str_replace(array('X', 'x', 'Х', 'х'), array($value, $value, $value, $value), $expr);
                     $value = str::calcMathExpr($expr);
                 }
                 

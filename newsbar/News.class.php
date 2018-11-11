@@ -76,10 +76,10 @@ class newsbar_News extends core_Master
         
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter');
         $this->FLD('position', 'enum(bottomHeader=Над менюто, topPage=В началото, bottomMenu=Под менюто, topConten=Преди съдържанието, bottomContent=След съдържанието, topNav=Над навигацията, bottomNav=Под навигацията, beforeFooter=Преди футър, footer=Футър, afterFooter=След футър)', 'caption=Показване в->Позиция, notNull, mandatory');
-        $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Показване в->Меню');
-        $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Показване в->Статии');
-        $this->FLD('eshopGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Показване в->Ешоп групи');
-        $this->FLD('eshopProducts', 'keylist(mvc=eshop_Products,select=name)', 'caption=Показване в->Продуктови групи');
+        $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Филтриране при показване->Меню');
+        $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Филтриране при показване->Статии');
+        $this->FLD('eshopGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Филтриране при показване->Продуктови групи');
+        $this->FLD('eshopProducts', 'keylist(mvc=eshop_Products,select=name)', 'caption=Филтриране при показване->Продукти');
         
         $this->FLD('color', 'color_Type', 'caption=Оформление->Фон,unit=rgb');
         $this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Оформление->Непрозрачност');
