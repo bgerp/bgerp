@@ -119,6 +119,7 @@ class cms_Setup extends core_ProtoSetup
         'cms_VerbalId',
         'cms_GalleryGroups',
         'cms_GalleryImages',
+        'migrate::domainFiles',
     );
     
     
@@ -216,4 +217,32 @@ class cms_Setup extends core_ProtoSetup
         
         return $domainIds[$lg];
     }
+
+    
+    /**
+     * Премахване на favicon от рута и миграция на домейните
+     */
+    function domainFiles()
+    {
+        // Иконата
+        $dest = EF_INDEX_PATH . '/favicon.ico';
+        
+        if (file_exists($dest)) {
+            
+            if(!cms_Domains::fetch("#domain = 'localhost' AND (#favicon OR #wrFiles)")) {
+                if($dRec = cms_Domains::fetch("#domain = 'localhost'")) {
+                    $dRec->favicon = fileman::absorb($dest, 'cmsFiles');
+                    cms_Domains::save($dRec, 'favicon');
+                }
+            }
+
+            unlink($dest);
+        }
+
+        $dQuery = cms_Domains::getQuery();
+        while($dRec = $dQuery->fetch()) {
+            cms_Domains::save($dRec);
+        }
+    }
+
 }
