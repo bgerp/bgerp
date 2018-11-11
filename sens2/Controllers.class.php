@@ -646,6 +646,7 @@ class sens2_Controllers extends core_Master
         
         
         if ($id) {
+            echo " Starting...";
             // Извършваме обновяването "на сянка""
             $this->updateInputs($id);
         }
