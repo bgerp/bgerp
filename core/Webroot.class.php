@@ -105,14 +105,14 @@ class core_Webroot
         if(is_numeric($domain)) {
             $dRec = cms_Domains::fetch($domain);
             if($dRec) {
-                $domain = cms_Domains::getReal($dRec->domain) . '_' . $dRec->lang;
+                $domain = cms_Domains::getReal($dRec->domain);
             } else {
                 $domain = '';
             }
         }
 
         if(!$domain) {
-            $domain = cms_Domains::getReal(cms_Domains::getPublicDomain('domain')) . '_' . cms_Domains::getPublicDomain('lang');
+            $domain = cms_Domains::getReal(cms_Domains::getPublicDomain('domain'));
         }
 
         $domain = trim(strtolower(preg_replace("/[^a-z0-9]+/", '_', $domain)), '_');
