@@ -791,14 +791,7 @@ class eshop_Groups extends core_Master
         
         return $groups;
     }
-    
-    
-    public function act_Test()
-    {
-        requireRole('admin');
-        bp($this->getSitemapEntries(4));
-    }
-    
+
     
     /**
      * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
@@ -814,7 +807,7 @@ class eshop_Groups extends core_Master
             $resObj = new stdClass();
             $resObj->loc = $this->getUrl($rec, true);
             $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
-            $resObj->priority = 0.5;
+            $resObj->priority = 1;
             $res[] = $resObj;
             
             $Products = cls::get('eshop_Products');
@@ -824,7 +817,7 @@ class eshop_Groups extends core_Master
                 $resObj = new stdClass();
                 $resObj->loc = $Products->getUrl($pRec, true);
                 $resObj->lastmod = date('c', dt::mysql2timestamp($pRec->modifiedOn));
-                $resObj->priority = 0.5;
+                $resObj->priority = 0.9;
                 $res[] = $resObj;
             }
         }
