@@ -339,7 +339,6 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
-        'migrate::removeFaviconFromRoot'
     );
     
     
@@ -563,19 +562,5 @@ class core_Setup extends core_ProtoSetup
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Премахване на favicon от рута
-     */
-    function removeFaviconFromRoot()
-    {
-        // Иконата
-        $dest = EF_INDEX_PATH . '/favicon.ico';
-        
-        if (file_exists($dest)) {
-            unlink($dest);
-        }
     }
 }
