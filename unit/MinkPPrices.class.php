@@ -256,14 +256,13 @@ class unit_MinkPPrices extends core_Manager
         // Създаване на ценоразпис в папката на клиента
         $browser->press('Справка');
         
-        //$browser->setValue('name', 'Ценоразписи');
-        $browser->setValue('driverClass', 'Продажби » Ценоразписи');
-        return $browser->getHtml();
+        $browser->setValue('source', 'Ценоразписи');
+        $browser->press('Refresh');  
+        //$browser->setValue('driverClass', 'Продажби » Ценоразписи');
         $browser->setValue('policyId', 'Ценова политика за Фирма с локация');
-        $browser->press('Чернова');
-        $browser->press('Активиране');
-        //return $browser->getHtml();
-        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,661260')) {
+        $browser->press('Запис');
+        
+        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,66126')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис 1', 'warning');
