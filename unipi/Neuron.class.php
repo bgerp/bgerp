@@ -142,8 +142,11 @@ class unipi_Neuron extends sens2_ProtoDriver
         }
       
         // Прочитаме състоянието от контролера
-        $this->evoc->update();
-       
+        if(strlen($err = $this->evoc->update())) {
+
+            return $err;
+        }
+    
         while ($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
             $nameArr = $inPorts[$pRec->slot]["{$pRec->portIdent}"];
             
