@@ -23,7 +23,7 @@ class epay_plg_CheckForPayments extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        self:checkEmail($rec);
+        self::checkEmail($rec);
     }
     
     
