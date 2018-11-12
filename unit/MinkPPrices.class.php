@@ -183,7 +183,7 @@ class unit_MinkPPrices extends core_Manager
         $browser->press('Запис');
         
         
-        if (strpos($browser->gettext(), 'Труд час 18,4896')) {
+        if (strpos($browser->gettext(), 'Труд час 18,48960')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис 1', 'warning');
@@ -250,18 +250,19 @@ class unit_MinkPPrices extends core_Manager
         
         //Отваряне на папката на клиента
         $browser->click($Company);
-        //return $browser->getHtml();
-        $browser->press('Папка');
+         
         $browser->press('Нов');
         
         // Създаване на ценоразпис в папката на клиента
         $browser->press('Справка');
-        $browser->setValue('driverClass', 'Продажби » Ценоразписи');
+        
+        $browser->setValue('source', 'Ценоразписи');
+        $browser->press('Refresh');  
+        //$browser->setValue('driverClass', 'Продажби » Ценоразписи');
         $browser->setValue('policyId', 'Ценова политика за Фирма с локация');
-        $browser->press('Чернова');
-        $browser->press('Активиране');
-        //return $browser->getHtml();
-        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,661260')) {
+        $browser->press('Запис');
+        
+        if (strpos($browser->gettext(), 'Плик 7 л бр. 0,66126')) {
         } else {
             
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис 1', 'warning');
