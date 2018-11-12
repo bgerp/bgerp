@@ -308,7 +308,7 @@ class eshop_Products extends core_Master
                     $title = 'Изпратете запитване за|* ' . tr($rec->name);
                     Request::setProtected('classId,objectId');
                     $url = array('marketing_Inquiries2', 'new', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true);
-                    $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn");
+                    $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/button-question-icon.png,title={$title},class=productBtn,rel=nofollow");
                     Request::removeProtected('classId,objectId');
                 }
             }

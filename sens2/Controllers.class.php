@@ -19,7 +19,7 @@ class sens2_Controllers extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, plg_RefreshRows, sens2_Wrapper';
     
     
     /**
@@ -104,7 +104,7 @@ class sens2_Controllers extends core_Master
     /**
      * Детайл за входно-изходните портове
      */
-    public $details = 'sens2_IOPorts';
+    public $details = 'sens2_IOPorts,sens2_Indicators';
     
     
     /**
@@ -237,7 +237,9 @@ class sens2_Controllers extends core_Master
         $driver = cls::get($data->rec->driver);
         
         if(!$driver->hasDetail) {
-            $data->details = $mvc->details = array();
+            $data->details = arr::make($data->details, true);
+            $mvc->details = arr::make($mvc->details, true);
+            unset($mvc->details['sens2_IOPorts'], $data->details['sens2_IOPorts']);
         }
     }
 
