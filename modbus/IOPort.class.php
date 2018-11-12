@@ -160,7 +160,7 @@ class modbus_IOPort extends sens2_ioport_Abstract
         
         
         /** @var float Unpacked float value. $value */
-        $value = NAN;
+        $value = NaN;
         if (isset($vals[0])) {
             if (isset($vals[1])) {
                 $bin_data = pack('nn', $vals[0], $vals[1]);

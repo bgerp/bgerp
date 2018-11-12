@@ -131,6 +131,8 @@ class unipi_Evoc
      */
     public function getUartData($uart, $devId)
     {
+        $devId++;
+
         $circuit = 'UART_' . ($devId - 1) . '_' . $devId . '_';
 
         $res = array();
@@ -205,12 +207,7 @@ class unipi_Evoc
      * @see https://evok.api-docs.io/1.0/rest
      */
     public function update()
-    {  
-        try {
-            $response =  fileman::getContent('Y1pGw5');
-        } catch (core_exception_Expect $e) {
-        }
-        
+    {          
         if(!strlen($response)) {
 
             // Init CURL object.
@@ -233,12 +230,17 @@ class unipi_Evoc
             curl_close($ch);
             if ($err)
             {
-                throw new \Exception($err);
+                return "Грешка при четене от {$this->ip}:{$this->port}";
             }
         }
 
         // Convert to JSON.
         $this->json_data = json_decode($response, true);
+ 
+        if(!$this->json_data) {
+
+            return "Не са получени JSON данни";
+        }
     }
 
 
