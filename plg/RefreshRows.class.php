@@ -29,7 +29,12 @@ class plg_RefreshRows extends core_Plugin
      * @param StdClass $data
      */
     public function on_AfterRenderListTable($mvc, &$tpl, $data)
-    {
+    { 
+        if(isset($data->masterMvc) && cls::getClassName($data->masterMvc) != cls::getClassName($mvc)) {
+
+            return;
+        }
+
         // Ако не се тегли по AJAX
         if (!Request::get('ajax_mode')) {
             

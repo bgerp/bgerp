@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class sens2_Indicators extends core_Manager
+class sens2_Indicators extends core_Detail
 {
     /**
      * Масив в който се намират всички текущи стойности на индикаторите
@@ -77,7 +77,8 @@ class sens2_Indicators extends core_Manager
      */
     public $canChangestate = 'sens,admin';
     
-    
+    public $masterKey = 'controllerId';
+
     /**
      * Описание на модела
      */
