@@ -355,12 +355,12 @@ class rack_Zones extends core_Master
         while($gRec = $gQuery->fetch()){
             $groupingOptions[$gRec->id] = $gRec->name;
         }
-        
         $data->listFilter->setOptions('grouping', $groupingOptions);
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'productId,groupId';
-        $data->listFilter->view = 'horizontal';
         $data->listFilter->input(null, 'silent');
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'productId,grouping';
+        $data->listFilter->view = 'horizontal';
         $data->listFilter->input('productId,grouping');
         
         // Ако се филтрира по артикул
@@ -739,10 +739,11 @@ class rack_Zones extends core_Master
         $this->requireRightFor('orderpickup');
         expect($storeId = Request::get('storeId', 'int'));
         $this->requireRightFor('orderpickup', (object) array('storeId' => $storeId));
-        
+       
         // Групиране по групи на зоните
         $gQuery = rack_ZoneGroups::getQuery();
         $gQuery->orderBy('order', 'ASC');
+        
         while($gRec = $gQuery->fetch()){
             $groupableZones = self::getZones($storeId, false, true, $gRec->id);
             if(count($groupableZones)){
@@ -751,14 +752,11 @@ class rack_Zones extends core_Master
             }
         }
         
-        // Всички зони, които са за самостоятелно групиране
-        $nonGroupableZones = array_keys(self::getZones($storeId, false, true));
+        // Всички зони, които са без групиране
+        $nonGroupableZones = array_keys(self::getZones($storeId, false, false));
         foreach ($nonGroupableZones as $zoneId){
             self::pickupOrder($storeId, $zoneId);
         }
-        
-        // Генериране на всички очаквани движения
-        self::pickupOrder($storeId);
         
         followRetUrl(null, 'Движенията са генерирани успешно');
     }
@@ -867,7 +865,7 @@ class rack_Zones extends core_Master
      */
     private static function getExpectedProducts($storeId, $zoneIds = null)
     {
-        $res = (object)array('products' => array(), 'zones' => array());
+        $res = (object)array('products' => array(), 'zones' => is_array($zoneIds) ? $zoneIds : array());
         
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
