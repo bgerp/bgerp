@@ -51,7 +51,13 @@ class sens2_Indicators extends core_Detail
      */
     public $canWrite = 'debug';
     
-    
+
+    /**
+     * Права за писане
+     */
+    public $canEdit = 'debug';
+
+
     /**
      * Права за запис
      */
@@ -85,11 +91,11 @@ class sens2_Indicators extends core_Detail
     public function description()
     {
         $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
-        $this->FLD('port', 'varchar(32)', 'caption=Порт, mandatory');
+        $this->FLD('port', 'varchar(64)', 'caption=Порт, mandatory');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност,input=none');
         $this->FLD('lastValue', 'datetime', 'caption=Към момент,oldFieldName=time,input=none');
         $this->FLD('lastUpdate', 'datetime', 'caption=Последно време на Обновяване,column=none,input=none');
-        $this->FLD('error', 'varchar(64)', 'caption=Съобщения за грешка,input=none');
+        $this->FLD('error', 'varchar(128)', 'caption=Грешки,input=none');
         $this->FLD('state', 'enum(active=Активен, rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
         $this->FLD('uom', 'varchar(16)', 'caption=Мярка,column=none');
         
@@ -329,8 +335,10 @@ class sens2_Indicators extends core_Detail
         $var = $rec->port . '_name';
         if ($configs[$rec->controllerId]->{$var}) {
             $row->port = type_Varchar::escape($rec->port . ' (' . $configs[$rec->controllerId]->{$var} . ')');
-        } else {
+        } elseif(!empty($params[$rec->controllerId][$rec->port]->caption)) {
             $row->port = $rec->port . ' (' . type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . ')');
+        } else {
+            $row->port = $rec->port;
         }
         
         $row->controllerId = sens2_Controllers::getLinkToSingle($rec->controllerId, 'name');
