@@ -779,9 +779,9 @@ class rack_Zones extends core_Master
         $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId} AND #modifiedBy = {$systemUserId}");
         $mQuery->likeKeylist('zoneList', $expected->zones);
         $mQuery->show('id');
-        
+            
         while ($mRec = $mQuery->fetch()) {
-            rack_Movements::delete($mRec->id);
+           rack_Movements::delete($mRec->id);
         }
         
         $floor = rack_PositionType::FLOOR;
@@ -865,7 +865,8 @@ class rack_Zones extends core_Master
      */
     private static function getExpectedProducts($storeId, $zoneIds = null)
     {
-        $res = (object)array('products' => array(), 'zones' => is_array($zoneIds) ? $zoneIds : array());
+        $res = (object)array('products' => array());
+        $res->zones = (is_numeric($zoneIds)) ? array($zoneIds => $zoneIds) : ((is_array($zoneIds)) ? $zoneIds : array());
         
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
