@@ -973,6 +973,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         // Поставяме шаблона за външен изглед
         Mode::set('wrapper', 'cms_page_External');
+        $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
