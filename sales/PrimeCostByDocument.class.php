@@ -780,6 +780,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $containerId = $firstDoc->fetchField('containerId');
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #containerId = {$containerId}");
+        $query->where("#primeCost IS NOT NULL");
         $query->show('quantity,primeCost');
         $sum = $totalQ = 0;
         
@@ -787,7 +788,7 @@ class sales_PrimeCostByDocument extends core_Manager
             $sum += $rec->quantity * $rec->primeCost;
             $totalQ += $rec->quantity;
         }
-        
+       
         // Сумата на себестойноста е среднопритеглената себестойност
         if ($totalQ) {
             
