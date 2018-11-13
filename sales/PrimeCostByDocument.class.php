@@ -341,7 +341,6 @@ class sales_PrimeCostByDocument extends core_Manager
             
             // Намиране на дилъра, инициатора и взимане на данните на мастъра на детайла
             $Document = $masters[$rec->containerId][0];
-            $persons = self::getDealerAndInitiatorId($rec->containerId);
             
             // За дилъра и инициатора, ако има ще се подават делтите
             foreach (array('dealerId', 'initiatorId') as $personFld) {
