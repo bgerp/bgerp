@@ -247,7 +247,10 @@ class rack_Zones extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $num = self::getVerbal($rec, 'num');
-        $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
+        $groupName = null;
+        if(!Mode::is('shortZoneName')){
+            $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
+        }
         
         $title = "Z-{$num}";
         if(!empty($groupName)){
