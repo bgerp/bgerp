@@ -241,7 +241,7 @@ class cond_Countries extends core_Manager
      * 
      * @return int|null              - стойноста на търговското условие, или null ако няма
      */
-    public static function getByCountryId($countryId, $conditionSysId)
+    public static function getParameterByCountryId($countryId, $conditionSysId)
     {
         expect($condId = cond_Parameters::fetchIdBySysId($conditionSysId));
         expect(drdata_Countries::fetch($countryId));
