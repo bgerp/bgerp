@@ -37,7 +37,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search,plg_StructureAndOrder';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search,plg_StructureAndOrder';
     
     
     /**
@@ -806,6 +806,8 @@ class eshop_Groups extends core_Master
         while ($rec = $query->fetch()) {
             $resObj = new stdClass();
             $resObj->loc = $this->getUrl($rec, true);
+            $modifiedOn = $rec->modifiedOn ? $rec->modifiedOn : $rec->createdOn;
+
             $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
             $resObj->priority = 1;
             $res[] = $resObj;
@@ -816,7 +818,8 @@ class eshop_Groups extends core_Master
             while ($pRec = $pQuery->fetch()) {
                 $resObj = new stdClass();
                 $resObj->loc = $Products->getUrl($pRec, true);
-                $resObj->lastmod = date('c', dt::mysql2timestamp($pRec->modifiedOn));
+                $modifiedOn = $pRec->modifiedOn ? $pRec->modifiedOn : $pRec->createdOn;
+                $resObj->lastmod = date('c', dt::mysql2timestamp($modifiedOn));
                 $resObj->priority = 0.9;
                 $res[] = $resObj;
             }
