@@ -756,7 +756,7 @@ class frame2_Reports extends embed_Manager
                 
                 // Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
                 if (!haveRole('ceo', $userId)) {
-                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)) || core_Users::compareRangs($userId, $createdBy) > 0)) {
+                    if (!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)) || (core_Users::compareRangs($userId, $createdBy) > 0 && $mvc->haveRightFor('single', $rec)))) {
                         $requiredRoles = 'no_one';
                     }
                 }
