@@ -386,7 +386,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         if($export === true){
             $fld->FLD('currencyId', 'varchar', 'caption=Валута');
         } else {
-            $fld->FLD('packs', 'html', 'caption=Опаковки');
+            $fld->FLD('packs', 'html', 'caption=Опаковка');
         }
         if(!empty($rec->period)){
             if($export === false){
