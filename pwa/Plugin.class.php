@@ -19,13 +19,13 @@ class pwa_Plugin extends core_Plugin
         $manifestUrl = toUrl(array('pwa_Plugin'));
         
         $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestUrl}\">", 'HEAD');
-        
+
         $invoker->push(('pwa/js/app.js'), 'JS');
-        $src = sbf('pwa/js/sw.js', '');
-        jquery_Jquery::run($invoker, "sendSrc('{$src}');");
+
+        jquery_Jquery::run($invoker, "sendSrc();");
     }
-    
-    
+
+
     public function act_Default()
     {
         $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
@@ -46,11 +46,13 @@ class pwa_Plugin extends core_Plugin
             $tempArray['type'] = 'image/png';
             $iconInfoArr[] = $tempArray;
         }
-        
+
         $json = array(
             'short_name' => 'bgERP',
             'name' => 'bgERP - система за управление на бизнеса',
             'display' => 'standalone',
+            'background_color' => '#fff',
+            'theme_color' => '#fff',
             'start_url' => '/',
             'icons' => $iconInfoArr
         );
