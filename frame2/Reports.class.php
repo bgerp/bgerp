@@ -269,9 +269,10 @@ class frame2_Reports extends embed_Manager
             // При редакция, ако има полета за промяна
             if (isset($rec->id) && $rec->changeFields) {
                 $changeable = type_Set::toArray($rec->changeFields);
+                $cu = core_Users::getCurrent();
                 
                 // И потребителя не е създател на документа
-                if ($rec->createdBy != core_Users::getCurrent()) {
+                if ($rec->createdBy != $cu && core_Users::compareRangs($rec->createdBy, $cu) >= 0) {
                     
                     // Скриват се всички полета, които не са упоменати като променяеми
                     $fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
