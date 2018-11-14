@@ -861,7 +861,7 @@ class marketing_Inquiries2 extends embed_Manager
             $form->setDefault('title', $title);
         }
         
-        $mandatoryField = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
+        $mandatoryField = marketing_Setup::get('MANDATORY_CONTACT_FIELDS');
         if (in_array($mandatoryField, array('company', 'both'))) {
             $form->setField('company', 'mandatory');
         }
