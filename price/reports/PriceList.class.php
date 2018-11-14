@@ -543,4 +543,17 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         return frame2_Reports::getLabelSourceLink($id);
     }
+    
+    
+    /**
+     * Може ли справката да бъде изпращана по имейл
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function canBeSendAsEmail($rec)
+    {
+        return true;
+    }
 }
