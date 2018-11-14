@@ -742,7 +742,8 @@ class store_InventoryNoteSummary extends doc_Detail
     public function prepareListRows_(&$data)
     {
         // Филтрираме записите
-        self::filterRecs($data->masterData->rec->groups, $data->recs);
+        $expand = ($data->masterData->rec->expandGroups == 'yes') ? true : false;
+        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand);
         
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
