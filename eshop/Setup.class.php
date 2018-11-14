@@ -38,6 +38,12 @@ defIfNot('ESHOP_SALE_DEFAULT_TPL_EN', '');
 
 
 /**
+ * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
+ */
+defIfNot('ESHOP_MANDATORY_CONTACT_FIELDS', 'company');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -116,6 +122,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
         'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+        'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
     );
     
     

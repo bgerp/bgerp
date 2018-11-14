@@ -1786,7 +1786,7 @@ class eshop_Carts extends core_Master
         }
         $form->setOptions('paymentId', $paymentMethods);
         
-        $makeInvoice = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
+        $makeInvoice = eshop_Setup::get('MANDATORY_CONTACT_FIELDS');
         if (in_array($makeInvoice, array('company', 'both'))) {
             $form->setDefault('makeInvoice', 'company');
             $form->setField('makeInvoice', 'input=hidden');
