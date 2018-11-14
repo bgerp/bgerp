@@ -231,4 +231,23 @@ class cond_Countries extends core_Manager
         $data->query->XPR('orderCountry', 'int', '(CASE WHEN #country IS NULL THEN 0 ELSE 1 END)');
         $data->query->orderBy('#orderCountry', 'DESC');
     }
+    
+    
+    /**
+     * Намира дефолтното търговско условие за посочената държава
+     * 
+     * @param int $countryId         - ид на държава
+     * @param string $conditionSysId - системно ид на търговско условие
+     * 
+     * @return int|null              - стойноста на търговското условие, или null ако няма
+     */
+    public static function getByCountryId($countryId, $conditionSysId)
+    {
+        expect($condId = cond_Parameters::fetchIdBySysId($conditionSysId));
+        expect(drdata_Countries::fetch($countryId));
+        $value = self::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
+        
+        return isset($value) ? $value : null;
+    }
 }
+
