@@ -342,9 +342,7 @@ class marketing_Router
      */
     public static function normalizeCompanyName($name)
     {
-        $name = str::utf2ascii($name);
-        $name = strtolower($name);
-        $name = str::removeWhitespaces($name, ' ');
+        $name = plg_Search::normalizeText($name);
         $nameL = "#{$name}#";
         
         // Кеширане на думите, които трябва да се премахнат
