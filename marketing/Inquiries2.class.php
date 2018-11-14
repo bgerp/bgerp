@@ -220,7 +220,7 @@ class marketing_Inquiries2 extends embed_Manager
         $form = &$data->form;
         $form->setField('innerClass', 'remember,removeAndRefreshForm=proto|measureId|meta');
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
-        if (empty($cu) || (isset($cu) && !core_Users::isPowerUser($cu))) {
+        if (!core_Users::isContractor($cu)) {
             $form->setField('deliveryAdress', 'input=none');
         }
         
@@ -1045,8 +1045,24 @@ class marketing_Inquiries2 extends embed_Manager
             }
             
             if (!empty($rec->deliveryAdress)) {
-                if (!drdata_Address::parsePlace($rec->deliveryAdress)) {
+                $address = drdata_Address::parsePlace($rec->deliveryAdress);
+                
+                // Опит за разпознаване на адреса и дали се поддържа доставка до там
+                if (!$address) {
                     $form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
+                } elseif(isset($address->countryId)){
+                    $countryDeliveryTermId = cond_Countries::getParameterByCountryId($address->countryId, 'deliveryTermSale');
+                    if(empty($countryDeliveryTermId)){
+                        $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
+                    } else {
+                        $TransportCalculator = cond_DeliveryTerms::getTransportCalculator($countryDeliveryTermId);
+                        
+                        $params = array('deliveryCountry' => $address->countryId, 'deliveryPCode' => $address->pCode);
+                        $totalFee = $TransportCalculator->getTransportFee($countryDeliveryTermId, 1, 1000, $params);
+                        if ($totalFee['fee'] < 0) {
+                            $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
+                        }
+                    }
                 }
             }
         }
