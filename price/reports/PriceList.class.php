@@ -71,7 +71,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=ДДС,after=currencyId,single=none');
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Групи,columns=2,placeholder=Всички,after=vat,single=none');
-        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки,columns=3,placeholder=Всички,after=productGroups,single=none');
+        $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Подгрупи,columns=2,after=productGroups,single=none');
+        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки,columns=3,placeholder=Всички,after=expandGroups,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Изменени цени,after=packagings,single=none');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=period');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=lang,single=none');
@@ -248,7 +249,9 @@ class price_reports_PriceList extends frame2_driver_TableData
            if($rec->lang != 'auto'){
                core_Lg::push($rec->lang);
            }
-           store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name');
+           
+           $expand = ($rec->expandGroups === 'yes') ? true : false;
+           store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name', 'groups', $expand);
            if($rec->lang != 'auto'){
                core_Lg::pop();
            }
