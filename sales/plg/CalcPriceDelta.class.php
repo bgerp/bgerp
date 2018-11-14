@@ -135,12 +135,14 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 $sellCost = $sellCost * (1 - $correctPercent);
             }
             
-            if ($onlySelfValue === true) {
-                $sellCost = null;
+            // Ако има продажна цена, и минимален % и няма себестойност, то се записва % от продажната цена
+            if(isset($sellCost) && !empty($dPercent) && empty($primeCost)){
+                $primeCost = $sellCost * (1 - $dPercent);
             }
             
-            if(isset($sellCost) && isset($primeCost) && empty($primeCost) && !empty($dPercent)){
-                $primeCost = $sellCost * (1 - $dPercent);
+            // Дали да се записва само себестойността
+            if ($onlySelfValue === true) {
+                $sellCost = null;
             }
             
             // Изчисляване на цената по политика
