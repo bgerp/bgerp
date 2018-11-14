@@ -640,14 +640,17 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
-     * Филтрираме записи по подходящ начин
-     *
-     * @param string|null $selectedGroups
-     * @param array    $recs
-     *
+     * Филтриране на записите по подходящ начин
+     * 
+     * @param mixed $selectedGroups
+     * @param array $recs
+     * @param string $codeFld
+     * @param string $nameFld
+     * @param string $groupFld
+     * @param boolean $expand
      * @return void
      */
-    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups')
+    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false)
     {
         // Ако няма записи не правим нищо
         if (!is_array($recs)) {
@@ -659,37 +662,52 @@ class store_InventoryNoteSummary extends doc_Detail
         // Вербализираме и подреждаме групите
         $groups = keylist::toArray($selectedGroups);
         cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
-        
+       
         // За всеки маркер
         foreach ($groups as $grId => $groupName) {
             
-            // Отделяме тези записи, които съдържат текущия маркер
-            $res = array_filter($recs, function (&$e) use ($grId, $groupName, $groupFld) {
-                
-                if (keylist::isIn($grId, $e->{$groupFld})) {
-                    $e->groupName = $groupName;
-                    
-                    return true;
-                }
-                
-                return false;
+            if($expand === true){
+                $desc = cat_Groups::getDescendantArray($grId);
+                $desc = keylist::toArray($desc);
+            } else {
+                $desc = array($grId => $grId);
+            }
+            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$desc));
+            
+            uasort($desc, function($a, $b) {
+                return mb_strlen($b) - mb_strlen($a);
             });
             
-            // Ако има намерени резултати
-            if (count($res) && is_array($res)) {
+            foreach ($desc as $dId => $dName){
                 
-                // От $recs, премахваме отделените записи, да не се обхождат отново
-                $recs = array_diff_key($recs, $res);
-                
-                // Проверяваме как трябва да се сортират артикулите вътре по код или по име
-                $orderProductBy = cat_Groups::fetchField($grId, 'orderProductBy');
-                $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
-                
-                // Сортираме артикулите в маркера
-                arr::sortObjects($res, $field, 'asc', 'stri');
-                
-                // Добавяме артикулите към подредените
-                $ordered += $res;
+                // Отделяме тези записи, които съдържат текущия маркер
+                $res = array_filter($recs, function (&$e) use ($dId, $dName, $groupFld) {
+                    
+                    if (keylist::isIn($dId, $e->{$groupFld})) {
+                        $e->groupName = $dName;
+                        
+                        return true;
+                    }
+                    
+                    return false;
+                });
+               
+                // Ако има намерени резултати
+                if (count($res) && is_array($res)) {
+                    
+                    // От $recs, премахваме отделените записи, да не се обхождат отново
+                    $recs = array_diff_key($recs, $res);
+                    
+                    // Проверяваме как трябва да се сортират артикулите вътре по код или по име
+                    $orderProductBy = cat_Groups::fetchField($grId, 'orderProductBy');
+                    $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
+                        
+                    // Сортираме артикулите в маркера
+                    arr::sortObjects($res, $field, 'asc', 'stri');
+                        
+                    // Добавяме артикулите към подредените
+                    $ordered += $res;
+               }
             }
         }
         

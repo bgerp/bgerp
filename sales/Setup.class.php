@@ -164,6 +164,12 @@ defIfNot('SALES_DELTA_MIN_PERCENT', '');
 
 
 /**
+ * % от продажната цена за себестойността, когато е 0
+ */
+defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -310,6 +316,11 @@ class sales_Setup extends core_ProtoSetup
             'percent',
             'caption=Неснижаема делта->Стойност'
         ),
+        'SALES_DELTA_MIN_PERCENT_PRIME_COST' => array(
+            'percent',
+            'caption=Колко % от продажната цена да се приема нулевата себестойност в делтите->Стойност'
+        ),
+        
         'SALES_TRANSPORT_PRODUCTS_ID' => array(
             'keylist(mvc=cat_Products,select=name)',
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'

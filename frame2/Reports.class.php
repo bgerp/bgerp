@@ -19,7 +19,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf,email_DocumentIntf';
     
     
     /**
@@ -31,7 +31,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg';
     
     
     /**
@@ -762,6 +762,14 @@ class frame2_Reports extends embed_Manager
                 }
             }
         }
+        
+        if($action == 'sendemail' && isset($rec)){
+            if ($Driver = $mvc->getDriver($rec)) {
+                if(!$Driver->canBeSendAsEmail($rec)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -1120,5 +1128,25 @@ class frame2_Reports extends embed_Manager
         if($Driver = static::getDriver($rec)){
             return array('class' => $Driver, 'id' => $rec->id);
         }
+    }
+    
+    
+    /**
+     * Връща тялото на имейла генериран от документа
+     *
+     * @see email_DocumentIntf
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody($id, $forward = false)
+    {
+        $handle = $this->getHandle($id);
+        $tpl = new ET(tr('Моля запознайте се с нашата справка:') . '#[#handle#]');
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
     }
 }

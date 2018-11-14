@@ -74,6 +74,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         
         $res = array();
         $onlySelfValue = false;
+        $dPercent = sales_Setup::get('DELTA_MIN_PERCENT_PRIME_COST');
         
         if ($mvc instanceof sales_Sales) {
             
@@ -136,6 +137,10 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             
             if ($onlySelfValue === true) {
                 $sellCost = null;
+            }
+            
+            if(isset($sellCost) && isset($primeCost) && empty($primeCost) && !empty($dPercent)){
+                $primeCost = $sellCost * (1 - $dPercent);
             }
             
             // Изчисляване на цената по политика
