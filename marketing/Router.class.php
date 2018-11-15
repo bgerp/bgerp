@@ -416,7 +416,7 @@ class marketing_Router
     public static function routeByUniqueId($vatId, $field, $class, $inCharge)
     {
         $Class = cls::get($class);
-        expect(cls::haveInterface('crm_CompanyAccRegIntf', $Class));
+        expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
         $id = $Class->fetchField(array("#{$field} = '[#1#]'", $vatId));
         
         return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
