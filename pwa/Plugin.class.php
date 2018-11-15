@@ -17,12 +17,13 @@ class pwa_Plugin extends core_Plugin
     public function on_Output(&$invoker)
     {
         $manifestUrl = toUrl(array('pwa_Plugin'));
-        
-        $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestUrl}\">", 'HEAD');
 
-        $invoker->push(('pwa/js/app.js'), 'JS');
+        if(haveRole('powerUser')) {
+            $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestUrl}\">", 'HEAD');
 
-        jquery_Jquery::run($invoker, "sendSrc();");
+            $invoker->push(('pwa/js/app.js'), 'JS');
+            jquery_Jquery::run($invoker, "sendSrc();");
+        }
     }
 
 
@@ -53,7 +54,7 @@ class pwa_Plugin extends core_Plugin
             'display' => 'standalone',
             'background_color' => '#fff',
             'theme_color' => '#fff',
-            'start_url' => '/',
+            'start_url' => '/Portal/Show',
             'icons' => $iconInfoArr
         );
         
