@@ -411,14 +411,17 @@ class marketing_Router
      * @param string $field
      * @param mixed $class
      * @param int $inCharge
-     * @return int
+     * 
+     * @return int|null
      */
     public static function routeByUniqueId($vatId, $field, $class, $inCharge)
     {
         $Class = cls::get($class);
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
-        $id = $Class->fetchField(array("#{$field} = '[#1#]'", $vatId));
+        if($id = $Class->fetchField(array("#{$field} = '[#1#]'", $vatId))){
+            return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
+        }
         
-        return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
+        return null;
     }
 }
