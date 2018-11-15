@@ -41,6 +41,7 @@ class price_interface_LabelImpl
     {
         $placeholders = array();
         $placeholders['EAN'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['CODE'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['NAME'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['CATALOG_CURRENCY'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['CATALOG_PRICE'] = (object) array('type' => 'text', 'hidden' => true);
@@ -65,19 +66,24 @@ class price_interface_LabelImpl
         $recs = $rec->data->recs;
         $round = isset($rec->round) ? $rec->round : price_reports_PriceList::DEFAULT_ROUND;
         
+        $Double = core_Type::getByName("double(decimals={$round})");
+        
         $currentCount = 0;
         foreach ($recs as $pRec){
             $name = cat_Products::getVerbal($pRec->productId, 'name');
+            $name = str::limitLen($name, 70);
+            $code = cat_Products::getVerbal($pRec->productId, 'code');
+            $code = !empty($code) ? $code : "Art{$pRec->productId}";
             
             if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
-                $res = array('EAN' => '', 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => round($pRec->price, $round));
+                $res = array('EAN' => '', 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code);
                 $resArr[] = $res;
                 $currentCount++;
                 if($currentCount == $cnt) break;
             }
             
             foreach ($pRec->packs as $packRec){
-                $res = array('EAN' => $packRec->eanCode, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => round($packRec->price, $round));
+                $res = array('EAN' => $packRec->eanCode, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($pRec->price), "CODE" => $code);
                 $resArr[] = $res;
                 $currentCount++;
                 if($currentCount == $cnt) break;
