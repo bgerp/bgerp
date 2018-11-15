@@ -166,7 +166,7 @@ defIfNot('SALES_DELTA_MIN_PERCENT', '');
 /**
  * % от продажната цена за себестойността, когато е 0
  */
-defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '');
+defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 
 
 /**
