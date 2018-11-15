@@ -40,12 +40,6 @@ class planning_Hr extends core_Master
     
     
     /**
-     * Текущ таб
-     */
-    public $currentTab = 'Ресурси->Служители';
-    
-    
-    /**
      * Кой може да редактира
      */
     public $canEdit = 'ceo,planningMaster';

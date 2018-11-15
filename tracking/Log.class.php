@@ -48,7 +48,7 @@ class tracking_Log extends core_Master
      */
     public function description()
     {
-        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number, allowEmpty=true)', 'caption=Автомобил');
+        $this->FLD('vehicleId', 'key(mvc=tracking_Vehicles, select=number, allowEmpty=true)', 'caption=Автомобил, silent');
         $this->FLD('driverId', 'key(mvc=crm_Persons, select=name, allowEmpty=true)', 'caption=Водач');
         $this->FLD('location', 'location_Type', 'caption=Локация, tdClass=large-field');
         
@@ -76,7 +76,7 @@ class tracking_Log extends core_Master
         
         $data->listFilter->view = 'horizontal';
         
-        $rec = $data->listFilter->input();
+        $rec = $data->listFilter->input($data->listFilter->showFields, true);
         
         if ($rec) {
             if ($rec->vehicleId) {

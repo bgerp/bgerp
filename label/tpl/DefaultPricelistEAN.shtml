@@ -27,7 +27,7 @@
     <table cellpadding="0">
         <tr>
             <td class="no-border-left big-text" >
-                <div style='padding-top: 1px; height:8mm; min-height:8mm;' align="center"> [#NAME#]</div>
+                <div style='padding-top: 1px; height:8mm; min-height:8mm;' align="center"> [#NAME#] - [#CODE#]</div>
             </td>
         </tr>
         <tr>

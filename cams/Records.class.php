@@ -117,7 +117,7 @@ class cams_Records extends core_Master
      */
     public function description()
     {
-        $this->FLD('cameraId', 'key(mvc=cams_Cameras,select=title)', 'caption=Камера, mandatory');
+        $this->FLD('cameraId', 'key(mvc=cams_Cameras,select=title)', 'caption=Камера, mandatory, silent');
         $this->FLD('startTime', 'datetime', 'caption=Начало');
         $this->FLD('duration', 'int', 'caption=Продължителност');
         $this->FLD('playedOn', 'datetime', 'caption=Гледан на');
