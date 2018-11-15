@@ -548,7 +548,7 @@ class eshop_Carts extends core_Master
         $tpl->replace($count, 'count');
         
         $currentTab = Mode::get('currentExternalTab');
-        $selectedClass = ($currentTab == 'eshop_Carts') ? 'class=selected-external-tab' : '';
+        $selectedClass = ($currentTab == 'eshop_Carts') ? 'class=selected-external-tab' : ' ';
         $tpl = ht::createLink($tpl, $url, false, "title={$hint}, ef_icon=img/16/cart-black.png,{$selectedClass},rel=nofollow");
         
         $tpl->removeBlocks();
