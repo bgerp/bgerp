@@ -99,7 +99,7 @@ class marketing_InquiryRouter extends core_Manager
             return $folderId;
         }
         
-        foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
+        foreach (array('vatId' => $vatId, 'egn' => $uicId) as $field => $value){
             if(!empty($value)){
                 $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge);
                 if ($folderId) {
