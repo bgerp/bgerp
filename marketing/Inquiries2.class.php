@@ -1051,16 +1051,27 @@ class marketing_Inquiries2 extends embed_Manager
                 if (!$address) {
                     $form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
                 } elseif(isset($address->countryId)){
-                    $countryDeliveryTermId = cond_Countries::getParameterByCountryId($address->countryId, 'deliveryTermSale');
-                    if(empty($countryDeliveryTermId)){
-                        $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
-                    } else {
-                        $TransportCalculator = cond_DeliveryTerms::getTransportCalculator($countryDeliveryTermId);
-                        
-                        $params = array('deliveryCountry' => $address->countryId, 'deliveryPCode' => $address->pCode);
-                        $totalFee = $TransportCalculator->getTransportFee($countryDeliveryTermId, 1, 1000, $params);
-                        if ($totalFee['fee'] < 0) {
+                    if(empty($rec->country)){
+                        $countryId = $rec->country;
+                    } elseif(isset($rec->folderId)){
+                        $Cover = doc_Folders::getCover($rec->folderId);
+                        $Cover->haveInterface('doc_ContragentDataIntf');
+                        $countryId = $Cover->getContragentData()->countryId;
+                    }
+                    
+                    // Само ако държавата в запитването е различна от тази на адреса
+                    if($countryId != $address->countryId){
+                        $countryDeliveryTermId = cond_Countries::getParameterByCountryId($address->countryId, 'deliveryTermSale');
+                        if(empty($countryDeliveryTermId)){
                             $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
+                        } else {
+                            $TransportCalculator = cond_DeliveryTerms::getTransportCalculator($countryDeliveryTermId);
+                            
+                            $params = array('deliveryCountry' => $address->countryId, 'deliveryPCode' => $address->pCode);
+                            $totalFee = $TransportCalculator->getTransportFee($countryDeliveryTermId, 1, 1000, $params);
+                            if ($totalFee['fee'] < 0) {
+                                $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
+                            }
                         }
                     }
                 }
