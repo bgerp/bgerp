@@ -402,4 +402,23 @@ class marketing_Router
         
         return $normalized;
     }
+    
+    
+    /**
+     * Рутиран по уникален номер
+     * 
+     * @param string $vatId
+     * @param string $field
+     * @param mixed $class
+     * @param int $inCharge
+     * @return int
+     */
+    public static function routeByUniqueId($vatId, $field, $class, $inCharge)
+    {
+        $Class = cls::get($class);
+        expect(cls::haveInterface('crm_CompanyAccRegIntf', $Class));
+        $id = $Class->fetchField(array("#{$field} = '[#1#]'", $vatId));
+        
+        return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
+    }
 }

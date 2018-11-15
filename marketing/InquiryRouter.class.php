@@ -23,10 +23,10 @@ class marketing_InquiryRouter extends core_Manager
      *
      * @return int - ид на папка
      */
-    public static function route($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid)
+    public static function route($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null)
     {
         // Ако е от колаборатор към първата споделена папка на колаборатор
-        if (core_Packs::isInstalled('colab') && core_Users::isContractor($userRec)) {
+        if (core_Packs::isInstalled('colab') && core_Users::isContractor()) {
             if ($companyFolderId = core_Mode::get('lastActiveContragentFolder')) {
                 
                 return $companyFolderId;
@@ -37,11 +37,11 @@ class marketing_InquiryRouter extends core_Manager
         if (empty($company)) {
             
             // Рутиране на запитване от лице
-            $folderId = static::routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid);
+            $folderId = static::routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId);
         } else {
             
             // Рутиране на запитване от фирма
-            $folderId = static::routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid);
+            $folderId = static::routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId);
         }
         
         // Трябва да е намерена папка
@@ -73,7 +73,7 @@ class marketing_InquiryRouter extends core_Manager
      *
      * @return int $folderId
      */
-    private static function routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid)
+    private static function routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null)
     {
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId);
@@ -97,6 +97,16 @@ class marketing_InquiryRouter extends core_Manager
         if ($folderId) {
             
             return $folderId;
+        }
+        
+        foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
+            if(!empty($value)){
+                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge);
+                if ($folderId) {
+                    
+                    return $folderId;
+                }
+            }
         }
         
         // Ако има лице във визитника от същата държава
@@ -138,10 +148,12 @@ class marketing_InquiryRouter extends core_Manager
      * @param string $place
      * @param string $address
      * @param string $brid
-     *
+     * @param string $vatId
+     * @param string $uicId
+     * 
      * @return int $folderId
      */
-    private static function routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid)
+    private static function routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null)
     {
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId);
@@ -158,6 +170,16 @@ class marketing_InquiryRouter extends core_Manager
         if ($folderId) {
             
             return $folderId;
+        }
+        
+        foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
+            if(!empty($value)){
+                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
+                if ($folderId) {
+                    
+                    return $folderId;
+                }
+            }
         }
         
         // Рутираме в папка на фирма със същото име от същата държава
