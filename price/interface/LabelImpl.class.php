@@ -70,20 +70,26 @@ class price_interface_LabelImpl
         
         $currentCount = 0;
         foreach ($recs as $pRec){
+            $ean = '';
+            if($onlyPreview === true){
+                $ean = '0000000000000';
+            }
+            
             $name = cat_Products::getVerbal($pRec->productId, 'name');
             $name = str::limitLen($name, 70);
             $code = cat_Products::getVerbal($pRec->productId, 'code');
             $code = !empty($code) ? $code : "Art{$pRec->productId}";
             
             if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
-                $res = array('EAN' => '', 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code);
+                $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code);
                 $resArr[] = $res;
                 $currentCount++;
                 if($currentCount == $cnt) break;
             }
             
             foreach ($pRec->packs as $packRec){
-                $res = array('EAN' => $packRec->eanCode, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($pRec->price), "CODE" => $code);
+                $ean = $packRec->eanCode;
+                $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($pRec->price), "CODE" => $code);
                 $resArr[] = $res;
                 $currentCount++;
                 if($currentCount == $cnt) break;
