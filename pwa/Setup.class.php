@@ -47,6 +47,7 @@ class pwa_Setup extends core_ProtoSetup
 
         $sw = file_get_contents(sbf('pwa/js/sw.js', '', true));
         core_Webroot::register($sw, '', 'sw.js', 1);
+
         
         return $html;
     }
