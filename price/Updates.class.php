@@ -99,7 +99,7 @@ class price_Updates extends core_Manager
     									lastQuote=Последна оферта,
     									bom=Последна рецепта)', 'caption=Източник 3');
         $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
-        $this->FLD('costAddAmount', 'double', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
+        $this->FLD('costAddAmount', 'double(Min=0))', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
         $this->FLD('minChange', 'percent(min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');

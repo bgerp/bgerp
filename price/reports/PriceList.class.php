@@ -67,17 +67,18 @@ class price_reports_PriceList extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('date', 'date(smartTime)', 'caption=Към дата,after=title');
-        $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandatory,after=date');
-        $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input,after=policyId,single=none');
-        $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=ДДС,after=currencyId,single=none');
-        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Групи,columns=2,placeholder=Всички,after=vat,single=none');
-        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Опаковки,columns=3,placeholder=Всички,after=productGroups,single=none');
-        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Изменени цени,after=packagings,single=none');
-        $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=period');
-        $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=lang,single=none');
+        $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date');
+        $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
+        $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
+        $fieldset->FLD('round', 'int(Min=0)', 'caption=Цени->Точност,autohide,after=vat');
+        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Групи,columns=2,placeholder=Всички,after=round,single=none');
+        $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Филтър->Подгрупи,columns=2,after=productGroups,single=none');
+        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Филтър->Опаковки,columns=3,placeholder=Всички,after=expandGroups,single=none');
+        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Филтър->Изменени цени,after=packagings,single=none');
+        $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=period,single=none');
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
         $fieldset->FLD('showEan', 'enum(yes=Показване ако има,no=Да не се показва)', 'caption=Допълнително->EAN|*?,after=showMeasureId');
-        $fieldset->FLD('round', 'int(Min=0)', 'caption=Допълнително->Точност,autohide,after=showEan');
+        $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan');
    }
     
    
@@ -108,6 +109,7 @@ class price_reports_PriceList extends frame2_driver_TableData
    {
        $form = &$data->form;
        $form->setField('round', "placeholder=" . self::DEFAULT_ROUND);
+       $form->setSuggestions('round', array('' => '', 2 => 2, 4 => 4));
        $form->setDefault('lang', 'auto');
        $form->setDefault('showEan', 'yes');
        $form->setDefault('showMeasureId', 'yes');
@@ -248,7 +250,9 @@ class price_reports_PriceList extends frame2_driver_TableData
            if($rec->lang != 'auto'){
                core_Lg::push($rec->lang);
            }
-           store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name');
+           
+           $expand = ($rec->expandGroups === 'yes') ? true : false;
+           store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name', 'groups', $expand);
            if($rec->lang != 'auto'){
                core_Lg::pop();
            }
@@ -382,7 +386,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         if($export === true){
             $fld->FLD('currencyId', 'varchar', 'caption=Валута');
         } else {
-            $fld->FLD('packs', 'html', 'caption=Опаковки');
+            $fld->FLD('packs', 'html', 'caption=Опаковка');
         }
         if(!empty($rec->period)){
             if($export === false){
@@ -539,5 +543,18 @@ class price_reports_PriceList extends frame2_driver_TableData
     public function getLabelSourceLink($id)
     {
         return frame2_Reports::getLabelSourceLink($id);
+    }
+    
+    
+    /**
+     * Може ли справката да бъде изпращана по имейл
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function canBeSendAsEmail($rec)
+    {
+        return true;
     }
 }

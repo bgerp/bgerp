@@ -142,6 +142,14 @@ class acc_ArticleDetails extends doc_Detail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'amount';
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterPrepareListRows($mvc, &$res)

@@ -220,7 +220,7 @@ class marketing_Inquiries2 extends embed_Manager
         $form = &$data->form;
         $form->setField('innerClass', 'remember,removeAndRefreshForm=proto|measureId|meta');
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
-        if (empty($cu) || (isset($cu) && !core_Users::isPowerUser($cu))) {
+        if (!core_Users::isContractor($cu)) {
             $form->setField('deliveryAdress', 'input=none');
         }
         
@@ -861,7 +861,7 @@ class marketing_Inquiries2 extends embed_Manager
             $form->setDefault('title', $title);
         }
         
-        $mandatoryField = bgerp_Setup::get('MANDATORY_CONTACT_FIELDS');
+        $mandatoryField = marketing_Setup::get('MANDATORY_CONTACT_FIELDS');
         if (in_array($mandatoryField, array('company', 'both'))) {
             $form->setField('company', 'mandatory');
         }
@@ -973,6 +973,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         // Поставяме шаблона за външен изглед
         Mode::set('wrapper', 'cms_page_External');
+        $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
@@ -1044,8 +1045,35 @@ class marketing_Inquiries2 extends embed_Manager
             }
             
             if (!empty($rec->deliveryAdress)) {
-                if (!drdata_Address::parsePlace($rec->deliveryAdress)) {
+                $address = drdata_Address::parsePlace($rec->deliveryAdress);
+                
+                // Опит за разпознаване на адреса и дали се поддържа доставка до там
+                if (!$address) {
                     $form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
+                } elseif(isset($address->countryId)){
+                    if(empty($rec->country)){
+                        $countryId = $rec->country;
+                    } elseif(isset($rec->folderId)){
+                        $Cover = doc_Folders::getCover($rec->folderId);
+                        $Cover->haveInterface('doc_ContragentDataIntf');
+                        $countryId = $Cover->getContragentData()->countryId;
+                    }
+                    
+                    // Само ако държавата в запитването е различна от тази на адреса
+                    if($countryId != $address->countryId){
+                        $countryDeliveryTermId = cond_Countries::getParameterByCountryId($address->countryId, 'deliveryTermSale');
+                        if(empty($countryDeliveryTermId)){
+                            $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
+                        } else {
+                            $TransportCalculator = cond_DeliveryTerms::getTransportCalculator($countryDeliveryTermId);
+                            
+                            $params = array('deliveryCountry' => $address->countryId, 'deliveryPCode' => $address->pCode);
+                            $totalFee = $TransportCalculator->getTransportFee($countryDeliveryTermId, 1, 1000, $params);
+                            if ($totalFee['fee'] < 0) {
+                                $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
+                            }
+                        }
+                    }
                 }
             }
         }

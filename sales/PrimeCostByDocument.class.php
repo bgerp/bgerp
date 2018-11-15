@@ -341,7 +341,6 @@ class sales_PrimeCostByDocument extends core_Manager
             
             // Намиране на дилъра, инициатора и взимане на данните на мастъра на детайла
             $Document = $masters[$rec->containerId][0];
-            $persons = self::getDealerAndInitiatorId($rec->containerId);
             
             // За дилъра и инициатора, ако има ще се подават делтите
             foreach (array('dealerId', 'initiatorId') as $personFld) {
@@ -780,6 +779,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $containerId = $firstDoc->fetchField('containerId');
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #containerId = {$containerId}");
+        $query->where("#primeCost IS NOT NULL");
         $query->show('quantity,primeCost');
         $sum = $totalQ = 0;
         
@@ -787,7 +787,7 @@ class sales_PrimeCostByDocument extends core_Manager
             $sum += $rec->quantity * $rec->primeCost;
             $totalQ += $rec->quantity;
         }
-        
+       
         // Сумата на себестойноста е среднопритеглената себестойност
         if ($totalQ) {
             

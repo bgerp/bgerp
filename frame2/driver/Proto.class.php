@@ -213,8 +213,28 @@ abstract class frame2_driver_Proto extends core_BaseClass
     }
     
     
+    /**
+     * Връща шаблоните за етикети към драйвера
+     *
+     * @param mixed $id
+     *
+     * @return array - достъпни шаблони
+     */
     public function getLabelTemplates($id)
     {
         return label_Templates::getTemplatesByClass($this);
+    }
+    
+    
+    /**
+     * Може ли справката да бъде изпращана по имейл
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function canBeSendAsEmail($rec)
+    {
+        return false;
     }
 }

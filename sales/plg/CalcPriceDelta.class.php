@@ -74,6 +74,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         
         $res = array();
         $onlySelfValue = false;
+        $dPercent = sales_Setup::get('DELTA_MIN_PERCENT_PRIME_COST');
         
         if ($mvc instanceof sales_Sales) {
             
@@ -134,6 +135,12 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 $sellCost = $sellCost * (1 - $correctPercent);
             }
             
+            // Ако има продажна цена, и минимален % и няма себестойност, то се записва % от продажната цена
+            if(isset($sellCost) && !empty($dPercent) && empty($primeCost)){
+                $primeCost = $sellCost * (1 - $dPercent);
+            }
+            
+            // Дали да се записва само себестойността
             if ($onlySelfValue === true) {
                 $sellCost = null;
             }

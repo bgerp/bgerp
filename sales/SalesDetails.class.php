@@ -65,6 +65,12 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'sales,ceo,partner';
+    
+    
+    /**
      * Кой има право да променя?
      *
      * @var string|array

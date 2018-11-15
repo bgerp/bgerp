@@ -14,6 +14,12 @@ defIfNot('MARKETING_INQUIRE_TO_EMAIL', '');
 
 
 /**
+ * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
+ */
+defIfNot('MARKETING_MANDATORY_CONTACT_FIELDS', 'company');
+
+
+/**
  * Маркетинг - инсталиране / деинсталиране
  *
  *
@@ -58,6 +64,7 @@ class marketing_Setup extends core_ProtoSetup
     public $configDescription = array(
         'MARKETING_INQUIRE_FROM_EMAIL' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
         'MARKETING_INQUIRE_TO_EMAIL' => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
+        'MARKETING_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за запитване->Поле'),
     );
     
     
