@@ -148,6 +148,21 @@ class planning_Setup extends core_ProtoSetup
     
     
     /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+        
+        // Кофа за снимки
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
+        
+        return $html;
+    }
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     public function deinstall()

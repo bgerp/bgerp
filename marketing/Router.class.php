@@ -342,9 +342,7 @@ class marketing_Router
      */
     public static function normalizeCompanyName($name)
     {
-        $name = str::utf2ascii($name);
-        $name = strtolower($name);
-        $name = str::removeWhitespaces($name, ' ');
+        $name = plg_Search::normalizeText($name);
         $nameL = "#{$name}#";
         
         // Кеширане на думите, които трябва да се премахнат
@@ -403,5 +401,27 @@ class marketing_Router
         }
         
         return $normalized;
+    }
+    
+    
+    /**
+     * Рутиран по уникален номер
+     * 
+     * @param string $vatId
+     * @param string $field
+     * @param mixed $class
+     * @param int $inCharge
+     * 
+     * @return int|null
+     */
+    public static function routeByUniqueId($vatId, $field, $class, $inCharge)
+    {
+        $Class = cls::get($class);
+        expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
+        if($id = $Class->fetchField(array("#{$field} = '[#1#]'", $vatId))){
+            return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
+        }
+        
+        return null;
     }
 }

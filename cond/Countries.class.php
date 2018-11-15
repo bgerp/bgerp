@@ -157,10 +157,7 @@ class cond_Countries extends core_Manager
             }
         }
         
-        if ($ParamType = cond_Parameters::getTypeInstance($paramRec, 'drdata_Countries', $rec->country, $rec->value)) {
-            $row->value = $ParamType->toVerbal(trim($rec->value));
-            $row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
-        }
+        $row->value = cond_Parameters::toVerbal($paramRec, 'drdata_Countries', $rec->country, $rec->value);
         
         if (!empty($paramRec->group)) {
             $paramRec->group = tr($paramRec->group);
@@ -231,4 +228,23 @@ class cond_Countries extends core_Manager
         $data->query->XPR('orderCountry', 'int', '(CASE WHEN #country IS NULL THEN 0 ELSE 1 END)');
         $data->query->orderBy('#orderCountry', 'DESC');
     }
+    
+    
+    /**
+     * Намира дефолтното търговско условие за посочената държава
+     * 
+     * @param int $countryId         - ид на държава
+     * @param string $conditionSysId - системно ид на търговско условие
+     * 
+     * @return int|null              - стойноста на търговското условие, или null ако няма
+     */
+    public static function getParameterByCountryId($countryId, $conditionSysId)
+    {
+        expect($condId = cond_Parameters::fetchIdBySysId($conditionSysId));
+        expect(drdata_Countries::fetch($countryId));
+        $value = self::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
+        
+        return isset($value) ? $value : null;
+    }
 }
+

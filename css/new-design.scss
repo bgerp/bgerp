@@ -39,8 +39,12 @@
     z-index: 1000;
 }
 
-.wide .sidemenu {
+.wide .sidemenu-left {
     overflow-y: scroll;
+}
+
+.wide .sidemenu-right {
+  overflow-y: auto;
 }
 
 .narrow .sidemenu {

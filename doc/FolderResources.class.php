@@ -243,7 +243,6 @@ class doc_FolderResources extends core_Manager
         // Ако се променят оборудванията
         if ($type == 'asset') {
             $classId = planning_AssetResources::getClassId();
-            $this->currentTab = 'Ресурси->Оборудване';
             $typeTitle = 'оборудванията';
             $form->FLD('select', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Оборудване');
             $aQuery = planning_AssetResources::getQuery();
@@ -255,7 +254,6 @@ class doc_FolderResources extends core_Manager
             $default = array_keys(planning_AssetResources::getByFolderId($folderId));
         } else {
             $classId = planning_Hr::getClassId();
-            $this->currentTab = 'Ресурси->Служители';
             $typeTitle = 'служителите';
             $form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', 'caption=Служители');
             $options = crm_Persons::getEmployeesOptions();

@@ -2604,4 +2604,23 @@ class core_Users extends core_Manager
         
         return core_Users::fetch(array("#email = '[#1#]'{$where}", $email));
     }
+    
+    
+    /**
+     * Сравнява ранговете на двама потребителя 
+     * 
+     * @param int $firstUserId  - ид на първия потребител
+     * @param int $secondUserId - ид на втория потребител
+     * @return number           - 0 ако са равни, -1 ако $firstUserId е с по-нисък ранг и 1 ако е с по-голям ранг
+     */
+    public static function compareRangs($firstUserId, $secondUserId)
+    {
+        $firstUserRangName = self::getRang($firstUserId);
+        $secondUserRangName = self::getRang($secondUserId);
+        
+        $rangs = array('partner' => 1, 'executive' => 2, 'officer' => 3, 'manager' => 4,'ceo' => 5);
+        $compare = ($rangs[$firstUserRangName] == $rangs[$secondUserRangName]) ? 0 : (($rangs[$firstUserRangName] < $rangs[$secondUserRangName]) ? -1 : 1);
+        
+        return $compare;
+    }
 }

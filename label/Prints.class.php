@@ -840,8 +840,10 @@ class label_Prints extends core_Master
                     }
                 } elseif (cls::haveInterface('doc_DocumentIntf', $clsInst)) {
                     $row->source = $clsInst->getLink($rec->objectId, 0);
-                } else {
+                } elseif($clsInst instanceof core_Master) {
                     $row->source = $clsInst->getHyperlink($rec->objectId, true);
+                } elseif(cls::haveInterface('frame2_ReportIntf', $clsInst)){
+                    $row->source = frame2_Reports::getLink($rec->objectId, 0);
                 }
             }
         }

@@ -51,13 +51,13 @@ class sens2_Indicators extends core_Detail
      */
     public $canWrite = 'debug';
     
-
+    
     /**
      * Права за писане
      */
     public $canEdit = 'debug';
-
-
+    
+    
     /**
      * Права за запис
      */
@@ -84,7 +84,8 @@ class sens2_Indicators extends core_Detail
     public $canChangestate = 'sens,admin';
     
     public $masterKey = 'controllerId';
-
+    
+    
     /**
      * Описание на модела
      */
@@ -92,7 +93,7 @@ class sens2_Indicators extends core_Detail
     {
         $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
         $this->FLD('port', 'varchar(64)', 'caption=Порт, mandatory');
-        $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност,input=none');
+        $this->FLD('value', 'double(minDecimals=0, maxDecimals=4, smartRound)', 'caption=Стойност,input=none');
         $this->FLD('lastValue', 'datetime', 'caption=Към момент,oldFieldName=time,input=none');
         $this->FLD('lastUpdate', 'datetime', 'caption=Последно време на Обновяване,column=none,input=none');
         $this->FLD('error', 'varchar(128)', 'caption=Грешки,input=none');
@@ -103,6 +104,40 @@ class sens2_Indicators extends core_Detail
         $this->FNC('isOutput', 'enum(yes,no)', 'caption=Изход ли е?,column=none');
         
         $this->setDbUnique('controllerId,port,uom');
+    }
+    
+    
+    /**
+     *
+     * @param array $idArr
+     *
+     * @return string
+     */
+    public static function renderIndicator($idArr)
+    {
+        $res = '';
+        
+        foreach ($idArr as $id) {
+            $rec = self::fetch($id);
+            
+            if (!$rec) {
+                continue ;
+            }
+            
+            $row = self::recToVerbal($rec);
+            
+            $cIndicator = "{$row->port}: {$row->value}{$row->uom} {$row->lastValue}";
+            
+            if (sens2_DataLogs::haveRightFor('list')) {
+                $cIndicator = ht::createLinkRef($cIndicator, array('sens2_DataLogs', 'List', 'indicatorId' => $rec->id));
+            }
+            
+            $cIndicator = "<div class='indicators-{$rec->state}'>{$cIndicator}</div>";
+            
+            $res .= $cIndicator;
+        }
+        
+        return $res;
     }
     
     
@@ -335,7 +370,7 @@ class sens2_Indicators extends core_Detail
         $var = $rec->port . '_name';
         if ($configs[$rec->controllerId]->{$var}) {
             $row->port = type_Varchar::escape($rec->port . ' (' . $configs[$rec->controllerId]->{$var} . ')');
-        } elseif(!empty($params[$rec->controllerId][$rec->port]->caption)) {
+        } elseif (!empty($params[$rec->controllerId][$rec->port]->caption)) {
             $row->port = $rec->port . ' (' . type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . ')');
         } else {
             $row->port = $rec->port;

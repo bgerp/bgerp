@@ -173,6 +173,17 @@ class eshop_CartDetails extends core_Detail
     
     
     /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     */
+    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
+    {
+        if (isset($data->form->rec->external)) {
+            $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
+        }
+    }
+    
+    
+    /**
      * След подготовката на заглавието на формата
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)

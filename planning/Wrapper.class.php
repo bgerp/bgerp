@@ -29,12 +29,13 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB('planning_ProductionTaskDetails', 'Операции->Прогрес', 'ceo,taskWorker');
         $this->TAB('planning_Centers', 'Центрове', 'ceo, planning');
         
-        $this->TAB('planning_AssetResources', 'Ресурси->Оборудване', 'ceo,planning');
-        $this->TAB('planning_Hr', 'Ресурси->Служители', 'ceo,planning');
-        $this->TAB('planning_AssetResourcesNorms', 'Ресурси->Норми', 'ceo,planning');
+        $this->TAB(array('planning_AssetResources', 'type' => 'material'), 'Ресурси->Материални', 'ceo,planning');
+        $this->TAB(array('planning_AssetResources', 'type' => 'nonMaterial'), 'Ресурси->Нематериални', 'ceo,planning');
+        $this->TAB('planning_Hr', 'Ресурси->Човешки', 'ceo,planning');
+        $this->TAB('planning_AssetGroups', 'Ресурси->Групи', 'ceo,planning');
         
-        $this->TAB('planning_AssetGroups', 'Настройки->Видове оборудване', 'ceo,planning');
         $this->TAB('planning_FoldersWithResources', 'Настройки->Папки с ресурси', 'ceo,planning');
+        $this->TAB('planning_AssetResourcesNorms', 'Настройки->Норми', 'ceo,planning');
         
         $this->title = 'Планиране';
     }
