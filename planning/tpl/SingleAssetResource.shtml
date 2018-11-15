@@ -6,6 +6,10 @@
         <fieldset class="detail-info">
             <legend class="groupTitle">|Общи данни|*</legend>
             <ul>
+                <!--ET_BEGIN image-->
+                <li class="fright">[#image#]</li>
+                <!--ET_END image-->
+
                 <!--ET_BEGIN groupId-->
                 <li class="info">
                     <span class="gray-title">|Вид|*: </span> [#groupId#]
@@ -17,10 +21,6 @@
                     <span class="gray-title">|Едновременност|*: </span>[#simultaneityData#]
                 </li>
                 <!--ET_END simultaneityData-->
-                
-                <!--ET_BEGIN image-->
-                <span class="floatRight">[#image#]</span>
-                <!--ET_END image-->
                 
                 <li class="info">
                     <span class="gray-title">|Създаване|*: </span>|от|* [#createdBy#] |на|* [#createdOn#]
@@ -39,7 +39,7 @@
         </fieldset>
         
         <!--ET_BEGIN jobs-->
-        <fieldset class="detail-info">
+        <fieldset class="detail-info" style="margin-top: 20px;">
             <legend class="groupTitle">|Използване|*</legend>
             <ul>         
                 <!--ET_BEGIN simultaneity-->
@@ -60,7 +60,7 @@
         <!--ET_END jobs-->
         
         <!--ET_BEGIN issues-->
-        <fieldset class="detail-info">
+        <fieldset class="detail-info" style="margin-top: 20px;">
             <legend class="groupTitle">|Поддръжка|*</legend>
             <ul>
                 <!--ET_BEGIN systemFolderId-->
@@ -74,35 +74,29 @@
         <!--ET_END issues-->
         
         <!--ET_BEGIN sensors-->
-        <fieldset class="detail-info">
+        <fieldset class="detail-info" style="margin-top: 20px;">
             <legend class="groupTitle">|Сензори|*</legend>
             [#sensors#]
         </fieldset>
         <!--ET_END sensors-->
         
         <!--ET_BEGIN cams-->
-        <fieldset class="detail-info">
+        <fieldset class="detail-info" style="margin-top: 20px;">
             <legend class="groupTitle">|Камери|*</legend>
             [#cams#]
         </fieldset>
         <!--ET_END cams-->
         
         <!--ET_BEGIN tracking-->
-        <fieldset class="detail-info">
+        <fieldset class="detail-info" style="margin-top: 20px;">
             <legend class="groupTitle">|Проследяване|*</legend>
             [#tracking#]
         </fieldset>
         <!--ET_END tracking-->
-        
-        
-        
-        
-        
-    </div>
-    
-    <fieldset class="detail-info">
-        <legend class="groupTitle">|Норми|*</legend>
-           [#planning_AssetResourcesNorms#]
-    </fieldset>
+
+        <fieldset class="detail-info" style="margin-top: 20px;">
+            <legend class="groupTitle">|Норми|*</legend>
+            [#planning_AssetResourcesNorms#]
+        </fieldset>
     </div>
 </div>
