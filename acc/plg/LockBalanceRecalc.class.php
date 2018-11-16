@@ -123,4 +123,19 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     {
         core_Locks::release('RecalcBalances');
     }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if (haveRole('ceo,admin,debug')) {
+            $url = acc_Balances::getRecalcCronUrl();
+            $data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
+        }
+    }
 }

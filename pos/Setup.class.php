@@ -180,7 +180,7 @@ class pos_Setup extends core_ProtoSetup
             'controller' => 'pos_Reports',
             'action' => 'CloseReports',
             'period' => 1440,
-            'offset' => 60,
+            'offset' => 1380,
             'timeLimit' => 100,
         ),
         array(
