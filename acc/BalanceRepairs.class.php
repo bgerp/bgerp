@@ -44,7 +44,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'balanceId';
+    public $listFields = 'title=Документ,balanceId,state,createdOn,createdBy';
     
     
     /**
@@ -261,6 +261,8 @@ class acc_BalanceRepairs extends core_Master
         if (acc_Balances::haveRightFor('single', $rec->balanceId)) {
             $row->balanceId = ht::createLink($row->balanceId, array('acc_Balances', 'single', $rec->balanceId), null, "ef_icon=img/16/table_sum.png, title=Оборотна ведомост {$row->balanceId}");
         }
+        
+        $row->title = $mvc->getLink($rec->id, 0);
     }
     
     

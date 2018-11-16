@@ -1689,6 +1689,11 @@ span.inputLackOfChoice {
    border-radius:2px;
 }
 
+.narrow span.inputLackOfChoice {
+	display: block;
+	white-space: normal;
+}
+
 span.inputLackOfChoiceMandatory {
     padding:4px;
     background-color:yellow;

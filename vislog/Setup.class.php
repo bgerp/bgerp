@@ -81,7 +81,7 @@ class vislog_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'vislog_reports_IpImpl,vislog_reports_Resources';
+    public $defClasses = 'vislog_reports_IpImpl,vislog_reports_Resources,vislog_reports_HistoryResourcesCounter';
     
     
     /**

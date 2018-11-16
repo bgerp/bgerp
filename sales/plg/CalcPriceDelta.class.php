@@ -158,7 +158,22 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'contragentClassId' => $Cover->getClassId(),
                 'primeCost' => $primeCost);
             
-            $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+            // Ако първия документ е обединяваща продажба
+            $persons = null;
+            if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDoc->isInstanceOf('sales_Sales')){
+                    $closedDocuments = $firstDoc->fetchField('closedDocuments');
+                    
+                    // Търговецът и инициаторът са тези от обеднинения договор където артикула е в най-голямо количество
+                    if(!empty($closedDocuments)){
+                        $persons = sales_PrimeCostByDocument::getDealerAndInitiatorFromCombinedDeals($dRec->{$mvc->detailProductFld}, $closedDocuments);
+                    }
+                }
+            }
+            
+            if(!is_array($persons)){
+                $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+            }
             
             $r->dealerId = $persons['dealerId'];
             $r->initiatorId = $persons['initiatorId'];
