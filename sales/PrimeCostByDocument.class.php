@@ -822,4 +822,40 @@ class sales_PrimeCostByDocument extends core_Manager
         
         return (round($price, 4) < round($primeCost, 4));
     }
+    
+    
+    /**
+     * Помощна ф-я връщаща дилъра и инциатора за артикула от обединения договор с най-голямо количество
+     * 
+     * @param int $productId
+     * @param mixed $closedSales
+     * @return array|null
+     */
+    public static function getDealerAndInitiatorFromCombinedDeals($productId, $closedSales)
+    {
+        $quantities = array();
+        
+        // Търсене в обединените договори, където се среща количеството
+        $closedSales = keylist::toArray($closedSales);
+        foreach ($closedSales as $saleId){
+            $dQuery = sales_SalesDetails::getQuery();
+            $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
+            $dQuery->where("#saleId = {$saleId} AND #productId = {$productId}");
+            if($sum = $dQuery->fetch()->sum){
+                $quantities[$saleId] = $sum;
+            }
+        }
+        
+        // Сортира се по най-голямо количество
+        if(!count($quantities)) return null;
+        arsort($quantities);
+        $quantities = array_keys($quantities);
+        
+        if(isset($quantities[0])){
+            $containerId = sales_Sales::fetchField($quantities[0], 'containerId');
+            $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($containerId);
+            
+            return $persons;
+        }
+    }
 }

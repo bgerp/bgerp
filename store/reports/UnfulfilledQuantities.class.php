@@ -55,7 +55,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=to');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=contragent');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=contragent');
         $fieldset->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група артикули,placeholder=Всички,after=storeId,single=none');
         $fieldset->FLD('tolerance', 'double', 'caption=Толеранс,after=group,unit = %,single=none,mandatory');
     }
@@ -363,6 +363,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END contragent--></div></small>
+                                <small><div><!--ET_BEGIN group-->|Група артикули|*: [#group#]<!--ET_END group--></div></small>
+                                <small><div><!--ET_BEGIN storeId-->|Склад|*: [#storeId#]<!--ET_END storeId--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         
@@ -389,6 +391,14 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'contragent');
+        }
+        
+        if (isset($data->rec->group)) {
+            $fieldTpl->append('<b>' . cat_Groups::getVerbal($data->rec->group, 'name') . '</b>', 'group');
+        }
+        
+        if (isset($data->rec->storeId)) {
+            $fieldTpl->append('<b>' . store_Stores::getTitleById($data->rec->storeId) . '</b>', 'storeId');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

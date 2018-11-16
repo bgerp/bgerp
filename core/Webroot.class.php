@@ -64,6 +64,23 @@ class core_Webroot
 
 
     /**
+     * Проверява дали посоченият файл съществува
+     */
+    public static function isExists($filename, $domain = null)
+    {
+        $path = self::getPath($filename, $domain);
+        
+        if(file_exists($path)) {
+            
+            return true;
+        } else {
+            
+            return false;
+        }
+    }
+
+
+    /**
      * Сервира посочения файл за посочения домей (ако не е посочен - текущия)
      */
     public static function serve($filename, $domain = null)
