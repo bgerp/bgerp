@@ -376,6 +376,12 @@ class sens2_Indicators extends core_Detail
             $row->port = $rec->port;
         }
         
+        // Може ли потребителя да вижда хронологията на сметката
+        $attr = array('title' => 'Хронологични записи');
+        $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
+
+        $row->port .= ht::createLink('', array('sens2_DataLogs', 'indicatorId' => $rec->id), null, $attr);
+        
         $row->controllerId = sens2_Controllers::getLinkToSingle($rec->controllerId, 'name');
         
         if ($rec->isOutput == 'no') {
