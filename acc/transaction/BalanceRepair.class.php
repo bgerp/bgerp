@@ -67,7 +67,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
             while ($dRec = $dQuery->fetch()) {
                 
                 // Взимаме и записите
-                $entries = $this->getEntries($dRec, $result->totalAmount);
+                $entries = $this->getEntries($dRec, $result->totalAmount, $pRec);
                 if (count($entries)) {
                     
                     // Обединяваме тези записи с общите
@@ -83,7 +83,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
     /**
      * Връща ентритата
      */
-    private function getEntries($dRec, &$total)
+    private function getEntries($dRec, &$total, $periodRec)
     {
         $entries = array();
         $sysId = acc_Accounts::fetchField($dRec->accountId, 'systemId');
@@ -128,10 +128,12 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                 foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
                     if (!empty($bRec->{$ent})) {
                         
-                        // Ако има поне едно затворено
+                        // Ако има поне едно затворено, и то е затворено преди края на периода
                         if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
-                            $continue = false;
-                            break;
+                            if($itemsArr['items'][$bRec->{$ent}]->closedOn <= $periodRec->end){
+                                $continue = false;
+                                break;
+                            }
                         }
                     }
                 }
