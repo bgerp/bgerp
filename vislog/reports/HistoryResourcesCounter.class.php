@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на отчети за анализ на ресурси
  *
@@ -15,11 +16,11 @@
  */
 class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
 {
-    
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,manager,repAllGlobal';
+    
     
     /**
      * Брой записи на страница
@@ -28,12 +29,14 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      */
     protected $listItemsPerPage = 30;
     
+    
     /**
      * Кое поле от $data->recs да се следи, ако има нов във новата версия
      *
      * @var string
      */
     protected $newFieldToCheck;
+    
     
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
@@ -58,9 +61,9 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver
-     *            $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
+     *                                      $Driver
+     * @param embed_Manager       $Embedder
+     * @param stdClass            $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -73,12 +76,13 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_Form $form
-     * @param stdClass $data
+     * @param embed_Manager     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
-    {}
+    {
+    }
     
     
     /**
@@ -111,19 +115,57 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
             ));
         }
         $counter = array();
-        $text = mb_strtolower(trim("$rec->text", ' '));
+        
+        $text = mb_strtolower(trim("{$rec->text}", ' '));
+        
+        $textArr = explode(' ', $text);
+        
+        $countTextArr = count($textArr);
         
         while ($query = $hQuery->fetch()) {
+            $flag = false;
             
-            $strlenght = mb_strlen(trim($rec->text, ' '));
-            $queryToLower = mb_strtolower(trim("$query->query", ' '));
+            $queryToLower = mb_strtolower(trim("{$query->query}", ' '));
+            
             $queryArr = explode(' ', $queryToLower);
             
-            if (in_array($text, $queryArr)) {
-                
-                $id = $query->HistoryResourceId;
-                
-                // добавяме в масива
+            if ($countTextArr > count($queryArr)) {
+                continue;
+            }
+            
+            if ($countTextArr == count($queryArr)) {
+                if ($text == $queryToLower) {
+                    $id = $query->HistoryResourceId;
+                    $flag = true;
+                }
+            }
+            
+            if ($countTextArr < count($queryArr)) {
+                $marker = 0;
+                while (($countTextArr + $marker) <= (count($queryArr))) {
+                    $wordIndex = $marker;
+                    
+                    for ($i = 0; $i < $countTextArr; $i++) {
+                       
+                        $tempQuery .= $queryArr[$wordIndex].' ';
+                        
+                        $wordIndex++;
+                    }
+                    
+                    if (mb_strtolower(trim("${tempQuery}", ' ')) == $text) {
+                        $id = $query->HistoryResourceId;
+                        $flag = true;
+                        unset($tempQuery);
+                    }
+                    
+                    unset($tempQuery);
+                    $marker++;
+                }
+            }
+            
+            
+            // добавяме в масива
+            if ($flag) {
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
@@ -136,9 +178,10 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
                     );
                 } else {
                     $obj = &$recs[$id];
-                    $obj->counter += 1;
+                    ++$obj->counter;
                 }
             }
+            unset($id,$queryToLower);
         }
         
         if (is_array($recs)) {
@@ -162,9 +205,9 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      * Връща фийлдсета на таблицата, която ще се рендира
      *
      * @param stdClass $rec
-     *            - записа
-     * @param bool $export
-     *            - таблицата за експорт ли е
+     *                         - записа
+     * @param bool     $export
+     *                         - таблицата за експорт ли е
      *
      * @return core_FieldSet - полетата
      */
@@ -182,9 +225,9 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
      * @param stdClass $rec
-     *            - записа
+     *                       - записа
      * @param stdClass $dRec
-     *            - чистия запис
+     *                       - чистия запис
      *
      * @return stdClass $row - вербалния запис
      */
@@ -211,9 +254,9 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -221,6 +264,7 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN text-->|Текст за търсене|*: [#text#]<!--ET_END text--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->from)) {
@@ -231,6 +275,10 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
         }
         
+        if (isset($data->rec->text)) {
+            $fieldTpl->append('<b>' ." ". $data->rec->text." " . '</b>', 'text');
+        }
+        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
@@ -239,13 +287,11 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
      * След подготовка на реда за експорт
      *
      * @param frame2_driver_Proto $Driver
-     * @param stdClass $res
-     * @param stdClass $rec
-     * @param stdClass $dRec
+     * @param stdClass            $res
+     * @param stdClass            $rec
+     * @param stdClass            $dRec
      */
     protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
     {
-        
     }
 }
-
