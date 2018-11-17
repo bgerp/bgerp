@@ -142,7 +142,7 @@ class core_Sbf extends core_Mvc
                     // Записваме в лога
                          // self::logWarning("Файла не може да се запише в '{$sbfPath}'.");
                 } else {
-                    self::logWarning("Липсващ файл: ${rPath}");
+                    self::logNotice("Липсващ файл: ${rPath}");
                     $ext = str::getFileExt($rPath);
                     if (in_array($ext, array('jpg', 'jpeg', 'png', 'bmp'))) {
                         $rPath = 'img/1x1.gif';
@@ -178,7 +178,7 @@ class core_Sbf extends core_Mvc
         
         // Грешка. Файла липсва
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
-            if (isDebug()) {
+            if ((BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {
                 error_log("EF Error: Missing file: {$name}");
             }
             
@@ -221,7 +221,7 @@ class core_Sbf extends core_Mvc
             $ctype = $mimeTypes[$fileExt];
             
             if (!$ctype) {
-                if (isDebug()) {
+                if ((BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH == 'test')) {
                     error_log("Warning: Unsuported file extention: {$file}");
                 }
                 header('HTTP/1.1 404 Not Found');
