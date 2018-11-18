@@ -25,20 +25,7 @@ class sens2_ProtoDriver extends core_BaseClass
     /**
      * Интерфейси, поддържани от всички наследници
      */
-    public $interfaces = 'sens2_ControllerIntf';
-    
-    
-    /**
-     * Прочита портовете от зададения слот
-     */
-    public function readPorts($slot, $params)
-    {
-        $method = 'read' . $slot;
-        
-        $res = self::{$method}($params);
-        
-        return $res;
-    }
+    public $interfaces = 'sens2_ControllerIntf';    
     
     
     /**
