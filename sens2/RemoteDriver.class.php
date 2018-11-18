@@ -20,7 +20,13 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
      * Масив за съхранение на състоянията на отдалечените системи
      */
     static $states = array();
+    
 
+    /**
+     * Заглавие на драйвера
+     */
+    public $title = 'Отдалечен bgERP';
+    
 
     /**
      * IP на устройството
