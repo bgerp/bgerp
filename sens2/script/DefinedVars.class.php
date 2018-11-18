@@ -28,7 +28,8 @@ class sens2_script_DefinedVars extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Редове към Логическите блокове';
+    public $title = 'Дефинирани променливи';
+    
     
     public $singleTitle = 'Действие';
     
@@ -69,7 +70,7 @@ class sens2_script_DefinedVars extends core_Detail
     public $masterKey = 'scriptId';
     
     
-    public $currentTab = 'Скриптове';
+    public $currentTab = 'Променливи';
     
     public $listFields = '№,name,scope,value,modifiedOn=Модифициране';
     

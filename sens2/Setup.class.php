@@ -92,6 +92,7 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_ioport_DI',
         'sens2_ioport_DO',
         'sens2_ioport_AO',
+        'sens2_RemoteDriver',
     );
     
     

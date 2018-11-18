@@ -181,7 +181,7 @@ class remote_BgerpDriver extends core_Mvc
             $rec->data->lKey = str::getRand(self::KEY_PATTERN);
         }
         
-        $params = array('url' => str_replace('/xxx/', '', toUrl(array('xxx'), 'absolute')),
+        $params = array('url' => str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')),
             'nick' => core_Users::getCurrent('nick'),
             'key' => $rec->data->lKey,
             'authId' => $rec->id);
@@ -543,9 +543,8 @@ class remote_BgerpDriver extends core_Mvc
         }
         
         $params['_token'] = self::getToken();
-        
-        $encodedParams = core_Crypt::encodeVar($params, $key, 'json');
-        
+        $encodedParams =  core_Crypt::encodeVar($params, $key, 'json');
+       
         return $encodedParams;
     }
     
@@ -565,17 +564,18 @@ class remote_BgerpDriver extends core_Mvc
             expect($type == 'question');
             $key = $auth->data->rKey . $auth->data->rKeyCC;
         }
+        $encodedParams = str_replace(' ', '+', $encodedParams);
         $params = core_Crypt::decodeVar($encodedParams, $key, 'json');
-        
+      
         if (!is_array($params)) {
             
             return false;
         }
-        
+      
         $expiryDate = self::getTokenExpiry($params['_token']);
         
         if (!$expiryDate) {
-            
+             
             return false;
         }
         
@@ -595,7 +595,7 @@ class remote_BgerpDriver extends core_Mvc
         $auth = self::prepareAuth($auth);
         
         $params = array('Ctr' => $ctr, 'Act' => $act, 'args' => $args);
-        
+     
         $encodedParams = urlencode(self::encode($auth, $params, 'question'));
         
         $url = $auth->url;
@@ -614,12 +614,12 @@ class remote_BgerpDriver extends core_Mvc
         $url = self::prepareQuestionUrl($auth, $ctr, $act, $args);
         
         ini_set('default_socket_timeout', 5);
-        
+ 
         $res = @file_get_contents($url);
         
         if ($res) {
             $params = self::decode($auth, $res, 'answer');
-            
+           
             return $params['result'];
         }
         
@@ -640,7 +640,7 @@ class remote_BgerpDriver extends core_Mvc
         $auth = self::prepareAuth($authId);
         
         $params = self::decode($auth, $encodedParams, 'question');
-        
+
         expect($ctr = $params['Ctr']);
         expect($act = $params['Act']);
         
