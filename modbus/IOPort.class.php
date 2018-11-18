@@ -47,20 +47,20 @@ class modbus_IOPort extends sens2_ioport_Abstract
      * Описание на портовете на устройството
      */
     public $inputs = array();
-
-
+    
+    
     /**
      * Масив със стойности в описанието на портовете, които не се променят
      */
     public $staticInfo;
     
-
+    
     /**
      * Съответствие между полетата в описанието на порта и ключовете в описанието
      */
     public $keyMap;
     
-
+    
     /**
      * Връша информация за портовете, които това устройство показва
      *
@@ -79,8 +79,8 @@ class modbus_IOPort extends sens2_ioport_Abstract
         $res = array();
         if (is_array($this->inputs)) {
             self::arraysExpand($this->inputs, $this->staticInfo, $this->keyMap);
-
-     
+            
+            
             foreach ($this->inputs as $name => $portInfo) {
                 $port = array(
                     'name' => $name,
@@ -91,7 +91,7 @@ class modbus_IOPort extends sens2_ioport_Abstract
                 $res[] = (object) $port;
             }
         }
- 
+        
         return $res;
     }
     
@@ -121,24 +121,24 @@ class modbus_IOPort extends sens2_ioport_Abstract
      * Конвертира извлечената стойност в масив от Име => Стойност
      */
     public function convert($data, $name, $pRec)
-    {  
-        self::arraysExpand($this->inputs, $this->staticInfo, $this->keyMap); 
+    {
+        self::arraysExpand($this->inputs, $this->staticInfo, $this->keyMap);
         $portInfo = $this->inputs[$name];
         $addr = $portInfo['addr'];
         $type = $portInfo['type'];
- 
-        if(is_int($addr)) {
+        
+        if (is_int($addr)) {
             $addr = array($addr);
         }
-
-        foreach($addr as $a) {
+        
+        foreach ($addr as $a) {
             $vals[] = $data[$a];
         }
         
         $method = 'registersTo' . $type;
         
         expect(method_exists($this, $method));
-
+        
         $res = self::{$method}($vals);
         
         return $res;
@@ -152,7 +152,7 @@ class modbus_IOPort extends sens2_ioport_Abstract
      * @param int $reg_value2 Register 2.
      *
      * @return float Value from two registers.
-     */                    
+     */
     protected static function registersToFloat($vals)
     {
         /** @var array Packet binary data. $bin_data */
@@ -172,21 +172,20 @@ class modbus_IOPort extends sens2_ioport_Abstract
         
         return $value;
     }
-
-
+    
+    
     /**
      * Разширява масив от масиви, с посочения статичен масив и добавя именовани ключове на цифровите индекси
      */
     public static function arraysExpand(&$arrays, &$static, &$map)
-    {  
-        if(is_array($static) || is_array($map)) {
-
-            foreach($arrays as &$arr) {
-                if(is_array($static)) {
-                    $arr = $arr + $static; 
+    {
+        if (is_array($static) || is_array($map)) {
+            foreach ($arrays as &$arr) {
+                if (is_array($static)) {
+                    $arr = $arr + $static;
                 }
-                if(is_array($map)) {
-                    foreach($map as $id => $key) {
+                if (is_array($map)) {
+                    foreach ($map as $id => $key) {
                         $arr[$key] = $arr[$id];
                     }
                 }

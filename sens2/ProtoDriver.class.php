@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class sens2_ProtoDriver
+class sens2_ProtoDriver extends core_BaseClass
 {
     /**
      * От кой номер започва броенето на слотовете
@@ -59,7 +59,7 @@ class sens2_ProtoDriver
                 $res[$p->name] = $p;
             }
         }
-        
+  
         return $res;
     }
     

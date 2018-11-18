@@ -80,35 +80,35 @@ class modbus_Tester extends core_Manager
             $text .= "{$addr} : {$val}\n";
             $vArr[] = $val;
         }
-
+        
         $v = self::registersToFloat($vArr, 'f');
-        $text .= "float (f): " . $v . "\n";
-
+        $text .= 'float (f): ' . $v . "\n";
+        
         $v = self::registersToFloat($vArr, 'g');
-        $text .= "float (g): " . $v . "\n";
- 
+        $text .= 'float (g): ' . $v . "\n";
+        
         $v = self::registersToFloat($vArr, 'G');
-        $text .= "float (G): " . $v . "\n";
-
+        $text .= 'float (G): ' . $v . "\n";
+        
         list($vArr[1], $vArr[0]) = $vArr;
-
+        
         $v = self::registersToFloat($vArr, 'f');
-        $text .= "float (-f): " . $v . "\n";
-
+        $text .= 'float (-f): ' . $v . "\n";
+        
         $v = self::registersToFloat($vArr, 'g');
-        $text .= "float (-g): " . $v . "\n";
- 
+        $text .= 'float (-g): ' . $v . "\n";
+        
         $v = self::registersToFloat($vArr, 'G');
-        $text .= "float (-G): " . $v . "\n";
-
- 
+        $text .= 'float (-G): ' . $v . "\n";
+        
+        
         $rec->data = $text;
         
         $this->save($rec, 'data');
         
         return new Redirect(array($this), '|Данните са прочетени1');
     }
-
+    
     
     /**
      * Convert two registers to float.
@@ -117,7 +117,7 @@ class modbus_Tester extends core_Manager
      * @param int $reg_value2 Register 2.
      *
      * @return float Value from two registers.
-     */                    
+     */
     protected static function registersToFloat($vals, $f = 'f', $u = 'vv')
     {
         /** @var array Packet binary data. $bin_data */
@@ -125,7 +125,7 @@ class modbus_Tester extends core_Manager
         
         
         /** @var float Unpacked float value. $value */
-        $value = NAN;
+        $value = NaN;
         if (isset($vals[0])) {
             if (isset($vals[1])) {
                 $bin_data = pack($u, $vals[0], $vals[1]);
@@ -137,5 +137,4 @@ class modbus_Tester extends core_Manager
         
         return $value;
     }
-
 }
