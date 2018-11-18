@@ -60,6 +60,7 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_script_Actions',
         'sens2_script_DefinedVars',
         'sens2_IOPorts',
+        'migrate::changeToDot',
     );
     
     
@@ -93,7 +94,6 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_ioport_DO',
         'sens2_ioport_AO',
         'sens2_RemoteDriver',
-        'migrate::changeToDot',
     );
     
     
