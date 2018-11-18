@@ -65,8 +65,6 @@ class sens2_script_ActionSignal
             $ports = sens2_Controllers::getActivePorts($cRec->id, 'outputs');
             foreach ($ports as $port => $pObj) {
                 $opt[$pObj->title] = $pObj->title;
-                list($ctr, ) = explode('->', $pObj->title);
-                $opt[$ctr . '->' . $port] = $ctr . '->' . $port;
             }
         }
         
