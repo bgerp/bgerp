@@ -142,8 +142,13 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
         if(!($this->state = self::$states[$authorizationId])) {
             $aRec = remote_Authorizations::fetch($authorizationId);
             $this->state = remote_BgerpDriver::sendQuestion($aRec, __CLASS__, 'getState', array('priority' => true));
-            foreach($this->state as $i => $p) {
-                $this->state[$i] = (object) $p;
+
+            if(is_array($this->state)) {
+                foreach($this->state as $i => $p) {
+                    $this->state[$i] = (object) $p;
+                }
+            } else {
+                $this->state = array();
             }
 
             self::$states[$authorizationId] = $this->state;
