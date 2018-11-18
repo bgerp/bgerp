@@ -207,7 +207,7 @@ class sens2_Controllers extends core_Master
                 $partName = $port . '_name';
                 if ($config->{$partName}) {
                     $caption = $port . ' ('. $config->{$partName} . ')';
-                    $title = '$' . $rec->name . '->' . $config->{$partName};
+                    $title = '$' . $rec->name . '.' . $config->{$partName};
                 } else {
                     $caption = new stdClass();
                     $caption->title = $port;
@@ -215,7 +215,7 @@ class sens2_Controllers extends core_Master
                         $caption->title .= ' ('. $params->caption . ')';
                     }
                     $caption->attr = array('style' => 'color:#999;');
-                    $title = '$' . $rec->name . '->' . $port;
+                    $title = '$' . $rec->name . '.' . $port;
                 }
                 $partUom = $port . '_uom';
                 $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
@@ -472,7 +472,7 @@ class sens2_Controllers extends core_Master
     public static function setOutput($output, $value)
     {
         // Парсраме входа и получаваме името на контролера и изхода
-        list($ctrName, $name) = explode('->', ltrim($output, '$'));
+        list($ctrName, $name) = explode('.', ltrim($output, '$'), 2);
         
         // Вземаме записа на контролера
         $rec = self::fetch(array("#name = '[#1#]'", $ctrName));
