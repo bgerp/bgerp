@@ -17,14 +17,14 @@
                     <td>[#groupId#]</td>
                 </tr>
                 <!--ET_END groupId-->
-                <!--ET_BEGIN simultaneityData-->
+                <!--ET_BEGIN simultaneity-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Едновременност|*:
                     </td>
-                    <td>[#simultaneityData#]</td>
+                    <td>[#simultaneity#]</td>
                 </tr>
-                <!--ET_END simultaneityData-->
+                <!--ET_END simultaneity-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Създаване|*:
@@ -49,12 +49,6 @@
         <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
             <legend class="groupTitle">|Използване|*</legend>
             <ul>
-                <!--ET_BEGIN simultaneity-->
-                <li class="info">
-                    <span class="gray-title">|Едновременност|*: </span>[#simultaneity#]
-                </li>
-                <!--ET_END simultaneity-->
-
 	            <!--ET_BEGIN assetFolderId-->
 	            <li class="info">
 	                [#assetFolderId#]

@@ -352,11 +352,6 @@ class planning_AssetResources extends core_Master
                 $row->tracking = "<div class='state-'{$vRec->state}>{$vehicle}</div>";
             }
         }
-        
-        if (!$row->assetFolderId) {
-            $row->simultaneityData = $row->simultaneity;
-            $row->simultaneity = null;
-        }
     }
     
     
