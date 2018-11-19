@@ -40,7 +40,7 @@ defIfNot('ESHOP_SALE_DEFAULT_TPL_EN', '');
 /**
  * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
  */
-defIfNot('ESHOP_MANDATORY_CONTACT_FIELDS', 'company');
+defIfNot('ESHOP_MANDATORY_CONTACT_FIELDS', 'person');
 
 
 /**

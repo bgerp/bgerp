@@ -16,7 +16,7 @@ defIfNot('MARKETING_INQUIRE_TO_EMAIL', '');
 /**
  * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
  */
-defIfNot('MARKETING_MANDATORY_CONTACT_FIELDS', 'company');
+defIfNot('MARKETING_MANDATORY_CONTACT_FIELDS', 'person');
 
 
 /**
