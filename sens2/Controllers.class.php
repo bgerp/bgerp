@@ -430,12 +430,18 @@ class sens2_Controllers extends core_Master
                 self::save($rec, 'persistentState');
             }
             
-            // Текущото време
-            $time = dt::now();
            
             foreach ($inputs as $port) {
+                
+                // Текущото време
+                $time = dt::now();
+
                 if (is_array($values)) {
                     $value = $values[$port];
+                    if(is_object($value)) {
+                        $time = $value->lastValue;
+                        $value = $value->value;
+                    }
                 } else {
                     // Ако не получим масив със стойности, приемаме, че сме получили грешка
                     // и размножаваме грешката за всички входове на контролера

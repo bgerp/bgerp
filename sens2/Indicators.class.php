@@ -266,7 +266,7 @@ class sens2_Indicators extends core_Detail
             $rec = new stdClass();
         } else {
             // Ако имаме повторение на последните данни - не правим запис
-            if ($rec->value == $value && $rec->lastValue == $time) {
+            if ($rec->value == $value && $rec->lastValue == $time || ($rec->lastValue > $time)) {
                 
                 return;
             }

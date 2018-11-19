@@ -132,7 +132,34 @@ class sens2_Scripts extends core_Master
             $form->setDefault('order', round(($maxOrder + 1) / 10) * 10 + 10);
         }
     }
+
+
+    /**
+     * Стартира ръчно скрипта
+     */
+    public function act_Run()
+    {
+        $this->requireRightFor('single');
+
+        $id = Request::get('id', 'int');
+        
+        $rec = self::fetch($id);
+        $this->requireRightFor('single', $rec);
+
+        $res = sens2_script_Actions::runScript($id);
+
+        return new Redirect(array($this, 'Single', $id), $res);
+    }
     
+    
+    /**
+     * След подготовка на тулбара за единичен изглед
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $data->toolbar->addBtn('Старт', array($mvc, 'Run', $data->rec->id), 'ef_icon=img/16/lightning.png, title=Ръчно изпълнение');
+    }
+
     
     /**
      * Стартира всички скриптове

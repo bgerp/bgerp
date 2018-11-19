@@ -79,10 +79,9 @@ class sens2_DataLogs extends core_Manager
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност, chart=ay');
         $this->FLD('time', 'datetime', 'caption=Към момент,chart=ax');
         $this->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input=silent,autoFilter');
-        
+
+        $this->setDbUnique('indicatorId,time');
         $this->setDbIndex('time');
-        
-        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -93,7 +92,7 @@ class sens2_DataLogs extends core_Manager
     {
         $rec = (object) array('indicatorId' => $indicatorId, 'value' => $value, 'time' => $time);
         
-        self::save($rec);
+        self::save($rec, null, 'IGNORE');
         
         return $rec->id;
     }
