@@ -95,7 +95,7 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
         
         foreach ($portsArr as $port) {
              
-                $res[$port->name] = $port->value;
+                $res[$port->name] = $port;
         }
         
         if (empty($res)) {
@@ -155,11 +155,6 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
         }
     }
 
-    public function act_Test()
-    {
-        bp( self::remote_GetState(22));
-    }
-
 
     /**
      * Връща информация за всички индикатори към отдалечена система 
@@ -186,6 +181,7 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
             $rec->value = $iRec->value;
             $rec->error = $iRec->error;
             $rec->lastUpdate = $iRec->lastUpdate;
+            $rec->lastValue  = $iRec->lastValue;
             $rec->readable = true;
             $rec->logPeriod = 60;
             $rec->readPeriod = 60;
