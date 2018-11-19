@@ -57,7 +57,13 @@ class planning_AssetResources extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning';
+    public $canList = 'ceo, planning, support, taskWorker';
+    
+    
+    /**
+     * Кой има право да разглежда сингъла?
+     */
+    public $canSingle = 'ceo, planning, support, taskWorker';
     
     
     /**
