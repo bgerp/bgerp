@@ -421,19 +421,19 @@ class eshop_CartDetails extends core_Detail
             
             $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-        }
         
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->productId .= " ({$row->packagingId})";
+            // Показване на уникалните параметри под името на артикула
+            $paramsText = self::getUniqueParamsAsText($rec);
+            if (!empty($paramsText)) {
+                $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+            }
+            
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $row->productId .= " ({$row->packagingId})";
+        }
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
         $row->productId = ht::createLinkRef($row->productId, $url);
-        
-        // Показване на уникалните параметри под името на артикула
-        $paramsText = self::getUniqueParamsAsText($rec);
-        if (!empty($paramsText)) {
-            $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
-        }
     }
     
     
