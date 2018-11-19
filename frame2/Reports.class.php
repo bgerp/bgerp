@@ -862,7 +862,12 @@ class frame2_Reports extends embed_Manager
                     
                     // Показва се информация
                     if (frame2_ReportVersions::haveRightFor('checkout', $latestVersionId)) {
-                        $checkoutUrl = array('frame2_ReportVersions', 'checkout', $latestVersionId, 'ret_url' => $mvc->getSingleUrlArray($rec->id));
+                        $retUrl = $mvc->getSingleUrlArray($rec->id);
+                        if(count($retUrl)){
+                            $retUrl['vId'] = $rec->id;
+                        }
+                        
+                        $checkoutUrl = array('frame2_ReportVersions', 'checkout', $latestVersionId, 'ret_url' => $retUrl);
                         $row->checkoutBtn = ht::createLink('Избор', $checkoutUrl, false, array('ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Към последната версия'));
                         $row->checkoutDate = frame2_ReportVersions::getVerbal($latestVersionId, 'createdOn');
                     }
