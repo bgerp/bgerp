@@ -164,6 +164,12 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Кой има право да препраща имейла
+     */
+    protected $canResendemail = 'powerUser';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -679,7 +685,7 @@ class marketing_Inquiries2 extends embed_Manager
             }
             
             // Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
-            if ($mvc->haveRightFor('sendemail', $rec)) {
+            if ($mvc->haveRightFor('resendemail', $rec)) {
                 $conf = core_Packs::getConfig('marketing');
                 $data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon' => 'img/16/email_forward.png', 'warning' => "Сигурни ли сте, че искате да препратите имейла на|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
             }
@@ -692,10 +698,10 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public function act_Send()
     {
-        $this->requireRightFor('sendemail');
+        $this->requireRightFor('resendemail');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-        $this->requireRightFor('sendemail', $rec);
+        $this->requireRightFor('resendemail', $rec);
         
         $msg = '|Успешно препращане';
         try {
@@ -745,14 +751,13 @@ class marketing_Inquiries2 extends embed_Manager
             }
         }
         
-        if ($action == 'sendemail') {
+        if ($action == 'resendemail') {
             $res = $mvc->getRequiredRoles('add', $rec, $userId);
             
             if (core_Users::isContractor()) {
                 $res = 'no_one';
             } else {
-                $conf = core_Packs::getConfig('marketing');
-                if (empty($conf->MARKETING_INQUIRE_TO_EMAIL) || empty($conf->MARKETING_INQUIRE_FROM_EMAIL)) {
+                if (!trim(marketing_Setup::get('INQUIRE_TO_EMAIL')) || marketing_Setup::get('INQUIRE_FROM_EMAIL')) {
                     $res = 'no_one';
                 }
             }
