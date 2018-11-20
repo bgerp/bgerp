@@ -752,7 +752,11 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($action == 'resendemail') {
-            if (core_Users::isContractor()) {
+            if(!haveRole('ceo,marketing', $userId)){
+                $res = 'no_one';
+            } elseif(isset($rec->id) && !$mvc->haveRightFor('single', $rec->id)){
+                $res = 'no_one';
+            } elseif(core_Users::isContractor()) {
                 $res = 'no_one';
             } else {
                 if (!trim(marketing_Setup::get('INQUIRE_TO_EMAIL')) || !marketing_Setup::get('INQUIRE_FROM_EMAIL')) {
