@@ -134,6 +134,9 @@
    color: red !important;
 }
 
+.zoneLighter > td {
+    max-width: none !important;
+}
 
 @media handheld , only screen and (max-device-width: 1280px) {
     .rack_Zones .listTable {

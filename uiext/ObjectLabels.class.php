@@ -158,7 +158,7 @@ class uiext_ObjectLabels extends core_Manager
             $rec->id = $exRec->id;
         }
         
-        if ($delete === true) {
+        if ($delete === true && isset($exRec->id)) {
             self::delete($exRec->id);
         } else {
             $this->save($rec);
