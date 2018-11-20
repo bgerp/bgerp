@@ -752,8 +752,6 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($action == 'resendemail') {
-            $res = $mvc->getRequiredRoles('add', $rec, $userId);
-            
             if (core_Users::isContractor()) {
                 $res = 'no_one';
             } else {
