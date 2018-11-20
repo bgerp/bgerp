@@ -166,7 +166,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Кой има право да препраща имейла
      */
-    protected $canResendemail = 'powerUser';
+    protected $canResendemail = 'ceo,marketing';
     
     
     /**
@@ -257,18 +257,18 @@ class marketing_Inquiries2 extends embed_Manager
         
         // Добавяме полета за количество според параметрите на продукта
         $quantityCount = &$form->rec->quantityCount;
-       
+        
         if ($quantityCount > 3) {
             $quantityCount = 3;
         } elseif (isset($quantityCount) && $quantityCount == 0) {
-            if($form->rec->moq) {
+            if ($form->rec->moq) {
                 $form->setReadOnly('quantity1', $form->rec->moq);
                 $form->setField('quantity1', "input,unit={$uom},caption={$caption}->Количество|* 1");
             } else {
                 $form->setDefault('quantity1', 1);
-                $form->setField('quantity1', "input=hidden");
+                $form->setField('quantity1', 'input=hidden');
             }
-        } elseif(!isset($quantityCount)){
+        } elseif (!isset($quantityCount)) {
             $quantityCount = 3;
         }
         
@@ -364,13 +364,13 @@ class marketing_Inquiries2 extends embed_Manager
             return $rec->measureId;
         }
         
-        if(isset($rec->id)){
+        if (isset($rec->id)) {
             $Driver = $this->getDriver($rec->id);
         } else {
             $Driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
         }
         
-        if(is_object($Driver)){
+        if (is_object($Driver)) {
             $measureId = $Driver->getDefaultUomId();
         }
         
@@ -509,7 +509,7 @@ class marketing_Inquiries2 extends embed_Manager
             // Изпращане на имейл с phpmailer
             $PML = email_Accounts::getPML($sentFrom);
             
-           /*
+            /*
     		* Ако не е зададено е 8bit
     		* Проблема се появява при дълъг стринг - без интервали и на кирилица.
     		* Понеже е entity се режи грешно от phpmailer -> class.smtpl.php - $max_line_length = 998;
@@ -698,7 +698,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public function act_Send()
     {
-        $this->requireRightFor('resendemail');
+        $this->requireRightFor('resendemail');  
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('resendemail', $rec);
@@ -751,17 +751,11 @@ class marketing_Inquiries2 extends embed_Manager
             }
         }
         
-        if ($action == 'resendemail') {
-            if(!haveRole('ceo,marketing', $userId)){
+        if ($action == 'resendemail' && $res != 'no_one') {
+            if (!trim(marketing_Setup::get('INQUIRE_TO_EMAIL')) || !marketing_Setup::get('INQUIRE_FROM_EMAIL')) {
                 $res = 'no_one';
-            } elseif(isset($rec->id) && !$mvc->haveRightFor('single', $rec->id)){
+            } elseif (isset($rec->id) && !$mvc->haveRightFor('single', $rec->id)) {
                 $res = 'no_one';
-            } elseif(core_Users::isContractor()) {
-                $res = 'no_one';
-            } else {
-                if (!trim(marketing_Setup::get('INQUIRE_TO_EMAIL')) || !marketing_Setup::get('INQUIRE_FROM_EMAIL')) {
-                    $res = 'no_one';
-                }
             }
         }
     }
@@ -860,7 +854,7 @@ class marketing_Inquiries2 extends embed_Manager
         $form->FLD('protos', 'varchar(10000)', 'input=hidden,silent');
         cms_Domains::addMandatoryText2Form($form);
         
-        foreach (array('measureId', 'moq', 'drvId', 'quantityCount', 'protos') as $fld){
+        foreach (array('measureId', 'moq', 'drvId', 'quantityCount', 'protos') as $fld) {
             $form->setDefault($fld, $sourceData[$fld]);
         }
         
@@ -914,7 +908,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         $titleVerbal = $form->getFieldType('title')->toVerbal($title);
         $form->title = "|Запитване за|* <b>{$titleVerbal}</b>";
-        vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($sourceData['title']));
+        vislog_History::add('Форма за ' . $form->getFieldType('title')->toVerbal($sourceData['title']));
         
         if (isset($form->rec->title) && !isset($cu)) {
             $form->setField('title', 'input=hidden');
@@ -1034,9 +1028,9 @@ class marketing_Inquiries2 extends embed_Manager
                 }
                 
                 $measureId = $mvc->getDefaultMeasureId($rec);
-                if(!deals_Helper::checkQuantity($measureId, $quantity, $roundError)){
+                if (!deals_Helper::checkQuantity($measureId, $quantity, $roundError)) {
                     $errorQuantitiesDecimals[] = "quantity{$i}";
-               }
+                }
             }
             
             if (count($errorMoqs)) {
@@ -1047,7 +1041,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $form->setError(implode(',', $errorQuantities), 'Количествата трябва да са различни||Quantities must be different|*');
             }
             
-            if(count($errorQuantitiesDecimals)){
+            if (count($errorQuantitiesDecimals)) {
                 $form->setError(implode(',', $errorQuantitiesDecimals), $roundError);
             }
             
@@ -1057,19 +1051,19 @@ class marketing_Inquiries2 extends embed_Manager
                 // Опит за разпознаване на адреса и дали се поддържа доставка до там
                 if (!$address) {
                     $form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
-                } elseif(isset($address->countryId)){
-                    if(empty($rec->country)){
+                } elseif (isset($address->countryId)) {
+                    if (empty($rec->country)) {
                         $countryId = $rec->country;
-                    } elseif(isset($rec->folderId)){
+                    } elseif (isset($rec->folderId)) {
                         $Cover = doc_Folders::getCover($rec->folderId);
                         $Cover->haveInterface('doc_ContragentDataIntf');
                         $countryId = $Cover->getContragentData()->countryId;
                     }
                     
                     // Само ако държавата в запитването е различна от тази на адреса
-                    if($countryId != $address->countryId){
+                    if ($countryId != $address->countryId) {
                         $countryDeliveryTermId = cond_Countries::getParameterByCountryId($address->countryId, 'deliveryTermSale');
-                        if(empty($countryDeliveryTermId)){
+                        if (empty($countryDeliveryTermId)) {
                             $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
                         } else {
                             $TransportCalculator = cond_DeliveryTerms::getTransportCalculator($countryDeliveryTermId);
