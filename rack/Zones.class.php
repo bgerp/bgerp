@@ -174,7 +174,9 @@ class rack_Zones extends core_Master
                 $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
             }
             
+            Mode::push('shortZoneName', true);
             $row->ROW_ATTR['id'] = self::getRecTitle($rec);
+            Mode::pop('shortZoneName');
         }
         
         if(!empty($rec->description)){
@@ -925,7 +927,10 @@ class rack_Zones extends core_Master
             
         } else{
             if (rack_Zones::haveRightFor('list')){
+                Mode::push('shortZoneName', true);
                 $res->url = array(rack_Zones, 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
+                Mode::pop('shortZoneName');
+                
                 $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
             }
         }
