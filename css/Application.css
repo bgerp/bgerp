@@ -3440,11 +3440,13 @@ table .eshop-btn {
     line-height: 1.1em;
     white-space: nowrap; }
 
+.searchContent .defaultNewsbar {
+  margin: 5px 0; }
+
 .defaultNewsbar {
   background-color: white;
   color: black;
-  clear: both;
-  margin-top: 5px; }
+  clear: both; }
   .defaultNewsbar h1,
   .defaultNewsbar h2,
   .defaultNewsbar h3,
