@@ -175,8 +175,9 @@ class rack_Zones extends core_Master
             }
             
             Mode::push('shortZoneName', true);
-            $row->ROW_ATTR['id'] = self::getRecTitle($rec);
+            $id = self::getRecTitle($rec);
             Mode::pop('shortZoneName');
+            $row->num = ht::createElement("div", array('id' => $id), $row->num, true);
         }
         
         if(!empty($rec->description)){
