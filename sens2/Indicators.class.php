@@ -122,11 +122,18 @@ class sens2_Indicators extends core_Detail
      *
      * @param array $idArr
      *
-     * @return string
+     * @return string|core_ET
      */
     public static function renderIndicator($idArr)
     {
         $res = '';
+        
+        if (!$idArr) {
+            
+            return $res;
+        }
+        
+        $rowsArr = array();
         
         foreach ($idArr as $id) {
             $rec = self::fetch($id);
@@ -137,16 +144,17 @@ class sens2_Indicators extends core_Detail
             
             $row = self::recToVerbal($rec);
             
-            $cIndicator = "{$row->port}: {$row->value}{$row->uom} {$row->lastValue}";
+            $row->valAndUom = $row->value . "<span class='measure'>" . $row->uom . '</span>';
             
             if (sens2_DataLogs::haveRightFor('list')) {
-                $cIndicator = ht::createLinkRef($cIndicator, array('sens2_DataLogs', 'List', 'indicatorId' => $rec->id));
+                $row->port = ht::createLinkRef($row->port, array('sens2_DataLogs', 'List', 'indicatorId' => $rec->id));
             }
             
-            $cIndicator = "<div class='indicators-{$rec->state}'>{$cIndicator}</div>";
-            
-            $res .= $cIndicator;
+            $rowsArr[] = $row;
         }
+        
+        $table = cls::get('core_TableView', array('mvc' => get_called_class()));
+        $res = $table->get($rowsArr, array('port' => 'Индикатор', 'valAndUom' => 'Стойност', 'lastValue' => 'Към момент'));
         
         return $res;
     }
@@ -204,7 +212,7 @@ class sens2_Indicators extends core_Detail
         
         if (!$outputs[$cRec->driver]) {
             $drv = sens2_Controllers::getDriver($rec->controllerId);
-
+            
             $outputs[$cRec->driver] = $drv->getOutputPorts();
         }
         
@@ -266,7 +274,7 @@ class sens2_Indicators extends core_Detail
             $rec = new stdClass();
         } else {
             // Ако имаме повторение на последните данни - не правим запис
-            if ($rec->value == $value && $rec->lastValue == $time || ($rec->lastValue > $time)) {
+            if (($rec->value == $value && $rec->lastValue == $time) || ($rec->lastValue > $time)) {
                 
                 return;
             }

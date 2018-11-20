@@ -478,6 +478,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             
             $query = store_Products::getQuery();
             
+            $query->where("#productId IS NOT NULL");
+            
             $query->WhereArr('productId', $selectedProductsId, true);
             
             if (isset($rec->storeId)) {
@@ -485,6 +487,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             }
             
             while ($recProduct = $query->fetch()) {
+                
                 $id = $recProduct->productId;
                 
                 if ($rec->typeOfQuantity == 'FALSE') {

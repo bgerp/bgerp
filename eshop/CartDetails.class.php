@@ -147,13 +147,16 @@ class eshop_CartDetails extends core_Detail
         $form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
         $productOptions = eshop_ProductDetails::getAvailableProducts();
         
-        // От наличните опции се махат тези вече в количката
-        $query = self::getQuery();
-        $query->where("#cartId = {$rec->cartId}");
-        $query->show('productId');
-        $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
-        $productOptions = array_diff_key($productOptions, $alreadyIn);
+        $alreadyIn = array();
+        if (isset($rec->external)) {
+            // От наличните опции се махат тези вече в количката
+            $query = self::getQuery();
+            $query->where("#cartId = {$rec->cartId}");
+            $query->show('productId');
+            $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        }
         
+        $productOptions = array_diff_key($productOptions, $alreadyIn);
         $form->setOptions('productId', array('' => '') + $productOptions);
         $form->setField('eshopProductId', 'input=none');
         
@@ -421,19 +424,19 @@ class eshop_CartDetails extends core_Detail
             
             $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-        }
         
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->productId .= " ({$row->packagingId})";
+            // Показване на уникалните параметри под името на артикула
+            $paramsText = self::getUniqueParamsAsText($rec);
+            if (!empty($paramsText)) {
+                $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+            }
+            
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $row->productId .= " ({$row->packagingId})";
+        }
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
         $row->productId = ht::createLinkRef($row->productId, $url);
-        
-        // Показване на уникалните параметри под името на артикула
-        $paramsText = self::getUniqueParamsAsText($rec);
-        if (!empty($paramsText)) {
-            $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
-        }
     }
     
     

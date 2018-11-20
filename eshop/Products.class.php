@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на  продукти от е-магазина.
+ * Мениджър на aртикул от е-магазина.
  *
  *
  * @category  bgerp
@@ -23,12 +23,6 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Страница от менюто
-     */
-    public $pageMenu = 'Е-Магазин';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cat_plg_AddSearchKeywords, cms_VerbalIdPlg, plg_Search, plg_Sorting, plg_StructureAndOrder';
@@ -37,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,groupId,state';
+    public $listFields = 'code,name,groupId=Група,state';
     
     
     /**
@@ -136,8 +130,7 @@ class eshop_Products extends core_Master
     public function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
-        
-        $this->FLD('name', 'varchar(128)', 'caption=Продукт, mandatory,width=100%');
+        $this->FLD('name', 'varchar(128)', 'caption=Артикул, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
         $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация2,column=none');

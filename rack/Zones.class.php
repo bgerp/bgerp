@@ -174,7 +174,10 @@ class rack_Zones extends core_Master
                 $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
             }
             
-            $row->ROW_ATTR['id'] = self::getRecTitle($rec);
+            Mode::push('shortZoneName', true);
+            $id = self::getRecTitle($rec);
+            Mode::pop('shortZoneName');
+            $row->num = ht::createElement("div", array('id' => $id), $row->num, true);
         }
         
         if(!empty($rec->description)){
@@ -518,7 +521,11 @@ class rack_Zones extends core_Master
             
             // Ако е избрана зона редирект към нея, иначе се остава в документа
             if (isset($fRec->zoneId)) {
-                redirect(array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($fRec->zoneId)));
+                Mode::push('shortZoneName', true);
+                $shortZoneName = rack_Zones::getRecTitle($fRec->zoneId);
+                Mode::pop('shortZoneName');
+                
+                redirect(array('rack_Zones', 'list', '#' => $shortZoneName));
             }
             
             followRetUrl();
@@ -560,7 +567,7 @@ class rack_Zones extends core_Master
         }
         
         if (($action == 'delete' || $action == 'changestate') && isset($rec)) {
-            if (rack_ZoneDetails::fetch("#zoneId = {$rec->id}")) {
+            if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -925,7 +932,10 @@ class rack_Zones extends core_Master
             
         } else{
             if (rack_Zones::haveRightFor('list')){
+                Mode::push('shortZoneName', true);
                 $res->url = array(rack_Zones, 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
+                Mode::pop('shortZoneName');
+                
                 $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
             }
         }

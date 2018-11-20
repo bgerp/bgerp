@@ -146,9 +146,9 @@ class sens2_Scripts extends core_Master
         $rec = self::fetch($id);
         $this->requireRightFor('single', $rec);
 
-        $res = sens2_script_Actions::runScript($id);
+        sens2_script_Actions::runScript($id);
 
-        return new Redirect(array($this, 'Single', $id), $res);
+        return new Redirect(array($this, 'Single', $id));
     }
     
     

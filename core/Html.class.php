@@ -922,7 +922,8 @@ class core_Html
         }
         
         if ($url !== false && (is_string($url) || (is_array($url) && count($url)))) {
-            $arrowImg = ht::createElement('img', array('src' => sbf('img/16/anchor-image.png', '')));
+            $imgSrc = isset($attr['ef_icon']) ? $attr['ef_icon'] : 'img/16/anchor-image.png';
+            $arrowImg = ht::createElement('img', array('src' => sbf($imgSrc, '')));
             $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
         }
         

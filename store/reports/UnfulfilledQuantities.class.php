@@ -328,7 +328,9 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         
         $row->saleId = sales_Sales::getLinkToSingle_($dRec->saleId, 'id');
         
-        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+        //$row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+        
+        $row->productId = cat_Products::getShortHyperlink($dRec->productId);
         
         $contragentClassName = cls::getClassName($dRec->contragentClassId);
         
