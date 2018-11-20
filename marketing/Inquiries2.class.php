@@ -757,7 +757,7 @@ class marketing_Inquiries2 extends embed_Manager
             if (core_Users::isContractor()) {
                 $res = 'no_one';
             } else {
-                if (!trim(marketing_Setup::get('INQUIRE_TO_EMAIL')) || marketing_Setup::get('INQUIRE_FROM_EMAIL')) {
+                if (!trim(marketing_Setup::get('INQUIRE_TO_EMAIL')) || !marketing_Setup::get('INQUIRE_FROM_EMAIL')) {
                     $res = 'no_one';
                 }
             }
