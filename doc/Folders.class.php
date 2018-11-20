@@ -375,7 +375,12 @@ class doc_Folders extends core_Master
             // с изключение на личните и секретните на други CEO
             if (core_Users::haveRole('ceo', $rec->inCharge) && (($rec->access == 'private') || ($rec->access == 'secret'))) {
                 
-                return false;
+                // и ако не е оттеглен
+                $uState = core_Users::fetchField($rec->inCharge, 'state');
+                if (($uState != 'rejected') && ($uState != 'draft')) {
+                    
+                    return false;
+                }
             }
             
             return true;
@@ -395,6 +400,17 @@ class doc_Folders extends core_Master
         
         // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
         if (core_Users::haveRole('manager,ceo', $rec->inCharge)) {
+            
+            // Ако собственика на папката има права 'manager' и е оттеглене и текущия потребител е такъв и са от един и същи екип
+            if ($rec->access != 'secret' && core_Users::haveRole('manager', $userId) && (!core_Users::haveRole('ceo', $rec->inCharge))) {
+                $uState = core_Users::fetchField($rec->inCharge, 'state');
+                if (($uState == 'rejected') || ($uState == 'draft')) {
+                    if (core_Users::isFromSameTeam($userId, $rec->inCharge)) {
+                        
+                        return true;
+                    }
+                }
+            }
             
             return false;
         }

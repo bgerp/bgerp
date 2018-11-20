@@ -116,64 +116,21 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
         }
         $counter = array();
         
-        $text = mb_strtolower(trim("{$rec->text}", ' '));
+        $text = mb_strtolower(trim("{$rec->text}"));
         
-        $textArr = explode(' ', $text);
-        
-        $countTextArr = count($textArr);
-        
-        while ($query = $hQuery->fetch()) {
-            $flag = false;
+        while ($hRec = $hQuery->fetch()) {
+            $queryToLower = mb_strtolower(trim("{$hRec->query}", ' '));
             
-            $queryToLower = mb_strtolower(trim("{$query->query}", ' '));
-            
-            $queryArr = explode(' ', $queryToLower);
-            
-            if ($countTextArr > count($queryArr)) {
-                continue;
-            }
-            
-            if ($countTextArr == count($queryArr)) {
-                if ($text == $queryToLower) {
-                    $id = $query->HistoryResourceId;
-                    $flag = true;
-                }
-            }
-            
-            if ($countTextArr < count($queryArr)) {
-                $marker = 0;
-                while (($countTextArr + $marker) <= (count($queryArr))) {
-                    $wordIndex = $marker;
-                    
-                    for ($i = 0; $i < $countTextArr; $i++) {
-                       
-                        $tempQuery .= $queryArr[$wordIndex].' ';
-                        
-                        $wordIndex++;
-                    }
-                    
-                    if (mb_strtolower(trim("${tempQuery}", ' ')) == $text) {
-                        $id = $query->HistoryResourceId;
-                        $flag = true;
-                        unset($tempQuery);
-                    }
-                    
-                    unset($tempQuery);
-                    $marker++;
-                }
-            }
-            
-            
-            // добавяме в масива
-            if ($flag) {
+            if (strpos($queryToLower, $text) !== false) {
+                $id = $hRec->HistoryResourceId;
+                
+                // добавяме в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
                         
                         'HistoryResourceId' => $id,
-                        'query' => $query->query,
-                        'resource' => $queryArr[1],
-                        'place' => $queryArr[0],
-                        'createdOn' => $query->createdOn,
+                        'query' => $hRec->query,
+                        'createdOn' => $hRec->createdOn,
                         'counter' => 1
                     );
                 } else {
@@ -181,7 +138,7 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
                     ++$obj->counter;
                 }
             }
-            unset($id,$queryToLower);
+            unset($id, $queryToLower);
         }
         
         if (is_array($recs)) {
@@ -242,8 +199,6 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
         
         $row->resource = $dRec->query;
         
-        //  $row->place = $dRec->place;
-        
         $row->counter = $dRec->counter;
         
         return $row;
@@ -276,7 +231,7 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
         }
         
         if (isset($data->rec->text)) {
-            $fieldTpl->append('<b>' ." ". $data->rec->text." " . '</b>', 'text');
+            $fieldTpl->append('<b>' . ' ' . $data->rec->text . ' ' . '</b>', 'text');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

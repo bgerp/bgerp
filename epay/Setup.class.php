@@ -73,10 +73,10 @@ class epay_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'EPAY_MIN' => array('varchar', 'caption=Настройки за онлайн плащане->MIN'),
-        'EPAY_CHECKSUM' => array('varchar', 'caption=Настройки за онлайн плащане->CHECKSUM'),
-        'EPAY_MANDATORY_BEFORE_FINALIZATION' => array('enum(yes=Задължително,no=Опционално)', 'caption=Настройки за онлайн плащане->Онлайн плащане'),
-        'EPAY_OWN_ACCOUNT_ID' => array('key2(mvc=bank_OwnAccounts,select=title,allowEmpty,selectSourceArr=epay_Setup::getOwnAccountsArr)', 'caption=Настройки за онлайн плащане->Сметка|* (BGN)'),
+        'EPAY_MIN' => array('varchar', 'caption=MIN'),
+        'EPAY_CHECKSUM' => array('varchar', 'caption=CHECKSUM'),
+        'EPAY_MANDATORY_BEFORE_FINALIZATION' => array('enum(yes=Задължително,no=Опционално)', 'caption=Онлайн плащане'),
+        'EPAY_OWN_ACCOUNT_ID' => array('key2(mvc=bank_OwnAccounts,select=title,allowEmpty,selectSourceArr=epay_Setup::getOwnAccountsArr)', 'caption=Сметка'),
         'EPAY_EMAIL_DOMAIN' => array('varchar', 'caption=Имейл от който ще се очаква получаване на плащане->Подател'),
         'EPAY_EMAIL_SPAM_SCORE' => array('double', 'caption=Имейл от който ще се очаква получаване на плащане->Спам рейтинг'),
     );
@@ -104,7 +104,9 @@ class epay_Setup extends core_ProtoSetup
     public static function getOwnAccountsArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         // Само нашите сметки в BGN
-        return bank_OwnAccounts::getOwnAccounts(true, 'BGN');
+        $res = bank_OwnAccounts::getOwnAccounts(true, 'BGN', $onlyIds);
+        
+        return $res;
     }
     
     
