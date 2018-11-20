@@ -3443,7 +3443,8 @@ table .eshop-btn {
 .defaultNewsbar {
   background-color: white;
   color: black;
-  clear: both; }
+  clear: both;
+  margin-top: 5px; }
   .defaultNewsbar h1,
   .defaultNewsbar h2,
   .defaultNewsbar h3,
