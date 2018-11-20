@@ -104,7 +104,9 @@ class epay_Setup extends core_ProtoSetup
     public static function getOwnAccountsArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         // Само нашите сметки в BGN
-        return bank_OwnAccounts::getOwnAccounts(true, 'BGN');
+        $res = bank_OwnAccounts::getOwnAccounts(true, 'BGN', $onlyIds);
+        
+        return $res;
     }
     
     
