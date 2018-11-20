@@ -560,7 +560,7 @@ class rack_Zones extends core_Master
         }
         
         if (($action == 'delete' || $action == 'changestate') && isset($rec)) {
-            if (rack_ZoneDetails::fetch("#zoneId = {$rec->id}")) {
+            if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
         }
