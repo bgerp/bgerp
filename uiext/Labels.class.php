@@ -76,7 +76,7 @@ class uiext_Labels extends core_Manager
      */
     public function description()
     {
-        $this->FLD('docClassId', 'class(interface=core_ManagerIntf,select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
+        $this->FLD('docClassId', 'class(select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
         $this->FLD('title', 'varchar', 'caption=Заглавие, mandatory');
         $this->FLD('color', 'color_Type()', 'caption=Фон, mandatory,tdClass=rightCol');
         
