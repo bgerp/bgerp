@@ -521,7 +521,11 @@ class rack_Zones extends core_Master
             
             // Ако е избрана зона редирект към нея, иначе се остава в документа
             if (isset($fRec->zoneId)) {
-                redirect(array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($fRec->zoneId)));
+                Mode::push('shortZoneName', true);
+                $shortZoneName = rack_Zones::getRecTitle($fRec->zoneId);
+                Mode::pop('shortZoneName');
+                
+                redirect(array('rack_Zones', 'list', '#' => $shortZoneName));
             }
             
             followRetUrl();
