@@ -117,6 +117,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Centers',
         'planning_Hr',
         'planning_FoldersWithResources',
+        'migrate::assetResourceFields',
     );
     
     
@@ -171,5 +172,59 @@ class planning_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Мигация за поправка на key полетата към keylist в planning_AssetResources
+     */
+    public static function assetResourceFields()
+    {
+        $inst = cls::get('planning_AssetResources');
+        $query = $inst->getQuery();
+        while ($rec = $query->fetch()) {
+            if (!$rec->systemFolderId) {
+                $rec->systemFolderId = null;
+            }
+            
+            if (!$rec->assetFolderId) {
+                $rec->assetFolderId = null;
+            }
+            
+            // Взамем от папките
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $inst->getClassId(), $rec->id));
+            $defOptArr = array();
+            while ($fRec = $fQuery->fetch()) {
+                if (!$fRec->folderId) {
+                    continue ;
+                }
+                
+                $cover = doc_Folders::getCover($fRec->folderId);
+                
+                $systemFolderName = 'assetFolderId';
+                
+                if ($cover->className == 'support_Systems') {
+                    $systemFolderName = 'systemFolderId';
+                }
+                
+                $defOptArr[$systemFolderName]['folders'][$fRec->folderId] = $fRec->folderId;
+                if ($fRec->users) {
+                    $defOptArr[$systemFolderName]['users'] = type_Keylist::merge($defOptArr[$systemFolderName]['users'], $fRec->users);
+                }
+            }
+            
+            if ($defOptArr['systemFolderId']['folders']) {
+                $rec->systemFolderId = type_Keylist::fromArray($defOptArr['systemFolderId']['folders']);
+                $rec->systemUsers = $defOptArr['systemFolderId']['users'];
+            }
+            
+            if ($defOptArr['assetFolderId']['folders']) {
+                $rec->assetFolderId = type_Keylist::fromArray($defOptArr['assetFolderId']['folders']);
+                $rec->assetUsers = $defOptArr['assetFolderId']['users'];
+            }
+            
+            $inst->save($rec, 'systemFolderId, systemUsers, assetFolderId, assetUsers');
+        }
     }
 }

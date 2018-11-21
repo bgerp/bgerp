@@ -133,6 +133,8 @@ class log_Debug extends core_Manager
             Mode::set('stopLoggingDebug', true);
             $debugFileName = $debugFile . '.debug';
             $defUser = core_Users::getCurrent();
+        } else {
+            core_Os::createDirectories(DEBUG_FATAL_ERRORS_PATH);
         }
         
         // Подготвяме листовия изглед за избор на дебъг файл
@@ -1356,5 +1358,10 @@ class log_Debug extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 600;
         $res .= core_Cron::addOnce($rec);
+        
+        // Създаваме директорията, ако не съществува
+        if (defined('DEBUG_FATAL_ERRORS_PATH')) {
+            $res .= core_Os::createDirectories(DEBUG_FATAL_ERRORS_PATH);
+        }
     }
 }
