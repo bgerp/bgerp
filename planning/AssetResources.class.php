@@ -138,11 +138,11 @@ class planning_AssetResources extends core_Master
         
         $powerUserId = core_Roles::fetchByName('powerUser');
         
-        $this->FLD('assetFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Използване->Център на дейност, remember');
+        $this->FLD('assetFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Използване->Център на дейност, remember');
         $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване->Отговорници, remember');
         $this->FLD('simultaneity', 'int', 'caption=Използване->Едновременност,notNull,value=1, oldFieldName=quantity, remember');
         
-        $this->FLD('systemFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Поддръжка->Система, remember');
+        $this->FLD('systemFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Поддръжка->Система, remember');
         $this->FLD('systemUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Поддръжка->Отговорници, remember');
         
         $this->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title, allowEmpty)', 'caption=Сензори, remember');
@@ -174,27 +174,86 @@ class planning_AssetResources extends core_Master
             $form->info = tr('От') . ' ' . accda_Da::getHyperLink($rec->protocolId, true);
         }
         
-        // Какви са достъпните папки за оборудване
-        $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
-        $form->setOptions('assetFolderId', array('' => '') + $resourceSuggestionsArr);
-        if (empty($rec->id)) {
-            $form->setDefault('assetFolderId', planning_Centers::getUndefinedFolderId());
+        $defOptArr = array();
+        if ($rec->id) {
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $mvc->getClassId(), $rec->id));
+            while ($fRec = $fQuery->fetch()) {
+                if (!$fRec->folderId) {
+                    continue ;
+                }
+                $cover = doc_Folders::getCover($fRec->folderId);
+                
+                $systemFolderName = 'assetFolderId';
+                
+                if ($cover->className == 'support_Systems') {
+                    $systemFolderName = 'systemFolderId';
+                }
+                
+                $defOptArr[$systemFolderName]['folders'][$fRec->folderId] = $fRec->folderId;
+                if ($fRec->users) {
+                    $defOptArr[$systemFolderName]['users'] = type_Keylist::merge($defOptArr[$systemFolderName]['users'], $fRec->users);
+                }
+            }
         }
         
-        $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems');
-        $supportSuggestionsArr = doc_Folders::getSelectArr($supportFolderParams);
-        $form->setOptions('systemFolderId', array('' => '') + $supportSuggestionsArr);
+        if (!core_Packs::isInstalled('tracking')) {
+            $form->setField('vehicle', 'input=none');
+        }
+        
+        if (!core_Packs::isInstalled('cams')) {
+            $form->setField('cameras', 'input=none');
+        }
+        
+        if (!core_Packs::isInstalled('sens2')) {
+            $form->setField('indicators', 'input=none');
+        }
+        
+        // Какви са достъпните папки за оборудване
+        $resourceSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers'));
+        if (empty($resourceSuggestionsArr)) {
+            $form->setField('assetFolderId', 'input=hidden');
+            $form->setField('assetUsers', 'input=hidden');
+        } else {
+            $form->setSuggestions('assetFolderId', array('' => '') + $resourceSuggestionsArr);
+        }
+        
+        $supportSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems'));
+        if (empty($supportSuggestionsArr)) {
+            $form->setField('systemFolderId', 'input=hidden');
+            $form->setField('systemUsers', 'input=hidden');
+        } else {
+            $form->setSuggestions('systemFolderId', array('' => '') + $supportSuggestionsArr);
+        }
+        
+        
+        if (empty($rec->id)) {
+            $form->setDefault('assetFolderId', '|' . planning_Centers::getUndefinedFolderId() . '|');
+        } else {
+            $form->rec->assetFolderId = type_Keylist::fromArray($defOptArr['assetFolderId']['folders']);
+            $form->rec->assetUsers = $defOptArr['assetFolderId']['users'];
+            $form->rec->systemFolderId = type_Keylist::fromArray($defOptArr['systemFolderId']['folders']);
+            $form->rec->systemUsers = $defOptArr['systemFolderId']['users'];
+        }
     }
     
     
     /**
-     * След подготовка на тулбара за единичен изглед
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if (planning_AssetResourceFolders::haveRightFor('add')) {
-            Request::setProtected(array('classId', 'objectId'));
-            $data->toolbar->addBtn('Папка', array('planning_AssetResourceFolders', 'add', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/folder_new.png, title=Добавяне на папка към оборудване');
+        if ($form->isSubmitted()) {
+            if (!$form->rec->assetFolderId && $form->rec->assetUsers) {
+                $form->setError('assetFolderId', 'Не е избрана папка');
+            }
+            
+            if (!$form->rec->systemFolderId && $form->rec->systemUsers) {
+                $form->setError('systemFolderId', 'Не е избрана папка');
+            }
         }
     }
     
@@ -205,6 +264,8 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $limitForDocs = 5;
+        
         $row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, true);
         $row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
         
@@ -227,23 +288,13 @@ class planning_AssetResources extends core_Master
                 $fArr[$fRec->folderId] = array('folderId' => $fRec->folderId, 'users' => $fRec->users, 'rec' => $fRec);
             }
             
-            // Полетата добавени в модела ги сортираме в началото
-            if ($rec->systemFolderId && $fArr[$rec->systemFolderId]) {
-                $sArr = $fArr[$rec->systemFolderId];
-                unset($fArr[$rec->systemFolderId]);
-                $fArr = array($rec->systemFolderId => $sArr) + $fArr;
-            }
-            if ($rec->assetFolderId && $fArr[$rec->assetFolderId]) {
-                $sArr = $fArr[$rec->assetFolderId];
-                unset($fArr[$rec->assetFolderId]);
-                $fArr = array($rec->assetFolderId => $sArr) + $fArr;
-            }
-            
             $row->systemFolderId = '';
             $row->assetFolderId = '';
-            $row->issues = '';
-            $isFirstSystem = $isFirstAsset = true;
             foreach ($fArr as $f) {
+                if (!$f['folderId']) {
+                    continue;
+                }
+                
                 $cover = doc_Folders::getCover($f['folderId']);
                 if ($cover->className == 'support_Systems') {
                     $row->systemFolderId .= $row->systemFolderId ? '<br>' : '';
@@ -261,25 +312,32 @@ class planning_AssetResources extends core_Master
                         $row->systemFolderId .= ')';
                     }
                     
-                    if ($isFirstSystem) {
-                        $isFirstSystem = false;
-                        if (doc_Folders::haveRightFor('single', $f['folderId'])) {
-                            $driverClassField = cls::get('cal_Tasks')->driverClassField;
-                            
-                            $sQuery = cal_Tasks::getQuery();
-                            $sQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
-                            $sQuery->where("#state != 'rejected'");
-                            $sQuery->where(array("#{$driverClassField} = '[#1#]'", support_TaskType::getClassId()));
-                            
-                            $sQuery->orderBy('state', 'ASC');
-                            $sQuery->orderBy('modifiedOn', 'DESC');
-                            
-                            $sQuery->limit(5);
-                            
-                            while ($sRec = $sQuery->fetch()) {
-                                $row->issues .= "<div class='state-'{$sRec->state}>" . cal_Tasks::getLinkToSingle($sRec->id) . '</div>';
+                    $issues = '';
+                    if (doc_Folders::haveRightFor('single', $f['folderId'])) {
+                        $driverClassField = cls::get('cal_Tasks')->driverClassField;
+                        
+                        $sQuery = cal_Tasks::getQuery();
+                        $sQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
+                        $sQuery->where("#state != 'rejected'");
+                        $sQuery->where(array("#{$driverClassField} = '[#1#]'", support_TaskType::getClassId()));
+                        
+                        $sQuery->orderBy('state', 'ASC');
+                        $sQuery->orderBy('modifiedOn', 'DESC');
+                        
+                        $cnt = 0;
+                        while ($sRec = $sQuery->fetch()) {
+                            if ($sRec->assetResourceId != $rec->id) {
+                                continue;
                             }
+                            if (++$cnt > $limitForDocs) {
+                                break;
+                            }
+                            $issues .= "<div class='state-'{$sRec->state}>" . cal_Tasks::getLinkToSingle($sRec->id) . '</div>';
                         }
+                    }
+                    
+                    if ($issues) {
+                        $row->systemFolderId .= '<div style="padding-left: 20px;">' . $issues . '</div>';
                     }
                 } else {
                     $row->assetFolderId .= $row->assetFolderId ? '<br>' : '';
@@ -297,21 +355,24 @@ class planning_AssetResources extends core_Master
                         $row->assetFolderId .= ')';
                     }
                     
-                    if ($isFirstAsset) {
-                        $isFirstAsset = false;
-                        if (doc_Folders::haveRightFor('single', $f['folderId'])) {
-                            $pQuery = planning_Jobs::getQuery();
-                            $pQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
-                            $pQuery->where("#state != 'rejected'");
-                            $pQuery->orderBy('state', 'ASC');
-                            $pQuery->orderBy('modifiedOn', 'DESC');
-                            
-                            $pQuery->limit(5);
-                            
-                            while ($pRec = $pQuery->fetch()) {
-                                $row->jobs .= "<div class='state-'{$pRec->state}>" . planning_Jobs::getLinkToSingle($pRec->id) . '</div>';
-                            }
+                    $jobs = '';
+                    if (doc_Folders::haveRightFor('single', $f['folderId'])) {
+                        $pQuery = planning_Tasks::getQuery();
+                        $pQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
+                        $pQuery->likeKeylist('fixedAssets', $rec->id);
+                        $pQuery->where("#state != 'rejected'");
+                        $pQuery->orderBy('state', 'ASC');
+                        $pQuery->orderBy('modifiedOn', 'DESC');
+                        
+                        $pQuery->limit($limitForDocs);
+                        
+                        while ($pRec = $pQuery->fetch()) {
+                            $jobs .= "<div class='state-'{$pRec->state}>" . planning_Tasks::getLinkToSingle($pRec->id) . '</div>';
                         }
+                    }
+                    
+                    if ($jobs) {
+                        $row->assetFolderId .= '<div style="padding-left: 20px;">' . $jobs . '</div>';
                     }
                 }
             }
@@ -375,26 +436,6 @@ class planning_AssetResources extends core_Master
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            if (!$form->rec->assetFolderId && $form->rec->assetUsers) {
-                $form->setError('assetFolderId', 'Не е избрана папка');
-            }
-            
-            if (!$form->rec->systemFolderId && $form->rec->systemUsers) {
-                $form->setError('systemFolderId', 'Не е избрана папка');
-            }
-        }
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
@@ -408,13 +449,6 @@ class planning_AssetResources extends core_Master
                     if ($mvc->fetch("#protocolId = {$rec->protocolId}")) {
                         $requiredRoles = 'no_one';
                     }
-                }
-            }
-            
-            // Проверка на папката
-            if (isset($rec->assetFolderId)) {
-                if (!self::canFolderHaveAsset($rec->assetFolderId)) {
-                    $requiredRoles = 'no_one';
                 }
             }
         }
@@ -629,13 +663,14 @@ class planning_AssetResources extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         $rArr = array();
+        $allFoldersArr = array();
         
         if ($rec->assetFolderId) {
-            $rArr[] = array('folderId' => $rec->assetFolderId, 'users' => $rec->assetUsers);
+            $rArr[] = array('folderId' => type_Keylist::toArray($rec->assetFolderId), 'users' => $rec->assetUsers);
         }
         
         if ($rec->systemFolderId) {
-            $rArr[] = array('folderId' => $rec->systemFolderId, 'users' => $rec->systemUsers);
+            $rArr[] = array('folderId' => type_Keylist::toArray($rec->systemFolderId), 'users' => $rec->systemUsers);
         }
         
         $clsId = $mvc->getClassId();
@@ -644,17 +679,39 @@ class planning_AssetResources extends core_Master
                 continue;
             }
             
-            $fRec = planning_AssetResourceFolders::fetch(array("#classId = '[#1#]' AND #objectId = '[#2#]' AND #folderId = '[#3#]'", $clsId, $rec->id, $r['folderId']));
-            if (!$fRec) {
-                $fRec = new stdClass();
-                $fRec->classId = $clsId;
-                $fRec->objectId = $rec->id;
-                $fRec->folderId = $r['folderId'];
+            foreach ($r['folderId'] as $fId) {
+                $fRec = planning_AssetResourceFolders::fetch(array("#classId = '[#1#]' AND #objectId = '[#2#]' AND #folderId = '[#3#]'", $clsId, $rec->id, $fId));
+                if (!$fRec) {
+                    $fRec = new stdClass();
+                    $fRec->classId = $clsId;
+                    $fRec->objectId = $rec->id;
+                    $fRec->folderId = $fId;
+                }
+                $allFoldersArr[$fId] = $fId;
+                
+                $fRec->users = $r['users'];
+                
+                planning_AssetResourceFolders::save($fRec);
+            }
+        }
+        
+        if ($allFoldersArr) {
+            $values = implode(',', $allFoldersArr);
+            planning_AssetResourceFolders::delete(array("#classId = '[#1#]' AND #objectId = '[#2#]' AND #folderId NOT IN ([#3#])", $clsId, $rec->id, $values));
+        } else {
+            $delFolders = false;
+            if (!$fields) {
+                $delFolders = true;
+            } else {
+                $fields = arr::make(true);
+                if ($fields['assetFolderId'] || $fields['systemFolderId']) {
+                    $delFolders = true;
+                }
             }
             
-            $fRec->users = $r['users'];
-            
-            planning_AssetResourceFolders::save($fRec);
+            if ($delFolders) {
+                planning_AssetResourceFolders::delete(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $clsId, $rec->id));
+            }
         }
     }
     

@@ -123,6 +123,33 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Помощна функция за добавяне на връзка
+     *
+     * @param int         $outVal  - връзка от - източника/родителя - изходящата връзка
+     * @param int         $inVal   - връзка към - детето - входящата връзка
+     * @param string      $outType
+     * @param string      $inType
+     * @param null|string $comment
+     *
+     * @return int
+     */
+    public static function add($outVal, $inVal, $outType = 'doc', $inType = 'doc', $comment = null)
+    {
+        $rec = new stdClass();
+        $rec->outType = $outType;
+        $rec->outVal = $outVal;
+        $rec->inType = $inType;
+        $rec->inVal = $inVal;
+        $rec->comment = $comment;
+        $rec->state = 'active';
+        
+        $sId = self::save($rec, null, 'IGNORE');
+        
+        return $sId;
+    }
+    
+    
+    /**
      * Връща всички записи за подадените типове
      *
      * @param string $type
