@@ -263,14 +263,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
             
             if (is_null($masterKey)) {
-                log_System::add(sales_reports_SalesByContragents, 'masterKey is NULL във' . $recPrime . $detClassName, null, 'notice');
+                log_System::add('sales_reports_SalesByContragents', 'masterKey е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . core_Type::mixedToString($detClassName), null, 'notice');
             } else {
                 $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
                 $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
                 $contragentClassName = core_Classes::fetchField($contragentClassId, 'name');
                 
                 if (is_null($contragentId) || is_null($contragentClassId)) {
-                    log_System::add(sales_reports_SalesByContragents, 'ContragentId или ContragentClassId is NULL във' . $recPrime . $masterClassName . $masterKey, null, 'notice');
+                    log_System::add('sales_reports_SalesByContragents', 'ContragentId или ContragentClassId е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $masterClassName . ' ' . $masterKey, null, 'notice');
                 }
             }
             
