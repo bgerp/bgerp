@@ -232,7 +232,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         // Показване на тагове
         if (core_Packs::isInstalled('uiext')) {
-            uiext_Labels::showLabels($this, $rec->containerId, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
+            uiext_Labels::showLabels($this, 'frame2_Reports', $rec->id, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
         }
         
         $filterFields = arr::make($this->filterEmptyListFields, true);

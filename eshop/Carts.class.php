@@ -37,7 +37,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,ip,brid,domainId,userId,saleId,createdOn,activatedOn,state';
+    public $listFields = 'id,productCount=Артикули,ip,brid,domainId,userId,total=Сума,saleId,state,createdOn,activatedOn';
     
     
     /**
@@ -148,7 +148,7 @@ class eshop_Carts extends core_Master
     {
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Магазин,input=hidden,silent');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=hidden,silent');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('deliveryNoVat', 'double(decimals=2)', 'caption=Общи данни->Доставка без ДДС,input=none');
@@ -658,12 +658,6 @@ class eshop_Carts extends core_Master
             $bankRec->amount = $amount;
             $bankRec->amountDeal = $amountDeal;
             bank_IncomeDocuments::save($bankRec);
-        }
-        
-        // Ако има избрана сметка ПБД-то се контира
-        if(isset($accountId)){
-            bank_IncomeDocuments::conto($bankRec->id);
-            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, $cu);
         }
         
         core_Users::cancelSystemUser();
@@ -1456,19 +1450,23 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if(isset($fields['-list'])){
-            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
-            $row->ROW_ATTR['class'] = "state-{$rec->state}";
-            $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
+        $row->brid = log_Browsers::getLink($rec->brid);
+        $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        $row->STATE_CLASS = $row->ROW_ATTR['class'];
+        $row->domainId = cms_Domains::getHyperlink($rec->domainId);
             
-            $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
-            foreach (array('total', 'totalNoVat', 'deliveryNoVat') as $fld){
-                if(isset($rec->{$fld})){
-                    ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
-                    $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
-                }
+        $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
+        $rec->vatAmount = $rec->total - $rec->totalNoVat;
+        $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
+        foreach (array('total', 'totalNoVat', 'deliveryNoVat', 'vatAmount') as $fld){
+            if(isset($rec->{$fld})){
+                ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
+                $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
             }
-            
+        }
+        
+        if(isset($fields['-list'])){
             if(!empty($rec->email) && $rec->state == 'draft'){
                 $row->id = ht::createHint($row->id, 'Има попълнени данни за поръчка|*!', 'notice', false);
             }
@@ -1996,9 +1994,11 @@ class eshop_Carts extends core_Master
         if(!is_object($saleRec)) return;
         
         try{
-            self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
+            $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
+            bank_IncomeDocuments::conto($bankRec->id);
+            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
         } catch(core_exception_Expect $e){
-            reportException($e);
+           reportException($e);
         }
     }
     

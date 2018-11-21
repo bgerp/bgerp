@@ -3440,6 +3440,9 @@ table .eshop-btn {
     line-height: 1.1em;
     white-space: nowrap; }
 
+.cms-last .defaultNewsbar {
+  margin: 5px 0; }
+
 .defaultNewsbar {
   background-color: white;
   color: black;

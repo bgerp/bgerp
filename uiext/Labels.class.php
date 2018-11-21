@@ -4,7 +4,7 @@
 /**
  * Клас 'uiext_Labels'
  *
- * Мениджър за тагове на документите
+ * Мениджър за тагове на обекти
  *
  * @category  bgerp
  * @package   uiext
@@ -76,7 +76,7 @@ class uiext_Labels extends core_Manager
      */
     public function description()
     {
-        $this->FLD('docClassId', 'class(interface=core_ManagerIntf,select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
+        $this->FLD('docClassId', 'class(select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
         $this->FLD('title', 'varchar', 'caption=Заглавие, mandatory');
         $this->FLD('color', 'color_Type()', 'caption=Фон, mandatory,tdClass=rightCol');
         
@@ -101,7 +101,7 @@ class uiext_Labels extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete' && isset($rec)) {
-            if (uiext_DocumentLabels::fetch("#labels LIKE '%|{$rec->id}|%'")) {
+            if (uiext_ObjectLabels::fetch("#labels LIKE '%|{$rec->id}|%'")) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -149,7 +149,8 @@ class uiext_Labels extends core_Manager
      * Помощен метод за показване на таговете
      *
      * @param int           $class       - за кой клас
-     * @param int           $containerId - ид на контейнера
+     * @param mixed         $masterClass - ид на контейнера
+     * @param int           $masterId    - ид на контейнера
      * @param array         $recs        - масив със записите
      * @param array         $rows        - масив със вербалните записи
      * @param array         $listFields  - колонките
@@ -159,7 +160,7 @@ class uiext_Labels extends core_Manager
      * @param core_FieldSet &$fieldset   - шаблон за рендиране
      * @param void
      */
-    public static function showLabels($class, $containerId, $recs, &$rows, &$listFields, $hashFields, $colName, &$tpl, core_FieldSet &$fieldset)
+    public static function showLabels($class, $masterClass, $masterId, $recs, &$rows, &$listFields, $hashFields, $colName, &$tpl, core_FieldSet &$fieldset)
     {
         if (!is_array($rows)) {
             
@@ -179,7 +180,7 @@ class uiext_Labels extends core_Manager
         foreach ($rows as $key => $row) {
             $rec = $recs[$key];
             $hash = self::getHash($rec, $hashFields);
-            $row->_tagField = self::renderLabel($containerId, $classId, $hash);
+            $row->_tagField = self::renderLabel($masterClass, $masterId, $classId, $hash);
         }
     }
     
@@ -230,10 +231,11 @@ class uiext_Labels extends core_Manager
      * @param int    $classId     - ид на класа, от който ще се избират таговете
      * @param string $hash        - хеш на реда
      *
-     * @return text - инпута за избор на тагове
+     * @return string - инпута за избор на тагове
      */
-    public static function renderLabel($containerId, $classId, $hash)
+    public static function renderLabel($masterClass, $masterId, $classId, $hash)
     {
+        $masterClass = cls::get($masterClass);
         $labels = self::getLabelOptions($classId);
         if (count($labels) <= 1) {
             
@@ -242,19 +244,19 @@ class uiext_Labels extends core_Manager
         
         // Връщане
         $value = null;
-        $selRec = uiext_DocumentLabels::fetchByDoc($containerId, $hash);
+        $selRec = uiext_ObjectLabels::fetchByDoc($masterClass->getClassId(), $masterId, $hash);
         if ($selRec) {
             $value = keylist::toArray($selRec->labels);
             $value = key($value);
         }
         
         $input = '';
-        if (uiext_DocumentLabels::haveRightFor('selectlabel', (object) array('containerId' => $containerId))) {
+        if (uiext_ObjectLabels::haveRightFor('selectlabel', (object) array('classId' => $masterClass->getClassId(), 'objectId' => $masterId))) {
             $attr = array();
             $attr['class'] = 'transparentSelect selectLabel';
             
             //core_Request::setProtected('containerId,hash');
-            $attr['data-url'] = toUrl(array('uiext_DocumentLabels', 'saveLabels', 'containerId' => $containerId, 'hash' => $hash, 'classId' => $classId), 'local');
+            $attr['data-url'] = toUrl(array('uiext_ObjectLabels', 'saveLabels', 'masterClassId' => $masterClass->getClassId(), 'objectId' => $masterId, 'hash' => $hash, 'classId' => $classId), 'local');
             
             //core_Request::removeProtected('containerId,hash');
             $attr['title'] = 'Избор на таг';
@@ -264,11 +266,11 @@ class uiext_Labels extends core_Manager
             $input = $input->getContent();
         } else {
             if (!empty($value)) {
-                $input = cls::get('uiext_DocumentLabels')->getFieldType('labels')->toVerbal($value);
+                $input = cls::get('uiext_ObjectLabels')->getFieldType('labels')->toVerbal($value);
             }
         }
         
-        $k = "{$containerId}|{$classId}|{$hash}";
+        $k = "{$masterClass->getClassId()}|{$masterId}|{$classId}|{$hash}";
         
         return "<span id='charge{$k}'>{$input}</span>";
     }
