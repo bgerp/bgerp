@@ -31,6 +31,18 @@ class core_Webroot
  
         file_put_contents($path, $contents);
 
+        if(strpos($headers, 'Pragma:') === false) {
+            $headers .= "\nPragma: public";
+        }
+
+        if(strpos($headers, 'Cache-Control:') === false) {
+            $headers .= "\nCache-Control: max-age=10800";
+        }
+
+        if(strpos($headers, 'Expires:') === false) {
+            $headers .= "\nExpires: " . gmdate('D, d M Y H:i:s \G\M\T', time() + 10800);
+        }
+
         if(strpos($headers, 'Content-Type:') === false) {
             $headers .= "\nContent-Type: " . fileman_Mimes::getMimeByExt(fileman_Files::getExt($filename));
         }
