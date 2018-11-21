@@ -55,8 +55,8 @@
 	            </li>
 	            <!--ET_END assetFolderId-->
            </ul>
-           <div style="padding-left: 20px;">[#jobs#]</div>
         </fieldset>
+        [#jobs#]
         <!--ET_END jobs-->
         
         <!--ET_BEGIN issues-->
@@ -69,8 +69,8 @@
                 </tr>
                 <!--ET_END systemFolderId-->
             </table>
-            <div style="padding-left: 20px;">[#issues#]</div>
         </fieldset>
+        [#issues#]
         <!--ET_END issues-->
         
         <!--ET_BEGIN sensors-->
