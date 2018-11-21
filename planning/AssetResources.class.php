@@ -197,12 +197,35 @@ class planning_AssetResources extends core_Master
             }
         }
         
+        if (!core_Packs::isInstalled('tracking')) {
+            $form->setField('vehicle', 'input=none');
+        }
+        
+        if (!core_Packs::isInstalled('cams')) {
+            $form->setField('cameras', 'input=none');
+        }
+        
+        if (!core_Packs::isInstalled('sens2')) {
+            $form->setField('indicators', 'input=none');
+        }
+        
         // Какви са достъпните папки за оборудване
         $resourceSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers'));
-        $form->setSuggestions('assetFolderId', array('' => '') + $resourceSuggestionsArr);
+        if (empty($resourceSuggestionsArr)) {
+            $form->setField('assetFolderId', 'input=hidden');
+            $form->setField('assetUsers', 'input=hidden');
+        } else {
+            $form->setSuggestions('assetFolderId', array('' => '') + $resourceSuggestionsArr);
+        }
         
         $supportSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems'));
-        $form->setSuggestions('systemFolderId', array('' => '') + $supportSuggestionsArr);
+        if (empty($supportSuggestionsArr)) {
+            $form->setField('systemFolderId', 'input=hidden');
+            $form->setField('systemUsers', 'input=hidden');
+        } else {
+            $form->setSuggestions('systemFolderId', array('' => '') + $supportSuggestionsArr);
+        }
+        
         
         if (empty($rec->id)) {
             $form->setDefault('assetFolderId', '|' . planning_Centers::getUndefinedFolderId() . '|');
