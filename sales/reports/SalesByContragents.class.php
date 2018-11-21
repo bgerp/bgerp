@@ -260,17 +260,22 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             // контрагента по сделката
             $detClassName = $DetClass->className;
             $masterClassName = $DetClass->Master->className;
-            $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
+            if ($DetClass->masterKey) {
+                $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
+            } else {
+                log_System::add('sales_reports_SalesByContragents', 'Липсва masterKey в детайла: ' . $DetClass->className, null, 'warning');
+            }
+            
             
             if (is_null($masterKey)) {
-                log_System::add('sales_reports_SalesByContragents', 'masterKey е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $detClassName, null, 'notice');
+                log_System::add('sales_reports_SalesByContragents', 'masterKey е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $detClassName, null, 'warning');
             } else {
                 $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
                 $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
                 $contragentClassName = core_Classes::fetchField($contragentClassId, 'name');
                 
                 if (is_null($contragentId) || is_null($contragentClassId)) {
-                    log_System::add('sales_reports_SalesByContragents', 'ContragentId или ContragentClassId е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $masterClassName . ' ' . $masterKey, null, 'notice');
+                    log_System::add('sales_reports_SalesByContragents', 'ContragentId или ContragentClassId е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $masterClassName . ' ' . $masterKey, null, 'warning');
                 }
             }
             
