@@ -261,7 +261,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $detClassName = $DetClass->className;
             $masterClassName = $DetClass->Master->className;
             if ($DetClass->masterKey) {
-                $masterKey = $detClassName::fetchField($recPrime->detailRecId, "{$DetClass->masterKey}");
+                $masterKey = $detClassName::fetchField($recPrime->detailRecId, $DetClass->masterKey);
             } else {
                 log_System::add('sales_reports_SalesByContragents', 'Липсва masterKey в детайла: ' . $DetClass->className, null, 'warning');
             }
