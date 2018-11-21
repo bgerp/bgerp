@@ -660,12 +660,6 @@ class eshop_Carts extends core_Master
             bank_IncomeDocuments::save($bankRec);
         }
         
-        // Ако има избрана сметка ПБД-то се контира
-        if(isset($accountId)){
-            bank_IncomeDocuments::conto($bankRec->id);
-            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, $cu);
-        }
-        
         core_Users::cancelSystemUser();
         
         return $bankRec;
@@ -2000,9 +1994,11 @@ class eshop_Carts extends core_Master
         if(!is_object($saleRec)) return;
         
         try{
-            self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
+            $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
+            bank_IncomeDocuments::conto($bankRec->id);
+            bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
         } catch(core_exception_Expect $e){
-            reportException($e);
+           reportException($e);
         }
     }
     
