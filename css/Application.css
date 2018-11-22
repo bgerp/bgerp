@@ -4765,6 +4765,10 @@ div.location.public {
   .narrow .eshop-product-list ul {
     display: table-cell; }
 
+.epayBtn {
+  border: none;
+  background: none; }
+
 .newCol {
   background-color: #eeeeee; }
 
