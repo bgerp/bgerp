@@ -1970,16 +1970,17 @@ class eshop_Carts extends core_Master
     /**
      * Приемане на плащане към инциаторът (@see eshop_InitiatorPaymentIntf)
      *
-     * @param int $objId           - ид на обекта
-     * @param string $reason       - основания за плащане
-     * @param string|null $payer   - име на наредителя
-     * @param double|null $amount  - сума за нареждане
-     * @param string $currencyCode - валута за нареждане
-     * @param int|NULL $accountId  - ид на наша сметка, или NULL ако няма
+     * @param int $objId             - ид на обекта
+     * @param string $reason         - основания за плащане
+     * @param string|null $payer     - име на наредителя
+     * @param double|null $amount    - сума за нареждане
+     * @param string $currencyCode   - валута за нареждане
+     * @param int|NULL $accountId    - ид на наша сметка, или NULL ако няма
+     * @param int $linkedContainerId - свързан контейнер
      *
      * @return void
      */
-    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = NULL)
+    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = NULL, $linkedContainerId = null)
     {
         $rec = self::fetch($objId);
         $rec->paidOnline = 'yes';
@@ -1997,6 +1998,10 @@ class eshop_Carts extends core_Master
             $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
             bank_IncomeDocuments::conto($bankRec->id);
             bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
+            
+            if(isset($linkedContainerId)){
+                doc_Linked::add($linkedContainerId, $bankRec->containerId, 'doc', 'doc', 'Получено плащане от ePay.bg');
+            }
         } catch(core_exception_Expect $e){
            reportException($e);
         }

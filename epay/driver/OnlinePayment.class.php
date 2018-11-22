@@ -57,7 +57,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
         //@TODO тестово
-        $amount = 0.01;
+        //$amount = 0.01;
         $amount = round($amount, 2);
         
         $action = self::EPAY_DOMAIN;
