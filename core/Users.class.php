@@ -1647,7 +1647,11 @@ class core_Users extends core_Manager
      */
     public function act_Logout()
     {
+        $cu = core_Users::getCurrent();
+        
         $this->logout();
+        
+        $this->logLogin('logout', $cu, 180, $cu);
         
         followRetUrl();
     }
@@ -2607,11 +2611,12 @@ class core_Users extends core_Manager
     
     
     /**
-     * Сравнява ранговете на двама потребителя 
-     * 
+     * Сравнява ранговете на двама потребителя
+     *
      * @param int $firstUserId  - ид на първия потребител
      * @param int $secondUserId - ид на втория потребител
-     * @return number           - 0 ако са равни, -1 ако $firstUserId е с по-нисък ранг и 1 ако е с по-голям ранг
+     *
+     * @return number - 0 ако са равни, -1 ако $firstUserId е с по-нисък ранг и 1 ако е с по-голям ранг
      */
     public static function compareRangs($firstUserId, $secondUserId)
     {
