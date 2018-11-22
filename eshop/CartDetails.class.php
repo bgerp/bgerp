@@ -470,6 +470,7 @@ class eshop_CartDetails extends core_Detail
         if (isset($id)) {
             $this->delete($id);
             vislog_History::add("Изтриване на артикул от количка №{$cartId}");
+            $msg = '|Артикулът е премахнат|*!';
         } else {
             $this->delete("#cartId = {$cartId}");
             cls::get('eshop_Carts')->updateMaster($cartId);
