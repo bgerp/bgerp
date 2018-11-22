@@ -2156,8 +2156,8 @@ class core_Users extends core_Manager
     /**
      * Промяна на паролата на съществуващ потребител
      *
-     * @param unknown_type $passHash - хеша на новата парола
-     * @param unknown_type $userId   - id на потребителя
+     * @param string   $passHash - хеша на новата парола
+     * @param null|int $userId   - id на потребителя
      */
     public static function setPassword($passHash, $userId = null)
     {
