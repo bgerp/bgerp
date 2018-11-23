@@ -83,7 +83,7 @@ class eshop_driver_BankPayment extends core_BaseClass
         
         if(!Mode::is('text', 'plain')){
             $html .= "<b>" . tr($paymentName) . "</b>";
-            $html = "<div class='eshop-bank-payment' style='margin-bottom: 30px;'>{$html}</div>";
+            $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
         } else {
             $html .= tr($paymentName);
         }
