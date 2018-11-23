@@ -16,9 +16,8 @@ class pwa_Plugin extends core_Plugin
 {
     public function on_Output(&$invoker)
     {
-        $manifestUrl = toUrl(array('pwa_Plugin'));
-
         if(haveRole('powerUser')) {
+            $manifestUrl = toUrl(array('pwa_Plugin'));
             $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestUrl}\">", 'HEAD');
 
             $invoker->push(('pwa/js/app.js'), 'JS');
@@ -31,18 +30,24 @@ class pwa_Plugin extends core_Plugin
     {
         $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
         $iconInfoArr = array();
-        $conf = core_Packs::getConfig('pwa');
-        
+
+        $domainId = cms_Domains::fetchField("#domain = 'localhost'", 'id');
+
+        if(core_Webroot::isExists('favicon.png', $domainId)) {
+            $imageUrl = str_replace('/xxx', '', toUrl(array('xxx'), 'absolute')) . '/favicon.png';
+        }
+
         foreach ($iconSizes as $size) {
-            if ($conf->PWA_IMAGE) {
+            if ($imageUrl) {
                 // Създаваме thumbnail с определени размери
-                $thumb = new thumb_Img(array($conf->PWA_IMAGE, $size, $size, 'fileman', 'mode' => 'small-no-change'));
+                $thumb = new thumb_Img(array($imageUrl, $size, $size, 'path', 'mode' => 'small-no-change'));
                 $tempArray = array();
                 $img = $thumb->getUrl('deferred');
                 $tempArray['src'] = $img;
             } else {
                 $tempArray['src'] = sbf("pwa/icons/icon-{$size}x{$size}.png", '');
             }
+
             $tempArray['sizes'] = $size .  'x' . $size;
             $tempArray['type'] = 'image/png';
             $iconInfoArr[] = $tempArray;

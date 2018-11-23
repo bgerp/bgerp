@@ -639,10 +639,18 @@ class cms_Domains extends core_Embedder
         
         // favicon.ico
         if($rec->favicon) {
-            $fiContent = fileman_Files::getContent($rec->favicon);
+            $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
+            core_Webroot::register($fiContent, '', 'favicon.png', $id);
+
         } elseif(!in_array('favicon.ico', $rec->toRemove)) {
+            $iconContent = getFileContent('img/favicon.png');
             $fiContent = getFileContent('img/favicon.ico');
         }
+
+        if($iconContent) {
+            core_Webroot::register($iconContent, '', 'favicon.png', $id);
+        }
+
         if($fiContent) {
             core_Webroot::register($fiContent, '', 'favicon.ico', $id);
             $rec->toRemove[$e->path] = $e->path;
