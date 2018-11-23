@@ -1193,7 +1193,7 @@ class eshop_Carts extends core_Master
                     $transportVat = cat_Products::getVat($transportId);
                     
                     $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
-                    $amountWithoutDelivery -= $deliveryAmount;
+                    $amountWithoutDelivery -=  $deliveryNoVat * (1 + $transportVat);
                 } else {
                     $deliveryAmount = $rec->deliveryNoVat;
                     $amountWithoutDelivery -= $deliveryNoVat;
