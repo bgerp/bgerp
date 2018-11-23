@@ -106,4 +106,17 @@ class epay_driver_OnlinePayment extends core_BaseClass
         
         return ($isMandatory == 'yes') ? true : false;
     }
+    
+    
+    /**
+     * Добавя за уведомителния имейл
+     *
+     * @param int $paymentId
+     *
+     * @return string|null
+     */
+    public function getText4Email($paymentId)
+    {
+        return null;
+    }
 }
