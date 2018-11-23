@@ -67,14 +67,23 @@ class eshop_driver_BankPayment extends core_BaseClass
     {
         $settings = cms_Domains::getSettings();
         $separator = Mode::is('text', 'plain') ? "\n" : "<br>";
-        $ownAccount = bank_OwnAccounts::getVerbal($settings->ownAccount, 'bankAccountId');
         $paymentName = cond_PaymentMethods::getVerbal($paymentId, 'name');
         
         $html = $separator;
         $html .= tr("|Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка|*:") . $separator;
+        
+        if(!Mode::is('text', 'plain')){
+            $ownAccount = bank_OwnAccounts::getVerbal($settings->ownAccount, 'bankAccountId');
+            $ownAccount = "<b>{$ownAccount}</b>";
+        }
+        
         $html .= "IBAN {$ownAccount}" . $separator;
         $html .= tr("|Плащането трябва да се извърши по следния начин|*:") . $separator;
         $html .= tr($paymentName) . $separator;
+        
+        if(!Mode::is('text', 'plain')){
+            $html = "<div class='eshop-bank-payment'>{$html}</div>";
+        }
         
         return $html;
     }
