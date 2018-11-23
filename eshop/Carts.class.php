@@ -865,6 +865,21 @@ class eshop_Carts extends core_Master
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
         $body = ($threadCount == 1) ? $settings->emailBodyWithReg : $settings->emailBodyWithoutReg;
         $body = new core_ET($body);
+        
+        // Ако има избран метод на плащане
+        if (isset($rec->paymentId)) {
+            
+            // Добавя се и текста, който трябва да се добави до имейла
+            if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
+                Mode::push('text', 'plain');
+                $paymentText = $PaymentDriver->getText4Email($rec->paymentId);
+                Mode::pop('text');
+                if(!empty($paymentText)){
+                    $body->replace($paymentText, 'PAYMENT_TEXT');
+                }
+            }
+        }
+        
         $body->replace($rec->personNames, 'NAME');
         
         if ($hnd = sales_Sales::getHandle($saleRec->id)) {
@@ -1159,9 +1174,6 @@ class eshop_Carts extends core_Master
         $deliveryNoVat = currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
         $vatAmount = $total - $totalNoVat;
         
-        
-        
-        
         $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
@@ -1206,8 +1218,6 @@ class eshop_Carts extends core_Master
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
         unset($row->invoiceVatNo);
-        
-        
         $tpl->placeObject($row);
         
         return $tpl;
@@ -1229,7 +1239,6 @@ class eshop_Carts extends core_Master
         
         $btn = ht::createLink(tr('Магазин'), $shopUrl, null, 'title=Назад към магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png,rel=nofollow');
         $tpl->append($btn, 'CART_TOOLBAR_TOP');
-        
         $wideSpan = '<span>|</span>';
         
         if (eshop_CartDetails::haveRightFor('add', (object) array('cartId' => $rec->id))) {
@@ -1513,7 +1522,6 @@ class eshop_Carts extends core_Master
         cms_Helper::setLoginInfoIfNeeded($form);
         
         $form->input(null, 'silent');
-     
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
@@ -1614,7 +1622,7 @@ class eshop_Carts extends core_Master
                 $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
             }
             
-            if(!empty($rec->invoiceNames)){
+            if(!empty($rec->invoiceNames) && $rec->makeInvoice != 'none'){
                 if(!preg_match("/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu", $rec->invoiceNames)){
                     $form->setError('invoiceNames', 'Неправилен формат');
                 }
@@ -1735,7 +1743,11 @@ class eshop_Carts extends core_Master
         $paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
         
         if ($cu) {
-            $options = colab_Folders::getSharedFolders($cu, true, 'crm_ContragentAccRegIntf', false);
+            $options = array();
+            if(core_Packs::isInstalled('colab')){
+                $options = colab_Folders::getSharedFolders($cu, true, 'crm_ContragentAccRegIntf', false);
+            }
+            
             $profileRec = crm_Profiles::getProfile($cu);
             $form->setDefault('personNames', $profileRec->name);
             $emails = type_Emails::toArray($profileRec->email);
