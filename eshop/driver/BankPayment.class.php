@@ -71,9 +71,9 @@ class eshop_driver_BankPayment extends core_BaseClass
         
         $html = $separator;
         $html .= tr("|Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка|*:") . $separator;
+        $ownAccount = bank_OwnAccounts::getVerbal($settings->ownAccount, 'bankAccountId');
         
         if(!Mode::is('text', 'plain')){
-            $ownAccount = bank_OwnAccounts::getVerbal($settings->ownAccount, 'bankAccountId');
             $ownAccount = "<b>{$ownAccount}</b>";
         }
         
