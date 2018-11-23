@@ -595,12 +595,17 @@ class eshop_Carts extends core_Master
         
         vislog_History::add("Финализиране на количка №{$rec->id}");
         
-        if (is_array($colabUrl) && count($colabUrl)) {
-            
-            return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
+        $msg = '|Благодарим за поръчката|*!';
+        if($saleRec->_paymentInstructionsSend === true){
+            $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*";
         }
         
-        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Поръчката е направена|*!');
+        if (is_array($colabUrl) && count($colabUrl)) {
+            
+            return new Redirect($colabUrl, $msg);
+        }
+        
+        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
     }
     
     
@@ -850,7 +855,7 @@ class eshop_Carts extends core_Master
      * @param stdClass $rec
      * @param stdClass $saleRec
      */
-    private static function sendEmail($rec, $saleRec)
+    private static function sendEmail($rec, &$saleRec)
     {
         $settings = cms_Domains::getSettings($rec->domainId);
         if (empty($settings->inboxId)) {
@@ -876,6 +881,7 @@ class eshop_Carts extends core_Master
                 Mode::pop('text');
                 if(!empty($paymentText)){
                     $body->replace($paymentText, 'PAYMENT_TEXT');
+                    $saleRec->_paymentInstructionsSend = true;
                 }
             }
         }
