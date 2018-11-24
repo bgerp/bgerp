@@ -476,7 +476,9 @@ class sens2_Controllers extends core_Master
      * Задава стойност на физически изход. Те се записва и в модела.
      */
     public static function setOutput($output, $value)
-    {
+    {   
+        $value = round($value, 4);
+
         // Парсраме входа и получаваме името на контролера и изхода
         list($ctrName, $name) = explode('.', ltrim($output, '$'), 2);
         
