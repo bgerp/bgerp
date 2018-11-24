@@ -160,6 +160,8 @@ class sens2_script_DefinedVars extends core_Detail
      */
     public static function setValue($scriptId, $var, $value)
     {
+        $value = round($value, 4);
+
         $var = ltrim($var, '$');
         
         $rec = self::fetch(array("#scriptId = {$scriptId} AND #name = '[#1#]'", $var));
