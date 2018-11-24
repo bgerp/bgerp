@@ -595,12 +595,17 @@ class eshop_Carts extends core_Master
         
         vislog_History::add("Финализиране на количка №{$rec->id}");
         
-        if (is_array($colabUrl) && count($colabUrl)) {
-            
-            return new Redirect($colabUrl, 'Успешно създадена заявка за продажба|*!');
+        $msg = '|Благодарим за поръчката|*!';
+        if($saleRec->_paymentInstructionsSend === true){
+            $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*";
         }
         
-        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Поръчката е направена|*!');
+        if (is_array($colabUrl) && count($colabUrl)) {
+            
+            return new Redirect($colabUrl, $msg);
+        }
+        
+        return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
     }
     
     
@@ -850,7 +855,7 @@ class eshop_Carts extends core_Master
      * @param stdClass $rec
      * @param stdClass $saleRec
      */
-    private static function sendEmail($rec, $saleRec)
+    private static function sendEmail($rec, &$saleRec)
     {
         $settings = cms_Domains::getSettings($rec->domainId);
         if (empty($settings->inboxId)) {
@@ -865,6 +870,22 @@ class eshop_Carts extends core_Master
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
         $body = ($threadCount == 1) ? $settings->emailBodyWithReg : $settings->emailBodyWithoutReg;
         $body = new core_ET($body);
+        
+        // Ако има избран метод на плащане
+        if (isset($rec->paymentId)) {
+            
+            // Добавя се и текста, който трябва да се добави до имейла
+            if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
+                Mode::push('text', 'plain');
+                $paymentText = $PaymentDriver->getText4Email($rec->paymentId);
+                Mode::pop('text');
+                if(!empty($paymentText)){
+                    $body->replace($paymentText, 'PAYMENT_TEXT');
+                    $saleRec->_paymentInstructionsSend = true;
+                }
+            }
+        }
+        
         $body->replace($rec->personNames, 'NAME');
         
         if ($hnd = sales_Sales::getHandle($saleRec->id)) {
@@ -1159,9 +1180,6 @@ class eshop_Carts extends core_Master
         $deliveryNoVat = currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
         $vatAmount = $total - $totalNoVat;
         
-        
-        
-        
         $amountWithoutDelivery = ($settings->chargeVat == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
         $row->currencyId = $settings->currencyId;
@@ -1181,7 +1199,7 @@ class eshop_Carts extends core_Master
                     $transportVat = cat_Products::getVat($transportId);
                     
                     $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
-                    $amountWithoutDelivery -= $deliveryAmount;
+                    $amountWithoutDelivery -=  $deliveryNoVat * (1 + $transportVat);
                 } else {
                     $deliveryAmount = $rec->deliveryNoVat;
                     $amountWithoutDelivery -= $deliveryNoVat;
@@ -1206,8 +1224,6 @@ class eshop_Carts extends core_Master
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
         unset($row->invoiceVatNo);
-        
-        
         $tpl->placeObject($row);
         
         return $tpl;
@@ -1229,7 +1245,6 @@ class eshop_Carts extends core_Master
         
         $btn = ht::createLink(tr('Магазин'), $shopUrl, null, 'title=Назад към магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png,rel=nofollow');
         $tpl->append($btn, 'CART_TOOLBAR_TOP');
-        
         $wideSpan = '<span>|</span>';
         
         if (eshop_CartDetails::haveRightFor('add', (object) array('cartId' => $rec->id))) {
@@ -1513,7 +1528,6 @@ class eshop_Carts extends core_Master
         cms_Helper::setLoginInfoIfNeeded($form);
         
         $form->input(null, 'silent');
-     
         self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
         
         $form->setOptions('country', drdata_Countries::getOptionsArr($form->countries));
@@ -1614,7 +1628,7 @@ class eshop_Carts extends core_Master
                 $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
             }
             
-            if(!empty($rec->invoiceNames)){
+            if(!empty($rec->invoiceNames) && $rec->makeInvoice != 'none'){
                 if(!preg_match("/[a-zа-я0-9]+.*[a-zа-я0-9]+.*[a-zа-я0-9]+/iu", $rec->invoiceNames)){
                     $form->setError('invoiceNames', 'Неправилен формат');
                 }
@@ -1735,7 +1749,11 @@ class eshop_Carts extends core_Master
         $paymentMethods = eshop_Settings::getPaymentMethodOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
         
         if ($cu) {
-            $options = colab_Folders::getSharedFolders($cu, true, 'crm_ContragentAccRegIntf', false);
+            $options = array();
+            if(core_Packs::isInstalled('colab')){
+                $options = colab_Folders::getSharedFolders($cu, true, 'crm_ContragentAccRegIntf', false);
+            }
+            
             $profileRec = crm_Profiles::getProfile($cu);
             $form->setDefault('personNames', $profileRec->name);
             $emails = type_Emails::toArray($profileRec->email);
@@ -1970,16 +1988,17 @@ class eshop_Carts extends core_Master
     /**
      * Приемане на плащане към инциаторът (@see eshop_InitiatorPaymentIntf)
      *
-     * @param int $objId           - ид на обекта
-     * @param string $reason       - основания за плащане
-     * @param string|null $payer   - име на наредителя
-     * @param double|null $amount  - сума за нареждане
-     * @param string $currencyCode - валута за нареждане
-     * @param int|NULL $accountId  - ид на наша сметка, или NULL ако няма
+     * @param int $objId             - ид на обекта
+     * @param string $reason         - основания за плащане
+     * @param string|null $payer     - име на наредителя
+     * @param double|null $amount    - сума за нареждане
+     * @param string $currencyCode   - валута за нареждане
+     * @param int|NULL $accountId    - ид на наша сметка, или NULL ако няма
+     * @param int $linkedContainerId - свързан контейнер
      *
      * @return void
      */
-    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = NULL)
+    public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = NULL, $linkedContainerId = null)
     {
         $rec = self::fetch($objId);
         $rec->paidOnline = 'yes';
@@ -1997,6 +2016,10 @@ class eshop_Carts extends core_Master
             $bankRec = self::forceBankIncomeDocument($reason, $saleRec, $accountId, $amount);
             bank_IncomeDocuments::conto($bankRec->id);
             bank_IncomeDocuments::logWrite('Автоматично контиране на пристигнало плащане', $bankRec->id, 360, core_Users::SYSTEM_USER);
+            
+            if(isset($linkedContainerId)){
+                doc_Linked::add($linkedContainerId, $bankRec->containerId, 'doc', 'doc', 'Получено плащане от ePay.bg');
+            }
         } catch(core_exception_Expect $e){
            reportException($e);
         }

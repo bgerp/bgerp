@@ -146,15 +146,11 @@ class sens2_Indicators extends core_Detail
             
             $row->valAndUom = $row->value . "<span class='measure'>" . $row->uom . '</span>';
             
-            if (sens2_DataLogs::haveRightFor('list')) {
-                $row->port = ht::createLinkRef($row->port, array('sens2_DataLogs', 'List', 'indicatorId' => $rec->id));
-            }
-            
             $rowsArr[] = $row;
         }
         
         $table = cls::get('core_TableView', array('mvc' => get_called_class()));
-        $res = $table->get($rowsArr, array('port' => 'Индикатор', 'valAndUom' => 'Стойност', 'lastValue' => 'Към момент'));
+        $res = $table->get($rowsArr, array('title' => 'Индикатор', 'valAndUom' => 'Стойност', 'error' => 'Грешки', 'lastValue' => 'Към момент'));
         
         return $res;
     }

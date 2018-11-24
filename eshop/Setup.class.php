@@ -82,7 +82,7 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Уеб каталог с продукти и услуги за сайта';
+    public $info = 'Уеб магазин';
     
     
     /**
@@ -125,6 +125,12 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
         'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
     );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'eshop_driver_BankPayment';
     
     
     /**

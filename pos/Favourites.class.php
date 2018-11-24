@@ -361,8 +361,8 @@ class pos_Favourites extends core_Manager
                     // Гледа се дали артикула е наличен в нея
                     $quantity = pos_Stocks::getQuantity($bRec->productId, $p);
                     
-                    // Ако е ще се добави в група 'Налични(<име_на_групата>)', иначе се маха от нея
-                    $groupId = pos_FavouritesCategories::fetchField("#name = 'Налични({$cache[$p]})'");
+                    // Ако е ще се добави в група 'Налични (<име_на_групата>)', иначе се маха от нея
+                    $groupId = pos_FavouritesCategories::fetchField("#name = 'Налични ({$cache[$p]})'");
                     if ($groupId) {
                         if ($quantity > 0) {
                             $bRec->catId = keylist::addKey($bRec->catId, $groupId);
