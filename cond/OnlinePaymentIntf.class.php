@@ -58,4 +58,17 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
     {
         return $this->class->isPaymentMandatory($paymentId, $initiatorClass, $initiatorId);
     }
+    
+    
+    /**
+     * Добавя за уведомителния имейл
+     *
+     * @param int $paymentId
+     *
+     * @return string|null
+     */
+    public function getText4Email($paymentId)
+    {
+        return $this->class->getText4Email($paymentId);
+    }
 }

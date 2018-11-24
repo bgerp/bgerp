@@ -32,7 +32,7 @@ class pos_FavouritesCategories extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name, points, createdOn, createdBy';
+    public $listFields = 'id,name, points, createdOn, createdBy';
     
     
     /**

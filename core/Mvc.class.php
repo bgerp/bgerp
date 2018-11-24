@@ -1609,7 +1609,7 @@ class core_Mvc extends core_FieldSet
             self::logInfo($action, $objectId);
         }
         $className = get_called_class();
-        log_Data::add('login', $action, $className, $objectId, $lifeDays, $cu = null);
+        log_Data::add('login', $action, $className, $objectId, $lifeDays, $cu);
     }
     
     
