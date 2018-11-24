@@ -303,7 +303,7 @@ class sens2_Indicators extends core_Detail
             // Записваме и в контекста, ако има такъв
             if (self::$contex) {
                 $title = self::getRecTitle($rec);
-                self::$contex[$title] = $value;
+                self::$contex['$' . $title] = $value;
             }
             
             return $rec->id;

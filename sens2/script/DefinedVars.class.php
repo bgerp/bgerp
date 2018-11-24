@@ -186,7 +186,7 @@ class sens2_script_DefinedVars extends core_Detail
         }
         
         if (self::$contex[$scriptId]) {
-            self::$contex[$scriptId][$var] = $value;
+            self::$contex[$scriptId]['$' . $var] = $value;
         }
         
         $dbRes = $me->db->query($query, false, true);
