@@ -72,14 +72,16 @@
         </fieldset>
         [#issues#]
         <!--ET_END issues-->
-        
+       
         <!--ET_BEGIN sensors-->
-        <fieldset class="detail-info" style="margin-top: 20px;">
-            <legend class="groupTitle">|Сензори|*</legend>
-            [#sensors#]
-        </fieldset>
+        <div class="scrolling-holder">
+            <fieldset class="detail-info" style="margin-top: 20px; display: block;">
+                <legend class="groupTitle">|Сензори|*</legend>
+                    [#sensors#]
+            </fieldset>
+        </div>
         <!--ET_END sensors-->
-        
+       
         <!--ET_BEGIN cams-->
         <fieldset class="detail-info" style="margin-top: 20px;">
             <legend class="groupTitle">|Камери|*</legend>
@@ -94,9 +96,13 @@
         </fieldset>
         <!--ET_END tracking-->
 
-        <fieldset class="detail-info" style="margin-top: 20px;">
-            <legend class="groupTitle">|Норми|*</legend>
-            [#planning_AssetResourcesNorms#]
-        </fieldset>
+        <div class="scrolling-holder">
+            <fieldset class="detail-info" style="margin-top: 20px;">
+                <legend class="groupTitle">|Норми|*</legend>
+                <div class="scrolling-holder">
+                    [#planning_AssetResourcesNorms#]
+                </div>
+            </fieldset>
+        </div>
     </div>
 </div>

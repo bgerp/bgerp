@@ -31,7 +31,7 @@ class eshop_Settings extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'objectId=Обект,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validUntil=Продължителност->До,modifiedOn,modifiedBy,@info';
+    public $listFields = 'objectId=Обект,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validUntil=Продължителност->До,modifiedOn,modifiedBy';
     
     
     /**
@@ -73,37 +73,37 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#],\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тoзи [#link#], който изтича след 7 дни.\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n[#PAYMENT_TEXT#]\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#link#], който изтича след 7 дни.\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#],\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#],\n[#PAYMENT_TEXT#]If you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\nKind regards\nThe team of [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nKind regards\nThe team of [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на български, за уведомление за незавършена поръчка
      */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#CART_LINK#].\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#CART_LINK#].\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски, за уведомление за незавършена поръчка
      */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\nYou have unfinished order in [#LINK#].\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\nYou have unfinished order in [#LINK#].\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
@@ -166,6 +166,7 @@ class eshop_Settings extends core_Manager
         $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');
         $this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Възможни условия на доставка->Избор,mandatory');
         $this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,mandatory');
+        $this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Условия на плащане->Сметка,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery,silent');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държави,silent');
@@ -206,7 +207,7 @@ class eshop_Settings extends core_Manager
         $rec = &$form->rec;
         if ($form->isSubmitted()) {
             
-            $fieldArray = array('emailBodyWithReg' => array('[#SALE_HANDLER#]', '[#link#]'), 'emailBodyWithoutReg' => array('[#SALE_HANDLER#]'), 'emailBodyNotify' => array('[#LINK#]'));
+            $fieldArray = array('emailBodyWithReg' => array('[#SALE_HANDLER#]', '[#link#]', '[#PAYMENT_TEXT#]'), 'emailBodyWithoutReg' => array('[#SALE_HANDLER#]', '[#PAYMENT_TEXT#]'), 'emailBodyNotify' => array('[#LINK#]'));
             foreach ($fieldArray as $name => $placeholders){
                 if (!empty($rec->{$name})) {
                     $missing = array();

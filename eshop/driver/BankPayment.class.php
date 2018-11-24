@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за онлайн плащане чрез ePay.bg
+ * Банково плащане за е-магазина
  *
  * @category  bgerp
  * @package   epay
@@ -10,11 +10,11 @@
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
- * @title     Плащане чрез ePay.bg
+ * @title     Банково плащане за е-магазина
  * 
  * @since     v 0.1
  */
-class epay_driver_OnlinePayment extends core_BaseClass
+class eshop_driver_BankPayment extends core_BaseClass
 {
     /**
      * Поддържани интерфейси
@@ -27,13 +27,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
     /**
      * Заглавие
      */
-    public $title = 'Плащане чрез ePay.bg';
-    
-    
-    /**
-     * Какъв е домейна на ePay.bg
-     */
-    const EPAY_DOMAIN = 'https://www.epay.bg/';
+    public $title = 'Банково плащане';
     
     
     /**
@@ -56,39 +50,45 @@ class epay_driver_OnlinePayment extends core_BaseClass
      */
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
-        //@TODO тестово
-        //$amount = 0.01;
-        $amount = round($amount, 2);
+        $html = $this->getText4Email($paymentId);
         
-        $action = self::EPAY_DOMAIN;
-        $reason = epay_Tokens::getPaymentReason($initiatorClass, $initiatorId);
-        $okUrl['description'] = $reason;
+        return $html;
+    }
+    
+    
+    /**
+     * Добавя за уведомителния имейл 
+     * 
+     * @param int $paymentId
+     * 
+     * @return string|null
+     */
+    public function getText4Email($paymentId)
+    {
+        $settings = cms_Domains::getSettings();
+        $separator = Mode::is('text', 'plain') ? "\n" : "<br>";
+        $paymentName = cond_PaymentMethods::getVerbal($paymentId, 'name');
         
-        if($accountId = epay_Setup::get('OWN_ACCOUNT_ID')){
-            $okUrl['accountId'] = $accountId;
+        $html = $separator;
+        $html .= tr("|Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка|*:") . $separator;
+        $ownAccount = bank_OwnAccounts::getVerbal($settings->ownAccount, 'bankAccountId');
+        
+        if(!Mode::is('text', 'plain')){
+            $ownAccount = "<b>{$ownAccount}</b>";
         }
         
-        Request::setProtected('description,accountId');
-        $okUrl = toUrl($okUrl, 'absolute');
-        Request::removeProtected('description,accountId');
+        $html .= "IBAN {$ownAccount}" . $separator;
+        $html .= $separator . tr("|Плащането трябва да се извърши по следния начин|*: ");
+
         
-        //@TODO тестово
-        //$action = $okUrl;
+        if(!Mode::is('text', 'plain')){
+            $html .= "<b>" . tr($paymentName) . "</b>";
+            $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
+        } else {
+            $html .= tr($paymentName);
+        }
         
-        $data = (object)array('action' => $action,
-                              'total' => $amount,
-                              'description' => $reason,
-                              'min' => epay_Setup::get('MIN'),
-                              'checksum' => epay_Setup::get('CHECKSUM'),
-                              'urlOk' => $okUrl,
-                              'BTN_IMAGE' => sbf('epay/img/button.gif', ''),
-                              'cancelUrl' => toUrl($cancelUrl, 'absolute'),
-        );
-        
-        $tpl = getTplFromFile("epay/tpl/Button.shtml");
-        $tpl->placeObject($data);
-        
-        return $tpl;
+        return $html;
     }
     
     
@@ -102,21 +102,6 @@ class epay_driver_OnlinePayment extends core_BaseClass
      */
     public function isPaymentMandatory($paymentId, $initiatorClass, $initiatorId)
     {
-        $isMandatory = epay_Setup::get('MANDATORY_BEFORE_FINALIZATION');
-        
-        return ($isMandatory == 'yes') ? true : false;
-    }
-    
-    
-    /**
-     * Добавя за уведомителния имейл
-     *
-     * @param int $paymentId
-     *
-     * @return string|null
-     */
-    public function getText4Email($paymentId)
-    {
-        return null;
+        return false;
     }
 }

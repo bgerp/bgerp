@@ -60,7 +60,7 @@ class epay_plg_CheckForPayments extends core_Plugin
                 
                 // Ако е намерен инциатор, информира се за постъпилото плащане
                 if(cls::haveInterface('eshop_InitiatorPaymentIntf', $tokenData['initiatorClassId'])){
-                    $explained['ACTIONS'] = cls::get($tokenData['initiatorClassId'])->receivePayment($tokenData['initiatorId'], $paymentData['reason'], $paymentData['payerName'], $paymentData['amount'], 'BGN', $accountId);
+                    $explained['ACTIONS'] = cls::get($tokenData['initiatorClassId'])->receivePayment($tokenData['initiatorId'], $paymentData['reason'], $paymentData['payerName'], $paymentData['amount'], 'BGN', $accountId, $rec->containerId);
                 } else {
                     $explained['ACTIONS'] = 'NONE';
                 }
@@ -99,8 +99,6 @@ class epay_plg_CheckForPayments extends core_Plugin
     {
         $res = array();
         $text = $rec->textPart;
-        
-        $newReason = epay_Tokens::getPaymentReason('eshop_Carts', 252);
         
         // Извличане на сумата за плащане
         $amountMatches = array();
