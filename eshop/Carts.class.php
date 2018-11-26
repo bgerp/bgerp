@@ -1473,12 +1473,20 @@ class eshop_Carts extends core_Master
             
         $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
         $rec->vatAmount = $rec->total - $rec->totalNoVat;
-        $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
+        
+        if($rec->freeDelivery != 'yes'){
+            $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
+        } 
+        
         foreach (array('total', 'totalNoVat', 'deliveryNoVat', 'vatAmount') as $fld){
             if(isset($rec->{$fld})){
                 ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
                 $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
             }
+        }
+        
+        if($rec->freeDelivery == 'yes'){
+            $row->deliveryNoVat = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
         }
         
         if(isset($fields['-list'])){
