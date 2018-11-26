@@ -244,13 +244,14 @@ class cat_Listings extends core_Master
     /**
      * Кешира и връща всички листвани артикули за клиента
      *
-     * @param int|stdClass $listId  - ид на лист
-     * @param int|NULL     $storeId - ид на склад
-     * @param int|NULL     $limit   - ограничение
+     * @param int|stdClass $listId       - ид на лист
+     * @param int|NULL     $storeId      - ид на склад
+     * @param int|NULL     $limit        - ограничение
+     * @param boolean      $onlyActive   - дали да са само активни артикулите
      *
      * @return array
      */
-    public static function getAll($listId, $storeId = null, $limit = null)
+    public static function getAll($listId, $storeId = null, $limit = null, $onlyActive = false)
     {
         expect($listRec = cat_Listings::fetchRec($listId));
         
@@ -274,7 +275,13 @@ class cat_Listings extends core_Master
             // Кои са листваните артикули за контрагента
             $query = cat_ListingDetails::getQuery();
             $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-            $query->where("#listId = {$listRec->id}");
+            $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+            $query->EXT($listRec->type, 'cat_Products', "externalName={$listRec->type},externalKey=productId");
+            $query->where("#listId = {$listRec->id} AND #{$listRec->type} = 'yes'");
+            
+            if($onlyActive === true){
+                $query->where("#state = 'active'");
+            }
             
             if (is_array($instock) && count($instock)) {
                 
