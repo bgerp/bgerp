@@ -1498,6 +1498,11 @@ class eshop_Carts extends core_Master
         if (isset($rec->saleId)) {
             $row->saleId = sales_Sales::getLink($rec->saleId, 0);
         }
+        
+        if (isset($rec->termId)) {
+            $termUrl = cond_DeliveryTerms::getSingleUrlArray($rec->termId);
+            $row->termId = ht::createLink($row->termId, $termUrl);
+        }
     }
     
     
