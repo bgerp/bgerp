@@ -5768,7 +5768,12 @@ only screen and (max-width: 320px) {
     width: 60%; }
 
   .lu-light {
-    text-decoration: none !important; } }
+    text-decoration: none !important; }
+
+  .webdrv-preview {
+    page-break-inside: avoid;
+    page-break-after: always;
+    max-height: 267mm !important; } }
 
   .printing .specialLink {
     font-weight: bold; }
