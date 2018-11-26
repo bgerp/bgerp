@@ -1582,7 +1582,11 @@ class eshop_Carts extends core_Master
             $form->countries[$form->rec->deliveryCountry] = $form->rec->deliveryCountry;
         }
         
-        $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
+        $isDeliveryCountryReadOnly = $form->getFieldTypeParam('deliveryCountry', 'isReadOnly');
+        if($isDeliveryCountryReadOnly !== true){
+            $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
+        }
+        
         if(count($form->countries) == 1){
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
