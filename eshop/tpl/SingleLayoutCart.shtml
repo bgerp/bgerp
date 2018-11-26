@@ -43,13 +43,37 @@
                <td class="title-style quiet">|Модифициране|*:</td>
                <td>|от|* [#modifiedBy#] |на|* [#modifiedOn#]</td>
             </tr>
-            <!--ET_BEGIN deliveryInfo-->
-            [#deliveryInfo#]
+         </table>
+      </div>
+   </fieldset>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Общи данни|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN totalNoVat-->
             <tr>
-               <td><span class="title-style">|Доставка|*:</span></td>
-               <td>[#termId#] [#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
+               <td class="title-style nowrap"  style='width:150px'>|Стойност без ДДС|*: </td>
+               <td>[#totalNoVat#]</td>
             </tr>
-            <!--ET_END deliveryInfo-->
+            <!--ET_END totalNoVat-->
+            <!--ET_BEGIN deliveryNoVat-->
+            <tr>
+               <td class="title-style nowrap" style='width:150px'>|Доставка без ДДС|*: </td>
+               <td> [#deliveryNoVat#]</td>
+            </tr>
+            <!--ET_END deliveryNoVat-->
+            <!--ET_BEGIN vatAmount-->
+            <tr>
+               <td class="title-style nowrap"  style='width:150px'>|Начислен ДДС|*: </td>
+               <td>[#vatAmount#]</td>
+            </tr>
+            <!--ET_END vatAmount-->
+            <!--ET_BEGIN total-->
+            <tr>
+               <td style='width:150px'><b>|Общо|*</b>: </td>
+               <td>[#total#]</td>
+            </tr>
+            <!--ET_END total-->
          </table>
       </div>
    </fieldset>
@@ -79,39 +103,26 @@
       </div>
    </fieldset>
    <fieldset class="detail-info">
-      <legend class="groupTitle">|Общи данни|*</legend>
+      <legend class="groupTitle">|Доставка|*</legend>
       <div class="groupList">
          <table class="noBorder" style='width:99%'>
+         <!--ET_BEGIN deliveryInfo-->
+            [#deliveryInfo#]
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Условие|*:</span></td>
+               <td>[#termId#]</td>
+            </tr>
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Доставка|*:</span></td>
+               <td>[#deliveryCountry#], [#deliveryPCode#] [#deliveryPlace#], [#deliveryAddress#]</td>
+            </tr>
+            <!--ET_END deliveryInfo-->
             <!--ET_BEGIN deliveryTime-->
             <tr>
-               <td class="title-style" style='width:150px'>|Срок на доставка|*: </td>
-               <td> [#deliveryTime#]</td>
+               <td style='width:150px'><span class="title-style nowrap">|Срок|*:</span></td>
+               <td>[#deliveryTime#]</td>
             </tr>
             <!--ET_END deliveryTime-->
-            <!--ET_BEGIN totalNoVat-->
-            <tr>
-               <td class="title-style nowrap"  style='width:150px'>|Стойност без ДДС|*: </td>
-               <td>[#totalNoVat#]</td>
-            </tr>
-            <!--ET_END totalNoVat-->
-            <!--ET_BEGIN deliveryNoVat-->
-            <tr>
-               <td class="title-style nowrap" style='width:150px'>|Доставка без ДДС|*: </td>
-               <td> [#deliveryNoVat#]</td>
-            </tr>
-            <!--ET_END deliveryNoVat-->
-            <!--ET_BEGIN vatAmount-->
-            <tr>
-               <td class="title-style nowrap"  style='width:150px'>|Начислен ДДС|*: </td>
-               <td>[#vatAmount#]</td>
-            </tr>
-            <!--ET_END vatAmount-->
-            <!--ET_BEGIN total-->
-            <tr>
-               <td style='width:150px'><b>|Общо|*</b>: </td>
-               <td>[#total#]</td>
-            </tr>
-            <!--ET_END total-->
          </table>
       </div>
    </fieldset>
