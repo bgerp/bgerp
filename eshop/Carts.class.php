@@ -892,7 +892,9 @@ class eshop_Carts extends core_Master
             $body->replace("#{$hnd}", 'SALE_HANDLER');
         }
         
-        $body->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
+        $domainName = '';
+        cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        $body->replace($domainName, 'domainId');
         
         // Линка за регистрация
         $Cover = doc_Folders::getCover($saleRec->folderId);
@@ -2072,7 +2074,7 @@ class eshop_Carts extends core_Master
             
             $body->{$var}->replace(core_Type::getByName('varchar')->toVerbal($rec->personNames), 'NAME');
             $body->{$var}->replace($link, 'LINK');
-            $body->{$var}->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
+            $body->{$var}->replace($domainName, 'domainId');
             Mode::pop('text');
             
             $body->{$var} = $body->{$var}->getContent();
