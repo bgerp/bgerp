@@ -523,7 +523,7 @@ abstract class deals_DealDetail extends doc_Detail
         expect($listId = cond_Parameters::getParameter($saleRec->contragentClassId, $saleRec->contragentId, $param));
         $form->info = tr('|Списък за листване|*:') . cat_Listings::getLink($listId, 0);
         
-        $listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50);
+        $listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50, true);
         $form->info .= tr('|* ( |Показване на първите|* <b>50</b> |артикула|* )');
         
         // И всички редове от продажбата
