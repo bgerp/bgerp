@@ -688,7 +688,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         $requestClassName = Request::get('className', 'varchar');
-        $className = isset($requestClassName) ? $requestClassName : 'crm_Companies';
+        $className = !empty($requestClassName) ? $requestClassName : 'crm_Companies';
         expect($Class = cls::get($className));
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
         expect($objectId = Request::get('companyId', 'int'));
