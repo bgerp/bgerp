@@ -3384,6 +3384,8 @@ class doc_DocumentPlg extends core_Plugin
                 }
             } catch (Exception $e) {
                 reportException($e);
+            } catch (Throwable  $e) {
+                reportException($e);
             }
             
             if ($pushed) {
