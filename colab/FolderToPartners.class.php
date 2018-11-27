@@ -549,7 +549,7 @@ class colab_FolderToPartners extends core_Manager
             ' "[#company#]", ' .
             tr('моля последвай този||please follow this') .
             " {$placeHolder} - " .
-            tr('изтича след 7 дена||it expired after 7 days')
+            tr('изтича след 7 дена||it expires after 7 days')
         
         );
         
