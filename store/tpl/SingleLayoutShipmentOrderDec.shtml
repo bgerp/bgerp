@@ -89,6 +89,16 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+                  
+                  <!--ET_BEGIN lineNotes-->
+                  <tr>
+                     <td class='quiet nowrap' colspan=2>|Забележки|*: </td>
+                  </tr>
+                  <tr>
+                     <td colspan=2>[#lineNotes#]</td>
+                  </tr>
+                  <!--ET_END lineNotes-->
+                  
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2">
