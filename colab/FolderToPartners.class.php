@@ -529,7 +529,7 @@ class colab_FolderToPartners extends core_Manager
         
         $contragentName = $Class->getVerbal($objectId, 'name');
         $form = cls::get('core_Form');
-        $form->title = "Изпращане на имейл за регистрация на партньори в|* " . $Class->getFormTitleLink($objectId);
+        $form->title = "Изпращане на регистрация на партньори в|* " . $Class->getFormTitleLink($objectId);
         
         $form->FNC('to', 'email', 'caption=До имейл, width=100%, mandatory, input');
         $form->FNC('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions, input');
