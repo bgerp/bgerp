@@ -161,7 +161,7 @@ class eshop_Carts extends core_Master
         $this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
         $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty)', 'caption=Контактни данни->Телефон,hint=Вашият телефон,mandatory');
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,mandatory');
         
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
         $this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
@@ -1582,7 +1582,11 @@ class eshop_Carts extends core_Master
             $form->countries[$form->rec->deliveryCountry] = $form->rec->deliveryCountry;
         }
         
-        $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
+        $isDeliveryCountryReadOnly = $form->getFieldTypeParam('deliveryCountry', 'isReadOnly');
+        if($isDeliveryCountryReadOnly !== true){
+            $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
+        }
+        
         if(count($form->countries) == 1){
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
