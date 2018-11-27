@@ -89,7 +89,7 @@ class colab_FolderToPartners extends core_Manager
     {
         // Информация за нишката
         $this->FLD('folderId', 'key2(mvc=doc_Folders, selectSourceArr=colab_FolderToPartners::getFolderOptions, exludeContractors=' . Request::get('contractorId') . ')', 'caption=Папка,silent,input=hidden,after=contractorId,mandatory');
-        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner, selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
+        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner,allowEmpty,selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
         
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
