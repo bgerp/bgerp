@@ -898,7 +898,7 @@ class eshop_Carts extends core_Master
         
         // Линка за регистрация
         $Cover = doc_Folders::getCover($saleRec->folderId);
-        $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'userNames' => $rec->personNames), 604800);
+        $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames), 604800);
         
         $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
         $body->replace($url, 'link');
@@ -1736,6 +1736,7 @@ class eshop_Carts extends core_Master
             
             if ($form->layout) {
                 jquery_Jquery::run($form->layout, 'copyValToPlaceholder();');
+                //jquery_Jquery::run($form->layout, 'refreshInvoiceFields();');
             }
         }
         
@@ -1746,6 +1747,7 @@ class eshop_Carts extends core_Master
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setRefreshFormIfNeeded($tpl);
         jquery_Jquery::run($tpl, 'runOnLoad(copyValToPlaceholder);');
+        //jquery_Jquery::run($tpl, 'runOnLoad(refreshInvoiceFields);');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         return $tpl;
