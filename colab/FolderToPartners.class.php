@@ -591,6 +591,8 @@ class colab_FolderToPartners extends core_Manager
             $res = $this->sendRegistrationEmail($form->rec);
             $msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
             
+            cls::get($className)->logInAct('Изпращане на имейл за регистрация на нов партньор', $objectId);
+            
             return followRetUrl(null, $msg);
         }
         
@@ -830,6 +832,8 @@ class colab_FolderToPartners extends core_Manager
             $folderId = $Class->forceCoverAndFolder($objectId);
             static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
             
+            $Class->logInAct('Регистрация на нов партньор', $objectId);
+            
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
             
@@ -849,8 +853,9 @@ class colab_FolderToPartners extends core_Manager
             $tpl = $form->renderHtml();
         }
         core_Form::preventDoubleSubmission($tpl, $form);
-        
         core_Lg::pop();
+        
+        $Class->logInAct('Разглеждане на формата за регистрация на нов партньор', $objectId, 'read');
         
         return $tpl;
     }
