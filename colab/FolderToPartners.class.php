@@ -699,16 +699,18 @@ class colab_FolderToPartners extends core_Manager
         $Users = cls::get('core_Users');
         core_Lg::push(drdata_Countries::getLang($contragentRec->country));
         $rand = Request::get('rand');
+        $companyName = $Class->getVerbal($objectId, 'name');
         
         // Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
         $fromEmail = Request::get('fromEmail');
         if (!$fromEmail) {
             requireRole('powerUser');
             expect(doc_Folders::haveRightToObject($contragentRec));
+        } else {
+            vislog_History::add("Форма за регистрация на партньор в «{$companyName}»");
         }
         
         $form = $Users->getForm();
-        $companyName = $Class->getHyperlink($objectId, true);
         $form->title = "Нов партньор от|* <b>{$companyName}</b>";
         $form->setDefault('country', $contragentRec->country);
         
@@ -833,6 +835,7 @@ class colab_FolderToPartners extends core_Manager
             static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
             
             $Class->logInAct('Регистрация на нов партньор', $objectId);
+            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$companyName}»" );
             
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
