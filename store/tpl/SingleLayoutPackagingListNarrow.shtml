@@ -87,31 +87,33 @@
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
-                        <!--ET_BEGIN lineNotes-->
-                  <tr>
-                     <td class='quiet nowrap' colspan=2>Remarks: </td>
-                  </tr>
-                  <tr>
-                     <td colspan=2>[#lineNotes#]</td>
-                  </tr>
-                  <!--ET_END lineNotes-->
-                        <!--ET_BEGIN note-->
-
-                        <tr>
-                            <td colspan="2">
-                                <hr>
-                                [#note#]
-                            </td>
-                        </tr>
-                        <!--ET_END note-->
-                    </table>
-                    <hr>
-                    <div class='clearfix21' style='margin-bottom: 5px;'>
-                        <span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
-                    </div>
-                    <div class='clearfix21'>
-                    <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Logistic units|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo-->
-
+                       <!--ET_BEGIN lineNotes-->
+                       <tr>
+                           <td colspan=2><hr><span class="quiet">Remarks:</span> [#lineNotes#]</td>
+                       </tr>
+                       <!--ET_END lineNotes-->
+                       <!--ET_BEGIN note-->
+                       <tr>
+                           <td colspan="2" >
+                               <hr>
+                               [#note#]
+                           </td>
+                       </tr>
+                       <!--ET_END note-->
+                       <tr>
+                           <td colspan="2" >
+                               <hr>
+                           </td>
+                       </tr>
+                       <tr>
+                           <td colspan="2">Total weight:&nbsp;[#weight#]</span> <span class='half-col'>Total volume:&nbsp;[#volume#]</td>
+                       </tr>
+                       <!--ET_BEGIN logisticInfo-->
+                       <tr>
+                           <td colspan="2"><hr>Logistic units:&nbsp;[#logisticInfo#]</td>
+                       </tr>
+                       <!--ET_END logisticInfo-->
+                   </table>
                     <hr>
                     <!--ET_BEGIN responsible-->
                     <div>Received by: [#responsible#]</div>
