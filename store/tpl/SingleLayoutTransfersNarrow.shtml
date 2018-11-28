@@ -70,33 +70,22 @@
                
                <!--ET_BEGIN lineNotes-->
                   <tr>
-                     <td class='quiet nowrap' colspan=2>|Забележки|*: </td>
-                  </tr>
-                  <tr>
-                     <td colspan=2>[#lineNotes#]</td>
+                     <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
                   </tr>
                   <!--ET_END lineNotes-->
-                  
-               <!--ET_BEGIN note-->
-               <tr>
-                  <td colspan=2 >
-                     <hr>
-                     [#note#]
-                  </td>
-               </tr>
-               <!--ET_END note-->
-               <!--ET_BEGIN logisticInfo-->
-                  <tr>
-                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
-                  </tr>
-                  <tr>
-                  	<td colspan="2" >[#logisticInfo#]</td>
-                  </tr>
-               <!--ET_END logisticInfo-->
+                  <!--ET_BEGIN logisticInfo-->
+                     <tr>
+                        <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span>: [#logisticInfo#]</td>
+                     </tr>
+                  <!--ET_END logisticInfo-->
             </table>
          </td>
          <!--ET_END leftColum-->
          <td>
+            <!--ET_BEGIN note-->
+            [#note#]
+            <hr>
+            <!--ET_END note-->
             <div>
                |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b>  <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
             </div>

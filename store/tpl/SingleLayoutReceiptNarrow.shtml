@@ -77,36 +77,32 @@
                   <!--ET_END lineId-->
                   <!--ET_BEGIN lineNotes-->
                   <tr>
-                     <td class='quiet nowrap' colspan=2>Remarks: </td>
-                  </tr>
-                  <tr>
-                     <td colspan=2>[#lineNotes#]</td>
+                     <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
                   </tr>
                   <!--ET_END lineNotes-->
-                  <!--ET_BEGIN note-->
-                  <tr>
-                     <td colspan=2>
-                        <hr>
-                        [#note#]
-                        <hr>
-                     </td>
-                     <!--ET_END note-->
-                  </tr>
                   <tr>
                      <td colspan="2">
                         <div>
-                           |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b>
+                           <hr>
+                           |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
                         </div>
                      </td>
                   </tr>
                   <!--ET_BEGIN logisticInfo-->
                   <tr>
-                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
-                  </tr>
-                  <tr>
-                  	<td colspan="2" >[#logisticInfo#]</td>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+
                   </tr>
                   <!--ET_END logisticInfo-->
+
+                  <!--ET_BEGIN note-->
+                  <tr>
+                     <td colspan="2" >
+                        <hr>
+                        [#note#]
+                     </td>
+                  </tr>
+                  <!--ET_END note-->
                </table>
                <hr>
                <!--ET_BEGIN responsible-->
