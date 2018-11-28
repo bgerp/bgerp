@@ -32,7 +32,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     /**
      * Мета данни по подразбиране
      *
-     * @param strint $defaultMetaData
+     * @param string $defaultMetaData
      */
     protected $defaultMetaData;
     
@@ -41,6 +41,12 @@ abstract class cat_ProductDriver extends core_BaseClass
      * Икона за единичния изглед
      */
     protected $icon = 'img/16/wooden-box.png';
+    
+    
+    /**
+     * Кои полета да се добавят към ключовите думи на артикула
+     */
+    protected $searchFields;
     
     
     /**
@@ -806,5 +812,24 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getDeltaSurcharge($rec)
     {
         return 1;
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+        $searchFields = arr::make($Driver->searchFields, true);
+        if(count($searchFields)){
+            $fieldRows = $Embedder->recToVerbal($rec, $searchFields);
+            
+            foreach ($searchFields as $field){
+                if(!empty($rec->{$field})){
+                    $verbalVal = $fieldRows->{$field};
+                    $res .= ' ' . plg_Search::normalizeText($verbalVal);
+                }
+            }
+        }
     }
 }
