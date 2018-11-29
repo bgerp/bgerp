@@ -89,26 +89,41 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+
+                  <!--ET_BEGIN lineNotes-->
+                  <tr>
+                     <td class='quiet nowrap'>|Забележки|*: </td>
+                     <td>[#lineNotes#]</td>
+                  </tr>
+                  <!--ET_END lineNotes-->
                   <!--ET_BEGIN note-->
                   <tr>
-                     <td colspan="2">
+                     <td colspan="2" >
                         <hr>
                         [#note#]
                      </td>
                   </tr>
                   <!--ET_END note-->
                   <tr>
-                     <td colspan="2">
+                     <td colspan="2" >
                         <hr>
                      </td>
                   </tr>
+                  <!--ET_END deliveryTable-->
+                  <tr>
+                     <td colspan="2" >
+                        <div>
+                           <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                        </div>
+                     </td>
+                  </tr>
+                  <!--ET_BEGIN logisticInfo-->
+                  <tr>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
                <!--ET_END delivery_table-->
-               <div class='clearfix21' style='margin-bottom: 5px;'>
-                  <div>
-                     <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span><span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
-                  </div>
-               </div>
             </td>
             <td>
                <table class='centered special-borders' style='width:100%;'>

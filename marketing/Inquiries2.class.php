@@ -929,7 +929,8 @@ class marketing_Inquiries2 extends embed_Manager
                 $rec->brid = log_Browsers::getBrid();
                 
                 // Винаги се рутира към правилната папка
-                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid);
+                $routerExplanation = null;
+                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid, null, null, $routerExplanation);
                 
                 // Запис и редирект
                 if ($this->haveRightFor('new')) {
@@ -952,6 +953,9 @@ class marketing_Inquiries2 extends embed_Manager
                     $id = $this->save($rec);
                     doc_Threads::doUpdateThread($rec->threadId);
                     $this->logWrite('Създаване от е-артикул', $id);
+                    if(!empty($routerExplanation)){
+                        $this->logDebug($routerExplanation, $id, 360, $cu);
+                    }
                     
                     $singleUrl = self::getSingleUrlArray($id);
                     if (count($singleUrl)) {
