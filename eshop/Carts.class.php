@@ -741,7 +741,7 @@ class eshop_Carts extends core_Master
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
         if(!empty($routerExplanation)){
-            sales_Sales::logDebug($routerExplanation, $saleId, 360, $cu);
+            sales_Sales::logDebug($routerExplanation, $saleId, 7);
         }
         eshop_Carts::logDebug("Създаване на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
         
