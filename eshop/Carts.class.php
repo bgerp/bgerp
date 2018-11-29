@@ -696,12 +696,13 @@ class eshop_Carts extends core_Master
         }
         
         // Рутиране в папка
+        $routerExplanation = null;
         if (isset($rec->saleFolderId)) {
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
-            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo);
+            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation);
             $Cover = doc_Folders::getCover($folderId);
         }
         
@@ -739,6 +740,9 @@ class eshop_Carts extends core_Master
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
+        if(!empty($routerExplanation)){
+            sales_Sales::logDebug($routerExplanation, $saleId, 360, $cu);
+        }
         eshop_Carts::logDebug("Създаване на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
         
         // Добавяне на артикулите от количката в продажбата
