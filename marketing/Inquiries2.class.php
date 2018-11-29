@@ -954,7 +954,7 @@ class marketing_Inquiries2 extends embed_Manager
                     doc_Threads::doUpdateThread($rec->threadId);
                     $this->logWrite('Създаване от е-артикул', $id);
                     if(!empty($routerExplanation)){
-                        $this->logDebug($routerExplanation, $id, 360, $cu);
+                        $this->logDebug($routerExplanation, $id, 7);
                     }
                     
                     $singleUrl = self::getSingleUrlArray($id);
