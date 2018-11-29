@@ -175,6 +175,18 @@ class trans_Lines extends core_Master
     
     
     /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo,trans,store';
+    
+    
+    /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForAll = 'ceo,trans,store';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
