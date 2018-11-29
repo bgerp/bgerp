@@ -597,7 +597,7 @@ class eshop_Carts extends core_Master
         
         $msg = '|Благодарим за поръчката|*!';
         if($saleRec->_paymentInstructionsSend === true){
-            $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*";
+            $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*.";
         }
         
         if (is_array($colabUrl) && count($colabUrl)) {

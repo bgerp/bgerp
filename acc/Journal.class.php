@@ -296,7 +296,6 @@ class acc_Journal extends core_Master
     {
         expect($docId = Request::get('docId', 'int'));
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
-        
         $mvc = cls::get($docClassId);
         
         // Дали имаме права за контиране
@@ -304,9 +303,6 @@ class acc_Journal extends core_Master
         
         // Контиране на документа
         $mvc->conto($docId);
-        
-        // Записваме, че потребителя е разглеждал този списък
-        $mvc->logWrite('Контиране на документ', $docId);
         
         // Редирект към сингъла
         return new Redirect($mvc->getSingleUrlArray($docId));
