@@ -494,7 +494,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if(isset($data->rec->id) && log_System::haveRightFor('list')){
             $date = dt::verbal2mysql($data->rec->createdOn, false);
-            $data->toolbar->addBtn('Дебъг лог', array('log_System', 'list', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'date' => $date), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на нишката, order=19, row=3');
+            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'date' => $date), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на нишката, order=19, row=3');
         }
         
         $classId = $mvc->getClassId();
