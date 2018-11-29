@@ -23,7 +23,7 @@ class marketing_InquiryRouter extends core_Manager
      *
      * @return int - ид на папка
      */
-    public static function route($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null)
+    public static function route($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null, &$explained = null)
     {
         // Ако е от колаборатор към първата споделена папка на колаборатор
         if (core_Packs::isInstalled('colab') && core_Users::isContractor()) {
@@ -37,11 +37,11 @@ class marketing_InquiryRouter extends core_Manager
         if (empty($company)) {
             
             // Рутиране на запитване от лице
-            $folderId = static::routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId);
+            $folderId = static::routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId, $explained);
         } else {
             
             // Рутиране на запитване от фирма
-            $folderId = static::routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId);
+            $folderId = static::routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId, $explained);
         }
         
         // Трябва да е намерена папка
@@ -70,10 +70,13 @@ class marketing_InquiryRouter extends core_Manager
      * @param string $place
      * @param string $address
      * @param string $brid
+     * @param string $vatId
+     * @param string $uicId
+     * @param string $explained
      *
      * @return int $folderId
      */
-    private static function routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null)
+    private static function routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null, &$explained)
     {
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId);
@@ -81,6 +84,7 @@ class marketing_InquiryRouter extends core_Manager
         // Ако има папка на фирма с този имейл
         $folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
         if ($folderId) {
+            $explained = 'Рутиране на лице по фирмен имейл';
             
             return $folderId;
         }
@@ -88,6 +92,7 @@ class marketing_InquiryRouter extends core_Manager
         // Ако има папка на лице с този имейл
         $folderId = marketing_Router::routeByPersonEmail($email, $inCharge);
         if ($folderId) {
+            $explained = 'Рутиране на лице по личен имейл';
             
             return $folderId;
         }
@@ -95,6 +100,7 @@ class marketing_InquiryRouter extends core_Manager
         // Ако има папка на контрагент с този имейл
         $folderId = marketing_Router::routeByEmail($email, 'contragent');
         if ($folderId) {
+            $explained = "Рутиране на лице по имейл на контрагент";
             
             return $folderId;
         }
@@ -103,6 +109,7 @@ class marketing_InquiryRouter extends core_Manager
             if(!empty($value)){
                 $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge);
                 if ($folderId) {
+                    $explained = "Рутиране на лице по фирмен имейл {$field}";
                     
                     return $folderId;
                 }
@@ -112,6 +119,7 @@ class marketing_InquiryRouter extends core_Manager
         // Ако има лице във визитника от същата държава
         $folderId = marketing_Router::routeByPerson($personNames, $countryId, $inCharge);
         if ($folderId) {
+            $explained = "Рутиране на лице по име";
             
             return $folderId;
         }
@@ -119,6 +127,7 @@ class marketing_InquiryRouter extends core_Manager
         // Опит за рутиране по БРИД
         $folderId = marketing_Router::routeByBrid($brid);
         if ($folderId) {
+            $explained = "Рутиране на лице по БРИД";
             
             return $folderId;
         }
@@ -126,6 +135,7 @@ class marketing_InquiryRouter extends core_Manager
         // Форсиране на папка и запис във визитника на лице с посочените данни
         $folderId = marketing_Router::forcePersonFolder($personNames, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
         colab_FolderToPartners::force($folderId);
+        $explained = "Рутиране на лице към нова папка на лице";
         
         return $folderId;
     }
@@ -150,10 +160,11 @@ class marketing_InquiryRouter extends core_Manager
      * @param string $brid
      * @param string $vatId
      * @param string $uicId
+     * @param string $explained
      * 
      * @return int $folderId
      */
-    private static function routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null)
+    private static function routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId = null, $uicId = null, &$explained)
     {
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId);
@@ -161,6 +172,7 @@ class marketing_InquiryRouter extends core_Manager
         // Намираме папка на компания с този имейл
         $folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
         if ($folderId) {
+            $explained = 'Рутиране на фирма по фирмен имейл';
             
             return $folderId;
         }
@@ -168,6 +180,7 @@ class marketing_InquiryRouter extends core_Manager
         // Рутиране според имейла, взимаме папката ако корицата и е фирма
         $folderId = marketing_Router::routeByEmail($email, 'company');
         if ($folderId) {
+            $explained = 'Рутиране на фирма по имейл на фирма';
             
             return $folderId;
         }
@@ -176,6 +189,7 @@ class marketing_InquiryRouter extends core_Manager
             if(!empty($value)){
                 $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
                 if ($folderId) {
+                    $explained = "Рутиране на фирма по {$field}";
                     
                     return $folderId;
                 }
@@ -185,6 +199,7 @@ class marketing_InquiryRouter extends core_Manager
         // Рутираме в папка на фирма със същото име от същата държава
         $folderId = marketing_Router::routeByCompanyName($company, $countryId, $inCharge);
         if ($folderId) {
+            $explained = 'Рутиране на фирма по име на фирма';
             
             return $folderId;
         }
@@ -192,6 +207,7 @@ class marketing_InquiryRouter extends core_Manager
         // Опит за рутиране по БРИД
         $folderId = marketing_Router::routeByBrid($brid);
         if ($folderId) {
+            $explained = 'Рутиране на фирма по БРИД';
             
             return $folderId;
         }
@@ -199,6 +215,7 @@ class marketing_InquiryRouter extends core_Manager
         // Форсиране на папка и визитка на фирма с въведените данни
         $folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
         colab_FolderToPartners::force($folderId);
+        $explained = 'Рутиране на фирма към нова папка на фирма';
         
         return $folderId;
     }

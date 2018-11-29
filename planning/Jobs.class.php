@@ -343,7 +343,6 @@ class planning_Jobs extends core_Master
             $oRec = self::fetch($rec->oldJobId, 'notes,department,packagingId,storeId');
             
             $form->setDefault('notes', $oRec->notes);
-            $form->setDefault('department', $oRec->department);
             $form->setDefault('packagingId', $oRec->packagingId);
             $form->setDefault('storeId', $oRec->storeId);
         }

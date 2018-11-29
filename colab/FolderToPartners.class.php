@@ -89,7 +89,7 @@ class colab_FolderToPartners extends core_Manager
     {
         // Информация за нишката
         $this->FLD('folderId', 'key2(mvc=doc_Folders, selectSourceArr=colab_FolderToPartners::getFolderOptions, exludeContractors=' . Request::get('contractorId') . ')', 'caption=Папка,silent,input=hidden,after=contractorId,mandatory');
-        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner, selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
+        $this->FLD('contractorId', 'key2(mvc=core_Users, titleFld=names, rolesArr=partner,allowEmpty,selectSourceArr=colab_FolderToPartners::getContractorOptions, excludeFolders=' . Request::get('folderId') . ')', 'caption=Потребител,notNull,silent,mandatory');
         
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
@@ -387,16 +387,24 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Можем ли да изпратим автоматичен имейл до обекта
-        if ($action == 'sendemail' && isset($rec)) {
-            if (!doc_Folders::haveRightToObject($rec)) {
+        if ($action == 'sendemail' && isset($rec->className) && isset($rec->objectId)) {
+            if(!cls::haveInterface('crm_ContragentAccRegIntf', $rec->className)){
                 $requiredRoles = 'no_one';
-            } else {
-                $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null);
-                if (!count($emailsFrom)) {
+            } else{
+                $objectRec = cls::get($rec->className)->fetch($rec->objectId);
+                if(empty($objectRec)){
                     $requiredRoles = 'no_one';
+                } elseif(!doc_Folders::haveRightToObject($objectRec)){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null);
+                    if (!count($emailsFrom)) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
+        
     }
     
     
@@ -464,24 +472,24 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Само за фирми
-        if ($data->masterMvc instanceof crm_Companies) {
-            Request::setProtected(array('companyId'));
-            
-            if (haveRole('admin')) {
-                // Добавяме бутон за създаването на нов партньор, визитка и профил
-                $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => true), false, false, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
-                $btns->append($ht);
-            }
-            
-            // Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
-            if ($me->haveRightFor('sendemail', $data->masterData->rec)) {
-                $ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
-                $btns->append($ht);
-            } else {
-                $ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
-                $btns->append($ht);
-            }
+        Request::setProtected(array('companyId', 'className'));
+        
+        if (haveRole('admin')) {
+            // Добавяме бутон за създаването на нов партньор, визитка и профил
+            $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
+            $btns->append($ht);
         }
+            
+        // Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
+        if ($me->haveRightFor('sendemail', (object)array('className' => $data->masterMvc->className, 'objectId' => $data->masterId))) {
+            $ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
+            $btns->append($ht);
+        } else {
+            $ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
+            $btns->append($ht);
+        }
+        
+        Request::removeProtected(array('companyId', 'className'));
         
         $dTpl->append($btns, 'PARTNER_BTNS');
         $dTpl->removeBlocks();
@@ -495,9 +503,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
-        Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail', 'userNames'));
+        Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail', 'userNames', 'className'));
         
-        redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'userNames' => $data['userNames'], 'fromEmail' => true));
+        redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'userNames' => $data['userNames'], 'className' => $data['className'], 'fromEmail' => true));
     }
     
     
@@ -508,24 +516,27 @@ class colab_FolderToPartners extends core_Manager
      */
     public function act_SendRegisteredEmail()
     {
-        Request::setProtected(array('companyId'));
+        Request::setProtected(array('companyId,className'));
+        
+        $className = request::get('className', 'varchar');
+        $className = isset($className) ? $className : 'crm_Companies';
+        $objectId = Request::get('companyId', 'int');
         
         $this->requireRightFor('sendemail');
-        expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
-        expect($companyRec = crm_Companies::fetch($companyId));
-        $companyName = crm_Companies::getVerbal($companyId, 'name');
+        $this->requireRightFor('sendemail', (object)array('className' => $className, 'objectId' => $objectId));
+        $Class = cls::get($className);
+        $objectRec = $Class->fetch($objectId);
         
-        $this->requireRightFor('sendemail', $companyRec);
-        
+        $contragentName = $Class->getVerbal($objectId, 'name');
         $form = cls::get('core_Form');
-        $form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
+        $form->title = "Изпращане на регистрация на партньори в|* " . $Class->getFormTitleLink($objectId);
         
         $form->FNC('to', 'email', 'caption=До имейл, width=100%, mandatory, input');
         $form->FNC('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions, input');
         $form->FNC('subject', 'varchar', 'caption=Относно,mandatory,width=100%, input');
         $form->FNC('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory, input');
         
-        $emailsArr = type_Emails::toArray($companyRec->email);
+        $emailsArr = type_Emails::toArray($objectRec->email);
         if (!empty($emailsArr)) {
             $emailsArr = array_combine($emailsArr, $emailsArr);
             $emailsArr = array('' => '') + $emailsArr;
@@ -535,7 +546,7 @@ class colab_FolderToPartners extends core_Manager
         
         $form->setDefault('from', email_Outgoings::getDefaultInboxId());
         
-        core_Lg::push(drdata_Countries::getLang($companyRec->country));
+        core_Lg::push(drdata_Countries::getLang($objectRec->country));
         
         $subject = tr('Създайте нов акаунт в') . ' ' . core_Setup::get('EF_APP_TITLE', true);
         
@@ -543,20 +554,21 @@ class colab_FolderToPartners extends core_Manager
         
         $placeHolder = '{{' . tr('линк||link') . '}}';
         
+        $middleMsg = tr('За да се регистрираш като служител на фирма||To have registration as a member of company') . ' "[#company#]", ';
+        $middleMsg = ($Class instanceof crm_Companies) ? $middleMsg : tr("За да се регистрираш||For registration") . " ";
         $body = new ET(
             tr('Уважаеми потребителю||Dear User') . ",\n\n" .
-            tr('За да се регистрираш като служител на фирма||To have registration as a member of company') .
-            ' "[#company#]", ' .
+            $middleMsg .
             tr('моля последвай този||please follow this') .
             " {$placeHolder} - " .
-            tr('изтича след 7 дена||it expired after 7 days')
+            tr('изтича след 7 дена||it expires after 7 days')
         
         );
         
-        $companyName = str_replace(array('&lt;', '&amp;'), array('<', '&'), $companyName);
+        $companyName = str_replace(array('&lt;', '&amp;'), array('<', '&'), $contragentName);
         $body->replace($companyName, 'company');
         
-        $footer = cls::get('email_Outgoings')->getFooter($companyRec->country);
+        $footer = cls::get('email_Outgoings')->getFooter($objectRec->country);
         $body = $body->getContent() . "\n\n" . $footer;
         
         $form->setDefault('body', $body);
@@ -573,10 +585,13 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-            $form->rec->companyId = $companyId;
+            $form->rec->companyId = $objectId;
+            $form->rec->className = $className;
             $form->rec->placeHolder = $placeHolder;
             $res = $this->sendRegistrationEmail($form->rec);
             $msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
+            
+            cls::get($className)->logInAct('Изпращане на имейл за регистрация на нов партньор', $objectId);
             
             return followRetUrl(null, $msg);
         }
@@ -613,9 +628,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         $PML->Encoding = 'quoted-printable';
-        
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => ''), 604800);
-        
+        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => '', 'className' => $rec->className), 604800);
         $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');
@@ -670,30 +683,36 @@ class colab_FolderToPartners extends core_Manager
      */
     public function act_Createnewcontractor()
     {
-        Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email', 'userNames'));
-        
+        Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email', 'userNames', 'className'));
+       
         if (!$email = Request::get('email', 'email')) {
             Request::removeProtected(array('email'));
         }
         
-        expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
-        $Users = cls::get('core_Users');
-        $companyRec = crm_Companies::fetch($companyId);
+        $requestClassName = Request::get('className', 'varchar');
+        $className = !empty($requestClassName) ? $requestClassName : 'crm_Companies';
+        expect($Class = cls::get($className));
+        expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
+        expect($objectId = Request::get('companyId', 'int'));
+        expect($contragentRec = $Class::fetch($objectId));
         
-        core_Lg::push(drdata_Countries::getLang($companyRec->country));
+        $Users = cls::get('core_Users');
+        core_Lg::push(drdata_Countries::getLang($contragentRec->country));
         $rand = Request::get('rand');
+        $companyName = $Class->getVerbal($objectId, 'name');
         
         // Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
         $fromEmail = Request::get('fromEmail');
         if (!$fromEmail) {
             requireRole('powerUser');
-            expect(doc_Folders::haveRightToObject($companyRec));
+            expect(doc_Folders::haveRightToObject($contragentRec));
+        } else {
+            vislog_History::add("Форма за регистрация на партньор в «{$companyName}»");
         }
         
         $form = $Users->getForm();
-        $companyName = crm_Companies::getHyperlink($companyId, true);
         $form->title = "Нов партньор от|* <b>{$companyName}</b>";
-        $form->setDefault('country', $companyRec->country);
+        $form->setDefault('country', $contragentRec->country);
         
         // Ако има готово име, попълва се
         if ($userNames = Request::get('userNames', 'varchar')) {
@@ -703,10 +722,10 @@ class colab_FolderToPartners extends core_Manager
         // Ако имаме хора от crm_Persons, които принадлежат на тази компания, и нямат свързани профили,
         // добавяме поле, преди nick, за избор на такъв човек. Ако той се подаде, данните за потребителя се вземат частично
         // от визитката, а новосъздадения профил се свързва със визитката
-        if (haveRole('officer,manager,ceo')) {
+        if (haveRole('officer,manager,ceo') && $Class instanceof crm_Companies) {
             $pOpt = array();
             $pQuery = crm_Persons::getQuery();
-            while ($pRec = $pQuery->fetch(array("#state = 'active' AND #buzCompanyId = [#1#]", $companyId))) {
+            while ($pRec = $pQuery->fetch(array("#state = 'active' AND #buzCompanyId = [#1#]", $objectId))) {
                 if (!crm_Profiles::fetch("#personId = {$pRec->id}")) {
                     $pOpt[$pRec->id] = $pRec->name;
                 }
@@ -738,7 +757,7 @@ class colab_FolderToPartners extends core_Manager
         // Задаваме дефолтните роли
         $dRolesArr = array('partner');
         try {
-            $autoCreateQuote = cond_Parameters::getParameter(crm_Companies::getClassId(), $companyId, 'autoCreateQuote');
+            $autoCreateQuote = cond_Parameters::getParameter($Class->getClassId(), $objectId, 'autoCreateQuote');
             
             if ($autoCreateQuote == 'yes') {
                 $dRolesArr[] = 'agent';
@@ -793,27 +812,33 @@ class colab_FolderToPartners extends core_Manager
         // След събмит ако всичко е наред създаваме потребител, лице и профил
         if ($form->isSubmitted()) {
             $uId = $Users->save($form->rec);
-            $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
-            $personRec = crm_Persons::fetch($personId);
             
-            // Свързваме лицето към фирмата
-            $personRec->buzCompanyId = $companyId;
-            $personRec->country = $form->rec->country;
-            $personRec->inCharge = $companyRec->inCharge;
+            if($Class instanceof crm_Companies){
+                $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
+                $personRec = crm_Persons::fetch($personId);
+                
+                // Свързваме лицето към фирмата
+                $personRec->buzCompanyId = $objectId;
+                $personRec->country = $form->rec->country;
+                $personRec->inCharge = $contragentRec->inCharge;
+                
+                // Имейлът да е бизнес имейла му
+                $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
+                $buzEmailsArr[] = $personRec->email;
+                $personRec->buzEmail = type_Emails::fromArray($buzEmailsArr);
+                $personRec->email = '';
+                
+                crm_Persons::save($personRec);
+            }
             
-            // Имейлът да е бизнес имейла му
-            $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
-            $buzEmailsArr[] = $personRec->email;
-            $personRec->buzEmail = type_Emails::fromArray($buzEmailsArr);
-            $personRec->email = '';
-            
-            crm_Persons::save($personRec);
-            
-            $folderId = crm_Companies::forceCoverAndFolder($companyId);
+            $folderId = $Class->forceCoverAndFolder($objectId);
             static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
             
+            $Class->logInAct('Регистрация на нов партньор', $objectId);
+            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$companyName}»" );
+            
             // Изтриваме линка, да не може друг да се регистрира с него
-            core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $companyId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames), 604800);
+            core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
             
             return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
         }
@@ -831,8 +856,9 @@ class colab_FolderToPartners extends core_Manager
             $tpl = $form->renderHtml();
         }
         core_Form::preventDoubleSubmission($tpl, $form);
-        
         core_Lg::pop();
+        
+        $Class->logInAct('Разглеждане на формата за регистрация на нов партньор', $objectId, 'read');
         
         return $tpl;
     }

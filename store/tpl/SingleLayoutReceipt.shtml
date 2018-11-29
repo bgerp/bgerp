@@ -63,7 +63,7 @@
                <table class='shipment-table' style='width:100%;'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='quiet aright'>|Разтоварване|*:</td>
+                     <td class='quiet aright small-field'>|Разтоварване|*:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
@@ -73,6 +73,11 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+                  <!--ET_BEGIN lineNotes-->
+                  <tr>
+                     <td class='nowrap' colspan=2><hr><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
+                  </tr>
+                  <!--ET_END lineNotes-->
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan=2>
@@ -91,10 +96,7 @@
                   </tr>
                   <!--ET_BEGIN logisticInfo-->
                   <tr>
-                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span></td>
-                  </tr>
-                  <tr>
-                  	<td colspan="2" >[#logisticInfo#]</td>
+                     <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span> [#logisticInfo#]</td>
                   </tr>
                   <!--ET_END logisticInfo-->
                </table>

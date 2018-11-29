@@ -22,6 +22,7 @@ class cat_plg_AddSearchKeywords extends core_Plugin
     {
         if ($rec->id) {
             $detailsKeywords = '';
+            $Products = cls::get('cat_Products');
             
             // Намиране на детайлите на документа
             $Detail = cls::get($mvc->mainDetail);
@@ -40,8 +41,10 @@ class cat_plg_AddSearchKeywords extends core_Plugin
             // За всеки запис
             while ($dRec = $dQuery->fetch()) {
                 
-                // Имената на артикулите се добавят към ключовите думи
-                $detailsKeywords .= ' ' . plg_Search::normalizeText(cat_Products::getTitleById($dRec->{$Detail->productFld}));
+                // Ключовите думи на артикулите се добавят към тези от продажбата
+                $pRec = cat_Products::fetch($dRec->{$Detail->productFld});
+                $productSearchKeywords = $Products->getSearchKeywords($pRec);
+                $detailsKeywords .= ' ' . $productSearchKeywords;
                 
                 // Ако има забележки, и те се добавят към ключовите думи
                 if (!empty($dRec->{$Detail->notesFld})) {

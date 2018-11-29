@@ -182,6 +182,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'sales,ceo';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
