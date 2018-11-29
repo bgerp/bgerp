@@ -695,6 +695,7 @@ class sales_PrimeCostByDocument extends core_Manager
             return;
         }
         
+        $touchedDocuments = array();
         $query = self::getQuery();
         $query->in('containerId', $containerIds);
         while ($rec = $query->fetch()) {
@@ -704,10 +705,16 @@ class sales_PrimeCostByDocument extends core_Manager
                 $rec->initiatorId = $persons['initiatorId'];
                 self::save($rec);
                 
-                $doc = doc_Containers::getDocument($rec->containerId);
-                $doc->touchRec();
-                $doc->getInstance()->logInAct('Обновяване на дилъра и/или инициатора на делтата', $doc->that);
+                if(!array_key_exists($rec->containerId, $touchedDocuments)){
+                    $touchedDocuments[$rec->containerId] = doc_Containers::getDocument($rec->containerId);
+                }
             }
+        }
+        
+        // Нотифициране на контейнерите че са променени делтите
+        foreach ($touchedDocuments as $doc){
+            $doc->touchRec();
+            $doc->getInstance()->logInAct('Сменен дилър и/или инициатор на делтата', $doc->that);
         }
     }
     
