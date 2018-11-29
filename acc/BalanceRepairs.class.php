@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -170,6 +170,7 @@ class acc_BalanceRepairs extends core_Master
     {
         $form = &$data->form;
         $form->setDefault('valior', dt::today());
+        $form->setOptions('balanceId', array('' => '') + acc_Balances::getSelectOptions());
         
         if (!empty($form->rec->threadId)) {
             if ($origin = doc_Threads::getFirstDocument($form->rec->threadId)) {

@@ -970,4 +970,30 @@ class acc_Balances extends core_Master
             $data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
         }
     }
+    
+    
+    /**
+     * Кои са незатворените баланси
+     * 
+     * @param string $order
+     * @param boolean $skipClosed
+     * 
+     * @return array $balances
+     */
+    public static function getSelectOptions($order = 'DESC', $skipClosed = true)
+    {
+        $balances = array();
+        $query = acc_Balances::getQuery();
+        $query->EXT('state', 'acc_Periods', 'externalName=state,externalKey=periodId');
+        if($skipClosed === true){
+            $query->where("#state != 'closed'");
+        }
+        
+        $query->orderBy('id', $order);
+        while($rec = $query->fetch()){
+            $balances[$rec->id] = acc_Periods::getTitleById($rec->periodId, false);
+        }
+        
+        return $balances;
+    }
 }
