@@ -97,7 +97,7 @@ class rack_Movements extends core_Manager
     /**
      * Колко време след като са приключени движенията да се изтриват
      */
-    const DELETE_CLOSED_MOVEMENTS_OLDER_THEN = 60 * 60 * 24 * 60;
+    const DELETE_CLOSED_MOVEMENTS_OLDER_THEN = 5184000;
     
     
     /**
