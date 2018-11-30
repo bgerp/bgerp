@@ -76,6 +76,30 @@ defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
 
 
 /**
+ * Какво количество автоматично да се попълва в корекцията от закръгляния
+ */
+defIfNot('ACC_BALANCE_REPAIR_QUANITITY_BELLOW', '0,00999');
+
+
+/**
+ * Каква сума автоматично да се попълва в корекцията от закръгляния
+ */
+defIfNot('ACC_BALANCE_REPAIR_AMOUNT_BELLOW', '0,00999');
+
+
+/**
+ * Кои сметки автоматично да се попълвавт в корекцията от закръгляния
+ */
+defIfNot('ACC_BALANCE_REPAIR_ACCOUNTS', '');
+
+
+/**
+ * Да се използват ли дефолтите за корекцията от стойност
+ */
+defIfNot('ACC_BALANCE_REPAIR_NO_DEFAULTS', 'no');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -124,11 +148,18 @@ class acc_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефолтни сметки за добавяне към документа за корекция от грешки
+     */
+    protected static $accAccount = '321,323,401,411,61101,6911,6912,699,701,703,706,7911,7912';
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
         'acc_Lists',
         'acc_Items',
+        
         'acc_Periods',
         'acc_Accounts',
         'acc_Limits',
@@ -194,6 +225,22 @@ class acc_Setup extends core_ProtoSetup
         'ACC_INVOICE_MANDATORY_EXPORT_PARAM' => array(
             'key(mvc=cat_Params,select=name,allowEmpty)',
             'caption=Артикул за експорт на данъчна фактура->Параметър'
+        ),
+        'ACC_BALANCE_REPAIR_NO_DEFAULTS' => array(
+            'enum(yes=Да,no=Не)',
+            'caption=Корекция на грешки от закръгляне->Празен документ'
+        ),
+        'ACC_BALANCE_REPAIR_ACCOUNTS' => array(
+            'acc_type_accounts',
+            'caption=Корекция на грешки от закръгляне->Сметки'
+        ),
+        'ACC_BALANCE_REPAIR_QUANITITY_BELLOW' => array(
+            'double',
+            'caption=Корекция на грешки от закръгляне->Количество под'
+        ),
+        'ACC_BALANCE_REPAIR_AMOUNT_BELLOW' => array(
+            'double',
+            'caption=Корекция на грешки от закръгляне->Сума под'
         )
     );
     
@@ -411,6 +458,21 @@ class acc_Setup extends core_ProtoSetup
         if (strlen($docs) === 0) {
             $this->getCostObjectDocuments();
             $res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
+        }
+        
+        // Ако няма посочени от потребителя сметки за синхронизация
+        $repairAccountsDefault = core_Packs::getConfigValue('acc', 'ACC_BALANCE_REPAIR_ACCOUNTS');
+        if (strlen($repairAccountsDefault) === 0) {
+            $accArray = array();
+            $accAcounts = arr::make(static::$accAccount, true);
+            foreach ($accAcounts as $accSysId) {
+                $accId = acc_Accounts::getRecBySystemId($accSysId)->id;
+                $accArray[$accId] = $accSysId;
+            }
+            
+            // Записват се ид-та на дефолт сметките за синхронизация
+            core_Packs::setConfig('acc', array('ACC_BALANCE_REPAIR_ACCOUNTS' => keylist::fromArray($accArray)));
+            $res .= "<li style='color:green'>Дефолт счетодовни сметки за корекция от закръгляне<b>" . implode(',', $accArray) . '</b></li>';
         }
         
         return $res;
