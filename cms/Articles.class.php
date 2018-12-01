@@ -919,6 +919,7 @@ class cms_Articles extends core_Master
         $res = array();
         
         while ($rec = $query->fetch()) {
+            if(!trim($rec->body)) continue;
             $resObj = new stdClass();
             $resObj->loc = $this->getUrl($rec, true);
             $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
