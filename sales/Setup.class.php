@@ -396,7 +396,17 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 140,
             'period' => 1440,
             'timeLimit' => 360
+        ),
+        array(
+            'systemId' => 'Calc Near Products',
+            'description' => 'Изчисляване на търговска близост между продуктите',
+            'controller' => 'sales_ProductRelations',
+            'action' => 'CalcNearProducts',
+            'offset' => 190,
+            'period' => 1440,
+            'timeLimit' => 360
         )
+
     );
     
     
