@@ -346,6 +346,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProformaDetails',
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
+        'sales_ProductRelations',
         'migrate::updateDeltaStates1',
         'migrate::setContragentFieldKeylist3',
         'migrate::updateDeltaFields',
