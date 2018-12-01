@@ -84,6 +84,9 @@ class log_Data extends core_Manager
     protected static $toAdd = array();
     
     
+    protected static $toAddHash = array();
+    
+    
     /**
      * Полета на модела
      */
@@ -433,7 +436,17 @@ class log_Data extends core_Manager
             $rec->type = $toAdd['type'];
             $rec->lifeTime = $toAdd['lifeTime'];
             
+            $hash = md5("{$rec->userId}|{$rec->actionCrc}|{$rec->classCrc}|{$rec->objectId}|{$rec->type}|{$rec->lifeTime}|{$rec->ipId}|{$rec->brId}");
+            
+            if (isset(self::$toAddHash[$hash])) {
+                log_System::add('log_Data', 'Дублирана заявка за лог в хит: ' . core_Type::mixedToString($rec), self::$toAddHash[$hash], 'warning');
+                
+                continue;
+            }
+            
             self::save($rec);
+            
+            self::$toAddHash[$hash] = $rec->id;
             
             log_Referer::addReferer($ipId, $bridId, $toAdd['time']);
         }

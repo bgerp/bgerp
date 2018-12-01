@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -84,12 +84,6 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'acc,ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     public $canWrite = 'acc,ceo';
@@ -99,12 +93,6 @@ class acc_BalanceRepairs extends core_Master
      * Кой може да го контира?
      */
     public $canConto = 'acc,ceo';
-    
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    public $canReject = 'acc,ceo';
     
     
     /**
@@ -152,6 +140,14 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'acc_BalanceRepairDetails';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -166,10 +162,11 @@ class acc_BalanceRepairs extends core_Master
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         $form->setDefault('valior', dt::today());
+        $form->setOptions('balanceId', array('' => '') + acc_Balances::getSelectOptions());
         
         if (!empty($form->rec->threadId)) {
             if ($origin = doc_Threads::getFirstDocument($form->rec->threadId)) {
@@ -180,20 +177,6 @@ class acc_BalanceRepairs extends core_Master
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        return $folderClass == 'doc_UnsortedFolders';
     }
     
     
@@ -256,7 +239,7 @@ class acc_BalanceRepairs extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if (acc_Balances::haveRightFor('single', $rec->balanceId)) {
             $row->balanceId = ht::createLink($row->balanceId, array('acc_Balances', 'single', $rec->balanceId), null, "ef_icon=img/16/table_sum.png, title=Оборотна ведомост {$row->balanceId}");
@@ -267,16 +250,22 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
-     * След клониране на модела
+     * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
-        $query = acc_BalanceRepairDetails::getQuery();
-        $query->where("#repairId = {$rec->id}");
-        while ($dRec = $query->fetch()) {
-            $dRec->repairId = $nRec->id;
-            unset($dRec->id);
-            acc_BalanceRepairDetails::save($dRec);
+        if($rec->_isClone === true) return;
+        
+        $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
+        if($useDefaults == 'yes'){
+            $defaultAccounts = keylist::toArray(acc_Setup::get('BALANCE_REPAIR_ACCOUNTS'));
+            $defaultAmount = acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW');
+            $defaultQuantity = acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW');
+            
+            foreach ($defaultAccounts as $accountId){
+                $dRec = (object)array('repairId' => $rec->id, 'accountId' => $accountId, 'blQuantity' => $defaultQuantity, 'blAmount' => $defaultAmount);
+                acc_BalanceRepairDetails::save($dRec);
+            }
         }
     }
 }

@@ -71,6 +71,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Група артикули,after=crmGroup,single=none');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
+        $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=articleType,single=none');
     }
     
     
@@ -256,31 +257,16 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     continue;
                 }
             }
+            $detClassName = $DetClass->className;
             
             // контрагента по сделката
-            $detClassName = $DetClass->className;
-            $masterClassName = $DetClass->Master->className;
-            if ($DetClass->masterKey) {
-                $masterKey = $detClassName::fetchField($recPrime->detailRecId, $DetClass->masterKey);
-            } else {
-                log_System::add('sales_reports_SalesByContragents', 'Липсва masterKey в детайла: ' . $detClassName, null, 'warning');
-            }
+            $contragentId = $recPrime->contragentId;
+            $contragentClassId = $recPrime->contragentClassId;
+            $contragentClassName = core_Classes::fetchField($contragentClassId, 'name');
             
             
-            if (is_null($masterKey)) {
-                log_System::add('sales_reports_SalesByContragents', 'masterKey е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $detClassName, null, 'warning');
-            } else {
-                if ($masterClassName) {
-                    $contragentId = $masterClassName::fetchField($masterKey, 'contragentId');
-                    $contragentClassId = $masterClassName::fetchField($masterKey, 'contragentClassId');
-                    $contragentClassName = core_Classes::fetchField($contragentClassId, 'name');
-                } else {
-                    log_System::add('sales_reports_SalesByContragents', 'Липсва masterClassName в детайла: ' . $detClassName, null, 'warning');
-                }
-                
-                if (is_null($contragentId) || is_null($contragentClassId)) {
-                    log_System::add('sales_reports_SalesByContragents', 'ContragentId или ContragentClassId е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $masterClassName . ' ' . $masterKey, null, 'warning');
-                }
+            if (is_null($contragentId) || is_null($contragentClassId)) {
+                log_System::add('sales_reports_SalesByContragents', 'ContragentId или ContragentClassId е NULL в ' . core_Type::mixedToString($recPrime) . ' ' . $masterClassName . ' ' . $masterKey, null, 'warning');
             }
             
             // групите на контрагента по сделката
@@ -504,28 +490,42 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             
             if ($rec->compare != 'no') {
                 $fld->FLD('saleValue', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
-                $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+                if ($rec->seeDelta == 'yes') {
+                    $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+                }
             } else {
                 $fld->FLD('saleValue', 'double(smartRound,decimals=2)', 'smartCenter,caption=Продажби');
-                $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+                if ($rec->seeDelta == 'yes') {
+                    $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+                }
             }
             
             if ($rec->compare != 'no') {
                 $fld->FLD('sellValueCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Продажби,tdClass=newCol");
-                $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
+                if ($rec->seeDelta == 'yes') {
+                    $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта,tdClass=newCol");
+                }
                 $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
-                $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                if ($rec->seeDelta == 'yes') {
+                    $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                }
             }
         } else {
             $fld->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
             $fld->FLD('contragentId', 'varchar', 'caption=Контрагент');
             $fld->FLD('saleValue', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Продажби");
-            $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+            if ($rec->seeDelta == 'yes') {
+                $fld->FLD('delta', 'double(smartRound,decimals=2)', "smartCenter,caption={$name1}->Делта");
+            }
             if ($rec->compare != 'no') {
                 $fld->FLD('sellValueCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Продажби");
-                $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта");
+                if ($rec->seeDelta == 'yes') {
+                    $fld->FLD('deltaCompare', 'double(smartRound,decimals=2)', "smartCenter,caption={$name2}->Делта");
+                }
                 $fld->FLD('changeSales', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Продажби');
-                $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                if ($rec->seeDelta == 'yes') {
+                    $fld->FLD('changeDeltas', 'double(smartRound,decimals=2)', 'smartCenter,caption=Промяна->Делти');
+                }
             }
         }
         

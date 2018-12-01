@@ -1,6 +1,3 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div>|Баланс|*: [#balanceId#]</div>
-    <div>|Модифицирано на|*: [#modifiedOn#]</div>
-    <div>|Модифцирано от|*: [#modifiedBy#]</div>
-
+    <div style='margin-bottom:10px'>|Баланс|*: [#balanceId#]</div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

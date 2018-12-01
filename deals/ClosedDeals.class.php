@@ -557,7 +557,11 @@ abstract class deals_ClosedDeals extends core_Master
         // да може да се контира дори ако има затворени пера
         if (!empty($rec->closeWith)) {
             
-            return array();
+            // Само ако приключващата сделка не е също приключена
+            $closeWithState = acc_Items::fetchItem($rec->docClassId, $rec->closeWith)->state;
+            if($closeWithState != 'closed'){
+                return array();
+            }
         }
         
         $closedItems = null;

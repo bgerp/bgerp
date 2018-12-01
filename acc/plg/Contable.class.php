@@ -465,6 +465,8 @@ class acc_plg_Contable extends core_Plugin
             $handle = $mvc->getHandle($rec->id);
             $cRes = 'НЕ Е контиран';
             status_Messages::newStatus("#{$handle} |" . $cRes);
+        } elseif($rec->brState != 'rejected') {
+            $mvc->logWrite('Контиране на документ', $id);
         }
         
         // Нотифициране на създателя на документа и на създателя на първия документ в нишката

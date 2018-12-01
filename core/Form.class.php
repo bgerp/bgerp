@@ -218,6 +218,9 @@ class core_Form extends core_FieldSet
             }
             
             $type = $field->type;
+            if($this->cmd == 'refresh'){
+                $type->_isRefreshed = true;
+            }
             
             // Предаваме някои свойства на полето на типа
             $options = $field->options;

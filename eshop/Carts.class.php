@@ -161,7 +161,7 @@ class eshop_Carts extends core_Master
         $this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
         $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty)', 'caption=Контактни данни->Телефон,hint=Вашият телефон,mandatory');
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,mandatory');
         
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
         $this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
@@ -597,7 +597,7 @@ class eshop_Carts extends core_Master
         
         $msg = '|Благодарим за поръчката|*!';
         if($saleRec->_paymentInstructionsSend === true){
-            $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*";
+            $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*.";
         }
         
         if (is_array($colabUrl) && count($colabUrl)) {
@@ -696,12 +696,13 @@ class eshop_Carts extends core_Master
         }
         
         // Рутиране в папка
+        $routerExplanation = null;
         if (isset($rec->saleFolderId)) {
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
-            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo);
+            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation);
             $Cover = doc_Folders::getCover($folderId);
         }
         
@@ -739,6 +740,9 @@ class eshop_Carts extends core_Master
         // Създаване на продажба по количката
         $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
+        if(!empty($routerExplanation)){
+            sales_Sales::logDebug($routerExplanation, $saleId, 7);
+        }
         eshop_Carts::logDebug("Създаване на продажба #Sal{$saleId} към онлайн поръчка", $rec->id);
         
         // Добавяне на артикулите от количката в продажбата
@@ -892,11 +896,13 @@ class eshop_Carts extends core_Master
             $body->replace("#{$hnd}", 'SALE_HANDLER');
         }
         
-        $body->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
+        $domainName = '';
+        cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        $body->replace($domainName, 'domainId');
         
         // Линка за регистрация
         $Cover = doc_Folders::getCover($saleRec->folderId);
-        $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'userNames' => $rec->personNames), 604800);
+        $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames), 604800);
         
         $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
         $body->replace($url, 'link');
@@ -1473,12 +1479,20 @@ class eshop_Carts extends core_Master
             
         $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
         $rec->vatAmount = $rec->total - $rec->totalNoVat;
-        $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
+        
+        if($rec->freeDelivery != 'yes'){
+            $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
+        } 
+        
         foreach (array('total', 'totalNoVat', 'deliveryNoVat', 'vatAmount') as $fld){
             if(isset($rec->{$fld})){
                 ${$fld} = currency_CurrencyRates::convertAmount($rec->{$fld}, null, null, $currencyCode);
                 $row->{$fld} = $mvc->getFieldType('total')->toVerbal(${$fld}) . " <span class='cCode'>{$currencyCode}</span>";
             }
+        }
+        
+        if($rec->freeDelivery == 'yes'){
+            $row->deliveryNoVat = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
         }
         
         if(isset($fields['-list'])){
@@ -1489,6 +1503,11 @@ class eshop_Carts extends core_Master
         
         if (isset($rec->saleId)) {
             $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        }
+        
+        if (isset($rec->termId)) {
+            $termUrl = cond_DeliveryTerms::getSingleUrlArray($rec->termId);
+            $row->termId = ht::createLink($row->termId, $termUrl);
         }
     }
     
@@ -1567,7 +1586,11 @@ class eshop_Carts extends core_Master
             $form->countries[$form->rec->deliveryCountry] = $form->rec->deliveryCountry;
         }
         
-        $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
+        $isDeliveryCountryReadOnly = $form->getFieldTypeParam('deliveryCountry', 'isReadOnly');
+        if($isDeliveryCountryReadOnly !== true){
+            $form->setOptions('deliveryCountry', drdata_Countries::getOptionsArr($form->countries));
+        }
+        
         if(count($form->countries) == 1){
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
@@ -1717,6 +1740,7 @@ class eshop_Carts extends core_Master
             
             if ($form->layout) {
                 jquery_Jquery::run($form->layout, 'copyValToPlaceholder();');
+                //jquery_Jquery::run($form->layout, 'refreshInvoiceFields();');
             }
         }
         
@@ -1727,6 +1751,7 @@ class eshop_Carts extends core_Master
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setRefreshFormIfNeeded($tpl);
         jquery_Jquery::run($tpl, 'runOnLoad(copyValToPlaceholder);');
+        //jquery_Jquery::run($tpl, 'runOnLoad(refreshInvoiceFields);');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
         return $tpl;
@@ -2059,7 +2084,7 @@ class eshop_Carts extends core_Master
             
             $body->{$var}->replace(core_Type::getByName('varchar')->toVerbal($rec->personNames), 'NAME');
             $body->{$var}->replace($link, 'LINK');
-            $body->{$var}->replace(cms_Domains::getVerbal($rec->domainId, 'domain'), 'domainId');
+            $body->{$var}->replace($domainName, 'domainId');
             Mode::pop('text');
             
             $body->{$var} = $body->{$var}->getContent();

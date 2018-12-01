@@ -73,31 +73,31 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#],\n[#PAYMENT_TEXT#]\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#link#], който изтича след 7 дни.\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#link#], която изтича след 7 дни.\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#],\n[#PAYMENT_TEXT#]If you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на български, за уведомление за незавършена поръчка
      */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#CART_LINK#].\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#LINK#].\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
