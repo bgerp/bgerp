@@ -23,6 +23,12 @@ defIfNot('CONVERSEJS_BOSH_SERVICE_URL', 'https://conversejs.org/http-bind/');
 class conversejs_Setup extends core_ProtoSetup
 {
     /**
+     * Необходими пакети
+     */
+    public $depends = 'remote=0.1';
+    
+    
+    /**
      * Версия на пакета
      */
     public $version = '0.1';

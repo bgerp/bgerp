@@ -318,7 +318,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALES_DELTA_MIN_PERCENT_PRIME_COST' => array(
             'percent',
-            'caption=Колко % от продажната цена да се приема за себестойност в делтите->Стойност'
+            'caption=Колко % от продажната цена да се приема за делта при липса на себестойност->Стойност'
         ),
         
         'SALES_TRANSPORT_PRODUCTS_ID' => array(
@@ -346,6 +346,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProformaDetails',
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
+        'sales_ProductRelations',
         'migrate::updateDeltaStates1',
         'migrate::setContragentFieldKeylist3',
         'migrate::updateDeltaFields',
