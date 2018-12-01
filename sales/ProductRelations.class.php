@@ -72,19 +72,6 @@ class sales_ProductRelations extends core_Manager
     }
   
     
- 
-    public function act_PDist()
-    {   
-        requireRole('admin');
-
-        $rels = self::calcNearProducts();
-        
-        self::saveRels($rels);
-
-        bp($rels);
-    }
-
-    
     /**
      * Записва изчислените данни за релациите
      */
@@ -154,16 +141,16 @@ class sales_ProductRelations extends core_Manager
         }
         
         arsort($relations);
-        
-        $maxCnt = 0.2 * count($relations);
-        
+                
         $res = array();
         foreach($relations as $rel => $weight) {
             list($aId, $bId) = explode('|', $rel);
             $res[$aId][$bId] = $weight;
             $res[$bId][$aId] = $weight;
-            $i++;
-            if($i > $maxCnt) break;
+        }
+
+        foreach($res as $prodId => $wArr) {
+            $res[$prodId] = array_slice($res[$prodId], 0, 10, true);
         }
 
         return $res;
@@ -181,5 +168,20 @@ class sales_ProductRelations extends core_Manager
         $b = max($aId, $bId);
 
         $res["{$a}|{$b}"] += $points;
+    }
+
+
+    /**
+     * Метод за периодично изчисляване на разстоянията между продуктите
+     */
+    public function cron_CalcNearProducts()
+    {
+        core_App::setTimeLimit(360);
+
+        $rels = self::calcNearProducts();
+        
+        self::saveRels($rels);
+
+        eshop_Products::saveNearProducts();
     }
 }

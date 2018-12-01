@@ -1303,10 +1303,8 @@ class eshop_Products extends core_Master
     /**
      * Изчислява подобните продукти
      */ 
-    public function act_calcNearProducts()
+    public static function saveNearProducts()
     {
-        requireRole('admin');
-
         $gQuery = eshop_Groups::getQuery();
         while($gRec = $gQuery->fetch("state = 'active'")) {
             $pQuery = eshop_Products::getQuery();
@@ -1350,7 +1348,5 @@ class eshop_Products extends core_Master
                 self::save($rec, 'nearProducts');
             }
         }
-
-        bp($r);
     }
 }
