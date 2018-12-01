@@ -50,7 +50,7 @@ class sales_ProductRelations extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'docId,recId,fee,deliveryTime,explain';
+    // public $listFields = '';
     
     
     /**
@@ -66,15 +66,56 @@ class sales_ProductRelations extends core_Manager
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Продуцт');
-        $this->FLD('nearIss', 'keylist(mvc=cat_Products,select=name)', 'mandatory,caption=Ид на документа');
-        $this->setDbIndex('productId');
+        $this->FLD('data', 'blob(serialize)', 'mandatory,caption=Релации');
+        
+        $this->setDbUnique('productId');
     }
   
     
  
     public function act_PDist()
+    {   
+        requireRole('admin');
+
+        $rels = self::calcNearProducts();
+        
+        self::saveRels($rels);
+
+        bp($rels);
+    }
+
+    
+    /**
+     * Записва изчислените данни за релациите
+     */
+    public static function saveRels($rels)
     {
-        return self::calcNearProducts();
+        foreach($rels as $productId => $data) {
+            $rec = new stdClass();
+            $rec->productId = $productId;
+            $rec->data = $data;
+
+            self::save($rec, null, 'replace');
+        }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(is_array($rec->data)) {
+            $row->data = '';
+            foreach($rec->data as $productId => $weight) {
+                $row->data .= "<li>" . cat_Products::getTitleById($productId) . ' - ' . $weight . "</li>";
+            }
+            $row->data = "<ul>" . $row->data . "</ul>";
+        }
     }
 
 
@@ -83,8 +124,6 @@ class sales_ProductRelations extends core_Manager
      */
     private static function calcNearProducts()
     {
-        requireRole('admin');
-        
         $pQuery = cat_Products::getQuery();
         
         $pQuery->limit(1000000);
@@ -127,7 +166,7 @@ class sales_ProductRelations extends core_Manager
             if($i > $maxCnt) break;
         }
 
-        bp($res);
+        return $res;
     }
 
 
