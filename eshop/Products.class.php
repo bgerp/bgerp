@@ -1315,7 +1315,7 @@ class eshop_Products extends core_Master
                 $pArr = array();
                 while($dRec = $dQuery->fetch("#state = 'active' AND #eshopProductId = $pRec->id")) {
                     $pArr[] = $dRec->productId;
-                    $res[$gRec->menuId]['MAP'][$dRec->productId] = $pRec->id;
+                    $map[$gRec->menuId][$dRec->productId] = $pRec->id;
                 }
                 if(count($pArr)) {
                     $res[$gRec->menuId][$pRec->id] = $pArr;
@@ -1332,7 +1332,7 @@ class eshop_Products extends core_Master
                     $relData = sales_ProductRelations::fetchField("#productId = {$pId}", 'data');
                     if(is_array($relData)) {
                         foreach($relData as $relPid => $weight) {
-                            $relEshopId = $eshopProducts['MAP'][$relPid];
+                            $relEshopId = $map[$menuId][$relPid];
                             if(isset($relEshopId) &&  $relEshopId != $epId) {
                                 $r[$epId][$relEshopId] = $weight;
                             }
