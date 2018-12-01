@@ -163,7 +163,7 @@ class cat_Products extends embed_Manager
     /**
      * Кой може да затваря?
      */
-    public $canClose = 'cat,ceo';
+    public $canClose = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -2141,7 +2141,7 @@ class cat_Products extends embed_Manager
         }
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
-        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec' || $action =='close') && isset($rec)) {
             if ($rec->isPublic == 'yes') {
                 if (!haveRole('ceo,cat')) {
                     $res = 'no_one';

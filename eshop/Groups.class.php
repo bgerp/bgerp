@@ -257,7 +257,7 @@ class eshop_Groups extends core_Master
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
-        
+   
         // Добавя канонично URL
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         cms_Content::addCanonicalUrl($url, $layout);
@@ -276,7 +276,7 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-        
+         
         return $layout;
     }
     
@@ -360,7 +360,7 @@ class eshop_Groups extends core_Master
         
         $cRec = cms_Content::fetch($data->menuId);
         
-        $data->title = type_Varchar::escape($cRec->url);
+        $data->title = type_Varchar::escape($cRec->title);
     }
     
     
