@@ -325,6 +325,14 @@ class eshop_Products extends core_Master
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
+
+        if(is_array($rec->nearProducts)) {
+            $row->nearProducts = '';
+            foreach($rec->nearProducts as $productId => $weight) {
+                $row->nearProducts .= "<li>" . eshop_Products::getTitleById($productId) . ' - ' . $weight . "</li>";
+            }
+            $row->nearProducts = "<ul>" . $row->nearProducts . "</ul>";
+        }
     }
     
     
@@ -1297,6 +1305,8 @@ class eshop_Products extends core_Master
      */ 
     public function act_calcNearProducts()
     {
+        requireRole('admin');
+
         $gQuery = eshop_Groups::getQuery();
         while($gRec = $gQuery->fetch("state = 'active'")) {
             $pQuery = eshop_Products::getQuery();
