@@ -329,9 +329,9 @@ class eshop_Products extends core_Master
         if(is_array($rec->nearProducts)) {
             $row->nearProducts = '';
             foreach($rec->nearProducts as $productId => $weight) {
-                $row->nearProducts .= "<li>" . eshop_Products::getTitleById($productId) . ' - ' . $weight . "</li>";
+                $row->nearProducts .= "<li>" . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . "</li>";
             }
-            $row->nearProducts = "<ul>" . $row->nearProducts . "</ul>";
+            $row->nearProducts = '<p>' . tr('Вижте също') . ':</p><ul>' . $row->nearProducts . "</ul>";
         }
     }
     

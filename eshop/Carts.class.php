@@ -37,7 +37,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,ip,brid,domainId,userId,total=Сума,saleId,state,createdOn,activatedOn';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,state,createdOn=Създаване,activatedOn=Активиране,ip,brid,domainId';
     
     
     /**
@@ -1497,7 +1497,7 @@ class eshop_Carts extends core_Master
         
         if(isset($fields['-list'])){
             if(!empty($rec->email) && $rec->state == 'draft'){
-                $row->id = ht::createHint($row->id, 'Има попълнени данни за поръчка|*!', 'notice', false);
+                $row->productCount = ht::createHint($row->productCount, 'Има попълнени данни за поръчка|*!', 'notice', false);
             }
         }
         
