@@ -192,6 +192,28 @@ class cms_Articles extends core_Master
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), null, 'ef_icon=img/16/monitor.png');
         }
     }
+
+
+    /**
+     * Връща записа на предходната или на следващата статия от даденото меню спрямо тази
+     */
+    public static function getPrevOrNext($rec, $dir = 1)
+    {
+        $query = self::getQuery();
+        $query->limit(1);
+        if($dir > 0) {
+            $query->orderBy('level');
+            $query->where("#level > {$rec->level}");
+        } else {
+            $query->orderBy('level', 'DESC');
+            $query->where("#level < {$rec->level}");
+        }
+        $query->where("#menuId = {$rec->menuId}");
+
+        $nextOrPrevRec = $query->fetch();
+
+        return $nextOrPrevRec;
+    }
     
     
     /**
@@ -228,6 +250,16 @@ class cms_Articles extends core_Master
         
         if (is_object($rec) && $rec->state != 'active' && !haveRole('admin,ceo,cms')) {
             error('404 Липсваща страница');
+        }
+
+        if(!trim($rec->body)) {
+            $nextRec = self::getPrevOrNext($rec);
+
+            if($nextRec) {
+                $url = self::getUrl($nextRec);
+
+                return new Redirect($url);
+            }
         }
         
         if ($rec) {
