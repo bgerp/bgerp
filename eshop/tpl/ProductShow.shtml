@@ -25,6 +25,7 @@
 		<!--ET_END PRODUCT_OPT-->
 		<div style="padding: 10px 0;">
 		[#longInfo#]
+        [#nearProducts#]
 		</div>
 	</div>
 	<div class="clearfix21"></div>
