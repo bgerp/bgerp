@@ -161,21 +161,14 @@ class rack_Pallets extends core_Manager
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
-        
+
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
-        
-        // Ако намерим свободна резервирана позиция за този продукт - вземаме нея
-        foreach ($reserved as $pos => $pId) {
-            if (($pId == $productId) && !$used[$pos]) {
                 
-                return $pos;
-            }
-        }
-        
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
         $racks = array();
+        $inFirstRow = 0;
         foreach ($used as $pos => $pId) {
             if ($productId != $pId) {
                 continue;
@@ -183,38 +176,90 @@ class rack_Pallets extends core_Manager
             
             list($n, $r, $c) = explode('-', $pos);
             
-            $haveInRacks[$n] = $n;
+            if($r == 'A') {
+                $inFirstRow++;
+            }
+            $haveInRack[$n] = $n;
         }
         
         // Търсим най-доброто място
         $rQuery = rack_Racks::getQuery();
-        $bestLen = 100000000;
+        $bestScore = 0;
         $bestPos = '';
+
+        $nearProds = array($pId => 1);
+
+        $relData = sales_ProductRelations::fetchField("#productId = {$pId}", 'data');
+
+        if(is_array($relData)) {
+            $i = 2;
+            foreach($relData as $npId => $m) {
+                $nearProds[$npId] = 1/$i;
+                $i++;
+            }
+        }
         
         while ($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
-            $dist = 20;
             for ($cInd = 1; $cInd <= $rRec->columns; $cInd++) {
                 for ($rInd = 'A'; $rInd <= $rRec->rows; $rInd++) {
+                    
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
-                    
-                    if ($used[$pos] == $productId) {
-                        $dist = 0;
-                    }
-                    $dist++;
-                    
-                    if ($used[$pos] || $unusable[$pos] || $reserved[$pos] || $movedTo[$pos]) {
+
+                    if ($used[$pos] || $unusable[$pos] || ($reserved[$pos] && $reserved[$pos] != $pId) || $movedTo[$pos]) {
                         continue;
                     }
                     
-                    if ($dist < 20) {
-                        $len = $dist;
-                    } else {
-                        $len = $rRec->num * 10000 + 100 * ord($rInd) + $cInd;
+                    $score = 0;
+
+                    $posUp = "{$rRec->num}-" . chr(ord($rInd)+1) . "-{$cInd}";
+                    $posDw = "{$rRec->num}-" . chr(ord($rInd)-1) . "-{$cInd}";
+                    $posLf = "{$rRec->num}-{$rInd}-" . ($cInd - 1);
+                    $posRg = "{$rRec->num}-{$rInd}-" . ($cInd + 1);
+                    
+                    // Ако продукта се съдържа в стелажа
+                    if($haveInRack[$rRec->num]) {
+                        $score += 0.2;
+                    }
+
+                    // Ако имаме резервирана позиция за този продукт
+                    if($reserved[$pos] == $pId) {
+                        $score += 6;
+                    }
+
+                    // Ако нямаме достатъчно на ниска позиция
+                    if($rInd == 'A') {
+                        if($inFirstRow < 1) {
+                            $score += 5;
+                        } else {
+                            $score -= 2;
+                        }
+                    }
+
+                    // По-ниското е по-добре
+                    $score += 1 - (ord($rInd) - ord('A'))/10;
+                    
+                    // Ако горния или долния са от този продукт
+                    if($used[$posUp] == $pId) {
+                        $score += 3;
                     }
                     
-                    if ($len < $bestLen) {
+                    if($used[$posDw] == $pId) {
+                        $score += 3.5;
+                    }
+           
+                    // Ако левия или десния са от този продукт или близки на него
+                    if($weight = $nearProds[$used[$posRg]]) {
+                        $score += $weight;
+                    }
+
+                    if($weight = $nearProds[$used[$posLf]]) {
+                        $score += 1.2 * $weight;
+                    }
+
+                    // Отделяме най-добрият резултат
+                    if ($score > $bestScore) {
                         $bestPos = $pos;
-                        $bestLen = $len;
+                        $bestScore = $score;
                     }
                 }
             }
