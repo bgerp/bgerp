@@ -257,7 +257,7 @@ class acc_BalanceRepairs extends core_Master
         if($rec->_isClone === true) return;
         
         $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
-        if($useDefaults == 'yes'){
+        if($useDefaults != 'yes'){
             $defaultAccounts = keylist::toArray(acc_Setup::get('BALANCE_REPAIR_ACCOUNTS'));
             $defaultAmount = acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW');
             $defaultQuantity = acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW');

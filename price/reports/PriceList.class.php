@@ -253,6 +253,8 @@ class price_reports_PriceList extends frame2_driver_TableData
            
            $expand = ($rec->expandGroups === 'yes') ? true : false;
            store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name', 'groups', $expand);
+           arr::sortObjects($recs, 'groupName');
+           
            if($rec->lang != 'auto'){
                core_Lg::pop();
            }
