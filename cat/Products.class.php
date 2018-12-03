@@ -1427,29 +1427,7 @@ class cat_Products extends embed_Manager
         }
         
         $private = $products = array();
-        $metaArr = arr::make($hasProperties);
-        $hasnotProperties = arr::make($hasnotProperties);
-        
-        // За всяко свойство търсим по полето за бързо търсене
-        if (count($metaArr)) {
-            $count = 0;
-            foreach ($metaArr as $meta) {
-                if ($orHasProperties === true) {
-                    $or = ($count == 0) ? false : true;
-                } else {
-                    $or = false;
-                }
-                
-                $query->where("#{$meta} = 'yes'", $or);
-                $count++;
-            }
-        }
-        
-        if (count($hasnotProperties)) {
-            foreach ($hasnotProperties as $meta1) {
-                $query->where("#{$meta1} = 'no'");
-            }
-        }
+        self::filterQueryByMeta($query, $hasProperties, $hasnotProperties, $orHasProperties);
         
         // Подготвяме опциите
         while ($rec = $query->fetch()) {
@@ -1479,6 +1457,42 @@ class cat_Products extends embed_Manager
         }
         
         return $products;
+    }
+    
+    
+    /**
+     * Добавя филтър по свойства към артикулите
+     * 
+     * @param core_Query $query          - заявка към модела
+     * @param mixed    $hasProperties    - свойства, които да имат артикулите
+     * @param mixed    $hasnotProperties - свойства, които да нямат артикулите
+     * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
+     */
+    private static function filterQueryByMeta(&$query, $hasProperties = null, $hasnotProperties = null, $orHasProperties = false)
+    {
+        $metaArr = arr::make($hasProperties);
+        $hasnotProperties = arr::make($hasnotProperties);
+        
+        // Търси се всяко свойство  
+        if (count($metaArr)) {
+            $count = 0;
+            foreach ($metaArr as $meta) {
+                if ($orHasProperties === true) {
+                    $or = ($count == 0) ? false : true;
+                } else {
+                    $or = false;
+                }
+                
+                $query->where("#{$meta} = 'yes'", $or);
+                $count++;
+            }
+        }
+        
+        if (count($hasnotProperties)) {
+            foreach ($hasnotProperties as $meta1) {
+                $query->where("#{$meta1} = 'no'");
+            }
+        }
     }
     
     
