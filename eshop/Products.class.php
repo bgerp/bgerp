@@ -326,7 +326,7 @@ class eshop_Products extends core_Master
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
 
-        if(is_array($rec->nearProducts)) {
+        if(is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
             $row->nearProducts = '';
             foreach($rec->nearProducts as $productId => $weight) {
                 $row->nearProducts .= "<li>" . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . "</li>";
