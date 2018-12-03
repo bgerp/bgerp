@@ -354,13 +354,19 @@ class rack_Zones extends core_Master
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
+        
+        // Добавяне на групите, както и самостоятелните зони
         $gQuery = rack_ZoneGroups::getQuery();
         while($gRec = $gQuery->fetch()){
             $groupingOptions[$gRec->id] = $gRec->name;
         }
+        $singleZones = rack_Zones::getZones($storeId, false, false);
+        foreach ($singleZones as $z1 => $zoneName) {
+            $groupingOptions["s{$z1}"] = $zoneName;
+        }
+        
         $data->listFilter->setOptions('grouping', $groupingOptions);
         $data->listFilter->input(null, 'silent');
-        
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'productId,grouping';
         $data->listFilter->view = 'horizontal';
@@ -368,7 +374,6 @@ class rack_Zones extends core_Master
         
         // Ако се филтрира по артикул
         if($filter = $data->listFilter->rec){
-            
             if(isset($filter->productId)){
                 
                 // Оставят се само тези зони където се среща артикула
@@ -390,6 +395,10 @@ class rack_Zones extends core_Master
                         break;
                     case is_numeric($filter->grouping):
                         $data->query->where("#groupId = {$filter->grouping}");
+                        break;
+                    case strpos($filter->grouping, 's'):
+                        $id = trim($filter->grouping, 's');
+                        $data->query->where("#id = {$id}");
                         break;
                 }
             }
@@ -521,11 +530,7 @@ class rack_Zones extends core_Master
             
             // Ако е избрана зона редирект към нея, иначе се остава в документа
             if (isset($fRec->zoneId)) {
-                Mode::push('shortZoneName', true);
-                $shortZoneName = rack_Zones::getRecTitle($fRec->zoneId);
-                Mode::pop('shortZoneName');
-                
-                redirect(array('rack_Zones', 'list', '#' => $shortZoneName));
+                redirect(self::getUrlArr($fRec->zoneId));
             }
             
             followRetUrl();
@@ -923,7 +928,7 @@ class rack_Zones extends core_Master
         if(empty($zoneRec)){
             $zoneOptions = rack_Zones::getZones($document->fetch()->{$document->storeFieldName}, true);
             if(rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $containerId))){
-                $res->url = array(rack_Zones, 'selectdocument', 'containerId' => $containerId, 'ret_url' => true);
+                $res->url = array('rack_Zones', 'selectdocument', 'containerId' => $containerId, 'ret_url' => true);
                 $res->attr = "ef_icon=img/16/hand-point.png,title=Избор на зона за нагласяне";
             }
             if(empty($zoneOptions)){
@@ -932,15 +937,33 @@ class rack_Zones extends core_Master
             
         } else{
             if (rack_Zones::haveRightFor('list')){
-                Mode::push('shortZoneName', true);
-                $res->url = array(rack_Zones, 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
-                Mode::pop('shortZoneName');
-                
+                $res->url = self::getUrlArr($zoneRec);
                 $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
             }
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Връща Урл към списъка на зоните филтрирани по зона и група
+     * 
+     * @param mixed $zoneId - ид или запис на зона
+     * @return array $url - урл-то
+     */
+    public static function getUrlArr($zoneId)
+    {
+        $zoneRec = self::fetch($zoneId);
+        Mode::push('shortZoneName', true);
+        $url = array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
+        Mode::pop('shortZoneName');
+        
+        if(isset($zoneRec->groupId)){
+            $url['grouping'] = $zoneRec->groupId;
+        }
+        
+        return $url;
     }
     
     
