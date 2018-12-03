@@ -459,4 +459,75 @@ class email_Setup extends core_ProtoSetup
             return 'Не е инсталиран IMAP модула на PHP';
         }
     }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->addOurImgData();
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Добавя img файлове за нашите файлове
+     */
+    protected function addOurImgData()
+    {
+        $oImgDataIdArr = array();
+        
+        $inc = getFullPath('email/data/OurImgFiles.txt');
+        
+        $content = file_get_contents($inc);
+        
+        $dataArr = explode("\n", $content);
+        
+        foreach ($dataArr as $name) {
+            $name = trim($name);
+            if (!$name) {
+                continue;
+            }
+            list($md5, $len) = explode('|', $name);
+            $dId = fileman_Data::fetchField(array("#fileLen = '[#1#]' AND #md5 = '[#2#]'", $len, $md5));
+            if (!$dId) {
+                continue;
+            }
+            $oImgDataIdArr[$dId] = $dId;
+        }
+        
+        // Добавяме и логотата на фирмата
+        Mode::push('text', 'xhtml');
+        foreach (core_Lg::getLangs() as $lg => $lgVerb) {
+            core_Lg::push($lg);
+            $logoPath = bgerp_plg_Blank::getCompanyLogoThumbPath();
+            core_Lg::pop();
+            $nameAndExtArr = fileman::getNameAndExt($logoPath);
+            $ext = $nameAndExtArr['ext'];
+            if (!$ext) {
+                $ext = 'png';
+            }
+            
+            $fName = 'companyLogo' . ucfirst(strtolower($lg)) . '.' . $ext;
+            
+            $data = @file_get_contents($logoPath);
+            
+            if ($data) {
+                $fh = fileman::absorbStr($data, 'Email', $fName);
+            }
+            
+            if ($fh) {
+                $dataId = fileman::fetchByFh($fh, 'dataId');
+                $oImgDataIdArr[$dataId] = $dataId;
+            }
+        }
+        
+        Mode::pop('text');
+        
+        core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 10000000);
+    }
 }
