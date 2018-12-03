@@ -144,7 +144,7 @@ class acc_ClosePeriods extends core_Master
     public function description()
     {
         $this->FLD('periodId', 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent,removeAndRefreshForm=amountFromInvoices');
-        $this->FLD('amountFromInvoices', 'double(decimals=2)', 'mandatory,caption=ДДС от фактури с касови бележки');
+        $this->FLD('amountFromInvoices', 'double(decimals=2)', 'caption=ДДС от фактури с касови бележки,input=none');
         $this->FLD('amountVatGroup1', 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група A,notNull,default=0');
         $this->FLD('amountVatGroup2', 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
         $this->FLD('amountVatGroup3', 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група В,notNull,default=0');
