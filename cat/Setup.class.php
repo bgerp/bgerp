@@ -197,7 +197,7 @@ class cat_Setup extends core_ProtoSetup
     public $cronSettings = array(
         array(
             'systemId' => 'Close Old Private Products',
-            'description' => 'Затваряне на неизползваните артикули',
+            'description' => 'Затваряне на неизползваните нестандартни артикули',
             'controller' => 'cat_Products',
             'action' => 'closePrivateProducts',
             'period' => 21600,
