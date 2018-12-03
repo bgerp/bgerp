@@ -1620,8 +1620,26 @@ a.tOld {
 			padding: 5px !important;
 		}
 	}
+	.original {
+		letter-spacing: 3px;
+		color: #999;
+	}
 }
 
+.narrow .document {
+	span.state {
+		padding: 2px 5px;
+		border-radius: 3px;
+		display: inline-block;
+	}
+	.original {
+		margin-top: 3px;
+		font-size: 0.9em;
+	}
+	.subtitle {
+		margin-top: 4px;
+	}
+}
 .lighterColor {
 	opacity: 0.6;
 	font-size: 0.9em;
