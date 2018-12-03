@@ -954,7 +954,7 @@ class rack_Zones extends core_Master
      */
     public static function getUrlArr($zoneId)
     {
-        $zoneRec = self::fetch($zoneId);
+        $zoneRec = self::fetchRec($zoneId);
         Mode::push('shortZoneName', true);
         $url = array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
         Mode::pop('shortZoneName');
