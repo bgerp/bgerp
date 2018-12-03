@@ -761,4 +761,15 @@ abstract class deals_DealDetail extends doc_Detail
             $form->setDefault("quantityInPack{$lId}", $quantityInPack);
         }
     }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        // При клониране ако артикулът няма нужните свойства не се клонира
+        $meta = cat_Products::fetchField($rec->productId, $mvc->metaProducts);
+        if($meta != 'yes') return false;
+    }
 }
