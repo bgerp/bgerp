@@ -175,6 +175,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 continue;
             }
             
+            $meta = cat_Products::fetchField($pRec->productId, $mvc->metaProducts);
+            if($meta != 'yes'){
+                $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+            }
+            
             $packs = cat_Products::getPacks($pRec->productId);
             
             if (isset($obj->pack)) {
@@ -277,7 +282,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $msg .= '<ul>';
             foreach ($err as $j => $r) {
                 $errMsg = implode(', ', $r);
-                $msg .= "|*<li>|Ред|* '{$j}' - {$errMsg}" . '</li>';
+                $msg .= "|*<li>|Ред|* '{$j}' : {$errMsg}" . '</li>';
             }
             $msg .= '</ul>';
         }
