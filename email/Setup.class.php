@@ -480,49 +480,33 @@ class email_Setup extends core_ProtoSetup
     protected function addOurImgData()
     {
         $oImgDataIdArr = array();
-        foreach (array(EF_SBF_PATH . '/img/16', EF_SBF_PATH . '/fileman/icons/16') as $imgPath) {
-            try {
-                if (!is_dir($imgPath) || !is_readable($imgPath)) {
-                    continue;
-                }
-                $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($imgPath), RecursiveIteratorIterator::LEAVES_ONLY);
-            } catch (ErrorException $e) {
-                wp($e);
-                
+        
+        $inc = getFullPath('email/data/OurImgFiles.txt');
+        
+        $content = file_get_contents($inc);
+        
+        $dataArr = explode("\n", $content);
+        
+        foreach ($dataArr as $name) {
+            $name = trim($name);
+            if (!$name) {
                 continue;
             }
-            
-            $iterator->setFlags(FilesystemIterator::NEW_CURRENT_AND_KEY | FilesystemIterator::SKIP_DOTS);
-            
-            // Намираме всички файлове и ги качваме
-            while ($iterator->valid()) {
-                $fileName = $iterator->key();
-                $path = $iterator->current()->getPath();
-                
-                if (!$iterator->isDir()) {
-                    $fPath = $path . '/' . $fileName;
-                    if (is_readable($fPath)) {
-                        $nFileName = preg_replace('/\_[0-9]+\./i', '.', $fileName);
-                        $fh = fileman::absorb($fPath, 'Email', $nFileName);
-                        
-                        if ($fh) {
-                            $dataId = fileman::fetchByFh($fh, 'dataId');
-                            $oImgDataIdArr[$dataId] = $dataId;
-                        }
-                    }
-                }
-                
-                $iterator->next();
+            list($md5, $len) = explode('|', $name);
+            $dId = fileman_Data::fetchField(array("#fileLen = '[#1#]' AND #md5 = '[#2#]'", $len, $md5));
+            if (!$dId) {
+                continue;
             }
+            $oImgDataIdArr[$dId] = $dId;
         }
         
         // Добавяме и логотата на фирмата
         Mode::push('text', 'xhtml');
         foreach (core_Lg::getLangs() as $lg => $lgVerb) {
             core_Lg::push($lg);
-            $logoUrl = bgerp_plg_Blank::getCompanyLogoUrl();
+            $logoPath = bgerp_plg_Blank::getCompanyLogoThumbPath();
             core_Lg::pop();
-            $nameAndExtArr = fileman::getNameAndExt($logoUrl);
+            $nameAndExtArr = fileman::getNameAndExt($logoPath);
             $ext = $nameAndExtArr['ext'];
             if (!$ext) {
                 $ext = 'png';
@@ -530,7 +514,7 @@ class email_Setup extends core_ProtoSetup
             
             $fName = 'companyLogo' . ucfirst(strtolower($lg)) . '.' . $ext;
             
-            $data = @file_get_contents($logoUrl);
+            $data = @file_get_contents($logoPath);
             
             if ($data) {
                 $fh = fileman::absorbStr($data, 'Email', $fName);
@@ -544,6 +528,6 @@ class email_Setup extends core_ProtoSetup
         
         Mode::pop('text');
         
-        core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 1000000);
+        core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 10000000);
     }
 }

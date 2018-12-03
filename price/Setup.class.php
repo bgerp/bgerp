@@ -73,7 +73,7 @@ class price_Setup extends core_ProtoSetup
         ),
         array(
             'systemId' => 'Clean cached prices',
-            'description' => 'Затваряне на неизползваните артикули',
+            'description' => 'Изтриване на кешираните цени',
             'controller' => 'price_Cache',
             'action' => 'RemoveExpiredPrices',
             'period' => 180,

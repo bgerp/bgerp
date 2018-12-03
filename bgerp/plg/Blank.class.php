@@ -87,9 +87,39 @@ class bgerp_plg_Blank extends core_Plugin
     
     
     /**
-     * Връща логото на нашата компания
+     * Връща URL логото на нашата компания
+     *
+     * @return string
      */
     public static function getCompanyLogoUrl()
+    {
+        $thumb = self::getCompanyLogoUrlThumbObj();
+        $companyLogoUrl = $thumb->getUrl();
+        
+        return $companyLogoUrl;
+    }
+    
+    
+    /**
+     * Връща логото на нашата компания
+     *
+     * @return string
+     */
+    public static function getCompanyLogoThumbPath()
+    {
+        $thumb = self::getCompanyLogoUrlThumbObj();
+        $companyLogoPath = $thumb->getThumbPath();
+        
+        return $companyLogoPath;
+    }
+    
+    
+    /**
+     * Връща логото на нашата компания
+     *
+     * @return thumb_Img
+     */
+    protected static function getCompanyLogoUrlThumbObj()
     {
         // Езика на писмото
         $lg = core_Lg::getCurrent();
@@ -137,8 +167,6 @@ class bgerp_plg_Blank extends core_Plugin
         // Създаваме thumbnail с определени размери
         $thumb = new thumb_Img(array($companyLogo, 750, 87, $sourceType, 'isAbsolute' => $isAbsolute, 'mode' => 'small-no-change', 'verbalName' => 'companyLog'));
         
-        $companyLogoPath = $thumb->getUrl();
-        
-        return $companyLogoPath;
+        return $thumb;
     }
 }

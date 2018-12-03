@@ -490,6 +490,9 @@ abstract class deals_DealDetail extends doc_Detail
         
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $meta = cat_Products::fetchField($pRec->productId, $this->metaProducts);
+        if($meta != 'yes') return null;
+        
         $price = null;
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
@@ -757,5 +760,17 @@ abstract class deals_DealDetail extends doc_Detail
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $form->setDefault("quantityInPack{$lId}", $quantityInPack);
         }
+    }
+    
+    
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        // При клониране ако артикулът няма нужните свойства не се клонира
+        $pRec = cat_Products::fetch($rec->productId, "{$mvc->metaProducts},state");
+       
+        if($pRec->{$mvc->metaProducts} != 'yes' || $pRec->state != 'active') return false;
     }
 }
