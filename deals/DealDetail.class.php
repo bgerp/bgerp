@@ -490,6 +490,9 @@ abstract class deals_DealDetail extends doc_Detail
         
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $meta = cat_Products::fetchField($pRec->productId, $this->metaProducts);
+        if($meta != 'yes') return null;
+        
         $price = null;
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
