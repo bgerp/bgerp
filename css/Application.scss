@@ -4015,7 +4015,7 @@ table .eshop-btn {
 }
 
 .cms-last .defaultNewsbar {
-	margin: 5px 0;
+	margin: 5px 0 20px;
 }
 
 .defaultNewsbar {
@@ -4028,7 +4028,10 @@ table .eshop-btn {
 	.richtext {
 		font-family: Verdana, Helvetica, Arial, Sans-serif;
 	}
+}
 
+.narrow .defaultNewsbar {
+	margin: 10px 0px ;
 }
 
 #cmsNavigation .defaultNewsbar a.fancybox {
