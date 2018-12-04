@@ -167,13 +167,13 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Кеш на обновените отчети
+     * Кеш на обновените справки
      */
     protected $refreshReports = array();
     
     
     /**
-     * Кеш на обновените отчети
+     * Кеш на обновените справки
      */
     protected $setNewUpdateTimes = array();
     
@@ -311,7 +311,7 @@ class frame2_Reports extends embed_Manager
             // Ако има драйвер
             if ($Driver) {
                 
-                // и няма заглавие на отчета, прави се опит да се вземе от драйвера
+                // и няма заглавие на справката, прави се опит да се вземе от драйвера
                 if (empty($rec->title)) {
                     $rec->title = $Driver->getTitle($rec);
                 }
@@ -479,7 +479,7 @@ class frame2_Reports extends embed_Manager
         
         // Добавен бутон за ръчно обновяване
         if ($mvc->haveRightFor('refresh', $rec)) {
-            $data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на отчета');
+            $data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката');
         }
         
         $url = array($mvc, 'single', $rec->id);
@@ -497,7 +497,7 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Рефрешване на отчета
+     * Рефрешване на справката
      */
     public function act_Refresh()
     {
@@ -508,6 +508,7 @@ class frame2_Reports extends embed_Manager
         
         self::refresh($rec);
         frame2_ReportVersions::unSelectVersion($rec->id);
+        $this->logWrite('Ръчно обновяване на справката', $rec->id);
         
         return followRetUrl();
     }
@@ -544,7 +545,7 @@ class frame2_Reports extends embed_Manager
             }
         
             } else {
-                $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на отчета') . '</b></span>', 'DRIVER_DATA');
+                $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
             }
         
         // Връщане на оригиналния рек ако е пушнат
@@ -555,7 +556,7 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Метод опресняващ отчета по разписания
+     * Метод опресняващ справката по разписание
      *
      * @param stdClass $data - дата
      */
@@ -575,9 +576,9 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Метод опресняващ отчета
+     * Метод опресняващ справката
      *
-     * @param stdClass $rec - ид на отчет
+     * @param stdClass $rec - ид на справка
      */
     public static function refresh(&$rec)
     {
@@ -594,7 +595,7 @@ class frame2_Reports extends embed_Manager
             // Запис на променените полета
             $me->save_($rec, 'data,lastRefreshed');
             
-            // Записване в опашката че отчета е бил опреснен
+            // Записване в опашката че справката е била опреснена
             if (frame2_ReportVersions::log($rec->id, $rec)) {
                 $me->refreshReports[$rec->id] = $rec;
                 if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
@@ -634,7 +635,7 @@ class frame2_Reports extends embed_Manager
      */
     public static function on_Shutdown($mvc)
     {
-        // Ако е имало опреснени отчети
+        // Ако е имало опреснени справки
         if (is_array($mvc->refreshReports)) {
             foreach ($mvc->refreshReports as $rec) {
                 if ($Driver = $mvc->getDriver($rec)) {
@@ -946,7 +947,7 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Следващото обновяване на отчета
+     * Следващото обновяване на справката
      *
      * @param stdClass $rec
      *
