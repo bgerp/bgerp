@@ -28,6 +28,12 @@ class cms_DefaultTheme extends core_ProtoInner
     
     
     /**
+     * Общ лейаут за темата
+     */
+    public $layout = 'cms/tpl/Page.shtml';
+    
+    
+    /**
      * Допълване на формата за домейна със специфични полета за кожата
      */
     public function addEmbeddedFields(core_FieldSet &$form)
@@ -46,9 +52,6 @@ class cms_DefaultTheme extends core_ProtoInner
         $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Кратък текст');
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
         
-        // Икона за сайта
-        $form->FLD('icon', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Икона за сайта->Favicon');
-        
         // Фон на хедъра
         $form->FLD('headerColor', 'color_Type', 'caption=Цветове за темата->Цвят на хедъра');
         
@@ -56,15 +59,6 @@ class cms_DefaultTheme extends core_ProtoInner
         $form->FLD('baseColor', 'color_Type', 'caption=Цветове за темата->Базов цвят');
         $form->FLD('activeColor', 'color_Type', 'caption=Цветове за темата->Активен цвят');
         $form->FLD('bgColor', 'color_Type', 'caption=Цветове за темата->Фон на страницата');
-    }
-    
-    
-    public static function on_BeforeSave($mvc, $innerState, $innerForm)
-    {
-        if ($innerForm->icon) {
-            $dest = EF_INDEX_PATH . '/favicon.ico';
-            file_put_contents($dest, fileman_Files::getContent($innerForm->icon));
-        }
     }
     
     

@@ -28,6 +28,22 @@ function copyValToPlaceholder()
 	$('.updateonchange').trigger('keyup');
 }
 
+function refreshInvoiceFields()
+{
+	//Триене на символи от формата за търсене
+	$(document.body).on('change', 'select[name=makeInvoice]', function(e){
+			var changeVal = $(this).attr("data-updateonchange");
+		
+		var $placeholder = $('select[name=deliveryCountry] option:selected').text();
+		
+		var element = $("select[name="+ changeVal +"");
+		if (element.length <= 0) return;
+		
+		element.attr("data-placeholder", $placeholder);
+		element.select2();
+	});
+}
+
 /**
  * Динамична ширина на полето за количество
  */

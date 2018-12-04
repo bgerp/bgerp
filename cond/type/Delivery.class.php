@@ -33,4 +33,21 @@ class cond_type_Delivery extends cond_type_abstract_Proto
         
         return $Type;
     }
+    
+    
+    /**
+     * Вербално представяне на стойноста
+     *
+     * @param mixed $class
+     * @param int   $id
+     *
+     * @return mixed
+     */
+    public function toVerbal($id, $domainClass, $domainId, $value)
+    {
+        $code = cond_DeliveryTerms::fetchField($value, 'codeName');
+        $code = ht::createLink($code, cond_DeliveryTerms::getSingleUrlArray($value));
+        
+        return $code;
+    }
 }

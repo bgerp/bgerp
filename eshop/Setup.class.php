@@ -38,6 +38,12 @@ defIfNot('ESHOP_SALE_DEFAULT_TPL_EN', '');
 
 
 /**
+ * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
+ */
+defIfNot('ESHOP_MANDATORY_CONTACT_FIELDS', 'person');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -76,7 +82,7 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Уеб каталог с продукти и услуги за сайта';
+    public $info = 'Уеб магазин';
     
     
     /**
@@ -89,6 +95,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
+        'migrate::updateContactData',
     );
     
     
@@ -116,7 +123,14 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
         'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+        'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
     );
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'eshop_driver_BankPayment';
     
     
     /**
@@ -192,5 +206,20 @@ class eshop_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на уеб константа
+     */
+    function updateContactData()
+    {
+        $conf = core_Packs::getConfig('bgerp');
+        $value = $conf->_data['BGERP_MANDATORY_CONTACT_FIELDS'];
+        $exValue = eshop_Setup::get('MANDATORY_CONTACT_FIELDS');
+        
+        if(!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))){
+            core_Packs::setConfig('eshop', array('ESHOP_MANDATORY_CONTACT_FIELDS' => $value));
+        }
     }
 }

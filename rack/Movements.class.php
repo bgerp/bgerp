@@ -653,7 +653,8 @@ class rack_Movements extends core_Manager
             $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
             
             foreach ($zones as $zoneRec) {
-                $zoneTitle = rack_Zones::getHyperlink($zoneRec->zone);
+                $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
+                $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
                 $movementArr[] = "<span>{$zoneTitle} ({$zoneQuantity})</span>";

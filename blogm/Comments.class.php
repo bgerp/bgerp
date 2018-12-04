@@ -313,6 +313,23 @@ class blogm_Comments extends core_Detail
                 $artRec->createdBy
             );
         }
+        
+        // Да не се обновява мастера, ако коментара не става видим или се премахва от видимите
+        if ($rec->state != 'active') {
+            $stopMasterUpdate = false;
+            if (!$rec->id) {
+                $stopMasterUpdate = true;
+            } else {
+                $oRec = $mvc->fetch($rec->id);
+                if ($oRec->state != 'active') {
+                    $stopMasterUpdate = true;
+                }
+            }
+            if ($stopMasterUpdate) {
+                Mode::set("stopMasterUpdate{$rec->{$mvc->masterKey}}", true);
+                $mvc->lastUsedKeys = 'createdBy';
+            }
+        }
     }
     
     

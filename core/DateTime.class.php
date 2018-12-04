@@ -1005,13 +1005,14 @@ class core_DateTime
     /**
      * Намира месеците между две дати
      *
-     * @param date      $startDate - начална дата
-     * @param date|NULL $endDate   - дата, NULL за текущата
-     *
-     * @return string $mask      - маска
+     * @param datetime      $startDate - начална дата
+     * @param datetime|NULL $endDate   - крайна дата, NULL за текущата
+     * @param string $direction        - посока ASC за възходяща и DESC за низходяща
+     * @param string $mask             - маска
+     * 
      * @return array  $months     - масив с месеци
      */
-    public static function getMonthsBetween($startDate, $endDate = null, $mask = 'M Y')
+    public static function getMonthsBetween($startDate, $endDate = null, $direction = 'ASC', $mask = 'M Y')
     {
         $endDate = isset($endDate) ? $endDate : dt::today();
         $endDate = new DateTime($endDate);
@@ -1026,6 +1027,14 @@ class core_DateTime
             $date->modify('next month');
             $nextDate = $date->format('Y-m-01');
             $months[$nextDate] = dt::mysql2verbal($nextDate, $mask);
+        }
+        
+        if(isset($direction)){
+            expect(in_array($direction, array('ASC', "DESC")));
+        }
+        
+        if($direction != 'ASC'){
+            $months = array_reverse($months, true);
         }
         
         return $months;

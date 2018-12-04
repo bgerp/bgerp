@@ -516,11 +516,23 @@ class plg_TreeObject extends core_Plugin
                 return ;
             }
             
+            if(isset($mvc->nameFieldEn)){
+                $lg = core_Lg::getCurrent();
+                $gRec = $mvc->fetchRec($rec, "{$mvc->nameField},{$mvc->nameFieldEn}");
+                
+                $lg = core_Lg::getCurrent();
+                if($lg == 'en' && !empty($gRec->{$mvc->nameFieldEn})){
+                    $num = $mvc->getVerbal($gRec, $mvc->nameFieldEn);
+                }
+                
+                $num = tr($num);
+            }
+            
             $parent = $mvc->fetchField($id, $mvc->parentFieldName);
             $title = $num;
             $i = 0;
             
-            while ($parent && ($pRec = $mvc->fetch($parent, "{$mvc->parentFieldName},{$mvc->nameField}"))) {
+            while ($parent && ($pRec = $mvc->fetch($parent))) {
                 $pName = type_Varchar::escape($pRec->{$mvc->nameField});
                 $title = $pName . ' » ' . $title;
                 $parent = $pRec->{$mvc->parentFieldName};

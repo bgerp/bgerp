@@ -102,12 +102,12 @@ class cms_Content extends core_Manager
         $this->FLD('order', 'order(min=0)', 'caption=№,tdClass=rowtools-column');
         $this->FLD('menu', 'varchar(64)', 'caption=Меню,mandatory');
         
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,mandatory,autoFilter');
         $this->FLD('source', 'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник,mandatory');
-        $this->FLD('url', 'varchar(128)', 'caption=URL,input=none');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,oldFieldName=url');
         $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
         
-        $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=titleExt)', 'caption=Споделяне с,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=titleExt)', 'caption=Споделяне с,autoFilter');
         
         $this->setDbUnique('menu,domainId');
     }
@@ -338,13 +338,7 @@ class cms_Content extends core_Manager
         if ($rec->source && cls::load($rec->source, true) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
-        } elseif ($rec->url) {
-            if (strpos($rec->url, ',')) {
-                $url = arr::make($rec->url);
-            } else {
-                $url = core_App::parseLocalUrl('/' . ltrim($rec->url, '/'));
-            }
-        } else {
+        }  else {
             $url = '';
         }
         
@@ -482,10 +476,13 @@ class cms_Content extends core_Manager
      *
      * @return int $menuId id-то на менюто
      */
-    public static function getDefaultMenuId($class)
+    public static function getDefaultMenuId($class, $domainId = null)
     {
+        if(!$domainId) {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
+        
         $classId = core_Classes::getId($class);
-        $domainId = cms_Domains::getPublicDomain('id');
         $query = self::getQuery();
         $query->orderBy('#order', 'ASC');
         $rec = $query->fetch("#source = {$classId} AND #domainId = {$domainId}");
@@ -715,5 +712,109 @@ class cms_Content extends core_Manager
         plg_Search::highlight($res, $q, 'results');
         
         return  $res;
+    }
+    
+    
+    /**
+     * Връща съдържанието на sitemap.xml за подадения домейн
+     */
+    public static function getSitemapXml($dRec)
+    {
+        $dQuery = cms_Domains::getQuery();
+
+        while($d = $dQuery->fetch("#domain = '{$dRec->domain}'") ) {
+            $dIds[] = $d->id;
+        }
+
+        $dIds = implode(',', $dIds);
+
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND #domainId IN ({$dIds})");
+        
+        $domainHost = $dRec->domain;
+        if($dRec->domain != 'localhost') {
+            Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
+        }
+        
+        $res = '<?xml version="1.0" encoding="UTF-8"?>';
+        $res .= "\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
+        
+        while ($rec = $query->fetch()) {
+            $class = cls::getClassName($rec->source);
+            if (!$class) {
+                continue;
+            }
+            
+            $source = cls::get($rec->source);
+            if (!$source) {
+                continue;
+            }
+            if (!cls::existsMethod($source, 'getSitemapEntries')) {
+                continue;
+            }
+            $entries = $source->getSitemapEntries($rec->id);
+            
+            if (is_array($entries) && count($entries)) {
+                foreach ($entries as $eRec) {
+                    $res .= "\n<url>";
+                    
+                    $res .= "\n<loc>" . str_replace('&', '&amp;', toUrl($eRec->loc, 'absolute')) . '</loc>';
+                    $res .= "\n<lastmod>" . $eRec->lastmod . '</lastmod>';
+                    
+                    if ($eRec->changefreq) {
+                        $res .= "\n<changefreq>" . $eRec->changefreq . '</changefreq>';
+                    }
+                    
+                    if ($eRec->priority) {
+                        $res .= "\n<priority>" . $eRec->priority . '</priority>';
+                    }
+                    
+                    $res .= "\n</url>";
+                }
+            }
+        }
+        
+        $res .= "\n</urlset>";
+        
+        if($dRec->domain != 'localhost') {
+            Mode::pop('BGERP_CURRENT_DOMAIN');
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Генерира и регистрира sitemap.xml за посочения домейн
+     */
+    public static function registerSitemap($dRec)
+    {
+        if ($dRec->sitemap) {
+            // Регистриране на sitemap.xml
+            $xml = cms_Content::getSitemapXml($dRec);
+            if ($xml) {
+                core_Webroot::register($xml, '', $dRec->sitemap, $dRec->id);
+            }
+        } else {
+            // Премахване на публичния
+            core_Webroot::remove(cms_Domains::CMS_PUBLIC_SITEMAP_NAME, $dRec->id);
+        }
+    }
+    
+    
+    /**
+     * Обновява sitemap.xml-ите за всички домейни
+     */
+    public function cron_UpdateSitemap()
+    {
+        $dQuery = cms_Domains::getQuery();
+        
+        $used = array();
+
+        while ($dRec = $dQuery->fetch()) {
+            if($used[$dRec->domain]) continue;
+            self::registerSitemap($dRec);
+            $used[$dRec->domain] = true;
+        }
     }
 }

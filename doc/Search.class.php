@@ -165,8 +165,11 @@ class doc_Search extends core_Manager
         }
         
         if ($data->query->isSlowQuery && !$data->listFilter->ignore) {
-            if (!$filterRec->fromDate || !$filterRec->toDate) {
+            if (!$filterRec->fromDate && !$filterRec->toDate) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
+                $dFrom = dt::addMonths(-1, null, false);
+                $dFrom = cls::get('type_Date')->toVerbal($dFrom);
+                Request::push(array('fromDate' => $dFrom));
             }
         }
         

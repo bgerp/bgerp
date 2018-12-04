@@ -105,8 +105,19 @@ class auto_handler_CreateQuotationFromInquiry
                 }
             }
             
+            // Ако има адрес за доставка и има друго условие за доставка за тази държава се избира то
             if (!empty($marketingRec->deliveryAdress)) {
                 $fields['deliveryAdress'] = $marketingRec->deliveryAdress;
+                $place = drdata_Address::parsePlace($marketingRec->deliveryAdress);
+                if(isset($place->countryId)){
+                    $cCountryId = $Cover->getContragentData()->country;
+                    if($cCountryId != $place->countryId){
+                        $deliveryTermId = cond_Countries::getParameterByCountryId($place->countryId, 'deliveryTermSale');
+                        if($deliveryTermId){
+                            $fields['deliveryTermId'] = $deliveryTermId;
+                        }
+                    }
+                }
             }
             
             $quoteId = sales_Quotations::createNewDraft($Cover->getInstance()->getClassId(), $Cover->that, null, $fields);

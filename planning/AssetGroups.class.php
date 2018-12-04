@@ -61,7 +61,7 @@ class planning_AssetGroups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Вид,createdOn,createdBy,state';
+    public $listFields = 'name=Вид, type, createdOn,createdBy,state';
     
     
     /**
@@ -94,6 +94,7 @@ class planning_AssetGroups extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar(64,ci)', 'caption=Име, mandatory');
+        $this->FLD('type', 'enum(material=Материален, nonMaterial=Нематериален)', 'caption=Тип, mandatory, notNull');
         $this->setDbUnique('name');
     }
     
@@ -189,5 +190,30 @@ class planning_AssetGroups extends core_Master
         $result = planning_AssetResourcesNorms::fetchNormRec('planning_AssetGroups', $groupId, $productId);
         
         return $result;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните
+        $file = 'planning/csv/Groups.csv';
+        
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => 'name',
+            1 => 'type',
+        );
+        
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res = $cntObj->html;
+        
+        return $res;
     }
 }

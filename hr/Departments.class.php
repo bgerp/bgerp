@@ -319,17 +319,35 @@ class hr_Departments extends core_Master
     {
         $rec = self::fetch(self::ROOT_DEPARTMENT_ID);
         
+        $mode = null;
+        
         if (empty($rec)) {
             $rec = new stdClass();
             $rec->id = self::ROOT_DEPARTMENT_ID;
             $rec->state = 'active';
+            $mode = 'replace';
         }
         
         if ($rec->name != $myCompanyName) {
             $rec->name = $myCompanyName;
             
+            // Ако има дублиран запис, променяме името на предишния
+            $me = cls::get(get_called_class());
+            $i = 0;
+            while (true) {
+                if (!$me->isUnique($rec)) {
+                    $oRec = self::fetch(array("#name = '[#1#]'", $rec->name));
+                    $oRec->name .= '_' . ++$i;
+                    self::save($oRec, 'name', 'IGNORE');
+                } else {
+                    break;
+                }
+                
+                if ($i > 1000) break;
+            }
+            
             core_Users::forceSystemUser();
-            self::save($rec, null, 'REPLACE');
+            self::save($rec, null, $mode);
             core_Users::cancelSystemUser();
         }
         

@@ -43,7 +43,7 @@ class acc_BalanceRepairDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'accountId, blQuantity,blAmount,reason';
+    public $listFields = 'accountId, blQuantity,blAmount';
     
     
     /**
@@ -97,7 +97,7 @@ class acc_BalanceRepairDetails extends doc_Detail
     /**
      * Сметките от кои групи да могат да се показват за избор от сметкоплана
      *
-     * @var unknown
+     * @var string
      */
     public $selectAccountsFromByNum = '3,4,5,6,7';
     
@@ -107,11 +107,11 @@ class acc_BalanceRepairDetails extends doc_Detail
      */
     public function description()
     {
-        $this->FLD('repairId', 'key(mvc=acc_BalanceRepairs)', 'column=none,input=hidden,silent');
-        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка->От,mandatory');
+        $this->FLD('repairId', 'key(mvc=acc_BalanceRepairs)', 'column=none,input=hidden,silent,mandatory');
+        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory');
         $this->FLD('reason', 'varchar', 'caption=Информация');
-        $this->FLD('blQuantity', 'double', 'caption=Занули крайното салдо под->К-во');
-        $this->FLD('blAmount', 'double', 'caption=Занули крайното салдо под->Сума');
+        $this->FLD('blQuantity', 'double', 'caption=Зануляване на крайно салдо под->Количество');
+        $this->FLD('blAmount', 'double', 'caption=Зануляване на крайно салдо под->Сума');
         
         $this->setDbUnique('repairId,accountId');
     }
@@ -123,7 +123,7 @@ class acc_BalanceRepairDetails extends doc_Detail
      * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             if ($form->rec->blQuantity > $mvc->allowedLimit) {
@@ -144,10 +144,15 @@ class acc_BalanceRepairDetails extends doc_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $balanceId = $mvc->Master->fetchField($rec->repairId, 'balanceId');
         $row->accountId = acc_Balances::getAccountLink($rec->accountId, $balanceId, true, true);
+        
+        if(!empty($rec->reason)){
+            $reason = $mvc->getVerbal($rec, 'reason');
+            $row->accountId .= "<br><span class='quiet'>{$reason}</span>";
+        }
     }
     
     
@@ -170,20 +175,24 @@ class acc_BalanceRepairDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
-        $Accounts = cls::get('acc_Accounts');
         
         // Извличаме само сметките с посочените номера
         $nums = arr::make($mvc->selectAccountsFromByNum);
         $options = array();
         foreach ($nums as $num) {
-            $options += $Accounts->makeArray4Select('title', array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $num));
+            $options += cls::get('acc_Accounts')->makeArray4Select('title', array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $num));
         }
         
-        // Задаваме ги за опции на полето
         $form->setOptions('accountId', $options);
+        
+        // Задаване на дефолти при нужда
+        $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
+        if($useDefaults != 'yes'){
+            $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW'));
+            $form->setDefault('blAmount', acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW'));
+        }
     }
 }

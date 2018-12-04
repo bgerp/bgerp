@@ -299,6 +299,8 @@ class blogm_Articles extends core_Master
      */
     public function act_Article()
     {
+
+
         // Имаме ли въобще права за Article екшън?
         $this->requireRightFor('article');
         
@@ -313,7 +315,8 @@ class blogm_Articles extends core_Master
             
             return $this->act_Browse();
         }
-        
+                 
+
         // Създаваме празен $data обект
         $data = new stdClass();
         $data->query = $this->getQuery();
@@ -327,6 +330,14 @@ class blogm_Articles extends core_Master
             return $this->act_Browse();
         }
         
+        if($data->rec->categories) {
+            $catId = (int) trim($data->rec->categories, '|');
+            $catRec = blogm_Categories::fetch($catId);
+            if($catRec) {
+                $menuId = cms_Content::getDefaultMenuId($this, $catRec->domainId);
+                cms_Content::setCurrent($menuId);
+            }
+        }
         
         // Определяме езика на статията от първата и категория
         $catArr = keylist::toArray($data->rec->categories);
@@ -388,7 +399,9 @@ class blogm_Articles extends core_Master
         $tpl = $this->renderArticle($data, $layout);
         
         $rec = clone($data->rec);
-        setIfNot($rec->seoTitle, $data->ogp->siteInfo['Title']);
+        if (!$rec->seoTitle) {
+            $rec->seoTitle = $data->ogp->siteInfo['Title'];
+        }
         cms_Content::setSeo($tpl, $rec);
         
         
@@ -1161,5 +1174,44 @@ class blogm_Articles extends core_Master
             $rec->state = 'active';
             self::save($rec);
         }
+    }
+    
+    
+    /**
+     * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     */
+    public function getSitemapEntries($menuId)
+    {
+        $cRec = cms_Content::fetch($menuId);
+        
+        $categories = blogm_Categories::getCategoriesByDomain($cRec->domainId);
+        $used = array();
+        
+        foreach ($categories as $id => $title) {
+            $query = self::getQuery();
+            $query->where("#state = 'active' AND #categories LIKE '%|{$id}|%'");
+            $lastMod = '';
+            while ($rec = $query->fetch()) {
+                if ($used[$id]) {
+                    continue;
+                }
+                $resObj = new stdClass();
+                $resObj->loc = $this->getUrl($rec, true);
+                $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+                $resObj->priority = 0.5;
+                $res[] = $resObj;
+                $lastMod = max($lastMod, $rec->modifiedOn);
+            }
+            
+            if ($lastMod) {
+                $resObj = new stdClass();
+                $resObj->loc = array('blogm_Articles', 'browse', 'category' => $id);
+                $resObj->lastmod = date('c', dt::mysql2timestamp($lastMod));
+                $resObj->priority = 0.5;
+                $res[] = $resObj;
+            }
+        }
+        
+        return $res;
     }
 }

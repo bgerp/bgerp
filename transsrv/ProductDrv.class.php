@@ -36,6 +36,12 @@ class transsrv_ProductDrv extends cat_ProductDriver
     
     
     /**
+     * Кои полета да се добавят към ключовите думи на артикула
+     */
+    protected $searchFields = 'load,conditions,ourReff,auction';
+    
+    
+    /**
      * Допълва дадената форма с параметрите на фигурата
      * Връща масив от имената на параметрите
      */

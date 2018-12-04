@@ -81,17 +81,39 @@
                                 <td>[#lineId#]</td>
                             </tr>
                             <!--ET_END lineId-->
-                        </table>
-                            <!--ET_BEGIN dimentions-->
-                        [#dimentions#]
-                        <hr>
-                          <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
-                        <!--ET_BEGIN dimentions-->
-                        <!--ET_BEGIN note-->
-                        <hr>
-                        [#note#]
-                        <!--ET_END note-->
-                        <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
+                           <!--ET_BEGIN lineNotes-->
+                           <tr>
+                               <td class='quiet nowrap'>|Забележки|*: </td>
+                               <td>[#lineNotes#]</td>
+                           </tr>
+                           <!--ET_END lineNotes-->
+                           <!--ET_BEGIN note-->
+                           <tr>
+                               <td colspan="2" >
+                                   <hr>
+                                   [#note#]
+                               </td>
+                           </tr>
+                           <!--ET_END note-->
+                           <tr>
+                               <td colspan="2" >
+                                   <hr>
+                               </td>
+                           </tr>
+                           <!--ET_END deliveryTable-->
+                           <tr>
+                               <td colspan="2" >
+                                   <div>
+                                       <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                                   </div>
+                               </td>
+                           </tr>
+                           <!--ET_BEGIN logisticInfo-->
+                           <tr>
+                               <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                           </tr>
+                           <!--ET_END logisticInfo-->
+                       </table>
                     </td>
                     <td class="topCell vtop">
                         <table class='no-border' style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>

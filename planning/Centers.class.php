@@ -54,7 +54,7 @@ class planning_Centers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, planning_Wrapper, doc_FolderPlg, plg_State, plg_Rejected, plg_Created, acc_plg_Registry, doc_FolderPlg';
+    public $loadList = 'plg_RowTools2, planning_Wrapper, doc_FolderPlg, plg_State, plg_Rejected, plg_Created, acc_plg_Registry, doc_FolderPlg, plg_Sorting';
     
     
     /**

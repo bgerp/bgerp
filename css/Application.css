@@ -1394,6 +1394,19 @@ a.tOld {
     border: 0px !important; }
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
+  .document .original {
+    letter-spacing: 3px;
+    color: #999999; }
+
+  .narrow .document span.state {
+    padding: 2px 5px;
+    border-radius: 3px;
+    display: inline-block; }
+  .narrow .document .original {
+    margin-top: 3px;
+    font-size: 0.9em; }
+  .narrow .document .subtitle {
+    margin-top: 4px; }
 
 .lighterColor {
   opacity: 0.6;
@@ -3434,32 +3447,39 @@ table .eshop-btn {
   margin: 0px;
   display: block;
   font-size: 0.9em;
-  padding-top: 12px;
-  padding-bottom: 10px;
   left: 0;
   z-index: 100; }
-  .newsbar h2,
-  .newsbar h3 {
-    margin-bottom: 0; }
+  .newsbar .richtext {
+    line-height: 1.1em;
+    white-space: nowrap; }
 
-.newsbar .richtext {
-  line-height: 1.1em;
-  white-space: nowrap; }
+.cms-last .defaultNewsbar {
+  margin: 5px 0 20px; }
 
-.narrow .newsbar {
-  padding-bottom: 8px; }
+.defaultNewsbar {
+  background-color: white;
+  color: black;
+  clear: both; }
+  .defaultNewsbar h1,
+  .defaultNewsbar h2,
+  .defaultNewsbar h3,
+  .defaultNewsbar h4,
+  .defaultNewsbar h5,
+  .defaultNewsbar h6,
+  .defaultNewsbar p {
+    margin: 0; }
+  .defaultNewsbar .richtext {
+    font-family: Verdana, Helvetica, Arial, Sans-serif; }
 
-.newsbarCustom {
-  font-size: 0.9em;
-  padding-top: 10px;
-  padding-bottom: 8px; }
-  .newsbarCustom h2,
-  .newsbarCustom h3 {
-    margin-bottom: 0; }
-  .newsbarCustom.articleNewsbar,
-  .newsbarCustom.eshopGroupsNewsbar {
-    margin-bottom: 10px;
-    margin-top: 3px; }
+.narrow .defaultNewsbar {
+  margin: 10px 0px; }
+
+  #cmsNavigation .defaultNewsbar a.fancybox:hover {
+    background: none !important;
+    border: 1px solid rgba(0, 0, 0, 0) !important; }
+
+.menuNewsbar {
+  clear: both; }
 
 /*
  * край на newsbar
@@ -3958,7 +3978,10 @@ table .eshop-btn {
   margin: 0 auto; }
   .wide-profile-info .name-box {
     font-size: 0.8em;
-    max-width: 100px; }
+    max-width: 100px;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto; }
   .wide-profile-info .date-box {
     font-size: 0.8em;
     margin-left: 2px;
@@ -4615,6 +4638,25 @@ div.location.public {
   .price_ListRules .state-closed a {
     color: #888888 !important; }
 
+.price-list-new-item {
+  text-align: center;
+  display: block; }
+
+.pricelist-group-label {
+  background-color: #636363 !important;
+  color: white;
+  line-height: 24px;
+  text-indent: 5px; }
+
+.pricelist-report-pack-table {
+  width: 100%; }
+  .pricelist-report-pack-table td {
+    border: none !important;
+    padding: 0 5px;
+    vertical-align: middle !important; }
+  .pricelist-report-pack-table .small {
+    width: 90px; }
+
 /*
  * край на бъгфиксове
  */
@@ -4738,6 +4780,10 @@ div.location.public {
     float: left; }
   .narrow .eshop-product-list ul {
     display: table-cell; }
+
+.epayBtn {
+  border: none;
+  background: none; }
 
 .newCol {
   background-color: #eeeeee; }
@@ -4961,7 +5007,14 @@ only screen and (max-width: 1024px) {
     min-width: 30em; }
 
   .wide .app-name {
-    font-size: 6.4em; } }
+    font-size: 6.4em; }
+
+  .wide .cartHolder {
+    width: 69%; }
+
+  .wide .cartInfoBlock {
+    width: 29%;
+    font-size: 0.92em; } }
 
 /*
  * ipad
@@ -5019,7 +5072,14 @@ only screen and (max-width: 950px) {
     font-size: 1.4em; }
 
   #all h1 {
-    font-size: 1.9em; } }
+    font-size: 1.9em; }
+
+  .wide .cartHolder {
+    width: 69%; }
+
+  .wide .cartInfoBlock {
+    width: 29%;
+    font-size: 0.9em; } }
 
 @media handheld,
 only screen and (max-width: 900px) {
@@ -5724,7 +5784,12 @@ only screen and (max-width: 320px) {
     width: 60%; }
 
   .lu-light {
-    text-decoration: none !important; } }
+    text-decoration: none !important; }
+
+  .webdrv-preview {
+    page-break-inside: avoid;
+    page-break-after: always;
+    max-height: 267mm !important; } }
 
   .printing .specialLink {
     font-weight: bold; }

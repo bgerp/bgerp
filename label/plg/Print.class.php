@@ -62,12 +62,13 @@ class label_plg_Print extends core_Plugin
         $res = array('url' => null, 'attr' => '');
         
         if ($mvc->haveRightFor('printlabel', $rec)) {
-            $templates = label_Templates::getTemplatesByDocument($mvc, $rec->id, true);
+            $templates = $mvc->getLabelTemplates($rec);
             $error = (!count($templates)) ? ",error=Няма наличен шаблон за етикети от \"{$mvc->title}\"" : '';
+            $Source = $mvc->getLabelSource($rec);
             
-            if (label_Prints::haveRightFor('add', (object) array('classId' => $mvc->getClassId(), 'objectId' => $rec))) {
+            if (label_Prints::haveRightFor('add', (object) array('classId' => $Source['class']->getClassid(), 'objectId' => $Source['id']))) {
                 core_Request::setProtected(array('classId, objectId'));
-                $res['url'] = array('label_Prints', 'add', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true);
+                $res['url'] = array('label_Prints', 'add', 'classId' => $Source['class']->getClassid(), 'objectId' => $Source['id'], 'ret_url' => true);
                 $res['url'] = toUrl($res['url']);
                 core_Request::removeProtected('classId,objectId');
                 $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от|* |{$mvc->title}|* №{$rec->id}{$error}";
@@ -75,6 +76,38 @@ class label_plg_Print extends core_Plugin
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Какви ще са параметрите на източника на етикета
+     *
+     * @param core_mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return array $res -
+     *               ['class'] - клас
+     *               ['id] - ид
+     */
+    public static function on_AfterGetLabelSource($mvc, &$res, $rec)
+    {
+        // По дефолт е текущия клас
+        if(!isset($res)){
+            $res = array('class' => $mvc, 'id' => $rec->id);
+        }
+    }
+    
+    
+    /**
+     * Параметрите на бутона за етикетиране
+     *
+     * @return array $res - наличните шаблони за етикети
+     */
+    public static function on_AfterGetLabelTemplates($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = label_Templates::getTemplatesByClass($mvc);
+        }
     }
     
     

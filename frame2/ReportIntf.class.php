@@ -164,4 +164,43 @@ class frame2_ReportIntf extends embed_DriverIntf
     {
         return $this->class->getChangeableFields($rec);
     }
+    
+    
+    /**
+     * Какъв ще е езика с който ще се рендират данните на шаблона
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null езика с който да се рендират данните
+     */
+    public function getRenderLang($rec)
+    {
+        return $this->class->getRenderLang($rec);
+    }
+    
+    
+    /**
+     * Връща шаблоните за етикети към драйвера
+     *
+     * @param mixed $id
+     *
+     * @return array - достъпни шаблони
+     */
+    public function getLabelTemplates($id)
+    {
+        return $this->class->getLabelTemplates($id);
+    }
+    
+    
+    /**
+     * Може ли справката да бъде изпращана по имейл
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function canBeSendAsEmail($rec)
+    {
+        return $this->class->canBeSendAsEmail($rec);
+    }
 }

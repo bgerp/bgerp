@@ -29,6 +29,13 @@ class cms_Domains extends core_Embedder
     
     
     /**
+     * Име за sitemap.xml, когато се показва в robots.txt. 
+     * Ако името е различно, няма да се показва в robots.txt. 
+     */
+    const CMS_PUBLIC_SITEMAP_NAME = 'public-sitemap.xml';
+    
+    
+    /**
      * Необходими плъгини
      */
     public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created, plg_Current';
@@ -176,12 +183,19 @@ class cms_Domains extends core_Embedder
         
         // SEO Ключови думи
         $this->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,autohide');
+        
+        // Sitemap.xml
+        $this->FLD('sitemap', 'varchar(64)', 'caption=Статични файлове->SiteMap.xml,placeholder=Няма,suggestions=|' . self::CMS_PUBLIC_SITEMAP_NAME);
+        
+        // Икона за сайта
+        $this->FLD('favicon', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Статични файлове->Икона за сайта');
+        
+        // Други
+        $this->FLD('wrFiles', 'fileman_FileType(bucket=cmsFiles)', 'caption=Статични файлове->Други(zip)');
+        
+        // Други
+        $this->FLD('toRemove', 'blob(serialize)', 'caption=Статични файлове->За премахване,input=none,column=none');
     }
-    
-    
-    /**
-     *
-     */
     
     
     /**
@@ -569,7 +583,125 @@ class cms_Domains extends core_Embedder
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        // Инвалидираме сесийния кеш
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, null);
+        
+        if(is_array($rec->toRemove) && count($rec->toRemove)) {
+            foreach($rec->toRemove as $filename) {
+                core_Webroot::remove($filename, $id);
+            }
+        }
+        $rec->toRemove = array();
+        
+        if($rec->domain != 'localhost') {
+            Mode::push('BGERP_CURRENT_DOMAIN', $rec->domain);
+        }
+
+        // robots.txt
+        $fiContent = $mvc->getRobotsTxt($rec);
+        
+        if($rec->sitemap) {
+            
+            if($rec->sitemap == self::CMS_PUBLIC_SITEMAP_NAME) {
+                $fiContent .= "\nSitemap: " . rtrim(toURL(array(self::CMS_PUBLIC_SITEMAP_NAME), 'absolute'), '/');
+            }
+            
+            // Регистриране на sitemap.xml
+            cms_Content::registerSitemap($rec);
+            
+            $rec->toRemove[$rec->sitemap] = $rec->sitemap;
+        }
+        
+        
+        core_Webroot::register($fiContent, '', 'robots.txt', $id);
+        $rec->toRemove['robots.txt'] = 'robots.txt';
+        
+        // Всички останали файлове
+        if($rec->wrFiles) {
+            
+            $inst = cls::get('archive_Adapter', array('fileHnd' => $rec->wrFiles));
+            
+            $entries = $inst->getEntries();
+            
+            if(is_array($entries) && count($entries)) {
+                foreach($entries as $i => $e) {
+                    if(preg_match("/[a-z0-9\\-\\_\\.]+/i", $e->path)) {
+                        $fh = $inst->getFile($i);
+                        $fiContent = fileman_Files::getContent($fh);
+                        core_Webroot::register($fiContent, '', strtolower($e->path), $id);
+                        $rec->toRemove[$e->path] = $e->path;
+                    }
+                }
+            }
+        }
+        
+        $fiContent = null;
+        
+        // favicon.ico
+        if($rec->favicon) {
+            $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
+            core_Webroot::register($fiContent, '', 'favicon.png', $id);
+
+        } elseif(!in_array('favicon.ico', $rec->toRemove)) {
+            $iconContent = getFileContent('img/favicon.png');
+            $fiContent = getFileContent('img/favicon.ico');
+        }
+
+        if($iconContent) {
+            core_Webroot::register($iconContent, '', 'favicon.png', $id);
+        }
+
+        if($fiContent) {
+            core_Webroot::register($fiContent, '', 'favicon.ico', $id);
+            $rec->toRemove[$e->path] = $e->path;
+        }
+        
+        if(count($rec->toRemove)) {
+            $mvc->save_($rec, 'toRemove');
+        }
+
+        if($rec->domain != 'localhost') {
+            Mode::pop('BGERP_CURRENT_DOMAIN');
+        }
+    }
+
+
+    /**
+     * Замества хост
+     */
+    public static function getReal($domain)
+    {
+        if($domain == 'localhost') {
+
+            $host = strtolower($_SERVER['SERVER_NAME']);
+            
+            if(self::fetch(array("#domain = '[#1#]'", $host))) {
+              
+                if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+                    $host = parse_url(BGERP_ABSOLUTE_HTTP_HOST, PHP_URL_HOST); 
+                } else {
+                    $host = '';
+                }
+            }
+
+            if($host && !preg_match("/^[0-9\\.]+$/", $host)) {
+                $domain = $host;
+            }
+        }
+
+        return $domain;
+    }
+    
+    
+    /**
+     * Генерира съдържанието за robots.txt
+     */
+    public function getRobotsTxt_($rec)
+    {
+        $res = "\nUser-agent: *";
+        $res .= "\nAllow: /";
+        
+        return trim($res);
     }
     
     
@@ -640,7 +772,6 @@ class cms_Domains extends core_Embedder
     }
     
     
-    
     /**
      * Добавя задължителенно поле за съгласяване с въведените условия
      *
@@ -652,11 +783,14 @@ class cms_Domains extends core_Embedder
     {
         $domainId = ($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
         $mandatoryAgreeText = self::fetchField($domainId, 'mandatoryAgreeText');
-        if(empty($mandatoryAgreeText)) return;
+        
+        if(empty($mandatoryAgreeText)) {
+            
+            return;
+        }
         
         $form->FLD('mandatoryAgreeText', cls::get('type_Check', array('params' => array('label' => "|*" . $mandatoryAgreeText, 'displayAsRichtext' => true, 'errorIfNotChecked' => 'За да продължите, трябва да сте съгласни с общите условия'))), 'mandatory,displayInBottom,noCaption');
     }
-    
     
     
     /**

@@ -19,7 +19,7 @@ class sens2_Controllers extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, plg_RefreshRows, sens2_Wrapper';
     
     
     /**
@@ -104,7 +104,7 @@ class sens2_Controllers extends core_Master
     /**
      * Детайл за входно-изходните портове
      */
-    public $details = 'sens2_IOPorts';
+    public $details = 'sens2_IOPorts,sens2_Indicators';
     
     
     /**
@@ -207,7 +207,7 @@ class sens2_Controllers extends core_Master
                 $partName = $port . '_name';
                 if ($config->{$partName}) {
                     $caption = $port . ' ('. $config->{$partName} . ')';
-                    $title = '$' . $rec->name . '->' . $config->{$partName};
+                    $title = '$' . $rec->name . '.' . $config->{$partName};
                 } else {
                     $caption = new stdClass();
                     $caption->title = $port;
@@ -215,7 +215,7 @@ class sens2_Controllers extends core_Master
                         $caption->title .= ' ('. $params->caption . ')';
                     }
                     $caption->attr = array('style' => 'color:#999;');
-                    $title = '$' . $rec->name . '->' . $port;
+                    $title = '$' . $rec->name . '.' . $port;
                 }
                 $partUom = $port . '_uom';
                 $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
@@ -228,6 +228,21 @@ class sens2_Controllers extends core_Master
         return  $ap[$controllerId . '_' . $type];
     }
     
+
+    /**
+     * Преди подготовка на сингъла
+     */
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {   
+        $driver = cls::get($data->rec->driver);
+        
+        if(!$driver->hasDetail) {
+            $data->details = arr::make($data->details, true);
+            $mvc->details = arr::make($mvc->details, true);
+            unset($mvc->details['sens2_IOPorts'], $data->details['sens2_IOPorts']);
+        }
+    }
+
     
     /**
      * Подготвя конфигурационната форма на посочения драйвер
@@ -242,7 +257,7 @@ class sens2_Controllers extends core_Master
         
         $drv->prepareConfigForm($form);
         
-        if (!$drv->hasDetail) {
+        if (!$drv->hasDetail && !$drv->notExpandForm) {
             $ports = $drv->getInputPorts();
             
             if (!$ports) {
@@ -415,12 +430,18 @@ class sens2_Controllers extends core_Master
                 self::save($rec, 'persistentState');
             }
             
-            // Текущото време
-            $time = dt::now();
            
             foreach ($inputs as $port) {
+                
+                // Текущото време
+                $time = dt::now();
+
                 if (is_array($values)) {
                     $value = $values[$port];
+                    if(is_object($value)) {
+                        $time = $value->lastValue;
+                        $value = $value->value;
+                    }
                 } else {
                     // Ако не получим масив със стойности, приемаме, че сме получили грешка
                     // и размножаваме грешката за всички входове на контролера
@@ -429,7 +450,7 @@ class sens2_Controllers extends core_Master
                 
                 // Скалиране на стойността
                 if (($expr = $ports[$port]->scale) && is_numeric($value)) {
-                    $expr = str_replace('X', $value, $expr);
+                    $expr = str_replace(array('X', 'x', 'Х', 'х'), array($value, $value, $value, $value), $expr);
                     $value = str::calcMathExpr($expr);
                 }
                 
@@ -455,9 +476,11 @@ class sens2_Controllers extends core_Master
      * Задава стойност на физически изход. Те се записва и в модела.
      */
     public static function setOutput($output, $value)
-    {
+    {   
+        $value = round($value, 4);
+
         // Парсраме входа и получаваме името на контролера и изхода
-        list($ctrName, $name) = explode('->', ltrim($output, '$'));
+        list($ctrName, $name) = explode('.', ltrim($output, '$'), 2);
         
         // Вземаме записа на контролера
         $rec = self::fetch(array("#name = '[#1#]'", $ctrName));
@@ -633,6 +656,7 @@ class sens2_Controllers extends core_Master
         
         
         if ($id) {
+            echo " Starting...";
             // Извършваме обновяването "на сянка""
             $this->updateInputs($id);
         }

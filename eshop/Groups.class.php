@@ -37,7 +37,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search,plg_StructureAndOrder';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search,plg_StructureAndOrder';
     
     
     /**
@@ -104,7 +104,6 @@ class eshop_Groups extends core_Master
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
-    
     
     
     /**
@@ -193,13 +192,13 @@ class eshop_Groups extends core_Master
      */
     protected function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if (isset($fields['-list'])){
-        	$row->name = $mvc->getHyperlink($rec, true);
-        	
-        	if (haveRole('powerUser') && $rec->state != 'closed') {
-        		core_RowToolbar::createIfNotExists($row->_rowTools);
-        		$row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
-        	}
+        if (isset($fields['-list'])) {
+            $row->name = $mvc->getHyperlink($rec, true);
+            
+            if (haveRole('powerUser') && $rec->state != 'closed') {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
+            }
         }
     }
     
@@ -212,9 +211,9 @@ class eshop_Groups extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if (haveRole('powerUser') && $data->rec->state != 'closed') {
-    		$data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
-    	}
+        if (haveRole('powerUser') && $data->rec->state != 'closed') {
+            $data->toolbar->addBtn('Преглед', self::getUrl($data->rec), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
+        }
     }
     
     
@@ -258,7 +257,7 @@ class eshop_Groups extends core_Master
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
-        
+   
         // Добавя канонично URL
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         cms_Content::addCanonicalUrl($url, $layout);
@@ -277,7 +276,7 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-        
+         
         return $layout;
     }
     
@@ -361,7 +360,7 @@ class eshop_Groups extends core_Master
         
         $cRec = cms_Content::fetch($data->menuId);
         
-        $data->title = type_Varchar::escape($cRec->url);
+        $data->title = type_Varchar::escape($cRec->title);
     }
     
     
@@ -448,7 +447,9 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
-        setIfNot($data->rec->seoTitle, $data->rec->name);
+        if (!$data->rec->seoTitle) {
+            $data->rec->seoTitle = $data->rec->name;
+        }
         
         cms_Content::setSeo($groupTpl, $data->rec);
         
@@ -789,5 +790,41 @@ class eshop_Groups extends core_Master
         }
         
         return $groups;
+    }
+
+    
+    /**
+     * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     */
+    public function getSitemapEntries($menuId)
+    {
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND #menuId = {$menuId}");
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            $resObj = new stdClass();
+            $resObj->loc = $this->getUrl($rec, true);
+            $modifiedOn = $rec->modifiedOn ? $rec->modifiedOn : $rec->createdOn;
+
+            $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+            $resObj->priority = 1;
+            $res[] = $resObj;
+            
+            $Products = cls::get('eshop_Products');
+            $pQuery = eshop_Products::getQuery();
+            $pQuery->where("#state = 'active' AND #groupId = {$rec->id}");
+            while ($pRec = $pQuery->fetch()) {
+                $resObj = new stdClass();
+                $resObj->loc = $Products->getUrl($pRec, true);
+                $modifiedOn = $pRec->modifiedOn ? $pRec->modifiedOn : $pRec->createdOn;
+                $resObj->lastmod = date('c', dt::mysql2timestamp($modifiedOn));
+                $resObj->priority = 0.9;
+                $res[] = $resObj;
+            }
+        }
+        
+        return $res;
     }
 }

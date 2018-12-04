@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър за детайл в ешоп артикулите
+ * Мениджър за детайл на артикулите в е-магазина
  *
  *
  * @category  bgerp
@@ -37,7 +37,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Опции на артикулите в онлайн магазина';
+    public $title = 'Опции на артикулите в е-магазина';
     
     
     /**
@@ -357,7 +357,7 @@ class eshop_ProductDetails extends core_Detail
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         
-        $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn'));
+        $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn', 'rel' => 'nofollow'));
         if($rec->_listView !== true){
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         }

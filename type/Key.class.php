@@ -265,6 +265,8 @@ class type_Key extends type_Int
     {
         Mode::push('text', 'plain');
         
+        Debug::startTimer('prepareOPT ' . $this->params['mvc']);
+        
         // Ако опциите вече са генерирани - не ги подготвяме отново
         if (!is_array($this->options) || !count($this->options)) {
             $mvc = cls::get($this->params['mvc']);
@@ -289,8 +291,6 @@ class type_Key extends type_Int
                     $where = empty($where) ? $fWhere : "({$where}) AND ({$fWhere})" ;
                 }
             }
-            
-            Debug::startTimer('prepareOPT ' . $this->params['mvc']);
             
             $options = array();
             

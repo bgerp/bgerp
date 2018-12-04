@@ -522,14 +522,20 @@ class bank_OwnAccounts extends core_Master
      * 
      * @param boolean $selectIban
      * @param string|null $currencyCode
+     * @param mixed|null $onlyIds
      * @return array $accounts
      */
-    public static function getOwnAccounts($selectIban = true, $currencyCode = null)
+    public static function getOwnAccounts($selectIban = true, $currencyCode = null, $onlyIds = null)
     {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
         $query->where("#state != 'rejected' AND #state != 'closed'");
+        if(isset($onlyIds)){
+            $onlyIds = arr::make($onlyIds, true);
+            $query->in('id', $onlyIds);
+        }
+        
         $cu = core_Users::getCurrent();
         
         while ($rec = $query->fetch()) {

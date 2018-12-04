@@ -92,6 +92,11 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+                  <!--ET_BEGIN lineNotes-->
+                  <tr>
+                     <td colspan=2><hr><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
+                  </tr>
+                  <!--ET_END lineNotes-->
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2" >
@@ -103,13 +108,16 @@
                   <tr>
                      <td colspan="2" >
                         <hr>
-                        <div>
-                          <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
-                        </div>
-                        <div class='clearfix21'>
-                        <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
                      </td>
                   </tr>
+                  <tr>
+                     <td colspan="2">|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</td>
+                  </tr>
+                  <!--ET_BEGIN logisticInfo-->
+                  <tr>
+                     <td colspan="2"><hr>|Логистични единици|*:&nbsp;[#logisticInfo#]</td>
+                  </tr>
+                  <!--ET_END logisticInfo-->
                </table>
                <hr>
                <!--ET_BEGIN responsible-->

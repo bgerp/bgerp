@@ -38,6 +38,12 @@ defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
 
 /**
+ * Синоними за СЕО оптимизация
+ */
+defIfNot('CMS_SEO_SYNONYMS', '');
+
+
+/**
  * class cms_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -95,6 +101,8 @@ class cms_Setup extends core_ProtoSetup
         'CMS_COPY_DISABLE_FOR' => array('keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Добавка при копиране->Изключване за'),
         
         'CMS_OGRAPH_IMAGE' => array('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
+        
+        'CMS_SEO_SYNONYMS' => array('table(columns=s1|s2|s3|s4|s5,captions=Синоним1|Синоним2|Синоним3|Синоним4|Синоним5,widths=8em|8em|8em|8em|8em)', 'caption=SEO синоним->Групи'),
     );
     
     
@@ -102,8 +110,8 @@ class cms_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'cms_Domains',
         'cms_Content',
+        'cms_Domains',
         'cms_Objects',
         'cms_Articles',
         'cms_Feeds',
@@ -111,6 +119,7 @@ class cms_Setup extends core_ProtoSetup
         'cms_VerbalId',
         'cms_GalleryGroups',
         'cms_GalleryImages',
+        'migrate::domainFiles',
     );
     
     
@@ -125,6 +134,22 @@ class cms_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
         array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', 'cms, ceo, admin'),
+    );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'UpdateSitemaps',
+            'description' => 'Обновяване на sitemap.xml',
+            'controller' => 'cms_Content',
+            'action' => 'UpdateSitemap',
+            'period' => 180,
+            'offset' => 77,
+            'timeLimit' => 20
+        ),
     );
     
     
@@ -192,4 +217,32 @@ class cms_Setup extends core_ProtoSetup
         
         return $domainIds[$lg];
     }
+
+    
+    /**
+     * Премахване на favicon от рута и миграция на домейните
+     */
+    function domainFiles()
+    {
+        // Иконата
+        $dest = EF_INDEX_PATH . '/favicon.ico';
+        
+        if (file_exists($dest)) {
+            
+            if(!cms_Domains::fetch("#domain = 'localhost' AND (#favicon OR #wrFiles)")) {
+                if($dRec = cms_Domains::fetch("#domain = 'localhost'")) {
+                    $dRec->favicon = fileman::absorb($dest, 'cmsFiles');
+                    cms_Domains::save($dRec, 'favicon');
+                }
+            }
+
+            unlink($dest);
+        }
+
+        $dQuery = cms_Domains::getQuery();
+        while($dRec = $dQuery->fetch()) {
+            cms_Domains::save($dRec);
+        }
+    }
+
 }

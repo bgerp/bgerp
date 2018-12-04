@@ -90,7 +90,7 @@ class eshop_CartDetails extends core_Detail
         $this->FLD('cartId', 'key(mvc=eshop_Carts)', 'caption=Кошница,mandatory,input=hidden,silent');
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack,mandatory');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=none,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none');
@@ -147,13 +147,16 @@ class eshop_CartDetails extends core_Detail
         $form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
         $productOptions = eshop_ProductDetails::getAvailableProducts();
         
-        // От наличните опции се махат тези вече в количката
-        $query = self::getQuery();
-        $query->where("#cartId = {$rec->cartId}");
-        $query->show('productId');
-        $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
-        $productOptions = array_diff_key($productOptions, $alreadyIn);
+        $alreadyIn = array();
+        if (isset($rec->external)) {
+            // От наличните опции се махат тези вече в количката
+            $query = self::getQuery();
+            $query->where("#cartId = {$rec->cartId}");
+            $query->show('productId');
+            $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        }
         
+        $productOptions = array_diff_key($productOptions, $alreadyIn);
         $form->setOptions('productId', array('' => '') + $productOptions);
         $form->setField('eshopProductId', 'input=none');
         
@@ -168,6 +171,17 @@ class eshop_CartDetails extends core_Detail
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('displayPrice', 'input');
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     */
+    protected static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
+    {
+        if (isset($data->form->rec->external)) {
+            $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         }
     }
     
@@ -410,19 +424,19 @@ class eshop_CartDetails extends core_Detail
             
             $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
             $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-        }
         
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        $row->productId .= " ({$row->packagingId})";
+            // Показване на уникалните параметри под името на артикула
+            $paramsText = self::getUniqueParamsAsText($rec);
+            if (!empty($paramsText)) {
+                $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
+            }
+            
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $row->productId .= " ({$row->packagingId})";
+        }
         
         $url = eshop_Products::getUrl($rec->eshopProductId);
         $row->productId = ht::createLinkRef($row->productId, $url);
-        
-        // Показване на уникалните параметри под името на артикула
-        $paramsText = self::getUniqueParamsAsText($rec);
-        if (!empty($paramsText)) {
-            $row->productId .= "<br><span class='cart-qunique-product-params'>{$paramsText}</span>";
-        }
     }
     
     
@@ -456,6 +470,7 @@ class eshop_CartDetails extends core_Detail
         if (isset($id)) {
             $this->delete($id);
             vislog_History::add("Изтриване на артикул от количка №{$cartId}");
+            $msg = '|Артикулът е премахнат|*!';
         } else {
             $this->delete("#cartId = {$cartId}");
             cls::get('eshop_Carts')->updateMaster($cartId);

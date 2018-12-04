@@ -8,7 +8,7 @@
                     <table>
                    <!--ET_BEGIN storeId-->
                         <tr>
-                            <td style='text-align:left' class='quiet'>|Склад|*</td>
+                            <td style='text-align:left' class='quiet'>|Склад|*:</td>
                             <td> [#storeId#]</td>
                         </tr>
                         <!--ET_END storeId-->
@@ -26,7 +26,7 @@
                         <!--ET_END readiness-->
                         <!--ET_BEGIN description-->
                         <tr>
-                            <td style='text-align:left' class='quiet'>|Описание|*</td>
+                            <td style='text-align:left' class='quiet'>|Описание|*:</td>
                             <td >[#description#]</td>
                         </tr>
                     <!--ET_END description-->

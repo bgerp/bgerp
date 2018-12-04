@@ -31,7 +31,7 @@ class eshop_Settings extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'objectId=Обект,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validUntil=Продължителност->До,modifiedOn,modifiedBy,@info';
+    public $listFields = 'objectId=Обект,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validUntil=Продължителност->До,modifiedOn,modifiedBy';
     
     
     /**
@@ -73,37 +73,37 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#],\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тoзи [#link#], който изтича след 7 дни.\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#link#], която изтича след 7 дни.\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#],\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на български, за уведомление за незавършена поръчка
      */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#CART_LINK#].\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#LINK#].\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски, за уведомление за незавършена поръчка
      */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\nYou have unfinished order in [#LINK#].\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\nYou have unfinished order in [#LINK#].\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
@@ -206,7 +206,7 @@ class eshop_Settings extends core_Manager
         $rec = &$form->rec;
         if ($form->isSubmitted()) {
             
-            $fieldArray = array('emailBodyWithReg' => array('[#SALE_HANDLER#]', '[#link#]'), 'emailBodyWithoutReg' => array('[#SALE_HANDLER#]'), 'emailBodyNotify' => array('[#LINK#]'));
+            $fieldArray = array('emailBodyWithReg' => array('[#SALE_HANDLER#]', '[#link#]', '[#PAYMENT_TEXT#]'), 'emailBodyWithoutReg' => array('[#SALE_HANDLER#]', '[#PAYMENT_TEXT#]'), 'emailBodyNotify' => array('[#LINK#]'));
             foreach ($fieldArray as $name => $placeholders){
                 if (!empty($rec->{$name})) {
                     $missing = array();

@@ -640,14 +640,17 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
-     * Филтрираме записи по подходящ начин
-     *
-     * @param stdClass $masterRec
-     * @param array    $recs
-     *
+     * Филтриране на записите по подходящ начин
+     * 
+     * @param mixed $selectedGroups
+     * @param array $recs
+     * @param string $codeFld
+     * @param string $nameFld
+     * @param string $groupFld
+     * @param boolean $expand
      * @return void
      */
-    private function filterRecs($masterRec, &$recs)
+    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false)
     {
         // Ако няма записи не правим нищо
         if (!is_array($recs)) {
@@ -657,39 +660,63 @@ class store_InventoryNoteSummary extends doc_Detail
         $ordered = array();
         
         // Вербализираме и подреждаме групите
-        $groups = keylist::toArray($masterRec->groups);
+        $groups = keylist::toArray($selectedGroups);
         cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
-        
+       
         // За всеки маркер
         foreach ($groups as $grId => $groupName) {
             
-            // Отделяме тези записи, които съдържат текущия маркер
-            $res = array_filter($recs, function (&$e) use ($grId, $groupName) {
-                if (keylist::isIn($grId, $e->groups)) {
-                    $e->groupName = $groupName;
-                    
-                    return true;
-                }
-                
-                return false;
+            if($expand === true){
+                $desc = cat_Groups::getDescendantArray($grId);
+                $desc = keylist::toArray($desc);
+            } else {
+                $desc = array($grId => $grId);
+            }
+            cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$desc));
+            
+            uasort($desc, function($a, $b) {
+                return mb_strlen($b) - mb_strlen($a);
             });
             
-            // Ако има намерени резултати
-            if (count($res) && is_array($res)) {
+            foreach ($desc as $dId => $dName){
                 
-                // От $recs, премахваме отделените записи, да не се обхождат отново
-                $recs = array_diff_key($recs, $res);
-                
-                // Проверяваме как трябва да се сортират артикулите вътре по код или по име
-                $orderProductBy = cat_Groups::fetchField($grId, 'orderProductBy');
-                $field = ($orderProductBy === 'code') ? 'orderCode' : 'orderName';
-                
-                // Сортираме артикулите в маркера
-                arr::sortObjects($res, $field, 'asc', 'stri');
-                
-                // Добавяме артикулите към подредените
-                $ordered += $res;
+                // Отделяме тези записи, които съдържат текущия маркер
+                $res = array_filter($recs, function (&$e) use ($dId, $dName, $groupFld) {
+                    
+                    if (keylist::isIn($dId, $e->{$groupFld})) {
+                        $e->groupName = $dName;
+                        $e->_groupId = $dId;
+                        return true;
+                    }
+                    
+                    return false;
+                });
+               
+                // Ако има намерени резултати
+                if (count($res) && is_array($res)) {
+                    
+                    // От $recs се премахват отделените записи, да не се обхождат отново
+                    // добавяме артикулите към подредените
+                    $recs = array_diff_key($recs, $res);
+                    $ordered += $res;
+               }
             }
+        }
+        
+        // Правилна подредба
+        if(is_array($ordered)){
+            uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $groupFld) {
+                if ($a->groupName == $b->groupName) {
+                    $orderProductBy = cat_Groups::fetchField($a->_groupId, 'orderProductBy');
+                    $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
+                    
+                    $result = strcasecmp($a->{$field}, $b->{$field});
+                } else {
+                    $result = $a->groupName > $b->groupName;
+                }
+                
+                return $result;
+            });
         }
         
         // В $recs трябва да са останали несортираните
@@ -701,8 +728,8 @@ class store_InventoryNoteSummary extends doc_Detail
                 $r1->groupName = tr('Други');
             }
             
-            // Подреждаме ги по име
-            arr::sortObjects($rest, 'orderCode');
+            // Подреждаме ги по код
+            arr::sortObjects($rest, $codeFld);
             
             // Добавяме ги най-накрая
             $ordered += $rest;
@@ -723,7 +750,8 @@ class store_InventoryNoteSummary extends doc_Detail
     public function prepareListRows_(&$data)
     {
         // Филтрираме записите
-        $this->filterRecs($data->masterData->rec, $data->recs);
+        $expand = ($data->masterData->rec->expandGroups == 'yes') ? true : false;
+        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand);
         
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);

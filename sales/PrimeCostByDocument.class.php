@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -199,7 +199,11 @@ class sales_PrimeCostByDocument extends core_Manager
             // Кой е първия документ в нишката
             $threadId = $Document->fetchField('threadId');
             $firstDoc = doc_Threads::getFirstDocument($threadId);
-            $firstDocRec = $firstDoc->fetch('dealerId, initiatorId, folderId');
+            $fields = 'dealerId, folderId';
+            if($firstDoc->getInstance()->getField('initiatorId', false)){
+                $fields .= ", initiatorId";
+            }
+            $firstDocRec = $firstDoc->fetch($fields);
             
             // Ако няма дилър това е отговорника на папката ако има права `sales`
             if (empty($firstDocRec->dealerId)) {
@@ -248,9 +252,7 @@ class sales_PrimeCostByDocument extends core_Manager
         
         // Обхождане на всички документи за продажба
         foreach ($documents as $Master => $Detail) {
-            $masterClasId = $Master::getClassId();
             $Detail = cls::get($Detail);
-            $detailClassId = $Detail->getClassId();
             
             // За всеки документ, му извличаме детайлите ако той е променян след $timeline
             $dQuery = $Detail->getQuery();
@@ -291,6 +293,25 @@ class sales_PrimeCostByDocument extends core_Manager
             }
         }
         
+        // Добаване и на ПОС отчетите
+        $posIds = array();
+        $posQuery = pos_Reports::getQuery();
+        $posQuery->where("#modifiedOn >= '{$timeline}'");
+        $posQuery->show('modifiedOn,state,containerId,details');
+        while ($pRec = $posQuery->fetch()) {
+            $masters[$pRec->containerId] = array(doc_Containers::getDocument($pRec->containerId), $pRec->state, null);
+            foreach ($pRec->details['receiptDetails'] as $pdRec){
+                if($pdRec->action != 'sale') continue;
+                $key = "{$pRec->id}000{$pdRec->value}";
+                $posIds[$key] = $key;
+            }
+        }
+        
+        if (count($posIds)) {
+            $posIds = implode(',', $posIds);
+            $iQuery->where("#detailClassId = " . pos_Reports::getClassId() . " AND #detailRecId IN ($posIds)", $or);
+        }
+        
         // Връщане на готовата заявка
         return $iQuery;
     }
@@ -320,7 +341,6 @@ class sales_PrimeCostByDocument extends core_Manager
             
             // Намиране на дилъра, инициатора и взимане на данните на мастъра на детайла
             $Document = $masters[$rec->containerId][0];
-            $persons = self::getDealerAndInitiatorId($rec->containerId);
             
             // За дилъра и инициатора, ако има ще се подават делтите
             foreach (array('dealerId', 'initiatorId') as $personFld) {
@@ -391,7 +411,7 @@ class sales_PrimeCostByDocument extends core_Manager
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал
      *
-     * @param date $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
      * @return array $result  - масив с обекти
      *
@@ -675,6 +695,7 @@ class sales_PrimeCostByDocument extends core_Manager
             return;
         }
         
+        $touchedDocuments = array();
         $query = self::getQuery();
         $query->in('containerId', $containerIds);
         while ($rec = $query->fetch()) {
@@ -684,10 +705,16 @@ class sales_PrimeCostByDocument extends core_Manager
                 $rec->initiatorId = $persons['initiatorId'];
                 self::save($rec);
                 
-                $doc = doc_Containers::getDocument($rec->containerId);
-                $doc->touchRec();
-                $doc->getInstance()->logInAct('Обновяване на дилъра и/или инициатора на делтата', $doc->that);
+                if(!array_key_exists($rec->containerId, $touchedDocuments)){
+                    $touchedDocuments[$rec->containerId] = doc_Containers::getDocument($rec->containerId);
+                }
             }
+        }
+        
+        // Нотифициране на контейнерите че са променени делтите
+        foreach ($touchedDocuments as $doc){
+            $doc->touchRec();
+            $doc->getInstance()->logInAct('Сменен дилър и/или инициатор на делтата', $doc->that);
         }
     }
     
@@ -759,6 +786,7 @@ class sales_PrimeCostByDocument extends core_Manager
         $containerId = $firstDoc->fetchField('containerId');
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #containerId = {$containerId}");
+        $query->where("#primeCost IS NOT NULL");
         $query->show('quantity,primeCost');
         $sum = $totalQ = 0;
         
@@ -766,7 +794,7 @@ class sales_PrimeCostByDocument extends core_Manager
             $sum += $rec->quantity * $rec->primeCost;
             $totalQ += $rec->quantity;
         }
-        
+       
         // Сумата на себестойноста е среднопритеглената себестойност
         if ($totalQ) {
             
@@ -800,5 +828,41 @@ class sales_PrimeCostByDocument extends core_Manager
         }
         
         return (round($price, 4) < round($primeCost, 4));
+    }
+    
+    
+    /**
+     * Помощна ф-я връщаща дилъра и инциатора за артикула от обединения договор с най-голямо количество
+     * 
+     * @param int $productId
+     * @param mixed $closedSales
+     * @return array|null
+     */
+    public static function getDealerAndInitiatorFromCombinedDeals($productId, $closedSales)
+    {
+        $quantities = array();
+        
+        // Търсене в обединените договори, където се среща количеството
+        $closedSales = keylist::toArray($closedSales);
+        foreach ($closedSales as $saleId){
+            $dQuery = sales_SalesDetails::getQuery();
+            $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
+            $dQuery->where("#saleId = {$saleId} AND #productId = {$productId}");
+            if($sum = $dQuery->fetch()->sum){
+                $quantities[$saleId] = $sum;
+            }
+        }
+        
+        // Сортира се по най-голямо количество
+        if(!count($quantities)) return null;
+        arsort($quantities);
+        $quantities = array_keys($quantities);
+        
+        if(isset($quantities[0])){
+            $containerId = sales_Sales::fetchField($quantities[0], 'containerId');
+            $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($containerId);
+            
+            return $persons;
+        }
     }
 }

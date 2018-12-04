@@ -2,25 +2,32 @@
 
 
 /**
- * Клас 'uiext_DocumentLabels'
+ * Клас 'uiext_ObjectLabels'
  *
- * Мениджър за тагове на документите
+ * Мениджър за тагове на обектите
  *
  * @category  bgerp
  * @package   uiext
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class uiext_DocumentLabels extends core_Manager
+class uiext_ObjectLabels extends core_Manager
 {
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'uiext_DocumentLabels';
+    
+    
     /**
      * Заглавие
      */
-    public $title = 'Тагове на документи';
+    public $title = 'Тагове на обект';
     
     
     /**
@@ -32,7 +39,7 @@ class uiext_DocumentLabels extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, uiext_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Created, uiext_Wrapper,plg_Sorting';
     
     
     /**
@@ -68,7 +75,7 @@ class uiext_DocumentLabels extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId,hash,labels';
+    public $listFields = 'id,objectId,hash,labels';
     
     
     /**
@@ -76,11 +83,26 @@ class uiext_DocumentLabels extends core_Manager
      */
     public function description()
     {
-        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,mandatory');
+        $this->FLD('classId', 'class', 'caption=Клас,mandatory');
+        $this->FLD('objectId', 'int', 'caption=Ид,mandatory,tdClass=leftCol');
+        
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш,mandatory');
         $this->FLD('labels', 'keylist(mvc=uiext_Labels,select=title)', 'caption=Тагове,mandatory');
         
-        $this->setDbUnique('containerId,hash');
+        $this->setDbUnique('classId,objectId,hash');
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
     }
     
     
@@ -89,9 +111,9 @@ class uiext_DocumentLabels extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'selectlabel' && isset($rec)) {
-            $document = doc_Containers::getDocument($rec->containerId);
-            if (!$document->haveRightFor('single')) {
+        if ($action == 'selectlabel' && isset($rec->classId)) {
+            $Class = cls::get($rec->classId);
+            if (!$Class->haveRightFor('single', $rec->objectId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -104,11 +126,13 @@ class uiext_DocumentLabels extends core_Manager
     public function act_saveLabels()
     {
         //core_Request::setProtected('containerId,hash');
-        $containerId = Request::get('containerId', 'int');
+        $masterClassId = Request::get('masterClassId', 'int');
+        $objectId = Request::get('objectId', 'int');
+        
         $hash = Request::get('hash', 'varchar');
         $classId = Request::get('classId', 'int');
         
-        if (!$containerId || !$hash || !$classId) {
+        if (!$masterClassId || !$objectId || !$hash || !$classId) {
             core_Statuses::newStatus('|Невалиден ред|*!', 'error');
             
             return status_Messages::returnStatusesArray();
@@ -128,13 +152,13 @@ class uiext_DocumentLabels extends core_Manager
         }
         
         // Подготовка на записа
-        $rec = (object) array('containerId' => $containerId, 'hash' => $hash);
+        $rec = (object) array('classId' => $masterClassId, 'objectId' => $objectId, 'hash' => $hash);
         $rec->labels = keylist::addKey('', $label);
-        if ($exRec = self::fetchByDoc($containerId, $hash)) {
+        if ($exRec = self::fetchByDoc($masterClassId, $objectId, $hash)) {
             $rec->id = $exRec->id;
         }
         
-        if ($delete === true) {
+        if ($delete === true && isset($exRec->id)) {
             self::delete($exRec->id);
         } else {
             $this->save($rec);
@@ -146,29 +170,30 @@ class uiext_DocumentLabels extends core_Manager
             $resObj = new stdClass();
             $resObj->func = 'html';
             
-            $k = "{$containerId}|{$classId}|{$hash}";
-            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($containerId, $classId, $hash), 'replace' => true);
+            $k = "{$masterClassId}|{$objectId}|{$classId}|{$hash}";
+            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash), 'replace' => true);
             $res = array_merge(array($resObj));
             
             return $res;
         }
         
-        $document = doc_Containers::getDocument($containerId);
+        $masterClass = cls::get($masterClassId);
         
-        redirect($document->getSingleUrlArray());
+        redirect($masterClass->getSingleUrlArray($objectId));
     }
     
     
     /**
      * Връща записа
      *
-     * @param int    $containerId
+     * @param int $masterClassId
+     * @param int $masterId
      * @param string $hash
      *
      * @return stdClass|FALSE
      */
-    public static function fetchByDoc($containerId, $hash)
+    public static function fetchByDoc($masterClassId, $masterId, $hash)
     {
-        return self::fetch(array("#containerId = {$containerId} AND #hash = '[#1#]'", $hash));
+        return self::fetch(array("#classId = {$masterClassId} AND #objectId = {$masterId} AND #hash = '[#1#]'", $hash));
     }
 }

@@ -60,6 +60,7 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_script_Actions',
         'sens2_script_DefinedVars',
         'sens2_IOPorts',
+        'migrate::changeToDot',
     );
     
     
@@ -92,6 +93,7 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_ioport_DI',
         'sens2_ioport_DO',
         'sens2_ioport_AO',
+        'sens2_RemoteDriver',
     );
     
     
@@ -145,5 +147,23 @@ class sens2_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+
+
+    /**
+     * Смяна към точка
+     */
+    public function changeToDot()
+    {
+        $query = sens2_script_Actions::getQuery();
+
+        while($rec = $query->fetch()) {
+            foreach(array('cond', 'expr', 'output') as $w) {
+                if($rec->data->{$w}) {
+                    $rec->data->{$w} = str_replace('->', '.', $rec->data->{$w});
+                    $query->mvc->save($rec);
+                }
+            }
+        }
     }
 }

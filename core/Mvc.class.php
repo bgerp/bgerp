@@ -380,7 +380,7 @@ class core_Mvc extends core_FieldSet
             $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
             
             // Предотвратява двойното записване
-            if ($exRec && property_exists($exRec, $name)) {
+            if ($exRec && property_exists($exRec, $name) && is_scalar($exRec->{$name})) {
                 $exValue = $field->type->toMysql($exRec->{$name}, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
                 if ($exValue === $value) {
                     continue;
@@ -1609,7 +1609,7 @@ class core_Mvc extends core_FieldSet
             self::logInfo($action, $objectId);
         }
         $className = get_called_class();
-        log_Data::add('login', $action, $className, $objectId, $lifeDays, $cu = null);
+        log_Data::add('login', $action, $className, $objectId, $lifeDays, $cu);
     }
     
     

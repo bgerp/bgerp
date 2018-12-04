@@ -164,6 +164,12 @@ defIfNot('SALES_DELTA_MIN_PERCENT', '');
 
 
 /**
+ * % от продажната цена за себестойността, когато е 0
+ */
+defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -310,6 +316,11 @@ class sales_Setup extends core_ProtoSetup
             'percent',
             'caption=Неснижаема делта->Стойност'
         ),
+        'SALES_DELTA_MIN_PERCENT_PRIME_COST' => array(
+            'percent',
+            'caption=Колко % от продажната цена да се приема за делта при липса на себестойност->Стойност'
+        ),
+        
         'SALES_TRANSPORT_PRODUCTS_ID' => array(
             'keylist(mvc=cat_Products,select=name)',
             'mandatory,caption=Транспорт->Артикули,optionsFunc=sales_Setup::getPossibleTransportProducts'
@@ -335,6 +346,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProformaDetails',
         'sales_PrimeCostByDocument',
         'sales_TransportValues',
+        'sales_ProductRelations',
         'migrate::updateDeltaStates1',
         'migrate::setContragentFieldKeylist3',
         'migrate::updateDeltaFields',
@@ -383,7 +395,17 @@ class sales_Setup extends core_ProtoSetup
             'offset' => 140,
             'period' => 1440,
             'timeLimit' => 360
+        ),
+        array(
+            'systemId' => 'Calc Near Products',
+            'description' => 'Изчисляване на търговска близост между продуктите',
+            'controller' => 'sales_ProductRelations',
+            'action' => 'CalcNearProducts',
+            'offset' => 190,
+            'period' => 1440,
+            'timeLimit' => 360
         )
+
     );
     
     

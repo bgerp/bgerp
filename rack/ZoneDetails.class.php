@@ -67,6 +67,16 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
+     * Полета за хеширане на таговете
+     *
+     * @see uiext_Labels
+     *
+     * @var string
+     */
+    public $hashField = 'id';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

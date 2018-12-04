@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class sens2_ProtoDriver
+class sens2_ProtoDriver extends core_BaseClass
 {
     /**
      * От кой номер започва броенето на слотовете
@@ -25,20 +25,7 @@ class sens2_ProtoDriver
     /**
      * Интерфейси, поддържани от всички наследници
      */
-    public $interfaces = 'sens2_ControllerIntf';
-    
-    
-    /**
-     * Прочита портовете от зададения слот
-     */
-    public function readPorts($slot, $params)
-    {
-        $method = 'read' . $slot;
-        
-        $res = self::{$method}($params);
-        
-        return $res;
-    }
+    public $interfaces = 'sens2_ControllerIntf';    
     
     
     /**
@@ -59,7 +46,7 @@ class sens2_ProtoDriver
                 $res[$p->name] = $p;
             }
         }
-        
+  
         return $res;
     }
     
@@ -202,7 +189,7 @@ class sens2_ProtoDriver
      * @return array масив с обекти имащи следните полета:
      *               o name     - име на променливата
      *               о slot     - име на слота
-     *               о suffix   - стринг, който се изписва след променливата (%, V, W, ...)
+     *               о uom      - стринг, който се изписва след променливата (%, V, W, ...)
      *               o prefix   - стринг, който се изписва преди променливата
      *               о options  - масив с възможни стоийнисти
      *               о min      - минимална стойност

@@ -947,15 +947,53 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Връща урл-то към крон процеса за преизчисляване на баланса
+     * 
+     * @return array $url
+     */
+    public static function getRecalcCronUrl()
+    {
+        $cronRec = core_Cron::getRecForSystemId('RecalcBalances');
+        $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
+        
+        return $url;
+    }
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (haveRole('ceo,admin,debug')) {
-            $rec = core_Cron::getRecForSystemId('RecalcBalances');
-            $url = array('core_Cron', 'ProcessRun', str::addHash($rec->id), 'forced' => 'yes');
-            
+            $url = self::getRecalcCronUrl();
             $data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
         }
+    }
+    
+    
+    /**
+     * Кои са незатворените баланси
+     * 
+     * @param string $order
+     * @param boolean $skipClosed
+     * 
+     * @return array $balances
+     */
+    public static function getSelectOptions($order = 'DESC', $skipClosed = true)
+    {
+        $balances = array();
+        $query = acc_Balances::getQuery();
+        $query->EXT('state', 'acc_Periods', 'externalName=state,externalKey=periodId');
+        if($skipClosed === true){
+            $query->where("#state != 'closed'");
+        }
+        
+        $query->orderBy('id', $order);
+        while($rec = $query->fetch()){
+            $balances[$rec->id] = acc_Periods::getTitleById($rec->periodId, false);
+        }
+        
+        return $balances;
     }
 }

@@ -51,7 +51,7 @@ defIfNot('POS_ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK', 'yes');
  * @package   pos
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -108,6 +108,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_Reports',
         'pos_Stocks',
         'pos_Cards',
+        'migrate::migrateCronSettings'
     );
     
     
@@ -123,18 +124,6 @@ class pos_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.1, 'Търговия', 'POS', 'pos_Points', 'default', 'pos, ceo'),
     );
-    
-    
-    /**
-     * Път до js файла
-     */
-//    var $commonJS = 'pos/js/scripts.js';
-    
-    
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'pos/tpl/css/styles.css';
     
     
     /**
@@ -180,7 +169,7 @@ class pos_Setup extends core_ProtoSetup
             'controller' => 'pos_Reports',
             'action' => 'CloseReports',
             'period' => 1440,
-            'offset' => 60,
+            'offset' => 1380,
             'timeLimit' => 100,
         ),
         array(
@@ -193,4 +182,18 @@ class pos_Setup extends core_ProtoSetup
             'timeLimit' => 100,
         ),
     );
+    
+    
+    /**
+     * Миграция на крон процеса
+     */
+    function migrateCronSettings()
+    {
+        if($cronRec =  core_Cron::getRecForSystemId("Close reports")){
+            if($cronRec->offset != 1380){
+                $cronRec->offset = 1380;
+                core_Cron::save($cronRec, 'offset');
+            }
+        }
+    }
 }

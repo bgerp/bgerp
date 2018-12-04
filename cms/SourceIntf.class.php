@@ -57,4 +57,13 @@ class cms_SourceIntf
     {
         return $this->class->getSearchResults($menuId, $q, $maxLimit);
     }
+    
+    
+    /**
+     * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     */
+    public function getSitemapEntries($menuId)
+    {
+        return $this->class->getSitemapEntries($menuId);
+    }
 }

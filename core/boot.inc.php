@@ -455,9 +455,9 @@ function toLocalUrl($arr)
  *
  * Псевдоним на @link core_App::getBoot()
  */
-function getBoot($absolute = false)
+function getBoot($absolute = false, $forceHttpHost = false, $addAppName = false)
 {
-    return core_App::getBoot($absolute);
+    return core_App::getBoot($absolute, $forceHttpHost, $addAppName);
 }
 
 

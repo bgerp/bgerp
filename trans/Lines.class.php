@@ -31,7 +31,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary';
     
     
     /**
@@ -169,6 +169,24 @@ class trans_Lines extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'start,createdOn';
+    
+    
+    /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo,trans,store';
+    
+    
+    /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForAll = 'ceo,trans,store';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -209,13 +227,18 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->showFields = 'search';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->FLD('lineState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=	Активен,closed=Затворен)', 'caption=Състояние');
+        $data->listFilter->showFields .= ',lineState,search';
         $data->listFilter->input();
         
         $data->query->orderBy('#state');
         $data->query->orderBy('#start', 'DESC');
+        
+        if($filterRec = $data->listFilter->rec){
+            if(isset($filterRec->lineState) && $filterRec->lineState != 'all'){
+                $data->query->where("#state = '{$filterRec->lineState}'");
+            }
+        }
     }
     
     

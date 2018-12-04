@@ -60,13 +60,14 @@ class type_Check extends type_Enum
     public function fromVerbal($value)
     {
         $value = ($value == 'yes') ? 'yes' : 'no';
-        
+       
         if (isset($this->params['mandatory']) && $value != 'yes') {
-           
-            $error = ($this->params['errorIfNotChecked']) ? $this->params['errorIfNotChecked'] : 'Стойността трябва да е избрана|*!';
-            $this->error = $error;
-            
-            return false;
+            if($this->_isRefreshed !== true){
+                $error = ($this->params['errorIfNotChecked']) ? $this->params['errorIfNotChecked'] : 'Стойността трябва да е избрана|*!';
+                $this->error = $error;
+                
+                return false;
+            }
         }
         
         return $value;

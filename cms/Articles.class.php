@@ -195,6 +195,28 @@ class cms_Articles extends core_Master
     
     
     /**
+     * Връща записа на предходната или на следващата статия от даденото меню спрямо тази
+     */
+    public static function getPrevOrNext($rec, $dir = 1)
+    {
+        $query = self::getQuery();
+        $query->limit(1);
+        if ($dir > 0) {
+            $query->orderBy('level');
+            $query->where("#level > {$rec->level}");
+        } else {
+            $query->orderBy('level', 'DESC');
+            $query->where("#level < {$rec->level}");
+        }
+        $query->where("#menuId = {$rec->menuId}");
+        
+        $nextOrPrevRec = $query->fetch();
+        
+        return $nextOrPrevRec;
+    }
+    
+    
+    /**
      * Екшън за разглеждане на статия
      */
     public function act_Article()
@@ -228,6 +250,16 @@ class cms_Articles extends core_Master
         
         if (is_object($rec) && $rec->state != 'active' && !haveRole('admin,ceo,cms')) {
             error('404 Липсваща страница');
+        }
+        
+        if ($rec && !trim($rec->body)) {
+            $nextRec = self::getPrevOrNext($rec);
+            
+            if ($nextRec) {
+                $url = self::getUrl($nextRec);
+                
+                return new Redirect($url);
+            }
         }
         
         if ($rec) {
@@ -436,7 +468,9 @@ class cms_Articles extends core_Master
             } else {
                 $navTpl->append('<span>' . $l->title .'</span>');
             }
-            if($selected) $currentPage = $l->title;
+            if ($selected) {
+                $currentPage = $l->title;
+            }
             if ($l->editLink) {
                 // Добавяме интервал
                 $navTpl->append('&nbsp;');
@@ -899,9 +933,34 @@ class cms_Articles extends core_Master
         }
         
         $links = implode(' | ', $links);
-        $tpl = new core_ET("<div class='footer-links'>[#FOOTER_LINKS#]</div>");
+        $tpl = new core_ET('[#FOOTER_LINKS#]');
         $tpl->append($links, 'FOOTER_LINKS');
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
+     */
+    public function getSitemapEntries($menuId)
+    {
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND #menuId = {$menuId}");
+        
+        $res = array();
+        
+        while ($rec = $query->fetch()) {
+            if (!trim($rec->body)) {
+                continue;
+            }
+            $resObj = new stdClass();
+            $resObj->loc = $this->getUrl($rec, true);
+            $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+            $resObj->priority = 0.5;
+            $res[] = $resObj;
+        }
+        
+        return $res;
     }
 }

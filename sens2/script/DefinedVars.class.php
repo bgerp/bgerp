@@ -28,7 +28,8 @@ class sens2_script_DefinedVars extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Редове към Логическите блокове';
+    public $title = 'Дефинирани променливи';
+    
     
     public $singleTitle = 'Действие';
     
@@ -69,7 +70,7 @@ class sens2_script_DefinedVars extends core_Detail
     public $masterKey = 'scriptId';
     
     
-    public $currentTab = 'Скриптове';
+    public $currentTab = 'Променливи';
     
     public $listFields = '№,name,scope,value,modifiedOn=Модифициране';
     
@@ -159,6 +160,8 @@ class sens2_script_DefinedVars extends core_Detail
      */
     public static function setValue($scriptId, $var, $value)
     {
+        $value = round($value, 4);
+
         $var = ltrim($var, '$');
         
         $rec = self::fetch(array("#scriptId = {$scriptId} AND #name = '[#1#]'", $var));
@@ -183,7 +186,7 @@ class sens2_script_DefinedVars extends core_Detail
         }
         
         if (self::$contex[$scriptId]) {
-            self::$contex[$scriptId][$var] = $value;
+            self::$contex[$scriptId]['$' . $var] = $value;
         }
         
         $dbRes = $me->db->query($query, false, true);

@@ -163,7 +163,7 @@ class cat_Products extends embed_Manager
     /**
      * Кой може да затваря?
      */
-    public $canClose = 'cat,ceo';
+    public $canClose = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -1427,29 +1427,7 @@ class cat_Products extends embed_Manager
         }
         
         $private = $products = array();
-        $metaArr = arr::make($hasProperties);
-        $hasnotProperties = arr::make($hasnotProperties);
-        
-        // За всяко свойство търсим по полето за бързо търсене
-        if (count($metaArr)) {
-            $count = 0;
-            foreach ($metaArr as $meta) {
-                if ($orHasProperties === true) {
-                    $or = ($count == 0) ? false : true;
-                } else {
-                    $or = false;
-                }
-                
-                $query->where("#{$meta} = 'yes'", $or);
-                $count++;
-            }
-        }
-        
-        if (count($hasnotProperties)) {
-            foreach ($hasnotProperties as $meta1) {
-                $query->where("#{$meta1} = 'no'");
-            }
-        }
+        self::filterQueryByMeta($query, $hasProperties, $hasnotProperties, $orHasProperties);
         
         // Подготвяме опциите
         while ($rec = $query->fetch()) {
@@ -1479,6 +1457,42 @@ class cat_Products extends embed_Manager
         }
         
         return $products;
+    }
+    
+    
+    /**
+     * Добавя филтър по свойства към артикулите
+     * 
+     * @param core_Query $query          - заявка към модела
+     * @param mixed    $hasProperties    - свойства, които да имат артикулите
+     * @param mixed    $hasnotProperties - свойства, които да нямат артикулите
+     * @param bool     $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
+     */
+    private static function filterQueryByMeta(&$query, $hasProperties = null, $hasnotProperties = null, $orHasProperties = false)
+    {
+        $metaArr = arr::make($hasProperties);
+        $hasnotProperties = arr::make($hasnotProperties);
+        
+        // Търси се всяко свойство  
+        if (count($metaArr)) {
+            $count = 0;
+            foreach ($metaArr as $meta) {
+                if ($orHasProperties === true) {
+                    $or = ($count == 0) ? false : true;
+                } else {
+                    $or = false;
+                }
+                
+                $query->where("#{$meta} = 'yes'", $or);
+                $count++;
+            }
+        }
+        
+        if (count($hasnotProperties)) {
+            foreach ($hasnotProperties as $meta1) {
+                $query->where("#{$meta1} = 'no'");
+            }
+        }
     }
     
     
@@ -2141,7 +2155,7 @@ class cat_Products extends embed_Manager
         }
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
-        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec' || $action =='close') && isset($rec)) {
             if ($rec->isPublic == 'yes') {
                 if (!haveRole('ceo,cat')) {
                     $res = 'no_one';
@@ -3621,7 +3635,38 @@ class cat_Products extends embed_Manager
                 return $paramValue;
             }
         }
+    }
+    
+    
+    /**
+     * Показване на хинтове към името на артикула
+     * 
+     * @param mixed $name
+     * @param int $id
+     * @param mixed $meta
+     */
+    public static function styleDisplayName(&$name, $id, $meta = null)
+    {
+        if(Mode::isReadOnly()) return;
         
-        // Ако се е стигнало до тук, не може да се конвертира
+        $hint = '';
+        $meta = arr::make($meta, true);
+        $metaString = implode(',', $meta);
+        $pRec = cat_Products::fetchRec($id, "state,{$metaString}");
+        $pRec->canSell = 'no';
+        if($pRec->state != 'active'){
+            $hint .= tr("Артикулът не е активен|*!");
+        }
+        
+        foreach ($meta as $m){
+            if($pRec->{$m} != 'yes'){
+                $hint = (empty($hint) ? "" : " ") . tr('Артикулът има премахнати свойства|*!');
+                break;
+            }
+        }
+        
+        if(!empty($hint)){
+            $name = ht::createHint($name, $hint);
+        }
     }
 }

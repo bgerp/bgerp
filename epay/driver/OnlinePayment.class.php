@@ -57,7 +57,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
         //@TODO тестово
-        $amount = 0.01;
+        //$amount = 0.01;
         $amount = round($amount, 2);
         
         $action = self::EPAY_DOMAIN;
@@ -73,7 +73,7 @@ class epay_driver_OnlinePayment extends core_BaseClass
         Request::removeProtected('description,accountId');
         
         //@TODO тестово
-        $action = $okUrl;
+        //$action = $okUrl;
         
         $data = (object)array('action' => $action,
                               'total' => $amount,
@@ -105,5 +105,29 @@ class epay_driver_OnlinePayment extends core_BaseClass
         $isMandatory = epay_Setup::get('MANDATORY_BEFORE_FINALIZATION');
         
         return ($isMandatory == 'yes') ? true : false;
+    }
+    
+    
+    /**
+     * Добавя за уведомителния имейл
+     *
+     * @param int $paymentId
+     *
+     * @return string|null
+     */
+    public function getText4Email($paymentId)
+    {
+        return null;
+    }
+    
+    
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        
     }
 }

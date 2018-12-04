@@ -64,12 +64,6 @@ defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
 
 
 /**
- * Кое поле да е задължително при изпращане на запитване или поръчка във външната част
- */
-defIfNot('BGERP_MANDATORY_CONTACT_FIELDS', 'company');
-
-
-/**
  * Допустим % "Недоставено" за автоматично приключване на сделка
  */
 defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
@@ -188,8 +182,6 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_BLOCK_WARNING' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Спешни, customizeBy=powerUser'),
         
         'BGERP_BLOCK_NORMAL' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
-        
-        'BGERP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни във външната част->Поле'),
     );
     
     
@@ -273,7 +265,7 @@ class bgerp_Setup extends core_ProtoSetup
         // Списък на основните модули на bgERP
         $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
                   email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
-                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
+                  budget,tcost,purchase,accda,permanent,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker,export';
         

@@ -492,6 +492,10 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
+        if (isset($data->rec->id) && log_System::haveRightFor('list')) {
+            $data->toolbar->addBtn('Системен лог', array('log_System', 'list', 'class' => $mvc->className, 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png, title=Разглеждане на логовете на документа, order=20, row=3');
+        }
+        
         $classId = $mvc->getClassId();
         if ($mvc->createView || ($classId && doc_TplManager::fetch(array("#docClassId = '[#1#]'", $classId)))) {
             if (doc_View::haveRightFor('add') && $mvc->haveRightFor('single', $data->rec->id)) {
@@ -3383,6 +3387,8 @@ class doc_DocumentPlg extends core_Plugin
                     $docMvc->prepareDocument($cRec->docId);
                 }
             } catch (Exception $e) {
+                reportException($e);
+            } catch (Throwable  $e) {
                 reportException($e);
             }
             

@@ -600,7 +600,7 @@ class hr_Indicators extends core_Manager
         $cloneQuery->XPR('minDate', 'date', 'min(#date)');
         $min = $cloneQuery->fetch()->minDate;
         
-        $data->listFilter->setOptions('period', array('' => '') + dt::getMonthsBetween($min));
+        $data->listFilter->setOptions('period', array('' => '') + dt::getMonthsBetween($min, null, 'DESC'));
         $data->listFilter->showFields = 'period,document';
         $data->query->orderBy('date', 'DESC');
         

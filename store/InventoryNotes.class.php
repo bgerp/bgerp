@@ -204,7 +204,8 @@ class store_InventoryNotes extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
-        $this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=no,maxRadio=2');
+        $this->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Подгрупи,columns=2,single=none,notNull,value=no');
+        $this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNull,value=no,maxRadio=2');
         $this->FLD('cache', 'blob', 'input=none');
     }
     
@@ -280,6 +281,7 @@ class store_InventoryNotes extends core_Master
         $form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setReadOnly('storeId');
         $form->setDefault('hideOthers', 'no');
+        $form->setDefault('expandGroups', 'no');
         
         if (isset($form->rec->id)) {
             $form->setReadOnly('storeId');

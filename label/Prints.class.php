@@ -235,7 +235,7 @@ class label_Prints extends core_Master
         
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
-            $templatesArr = label_Templates::getTemplatesByDocument($classId, $objId);
+            $templatesArr = cls::get($classId)->getLabelTemplates($objId);
             if (!count($templatesArr)) {
                 
                 return followRetUrl(null, '|Няма шаблон, който да се използва', 'error');
@@ -840,8 +840,10 @@ class label_Prints extends core_Master
                     }
                 } elseif (cls::haveInterface('doc_DocumentIntf', $clsInst)) {
                     $row->source = $clsInst->getLink($rec->objectId, 0);
-                } else {
+                } elseif($clsInst instanceof core_Master) {
                     $row->source = $clsInst->getHyperlink($rec->objectId, true);
+                } elseif(cls::haveInterface('frame2_ReportIntf', $clsInst)){
+                    $row->source = frame2_Reports::getLink($rec->objectId, 0);
                 }
             }
         }
@@ -873,7 +875,7 @@ class label_Prints extends core_Master
         
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             if ($rec->classId && $rec->objectId) {
-                if (!label_Templates::getTemplatesByDocument($rec->classId, $rec->objectId)) {
+                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId)) {
                     $requiredRoles = 'no_one';
                 }
             }

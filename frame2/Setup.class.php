@@ -51,7 +51,7 @@ class frame2_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Динамични справки';
+    public $info = 'Динамични справки и отчети';
     
     
     /**

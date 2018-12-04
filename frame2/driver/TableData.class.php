@@ -57,6 +57,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     
     
     /**
+     * Какъв да е класа на групирания ред
+     */
+    protected $groupByFieldClass = null;
+    
+    
+    /**
      * Дали групиращото поле да е на отделен ред или не
      */
     protected $groupedFieldOnNewRow = true;
@@ -118,7 +124,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     public function renderData($rec)
     {
-        $tpl = new core_ET('[#TABS#][#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]');
+        $tpl = new core_ET('[#TABS#][#PAGER_TOP#][#TABLE_BEFORE#][#TABLE#][#TABLE_AFTER#][#PAGER_BOTTOM#]');
         
         $data = (is_object($rec->data)) ? $rec->data : new stdClass();
         setIfNot($data->chartTabCaption, $this->chartTabCaption);
@@ -182,8 +188,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * рендиране на таблицата
      * 
-     * @param stdCLass $rec
-     * @param stdCLass $data
+     * @param stdClass $rec
+     * @param stdClass $data
      * @return core_ET $tpl
      */
     protected function renderTable($rec, &$data)
@@ -226,7 +232,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         // Показване на тагове
         if (core_Packs::isInstalled('uiext')) {
-            uiext_Labels::showLabels($this, $rec->containerId, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
+            uiext_Labels::showLabels($this, 'frame2_Reports', $rec->id, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
         }
         
         $filterFields = arr::make($this->filterEmptyListFields, true);
@@ -322,6 +328,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         $newRows = $rowAttr = array();
         $rowAttr['class'] = ' group-by-field-row';
+        if(isset($this->groupByFieldClass)){
+            $rowAttr['class'] .= " {$this->groupByFieldClass}";
+        }
         foreach ($groups as $groupId => $groupVerbal) {
             if ($data->groupedFieldOnNewRow === true) {
                 $groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
@@ -426,15 +435,30 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     public function getExportRecs($rec, $ExportClass)
     {
         expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
+        $recsToExport = $this->getRecsForExport($rec, $ExportClass);
         
         $recs = array();
-        if (is_array($rec->data->recs)) {
-            foreach ($rec->data->recs as $dRec) {
+        if (is_array($recsToExport)) {
+            foreach ($recsToExport as $dRec) {
                 $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
             }
         }
         
         return $recs;
+    }
+    
+    
+    /**
+     * Връща редовете, които ще се експортират от справката
+     *
+     * @param stdClass       $rec         - запис
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     *
+     * @return array                      - записите за експорт
+     */
+    protected function getRecsForExport($rec, $ExportClass)
+    {
+        return $rec->data->recs;
     }
     
     

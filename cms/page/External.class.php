@@ -52,7 +52,7 @@ class cms_page_External extends core_page_Active
         
         $this->push('js/overthrow-detect.js', 'JS');
         
-        // Евентуално се кешират страници за не PowerUsers
+        // Евентуално се кешират страници за не user
         if (($expires = Mode::get('BrowserCacheExpires')) && !haveRole('user')) {
             $this->push('Cache-Control: public', 'HTTP_HEADER');
             $this->push('Expires: ' . gmdate('D, d M Y H:i:s', time() + $expires) . ' GMT', 'HTTP_HEADER');
@@ -62,15 +62,16 @@ class cms_page_External extends core_page_Active
             $this->push('Expires: -1', 'HTTP_HEADER');
         }
         
-        $pageTpl = getFileContent('cms/tpl/Page.shtml');
+        // Обличаме кожата
+        $skin = cms_Domains::getCmsSkin();
+
+        $pageTpl = getFileContent(($skin && $skin->layout) ? $skin->layout : 'cms/tpl/Page.shtml');
         
         if (isDebug() && !log_Debug::haveRightFor('list') && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';
         }
+ 
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
-        
-        // Обличаме кожата
-        $skin = cms_Domains::getCmsSkin();
         if ($skin) {
             $skin->prepareWrapper($this);
         }
@@ -94,9 +95,9 @@ class cms_page_External extends core_page_Active
         // Къде да добавим линковете
         $footerLinks = cms_Articles::addFooterLinks();
         if (Mode::is('screenMode', 'narrow')) {
-            $this->replace($footerLinks, 'FOOTER_LINKS_NARROW');
+            $this->append($footerLinks, 'FOOTER_CENTER_NARROW');
         } else {
-            $this->replace($footerLinks, 'FOOTER_LINKS_WIDE');
+            $this->append($footerLinks, 'FOOTER_CENTER_WIDE');
         }
         
         // Ако е логнат потребител, който не е powerUser

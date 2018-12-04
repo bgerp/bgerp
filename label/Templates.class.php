@@ -628,7 +628,9 @@ class label_Templates extends core_Master
         $res = '';
         $modified = $skipped = 0;
         $array = array('defaultTplPack' => array('title' => 'Етикети от опаковки', 'path' => 'label/tpl/DefaultLabelPack.shtml', 'lang' => 'bg', 'class' => 'cat_products_Packagings', 'sizes' => array('100', '72')),
-            'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
+                       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
+                       'defaultTplPriceList' => array('title' => 'Ценоразпис без EAN', 'path' => 'label/tpl/DefaultPricelist.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
+                       'defaultTplPriceListEan' => array('title' => 'Ценоразпис с EAN', 'path' => 'label/tpl/DefaultPricelistEAN.shtml', 'lang' => 'bg', 'class' => 'price_reports_PriceList', 'sizes' => array('64.5', '33.5')),
         );
         
         core_Users::forceSystemUser();
@@ -646,6 +648,9 @@ class label_Templates extends core_Master
                         
                         if ($placeholder == 'BARCODE') {
                             $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
+                            label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                        } elseif ($placeholder == 'EAN') {
+                            $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'ean13', 'Ratio' => '4', 'Width' => '260', 'Height' => '70', 'Rotation' => 'no');
                             label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
                         } else {
                             $type = 'caption';
@@ -673,31 +678,22 @@ class label_Templates extends core_Master
     }
     
     
+    
     /**
-     * Връща шаблоните достъпни за избор от даден документ
-     *
+     * Извлича шаблоните към класа
+     * 
      * @param mixed $class
-     * @param int   $objectId
-     * @param bool  $onlyIds
-     *
      * @return array $res
      */
-    public static function getTemplatesByDocument($class, $objectId, $onlyIds = false)
+    public static function getTemplatesByClass($class)
     {
         $Class = cls::get($class);
         $tQuery = label_Templates::getQuery();
         $tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected' AND #state != 'closed'");
-        if ($onlyIds === true) {
-            $tQuery->show('id');
-        }
         
         $res = array();
         while ($tRec = $tQuery->fetch()) {
             $res[$tRec->id] = $tRec;
-        }
-        
-        if ($onlyIds === true) {
-            $res = arr::extractValuesFromArray($res, 'id');
         }
         
         return $res;

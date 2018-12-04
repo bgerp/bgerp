@@ -46,7 +46,7 @@ class acc_type_Item extends type_Key
         
         if (isset($this->options)) {
             
-            return $this->options;
+            return parent::prepareOptions();
         }
         
         $mvc = cls::get($this->params['mvc']);
@@ -91,14 +91,6 @@ class acc_type_Item extends type_Key
             // Показваме само активните, само ако е не е зададено в типа 'showAll'
             if (empty($this->params['showAll'])) {
                 $query->where("#state = 'active'");
-            } else {
-                
-                // Ако има затворен период, остават за избор само активните пера,
-                // и затворените след крайната дата на последния затворен период
-                $lastClosedPeriod = acc_Periods::getLastClosedPeriod();
-                if (!empty($lastClosedPeriod)) {
-                    $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn IS NOT NULL AND #closedOn > '{$lastClosedPeriod->end}')");
-                }
             }
             
             while ($itemRec = $query->fetch()) {
@@ -123,8 +115,6 @@ class acc_type_Item extends type_Key
         if (count($closedOptions) && count($closedOptions) != 1) {
             $this->options += $closedOptions;
         }
-        
-        $this->handler = md5($this->getSelectFld() . '|' . $where . $this->params['mvc'] . '|' . implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
         
         $this->options = parent::prepareOptions();
         
@@ -162,9 +152,9 @@ class acc_type_Item extends type_Key
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        $this->prepareOptions();
-        
-        $conf = core_Packs::getConfig('core');
+        if (!is_array($this->options) || !count($this->options)) {
+            $this->prepareOptions();
+        }
         
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {

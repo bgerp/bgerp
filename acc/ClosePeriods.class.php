@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -143,22 +143,14 @@ class acc_ClosePeriods extends core_Master
      */
     public function description()
     {
-        $this->FLD('periodId', 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent');
-        
-        $this->FLD('amountFromInvoices', 'double(decimals=2)', 'input=none,caption=ДДС от фактури с касови бележки');
+        $this->FLD('periodId', 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent,removeAndRefreshForm=amountFromInvoices');
+        $this->FLD('amountFromInvoices', 'double(decimals=2)', 'caption=ДДС от фактури с касови бележки,input=none');
         $this->FLD('amountVatGroup1', 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група A,notNull,default=0');
         $this->FLD('amountVatGroup2', 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
         $this->FLD('amountVatGroup3', 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група В,notNull,default=0');
         $this->FLD('amountVatGroup4', 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Г,notNull,default=0');
-        
         $this->FLD('amountKeepBalance', 'double(decimals=2,min=0)', 'caption=Други разходи->Салдо за поддържане,notNull,default=0');
-        
-        $this->FLD(
-            
-            'state',
-                'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
-                'caption=Статус, input=none'
-        );
+        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
     }
     
     
@@ -168,35 +160,56 @@ class acc_ClosePeriods extends core_Master
      * @param core_Manager $mvc
      * @param stdClass     $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = &$data->form;
+        $rec = &$form->rec;
+        
         $pQuery = acc_Periods::getQuery();
         $pQuery->where("#state = 'pending'");
         
-        $data->form->addAttr('periodId', array('onchange' => 'addCmdRefresh(this.form);this.form.submit();'));
-        
         $options = acc_Periods::makeArray4Select(null, array("#state = 'active' OR #state = 'pending'", $root));
-        $data->form->setOptions('periodId', $options);
+        $form->setOptions('periodId', $options);
         
-        if (empty($data->form->rec->id)) {
-            $data->form->setDefault('state', 'draft');
+        if (empty($rec->id)) {
+            $form->setDefault('state', 'draft');
         }
         
-        $data->form->setDefault('valior', dt::today());
+        $form->setDefault('valior', dt::today());
         
-        if (isset($data->form->rec->periodId)) {
+        
+        if (isset($rec->periodId)) {
+            $periodRec = acc_Periods::fetch($rec->periodId);
+            $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($periodRec->end);
+            $amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
+            $amountFromInvoicesVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountFromInvoices);
+            
+            $balanceBefore = cls::get('acc_Balances')->getBalanceBefore($periodRec->start);
+            $bQuery = acc_BalanceDetails::getQuery();
+            acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, '4535');
+            $vatFromFiscalPrinters = $bQuery->fetch()->blAmount;
+            $vatFromFiscalPrinters = ($vatFromFiscalPrinters) ? $vatFromFiscalPrinters : 0;
+            
+            $amountFromFiscalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($vatFromFiscalPrinters);
+            
+            $form->info = tr("ДДС от фактури с касови бележки|*") . ": <b>{$amountFromInvoicesVerbal}</b> {$baseCurrencyCode}<br>";
+            $form->info .= tr("ДДС по касови бележки от предходния месец|*") . ": <b>{$amountFromFiscalVerbal}</b> {$baseCurrencyCode}";
+            
+            $sign = ($vatFromFiscalPrinters > 0) ? -1 : 0;
+            $compareAmount = $amountFromInvoices + $sign * $vatFromFiscalPrinters;
+            $form->setDefault('amountFromInvoices', $compareAmount);
+            $form->setField("amountFromInvoices", "unit={$baseCurrencyCode}");
+            
             $conf = core_Packs::getConfig('sales');
             if ($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes') {
-                $pTo = acc_Periods::fetchField($data->form->rec->periodId, 'end');
-                $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($pTo);
                 foreach (range(1, 4) as $i) {
-                    $data->form->setField("amountVatGroup{$i}", "unit={$baseCurrencyCode}");
+                    $form->setField("amountVatGroup{$i}", "unit={$baseCurrencyCode}");
                 }
             } else {
-                $data->form->setField('amountVatGroup1', 'input=none');
-                $data->form->setField('amountVatGroup2', 'input=none');
-                $data->form->setField('amountVatGroup3', 'input=none');
-                $data->form->setField('amountVatGroup4', 'input=none');
+                $form->setField('amountVatGroup1', 'input=none');
+                $form->setField('amountVatGroup2', 'input=none');
+                $form->setField('amountVatGroup3', 'input=none');
+                $form->setField('amountVatGroup4', 'input=none');
             }
         }
     }
@@ -208,21 +221,17 @@ class acc_ClosePeriods extends core_Master
      * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = &$form->rec;
+        
         if ($form->isSubmitted()) {
-            $rec = &$form->rec;
             if ($mvc->fetch("#state != 'rejected' AND #periodId = '{$rec->periodId}' AND #id != '{$rec->id}'")) {
                 $form->setError('periodId', 'Има вече активиран/чернова документ за избрания период');
             }
             
             $conf = core_Packs::getConfig('sales');
             if ($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes') {
-                
-                // От избрания период извличаме сумата на фактурите с касова бележка
-                $periodRec = acc_Periods::fetch($rec->periodId);
-                $rec->amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
-                
                 $total = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
                 if ($total < $rec->amountFromInvoices) {
                     $form->setWarning('amountVatGroup1,amountVatGroup2,amountVatGroup3,amountVatGroup4', "|ДДС по ф-ри в брой|* '{$rec->amountFromInvoices}', |е по-голямо от ДДС по касов апарат|*");
@@ -232,6 +241,8 @@ class acc_ClosePeriods extends core_Master
     }
     
     
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -239,7 +250,7 @@ class acc_ClosePeriods extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($fields['-single']) {
             $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
@@ -330,7 +341,6 @@ class acc_ClosePeriods extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $self = cls::get(get_called_class());
         $title = acc_Periods::fetchField($rec->periodId, 'title');
         
         return tr("Приключване на|* \"{$title}\"");
@@ -359,12 +369,11 @@ class acc_ClosePeriods extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $rec = &$data->rec;
         
         $bRec = acc_Balances::fetch("#periodId = {$rec->periodId}");
-        
         if ($rec->state == 'active' && acc_Balances::haveRightFor('single', $bRec)) {
             $data->info = $mvc->prepareInfo($data->rec);
         }
@@ -431,7 +440,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * След рендиране на еденичния изглед
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if ($data->info) {
             
@@ -447,7 +456,6 @@ class acc_ClosePeriods extends core_Master
             $fields['creditAmount'] = 'Кредит->Сума';
             $fields['blQuantity'] = 'Крайно салдо->К-во';
             $fields['blAmount'] = 'Крайно салдо->Сума';
-            
             $details = $table->get($data->info, $fields);
             
             $tpl->append($details, 'INFO');

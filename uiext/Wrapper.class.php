@@ -22,6 +22,6 @@ class uiext_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('uiext_Labels', 'Тагове', 'uiext, admin, ceo');
-        $this->TAB('uiext_DocumentLabels', 'Документи', 'debug');
+        $this->TAB('uiext_ObjectLabels', 'Обекти', 'debug');
     }
 }

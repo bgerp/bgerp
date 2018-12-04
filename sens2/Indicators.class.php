@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class sens2_Indicators extends core_Manager
+class sens2_Indicators extends core_Detail
 {
     /**
      * Масив в който се намират всички текущи стойности на индикаторите
@@ -31,13 +31,19 @@ class sens2_Indicators extends core_Manager
     /**
      * Необходими мениджъри
      */
-    public $loadList = 'plg_RowTools2, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State2';
+    public $loadList = 'plg_RowTools2, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State2,plg_Sorting';
     
     
     /**
      * Заглавие
      */
-    public $title = 'Индикатори на входовете и изходите';
+    public $title = 'Текущи стойности на индикаторите';
+    
+    
+    /**
+     * Заглавие ед. ч.
+     */
+    public $singleTitle = 'Индикатор';
     
     
     /**
@@ -50,6 +56,12 @@ class sens2_Indicators extends core_Manager
      * Права за писане
      */
     public $canWrite = 'debug';
+    
+    
+    /**
+     * Права за писане
+     */
+    public $canEdit = 'debug';
     
     
     /**
@@ -77,6 +89,11 @@ class sens2_Indicators extends core_Manager
      */
     public $canChangestate = 'sens,admin';
     
+    public $masterKey = 'controllerId';
+    
+    
+    public $listFields = 'title,value,controllerId,error,lastValue,state';
+    
     
     /**
      * Описание на модела
@@ -84,11 +101,12 @@ class sens2_Indicators extends core_Manager
     public function description()
     {
         $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
-        $this->FLD('port', 'varchar(32)', 'caption=Порт, mandatory');
-        $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност,input=none');
+        $this->FLD('port', 'varchar(64)', 'caption=Порт, mandatory');
+        $this->FLD('name', 'varchar(64)', 'caption=Наименование,column=none');
+        $this->FLD('value', 'double(minDecimals=0, maxDecimals=4, smartRound)', 'caption=Стойност,input=none');
         $this->FLD('lastValue', 'datetime', 'caption=Към момент,oldFieldName=time,input=none');
-        $this->FLD('lastUpdate', 'datetime', 'caption=Последно време на Обновяване,column=none,input=none');
-        $this->FLD('error', 'varchar(64)', 'caption=Съобщения за грешка,input=none');
+        $this->FLD('lastUpdate', 'datetime', 'caption=Обновяване,column=none,input=none');
+        $this->FLD('error', 'varchar(128)', 'caption=Грешки,input=none');
         $this->FLD('state', 'enum(active=Активен, rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
         $this->FLD('uom', 'varchar(16)', 'caption=Мярка,column=none');
         
@@ -96,6 +114,59 @@ class sens2_Indicators extends core_Manager
         $this->FNC('isOutput', 'enum(yes,no)', 'caption=Изход ли е?,column=none');
         
         $this->setDbUnique('controllerId,port,uom');
+        $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     *
+     * @param array $idArr
+     *
+     * @return string|core_ET
+     */
+    public static function renderIndicator($idArr)
+    {
+        $res = '';
+        
+        if (!$idArr) {
+            
+            return $res;
+        }
+        
+        $rowsArr = array();
+        
+        foreach ($idArr as $id) {
+            $rec = self::fetch($id);
+            
+            if (!$rec) {
+                continue ;
+            }
+            
+            $row = self::recToVerbal($rec);
+            
+            $row->valAndUom = $row->value . "<span class='measure'>" . $row->uom . '</span>';
+            
+            $rowsArr[] = $row;
+        }
+        
+        $table = cls::get('core_TableView', array('mvc' => get_called_class()));
+        $res = $table->get($rowsArr, array('title' => 'Индикатор', 'valAndUom' => 'Стойност', 'error' => 'Грешки', 'lastValue' => 'Към момент'));
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $form->rec->name = str_replace(' ', '_', $form->rec->name);
+            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_]+$/u', $form->rec->name)) {
+                $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри и символа `_`');
+            }
+        }
     }
     
     
@@ -107,11 +178,14 @@ class sens2_Indicators extends core_Manager
         $form = $data->form;
         $rec = $form->rec;
         if ($rec->id) {
+            $form->setField('controllerId', 'input');
             $form->setReadOnly('controllerId');
+            $form->setReadOnly('port');
         }
         
-        if ($rec->controllerId) {
+        if ($rec->controllerId && !$rec->port) {
             $ap = sens2_Controllers::getActivePorts($rec->controllerId);
+            
             foreach ($ap as $port => $pRec) {
                 if (!self::fetch(array("#controllerId = {$rec->controllerId} AND #port = '[#1#]'", $port)) || $port == $rec->port) {
                     $opt[$port] = $pRec->caption;
@@ -133,7 +207,8 @@ class sens2_Indicators extends core_Manager
         $cRec = sens2_Controllers::fetch($rec->controllerId);
         
         if (!$outputs[$cRec->driver]) {
-            $drv = cls::get($cRec->driver);
+            $drv = sens2_Controllers::getDriver($rec->controllerId);
+            
             $outputs[$cRec->driver] = $drv->getOutputPorts();
         }
         
@@ -159,9 +234,9 @@ class sens2_Indicators extends core_Manager
         if (!self::$contex) {
             $query = self::getQuery();
             while ($iRec = $query->fetch()) {
-                self::$contex[$iRec->title] = (double) $iRec->value;
+                self::$contex['$' . $iRec->title] = (double) $iRec->value;
                 $controller = self::getVerbal($iRec, 'controllerId');
-                self::$contex['$' . $controller . '->' . $iRec->port] = (double) $iRec->value;
+                self::$contex['$' . $controller . '.' . $iRec->port] = (double) $iRec->value;
             }
         }
         
@@ -195,7 +270,7 @@ class sens2_Indicators extends core_Manager
             $rec = new stdClass();
         } else {
             // Ако имаме повторение на последните данни - не правим запис
-            if ($rec->value == $value && $rec->lastValue == $time) {
+            if (($rec->value == $value && $rec->lastValue == $time) || ($rec->lastValue > $time)) {
                 
                 return;
             }
@@ -228,7 +303,7 @@ class sens2_Indicators extends core_Manager
             // Записваме и в контекста, ако има такъв
             if (self::$contex) {
                 $title = self::getRecTitle($rec);
-                self::$contex[$title] = $value;
+                self::$contex['$' . $title] = $value;
             }
             
             return $rec->id;
@@ -241,9 +316,18 @@ class sens2_Indicators extends core_Manager
      */
     public static function getRecTitle($rec, $escape = true)
     {
+        if ($rec->name) {
+            $title = $rec->name;
+            if ($escape) {
+                $res = type_Varchar::escape($title);
+            }
+            
+            return $title;
+        }
+        
         $cRec = sens2_Controllers::fetch($rec->controllerId);
         
-        $title = '$' . sens2_Controllers::getVerbal($cRec, 'name') . '->';
+        $title = sens2_Controllers::getVerbal($cRec, 'name') . '.';
         
         $nameVar = $rec->port . '_name';
         
@@ -310,7 +394,7 @@ class sens2_Indicators extends core_Manager
         
         if ($rec->error && $rec->lastUpdate) {
             $color = dt::getColorByTime($rec->lastUpdate);
-            $row->error = ht::createElement('span', array('style' => "color:#{$color}"), $row->error);
+            $row->error = ht::createElement('span', array('style' => "font-size:0.8em;color:#{$color}"), $row->error);
         }
         
         // Определяне на вербалното име на порта
@@ -320,7 +404,7 @@ class sens2_Indicators extends core_Manager
         }
         
         if (!$params[$rec->controllerId]) {
-            $driver = cls::get(sens2_Controllers::fetchField($rec->controllerId, 'driver'));
+            $driver = sens2_Controllers::getDriver($rec->controllerId);
             $ctrRec = sens2_Controllers::fetch($rec->controllerId);
             $params[$rec->controllerId] = arr::combine($driver->getInputPorts($ctrRec->config), $driver->getOutputPorts($ctrRec->config));
         }
@@ -328,9 +412,20 @@ class sens2_Indicators extends core_Manager
         $var = $rec->port . '_name';
         if ($configs[$rec->controllerId]->{$var}) {
             $row->port = type_Varchar::escape($rec->port . ' (' . $configs[$rec->controllerId]->{$var} . ')');
-        } else {
+        } elseif (!empty($params[$rec->controllerId][$rec->port]->caption)) {
             $row->port = $rec->port . ' (' . type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . ')');
+        } else {
+            $row->port = $rec->port;
         }
+        
+        // Може ли потребителя да вижда хронологията на сметката
+        $attr = array('title' => 'Хронологични записи');
+        $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
+        
+        core_RowToolbar::createIfNotExists($row->_rowTools);
+        $ddTools = &$row->_rowTools;
+        $url = array('sens2_DataLogs', 'List', 'indicatorId' => $rec->id);
+        $ddTools->addLink('Записи', $url, 'ef_icon=img/16/clock_history.png,title=Хронологични записи');
         
         $row->controllerId = sens2_Controllers::getLinkToSingle($rec->controllerId, 'name');
         
@@ -340,8 +435,7 @@ class sens2_Indicators extends core_Manager
             $icon = 'hand-point.png';
         }
         
-        $url = array('sens2_DataLogs', 'List', 'indicatorId' => $rec->id);
         
-        $row->port = ht::createLink($row->port, $url, null, "ef_icon=img/16/{$icon}");
+        $row->title = ht::createLink($row->title, $url, null, "ef_icon=img/16/{$icon}");
     }
 }

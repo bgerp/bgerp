@@ -30,6 +30,9 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     {
         $msg = false;
         
+        // Да не се спира действието ако документа е чернова
+        if($rec->state == 'draft' || ($rec->state == 'rejected' && $rec->brState == 'draft')) return;
+        
         // Ако баланса се преизчислява в момента, забраняваме действието
         if (!core_Locks::get('RecalcBalances', 600, 1)) {
             $msg = 'Балансът се преизчислява в момента. Опитайте след малко!';
@@ -122,5 +125,20 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
         core_Locks::release('RecalcBalances');
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if (haveRole('ceo,admin,debug')) {
+            $url = acc_Balances::getRecalcCronUrl();
+            $data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
+        }
     }
 }

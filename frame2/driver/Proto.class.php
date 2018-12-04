@@ -131,7 +131,9 @@ abstract class frame2_driver_Proto extends core_BaseClass
         
         foreach ($fields as $name => $fld) {
             if (isset($rec->{$name}) && $fld->single !== 'none') {
-                $resArr[$name] = array('name' => tr($fld->caption), 'val' => $row->{$name});
+                $captionArr = explode('->', $fld->caption);
+                $caption = (count($captionArr) == 1) ? $captionArr[0] : $captionArr[1];
+                $resArr[$name] = array('name' => tr($caption), 'val' => $row->{$name});
             }
         }
     }
@@ -195,5 +197,44 @@ abstract class frame2_driver_Proto extends core_BaseClass
         }
         
         return arr::make($changeableFields, true);
+    }
+    
+    
+    /**
+     * Какъв ще е езика с който ще се рендират данните на шаблона
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null езика с който да се рендират данните
+     */
+    public function getRenderLang($rec)
+    {
+        return null;
+    }
+    
+    
+    /**
+     * Връща шаблоните за етикети към драйвера
+     *
+     * @param mixed $id
+     *
+     * @return array - достъпни шаблони
+     */
+    public function getLabelTemplates($id)
+    {
+        return label_Templates::getTemplatesByClass($this);
+    }
+    
+    
+    /**
+     * Може ли справката да бъде изпращана по имейл
+     *
+     * @param mixed $rec
+     *
+     * @return boolean
+     */
+    public function canBeSendAsEmail($rec)
+    {
+        return false;
     }
 }

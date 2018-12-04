@@ -92,6 +92,14 @@ class cat_ListingDetails extends doc_Detail
     
     
     /**
+     * Зебрата да не се показва
+     *
+     * @var int
+     */
+    public $zebraRows = false;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -235,6 +243,9 @@ class cat_ListingDetails extends doc_Detail
         if (isset($fields['-list'])) {
             $row->productId = cat_Products::getShortHyperlink($rec->productId);
             $row->reff = "<b>{$row->reff}</b>";
+            
+            $state = cat_Products::fetchField($rec->productId, 'state');
+            $row->ROW_ATTR['class'] = "state-{$state}";
             
             $listRec = cat_Listings::fetch($rec->listId, 'folderId,type,currencyId,vat');
             $Cover = doc_Folders::getCover($listRec->folderId);
