@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class cond_PaymentMethods extends core_Master
+class cond_PaymentMethods extends embed_Manager
 {
     /**
      * Плъгини за зареждане
@@ -101,32 +101,38 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
+     * Свойство, което указва интерфейса на вътрешните обекти
+     */
+    public $driverInterface = 'cond_OnlinePaymentIntf';
+    
+    
+    /**
+     * Как се казва полето за избор на вътрешния клас
+     */
+    public $driverClassField = 'onlinePaymentDriver';
+    
+    
+    /**
+     * Задължително ли е полето за избор на драйвер
+     */
+    public $mandatoryDriverField = false;
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
-        // Съкратено име на плащането
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
         $this->FLD('name', 'varchar', 'caption=Наименование');
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
         $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Вид плащане');
-        $this->FLD('onlinePaymentDriver', 'class(interface=cond_OnlinePaymentIntf,allowEmpty,select=title)', 'caption=Онлайн плащане');
-        
-        // Процент на авансовото плащане
+        $this->FLD('onlinePaymentDriver', 'class(interface=cond_OnlinePaymentIntf,allowEmpty,select=title)', 'caption=Онлайн плащане,silent,refreshForm');
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
-        
-        // Процент на плащане преди експедиция
         $this->FLD('paymentBeforeShipping', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,hint=Процент,oldFieldName=payBeforeReceiveShare');
-        
-        // Плащане при получаване
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
-        
-        // Колко дни след дадено събитие да е балансовото плащане?
-        $this->FLD('eventBalancePayment', 'enum(,invDate=след датата на фактурата||after invoice date,
-                                               invEndOfMonth=след края на месеца на фактурата||after the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
+        $this->FLD('eventBalancePayment', 'enum(,invDate=след датата на фактурата||after invoice date,invEndOfMonth=след края на месеца на фактурата||after the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
-        
-        // Отстъпка за предсрочно плащане
         $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
         $this->FLD('discountPeriod', 'time(uom=days,suggestions=незабавно|5 дни|10 дни|15 дни)', 'caption=Отстъпка за предсрочно плащане->Срок,hint=Дни');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
@@ -239,6 +245,7 @@ class cond_PaymentMethods extends core_Master
      */
     public static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
+        $res = array();
         expect($rec = self::fetch($pmId));
         
         if ($rec->downpayment) {
@@ -449,5 +456,24 @@ class cond_PaymentMethods extends core_Master
         }
         
         return false;
+    }
+    
+    
+    /**
+     * След рендиране на еденичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        $rec = $data->rec;
+        
+        if($Driver = $mvc->getDriver($rec)){
+            $fields = $mvc->getDriverFields($Driver);
+            if(is_array($fields)){
+                foreach ($fields as $field => $caption){
+                    $str = "<span class='quiet'>{$caption}</span>: {$data->row->{$field}}";
+                    $tpl->append($str, 'DRIVER_DATA');
+                }
+            }
+        }
     }
 }

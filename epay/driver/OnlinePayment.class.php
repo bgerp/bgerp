@@ -119,4 +119,15 @@ class epay_driver_OnlinePayment extends core_BaseClass
     {
         return null;
     }
+    
+    
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        
+    }
 }
