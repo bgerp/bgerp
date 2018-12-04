@@ -78,11 +78,7 @@ class eshop_driver_BankPayment extends core_BaseClass
         }
         
         $html .= "IBAN {$ownAccount}" . $separator;
-        $html .= $separator . tr("|Плащането трябва да се извърши по следния начин|*: ");
-
-        
         if(!Mode::is('text', 'plain')){
-            $html .= "<b>" . tr($paymentName) . "</b>";
             $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
         } else {
             $html .= tr($paymentName);
