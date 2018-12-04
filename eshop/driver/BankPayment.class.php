@@ -70,15 +70,21 @@ class eshop_driver_BankPayment extends core_BaseClass
         $paymentName = cond_PaymentMethods::getVerbal($paymentId, 'name');
         
         $html = $separator;
-        $html .= tr("|Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка|*:") . $separator;
+
+        if(!Mode::is('text', 'plain')){
+            $html .= "<div class='info-block'>";
+        }
+
+        $html .= tr("|Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка|*:") . $separator;
         $ownAccount = bank_OwnAccounts::getVerbal($rec->ownAccount, 'bankAccountId');
-        
+
         if(!Mode::is('text', 'plain')){
             $ownAccount = "<b>{$ownAccount}</b>";
         }
         
         $html .= "IBAN {$ownAccount}" . $separator;
         if(!Mode::is('text', 'plain')){
+            $html .= "</div>";
             $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
         } else {
             $html .= tr($paymentName);
@@ -100,8 +106,8 @@ class eshop_driver_BankPayment extends core_BaseClass
     {
         return false;
     }
-    
-    
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -111,8 +117,8 @@ class eshop_driver_BankPayment extends core_BaseClass
     {
         $fieldset->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Банкова сметка,mandatory,after=onlinePaymentDriver');
     }
-    
-    
+
+
     /**
      * Извиква се след успешен запис в модела
      *

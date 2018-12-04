@@ -5408,7 +5408,13 @@ div.location.public {
 		display: table-cell;
 	}
 }
-
+.info-block {
+	border: 1px solid #38d0ff;
+	background: #c6f1ff;
+	color: #00526b;
+	border-radius: 5px;
+	padding: 5px;
+}
 .epayBtn {
 	border: none;
 	background: none;
