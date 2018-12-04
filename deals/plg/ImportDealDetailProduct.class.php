@@ -169,10 +169,21 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $pRec = cat_Products::getByCode($obj->code);
+           
+            $state = cat_Products::fetchField($pRec->productId, 'state');
+            if($state != 'active'){
+                $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
+                continue;
+            }
             
             if (!$pRec) {
-                $err[$i][] = $obj->code . ' |Няма продукт с такъв код|*';
+                $err[$i][] = $obj->code . ' |Няма артикул с такъв код|*';
                 continue;
+            }
+            
+            $meta = cat_Products::fetchField($pRec->productId, $mvc->metaProducts);
+            if($meta != 'yes'){
+                $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
             }
             
             $packs = cat_Products::getPacks($pRec->productId);
@@ -277,7 +288,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $msg .= '<ul>';
             foreach ($err as $j => $r) {
                 $errMsg = implode(', ', $r);
-                $msg .= "|*<li>|Ред|* '{$j}' - {$errMsg}" . '</li>';
+                $msg .= "|*<li>|Ред|* '{$j}' : {$errMsg}" . '</li>';
             }
             $msg .= '</ul>';
         }

@@ -190,7 +190,7 @@ class acc_BalanceRepairDetails extends doc_Detail
         
         // Задаване на дефолти при нужда
         $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
-        if($useDefaults == 'yes'){
+        if($useDefaults != 'yes'){
             $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW'));
             $form->setDefault('blAmount', acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW'));
         }

@@ -1394,6 +1394,19 @@ a.tOld {
     border: 0px !important; }
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
+  .document .original {
+    letter-spacing: 3px;
+    color: #999999; }
+
+  .narrow .document span.state {
+    padding: 2px 5px;
+    border-radius: 3px;
+    display: inline-block; }
+  .narrow .document .original {
+    margin-top: 3px;
+    font-size: 0.9em; }
+  .narrow .document .subtitle {
+    margin-top: 4px; }
 
 .lighterColor {
   opacity: 0.6;

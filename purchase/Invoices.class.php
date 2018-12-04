@@ -545,8 +545,8 @@ class purchase_Invoices extends deals_InvoiceMaster
     public function loadSetupData()
     {
         $tplArr = array();
-        $tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
-        $tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/InvoiceNarrow.shtml');
+        $tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/InvoiceNarrow.shtml');
         
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);

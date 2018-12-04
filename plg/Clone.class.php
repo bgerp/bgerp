@@ -373,15 +373,15 @@ class plg_Clone extends core_Plugin
                                 }
                             }
                             
-                            $Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
-                            
-                            if ($Detail->isUnique($dRec, $fields)) {
-                                
-                                // Записваме клонирания детайл
-                                $Detail->save($dRec);
-                                $Detail->invoke('AfterSaveClonedDetail', array($dRec, $oldRec));
-                            } else {
-                                $notClones = true;
+                            if($Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec))){
+                                if ($Detail->isUnique($dRec, $fields)) {
+                                    
+                                    // Записваме клонирания детайл
+                                    $Detail->save($dRec);
+                                    $Detail->invoke('AfterSaveClonedDetail', array($dRec, $oldRec));
+                                } else {
+                                    $notClones = true;
+                                }
                             }
                         }
                     }
