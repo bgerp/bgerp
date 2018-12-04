@@ -3472,7 +3472,7 @@ table .eshop-btn {
     font-family: Verdana, Helvetica, Arial, Sans-serif; }
 
 .narrow .defaultNewsbar {
-  margin-bottom: 25px; }
+  margin: 10px 0 5px; }
 
   #cmsNavigation .defaultNewsbar a.fancybox:hover {
     background: none !important;
