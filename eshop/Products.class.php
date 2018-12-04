@@ -331,7 +331,7 @@ class eshop_Products extends core_Master
             foreach($rec->nearProducts as $productId => $weight) {
                 $row->nearProducts .= "<li>" . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . "</li>";
             }
-            $row->nearProducts = '<p>' . tr('Вижте също') . ':</p><ul>' . $row->nearProducts . "</ul>";
+            $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . "</ul>";
         }
     }
     

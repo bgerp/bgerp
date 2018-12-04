@@ -181,47 +181,6 @@ class marketing_Router
     
     
     /**
-     * Рутира в папка на лице с подобно име от същата държава
-     *
-     * @param string $name      - име на лице
-     * @param int    $countryId - ид на държава
-     *
-     * @return int - ид на папка
-     */
-    public static function routeByPerson($name, $countryId, $inCharge)
-    {
-        $nameArr = explode(' ', $name);
-        
-        if (count($nameArr) == 1) {
-            
-            return;
-        }
-        
-        $name = preg_replace('/\s+/', ' ', $name);
-        
-        $conf = core_Packs::getConfig('crm');
-        $query = crm_Persons::getQuery();
-        $query->where(array("#name = '[#1#]'", $name));
-        $query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
-        
-        $ownCountryId = crm_Companies::fetchOurCompany()->country;
-        if ($ownCountryId == $countryId) {
-            $query->orWhere('#country IS NULL');
-        }
-        
-        if ($person = $query->fetch()) {
-            try {
-                expect($person, $person);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-            }
-            
-            return crm_Persons::forceCoverAndFolder((object) array('id' => $person->id, 'inCharge' => $inCharge));
-        }
-    }
-    
-    
-    /**
      * Форсиране на папка на лице с подадените адресни данни
      *
      * @param string $name     - име

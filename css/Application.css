@@ -3454,7 +3454,7 @@ table .eshop-btn {
     white-space: nowrap; }
 
 .cms-last .defaultNewsbar {
-  margin: 5px 0; }
+  margin: 5px 0 20px; }
 
 .defaultNewsbar {
   background-color: white;
@@ -3470,6 +3470,9 @@ table .eshop-btn {
     margin: 0; }
   .defaultNewsbar .richtext {
     font-family: Verdana, Helvetica, Arial, Sans-serif; }
+
+.narrow .defaultNewsbar {
+  margin: 10px 0px; }
 
   #cmsNavigation .defaultNewsbar a.fancybox:hover {
     background: none !important;
