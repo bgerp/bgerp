@@ -192,8 +192,8 @@ class cms_Articles extends core_Master
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), null, 'ef_icon=img/16/monitor.png');
         }
     }
-
-
+    
+    
     /**
      * Връща записа на предходната или на следващата статия от даденото меню спрямо тази
      */
@@ -201,7 +201,7 @@ class cms_Articles extends core_Master
     {
         $query = self::getQuery();
         $query->limit(1);
-        if($dir > 0) {
+        if ($dir > 0) {
             $query->orderBy('level');
             $query->where("#level > {$rec->level}");
         } else {
@@ -209,9 +209,9 @@ class cms_Articles extends core_Master
             $query->where("#level < {$rec->level}");
         }
         $query->where("#menuId = {$rec->menuId}");
-
+        
         $nextOrPrevRec = $query->fetch();
-
+        
         return $nextOrPrevRec;
     }
     
@@ -251,13 +251,13 @@ class cms_Articles extends core_Master
         if (is_object($rec) && $rec->state != 'active' && !haveRole('admin,ceo,cms')) {
             error('404 Липсваща страница');
         }
-
-        if(!trim($rec->body)) {
+        
+        if ($rec && !trim($rec->body)) {
             $nextRec = self::getPrevOrNext($rec);
-
-            if($nextRec) {
+            
+            if ($nextRec) {
                 $url = self::getUrl($nextRec);
-
+                
                 return new Redirect($url);
             }
         }
@@ -933,7 +933,7 @@ class cms_Articles extends core_Master
         }
         
         $links = implode(' | ', $links);
-        $tpl = new core_ET("[#FOOTER_LINKS#]");
+        $tpl = new core_ET('[#FOOTER_LINKS#]');
         $tpl->append($links, 'FOOTER_LINKS');
         
         return $tpl;
@@ -951,7 +951,9 @@ class cms_Articles extends core_Master
         $res = array();
         
         while ($rec = $query->fetch()) {
-            if(!trim($rec->body)) continue;
+            if (!trim($rec->body)) {
+                continue;
+            }
             $resObj = new stdClass();
             $resObj->loc = $this->getUrl($rec, true);
             $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
