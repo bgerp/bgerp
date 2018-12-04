@@ -685,7 +685,7 @@ class store_InventoryNoteSummary extends doc_Detail
                     
                     if (keylist::isIn($dId, $e->{$groupFld})) {
                         $e->groupName = $dName;
-                        
+                        $e->_groupId = $dId;
                         return true;
                     }
                     
@@ -695,20 +695,28 @@ class store_InventoryNoteSummary extends doc_Detail
                 // Ако има намерени резултати
                 if (count($res) && is_array($res)) {
                     
-                    // От $recs, премахваме отделените записи, да не се обхождат отново
+                    // От $recs се премахват отделените записи, да не се обхождат отново
+                    // добавяме артикулите към подредените
                     $recs = array_diff_key($recs, $res);
-                    
-                    // Проверяваме как трябва да се сортират артикулите вътре по код или по име
-                    $orderProductBy = cat_Groups::fetchField($grId, 'orderProductBy');
-                    $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
-                        
-                    // Сортираме артикулите в маркера
-                    arr::sortObjects($res, $field, 'asc', 'stri');
-                        
-                    // Добавяме артикулите към подредените
                     $ordered += $res;
                }
             }
+        }
+        
+        // Правилна подредба
+        if(is_array($ordered)){
+            uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $groupFld) {
+                if ($a->groupName == $b->groupName) {
+                    $orderProductBy = cat_Groups::fetchField($a->_groupId, 'orderProductBy');
+                    $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
+                    
+                    $result = strcasecmp($a->{$field}, $b->{$field});
+                } else {
+                    $result = $a->groupName > $b->groupName;
+                }
+                
+                return $result;
+            });
         }
         
         // В $recs трябва да са останали несортираните

@@ -3635,7 +3635,38 @@ class cat_Products extends embed_Manager
                 return $paramValue;
             }
         }
+    }
+    
+    
+    /**
+     * Показване на хинтове към името на артикула
+     * 
+     * @param mixed $name
+     * @param int $id
+     * @param mixed $meta
+     */
+    public static function styleDisplayName(&$name, $id, $meta = null)
+    {
+        if(Mode::isReadOnly()) return;
         
-        // Ако се е стигнало до тук, не може да се конвертира
+        $hint = '';
+        $meta = arr::make($meta, true);
+        $metaString = implode(',', $meta);
+        $pRec = cat_Products::fetchRec($id, "state,{$metaString}");
+        $pRec->canSell = 'no';
+        if($pRec->state != 'active'){
+            $hint .= tr("Артикулът не е активен|*!");
+        }
+        
+        foreach ($meta as $m){
+            if($pRec->{$m} != 'yes'){
+                $hint = (empty($hint) ? "" : " ") . tr('Артикулът има премахнати свойства|*!');
+                break;
+            }
+        }
+        
+        if(!empty($hint)){
+            $name = ht::createHint($name, $hint);
+        }
     }
 }
