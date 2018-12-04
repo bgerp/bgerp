@@ -71,6 +71,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'powerUser';
+    
+    
+    /**
      * Права за писане
      */
     public $canEdit = 'powerUser';
@@ -743,7 +749,7 @@ class frame2_Reports extends embed_Manager
             }
         }
         
-        if (($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass, $rec->id)) {
+        if (in_array($action, array('edit', 'clonerec', 'close')) && isset($rec->driverClass, $rec->id)) {
             if ($Driver = $mvc->getDriver($rec)) {
                 $fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
                 
