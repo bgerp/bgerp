@@ -179,12 +179,6 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Максимален брон на пазене на версии
-     */
-    const MAX_VERSION_HISTORT_COUNT = 10;
-    
-    
-    /**
      * Дефолтен текст за нотификация
      */
     protected static $defaultNotificationText = "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'";
@@ -246,7 +240,7 @@ class frame2_Reports extends embed_Manager
         $form = &$data->form;
         $rec = $form->rec;
         $form->setField('notificationText', array('placeholder' => self::$defaultNotificationText));
-        $form->setField('maxKeepHistory', array('placeholder' => self::MAX_VERSION_HISTORT_COUNT));
+        $form->setField('maxKeepHistory', array('placeholder' => frame2_Setup::get('MAX_VERSION_HISTORT_COUNT')));
         
         if ($Driver = self::getDriver($rec)) {
             $dates = $Driver->getNextRefreshDates($rec);
