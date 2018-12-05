@@ -702,7 +702,7 @@ class eshop_Carts extends core_Master
             $folderId = $rec->saleFolderId;
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
-            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation);
+            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation, $rec->domainId);
             $Cover = doc_Folders::getCover($folderId);
         }
         
@@ -733,7 +733,10 @@ class eshop_Carts extends core_Master
             'deliveryLocationId' => $rec->locationId,
         );
         
-        if(!empty($settings->dealerId)){
+        $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
+        if(haveRole('sales', $folderIncharge)){
+            $fields['dealerId'] = $settings->dealerId;
+        } elseif(!empty($settings->dealerId)){
             $fields['dealerId'] = $settings->dealerId;
         }
         

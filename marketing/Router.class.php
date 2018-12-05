@@ -30,11 +30,21 @@ class marketing_Router
      *
      * @param string $city      - град
      * @param int    $countryId - ид на държава
-     *
+     * @param int $domainId     - домейн
+     * 
      * @return int $inCharge - ид на потребител
      */
-    public static function getInChargeUser($city, $countryId)
+    public static function getInChargeUser($city, $countryId, $domainId)
     {
+        if(isset($domainId)){
+            $settings = cms_Domains::getSettings($domainId);
+            if(isset($settings->dealerId)){
+                if(haveRole('sales', $settings->dealerId)){
+                    
+                    return $settings->dealerId;
+                }
+            }
+        }
         $conf = core_Packs::getConfig('email');
         
         // Ако има град
