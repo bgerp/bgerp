@@ -66,11 +66,9 @@ class eshop_driver_BankPayment extends core_BaseClass
     public function getText4Email($paymentId)
     {
         $rec = cond_PaymentMethods::fetchRec($paymentId);
-        $separator = Mode::is('text', 'plain') ? "\n" : "<br>";
-        $paymentName = cond_PaymentMethods::getVerbal($paymentId, 'name');
+        $separator = Mode::is('text', 'plain') ? "" : "<br>";
         
         $html = $separator;
-
         $html .= tr("|Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка|*:") . $separator;
         $ownAccount = bank_OwnAccounts::getVerbal($rec->ownAccount, 'bankAccountId');
 
@@ -78,11 +76,9 @@ class eshop_driver_BankPayment extends core_BaseClass
             $ownAccount = "<b>{$ownAccount}</b>";
         }
         
-        $html .= "IBAN {$ownAccount}" . $separator;
+        $html .= "IBAN {$ownAccount}." . $separator;
         if(!Mode::is('text', 'plain')){
             $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
-        } else {
-            $html .= tr($paymentName);
         }
         
         return $html;

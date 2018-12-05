@@ -790,7 +790,6 @@ class eshop_Carts extends core_Master
         
         self::activate($rec, $saleRec->id);
         eshop_Carts::logDebug("Активиране на количката", $rec->id);
-        
         doc_Threads::doUpdateThread($saleRec->threadId);
         
         if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
@@ -871,14 +870,25 @@ class eshop_Carts extends core_Master
         core_Lg::push($lang);
         
         // Подготовка на тялото на имейла
+        $body = new core_ET($settings->emailBody);
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
-        $body = ($threadCount == 1) ? $settings->emailBodyWithReg : $settings->emailBodyWithoutReg;
-        $body = new core_ET($body);
         
-        // Ако има избран метод на плащане
+        $makeInvoice = tr(self::getVerbal($rec, 'makeInvoice'));
+        $body->replace($makeInvoice, 'MAKE_INVOICE');
+        
+        $termId = tr(self::getVerbal($rec, 'termId'));
+        $body->replace($termId, 'TERM_ID');
+        
+        $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+        $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+        $body->replace("{$amount} {$settings->currencyId}", 'AMOUNT');
+       
+        if($threadCount == 1){
+            $body->replace(new core_ET($settings->emailRegistrationText), 'REGISTER_LINK');
+        }
+        
+        // Ако има избран метод на плащане, добавя се и текста, който трябва да се добави до имейла
         if (isset($rec->paymentId)) {
-            
-            // Добавя се и текста, който трябва да се добави до имейла
             if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
                 Mode::push('text', 'plain');
                 $paymentText = $PaymentDriver->getText4Email($rec->paymentId);
@@ -891,22 +901,21 @@ class eshop_Carts extends core_Master
         }
         
         $body->replace($rec->personNames, 'NAME');
-        
         if ($hnd = sales_Sales::getHandle($saleRec->id)) {
             $body->replace("#{$hnd}", 'SALE_HANDLER');
         }
         
-        $domainName = '';
-        cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
-        $body->replace($domainName, 'domainId');
-        
-        // Линка за регистрация
         $Cover = doc_Folders::getCover($saleRec->folderId);
-        $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames), 604800);
+        if($threadCount == 1){
+            $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames), 604800);
+            $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
+            $body->replace($url, 'link');
+        }
         
-        $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
-        $body->replace($url, 'link');
-        
+        $domainName = '';
+        $selfUrl = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        $domainUrl= "[link={$selfUrl}]" . $domainName . '[/link]';
+        $body->replace($domainUrl, 'domainId');
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
         
         // Подготовка на имейла
@@ -924,7 +933,6 @@ class eshop_Carts extends core_Master
         Mode::set('isSystemCanSingle', true);
         
         email_Outgoings::save($emailRec);
-        
         email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id, 360, $cu);
         cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
         email_Outgoings::logWrite('Активиране', $emailRec->id, 360, $cu);
@@ -2083,9 +2091,11 @@ class eshop_Carts extends core_Master
         
         $domainName = '';
         $selfUrl = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        $createdOn = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         
         $lang = cms_Domains::fetchField($rec->domainId, 'lang');
         core_Lg::push($lang);
+        $deleteTime = core_Type::getByName('time(uom=hours)')->toVerbal($settings->timeBeforeDelete);
         
         // Подготовка на тялото на имейла
         $body = (object)array('html' => new core_ET($settings->emailBodyNotify), 'text' => new core_ET($settings->emailBodyNotify));
@@ -2098,6 +2108,8 @@ class eshop_Carts extends core_Master
                 $link = cls::get('type_Richtext')->toVerbal($link);
             }
             
+            $body->{$var}->replace($deleteTime, 'DELETE_TIME');
+            $body->{$var}->replace($createdOn, 'DATE');
             $body->{$var}->replace(core_Type::getByName('varchar')->toVerbal($rec->personNames), 'NAME');
             $body->{$var}->replace($link, 'LINK');
             $body->{$var}->replace($domainName, 'domainId');
