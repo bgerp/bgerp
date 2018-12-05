@@ -121,11 +121,10 @@ class frame2_CsvExport extends core_Mvc
         if (isset($fileHnd)) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/csv.png, title=Сваляне на документа');
             $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+            $Frame->logWrite('Експорт на CSV', $objId);
         } else {
             $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
         }
-        
-        $Frame->logWrite('Генериране на CSV', $objId);
         
         return $fileHnd;
     }
