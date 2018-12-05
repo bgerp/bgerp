@@ -97,13 +97,13 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български, за уведомление за незавършена поръчка
      */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка от [#DATE#] в онлайн магазина [#LINK#]. Ако не я довършите, тя ще бъде изтрита след [#DELETE_TIME#].\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\n\nИмате незавършена поръчка от [#DATE#] в онлайн магазина [#LINK#]. Ако не я довършите, тя ще бъде изтрита след [#DELETE_TIME#].\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
      * Дефолтен шаблон за имейл на английски, за уведомление за незавършена поръчка
      */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\nYou have unfinished order from [#DATE#] in our online store [#LINK#]. If you don't complete it, it will be deleted in [#DELETE_TIME#].\n\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\n\nYou have unfinished order from [#DATE#] in our online store [#LINK#]. If you don't complete it, it will be deleted in [#DELETE_TIME#].\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
