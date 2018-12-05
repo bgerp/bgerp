@@ -1273,18 +1273,23 @@ class eshop_Carts extends core_Master
         
         // Ако се изисква онлайн плащане добавя се бутон към него
         if (isset($rec->paymentId)) {
+            
+            // Ако самия метод на плащане, добавяв текст показва се
             $paymentRec = cond_PaymentMethods::fetch($rec->paymentId);
             if(!empty($paymentRec->onlinePaymentText)){
-                $onlinePaymentText = core_Type::getByName('html')->toVerbal($paymentRec->onlinePaymentText);
+                $onlinePaymentText = core_Type::getByName('text')->toVerbal($paymentRec->onlinePaymentText);
                 $tpl->append($onlinePaymentText, 'PAYMENT_TEXT_RIGHT');
             }
             
             if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
+               
+                // Ако драйвера на метода на плащане добавя текст, показва се и той
                 $paymentDriverText = $PaymentDriver->getDisplayHtml($paymentRec);
                 if(!empty($paymentDriverText)){
                     $tpl->append($paymentDriverText, 'PAYMENT_TEXT_RIGHT');
                 }
                 
+                // Ако има поне един артикул, показва се бутона за онлайн плащане
                 if(!empty($rec->productCount)){
                     $cancelUrl = array('eshop_Carts', 'abort', $rec->id);
                     $okUrl = array('eshop_Carts', 'confirm', $rec->id);
