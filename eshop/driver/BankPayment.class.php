@@ -67,9 +67,8 @@ class eshop_driver_BankPayment extends core_BaseClass
     {
         $rec = cond_PaymentMethods::fetchRec($paymentId);
         $separator = Mode::is('text', 'plain') ? "" : "<br>";
-        
-        $html = $separator;
-        $html .= tr("|Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка|*:") . $separator;
+
+        $html = tr("|Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка|*:") . $separator;
         $ownAccount = bank_OwnAccounts::getVerbal($rec->ownAccount, 'bankAccountId');
 
         if(!Mode::is('text', 'plain')){
@@ -77,9 +76,6 @@ class eshop_driver_BankPayment extends core_BaseClass
         }
         
         $html .= "IBAN {$ownAccount}." . $separator;
-        if(!Mode::is('text', 'plain')){
-            $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
-        }
         
         return $html;
     }
