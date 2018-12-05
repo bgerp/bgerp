@@ -310,7 +310,7 @@ class eshop_Carts extends core_Master
                 $msg = $addText->getContent();
                 $success = true;
                 
-                vislog_History::add("Добавяне на артикул «{$productName}» в количка №{$cartId}");
+                vislog_History::add("Добавяне на артикул «{$productName}» в количка");
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $msg = '|Артикулът не е добавен|*!';
@@ -377,7 +377,7 @@ class eshop_Carts extends core_Master
             self::save($rec);
             
             $domainName = cms_Domains::getVerbal($domainId, 'titleExt');
-            vislog_History::add("Създаване на количка №{$rec->id} в {$domainName}");
+            vislog_History::add("Създаване на количка");
         }
         
         return $rec->id;
@@ -593,7 +593,7 @@ class eshop_Carts extends core_Master
             self::forceBankIncomeDocument($description, $saleRec, $accountId);
         }
         
-        vislog_History::add("Финализиране на количка №{$rec->id}");
+        vislog_History::add("Финализиране на количка");
         
         $msg = '|Благодарим за поръчката|*!';
         if($saleRec->_paymentInstructionsSend === true){
@@ -1065,7 +1065,7 @@ class eshop_Carts extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
         
-        vislog_History::add("Разглеждане на количка №{$rec->id}");
+        vislog_History::add("Разглеждане на количка");
         
         return $tpl;
     }
@@ -1542,7 +1542,7 @@ class eshop_Carts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $this->requireRightFor('checkout', $rec);
-        vislog_History::add("Въвеждане на данни за количка №{$rec->id}");
+        vislog_History::add("Въвеждане на данни за количка");
         
         $settings = cms_Domains::getSettings();
         $countries = keylist::toArray($settings->countries);
