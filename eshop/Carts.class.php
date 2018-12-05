@@ -2100,7 +2100,7 @@ class eshop_Carts extends core_Master
         
         $lang = cms_Domains::fetchField($rec->domainId, 'lang');
         core_Lg::push($lang);
-        $deleteTime = core_Type::getByName('time(uom=hours)')->toVerbal($settings->timeBeforeDelete);
+        $deleteTime = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($settings->timeBeforeDelete);
         
         // Подготовка на тялото на имейла
         $body = (object)array('html' => new core_ET($settings->emailBodyNotify), 'text' => new core_ET($settings->emailBodyNotify));
