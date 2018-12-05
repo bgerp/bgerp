@@ -879,8 +879,10 @@ class eshop_Carts extends core_Master
         $makeInvoice = tr(self::getVerbal($rec, 'makeInvoice'));
         $body->replace($makeInvoice, 'MAKE_INVOICE');
         
-        $termId = tr(self::getVerbal($rec, 'termId'));
-        $body->replace($termId, 'TERM_ID');
+        if(isset($rec->termId)){
+            $termId = tr(cond_DeliveryTerms::getVerbal($rec->termId, 'term'));
+            $body->replace($termId, 'TERM_ID');
+        }
         
         $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);

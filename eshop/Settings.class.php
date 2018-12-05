@@ -79,7 +79,7 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#] за [#AMOUNT#], [#MAKE_INVOICE#], [#TERM_ID#].\n[#PAYMENT_TEXT#]<!--ET_BEGIN REGISTER_LINK-->\n[#REGISTER_LINK#]<!--ET_END REGISTER_LINK-->\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_BODY_BG = "\nЗдравейте [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#] за [#AMOUNT#], [#MAKE_INVOICE#], Доставка - [#TERM_ID#].\n[#PAYMENT_TEXT#]<!--ET_BEGIN REGISTER_LINK-->\n[#REGISTER_LINK#]<!--ET_END REGISTER_LINK-->\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
     
     
     /**
@@ -91,7 +91,7 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#] for [#AMOUNT#], [#MAKE_INVOICE#], [#TERM_ID#].\n[#PAYMENT_TEXT#]<!--ET_BEGIN REGISTER_LINK-->\n[#REGISTER_LINK#]<!--ET_END REGISTER_LINK-->\n\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_BODY_EN = "\nHello [#NAME#],\n\nThank you for your purchase [#SALE_HANDLER#] for [#AMOUNT#], [#MAKE_INVOICE#], Delivery - [#TERM_ID#].\n[#PAYMENT_TEXT#]<!--ET_BEGIN REGISTER_LINK-->\n[#REGISTER_LINK#]<!--ET_END REGISTER_LINK-->\n\nKind regards\nThe team of [#domainId#]";
     
     
     /**
