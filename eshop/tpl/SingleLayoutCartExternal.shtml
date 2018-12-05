@@ -193,8 +193,10 @@
             </table>
          </div>
          <!--ET_BEGIN PAYMENT_TEXT_RIGHT-->
-         <div class = 'cart-view-buttons-right info-block'>
-         [#PAYMENT_TEXT_RIGHT#]
+         <div class = 'cart-view-buttons-right' style="margin: 20px 0">
+            <div class="info-block">
+               [#PAYMENT_TEXT_RIGHT#]
+            </div>
          </div>
          <!--ET_END PAYMENT_TEXT_RIGHT-->
          <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
