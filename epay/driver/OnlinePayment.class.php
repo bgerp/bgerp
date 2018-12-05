@@ -130,4 +130,18 @@ class epay_driver_OnlinePayment extends core_BaseClass
     {
         
     }
+    
+    
+    /**
+     * Информативния текст за онлайн плащането
+     *
+     * @param mixed $rec
+     * @return string|null
+     */
+    public function getDisplayHtml($rec)
+    {
+        $text = tr('Моля, завършете поръчката, като направите плащането от бутона') . ' <b>"ePay Now"</b>';
+        
+        return $text;
+    }
 }

@@ -50,7 +50,7 @@ class eshop_driver_BankPayment extends core_BaseClass
      */
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
-        $html = $this->getText4Email($paymentId);
+        $html = '';
         
         return $html;
     }
@@ -65,15 +65,11 @@ class eshop_driver_BankPayment extends core_BaseClass
      */
     public function getText4Email($paymentId)
     {
-        $rec = cond_PaymentMethods::fetch($paymentId);
+        $rec = cond_PaymentMethods::fetchRec($paymentId);
         $separator = Mode::is('text', 'plain') ? "\n" : "<br>";
         $paymentName = cond_PaymentMethods::getVerbal($paymentId, 'name');
         
         $html = $separator;
-
-        if(!Mode::is('text', 'plain')){
-            $html .= "<div class='info-block'>";
-        }
 
         $html .= tr("|Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка|*:") . $separator;
         $ownAccount = bank_OwnAccounts::getVerbal($rec->ownAccount, 'bankAccountId');
@@ -84,7 +80,6 @@ class eshop_driver_BankPayment extends core_BaseClass
         
         $html .= "IBAN {$ownAccount}" . $separator;
         if(!Mode::is('text', 'plain')){
-            $html .= "</div>";
             $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
         } else {
             $html .= tr($paymentName);
@@ -115,7 +110,7 @@ class eshop_driver_BankPayment extends core_BaseClass
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Банкова сметка,mandatory,after=onlinePaymentDriver');
+        $fieldset->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Банкова сметка,mandatory,after=onlinePaymentText');
     }
 
 
@@ -130,5 +125,17 @@ class eshop_driver_BankPayment extends core_BaseClass
     protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, &$row, $rec)
     {
         $row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount, true);
+    }
+    
+    
+    /**
+     * Информативния текст за онлайн плащането
+     *
+     * @param mixed $rec
+     * @return string|null
+     */
+    public function getDisplayHtml($rec)
+    {
+        return $this->getText4Email($rec);
     }
 }
