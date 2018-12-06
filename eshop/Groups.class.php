@@ -516,12 +516,17 @@ class eshop_Groups extends core_Master
             $fRec = self::fetch($groupId);
             $data->menuId = $menuId = $fRec->menuId;
             $parentGroupsArr = array($fRec->id);
+            
+            $sisCond = '';
+            if($fRec->saoParentId) {
+                $sisCond = " OR #saoParentId = {$fRec->saoParentId} ";
+            }
             while ($fRec->saoLevel > 1) {
                 $parentGroupsArr[] = $fRec->id;
                 $fRec = self::fetch($fRec->saoParentId);
             }
             $parentGroupsList = implode(',', $parentGroupsArr);
-            $query->where("#id IN({$parentGroupsList}) OR #saoParentId = {$groupId} OR #saoLevel <= 1");
+            $query->where("#id IN({$parentGroupsList}) OR #saoParentId = {$groupId} {$sisCond} OR #saoLevel <= 1");
         } else {
             $query->where("#saoLevel <= 1");
         }
