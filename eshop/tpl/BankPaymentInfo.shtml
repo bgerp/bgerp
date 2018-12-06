@@ -1,17 +1,40 @@
-<div>
-<div>|Моля, приведете сумата от|* [#AMOUNT#] |по банков път, към|*:</div>
+<div class = "cms-row">
+<div class="twelvecol" style="margin: 0 2%">
+    <h2>Поръчката е направена успешно</h2>
+    <p>|Информация за плащането|*:<p>
 
-<div>[#MyCompany#]</div>
-<div>[#MyAddress#]</div>
+    <div class="summary-block" style="display: inline-block; float: none; border: 1px solid #bbb;">
+        <table>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">IBAN:</td>
+                <td><b>[#IBAN#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Банкa|*:</td>
+                <td>[#BANK#], BIC: [#BIC#]</td>
+            </tr>
 
-<div>|Банка|*: [#BANK#]</div>
-<div>BIC: [#BIC#]</div>
-<div>IBAN: [#IBAN#]</div>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Сума|*:</td>
+                <td><b>[#AMOUNT#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Основание|*:</td>
+                <td><b>[#HANDLER#]</b></td>
+            </tr>
+            <tr>
+                <td class='aright' style="padding-right: 10px;">|Титуляр|*:</td>
+                <td>[#MyCompany#]</td>
+            </tr>
+        </table>
+    </div>
+    <p>|Може да свалите примерно платежно нареждане от|* [#PO_LINK#]</p>
 
-<div>|В основанието за плащане, моля напишете|*: [#HANDLER#]</div>
+    <p>[#BACK_BTN#]</p>
 
-<div>|Може да свалите примерно платежно нареждане от|* [#PO_LINK#]</div>
 
-<div>[#BACK_BTN#]</div>
+</div>
+
+
 
 </div>
