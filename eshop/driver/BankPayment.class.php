@@ -181,7 +181,7 @@ class eshop_driver_BankPayment extends core_BaseClass
         $shopLink = ht::createLink(tr("|*« |Към магазина|*"), $shopUrl);
         $tpl->replace($shopLink, 'BACK_BTN');
         
-        core_Lg::pop($lang);
+        core_Lg::pop();
         
         return $tpl;
     }
