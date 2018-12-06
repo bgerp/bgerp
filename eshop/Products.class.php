@@ -1336,6 +1336,8 @@ class eshop_Products extends core_Master
                             }
                         }
                     }
+                    arsort($r[$epId]);
+                    $r[$epId] = array_slice($r[$epId], 0, 10, true);
                 }
             }
         }
