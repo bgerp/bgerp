@@ -71,6 +71,12 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Кой може да създава нова продажба?
+     */
+    public $canMakenewsale = 'eshop,sales,ceo';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canViewexternal = 'every_one';
@@ -328,13 +334,10 @@ class eshop_Carts extends core_Master
             if($success === true) {
                 $resObj2 = new stdClass();
                 $resObj2->func = 'Sound';
-                $resObj2->arg = array('soundOgg' => sbf('sounds/bell.ogg', ''),
-                    'soundMp3' => sbf('sounds/bell.mp3', ''),
-                );
+                $resObj2->arg = array('soundOgg' => sbf('sounds/bell.ogg', ''), 'soundMp3' => sbf('sounds/bell.mp3', ''),);
             } else {
                 $resObj2 = new stdClass();
             }
-
 
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
@@ -675,15 +678,19 @@ class eshop_Carts extends core_Master
      * Форсира продажба към количката
      * 
      * @param mixed $id
+     * @param boolean brutoForce
+     * @param boolean $sendEmailIfNecessary
      * 
      * @return stdClass $saleRec
      */
-    public static function forceSale($id)
+    public static function forceSale($id, $brutoForce = false, $sendEmailIfNecessary = true)
     {
         $rec = static::fetchRec($id);
-        if(isset($rec->saleId)) return sales_Sales::fetch($rec->saleId);
         
-        expect($rec->state == 'draft');
+        if($brutoForce === false){
+            if(isset($rec->saleId)) return sales_Sales::fetch($rec->saleId);
+        }
+        
         Mode::push('eshopFinalize', true);
         $cu = core_Users::getCurrent('id', false);
         
@@ -735,7 +742,7 @@ class eshop_Carts extends core_Master
         
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
         if(haveRole('sales', $folderIncharge)){
-            $fields['dealerId'] = $settings->dealerId;
+            $fields['dealerId'] = $folderIncharge;
         } elseif(!empty($settings->dealerId)){
             $fields['dealerId'] = $settings->dealerId;
         }
@@ -792,13 +799,14 @@ class eshop_Carts extends core_Master
         }
         
         self::activate($rec, $saleRec->id);
-        eshop_Carts::logDebug("Активиране на количката", $rec->id);
-        doc_Threads::doUpdateThread($saleRec->threadId);
         
+        doc_Threads::doUpdateThread($saleRec->threadId);
         if (!(core_Packs::isInstalled('colab') && isset($cu) && core_Users::isContractor($cu))) {
-            self::sendEmail($rec, $saleRec);
-            doc_Threads::doUpdateThread($saleRec->threadId);
-            eshop_Carts::logDebug("Изпращане на имейл за продажба от онлайн поръчка", $rec->id);
+            if($sendEmailIfNecessary === true){
+                self::sendEmail($rec, $saleRec);
+                doc_Threads::doUpdateThread($saleRec->threadId);
+                eshop_Carts::logDebug("Изпращане на имейл за продажба от онлайн поръчка", $rec->id);
+            }
         }
         
         if ($cu && $cu != core_Users::SYSTEM_USER) {
@@ -849,9 +857,18 @@ class eshop_Carts extends core_Master
     private static function activate($rec, $saleId)
     {
         $rec->saleId = $saleId;
-        $rec->state = 'active';
-        $rec->activatedOn = dt::now();
+        
+        $isActivatedNow = false;
+        if($rec->state != 'active'){
+            $rec->state = 'active';
+            $rec->activatedOn = dt::now();
+            $isActivatedNow = true;
+        }
+        
         self::save($rec, 'state,saleId,activatedOn');
+        if($isActivatedNow === true){
+            eshop_Carts::logDebug("Активиране на количката", $rec->id);
+        }
     }
     
     
@@ -1481,6 +1498,16 @@ class eshop_Carts extends core_Master
             } else {
                 $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
                 if($compareDate >= dt::now()){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if($action == 'makenewsale' && isset($rec)){
+            if($rec->state != 'active'){
+                $requiredRoles = 'no_one';
+            } elseif(isset($rec->saleId)){
+                if(sales_Sales::fetchField($rec->saleId, 'state') == 'active'){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -2138,5 +2165,69 @@ class eshop_Carts extends core_Master
         core_Lg::pop();
         
         return $isSended;
+    }
+    
+    
+    
+    /**
+     * След подготовка на тулбара за единичния изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        
+        if (self::haveRightFor('makenewsale', $rec)) {
+            $data->toolbar->addBtn('Нова продажба', array($mvc, 'makenewsale', 'id' => $rec->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към количката');
+        }
+    }
+    
+    
+    /**
+     * Създаване на нова продажба към съществуваща количка
+     */
+    public function act_Makenewsale()
+    {
+        $this->requireRightFor('makenewsale');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = self::fetch($id));
+        $this->requireRightFor('makenewsale', $rec);
+        
+        // Подготовка на формата
+        $form = cls::get('core_Form');
+        $form->title = 'Създаване на нова продажба към|* ' . $this->getFormTitleLink($rec->id);
+        $form->FLD('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,mandatory,single=none,after=title,mandatory');
+        $form->input();
+        
+        if($form->isSubmitted()){
+            if(isset($rec->saleId)){
+                $form->setWarning('folderId', 'Към количката има създадена вече продажба|*. |Наистина ли искате да продължите|*');
+            }
+            
+            // Ако няма грешки
+            if(!$form->gotErrors()){
+                
+                // Създава се нова продажба и количката се свързва към нея
+                $fRec = $form->rec;
+                $rec->saleFolderId = $fRec->folderId;
+                $newSaleRec = self::forceSale($rec, true, false);
+                sales_Sales::logWrite('Форсирана нова продажба към количка', $newSaleRec->id);
+                
+                if(isset($rec->saleId)){
+                    $oldContainerId = sales_Sales::fetchField($rec->saleId, 'containerId');
+                    doc_Linked::add($oldContainerId, $newSaleRec->containerId);
+                    sales_Sales::logWrite('Продажбата е откачена от количката', $rec->saleId);
+                }
+                
+                return new Redirect(array('sales_Sales', 'single', $newSaleRec->id), 'Успешно създадена нова продажба към количката');
+            }
+        }
+        
+        $form->toolbar->addSbBtn('Напред', 'save', 'ef_icon = img/16/move.png, title = Създаване на нова продажба');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $tpl = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($tpl, $form);
+        
+        // Рендиране на формата
+        return $tpl;
     }
 }
