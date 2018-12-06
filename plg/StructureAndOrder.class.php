@@ -184,7 +184,7 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Дефолтна имплементация на saoCanHaveSublevel
      */
-    public function on_AfterSaoGetTitle($mvc, &$res, $rec, $title = null)
+    public function on_AfterSaoGetTitle($mvc, &$res, $rec, $title = null, $saoPadding = null)
     {
         if ($res !== null) {
             
@@ -195,7 +195,7 @@ class plg_StructureAndOrder extends core_Plugin
             $title = $mvc->getTitleById($rec, false);
         }
         
-        $res = self::padOpt($title, $rec->saoLevel);
+        $res = self::padOpt($title, $rec->saoLevel, $saoPadding);
     }
     
     
@@ -372,9 +372,9 @@ class plg_StructureAndOrder extends core_Plugin
     /**
      * Помощна функция за падване на стринг
      */
-    private static function padOpt($title, $level)
+    private static function padOpt($title, $level, $padding = null)
     {
-        $title = str_repeat(html_entity_decode(self::PADDING), max(0, $level - 1)) . $title;
+        $title = str_repeat($padding ? $padding : html_entity_decode(self::PADDING), max(0, $level - 1)) . $title;
         
         return $title;
     }
