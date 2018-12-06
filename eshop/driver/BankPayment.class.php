@@ -50,7 +50,7 @@ class eshop_driver_BankPayment extends core_BaseClass
      */
     public function getPaymentBtn($paymentId, $amount, $currency, $okUrl, $cancelUrl, $initiatorClass, $initiatorId, $soldItems = array())
     {
-        $html = $this->getText4Email($paymentId);
+        $html = '';
         
         return $html;
     }
@@ -65,28 +65,17 @@ class eshop_driver_BankPayment extends core_BaseClass
      */
     public function getText4Email($paymentId)
     {
-        $settings = cms_Domains::getSettings();
-        $separator = Mode::is('text', 'plain') ? "\n" : "<br>";
-        $paymentName = cond_PaymentMethods::getVerbal($paymentId, 'name');
-        
-        $html = $separator;
-        $html .= tr("|Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка|*:") . $separator;
-        $ownAccount = bank_OwnAccounts::getVerbal($settings->ownAccount, 'bankAccountId');
-        
+        $rec = cond_PaymentMethods::fetchRec($paymentId);
+        $separator = Mode::is('text', 'plain') ? "" : "<br>";
+
+        $html = tr("|Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка|*:") . $separator;
+        $ownAccount = bank_OwnAccounts::getVerbal($rec->ownAccount, 'bankAccountId');
+
         if(!Mode::is('text', 'plain')){
             $ownAccount = "<b>{$ownAccount}</b>";
         }
         
-        $html .= "IBAN {$ownAccount}" . $separator;
-        $html .= $separator . tr("|Плащането трябва да се извърши по следния начин|*: ");
-
-        
-        if(!Mode::is('text', 'plain')){
-            $html .= "<b>" . tr($paymentName) . "</b>";
-            $html = "<div class='eshop-bank-payment' style='margin-bottom: 20px;'>{$html}</div>";
-        } else {
-            $html .= tr($paymentName);
-        }
+        $html .= "IBAN {$ownAccount}." . $separator;
         
         return $html;
     }
@@ -103,5 +92,42 @@ class eshop_driver_BankPayment extends core_BaseClass
     public function isPaymentMandatory($paymentId, $initiatorClass, $initiatorId)
     {
         return false;
+    }
+
+
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Банкова сметка,mandatory,after=onlinePaymentText');
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param int               $id
+     * @param stdClass          $rec
+     */
+    protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, &$row, $rec)
+    {
+        $row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount, true);
+    }
+    
+    
+    /**
+     * Информативния текст за онлайн плащането
+     *
+     * @param mixed $rec
+     * @return string|null
+     */
+    public function getDisplayHtml($rec)
+    {
+        return $this->getText4Email($rec);
     }
 }

@@ -71,4 +71,16 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
     {
         return $this->class->getText4Email($paymentId);
     }
+    
+    
+    /**
+     * Информативния текст за онлайн плащането
+     * 
+     * @param mixed $rec
+     * @return string|null
+     */
+    public function getDisplayHtml($rec)
+    {
+        return $this->class->getDisplayHtml($rec);
+    }
 }

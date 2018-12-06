@@ -55,6 +55,13 @@ defIfNot('TREMOL_GROUP_G', 3);
  */
 class tremol_Setup extends core_ProtoSetup
 {
+    
+    /**
+     * Необходими пакети
+     */
+    public $depends = 'peripheral=0.1';
+    
+    
     /**
      * Версията на пакета
      */
@@ -77,6 +84,12 @@ class tremol_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Фискален принтер на Тремол';
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'tremol_FiscPrinterDriver2';
     
     
     /**

@@ -141,7 +141,7 @@ class eshop_CartDetails extends core_Detail
             Mode::set('wrapper', 'cms_page_External');
             $lang = cms_Domains::getPublicDomain('lang');
             core_Lg::push($lang);
-            vislog_History::add("Ръчно добавяне на артикул в количка №{$rec->cartId}");
+            vislog_History::add("Ръчно добавяне на артикул в количка");
         }
         
         $form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
@@ -469,14 +469,14 @@ class eshop_CartDetails extends core_Detail
         
         if (isset($id)) {
             $this->delete($id);
-            vislog_History::add("Изтриване на артикул от количка №{$cartId}");
+            vislog_History::add("Изтриване на артикул от количка");
             $msg = '|Артикулът е премахнат|*!';
         } else {
             $this->delete("#cartId = {$cartId}");
             cls::get('eshop_Carts')->updateMaster($cartId);
             eshop_Carts::delete($cartId);
             $msg = '|Успешно изчистване|*!';
-            vislog_History::add("Изтриване на количка от №{$cartId}");
+            vislog_History::add("Изтриване на количка");
         }
         
         core_Statuses::newStatus($msg);
@@ -551,7 +551,7 @@ class eshop_CartDetails extends core_Detail
         $rec = self::fetch($id);
         $rec->quantity = $quantity * $rec->quantityInPack;
         self::save($rec, 'quantity');
-        vislog_History::add("Обновяване на количество в количка №{$rec->id}");
+        vislog_History::add("Обновяване на количество в количка");
         
         Mode::set('currentExternalTab', 'eshop_Carts');
         

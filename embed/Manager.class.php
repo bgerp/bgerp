@@ -29,6 +29,12 @@ class embed_Manager extends core_Master
     
     
     /**
+     * Задължително ли е полето за избор на драйвер
+     */
+    public $mandatoryDriverField = true;
+    
+    
+    /**
      * След дефиниране на полетата на модела
      *
      * @param core_Mvc $mvc
@@ -79,23 +85,32 @@ class embed_Manager extends core_Master
         
         // Ако няма достъпни драйвери редирект със съобщение
         if (!count($interfaces)) {
-            followRetUrl(null, '|Липсват възможни видове|* ' . $this->title, 'error');
+            if($this->mandatoryDriverField === true){
+                followRetUrl(null, '|Липсват възможни видове|* ' . $this->title, 'error');
+            } else {
+                $form->setField($this->driverClassField, 'input=none');
+            }
         } else {
             $form->setOptions($this->driverClassField, $interfaces);
             
             // Ако е наличен само един драйвер избираме него
             if (count($interfaces) == 1) {
-                $form->setDefault($this->driverClassField, key($interfaces));
-                $form->setReadOnly($this->driverClassField);
+                if($this->mandatoryDriverField === true){
+                    $form->setDefault($this->driverClassField, key($interfaces));
+                    $form->setReadOnly($this->driverClassField);
+                }
             }
         }
         
         // Ако има източник инстанцираме го
         if ($rec->{$this->driverClassField}) {
             
-            // Ако има съществуващ запис - полето не може да се сменя
-            if ($id = $rec->id) {
-                $form->setReadOnly($this->driverClassField);
+            // Ако има съществуващ запис и той е с избран драйвер - полето не може да се сменя
+            if (isset($rec->id)) {
+                $exDriverField = $this->fetchField($rec->id, $this->driverClassField);
+                if(!empty($exDriverField)){
+                    $form->setReadOnly($this->driverClassField);
+                }
             }
             
             if ($driver = $this->getDriver($rec)) {

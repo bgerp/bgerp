@@ -30,11 +30,21 @@ class marketing_Router
      *
      * @param string $city      - град
      * @param int    $countryId - ид на държава
-     *
+     * @param int $domainId     - домейн
+     * 
      * @return int $inCharge - ид на потребител
      */
-    public static function getInChargeUser($city, $countryId)
+    public static function getInChargeUser($city, $countryId, $domainId)
     {
+        if(isset($domainId)){
+            $settings = cms_Domains::getSettings($domainId);
+            if(isset($settings->dealerId)){
+                if(haveRole('sales', $settings->dealerId)){
+                    
+                    return $settings->dealerId;
+                }
+            }
+        }
         $conf = core_Packs::getConfig('email');
         
         // Ако има град
@@ -177,47 +187,6 @@ class marketing_Router
         }
         
         return ($res) ? $folderId : null;
-    }
-    
-    
-    /**
-     * Рутира в папка на лице с подобно име от същата държава
-     *
-     * @param string $name      - име на лице
-     * @param int    $countryId - ид на държава
-     *
-     * @return int - ид на папка
-     */
-    public static function routeByPerson($name, $countryId, $inCharge)
-    {
-        $nameArr = explode(' ', $name);
-        
-        if (count($nameArr) == 1) {
-            
-            return;
-        }
-        
-        $name = preg_replace('/\s+/', ' ', $name);
-        
-        $conf = core_Packs::getConfig('crm');
-        $query = crm_Persons::getQuery();
-        $query->where(array("#name = '[#1#]'", $name));
-        $query->where("#country = {$countryId} AND #state != 'closed' AND #state != 'rejected'");
-        
-        $ownCountryId = crm_Companies::fetchOurCompany()->country;
-        if ($ownCountryId == $countryId) {
-            $query->orWhere('#country IS NULL');
-        }
-        
-        if ($person = $query->fetch()) {
-            try {
-                expect($person, $person);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-            }
-            
-            return crm_Persons::forceCoverAndFolder((object) array('id' => $person->id, 'inCharge' => $inCharge));
-        }
     }
     
     

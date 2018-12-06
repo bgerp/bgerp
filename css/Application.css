@@ -3454,7 +3454,7 @@ table .eshop-btn {
     white-space: nowrap; }
 
 .cms-last .defaultNewsbar {
-  margin: 5px 0; }
+  margin: 5px 0 20px; }
 
 .defaultNewsbar {
   background-color: white;
@@ -3470,6 +3470,9 @@ table .eshop-btn {
     margin: 0; }
   .defaultNewsbar .richtext {
     font-family: Verdana, Helvetica, Arial, Sans-serif; }
+
+.narrow .defaultNewsbar {
+  margin: 10px 0px; }
 
   #cmsNavigation .defaultNewsbar a.fancybox:hover {
     background: none !important;
@@ -4777,6 +4780,13 @@ div.location.public {
     float: left; }
   .narrow .eshop-product-list ul {
     display: table-cell; }
+
+.info-block {
+  border: 1px solid #38d0ff;
+  background: #c6f1ff;
+  color: #00526b;
+  border-radius: 5px;
+  padding: 5px; }
 
 .epayBtn {
   border: none;

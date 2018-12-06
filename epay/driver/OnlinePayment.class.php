@@ -119,4 +119,29 @@ class epay_driver_OnlinePayment extends core_BaseClass
     {
         return null;
     }
+    
+    
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        
+    }
+    
+    
+    /**
+     * Информативния текст за онлайн плащането
+     *
+     * @param mixed $rec
+     * @return string|null
+     */
+    public function getDisplayHtml($rec)
+    {
+        $text = tr('Моля, завършете поръчката, като направите плащането от бутона') . ' <b>"ePay Now"</b>';
+        
+        return $text;
+    }
 }
