@@ -192,6 +192,7 @@ class eshop_driver_BankPayment extends core_BaseClass
         $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
         $shopLink = ht::createLink(tr("|*« |Към магазина|*"), $shopUrl);
         $tpl->replace($shopLink, 'BACK_BTN');
+
         if(isset($data->PO_HND)){
             $blankDownloadUrl = fileman_Download::getDownloadUrl($data->PO_HND);
             $blankLink = ht::createLink(tr('тук'), $blankDownloadUrl);

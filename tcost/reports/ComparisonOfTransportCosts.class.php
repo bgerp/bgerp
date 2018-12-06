@@ -293,24 +293,26 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $row->amountPart = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountPart);
         
-        $purchaise = explode(',', trim($dRec->purchaseId, ','));
-        
-        foreach ($purchaise as $v) {
-            $arr = explode('/', $v);
-            $purMasterClassName = $dRec->purMasterClassName;
-            $Purchase = doc_Containers::getDocument($purMasterClassName::fetch($arr[0])->containerId);
-            $purchaseHandle = $purMasterClassName::getHandle($arr[0]);
-            $singleUrl = $Purchase->getUrlWithAccess($Purchase->getInstance(), $Purchase->that);
-            $purchaises .= ht::createLink(
+        if (isset($dRec->purchaseId)) {
+            $purchaise = explode(',', trim($dRec->purchaseId, ','));
+            
+            foreach ($purchaise as $v) {
+                $arr = explode('/', $v);
+                $purMasterClassName = $dRec->purMasterClassName;
+                $Purchase = doc_Containers::getDocument($purMasterClassName::fetch($arr[0])->containerId);
+                $purchaseHandle = $purMasterClassName::getHandle($arr[0]);
+                $singleUrl = $Purchase->getUrlWithAccess($Purchase->getInstance(), $Purchase->that);
+                $purchaises .= ht::createLink(
                             "#{$purchaseHandle}",
                             $singleUrl,
                             false,
                             "ef_icon={$Purchase->singleIcon}"
              ).', ';
+            }
+            
+            
+            $row->purchaseId = trim($purchaises, ', ');
         }
-        
-        
-        $row->purchaseId = trim($purchaises, ', ');
         
         return $row;
     }
