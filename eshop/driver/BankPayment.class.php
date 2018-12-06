@@ -60,24 +60,22 @@ class eshop_driver_BankPayment extends core_BaseClass
      * Добавя за уведомителния имейл 
      * 
      * @param int $paymentId
+     * @param stdClass $cartRec
      * 
      * @return string|null
      */
-    public function getText4Email($paymentId)
+    public function getText4Email($paymentId, $cartRec)
     {
-        $rec = cond_PaymentMethods::fetchRec($paymentId);
-        $separator = Mode::is('text', 'plain') ? "" : "<br>";
-
-        $html = tr("|Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка|*:") . $separator;
-        $ownAccount = bank_OwnAccounts::getVerbal($rec->ownAccount, 'bankAccountId');
-
-        if(!Mode::is('text', 'plain')){
-            $ownAccount = "<b>{$ownAccount}</b>";
-        }
+        $data = $this->getTextData($paymentId, $cartRec);
+        $txt = "|Моля, приведете сумата от|* " . $data->AMOUNT. " |по банков път, към|*:\n";
+        $txt .= "{$data->MyCompany}\n"; 
+        $txt .= "{$data->MyAddress}\n"; 
+        $txt .= "BIC: {$data->BIC}\n";
+        $txt .= "IBAN: {$data->IBAN}\n";
+        $txt .= "|В основанието за плащане, моля напишете|*: {$data->HANDLER}\n";
+        $txt .= "|Може да свалите примерно платежно нареждане от|* {$data->PO_LINK}\n";
         
-        $html .= "IBAN {$ownAccount}." . $separator;
-        
-        return $html;
+        return tr($txt);
     }
     
     
@@ -128,6 +126,62 @@ class eshop_driver_BankPayment extends core_BaseClass
      */
     public function getDisplayHtml($rec)
     {
-        return $this->getText4Email($rec);
+        return null;
+    }
+    
+    private function getTextData($id, $cartRec)
+    {
+        $res = array();
+        
+        $settings = cms_Domains::getSettings($cartRec->domainId);
+        $rec = cond_PaymentMethods::fetchRec($id);
+        
+        $ownCompany = crm_Companies::fetchOwnCompany();
+        $res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompany->company);
+        $res['MyCompany'] = transliterate(tr($res['MyCompany']));
+        $res['MyAddress'] = cls::get('crm_Companies')->getFullAdress($ownCompany->companyId, true, false)->getContent();
+        if(Mode::is('text', 'plain')){
+            $res['MyAddress'] = str_replace('<br>', ',', $res['MyAddress']);
+        }
+        
+        $res['HANDLER'] = "#Sal{$cartRec->saleId}";
+        
+        $bankInfo = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+        $res['BANK'] = tr($bankInfo->bank);
+        $res['BIC'] = $bankInfo->bic;
+        $res['IBAN'] = bank_OwnAccounts::getVerbal($rec->ownAccount, 'bankAccountId');
+        
+        $amount = currency_CurrencyRates::convertAmount($cartRec->total, null, null, $settings->currencyId);
+        $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+        $res['AMOUNT'] = "{$amount} {$settings->currencyId}";
+        
+        return (object)$res;
+    }
+    
+    
+    /**
+     * Хтмл за показване след финализиране на плащането
+     *
+     * @param int $id
+     * @param stdClass $cartRec
+     * @return core_ET|null $tpl
+     */
+    function displayHtmlAfterPayment($id, $cartRec)
+    {
+        $lang = cms_Domains::fetchField($cartRec->domainId, 'lang');
+        core_Lg::push($lang);
+        
+        $tpl = getTplFromFile('eshop/tpl/BankPaymentInfo.shtml');
+        
+        $data = $this->getTextData($id, $cartRec);
+        $tpl->placeObject($data);
+        
+        $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
+        $shopLink = ht::createLink(tr("|*« |Към магазина|*"), $shopUrl);
+        $tpl->replace($shopLink, 'BACK_BTN');
+        
+        core_Lg::pop($lang);
+        
+        return $tpl;
     }
 }

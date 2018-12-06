@@ -580,6 +580,7 @@ class eshop_Carts extends core_Master
         
         Mode::set('currentExternalTab', 'eshop_Carts');
         
+        /*
         $saleRec = self::forceSale($rec);
         
         // Ако е партньор и има достъп до нишката, директно се редиректва към нея
@@ -606,6 +607,17 @@ class eshop_Carts extends core_Master
         if (is_array($colabUrl) && count($colabUrl)) {
             
             return new Redirect($colabUrl, $msg);
+        }
+        */
+        
+        
+        if($Driver = cond_PaymentMethods::getDriver($rec->paymentId)){
+            $afterPaymentDisplay = $Driver->displayAfterPayment($rec->paymentId, $rec);
+            if(isset($afterPaymentDisplay) && $afterPaymentDisplay instanceof core_ET){
+                Mode::set('wrapper', 'cms_page_External');
+                
+                return $afterPaymentDisplay;
+            }
         }
         
         return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
@@ -913,7 +925,7 @@ class eshop_Carts extends core_Master
         if (isset($rec->paymentId)) {
             if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
                 Mode::push('text', 'plain');
-                $paymentText = $PaymentDriver->getText4Email($rec->paymentId);
+                $paymentText = $PaymentDriver->getText4Email($rec->paymentId, $rec);
                 Mode::pop('text');
                 if(!empty($paymentText)){
                     $body->replace($paymentText, 'PAYMENT_TEXT');

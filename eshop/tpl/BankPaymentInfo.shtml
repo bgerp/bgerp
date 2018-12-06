@@ -1,0 +1,17 @@
+<div>
+<div>|Моля, приведете сумата от|* [#AMOUNT#] |по банков път, към|*:</div>
+
+<div>[#MyCompany#]</div>
+<div>[#MyAddress#]</div>
+
+<div>|Банка|*: [#BANK#]</div>
+<div>BIC: [#BIC#]</div>
+<div>IBAN: [#IBAN#]</div>
+
+<div>|В основанието за плащане, моля напишете|*: [#HANDLER#]</div>
+
+<div>|Може да свалите примерно платежно нареждане от|* [#PO_LINK#]</div>
+
+<div>[#BACK_BTN#]</div>
+
+</div>

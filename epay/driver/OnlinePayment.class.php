@@ -109,13 +109,14 @@ class epay_driver_OnlinePayment extends core_BaseClass
     
     
     /**
-     * Добавя за уведомителния имейл
-     *
+     * Добавя за уведомителния имейл 
+     * 
      * @param int $paymentId
-     *
+     * @param stdClass $cartRec
+     * 
      * @return string|null
      */
-    public function getText4Email($paymentId)
+    public function getText4Email($paymentId, $cartRec)
     {
         return null;
     }
@@ -143,5 +144,18 @@ class epay_driver_OnlinePayment extends core_BaseClass
         $text = tr('Моля, завършете поръчката, като направите плащането от бутона') . ' <b>"ePay Now"</b>';
         
         return $text;
+    }
+    
+    
+    /**
+     * Хтмл за показване след финализиране на плащането
+     *
+     * @param int $id
+     * @param stdClass $cartRec
+     * @return core_ET|null $tpl
+     */
+    function displayHtmlAfterPayment($id, $cartRec)
+    {
+        return null;
     }
 }
