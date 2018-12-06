@@ -117,10 +117,10 @@ class marketing_InquiryRouter extends core_Manager
     
     /**
      * Рутиране в папка на фирма
-     *
-     * 1. Която има визитка тип "Фирма" и в нея има същия имейл
-     * 2. Търсим папка (но само от тип "Фирма"), по зададения имейл, чрез метода на имейл-рутера. Ако намерената папка не е "Фирма" - това правило пропада.
-     * 3. Рутиране по ДДС № или Нац. номер на фирма
+     * 
+     * 1. Рутиране по ДДС № или Нац. номер на фирма
+     * 2. Която има визитка тип "Фирма" и в нея има същия имейл
+     * 3. Търсим папка (но само от тип "Фирма"), по зададения имейл, чрез метода на имейл-рутера. Ако намерената папка не е "Фирма" - това правило пропада.
      * 4. Която е от тип "Фирма" и има същото (приблизително) име и държава
      * 5. Рутиране по БРИД
      * 6. Рутиране в папка на нова фирма
@@ -146,6 +146,17 @@ class marketing_InquiryRouter extends core_Manager
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId, $domainId);
         
+        foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
+            if(!empty($value)){
+                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
+                if ($folderId) {
+                    $explained = "Рутиране на фирма по {$field}";
+                    
+                    return $folderId;
+                }
+            }
+        }
+        
         // Намираме папка на компания с този имейл
         $folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
         if ($folderId) {
@@ -160,17 +171,6 @@ class marketing_InquiryRouter extends core_Manager
             $explained = 'Рутиране на фирма по имейл на фирма';
             
             return $folderId;
-        }
-        
-        foreach (array('vatId' => $vatId, 'uicId' => $uicId) as $field => $value){
-            if(!empty($value)){
-                $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
-                if ($folderId) {
-                    $explained = "Рутиране на фирма по {$field}";
-                    
-                    return $folderId;
-                }
-            }
         }
         
         // Рутираме в папка на фирма със същото име от същата държава
