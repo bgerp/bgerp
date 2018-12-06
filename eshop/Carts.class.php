@@ -580,7 +580,6 @@ class eshop_Carts extends core_Master
         
         Mode::set('currentExternalTab', 'eshop_Carts');
         
-        /*
         $saleRec = self::forceSale($rec);
         
         // Ако е партньор и има достъп до нишката, директно се редиректва към нея
@@ -608,9 +607,8 @@ class eshop_Carts extends core_Master
             
             return new Redirect($colabUrl, $msg);
         }
-        */
         
-        
+        // Ако ще се показва страница за след плащането
         if($Driver = cond_PaymentMethods::getDriver($rec->paymentId)){
             $afterPaymentDisplay = $Driver->displayAfterPayment($rec->paymentId, $rec);
             if(isset($afterPaymentDisplay) && $afterPaymentDisplay instanceof core_ET){
