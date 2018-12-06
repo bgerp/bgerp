@@ -153,6 +153,7 @@ class eshop_driver_BankPayment extends core_BaseClass
         
         $amount = currency_CurrencyRates::convertAmount($cartRec->total, null, null, $settings->currencyId);
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+        $amount= str_replace('&nbsp;', ' ', $amount);
         $res['AMOUNT'] = "{$amount} {$settings->currencyId}";
         
         return (object)$res;

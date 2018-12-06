@@ -913,6 +913,7 @@ class eshop_Carts extends core_Master
         
         $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+        $amount = str_replace('&nbsp;', ' ', $amount);
         $body->replace("{$amount} {$settings->currencyId}", 'AMOUNT');
        
         if($threadCount == 1){
