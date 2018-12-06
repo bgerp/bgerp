@@ -241,7 +241,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
             $fld->FLD('expectedTransportCost', 'varchar', 'caption=Очакванo,tdClass=centered');
             $fld->FLD('amountPart', 'varchar', 'caption=Платено,tdClass=centered');
-            $fld->FLD('purchaseId', 'varchar', 'caption=Покупка,tdClass=centered');
+            $fld->FLD('purchaseId', 'varchar', 'caption=Покупка');
         }
         
         return $fld;
