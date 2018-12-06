@@ -610,7 +610,7 @@ class eshop_Carts extends core_Master
         
         // Ако ще се показва страница за след плащането
         if($Driver = cond_PaymentMethods::getDriver($rec->paymentId)){
-            $afterPaymentDisplay = $Driver->displayAfterPayment($rec->paymentId, $rec);
+            $afterPaymentDisplay = $Driver->displayHtmlAfterPayment($rec->paymentId, $rec);
             if(isset($afterPaymentDisplay) && $afterPaymentDisplay instanceof core_ET){
                 Mode::set('wrapper', 'cms_page_External');
                 
