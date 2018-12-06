@@ -139,7 +139,7 @@ class eshop_driver_BankPayment extends core_BaseClass
         $ownCompany = crm_Companies::fetchOwnCompany();
         $res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompany->company);
         $res['MyCompany'] = transliterate(tr($res['MyCompany']));
-        $res['MyAddress'] = cls::get('crm_Companies')->getFullAdress($ownCompany->companyId, true, false)->getContent();
+        $res['MyAddress'] = trim(cls::get('crm_Companies')->getFullAdress($ownCompany->companyId, true, false)->getContent());
         if(Mode::is('text', 'plain')){
             $res['MyAddress'] = str_replace('<br>', ',', $res['MyAddress']);
         }
