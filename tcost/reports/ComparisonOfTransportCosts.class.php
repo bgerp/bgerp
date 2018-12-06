@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Логистика » Сравнение на очкваните и реалните траспортни разходи
+ * @title     Логистика » Сравнение на очакваните и реалните транспортни разходи
  */
 class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
 {
