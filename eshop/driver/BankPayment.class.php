@@ -73,7 +73,9 @@ class eshop_driver_BankPayment extends core_BaseClass
         $txt .= "BIC: {$data->BIC}\n";
         $txt .= "IBAN: {$data->IBAN}\n";
         $txt .= "|В основанието за плащане, моля напишете|*: {$data->HANDLER}\n";
-        $txt .= "|Може да свалите примерно платежно нареждане от|* {$data->PO_LINK}\n";
+        if(isset($data->PO_HND)){
+            $txt .= "|Може да свалите примерно платежно нареждане от|* [file={$data->PO_HND}]" . tr('тук') . "[/file]\n";
+        }
         
         return tr($txt);
     }
@@ -132,7 +134,6 @@ class eshop_driver_BankPayment extends core_BaseClass
     private function getTextData($id, $cartRec)
     {
         $res = array();
-        
         $settings = cms_Domains::getSettings($cartRec->domainId);
         $rec = cond_PaymentMethods::fetchRec($id);
         
@@ -155,6 +156,17 @@ class eshop_driver_BankPayment extends core_BaseClass
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         $amount= str_replace('&nbsp;', ' ', $amount);
         $res['AMOUNT'] = "{$amount} {$settings->currencyId}";
+        
+        $fields = array('bic' => $res['BIC'], 'bank' => $res['BANK'], 'ownAccount' => $rec->ownAccount, 'amount' => $amount,'currencyCode' => $settings->currencyId);
+        $paymentOrderHnd = bank_PaymentOrders::getBlankAsPdf($res['HANDLER'], $fields);
+        if($paymentOrderHnd){
+            if($saleContainerId = sales_Sales::fetchField($cartRec->saleId, 'containerId')){
+                $fileId = fileman::fetchByFh($paymentOrderHnd, 'id');
+                doc_Linked::add($saleContainerId, $fileId, 'doc', 'file');
+            }
+            
+            $res['PO_HND'] = $paymentOrderHnd;
+        }
         
         return (object)$res;
     }
@@ -180,7 +192,11 @@ class eshop_driver_BankPayment extends core_BaseClass
         $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
         $shopLink = ht::createLink(tr("|*« |Към магазина|*"), $shopUrl);
         $tpl->replace($shopLink, 'BACK_BTN');
-        
+        if(isset($data->PO_HND)){
+            $blankDownloadUrl = fileman_Download::getDownloadUrl($data->PO_HND);
+            $blankLink = ht::createLink(tr('тук'), $blankDownloadUrl);
+            $tpl->replace($blankLink, 'PO_LINK');
+        }
         core_Lg::pop($lang);
         
         return $tpl;
