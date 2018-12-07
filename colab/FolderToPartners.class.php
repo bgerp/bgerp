@@ -387,14 +387,14 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Можем ли да изпратим автоматичен имейл до обекта
-        if ($action == 'sendemail' && isset($rec->className) && isset($rec->objectId)) {
-            if(!cls::haveInterface('crm_ContragentAccRegIntf', $rec->className)){
+        if ($action == 'sendemail' && isset($rec->className, $rec->objectId)) {
+            if (!cls::haveInterface('crm_ContragentAccRegIntf', $rec->className)) {
                 $requiredRoles = 'no_one';
-            } else{
+            } else {
                 $objectRec = cls::get($rec->className)->fetch($rec->objectId);
-                if(empty($objectRec)){
+                if (empty($objectRec)) {
                     $requiredRoles = 'no_one';
-                } elseif(!doc_Folders::haveRightToObject($objectRec)){
+                } elseif (!doc_Folders::haveRightToObject($objectRec)) {
                     $requiredRoles = 'no_one';
                 } else {
                     $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null);
@@ -404,7 +404,6 @@ class colab_FolderToPartners extends core_Manager
                 }
             }
         }
-        
     }
     
     
@@ -479,9 +478,9 @@ class colab_FolderToPartners extends core_Manager
             $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
             $btns->append($ht);
         }
-            
+        
         // Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
-        if ($me->haveRightFor('sendemail', (object)array('className' => $data->masterMvc->className, 'objectId' => $data->masterId))) {
+        if ($me->haveRightFor('sendemail', (object) array('className' => $data->masterMvc->className, 'objectId' => $data->masterId))) {
             $ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
             $btns->append($ht);
         } else {
@@ -523,13 +522,13 @@ class colab_FolderToPartners extends core_Manager
         $objectId = Request::get('companyId', 'int');
         
         $this->requireRightFor('sendemail');
-        $this->requireRightFor('sendemail', (object)array('className' => $className, 'objectId' => $objectId));
+        $this->requireRightFor('sendemail', (object) array('className' => $className, 'objectId' => $objectId));
         $Class = cls::get($className);
         $objectRec = $Class->fetch($objectId);
         
         $contragentName = $Class->getVerbal($objectId, 'name');
         $form = cls::get('core_Form');
-        $form->title = "Изпращане на регистрация на партньори в|* " . $Class->getFormTitleLink($objectId);
+        $form->title = 'Изпращане на регистрация на партньори в|* ' . $Class->getFormTitleLink($objectId);
         
         $form->FNC('to', 'email', 'caption=До имейл, width=100%, mandatory, input');
         $form->FNC('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions, input');
@@ -555,7 +554,7 @@ class colab_FolderToPartners extends core_Manager
         $placeHolder = '{{' . tr('линк||link') . '}}';
         
         $middleMsg = tr('За да се регистрираш като служител на фирма||To have registration as a member of company') . ' "[#company#]", ';
-        $middleMsg = ($Class instanceof crm_Companies) ? $middleMsg : tr("За да се регистрираш||For registration") . " ";
+        $middleMsg = ($Class instanceof crm_Companies) ? $middleMsg : tr('За да се регистрираш||For registration') . ' ';
         $body = new ET(
             tr('Уважаеми потребителю||Dear User') . ",\n\n" .
             $middleMsg .
@@ -684,7 +683,7 @@ class colab_FolderToPartners extends core_Manager
     public function act_Createnewcontractor()
     {
         Request::setProtected(array('companyId', 'rand', 'fromEmail', 'email', 'userNames', 'className'));
-       
+        
         if (!$email = Request::get('email', 'email')) {
             Request::removeProtected(array('email'));
         }
@@ -783,6 +782,12 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
+            if (mb_strlen($form->rec->nick) < core_Users::$partnerMinLen) {
+                $form->setError('nick', 'Под допустимата дължина|*' . ' ' . core_Users::$partnerMinLen);
+            }
+        }
+        
+        if ($form->isSubmitted()) {
             if (core_Users::isForbiddenNick($form->rec->nick)) {
                 $form->setError('nick', 'Вече съществува запис със същите данни');
             }
@@ -813,7 +818,7 @@ class colab_FolderToPartners extends core_Manager
         if ($form->isSubmitted()) {
             $uId = $Users->save($form->rec);
             
-            if($Class instanceof crm_Companies){
+            if ($Class instanceof crm_Companies) {
                 $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
                 $personRec = crm_Persons::fetch($personId);
                 
@@ -835,7 +840,7 @@ class colab_FolderToPartners extends core_Manager
             static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
             
             $Class->logInAct('Регистрация на нов партньор', $objectId);
-            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$companyName}»" );
+            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$companyName}»");
             
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);

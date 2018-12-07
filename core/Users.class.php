@@ -198,6 +198,14 @@ class core_Users extends core_Manager
     
     
     /**
+     * Минимална дължина на никовете на партньорите
+     *
+     * @var int
+     */
+    public static $partnerMinLen = 5;
+    
+    
+    /**
      * Описание на полетата на модела
      */
     public function description()
