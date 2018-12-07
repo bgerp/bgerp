@@ -49,7 +49,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType';
+    protected $changeableFields = 'from,to';
     
     
     /**
@@ -298,7 +298,9 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             foreach ($purchaise as $v) {
                 $arr = explode('/', $v);
-                $purMasterClassName = $dRec->purMasterClassName;
+                
+                $purMasterClassName = cls::get($arr[1])->Master->className;
+                
                 $Purchase = doc_Containers::getDocument($purMasterClassName::fetch($arr[0])->containerId);
                 $purchaseHandle = $purMasterClassName::getHandle($arr[0]);
                 $singleUrl = $Purchase->getUrlWithAccess($Purchase->getInstance(), $Purchase->that);
