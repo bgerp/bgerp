@@ -5796,7 +5796,11 @@ only screen and (max-width: 320px) {
   .webdrv-preview {
     page-break-inside: avoid;
     page-break-after: always;
-    max-height: 267mm !important; } }
+    max-height: 267mm !important; }
+
+  .belejka_container .belejka div.line div.text {
+    font-family: "Courier New";
+    letter-spacing: 0 !important; } }
 
   .printing .specialLink {
     font-weight: bold; }
