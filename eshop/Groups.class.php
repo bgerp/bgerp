@@ -812,10 +812,11 @@ class eshop_Groups extends core_Master
         }
         
         $groupQuery = eshop_Groups::getQuery();
-        $groupQuery->show('id');
+        $groupQuery->show('id,saoLevel');
         $groupQuery->in('menuId', $contents);
+        $me = cls::get(get_called_class());
         while ($rec = $groupQuery->fetch()) {
-            $groups[$rec->id] = eshop_Groups::getTitleById($rec->id, false);
+            $groups[$rec->id] = $me->saoGetTitle($rec, eshop_Groups::getTitleById($rec->id, false));
         }
         
         return $groups;

@@ -86,6 +86,27 @@ class plg_StructureAndOrder extends core_Plugin
         }
     }
     
+
+    /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    public static function on_AfterMakeArray4Select($mvc, &$res, $fields = null, &$where = '', $index = 'id')
+    {
+        // Подменяме предложенията с подробните
+        foreach($res as $key => &$title) {
+            if(is_object($title)) {
+                if(isset($title->title)) {
+                    $title = &$title->title;
+                }
+            }
+
+            if(is_scalar($title)) {
+                $rec = $mvc->fetch($key);
+                $title = self::padOpt($title, $rec->saoLevel);
+            }
+        }
+    }
+
     
     /**
      * Подготвя опциите за saoPosition
