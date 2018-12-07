@@ -65,7 +65,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,single=none,input=none');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,single=none,input=none');
-        //$fieldset->FLD('dealers', 'userOrRole(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal, rolesType=team)', 'caption=Търговци,after=to,mandatory');
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,after=to,mandatory');
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=contragent,single=none');
@@ -167,7 +166,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        // Дасе показват ли делтите
+        // Да се показват ли делтите
         if (is_null($rec->seeDelta)) {
             $rec->seeDelta = 'no';
         }
@@ -241,7 +240,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $contragentsId = array();
             
             $query->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
-            $query->EXT('groupList', 'crm_Companies', 'externalFieldName=folderId, externalKey=folderId');
             
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
@@ -254,7 +252,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
-                $query->likeKeylist('groupList', $rec->crmGroup);
+                $foldersInGroups = self::getFoldersInGroups($rec);
+                
+                $query->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
@@ -266,7 +266,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 $query->in('coverId', $contragentsId);
                 
-                $query->likeKeylist('groupList', $rec->crmGroup);
+                $foldersInGroups = self::getFoldersInGroups($rec);
+                
+                $query->in('folderId', $foldersInGroups);
             }
         }
         
@@ -1041,5 +1043,26 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $res->changeDeltas = ($dRec->delta - $dRec->$totalDeltaLastYear);
             }
         }
+    }
+    
+    public function getFoldersInGroups($rec)
+    {
+        $fQuery = doc_Folders::getQuery();
+        
+        $classIds = array(core_Classes::getId('crm_Companies'),core_Classes::getId('crm_Persons'));
+        
+        $fQuery->in('coverClass', $classIds);
+        
+        while ($contr = $fQuery->fetch()) {
+            $className = core_Classes::getName($contr->coverClass);
+            
+            $contrGroups = $className::fetchField($contr->coverId, 'groupList');
+            
+            if (keylist::isIn(keylist::toArray($contrGroups), $rec->crmGroup)) {
+                $foldersInGroups[$contr->id] = $contr->id;
+            }
+        }
+        
+        return $foldersInGroups;
     }
 }
