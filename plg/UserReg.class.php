@@ -211,12 +211,6 @@ class plg_UserReg extends core_Plugin
                     }
                 }
                 
-                if ($form->isSubmitted() && $rec) {
-                    if (mb_strlen($rec->nick) < core_Users::$partnerMinLen) {
-                        $form->setError('nick', 'Под допустимата дължина|*' . ' ' . core_Users::$partnerMinLen);
-                    }
-                }
-                
                 if (!$form->gotErrors()) {
                     
                     // Ако всичко е точно, записваме данните, генерираме съобщение и го изпращаме

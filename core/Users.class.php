@@ -202,7 +202,7 @@ class core_Users extends core_Manager
      *
      * @var int
      */
-    public static $partnerMinLen = 5;
+    protected static $partnerMinLen = 5;
     
     
     /**
@@ -527,6 +527,11 @@ class core_Users extends core_Manager
      */
     public static function isForbiddenNick($nick)
     {
+        if (mb_strlen($nick) < self::$partnerMinLen) {
+            
+            return true;
+        }
+        
         $fNicksArr = self::getForbiddenNicksArr();
         
         $nick = trim($nick);

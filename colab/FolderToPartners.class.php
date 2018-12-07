@@ -782,12 +782,6 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-            if (mb_strlen($form->rec->nick) < core_Users::$partnerMinLen) {
-                $form->setError('nick', 'Под допустимата дължина|*' . ' ' . core_Users::$partnerMinLen);
-            }
-        }
-        
-        if ($form->isSubmitted()) {
             if (core_Users::isForbiddenNick($form->rec->nick)) {
                 $form->setError('nick', 'Вече съществува запис със същите данни');
             }
