@@ -74,7 +74,7 @@ class email_Sent
         
         $message = (object) $messageBase;
         
-        static::prepareMessage($message, $sentRec, $options['is_fax']);
+        static::prepareMessage($message, $sentRec, $options);
         
         return static::doSend($message, $emailsTo, $emailsCc, $error);
     }
@@ -83,7 +83,7 @@ class email_Sent
     /**
      * Подготвя за изпращане по имейл
      */
-    protected static function prepareMessage($message, $sentRec, $isFax = null)
+    protected static function prepareMessage($message, $sentRec, $options = array())
     {
         list($senderName, $senderDomain) = explode('@', $message->emailFrom, 2);
         
@@ -92,16 +92,17 @@ class email_Sent
         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
         $corpAccRec = email_Accounts::getCorporateAcc();
         
-        if ($corpAccRec->domain == $senderDomain && !$isFax) {
+        if ($corpAccRec->domain == $senderDomain && empty($options['no_return_path'])) {
             $message->headers['Return-Path'] = "{$senderName}+returned={$sentRec->mid}@{$senderDomain}";
         }
         
-        $message->headers += array(
-            
-            'X-Confirm-Reading-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
-            'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
-            'Return-Receipt-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
-        );
+        if (empty($options['no_return_receipt'])) {
+            $message->headers += array(
+                'X-Confirm-Reading-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
+                'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
+                'Return-Receipt-To' => "{$senderName}+received={$sentRec->mid}@{$senderDomain}",
+            );
+        }
         
         $message->messageId = email_Router::createMessageIdFromMid($sentRec->mid, $sentRec->boxFrom);
         
