@@ -67,16 +67,15 @@ class eshop_driver_BankPayment extends core_BaseClass
     public function getText4Email($paymentId, $cartRec)
     {
         $data = $this->getTextData($paymentId, $cartRec);
-        $txt = "|Моля, приведете сумата от|* " . $data->AMOUNT. " |по банков път, към|*:\n";
-        $txt .= "{$data->MyCompany}\n"; 
-        $txt .= "{$data->MyAddress}\n"; 
-        $txt .= "BIC: {$data->BIC}\n";
-        $txt .= "IBAN: {$data->IBAN}\n";
-        $txt .= "|В основанието за плащане, моля напишете|*: {$data->HANDLER}\n";
-        if(isset($data->PO_HND)){
-            $txt .= "|Може да свалите примерно платежно нареждане от|* [file={$data->PO_HND}]" . tr('тук') . "[/file]\n";
-        }
-        
+
+        $txt = "\nIBAN: {$data->IBAN}\n";
+        $txt .= "|Сума|*: {$data->AMOUNT}\n";
+        $txt .= "|Основание|*: {$data->HANDLER}\n";
+        $txt .= "|Банка|*: {$data->BANK}, BIC: {$data->BIC}\n";
+        $txt .= "|Титуляр|*: {$data->MyCompany}\n";
+
+        $txt .= "|Може да свалите примерно платежно нареждане от|* {$data->PO_LINK}\n";
+
         return tr($txt);
     }
     

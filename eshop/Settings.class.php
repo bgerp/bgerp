@@ -79,9 +79,9 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за имейл на български за онлайн поръчка
      */
-    const DEFAULT_EMAIL_BODY_BG = "\nЗдравейте [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#] за [#AMOUNT#], [#MAKE_INVOICE#], Доставка - [#TERM_ID#].\n[#PAYMENT_TEXT#]<!--ET_BEGIN REGISTER_LINK-->\n[#REGISTER_LINK#]<!--ET_END REGISTER_LINK-->\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
-    
-    
+    const DEFAULT_EMAIL_BODY_BG = "\nЗдравейте [#NAME#],\n\nБлагодарим за вашата покупка [#SALE_HANDLER#]\n\n[#MAKE_INVOICE#]\nДоставка - [#TERM_ID#].\n[#PAYMENT_TEXT#]<!--ET_BEGIN REGISTER_LINK-->\n[#REGISTER_LINK#]<!--ET_END REGISTER_LINK-->\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
+
+
     /**
      * Дефолтен шаблон за имейл на английски за онлайн поръчка
      */
