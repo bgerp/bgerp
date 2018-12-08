@@ -45,8 +45,8 @@ class efax_Sender
         //Дали да се добави манипулатора на нишката пред заглавието
         $options['no_thread_hnd'] = 'no_thread_hnd';
         
-        //Указва дали е факс или не
-        $options['is_fax'] = 'is_fax';
+        //За да може да работи коректно
+        $options['no_return_path'] = 'no_return_path';
         
         //Факс номера се преобразува в имейл
         $recipientFaxEmail = $faxTo . '@efaxsend.com';

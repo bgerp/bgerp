@@ -354,9 +354,10 @@ class bank_PaymentOrders extends bank_DocumentBlank
        
        // Заместване на данните в шаблона
        $tpl = getTplFromFile('bank/tpl/SinglePaymentOrder.shtml');
+       $tpl->push('css/Application.css', 'CSS');
        $tpl->push('bank/tpl/css/belejka.css', 'CSS');
        $tpl->placeObject($row);
-       
+
        return $tpl;
     }
     

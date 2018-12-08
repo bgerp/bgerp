@@ -6483,6 +6483,17 @@ row-fluid {
 		page-break-after: always;
 		max-height: 267mm !important;
 	}
+	.belejka_container .belejka div.line div.text {
+		font-family: "Courier New";
+		font-size: 20px;
+		letter-spacing: 0 !important;
+	}
+	.belejka_container .small_text_top_left, .belejka_container  .label_mid {
+		font-size: 13px !important;
+		color: #333 !important;
+		font-family: Verdana !important;
+	}
+
 }
 
 .printing {

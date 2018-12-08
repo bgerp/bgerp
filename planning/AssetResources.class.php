@@ -69,7 +69,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Оборудване,code,groupId,protocolId=ДА,simultaneity=Едновременност,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,code,groupId,assetFolderId=Център на дейност,systemFolderId=Система,createdOn,createdBy,state';
     
     
     /**
@@ -149,7 +149,7 @@ class planning_AssetResources extends core_Master
         
         $this->FLD('cameras', 'keylist(mvc=cams_Cameras,select=title, allowEmpty)', 'caption=Камери, remember');
         
-        $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Превозно средство, remember');
+        $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Тракер, remember');
         
         // TODO - ще се премахне след като минат миграциите
         $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
