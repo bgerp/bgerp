@@ -526,7 +526,7 @@ class eshop_Groups extends core_Master
                 $fRec = self::fetch($fRec->saoParentId);
             }
             $parentGroupsList = implode(',', $parentGroupsArr);
-            $query->where("#id IN({$parentGroupsList}) OR #saoParentId = {$groupId} {$sisCond} OR #saoLevel <= 1");
+            $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
         } else {
             $query->where("#saoLevel <= 1");
         }
@@ -552,8 +552,8 @@ class eshop_Groups extends core_Master
         while ($rec = $query->fetch()) {
             $l = new stdClass();
             $l->url = self::getUrl($rec);
-            $l->title = $this->saoGetTitle($rec, $this->getVerbal($rec, 'name'), '&nbsp;&nbsp;');
-            $l->level = 2;
+            $l->title = $this->getVerbal($rec, 'name');
+            $l->level = $rec->saoLevel + 1;
             $l->selected = ($groupId == $rec->id);
             
             if ($this->haveRightFor('edit', $rec)) {
@@ -757,7 +757,7 @@ class eshop_Groups extends core_Master
      */
     public function saoCanHaveSublevel($rec, $newRec = null)
     {
-        return true;
+        return $rec->saoLevel <= 3;
     }
     
     

@@ -702,6 +702,13 @@ class eshop_Products extends core_Master
         // Линк към групата
         $group = eshop_Groups::getVerbal($groupRec, 'name');
         $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
+        $pgId = $groupRec->saoParentId;
+
+        while($pgId) {
+            $pGroupRec = eshop_Groups::fetch($pgId);
+            $groupLink = ht::createLink(eshop_Groups::getVerbal($pGroupRec, 'name'), eshop_Groups::getUrl($pGroupRec)) . ' » ' . $groupLink;
+            $pgId = $pGroupRec->saoParentId;
+        }
         
         // Навигация до артикула
         $data->row->productPath = $menuLink . ' » ' . $groupLink;
