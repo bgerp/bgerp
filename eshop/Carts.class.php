@@ -895,7 +895,7 @@ class eshop_Carts extends core_Master
      * @param stdClass $rec
      * @param stdClass $saleRec
      */
-    private static function sendEmail($rec, &$saleRec)
+    public static function sendEmail($rec, &$saleRec)
     {
         $settings = cms_Domains::getSettings($rec->domainId);
         if (empty($settings->inboxId)) {
@@ -916,6 +916,7 @@ class eshop_Carts extends core_Master
         $makeInvoice = tr(self::getVerbal($rec, 'makeInvoice'));
         $body->replace($makeInvoice, 'MAKE_INVOICE');
         
+        // Показване на информацията за доставка
         if(isset($rec->termId)){
             $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'term');
             $termName = strip_tags(str_replace('<br>', ' ', $termName));
@@ -961,6 +962,7 @@ class eshop_Carts extends core_Master
             $body->replace($url, 'REGISTER_LINK');
         }
         
+        // Името на 'Моята фирма' във футъра
         $companyName = tr(crm_Companies::fetchOwnCompany()->company);
         $body->replace($companyName, 'COMPANY_NAME');
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
@@ -974,18 +976,43 @@ class eshop_Carts extends core_Master
             'state' => 'active',
             'email' => $rec->email, 'tel' => $rec->tel, 'recipient' => $rec->personNames);
         
+        
+        doc_RichTextPlg::getAttachedDocs($rt);
+        $attached = email_Outgoings::getAttachedDocuments($emailRec);
+        
+        
         // Активиране на изходящия имейл
         core_Users::forceSystemUser();
         $cu = core_Users::getCurrent('id', false);
         Mode::set('isSystemCanSingle', true);
         
         email_Outgoings::save($emailRec);
+        
+        $files = cls::get('email_Outgoings')->getAttachments($emailRec);
+        $documents = doc_RichTextPlg::getAttachedDocs($emailRec->body);
+        
         email_Outgoings::logWrite('Създаване от онлайн поръчка', $emailRec->id, 360, $cu);
         cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
         email_Outgoings::logWrite('Активиране', $emailRec->id, 360, $cu);
         
         // Изпращане на имейла
         $options = (object) array('encoding' => 'utf-8', 'boxFrom' => $settings->inboxId, 'emailsTo' => $emailRec->email);
+        
+        // Прикачване на прикачените файлове
+        $files = cls::get('email_Outgoings')->getAttachments($emailRec);
+        if(is_array($files) && count($files)){
+            $options->attachmentsSet = implode(',', array_keys($files));
+        }
+        
+        // Прикачване на прикачените документи
+        if(is_array($documents)){
+            $attachedDocs = array();
+            foreach ($documents as $name => $doc){
+                $attachedDocs[$name] = "{$name}.pdf";
+            }
+            $options->documentsSet = implode(',', $attachedDocs);
+        }
+        
         email_Outgoings::send($emailRec, $options, $lang);
         email_Outgoings::logWrite('Send', $emailRec->id, 360, $cu);
         Mode::set('isSystemCanSingle', false);
