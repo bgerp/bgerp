@@ -895,7 +895,7 @@ class eshop_Carts extends core_Master
      * @param stdClass $rec
      * @param stdClass $saleRec
      */
-    public static function sendEmail($rec, &$saleRec)
+    private static function sendEmail($rec, &$saleRec)
     {
         $settings = cms_Domains::getSettings($rec->domainId);
         if (empty($settings->inboxId)) {
@@ -1605,7 +1605,7 @@ class eshop_Carts extends core_Master
         }
         
         if($rec->freeDelivery == 'yes'){
-            $row->deliveryNoVat = "<span style='text-transform: uppercase;color:green';>" . tr('Безплатна') . "</span>";
+            $row->deliveryNoVat = "<span style='text-transform: uppercase;color:green;font-weight:bold';>" . tr('Безплатна') . "</span>";
         }
         
         if(isset($fields['-list'])){
@@ -1619,9 +1619,13 @@ class eshop_Carts extends core_Master
         }
         
         if (isset($rec->termId)) {
-            $termUrl = cond_DeliveryTerms::getSingleUrlArray($rec->termId);
-            $row->termId = ht::createLink($row->termId, $termUrl);
+            $row->termId = cond_DeliveryTerms::getHyperlink($rec->termId, true);
         }
+        
+        if (isset($rec->paymentId)) {
+            $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
+        }
+        
     }
     
     
