@@ -338,12 +338,16 @@ class eshop_Carts extends core_Master
             } else {
                 $resObj2 = new stdClass();
             }
-
+            
+            // Форсираме рефреша след връщане назад
+            $resObjReload = new stdClass();
+            $resObjReload->func = 'forceReloadAfterBack';
+            
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
             $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
             
-            $res = array_merge(array($resObj, $resObj2), (array) $statusData);
+            $res = array_merge(array($resObj, $resObj2, $resObjReload), (array) $statusData);
             core_Lg::pop();
             
             return $res;
