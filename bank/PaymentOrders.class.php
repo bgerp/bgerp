@@ -378,13 +378,14 @@ class bank_PaymentOrders extends bank_DocumentBlank
      *
      * @return core_ET
      */
-    public static function getBlankAsPdf($reason = null, $fields = array())
+    public static function getBlankAsPdf($fileName = null, $reason = null, $fields = array())
     {
         $tpl = self::getFilledBlankTpl($reason, $fields);
+        if(empty($fileName)){
+            $fileName = "po_" . substr(md5($reason), 0, 4);
+        }
         
-        // Конвертиране на шаблона към PDF
-        $name = str::utf2ascii($reason);
-        $fileHandler = doc_PdfCreator::convert($tpl, $name);
+        $fileHandler = doc_PdfCreator::convert($tpl, $fileName);
         
         return $fileHandler;
     }
