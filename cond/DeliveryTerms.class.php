@@ -109,6 +109,14 @@ class cond_DeliveryTerms extends core_Master
     
     
     /**
+     * Шаблон (ET) за заглавие на продукт
+     *
+     * @var string
+     */
+    public $recTitleTpl = '[#codeName#]';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -221,7 +229,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = 'cond/csv/DeliveryTerms.csv';
         $fields = array(
