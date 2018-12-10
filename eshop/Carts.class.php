@@ -918,13 +918,13 @@ class eshop_Carts extends core_Master
         
         if(isset($rec->termId)){
             $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'term');
-            $termName = str_replace('<br>', ' ', $termName);
+            $termName = strip_tags(str_replace('<br>', ' ', $termName));
             $countryName = drdata_Countries::getTitleById($rec->deliveryCountry);
             $pCode = core_Type::getByName('varchar')->toVerbal($rec->deliveryPCode);
             $place = core_Type::getByName('varchar')->toVerbal($rec->deliveryPlace);
             $place = (!empty($pCode)) ? "{$pCode} {$place}" : $place;
             $deliveryAddress = core_Type::getByName('varchar')->toVerbal($rec->deliveryAddress);
-            $delivery = tr($termName) . ": {$countryName}, {$place}, {$deliveryAddress}";
+            $delivery = tr($termName) . "\n" . "{$countryName}, {$place}, {$deliveryAddress}";
             $body->replace($delivery, 'DELIVERY');
         }
         
