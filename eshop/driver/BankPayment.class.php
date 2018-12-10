@@ -74,9 +74,8 @@ class eshop_driver_BankPayment extends core_BaseClass
         $txt .= "|Банка|*: {$data->BANK}, BIC: {$data->BIC}\n";
         $txt .= "|Титуляр|*: {$data->MyCompany}\n";
 
-        $blankDownloadUrl = fileman_Download::getDownloadUrl($data->PO_HND);
-        $poLink = "[link={$blankDownloadUrl}]" . tr('тук') . "[/link]";
-        $txt .= "|Може да свалите примерно платежно нареждане от|* {$poLink}\n";
+        $poLink = "[file={$data->PO_HND}][/file]";
+        $txt .= "|Може да свалите примерно платежно нареждане|* {$poLink} .\n";
 
         return tr($txt);
     }
@@ -132,6 +131,14 @@ class eshop_driver_BankPayment extends core_BaseClass
         return null;
     }
     
+    
+    /**
+     * Връща информация за плащането
+     * 
+     * @param int $id
+     * @param stdClass $cartRec
+     * @return stdClass
+     */
     private function getTextData($id, $cartRec)
     {
         $res = array();
@@ -159,7 +166,9 @@ class eshop_driver_BankPayment extends core_BaseClass
         $res['AMOUNT'] = "{$amount} {$settings->currencyId}";
         
         $fields = array('bic' => $res['BIC'], 'bank' => $res['BANK'], 'ownAccount' => $rec->ownAccount, 'amount' => $amount,'currencyCode' => $settings->currencyId);
-        $paymentOrderHnd = bank_PaymentOrders::getBlankAsPdf($res['HANDLER'], $fields);
+        $name = "po_" . str_replace("#", "", $res['HANDLER']);
+        
+        $paymentOrderHnd = bank_PaymentOrders::getBlankAsPdf($name, $res['HANDLER'], $fields);
         if($paymentOrderHnd){
             if($saleContainerId = sales_Sales::fetchField($cartRec->saleId, 'containerId')){
                 $fileId = fileman::fetchByFh($paymentOrderHnd, 'id');
