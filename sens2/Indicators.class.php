@@ -204,15 +204,14 @@ class sens2_Indicators extends core_Detail
     {
         static $outputs;
         
-        $cRec = sens2_Controllers::fetch($rec->controllerId);
-        
-        if (!$outputs[$cRec->driver]) {
+        if (!$outputs[$rec->controllerId]) {
             $drv = sens2_Controllers::getDriver($rec->controllerId);
             
-            $outputs[$cRec->driver] = $drv->getOutputPorts();
+            $outputs[$rec->controllerId] = $drv->getOutputPorts();
+
         }
         
-        if ($outputs[$cRec->driver][$rec->port]) {
+        if ($outputs[$rec->controllerId][$rec->port]) {
             $rec->isOutput = 'yes';
         } else {
             $rec->isOutput = 'no';
