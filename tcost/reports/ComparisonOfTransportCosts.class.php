@@ -122,7 +122,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $sQuery->where("(#state = 'closed') OR (#state = 'active')");
         
-        $sQuery->where("(#activatedOn IS NOT NULL)");
+        $sQuery->where('(#activatedOn IS NOT NULL)');
         
         $sQuery->where("(#activatedOn >= '{$rec->from}' AND #activatedOn <= '{$rec->to}') OR (#activatedOn >= '{$fromPreviuos}' AND #activatedOn <= '{$toPreviuos}')");
         
@@ -132,7 +132,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $salesInPeriod[$sRec->id] = $sRec->id;
         }
         
-       
+        
         $iQuery = acc_Items::getQuery();
         
         $classId = core_Classes::getId('sales_Sales');
@@ -149,10 +149,12 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $itemsDoc[$iRec->id] = $iRec->objectId;
         }
         
-        if (is_array($salesInPeriod) && is_array($itemsDoc)){
+        if (is_array($salesInPeriod) && is_array($itemsDoc)) {
             $salesItems = array_intersect($itemsDoc, $salesInPeriod);
-        }else
+        } else {
+            
             return $recs;
+        }
         
         // масив с разходните обекти за проверка
         $salesItemsIds = array_keys($salesItems);
@@ -167,6 +169,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'saleId' => $val,
+                    'contragentClassId' => sales_Sales::fetchField($val, 'contragentClassId'),
+                    'contragentId' => sales_Sales::fetchField($val, 'contragentId'),
                     'itemId' => $key,
                     'expectedTransportCost' => sales_Sales::fetchField($val, 'expectedTransportCost')
                 );
@@ -178,7 +182,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         }
         
         
-        
         $cQuery = acc_CostAllocations::getQuery();
         
         $cQuery->in('expenseItemId', $salesItemsIds);
@@ -186,7 +189,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $totalAmountPart = 0;
         
         while ($alocatedCost = $cQuery->fetch()) {
-            
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
             $detailRec = $className::fetch($alocatedCost-> detailRecId);
@@ -194,7 +196,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
             
             if ($className == 'purchase_PurchasesDetails') {
-                
                 if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
                     continue;
                 }
@@ -203,7 +204,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             }
             
             if ($className == 'purchase_ServicesDetails') {
-                
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
             }
             
@@ -213,7 +213,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $recs[$alocatedCost->expenseItemId]->amount = $detailRec-> amount;
             $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> amount * $alocatedCost-> quantity;
             $totalAmountPart += $detailRec-> amount * $detailRec-> quantity;
-            
         }
         
         $totalArr['total'] = (object) array(
@@ -222,7 +221,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         );
         
         array_unshift($recs, $totalArr['total']);
-      //  bp($recs);
+        
+        //  bp($recs);
         return $recs;
     }
     
@@ -244,6 +244,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         if ($export === false) {
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('expectedTransportCost', 'varchar', 'caption=Очакванo,tdClass=centered');
             $fld->FLD('amountPart', 'varchar', 'caption=Платено,tdClass=centered');
             $fld->FLD('purchaseId', 'varchar', 'caption=Покупка');
@@ -295,6 +296,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             false,
             "ef_icon={$Sale->singleIcon}"
         );
+        
+        $contragentClass = core_Classes::getName($dRec->contragentClassId);
+        $row->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
+        
         
         $row->amountPart = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountPart);
         
