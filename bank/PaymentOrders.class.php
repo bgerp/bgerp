@@ -348,7 +348,9 @@ class bank_PaymentOrders extends bank_DocumentBlank
        // Сума 
        if(isset($fields->amount)){
            expect($amount = core_Type::getByName('double')->fromVerbal($fields->amount));
-           $row->amount = round($amount, 2);
+           $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+           $row->amount = str_replace('&nbsp;', '', $row->amount);
+           $row->amount = str::removeWhitespaces($row->amount);
            $row->sayWords = self::spellAmount($fields);
        }
        
