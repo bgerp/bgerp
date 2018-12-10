@@ -2,12 +2,10 @@
 
 Благодарим за вашата покупка [#SALE_HANDLER#].
 <!--ET_BEGIN PAYMENT_TEXT-->
-Плащане:
-Метод: [#PAYMENT_NAME#]
+Плащане: [#PAYMENT_NAME#]
 [#PAYMENT_TEXT#]<!--ET_END PAYMENT_TEXT-->[#MAKE_INVOICE#]
 <!--ET_BEGIN TERM_ID-->
-Доставка:
-[#TERM_ID#]
+Доставка: [#TERM_ID#]
 [#DELIVERY_COUNTRY#]<!--ET_BEGIN PLACE-->, [#PLACE#]<!--ET_END PLACE--><!--ET_BEGIN ADDRESS-->, [#ADDRESS#]<!--ET_END ADDRESS-->
 <!--ET_END TERM_ID--><!--ET_BEGIN REGISTER_LINK-->Ако желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#REGISTER_LINK#], която изтича след 7 дни.
 <!--ET_END REGISTER_LINK-->
