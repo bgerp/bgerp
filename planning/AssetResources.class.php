@@ -475,7 +475,11 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search,groupId';
+        $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,silent,remember,input,refreshForm');
+        $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
+        $data->listFilter->setOptions('folderId', array('' => '') + $resourceSuggestionsArr);
+        
+        $data->listFilter->showFields = 'search,groupId,folderId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -484,11 +488,16 @@ class planning_AssetResources extends core_Master
         }
         
         $data->listFilter->FLD('type', 'enum(material=Материален, nonMaterial=Нематериален)', 'caption=Тип, input=hidden, silent');
-        $data->listFilter->input('type', true);
+        $data->listFilter->input('type, folderId', true);
         
         if ($data->listFilter->rec->type) {
             $data->query->EXT('type', 'planning_AssetGroups', 'externalName=type,externalKey=groupId');
             $data->query->where(array("#type = '[#1#]'", $data->listFilter->rec->type));
+        }
+        
+        if ($data->listFilter->rec->folderId) {
+            $data->query->likeKeylist('assetFolderId', $data->listFilter->rec->folderId);
+            $data->query->orLikeKeylist('systemFolderId', $data->listFilter->rec->folderId);
         }
         
         $data->query->orderBy('modifiedOn', 'DESC');
