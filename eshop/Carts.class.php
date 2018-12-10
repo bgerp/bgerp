@@ -922,14 +922,21 @@ class eshop_Carts extends core_Master
             if(empty($termName)){
                 $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'codeName');
             }
+            
             $termName = strip_tags(str_replace('<br>', ' ', $termName));
-            $countryName = drdata_Countries::getTitleById($rec->deliveryCountry);
+            $body->replace($termName, 'TERM_ID');
+            $countryName = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->deliveryCountry);
             $pCode = core_Type::getByName('varchar')->toVerbal($rec->deliveryPCode);
             $place = core_Type::getByName('varchar')->toVerbal($rec->deliveryPlace);
             $place = (!empty($pCode)) ? "{$pCode} {$place}" : $place;
             $deliveryAddress = core_Type::getByName('varchar')->toVerbal($rec->deliveryAddress);
-            $delivery = tr($termName) . "\n" . "{$countryName}, {$place}, {$deliveryAddress}";
-            $body->replace($delivery, 'DELIVERY');
+            $body->replace($countryName, 'DELIVERY_COUNTRY');
+            if(!empty($place)){
+                $body->replace($place, 'PLACE');
+            }
+            if(!empty($rec->deliveryAddress)){
+                $body->replace($deliveryAddress, 'ADDRESS');
+            }
         }
         
         $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
@@ -978,11 +985,6 @@ class eshop_Carts extends core_Master
             'threadId' => $saleRec->threadId,
             'state' => 'active',
             'email' => $rec->email, 'tel' => $rec->tel, 'recipient' => $rec->personNames);
-        
-        
-        doc_RichTextPlg::getAttachedDocs($rt);
-        $attached = email_Outgoings::getAttachedDocuments($emailRec);
-        
         
         // Активиране на изходящия имейл
         core_Users::forceSystemUser();
