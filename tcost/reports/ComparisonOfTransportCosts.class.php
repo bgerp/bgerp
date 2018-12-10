@@ -61,6 +61,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+        $fieldset->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,placeholder = Всички,after=to,single=none');
     }
     
     
@@ -127,6 +128,17 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $sQuery->where("(#activatedOn >= '{$rec->from}' AND #activatedOn <= '{$rec->to}') OR (#activatedOn >= '{$fromPreviuos}' AND #activatedOn <= '{$toPreviuos}')");
         
         while ($sRec = $sQuery->fetch()) {
+            
+            
+            //филтър по държава
+            if ($rec->country) {
+                $contragentClass = core_Classes::getName($sRec->contragentClassId);
+                $contragentCountryId = $contragentClass::fetchField($sRec->contragentId, 'country');
+                
+                if ($rec->country != $contragentCountryId) {
+                    continue;
+                }
+            }
             
             //договори за продажба за периода
             $salesInPeriod[$sRec->id] = $sRec->id;
@@ -196,10 +208,9 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         while ($alocatedCost = $cQuery->fetch()) {
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
-            $detailRec = $className::fetch($alocatedCost-> detailRecId);
+            $detailRec = $className::fetch($alocatedCost-> detailRecId);//bp($detailRec,$alocatedCost);
             
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
-            
             
             if ($className == 'purchase_PurchasesDetails') {
                 if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
@@ -221,14 +232,22 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $totalAmountPart += $detailRec-> amount * $detailRec-> quantity;
         }
         
+        foreach ($recs as $key => $val) {
+            $recs[$key]->difference = $val->expectedTransportCost - $val->amountPart;
+        }
+        
+        if (!is_null($recs)) {
+            arr::sortObjects($recs, 'difference', 'asc', 'native');
+        }
+        
         $totalArr['total'] = (object) array(
             'totalAmountPart' => $totalAmountPart,
-            'totalExpectedTransportCost' => $totalExpectedTransportCost
+            'totalExpectedTransportCost' => $totalExpectedTransportCost,
+            'totalDifference' => $totalExpectedTransportCost - $totalAmountPart
         );
         
         array_unshift($recs, $totalArr['total']);
         
-        //  bp($recs);
         return $recs;
     }
     
@@ -251,8 +270,12 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
+            if (!$rec->country) {
+                $fld->FLD('country', 'varchar', 'caption=Държава,tdClass=centered');
+            }
             $fld->FLD('expectedTransportCost', 'varchar', 'caption=Очакванo,tdClass=centered');
             $fld->FLD('amountPart', 'varchar', 'caption=Платено,tdClass=centered');
+            $fld->FLD('difference', 'varchar', 'caption=Разлика,tdClass=centered');
             $fld->FLD('purchaseId', 'varchar', 'caption=Покупка');
         }
         
@@ -284,13 +307,13 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $row->saleId = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
             $row->expectedTransportCost = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalExpectedTransportCost) . '</b>';
             $row->amountPart = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalAmountPart) . '</b>';
+            $row->difference = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDifference) . '</b>';
+            $row->difference = ht::styleNumber($row->difference, $dRec->totalDifference);
             
             return $row;
         }
         
         $row->expectedTransportCost = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->expectedTransportCost);
-        
-        //$row->saleId = sales_Sales::getHyperlink($dRec->saleId);
         
         $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
         $saleHandle = sales_Sales::getHandle($dRec->saleId);
@@ -306,8 +329,14 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $contragentClass = core_Classes::getName($dRec->contragentClassId);
         $row->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
         
+        $countryId = $contragentClass::fetchField($dRec->contragentId, 'country');
+        $row->country = drdata_Countries::getCountryName($countryId);
+        
         
         $row->amountPart = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountPart);
+        
+        $row->difference = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->difference);
+        $row->difference = ht::styleNumber($row->difference, ($dRec->difference));
         
         if (isset($dRec->purchaseId)) {
             $purchaise = explode(',', trim($dRec->purchaseId, ','));
@@ -365,6 +394,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                 <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
+                                <small><div><!--ET_BEGIN country-->|Държава|*: [#country#]<!--ET_END country--></div></small>
             
                                 </fieldset><!--ET_END BLOCK-->"));
         
@@ -375,6 +405,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         if (isset($data->rec->to)) {
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
+        }
+        
+        if (isset($data->rec->country)) {
+            $fieldTpl->append('<b>' . drdata_Countries::getCountryName($data->rec->country) . '</b>', 'country');
         }
         
         
