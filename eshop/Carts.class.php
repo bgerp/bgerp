@@ -919,6 +919,9 @@ class eshop_Carts extends core_Master
         // Показване на информацията за доставка
         if(isset($rec->termId)){
             $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'term');
+            if(empty($termName)){
+                $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'codeName');
+            }
             $termName = strip_tags(str_replace('<br>', ' ', $termName));
             $countryName = drdata_Countries::getTitleById($rec->deliveryCountry);
             $pCode = core_Type::getByName('varchar')->toVerbal($rec->deliveryPCode);
