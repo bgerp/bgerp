@@ -212,4 +212,16 @@ class eshop_driver_BankPayment extends core_BaseClass
         
         return $tpl;
     }
+    
+    
+    /**
+     * Връща типа на метода на плащане
+     *
+     * @param mixed $id
+     * @return string
+     */
+    public function getPaymentType($id)
+    {
+        return 'bank';
+    }
 }

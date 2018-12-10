@@ -158,4 +158,16 @@ class epay_driver_OnlinePayment extends core_BaseClass
     {
         return null;
     }
+    
+    
+    /**
+     * Връща типа на метода на плащане
+     *
+     * @param stdClass $id
+     * @return string
+     */
+    public function getPaymentType($rec)
+    {
+        return 'bank';
+    }
 }

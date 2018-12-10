@@ -97,4 +97,16 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
     {
         return $this->class->displayHtmlAfterPayment($id, $cartRec);
     }
+    
+    
+    /**
+     * Връща типа на метода на плащане
+     *
+     * @param mixed $id
+     * @return string
+     */
+    public function getPaymentType($id)
+    {
+        return $this->class->getPaymentType($id);
+    }
 }
