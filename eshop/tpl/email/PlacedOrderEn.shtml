@@ -1,0 +1,7 @@
+[#INTRODUCTION#]
+Thank you for your purchase [#SALE_HANDLER#] for [#AMOUNT#], [#MAKE_INVOICE#].
+<!--ET_BEGIN PAYMENT_TEXT-->[#PAYMENT_TEXT#]<!--ET_END PAYMENT_TEXT-->
+<!--ET_BEGIN DELIVERY-->Delivery: [#DELIVERY#]<!--ET_END DELIVERY-->
+<!--ET_BEGIN REGISTER_LINK-->If you want to save time in the future purchases of our online shop, please register from this [#REGISTER_LINK#], which expires in 7 days.
+<!--ET_END REGISTER_LINK-->
+[#FOOTER#]

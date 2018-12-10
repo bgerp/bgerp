@@ -67,14 +67,16 @@ class eshop_driver_BankPayment extends core_BaseClass
     public function getText4Email($paymentId, $cartRec)
     {
         $data = $this->getTextData($paymentId, $cartRec);
-
+        
         $txt = "\nIBAN: {$data->IBAN}\n";
         $txt .= "|Сума|*: {$data->AMOUNT}\n";
         $txt .= "|Основание|*: {$data->HANDLER}\n";
         $txt .= "|Банка|*: {$data->BANK}, BIC: {$data->BIC}\n";
         $txt .= "|Титуляр|*: {$data->MyCompany}\n";
 
-        $txt .= "|Може да свалите примерно платежно нареждане от|* {$data->PO_LINK}\n";
+        $blankDownloadUrl = fileman_Download::getDownloadUrl($data->PO_HND);
+        $poLink = "[link={$blankDownloadUrl}]" . tr('тук') . "[/link]";
+        $txt .= "|Може да свалите примерно платежно нареждане от|* {$poLink}\n";
 
         return tr($txt);
     }

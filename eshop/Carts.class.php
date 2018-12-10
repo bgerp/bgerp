@@ -900,25 +900,31 @@ class eshop_Carts extends core_Master
         core_Lg::push($lang);
         
         // Подготовка на тялото на имейла
-        $body = new core_ET($settings->emailBody);
-        $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
+        $file = ($lang == 'bg') ? 'eshop/tpl/email/PlacedOrderBg.shtml' : 'eshop/tpl/email/PlacedOrderEn.shtml';
+        $body = getTplFromFile($file);
+        $body->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
+        $body->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
         
+        $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
         $makeInvoice = tr(self::getVerbal($rec, 'makeInvoice'));
         $body->replace($makeInvoice, 'MAKE_INVOICE');
         
         if(isset($rec->termId)){
-            $termId = tr(cond_DeliveryTerms::getVerbal($rec->termId, 'term'));
-            $body->replace($termId, 'TERM_ID');
+            $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'term');
+            
+            $countryName = drdata_Countries::getTitleById($rec->deliveryCountry);
+            $pCode = core_Type::getByName('varchar')->toVerbal($rec->deliveryPCode);
+            $place = core_Type::getByName('varchar')->toVerbal($rec->deliveryPlace);
+            $place = (!empty($pCode)) ? "{$pCode} {$place}" : $place;
+            $deliveryAddress = core_Type::getByName('varchar')->toVerbal($rec->deliveryAddress);
+            $delivery = tr($termName) . ": {$countryName}, {$place}, {$deliveryAddress}";
+            $body->replace($delivery, 'DELIVERY');
         }
         
         $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         $amount = str_replace('&nbsp;', ' ', $amount);
         $body->replace("{$amount} {$settings->currencyId}", 'AMOUNT');
-       
-        if($threadCount == 1){
-            $body->replace(new core_ET($settings->emailRegistrationText), 'REGISTER_LINK');
-        }
         
         // Ако има избран метод на плащане, добавя се и текста, който трябва да се добави до имейла
         if (isset($rec->paymentId)) {
@@ -942,13 +948,11 @@ class eshop_Carts extends core_Master
         if($threadCount == 1){
             $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames), 604800);
             $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
-            $body->replace($url, 'link');
+            $body->replace($url, 'REGISTER_LINK');
         }
         
-        $domainName = '';
-        $selfUrl = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
-        $domainUrl= "[link={$selfUrl}]" . $domainName . '[/link]';
-        $body->replace($domainUrl, 'domainId');
+        $companyName = tr(crm_Companies::fetchOwnCompany()->company);
+        $body->replace($companyName, 'COMPANY_NAME');
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
         
         // Подготовка на имейла
@@ -2140,10 +2144,21 @@ class eshop_Carts extends core_Master
         core_Lg::push($lang);
         $deleteTime = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($settings->timeBeforeDelete);
         
-        // Подготовка на тялото на имейла
-        $body = (object)array('html' => new core_ET($settings->emailBodyNotify), 'text' => new core_ET($settings->emailBodyNotify));
+        $file = ($lang == 'bg') ? 'eshop/tpl/email/NotifyEmailBg.shtml' : 'eshop/tpl/email/NotifyEmailEn.shtml';
+        $fileTxt = ($lang == 'bg') ? 'eshop/tpl/email/NotifyEmailBg.txt' : 'eshop/tpl/email/NotifyEmailEn.txt';
+        
+        $companyName = tr(crm_Companies::fetchOwnCompany()->company);
+        $body = new stdClass();
+        
         foreach (array('html' => 'xhtml', 'text' => 'plain') as $var => $mode){
             Mode::push('text', $mode);
+            
+            $file = ($var == 'html') ? $file : $fileTxt;
+            $tpl = getTplFromFile($file);
+            $tpl->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
+            
+            $tpl->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
+            $body->{$var} = $tpl;
             
             $link = ht::createLink($domainName, $selfUrl)->getContent();
             if($mode == 'plain'){
@@ -2155,7 +2170,7 @@ class eshop_Carts extends core_Master
             $body->{$var}->replace($createdOn, 'DATE');
             $body->{$var}->replace(core_Type::getByName('varchar')->toVerbal($rec->personNames), 'NAME');
             $body->{$var}->replace($link, 'LINK');
-            $body->{$var}->replace($domainName, 'domainId');
+            $body->{$var}->replace($companyName, 'COMPANY_NAME');
             Mode::pop('text');
             
             $body->{$var} = $body->{$var}->getContent();
