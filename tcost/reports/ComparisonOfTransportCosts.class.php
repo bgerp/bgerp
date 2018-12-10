@@ -120,16 +120,19 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $sQuery = sales_Sales::getQuery();
         
-        $sQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+        $sQuery->where("(#state = 'closed') OR (#state = 'active')");
+        
+        $sQuery->where("(#activatedOn IS NOT NULL)");
+        
+        $sQuery->where("(#activatedOn >= '{$rec->from}' AND #activatedOn <= '{$rec->to}') OR (#activatedOn >= '{$fromPreviuos}' AND #activatedOn <= '{$toPreviuos}')");
         
         while ($sRec = $sQuery->fetch()) {
-            
             
             //договори за продажба за периода
             $salesInPeriod[$sRec->id] = $sRec->id;
         }
         
-        
+       
         $iQuery = acc_Items::getQuery();
         
         $classId = core_Classes::getId('sales_Sales');
@@ -146,8 +149,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $itemsDoc[$iRec->id] = $iRec->objectId;
         }
         
-        $salesItems = array_intersect($itemsDoc, $salesInPeriod);
-        
+        if (is_array($salesInPeriod) && is_array($itemsDoc)){
+            $salesItems = array_intersect($itemsDoc, $salesInPeriod);
+        }else
+            return $recs;
         
         // масив с разходните обекти за проверка
         $salesItemsIds = array_keys($salesItems);
@@ -173,6 +178,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         }
         
         
+        
         $cQuery = acc_CostAllocations::getQuery();
         
         $cQuery->in('expenseItemId', $salesItemsIds);
@@ -180,35 +186,34 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $totalAmountPart = 0;
         
         while ($alocatedCost = $cQuery->fetch()) {
+            
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
+            $detailRec = $className::fetch($alocatedCost-> detailRecId);
+            
+            $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
+            
             if ($className == 'purchase_PurchasesDetails') {
-                $recs[$alocatedCost->expenseItemId]->className = $className;
-                $detail = $className::fetch($alocatedCost-> detailRecId);
-                $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
                 
-                if (strpos($masterClassName::fetchField($detail->requestId, 'contoActions'), 'ship') == false) {
+                if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
                     continue;
                 }
                 
-                $recs[$alocatedCost->expenseItemId]->purchaseId .= $detail-> requestId.'/'.$alocatedCost-> detailClassId.',';
+                $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> requestId.'/'.$alocatedCost-> detailClassId.',';
             }
             
             if ($className == 'purchase_ServicesDetails') {
-                $recs[$alocatedCost->expenseItemId]->className = $className;
-                $detail = $className::fetch($alocatedCost-> detailRecId);
-                $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
                 
-                $recs[$alocatedCost->expenseItemId]->purchaseId .= $detail-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
+                $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
             }
             
+            $recs[$alocatedCost->expenseItemId]->className = $className;
             $recs[$alocatedCost->expenseItemId]->purMasterClassName = $masterClassName;
             $recs[$alocatedCost->expenseItemId]->alocatedPart = $alocatedCost-> quantity;
-            $recs[$alocatedCost->expenseItemId]->amount = $detail-> amount;
-            $recs[$alocatedCost->expenseItemId]->amountPart += $detail-> amount * $alocatedCost-> quantity;
-            $totalAmountPart += $detail-> amount * $detail-> quantity;
+            $recs[$alocatedCost->expenseItemId]->amount = $detailRec-> amount;
+            $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> amount * $alocatedCost-> quantity;
+            $totalAmountPart += $detailRec-> amount * $detailRec-> quantity;
             
-            unset($className,$masterClassName);
         }
         
         $totalArr['total'] = (object) array(
@@ -217,7 +222,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         );
         
         array_unshift($recs, $totalArr['total']);
-        
+      //  bp($recs);
         return $recs;
     }
     
