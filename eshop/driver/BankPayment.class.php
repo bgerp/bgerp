@@ -68,7 +68,7 @@ class eshop_driver_BankPayment extends core_BaseClass
     {
         $data = $this->getTextData($paymentId, $cartRec);
         
-        $txt = "\nIBAN: {$data->IBAN}\n";
+        $txt = "IBAN: {$data->IBAN}\n";
         $txt .= "|Сума|*: {$data->AMOUNT}\n";
         $txt .= "|Основание|*: {$data->HANDLER}\n";
         $txt .= "|Банка|*: {$data->BANK}, BIC: {$data->BIC}\n";
