@@ -1,4 +1,4 @@
 [#INTRODUCTION#]
 You have unfinished order from [#DATE#] in our online store [#LINK#]. 
-Ако не я довършите, тя ще бъде изтрита след [#DELETE_TIME#].
+If you don't complete it, it will be deleted in [#DELETE_TIME#].
 [#FOOTER#]
