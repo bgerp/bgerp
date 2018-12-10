@@ -935,6 +935,9 @@ class eshop_Carts extends core_Master
         
         // Ако има избран метод на плащане, добавя се и текста, който трябва да се добави до имейла
         if (isset($rec->paymentId)) {
+            $paymentMethod = tr(cond_PaymentMethods::getTitleById($rec->paymentId));
+            $body->append($paymentMethod, 'PAYMENT_NAME');
+            
             if($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)){
                 Mode::push('text', 'plain');
                 $paymentText = $PaymentDriver->getText4Email($rec->paymentId, $rec);
