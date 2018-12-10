@@ -379,7 +379,6 @@ class eshop_Carts extends core_Master
             $rec = (object) array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft', 'productCount' => 0);
             self::save($rec);
             
-            $domainName = cms_Domains::getVerbal($domainId, 'titleExt');
             vislog_History::add("Създаване на количка");
         }
         
@@ -572,6 +571,10 @@ class eshop_Carts extends core_Master
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
+        if($rec->state == 'active'){
+            return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Имате изпратена информация за поръчката на посочения имейл.');
+        }
+        
         $description = Request::get('description', 'varchar');
         $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         
@@ -911,7 +914,7 @@ class eshop_Carts extends core_Master
         
         if(isset($rec->termId)){
             $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'term');
-            
+            $termName = str_replace('<br>', ' ', $termName);
             $countryName = drdata_Countries::getTitleById($rec->deliveryCountry);
             $pCode = core_Type::getByName('varchar')->toVerbal($rec->deliveryPCode);
             $place = core_Type::getByName('varchar')->toVerbal($rec->deliveryPlace);
