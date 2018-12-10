@@ -151,6 +151,11 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         if (is_array($salesInPeriod) && is_array($itemsDoc)) {
             $salesItems = array_intersect($itemsDoc, $salesInPeriod);
+            
+            if (empty($salesItems)) {
+                
+                return $recs;
+            }
         } else {
             
             return $recs;
@@ -194,6 +199,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $detailRec = $className::fetch($alocatedCost-> detailRecId);
             
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
+            
             
             if ($className == 'purchase_PurchasesDetails') {
                 if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
