@@ -69,7 +69,13 @@ class sens2_DataLogs extends core_Manager
      */
     public $listFields = 'id,indicatorId, value, time';
     
-    
+
+    /**
+     * Без броене на редовете, по време на страницирането
+     */
+    public $simplePaging = true;
+
+
     /**
      * Описание на модела
      */
