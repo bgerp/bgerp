@@ -1,7 +1,10 @@
 [#INTRODUCTION#]
+
 Thank you for your purchase [#SALE_HANDLER#].
 <!--ET_BEGIN PAYMENT_TEXT-->
-Payment: [#PAYMENT_TEXT#] <!--ET_END PAYMENT_TEXT--> [#MAKE_INVOICE#]
+Payment:
+Type: [#PAYMENT_NAME#]
+[#PAYMENT_TEXT#] <!--ET_END PAYMENT_TEXT--> [#MAKE_INVOICE#]
 <!--ET_BEGIN DELIVERY-->
 Delivery:
 [#DELIVERY#]
