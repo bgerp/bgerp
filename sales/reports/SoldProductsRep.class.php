@@ -1045,7 +1045,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
     
-    public function getFoldersInGroups($rec)
+    public static function getFoldersInGroups($rec)
     {
         $fQuery = doc_Folders::getQuery();
         
