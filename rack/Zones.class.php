@@ -249,6 +249,8 @@ class rack_Zones extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
+        $rec = self::fetchRec($rec);
+        
         $num = self::getVerbal($rec, 'num');
         $groupName = null;
         if(!Mode::is('shortZoneName')){
