@@ -718,7 +718,7 @@ class eshop_Products extends core_Master
     /**
      * След извличане на ключовите думи
      */
-    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    protected function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         $rec = $mvc->fetchRec($rec);
         
@@ -726,14 +726,28 @@ class eshop_Products extends core_Master
             $searchKeywords = plg_Search::getKeywords($mvc, $rec);
         }
         
-        if ($rec->groupId) {
+        if (isset($rec->groupId)) {
             $gRec = eshop_Groups::fetch($rec->groupId);
-            
             $handleNormalized = plg_Search::normalizeText($gRec->name);
             
             if (strpos($searchKeywords, $handleNormalized) === false) {
                 $searchKeywords .= ' ' . $handleNormalized;
                 cms_VerbalIdPlg::on_AfterGetSearchKeywords($mvc, $searchKeywords, $rec);
+            }
+        }
+        
+        // Всички детайли на е-артикула
+        if(isset($rec->id)){
+            $dQuery = eshop_ProductDetails::getQuery();
+            $dQuery->where("#eshopProductId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                
+                // Извличат се параметрите им и се добавят към ключовите думи
+                $params = cat_Products::getParams($dRec->productId, null, true);
+                foreach ($params as $paramId => $paramValue){
+                    $paramName = cat_Params::getTitleById($paramId);
+                    $searchKeywords .= ' ' . plg_Search::normalizeText($paramName) . " " . plg_Search::normalizeText($paramValue);
+                }
             }
         }
     }
