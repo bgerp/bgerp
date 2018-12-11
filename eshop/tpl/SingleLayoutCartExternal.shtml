@@ -8,9 +8,6 @@
       <div class='cart-container clearfix21' >
          <div class="scrolling-holder" style="margin-bottom: 20px;">
             [#CART_TABLE#]
-
-
-
          </div>
          <div class="textInfo">
             <!--ET_BEGIN freeDelivery-->
@@ -32,9 +29,6 @@
          <!--ET_END CHECK_EMAIL-->
       </div>
    </div>
-   
-   
-            
    <div class="cartInfoBlock">
       <!--ET_BEGIN INFO_BLOCK-->
       [#INFO_BLOCK#]
@@ -99,7 +93,7 @@
                <!--ET_END deliveryError-->
                <!--ET_BEGIN instruction-->
                <tr>
-                  <td class="aright">|Бележки|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
+                  <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
                </tr>
                <!--ET_END instruction-->
                <!--ET_END DELIVERY_BLOCK-->
@@ -204,7 +198,6 @@
          <!--ET_END CART_TOOLBAR_RIGHT-->
       </div>
       <!--ET_END INFO_BLOCK-->
-
    </div>
    <div class="clearfix21"></div>
 </div>
