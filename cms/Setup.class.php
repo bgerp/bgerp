@@ -217,32 +217,34 @@ class cms_Setup extends core_ProtoSetup
         
         return $domainIds[$lg];
     }
-
+    
     
     /**
      * Премахване на favicon от рута и миграция на домейните
      */
-    function domainFiles()
+    public function domainFiles()
     {
         // Иконата
         $dest = EF_INDEX_PATH . '/favicon.ico';
         
         if (file_exists($dest)) {
-            
-            if(!cms_Domains::fetch("#domain = 'localhost' AND (#favicon OR #wrFiles)")) {
-                if($dRec = cms_Domains::fetch("#domain = 'localhost'")) {
-                    $dRec->favicon = fileman::absorb($dest, 'cmsFiles');
-                    cms_Domains::save($dRec, 'favicon');
+            try {
+                if (!cms_Domains::fetch("#domain = 'localhost' AND (#favicon OR #wrFiles)")) {
+                    if ($dRec = cms_Domains::fetch("#domain = 'localhost'")) {
+                        $dRec->favicon = fileman::absorb($dest, 'cmsFiles');
+                        cms_Domains::save($dRec, 'favicon');
+                    }
                 }
+                
+                unlink($dest);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
             }
-
-            unlink($dest);
         }
-
+        
         $dQuery = cms_Domains::getQuery();
-        while($dRec = $dQuery->fetch()) {
+        while ($dRec = $dQuery->fetch()) {
             cms_Domains::save($dRec);
         }
     }
-
 }
