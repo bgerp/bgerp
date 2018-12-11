@@ -209,8 +209,13 @@ class marketing_Router
     public static function forcePersonFolder($name, $email, $country, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge)
     {
         $rec = new stdClass();
-        foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge', 'vatId', 'uicId') as $param) {
-            $rec->{$param} = ${$param};
+        foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge', 'vatId', 'egn') as $param) {
+            $value = ${$param};
+            if($param == 'egn'){
+                $value = $uicId;
+            }
+            
+            $rec->{$param} = $value;
         }
         
         try {
