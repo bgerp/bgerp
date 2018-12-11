@@ -351,7 +351,10 @@ class bank_PaymentOrders extends bank_DocumentBlank
            $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
            $row->amount = str_replace('&nbsp;', '', $row->amount);
            $row->amount = str::removeWhitespaces($row->amount);
-           $row->sayWords = self::spellAmount($fields);
+           
+           if($documentType == 'budget'){
+               $row->sayWords = self::spellAmount($fields);
+           }
        }
        
        // Заместване на данните в шаблона
