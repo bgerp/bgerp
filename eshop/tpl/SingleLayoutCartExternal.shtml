@@ -38,8 +38,12 @@
             <!--ET_END activeFolderId-->
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
-            <h4 style="margin: 0px 0 3px;">|Данни за поръчката|* [#editBtn#]</h4>
             <table style="margin-left: 10px; margin-bottom: 10px">
+               <tr>
+                  <td colspan = 2>
+                     <h4 style="margin: 0px 0 3px;">|Данни за поръчката|* [#editBtn#]</h4>
+                  </td>
+               </tr>
                <!--ET_BEGIN personNames-->
                <tr>
                   <td class="aright">|Имена|*:</td><td> [#personNames#]</td>
@@ -60,15 +64,15 @@
                   <td class="aright">|Плащане|*:</td><td> [#paymentId#]</td>
                </tr>
                <!--ET_END paymentId-->
-            </table>
-
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
             [#DELIVERY_BLOCK#]
-            <h4 style="margin: 0px 0 3px;">|Доставка|*</h4>
-            <table style="margin-left: 10px;margin-bottom: 10px;">
-
+               <tr>
+                  <td colspan = 2>
+                     <h4 style="margin: 10px 0 3px;">|Доставка|*</h4>
+                  </td>
+               </tr>
                <!--ET_BEGIN termId-->
                <tr>
                   <td class="aright">|Начин|*:</td><td> [#termId#]</td>
@@ -97,19 +101,29 @@
                </tr>
                <!--ET_END instruction-->
                <!--ET_END DELIVERY_BLOCK-->
-            </table>
             
          <!--ET_BEGIN INVOICE_BLOCK-->
-         [#INVOICE_BLOCK#]
+               <tr>
+                  <td colspan="2">
+                     [#INVOICE_BLOCK#]
+                  </td>
+               </tr>
+
          <!--ET_BEGIN NO_INVOICE-->
-         <div style="padding-bottom: 5px;">[#NO_INVOICE#]</div>
+               <tr>
+                  <td colspan="2">
+                     <div style="padding-bottom: 5px;">[#NO_INVOICE#]</div>
+                  </td>
+               </tr>
+
          <!--ET_END NO_INVOICE-->
 
 		<!--ET_BEGIN WITH_INVOICE-->
 			[#WITH_INVOICE#]
-            <h4 style="margin: 0px 0 3px;">|Фактура|*</h4>
-            <table style="margin-left: 10px;">
                <!--ET_BEGIN invoiceNames-->
+               <tr>
+                  <td colspan="2"><h4 style="margin: 10px 0 3px;">|Фактура|*</h4></td>
+               </tr>
                <tr>
                   <td colspan="2">[#invoiceNames#]</td>
                </tr>
@@ -122,7 +136,7 @@
                
                <!--ET_BEGIN invoiceUicNo-->
                <tr>
-                  <td class="aright">[#VAT_CAPTION#]</td><td> [#invoiceUicNo#]</td>
+                  <td class="aright">[#VAT_CAPTION#]:</td><td> [#invoiceUicNo#]</td>
                </tr>
                <!--ET_END invoiceUicNo-->
                
