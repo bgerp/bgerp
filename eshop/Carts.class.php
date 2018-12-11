@@ -575,8 +575,9 @@ class eshop_Carts extends core_Master
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
+        $msg = '|Благодарим за поръчката|*!';
         if($rec->state == 'active'){
-            return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), 'Имате изпратена информация за поръчката на посочения имейл.');
+            return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
         }
         
         $description = Request::get('description', 'varchar');
@@ -604,8 +605,6 @@ class eshop_Carts extends core_Master
         }
         
         vislog_History::add("Финализиране на количка");
-        
-        $msg = '|Благодарим за поръчката|*!';
         if($saleRec->_paymentInstructionsSend === true){
             $msg .= " |Изпратихме Ви имейл с инструкции за плащането|*.";
         }
@@ -620,6 +619,8 @@ class eshop_Carts extends core_Master
             $afterPaymentDisplay = $Driver->displayHtmlAfterPayment($rec->paymentId, $rec);
             if(isset($afterPaymentDisplay) && $afterPaymentDisplay instanceof core_ET){
                 Mode::set('wrapper', 'cms_page_External');
+                core_Statuses::newStatus($msg);
+                vislog_History::add("Показване на информация за плащането");
                 
                 return $afterPaymentDisplay;
             }
@@ -627,7 +628,6 @@ class eshop_Carts extends core_Master
         
         return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
     }
-    
     
     
     /**
