@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="info-table">
-        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[#code#] - [#name#]</b></h3>
+        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[#codeAndName#]</b></h3>
         
         <fieldset class="detail-info">
             <legend class="groupTitle">|Общи данни|*</legend>
