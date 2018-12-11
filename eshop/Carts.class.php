@@ -1253,8 +1253,10 @@ class eshop_Carts extends core_Master
         $Double = core_Type::getByName('double(decimals=2)');
         $rec = self::fetchRec($id, '*', false);
         if(empty($rec->productCount) && empty($rec->personNames)) return;
+        $fields = cls::get('eshop_Carts')->selectFields();
+        $fields['-external'] = true;
         
-        $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
+        $row = self::recToVerbal($rec, $fields);
         $settings = cms_Domains::getSettings();
         if(isset($settings->freeDelivery)){
             if($settings->freeDelivery != 0){
@@ -1406,7 +1408,10 @@ class eshop_Carts extends core_Master
         $rec = self::fetchRec($rec);
         
         $tpl = new core_ET('');
-        $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
+        $fields = cls::get('eshop_Carts')->selectFields();
+        $fields['-external'] = true;
+        
+        $row = self::recToVerbal($rec, $fields);
         $data = (object) array('rec' => $rec, 'row' => $row);
         self::prepareExternalCart($data);
         $tpl = self::renderExternalCart($data);
@@ -1616,16 +1621,15 @@ class eshop_Carts extends core_Master
         
         if (isset($rec->saleId)) {
             $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+        } 
+        
+        if (isset($rec->termId) && !isset($fields['-external'])) {
+           $row->termId = cond_DeliveryTerms::getHyperlink($rec->termId, true);
         }
         
-        if (isset($rec->termId)) {
-            $row->termId = cond_DeliveryTerms::getHyperlink($rec->termId, true);
+        if (isset($rec->paymentId) && !isset($fields['-external'])) {
+           $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
         }
-        
-        if (isset($rec->paymentId)) {
-            $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
-        }
-        
     }
     
     
