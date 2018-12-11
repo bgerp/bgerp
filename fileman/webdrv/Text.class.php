@@ -59,7 +59,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         
         if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', true, true)) {
             // URL за показване на текстовата част на файловете
-            $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), true);
+            $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd));
             
             // Таб за текстовата част
             $tabsArr['text'] = (object)
