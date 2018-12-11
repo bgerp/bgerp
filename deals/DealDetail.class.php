@@ -212,7 +212,7 @@ abstract class deals_DealDetail extends doc_Detail
                 if (isset($listId)) {
                     $allProducts = cat_Listings::getAll($listId);
                     foreach ($allProducts as $o) {
-                        $pRec = cat_Products::fetch($o->productId, 'name,isPublic,code,createdOn');
+                        $pRec = cat_Products::fetch($o->productId, 'name,nameInt,isPublic,code,createdOn');
                         $products[$o->productId] = cat_Products::getRecTitle($pRec, false);
                     }
                 }
@@ -760,17 +760,5 @@ abstract class deals_DealDetail extends doc_Detail
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $form->setDefault("quantityInPack{$lId}", $quantityInPack);
         }
-    }
-    
-    
-    /**
-     * Изпълнява се преди клониране
-     */
-    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
-    {
-        // При клониране ако артикулът няма нужните свойства не се клонира
-        $pRec = cat_Products::fetch($rec->productId, "{$mvc->metaProducts},state");
-       
-        if($pRec->{$mvc->metaProducts} != 'yes' || $pRec->state != 'active') return false;
     }
 }

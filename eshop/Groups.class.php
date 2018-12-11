@@ -194,7 +194,10 @@ class eshop_Groups extends core_Master
     {
         if (isset($fields['-list'])) {
             $row->name = $mvc->getHyperlink($rec, true);
-            
+
+            $row->name = $mvc->saoGetTitle($rec, $row->name, '&nbsp;&nbsp;');
+      //      if($rec->saoLevel > 1) bp($row->name);
+
             if (haveRole('powerUser') && $rec->state != 'closed') {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
@@ -250,9 +253,13 @@ class eshop_Groups extends core_Master
             // Ако имаме поне 4-ри групи продукти
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
-            
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+            $cRec = cms_Content::fetch($data->menuId);
+            $layout->append("<h1>" . type_Varchar::escape($cRec->title) . "</h1>", 'PAGE_CONTENT');
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
+            $seoRec = new stdClass();
+            $seoRec->seoTitle = type_Varchar::escape($cRec->title);
+            cms_Content::setSeo($layout, $seoRec);
         } else {
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
@@ -348,19 +355,20 @@ class eshop_Groups extends core_Master
     /**
      * Подготвя данните за показването на страницата със всички групи
      */
-    public function prepareAllGroups($data)
+    public function prepareAllGroups($data, $groupId = null)
     {
         $query = self::getQuery();
-        $query->where("#state = 'active' AND #menuId = {$data->menuId}");
+
+        if($groupId) {
+            $query->where("#state = 'active' AND #saoParentId = {$groupId}");
+        } else {
+            $query->where("#state = 'active' AND #menuId = {$data->menuId} AND #saoLevel <= 1");
+        }
         
         while ($rec = $query->fetch()) {
             $rec->url = self::getUrl($rec);
             $data->recs[] = $rec;
         }
-        
-        $cRec = cms_Content::fetch($data->menuId);
-        
-        $data->title = type_Varchar::escape($cRec->title);
     }
     
     
@@ -389,6 +397,8 @@ class eshop_Groups extends core_Master
         $data->products = new stdClass();
         $data->products->groupId = $data->groupId;
         
+        $this->prepareAllGroups($data, $data->groupId);
+
         eshop_Products::prepareGroupList($data->products);
     }
     
@@ -412,7 +422,7 @@ class eshop_Groups extends core_Master
      */
     public function renderAllGroups_($data)
     {
-        $all = new ET("<h1>{$data->title}</h1>");
+        $all = new ET("");
         
         if (is_array($data->recs)) {
             foreach ($data->recs as $rec) {
@@ -428,10 +438,6 @@ class eshop_Groups extends core_Master
             }
         }
         
-        $rec = new stdClass();
-        $rec->seoTitle = tr('Всички продукти');
-        
-        cms_Content::setSeo($all, $rec);
         
         return $all;
     }
@@ -445,6 +451,14 @@ class eshop_Groups extends core_Master
         $groupTpl = getTplFromFile('eshop/tpl/SingleGroupShow.shtml');
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
         $groupTpl->placeArray($data->row);
+        
+        // Добавяне на подгрупите
+        if(is_array($data->recs) && count($data->recs)) {
+            $groupTpl->append("<div style='background-color:#ddd;padding-top:10px; border:solid 1px #cccccc; clear:both; border-radius:3px; box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);' class='clearfix21'>", 'PRODUCTS');
+            $groupTpl->append(self::renderAllGroups($data), 'PRODUCTS');
+            $groupTpl->append("</div>", 'PRODUCTS');
+        }
+
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
         if (!$data->rec->seoTitle) {
@@ -499,7 +513,22 @@ class eshop_Groups extends core_Master
         }
         
         if ($groupId) {
-            $data->menuId = $menuId = self::fetch($groupId)->menuId;
+            $fRec = self::fetch($groupId);
+            $data->menuId = $menuId = $fRec->menuId;
+            $parentGroupsArr = array($fRec->id);
+            
+            $sisCond = '';
+            if($fRec->saoParentId) {
+                $sisCond = " OR #saoParentId = {$fRec->saoParentId} ";
+            }
+            while ($fRec->saoLevel > 1) {
+                $parentGroupsArr[] = $fRec->id;
+                $fRec = self::fetch($fRec->saoParentId);
+            }
+            $parentGroupsList = implode(',', $parentGroupsArr);
+            $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
+        } else {
+            $query->where("#saoLevel <= 1");
         }
         
         $query->where("#menuId = '{$menuId}'");
@@ -524,7 +553,7 @@ class eshop_Groups extends core_Master
             $l = new stdClass();
             $l->url = self::getUrl($rec);
             $l->title = $this->getVerbal($rec, 'name');
-            $l->level = 2;
+            $l->level = $rec->saoLevel + 1;
             $l->selected = ($groupId == $rec->id);
             
             if ($this->haveRightFor('edit', $rec)) {
@@ -728,7 +757,7 @@ class eshop_Groups extends core_Master
      */
     public function saoCanHaveSublevel($rec, $newRec = null)
     {
-        return false;
+        return $rec->saoLevel <= 3;
     }
     
     
@@ -783,10 +812,11 @@ class eshop_Groups extends core_Master
         }
         
         $groupQuery = eshop_Groups::getQuery();
-        $groupQuery->show('id');
+        $groupQuery->show('id,saoLevel');
         $groupQuery->in('menuId', $contents);
+        $me = cls::get(get_called_class());
         while ($rec = $groupQuery->fetch()) {
-            $groups[$rec->id] = eshop_Groups::getTitleById($rec->id, false);
+            $groups[$rec->id] = $me->saoGetTitle($rec, eshop_Groups::getTitleById($rec->id, false));
         }
         
         return $groups;

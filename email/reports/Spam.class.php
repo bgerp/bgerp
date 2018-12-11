@@ -215,9 +215,12 @@ class email_reports_Spam extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         $fld->FLD('subject', 'varchar', 'caption=Документ');
-        $fld->FLD('spamScore', 'double', 'caption = Точки, smartRound');
+        $fld->FLD('spamScore', 'double(smartRound)', 'caption = Точки');
         $fld->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка');
-        $fld->FLD('action', 'varchar', 'caption = Действие');
+        
+        if($export === false){
+            $fld->FLD('action', 'varchar', 'caption = Действие');
+        }
         
         return $fld;
     }

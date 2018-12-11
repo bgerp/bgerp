@@ -701,7 +701,7 @@ class cat_products_Packagings extends core_Detail
         $obj = (object)array('title' => cat_Products::getHyperlink($productData->productId, true), 'url' => array(), 'priority' => 0, 'comment' => '');
         
         // Извличане на най-важната информация за артикула
-        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,isPublic,folderId,state,measureId');
+        $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,nameInt,isPublic,folderId,state,measureId');
         setIfNot($productData->packagingId, $productRec->measureId);
         
         $packagingName = $packagingNameShort = tr(cat_UoM::getTitleById($productData->packagingId));

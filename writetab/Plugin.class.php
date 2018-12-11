@@ -29,7 +29,7 @@ class writetab_Plugin extends core_Plugin
             
             $layout->push('writetab/js/favico-0.3.10.min.js', 'JS');
             jquery_Jquery::run($layout, "if($('#main-container').length){ var favicon=new Favico({type : 'circle', bgColor:'{$bground}',textColor:'{$color}',animation:'none'});" .
-            "if(favicon.browser.supported){favicon.badge('{$symbol}')} else {var title = document.title; if(title.indexOf('✍') != 0) {setTitle('✍ ' + title)}}}");
+            "if(favicon.browser.supported){favicon.badge('{$symbol}')} else {var title = document.title; if(title.indexOf('✍') != 0) {setTitle('✍ ' + title)}}}", true);
         }
     }
 }

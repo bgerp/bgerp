@@ -30,11 +30,21 @@ class marketing_Router
      *
      * @param string $city      - град
      * @param int    $countryId - ид на държава
-     *
+     * @param int $domainId     - домейн
+     * 
      * @return int $inCharge - ид на потребител
      */
-    public static function getInChargeUser($city, $countryId)
+    public static function getInChargeUser($city, $countryId, $domainId)
     {
+        if(isset($domainId)){
+            $settings = cms_Domains::getSettings($domainId);
+            if(isset($settings->dealerId)){
+                if(haveRole('sales', $settings->dealerId)){
+                    
+                    return $settings->dealerId;
+                }
+            }
+        }
         $conf = core_Packs::getConfig('email');
         
         // Ако има град
@@ -190,14 +200,16 @@ class marketing_Router
      * @param string $pCode    - п. код
      * @param string $place    - населено място
      * @param string $address  - адрес
+     * @param string $vatId    - ДДС номер
+     * @param string $uicId    - Нац. номер
      * @param int    $inCharge - отговорник
      *
      * @return int - ид на папка
      */
-    public static function forcePersonFolder($name, $email, $country, $tel, $pCode, $place, $address, $inCharge)
+    public static function forcePersonFolder($name, $email, $country, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge)
     {
         $rec = new stdClass();
-        foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge') as $param) {
+        foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge', 'vatId', 'uicId') as $param) {
             $rec->{$param} = ${$param};
         }
         
@@ -224,14 +236,18 @@ class marketing_Router
      * @param string $pCode    - п. код
      * @param string $place    - населено място
      * @param string $address  - адрес
+     * @param string $vatId    - ДДС номер
+     * @param string $uicId    - Нац. номер
+     * 
+     * 
      * @param int    $inCharge - отговорник
      *
      * @return int - ид на папка
      */
-    public static function forceCompanyFolder($name, $email, $country, $tel, $pCode, $place, $address, $inCharge)
+    public static function forceCompanyFolder($name, $email, $country, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge)
     {
         $rec = new stdClass();
-        foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge') as $param) {
+        foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge', 'vatId', 'uicId') as $param) {
             $rec->$param = ${$param};
         }
         

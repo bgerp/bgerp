@@ -53,25 +53,25 @@
             <!--ET_BEGIN totalNoVat-->
             <tr>
                <td class="title-style nowrap"  style='width:150px'>|Стойност без ДДС|*: </td>
-               <td>[#totalNoVat#]</td>
+               <td style ='text-indent:10px'>[#totalNoVat#]</td>
             </tr>
             <!--ET_END totalNoVat-->
             <!--ET_BEGIN deliveryNoVat-->
             <tr>
                <td class="title-style nowrap" style='width:150px'>|Доставка без ДДС|*: </td>
-               <td> [#deliveryNoVat#]</td>
+               <td style ='text-indent:10px'> [#deliveryNoVat#]</td>
             </tr>
             <!--ET_END deliveryNoVat-->
             <!--ET_BEGIN vatAmount-->
             <tr>
                <td class="title-style nowrap"  style='width:150px'>|Начислен ДДС|*: </td>
-               <td>[#vatAmount#]</td>
+               <td style ='text-indent:10px'>[#vatAmount#]</td>
             </tr>
             <!--ET_END vatAmount-->
             <!--ET_BEGIN total-->
             <tr>
                <td style='width:150px'><b>|Общо|*</b>: </td>
-               <td>[#total#]</td>
+               <td style ='text-indent:10px'>[#total#]</td>
             </tr>
             <!--ET_END total-->
          </table>
@@ -123,6 +123,12 @@
                <td>[#deliveryTime#]</td>
             </tr>
             <!--ET_END deliveryTime-->
+            <!--ET_BEGIN instruction-->
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Уточнения|*:</span></td>
+               <td>[#instruction#]</td>
+            </tr>
+            <!--ET_END instruction-->
          </table>
       </div>
    </fieldset>

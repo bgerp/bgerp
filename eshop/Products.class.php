@@ -97,7 +97,7 @@ class eshop_Products extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'code,name,info,longInfo';
+    public $searchFields = 'code,name,info,longInfo,showParams';
     
     
     /**
@@ -702,6 +702,13 @@ class eshop_Products extends core_Master
         // Линк към групата
         $group = eshop_Groups::getVerbal($groupRec, 'name');
         $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
+        $pgId = $groupRec->saoParentId;
+
+        while($pgId) {
+            $pGroupRec = eshop_Groups::fetch($pgId);
+            $groupLink = ht::createLink(eshop_Groups::getVerbal($pGroupRec, 'name'), eshop_Groups::getUrl($pGroupRec)) . ' » ' . $groupLink;
+            $pgId = $pGroupRec->saoParentId;
+        }
         
         // Навигация до артикула
         $data->row->productPath = $menuLink . ' » ' . $groupLink;
@@ -711,7 +718,7 @@ class eshop_Products extends core_Master
     /**
      * След извличане на ключовите думи
      */
-    public function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    protected function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         $rec = $mvc->fetchRec($rec);
         
@@ -719,14 +726,28 @@ class eshop_Products extends core_Master
             $searchKeywords = plg_Search::getKeywords($mvc, $rec);
         }
         
-        if ($rec->groupId) {
+        if (isset($rec->groupId)) {
             $gRec = eshop_Groups::fetch($rec->groupId);
-            
             $handleNormalized = plg_Search::normalizeText($gRec->name);
             
             if (strpos($searchKeywords, $handleNormalized) === false) {
                 $searchKeywords .= ' ' . $handleNormalized;
                 cms_VerbalIdPlg::on_AfterGetSearchKeywords($mvc, $searchKeywords, $rec);
+            }
+        }
+        
+        // Всички детайли на е-артикула
+        if(isset($rec->id)){
+            $dQuery = eshop_ProductDetails::getQuery();
+            $dQuery->where("#eshopProductId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                
+                // Извличат се параметрите им и се добавят към ключовите думи
+                $params = cat_Products::getParams($dRec->productId, null, true);
+                foreach ($params as $paramId => $paramValue){
+                    $paramName = cat_Params::getTitleById($paramId);
+                    $searchKeywords .= ' ' . plg_Search::normalizeText($paramName) . " " . plg_Search::normalizeText($paramValue);
+                }
             }
         }
     }
@@ -1097,7 +1118,7 @@ class eshop_Products extends core_Master
      */
     public static function canLinkProduct($productId)
     {
-        $productRec = cat_Products::fetch($productId, 'canSell,isPublic,state');
+        $productRec = cat_Products::fetch($productId, 'canSell,isPublic,nameInt,state');
         $res = ($productRec->state != 'closed' && $productRec->state != 'rejected' && $productRec->state != 'template' && $productRec->isPublic == 'yes' && $productRec->canSell == 'yes');
         
         return $res;
@@ -1336,6 +1357,8 @@ class eshop_Products extends core_Master
                             }
                         }
                     }
+                    arsort($r[$epId]);
+                    $r[$epId] = array_slice($r[$epId], 0, 10, true);
                 }
             }
         }

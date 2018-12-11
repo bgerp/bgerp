@@ -230,13 +230,26 @@ class bank_PaymentOrders extends bank_DocumentBlank
             // Извличаме името на банката и BIC-а на получателя от IBAN-а му
             $row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);
             $row->contragentBankBic = bglocal_Banks::getBankBic($rec->beneficiaryIban);
-            
-            $SpellNumber = cls::get('core_SpellNumber');
-            $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', true);
-            
-            $row->sayWords = str_replace('0.0', '', $row->sayWords);
-            $row->sayWords = str_replace('0.', '', $row->sayWords);
+            $row->sayWords = self::spellAmount($rec);
         }
+    }
+    
+    
+    /**
+     * Спелуване на сумата
+     * 
+     * @param stdClass $rec
+     * @return mixed
+     */
+    private static function spellAmount($rec)
+    {
+        $lg = core_Lg::getCurrent();
+        $SpellNumber = cls::get('core_SpellNumber');
+        $sayWords = $SpellNumber->asCurrency($rec->amount, $lg, true);
+        $sayWords = str_replace('0.0', '', $sayWords);
+        $sayWords = str_replace('0.', '', $sayWords);
+        
+        return $sayWords;
     }
     
     
@@ -291,5 +304,92 @@ class bank_PaymentOrders extends bank_DocumentBlank
             $tpl->removeBlock('paymentType');
             $tpl->removeBlock('sayWords');
         }
+    }
+    
+    
+    /**
+     * Генерира шаблон с попълнени данни за платежно нареждане към 'Моята фирма'
+     * 
+     * @param string|null $reason
+     * @param array $fields
+     * 
+     *          ['currencyCode'] - код на валута, ако няма тази от нашия ибан
+     *          ['amount']       - сума във валутата
+     *          ['valior']       - вальор
+     *          ['documentType'] - кредитно плащане или плащане от/към бюджета
+     *          ['ownAccount']   - ид на наша сметка, информацията я извлича от нея
+     * 
+     * @return core_ET
+     */
+    public static function getFilledBlankTpl($reason = null, $fields = array())
+    {
+       $fields = (object)$fields;
+       
+       // Проверка на входните параметри
+       $row = new stdClass();
+       $row->reason = $reason;
+       $row->currencyId = $fields->currencyCode;
+       $documentType = isset($fields->documentType) ? $fields->documentType : 'transfer';
+       expect(in_array($documentType, array('transfer', 'budget')));
+       $row->documentType = cls::get(get_called_class())->getFieldType('documentType')->toVerbal($documentType);
+       $row->valior = (isset($fields->valior)) ? dt::mysql2verbal($fields->valior, 'd.m.Y') : null;
+       
+       // Информация за моята сметка
+       $ownCompany = crm_Companies::fetchOwnCompany();
+       $row->beneficiaryName = $ownCompany->company;
+       if(isset($fields->ownAccount)){
+           $ownAccountInfo = bank_OwnAccounts::getOwnAccountInfo($fields->ownAccount); 
+           $row->beneficiaryIban = $ownAccountInfo->iban;
+           $row->contragentBankBic = (isset($fields->bic)) ? $fields->bic : $ownAccountInfo->bic;
+           $row->contragentBank = (isset($fields->bank)) ? $fields->bank : $ownAccountInfo->bank;
+           $row->currencyId = isset($fields->currencyId) ? $fields->currencyId : currency_Currencies::getCodeById($ownAccountInfo->currencyId);
+       }
+       
+       // Сума 
+       if(isset($fields->amount)){
+           expect($amount = core_Type::getByName('double')->fromVerbal($fields->amount));
+           $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+           $row->amount = str_replace('&nbsp;', '', $row->amount);
+           $row->amount = str::removeWhitespaces($row->amount);
+           
+           if($documentType == 'budget'){
+               $row->sayWords = self::spellAmount($fields);
+           }
+       }
+       
+       // Заместване на данните в шаблона
+       $tpl = getTplFromFile('bank/tpl/SinglePaymentOrder.shtml');
+       $tpl->push('css/Application.css', 'CSS');
+       $tpl->push('bank/tpl/css/belejka.css', 'CSS');
+       $tpl->placeObject($row);
+
+       return $tpl;
+    }
+    
+    
+    /**
+     * Генерира файл хендлър към платежно нареждане с данни за 'Моята фирма'
+     *
+     * @param string|null $reason
+     * @param array $fields
+     *
+     *          ['currencyCode'] - код на валута, ако няма тази от нашия ибан
+     *          ['amount']       - сума във валутата
+     *          ['valior']       - вальор
+     *          ['documentType'] - кредитно плащане или плащане от/към бюджета
+     *          ['ownAccount']   - ид на наша сметка, информацията я извлича от нея
+     *
+     * @return core_ET
+     */
+    public static function getBlankAsPdf($fileName = null, $reason = null, $fields = array())
+    {
+        $tpl = self::getFilledBlankTpl($reason, $fields);
+        if(empty($fileName)){
+            $fileName = "po_" . substr(md5($reason), 0, 4);
+        }
+        
+        $fileHandler = doc_PdfCreator::convert($tpl, $fileName);
+        
+        return $fileHandler;
     }
 }

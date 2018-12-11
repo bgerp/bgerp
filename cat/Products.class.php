@@ -217,7 +217,7 @@ class cat_Products extends embed_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'name, code, info, innerClass';
+    public $searchFields = 'name, code, info, innerClass, nameInt';
     
     
     /**
@@ -335,6 +335,7 @@ class cat_Products extends embed_Manager
         
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
+        $this->FLD('nameInt', 'varchar', 'caption=Международно,width=100%,after=name');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
@@ -1414,7 +1415,7 @@ class cat_Products extends embed_Manager
             cat_products_SharedInFolders::limitQuery($query, $folderId);
         }
         
-        $query->show('isPublic,folderId,meta,id,code,name');
+        $query->show('isPublic,folderId,meta,id,code,name,nameInt');
         
         // Ограничаваме заявката при нужда
         if (isset($limit)) {
@@ -1851,8 +1852,10 @@ class cat_Products extends embed_Manager
     {
         // Ако в името имаме '||' го превеждаме
         $name = $rec->name;
-        if (strpos($rec->name, '||') !== false && !Mode::is('forSearch')) {
-            $name = tr($rec->name);
+        
+        $lg = core_Lg::getCurrent();
+        if($lg == 'en' && !empty($rec->nameInt)){
+            $name = $rec->nameInt;
         }
         
         // Иначе го връщаме такова, каквото е
@@ -1896,7 +1899,7 @@ class cat_Products extends embed_Manager
     {
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
-        $rec = self::fetch($id, 'name,code,isPublic');
+        $rec = self::fetch($id, 'name,code,isPublic,nameInt');
         
         return parent::getTitleById($rec, $escaped);
     }
@@ -1908,6 +1911,7 @@ class cat_Products extends embed_Manager
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec->name = self::getDisplayName($rec);
+        
         static::setCodeIfEmpty($rec);
         
         return parent::getRecTitle($rec, $escaped);

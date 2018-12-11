@@ -61,14 +61,52 @@ class cond_OnlinePaymentIntf extends embed_DriverIntf
     
     
     /**
-     * Добавя за уведомителния имейл
-     *
+     * Добавя за уведомителния имейл 
+     * 
      * @param int $paymentId
-     *
+     * @param stdClass $cartRec
+     * 
      * @return string|null
      */
-    public function getText4Email($paymentId)
+    public function getText4Email($paymentId, $cartRec)
     {
-        return $this->class->getText4Email($paymentId);
+        return $this->class->getText4Email($paymentId, $cartRec);
+    }
+    
+    
+    /**
+     * Информативния текст за онлайн плащането
+     * 
+     * @param mixed $rec
+     * @return string|null
+     */
+    public function getDisplayHtml($rec)
+    {
+        return $this->class->getDisplayHtml($rec);
+    }
+    
+    
+    /**
+     * Хтмл за показване след финализиране на плащането
+     *
+     * @param int $id
+     * @param stdClass $cartRec
+     * @return core_ET|null $tpl
+     */
+    function displayHtmlAfterPayment($id, $cartRec)
+    {
+        return $this->class->displayHtmlAfterPayment($id, $cartRec);
+    }
+    
+    
+    /**
+     * Връща типа на метода на плащане
+     *
+     * @param mixed $id
+     * @return string
+     */
+    public function getPaymentType($id)
+    {
+        return $this->class->getPaymentType($id);
     }
 }

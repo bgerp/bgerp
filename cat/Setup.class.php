@@ -141,6 +141,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
+        'migrate::updateIntName'
     );
     
     
@@ -252,5 +253,35 @@ class cat_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на имената на артикулите
+     */
+    function updateIntName()
+    {
+        $Products = cls::get('cat_Products');
+        $Products->setupMvc();
+        
+        if(!cat_Products::count()) return;
+        
+        core_App::setTimeLimit(700);
+        $toSave = array();
+        $query = cat_Products::getQuery();
+        $query->where("LOCATE('||', #name)");
+        $query->show('name,nameInt');
+        while($rec = $query->fetch()){
+            $exploded = explode('||', $rec->name);
+            if(count($exploded) == 2){
+                $rec->name = $exploded[0];
+                $rec->nameInt = $exploded[1];
+                $toSave[$rec->id] = $rec;
+            }
+        }
+        
+        if(count($toSave)){
+            $Products->saveArray($toSave, 'id,name,nameInt');
+        }
     }
 }

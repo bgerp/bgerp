@@ -2806,8 +2806,23 @@ en,Дълготраен материален актив,Tangible fixed asset,
 en,Дълготраен нематериален актив,Intangible fixed asset,
 en,Дълготрайни нематериални активи,Intangible fixed assets
 en,Търсене на баркод,Search barcodes
-en,"Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка","According to the chosen payment method, please transfer the amount to be paid to this bank account"
+en,"Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка","You've selected bank payment. Please transfer the amount to be paid to the following account"
 en,"Плащането трябва да се извърши по следния начин","Payment must be made in the following way"
 en,"Благодарим за поръчката","Thank you for your order"
 en,"Изпратихме Ви имейл с инструкции за плащането","We've sent you an email with payment instructions"
 en,Нов файл,New file
+en,Без фактура,Without invoice
+en,"Премахване на всички артикули","Remove all items"
+en,"ч.","h"
+en,Без фактуриране,Without invoice
+en,Титуляр,Holder
+en,"Може да свалите примерно платежно нареждане от","You can download a payment order sample from"
+en,Информация за плащането,Information for the payment
+en,Поръчката е направена успешно,The order was placed successfully
+en,Вижте също,See also
+en,Фактура на лице,Person invoice
+en,Фактура на фирма,Company invoice
+en,Фактуриране,Billing
+en,"Има проблем при изчислението на доставката. Моля, обърнете се към нас","There is a problem with the delivery calculation. Please, contact us"
+en,Липсва двубуквен префикс,Missing two-letter prefix
+ен,"Поръчката ще бъде изпълнена след получаване на плащането","The order will be completed after the payment is received"

@@ -3900,10 +3900,15 @@ table .eshop-btn {
 }
 
 #cmsNavigation .level3 {
-	margin-top: 1px;
-	margin-bottom: 2px;
-	font-size: 14px;
 	margin-left: 20px;
+}
+
+#cmsNavigation .level4 {
+	margin-left: 40px;
+}
+
+#cmsNavigation .level5 {
+	margin-left: 60px;
 }
 
 #cmsNavigation div.nav_item {
@@ -5408,7 +5413,13 @@ div.location.public {
 		display: table-cell;
 	}
 }
-
+.info-block {
+	border: 1px solid #38d0ff;
+	background: #c6f1ff;
+	color: #00526b;
+	border-radius: 5px;
+	padding: 5px;
+}
 .epayBtn {
 	border: none;
 	background: none;
@@ -6472,6 +6483,17 @@ row-fluid {
 		page-break-after: always;
 		max-height: 267mm !important;
 	}
+	.belejka_container .belejka div.line div.text {
+		font-family: "Courier New";
+		font-size: 20px;
+		letter-spacing: 0 !important;
+	}
+	.belejka_container .small_text_top_left, .belejka_container  .label_mid {
+		font-size: 13px !important;
+		color: #333 !important;
+		font-family: Verdana !important;
+	}
+
 }
 
 .printing {
