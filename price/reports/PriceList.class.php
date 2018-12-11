@@ -2,23 +2,27 @@
 
 
 /**
- * Драйвер за Ценоразписи
+ * Драйвер за спарвка от тип 'Ценоразпис'
  *
  *
  * @category  bgerp
  * @package   price
- *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
- * @title     Продажби » Ценоразписи
+ * @title     Продажби » Ценоразпис
  */
 class price_reports_PriceList extends frame2_driver_TableData
 {
     
 
+    /**
+     * Закръгляне на цените по подразбиране
+     */
+    const DEFAULT_ROUND = 5;
+    
+    
     /**
      * Какви интерфейси поддържа този мениджър
      */
@@ -48,12 +52,6 @@ class price_reports_PriceList extends frame2_driver_TableData
     
     
     /**
-     * Закръгляне на цените по подразбиране
-     */
-    const DEFAULT_ROUND = 5;
-    
-    
-    /**
      * Какъв да е класа на групирания ред
      */
     protected $groupByFieldClass = 'pricelist-group-label';
@@ -66,16 +64,17 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('date', 'date(smartTime)', 'caption=Към дата,after=title');
+        $fieldset->FLD('date', 'date(smartTime)', 'caption=Към дата,after=title,placeholder=Последна актуализация');
         $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date');
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
-        $fieldset->FLD('round', 'int(Min=0)', 'caption=Цени->Точност,autohide,after=vat');
-        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Групи,columns=2,placeholder=Всички,after=round,single=none');
+        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
+        $fieldset->FLD('round', 'int(Min=0)', 'caption=Цени->Точност,autohide,after=period');
+        $fieldset->FLD('packType', 'enum(yes=Да,no=Не,base=Основна)', 'caption=Филтър->Опаковки,columns=3,after=round,single=none,silent,removeAndRefreshForm=packagings');
+        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Филтър->Избор,columns=3,placeholder=Всички опаковки,after=packType,single=none');
+        $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Групи,columns=2,placeholder=Всички,after=packagings,single=none');
         $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Филтър->Подгрупи,columns=2,after=productGroups,single=none');
-        $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Филтър->Опаковки,columns=3,placeholder=Всички,after=expandGroups,single=none');
-        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Филтър->Изменени цени,after=packagings,single=none');
-        $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=period,single=none');
+        $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=expandGroups,single=none');
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
         $fieldset->FLD('showEan', 'enum(yes=Показване ако има,no=Да не се показва)', 'caption=Допълнително->EAN|*?,after=showMeasureId');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan');
@@ -141,6 +140,10 @@ class price_reports_PriceList extends frame2_driver_TableData
            $lang = (!empty($cData->countryId) && $cData->countryId != $bgId) ? 'en' : 'bg';
            $form->setDefault('lang', $lang);
        }
+       
+       if($form->rec->packType != 'yes'){
+           $form->setField('packagings', 'input=none');
+       }
    }
     
    
@@ -154,7 +157,8 @@ class price_reports_PriceList extends frame2_driver_TableData
     */
    protected function prepareRecs($rec, &$data = null)
    {
-       $date = ($rec->date == dt::today()) ? dt::now() : "{$rec->date} 23:59:59";
+       $date = !empty($rec->date) ? $rec->date : dt::today();
+       $date = ($date == dt::today()) ? dt::now() : "{$date} 23:59:59";
        $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . " 23:59:59") : null;
        $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
        
@@ -174,18 +178,32 @@ class price_reports_PriceList extends frame2_driver_TableData
            
            // Ако няма опаковки, това са всички
            $currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, acc_Periods::getBaseCurrencyCode($rec->date));
-           $packArr = (!empty($rec->packagings)) ? keylist::toArray($rec->packagings) : arr::make(array_keys(cat_UoM::getPackagingOptions(), true));
+           $packArr = array();
+           
+           if($rec->packType == 'yes'){
+               $packArr = (!empty($rec->packagings)) ? keylist::toArray($rec->packagings) : arr::make(array_keys(cat_UoM::getPackagingOptions(), true));
+           }
            
            // За всеки продаваем стандартен артикул
            foreach ($sellableProducts as $id) {
                $productRec = cat_Products::fetch($id, 'groups,code,measureId,name,isPublic');
                
+               
+               $quantity = 1;
                $obj = (object) array('productId' => $productRec->id,
                                            'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
                                            'measureId' => $productRec->measureId,
                                            'vat' => cat_Products::getVat($productRec->id, $date),
                                            'packs' => array(),
                                            'groups' => $productRec->groups);
+               
+               if($rec->packType == 'base'){
+                   $basePack = cat_products_Packagings::fetch("#productId = {$productRec->id} AND #isBase = 'yes'");
+                   if(is_object($basePack)){
+                       $obj->measureId = $basePack->packagingId;
+                       $quantity = $basePack->quantity;
+                   }
+               }
                
                // Изчислява се цената по избраната политика
                $priceByPolicy = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $date);
@@ -214,8 +232,10 @@ class price_reports_PriceList extends frame2_driver_TableData
                    $obj->difference = $difference;
                }
                
+               $obj->price *= $quantity;
+               
                // Ако има цена, показват се и избраните опаковки с техните цени
-               if(!empty($priceByPolicy)) {
+               if(!empty($priceByPolicy) && count($packArr)) {
                    $packQuery = cat_products_Packagings::getQuery();
                    $packQuery->where("#productId = {$productRec->id}");
                    $packQuery->in('packagingId', $packArr);
@@ -277,7 +297,6 @@ class price_reports_PriceList extends frame2_driver_TableData
        
        $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
        $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
-       
        $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
        $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
        $row->measureId = tr(cat_UoM::getShortName($dRec->measureId));
@@ -386,12 +405,12 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
         if($export === true){
             $fld->FLD('currencyId', 'varchar', 'caption=Валута');
-        } else {
+        } elseif($rec->packType == 'yes') {
             $fld->FLD('packs', 'html', 'caption=Опаковка');
         }
         if(!empty($rec->period)){
             if($export === false){
-                $fld->FLD('difference', 'varchar', "caption=Промяна");
+                $fld->FLD('difference', 'varchar', "caption=Промяна,smartCenter");
             } else {
                 $fld->FLD('difference', 'percent', "caption=Промяна");
             }
@@ -445,11 +464,22 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
-        $row->packagings = (!empty($rec->packagings)) ? core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal($rec->packagings): tr('Всички');
-         
+        if($rec->packType == 'yes'){
+            $row->packagings = (!empty($rec->packagings)) ? core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal($rec->packagings): tr('Всички');
+        } elseif($rec->packType == 'no'){
+            $row->packagings = tr('Без опаковки');
+        } else {
+            $row->packagings = tr('Само основна опаковка');
+        }
+        
         if(!empty($rec->period)){
             $row->period = core_Type::getByName('time')->toVerbal($rec->period);
             $row->periodDate = dt::mysql2verbal(dt::addSecs(-1 * $rec->period, $rec->date, false), 'd.m.Y');
+        }
+        
+        if(empty($rec->date)){
+            $row->date = core_Type::getByName('date')->toVerbal(dt::verbal2mysql($rec->lastRefreshed, false));
+            $row->date = ht::createHint($row->date, 'Датата ще се опресни при актуализация');
         }
     }
     
@@ -490,12 +520,12 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-            if(empty($form->rec->date)){
-                $form->rec->date = dt::today();
-            }
-            
             if (cat_Groups::checkForNestedGroups($form->rec->productGroups)) {
                 $form->setError('productGroups', 'Избрани са вложени групи');
+            }
+            
+            if($form->rec->packType != 'yes'){
+                $form->rec->packagings = null;
             }
         }
     }
