@@ -1121,10 +1121,57 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Екшън присвояващ количка без потребител към новия брид
+     */
+    public function act_GrantAccess()
+    {
+        Request::setProtected('accessToken');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        expect($accessToken = Request::get('accessToken'));
+        expect(str::checkHash($accessToken, 6, eshop_Setup::get('CART_ACCESS_SALT')), 'Невалиден токен за достъп');
+        
+        // Ако има нова текуща количка, редирект към нея
+        if($newCartId = self::force($rec->domainId, null, false)){
+            if($rec->id != $newCartId){
+                redirect(array($this, 'view', $newCartId));
+            }
+        }
+        
+        // Ако количката няма потребител
+        if(empty($rec->userId)){
+            $oldBrid = $rec->brid;
+            
+            // Ако новия брид е различен от стария обновява се
+            $newBrid = log_Browsers::getBrid();
+            $updateFields = array();
+            if($rec->brid != $newBrid){
+                $rec->brid = $newBrid;
+                $updateFields[] = 'brid';
+            }
+            
+            if($cu = core_Users::getCurrent('id', false)){
+                $rec->userId = $cu;
+                $updateFields .= 'userId';
+            }
+            
+            // Така потребителя вече има достъп до количката
+            if(count($updateFields)){
+                $this->save($rec, $updateFields);
+                log_System::add('eshop_Carts', "Присвоена количка:BRID {$oldBrid} -> {$rec->brid}/ #userId = '{$rec->userId}'", $rec->id);
+            }
+        }
+        
+        redirect(array($this, 'view', $rec->id));
+    }
+    
+    
+    /**
      * Екшън за показване на външния изглед на кошницата
      */
     public function act_View()
     {
+        Request::setProtected('accessToken');
         $this->requireRightFor('viewexternal');
         $id = Request::get('id', 'int');
         
@@ -2177,7 +2224,7 @@ class eshop_Carts extends core_Master
      *
      * @param stdClass $rec
      */
-    private static function sendNotificationEmail($rec)
+    public static function sendNotificationEmail($rec)
     {
         // Има ли настройки за изпращане на имейл
         $settings = cms_Domains::getSettings($rec->domainId);
@@ -2187,7 +2234,8 @@ class eshop_Carts extends core_Master
         }
         
         $domainName = '';
-        $selfUrl = cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
+        $cartUrl = self::getGrantAccessUrl($rec->id);
         $createdOn = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         
         $lang = cms_Domains::fetchField($rec->domainId, 'lang');
@@ -2211,7 +2259,7 @@ class eshop_Carts extends core_Master
             $tpl->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
             $body->{$var} = $tpl;
             
-            $link = ht::createLink($domainName, $selfUrl)->getContent();
+            $link = ht::createLink($domainName, $cartUrl)->getContent();
             if($mode == 'plain'){
                 $link = html2text_Converter::toRichText($link);
                 $link = cls::get('type_Richtext')->toVerbal($link);
@@ -2306,5 +2354,25 @@ class eshop_Carts extends core_Master
         
         // Рендиране на формата
         return $tpl;
+    }
+    
+    
+    /**
+     * Връща защите урл присвояващо количка без потребител към текущия брид
+     * или ако има нова количка към този брид редирект към нея
+     * 
+     * @param int $id
+     * @return string $url
+     */
+    public static function getGrantAccessUrl($id)
+    {
+        $token = str::addHash('token', 6, eshop_Setup::get('CART_ACCESS_SALT'));
+        $url = array('eshop_Carts', 'grantAccess', $id, 'accessToken' => $token);
+        
+        Request::setProtected('accessToken');
+        $url = toUrl($url, 'absolute');
+        Request::removeProtected('accessToken');
+        
+        return $url;
     }
 }
