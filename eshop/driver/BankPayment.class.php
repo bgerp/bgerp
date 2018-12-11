@@ -70,13 +70,14 @@ class eshop_driver_BankPayment extends core_BaseClass
         
         $txt = "IBAN: {$data->IBAN}\n";
         $txt .= "|Сума|*: {$data->AMOUNT}\n";
-        $txt .= "|Основание|*: {$data->HANDLER}\n";
+        $txt .= "|Основание|*: {$data->REASON}\n";
         $txt .= "|Банка|*: {$data->BANK}, BIC: {$data->BIC}\n";
         $txt .= "|Титуляр|*: {$data->MyCompany}\n";
 
         $poLink = "[file={$data->PO_HND}][/file]";
-        $txt .= "|Може да свалите примерно платежно нареждане|* {$poLink} .\n";
-
+        $txt .= "|Може да свалите примерно платежно нареждане|* {$poLink}.\n";
+        $txt .= "|Поръчката ще бъде изпълнена след получаване на плащането|*.\n";
+        
         return tr($txt);
     }
     
@@ -153,7 +154,7 @@ class eshop_driver_BankPayment extends core_BaseClass
             $res['MyAddress'] = str_replace('<br>', ',', $res['MyAddress']);
         }
         
-        $res['HANDLER'] = "#Sal{$cartRec->saleId}";
+        $res['REASON'] = "SAL{$cartRec->saleId}";
         
         $bankInfo = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
         $res['BANK'] = tr($bankInfo->bank);
@@ -166,9 +167,9 @@ class eshop_driver_BankPayment extends core_BaseClass
         $res['AMOUNT'] = "{$amount} {$settings->currencyId}";
         
         $fields = array('bic' => $res['BIC'], 'bank' => $res['BANK'], 'ownAccount' => $rec->ownAccount, 'amount' => $amount,'currencyCode' => $settings->currencyId);
-        $name = "po_" . str_replace("#", "", $res['HANDLER']);
+        $name = "po_{$res['REASON']}";
         
-        $paymentOrderHnd = bank_PaymentOrders::getBlankAsPdf($name, $res['HANDLER'], $fields);
+        $paymentOrderHnd = bank_PaymentOrders::getBlankAsPdf($name, $res['REASON'], $fields);
         if($paymentOrderHnd){
             if($saleContainerId = sales_Sales::fetchField($cartRec->saleId, 'containerId')){
                 $fileId = fileman::fetchByFh($paymentOrderHnd, 'id');

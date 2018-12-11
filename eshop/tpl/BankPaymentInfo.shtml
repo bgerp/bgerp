@@ -20,7 +20,7 @@
             </tr>
             <tr>
                 <td class='aright' style="padding-right: 10px;">|Основание|*:</td>
-                <td><b>[#HANDLER#]</b></td>
+                <td><b>[#REASON#]</b></td>
             </tr>
             <tr>
                 <td class='aright' style="padding-right: 10px;">|Титуляр|*:</td>
