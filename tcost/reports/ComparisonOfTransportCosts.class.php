@@ -224,8 +224,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
             }
             
-            if (is_null($recs[$alocatedCost->expenseItemId]->productId)) {
-                $recs[$alocatedCost->expenseItemId]->productId = $detailRec-> productId;
+            if (is_null($recs[$alocatedCost->expenseItemId]->countryId)) {
+                if (!is_null(cat_Products::fetch($detailRec-> productId)->toCountry)) {
+                    $recs[$alocatedCost->expenseItemId]->countryId = cat_Products::fetch($detailRec-> productId)->toCountry;
+                }
             }
             
             $recs[$alocatedCost->expenseItemId]->className = $className;
@@ -253,6 +255,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         array_unshift($recs, $totalArr['total']);
         
+        //  bp($recs);
         return $recs;
     }
     
@@ -360,11 +363,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $row->purchaseId = trim($purchaises, ', ');
         }
-        if (!is_null($dRec->productId)) {
-            $countryId = cat_Products::fetch($dRec->productId)->toCountry;
-            if ($countryId) {
-                $row->country = drdata_Countries::getCountryName($countryId);
-            }
+        if (!is_null($dRec->countryId)) {
+            $row->country = drdata_Countries::getCountryName($dRec->countryId);
         }
         
         return $row;
