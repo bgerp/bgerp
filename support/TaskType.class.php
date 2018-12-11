@@ -182,6 +182,45 @@ class support_TaskType extends core_Mvc
     
     
     /**
+     * Променяме някои параметри на бутона в папката
+     *
+     * @param int $folderId
+     */
+    public function getButtonParamsForNewInFolder($folderId)
+    {
+        $res = array();
+        
+        if (!$folderId) {
+            
+            return $res;
+        }
+        
+        $rec = doc_Folders::fetch($folderId);
+        
+        if (!$rec) {
+            
+            return $res;
+        }
+        if (!$rec->coverClass) {
+            
+            return $res;
+        }
+        
+        if (!cls::load($rec->coverClass, true)) {
+            
+            return $res;
+        }
+        
+        if (cls::get($rec->coverClass) instanceof support_Systems) {
+            $res['btnTitle'] = 'Сигнал';
+            $res['ef_icon'] = 'img/16/support.png';
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
      * Да няма потребители по подразбиране
      *
      * @param support_TaskType $Driver
