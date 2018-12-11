@@ -1,6 +1,6 @@
 <div class = "cms-row">
 <div class="twelvecol" style="margin: 0 2%">
-    <h2 style='margin-top: 5px;'>Поръчката е направена успешно</h2>
+    <h2 style='margin-top: 5px;'>|Поръчката е направена успешно|*</h2>
     <p>|Информация за плащането|*:<p>
 
     <div class="summary-block" style="display: inline-block; float: none; border: 1px solid #bbb;">
