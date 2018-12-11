@@ -208,7 +208,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         while ($alocatedCost = $cQuery->fetch()) {
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
-            $detailRec = $className::fetch($alocatedCost-> detailRecId);//bp($detailRec,$alocatedCost);
+            $detailRec = $className::fetch($alocatedCost-> detailRecId);
             
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
             
@@ -224,8 +224,13 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
             }
             
+            if (is_null($recs[$alocatedCost->expenseItemId]->productId)) {
+                $recs[$alocatedCost->expenseItemId]->productId = $detailRec-> productId;
+            }
+            
             $recs[$alocatedCost->expenseItemId]->className = $className;
             $recs[$alocatedCost->expenseItemId]->purMasterClassName = $masterClassName;
+            
             $recs[$alocatedCost->expenseItemId]->alocatedPart = $alocatedCost-> quantity;
             $recs[$alocatedCost->expenseItemId]->amount = $detailRec-> amount;
             $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> amount * $alocatedCost-> quantity;
@@ -270,13 +275,11 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
-            if (!$rec->country) {
-                $fld->FLD('country', 'varchar', 'caption=Държава,tdClass=centered');
-            }
             $fld->FLD('expectedTransportCost', 'varchar', 'caption=Очакванo,tdClass=centered');
             $fld->FLD('amountPart', 'varchar', 'caption=Платено,tdClass=centered');
             $fld->FLD('difference', 'varchar', 'caption=Разлика,tdClass=centered');
             $fld->FLD('purchaseId', 'varchar', 'caption=Покупка');
+            $fld->FLD('country', 'varchar', 'caption=Държава,tdClass=centered');
         }
         
         return $fld;
@@ -329,9 +332,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $contragentClass = core_Classes::getName($dRec->contragentClassId);
         $row->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
         
-        $countryId = $contragentClass::fetchField($dRec->contragentId, 'country');
-        $row->country = drdata_Countries::getCountryName($countryId);
-        
         
         $row->amountPart = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountPart);
         
@@ -359,6 +359,12 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             
             $row->purchaseId = trim($purchaises, ', ');
+        }
+        if (!is_null($dRec->productId)) {
+            $countryId = cat_Products::fetch($dRec->productId)->toCountry;
+            if ($countryId) {
+                $row->country = drdata_Countries::getCountryName($countryId);
+            }
         }
         
         return $row;
