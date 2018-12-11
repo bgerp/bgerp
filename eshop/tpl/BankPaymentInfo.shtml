@@ -10,7 +10,7 @@
                 <td><b>[#IBAN#]</b></td>
             </tr>
             <tr>
-                <td class='aright' style="padding-right: 10px;">|Банкa|*:</td>
+                <td class='aright' style="padding-right: 10px;">|Банка|*:</td>
                 <td>[#BANK#], BIC: [#BIC#]</td>
             </tr>
 
