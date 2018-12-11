@@ -89,7 +89,7 @@
                <!--ET_END deliveryCountry-->
                <!--ET_BEGIN deliveryTime-->
                <tr>
-                  <td class="aright">|До|*:</td><td> <b>[#deliveryTime#]</b></td>
+                  <td class="aright">|Срок за доставка|*:</td><td> <b>[#deliveryTime#]</b></td>
                </tr>
                <!--ET_END deliveryTime-->
                <!--ET_BEGIN deliveryError-->
