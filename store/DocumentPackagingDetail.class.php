@@ -191,7 +191,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $pQuery = cat_Products::getQuery();
         $pQuery->where("LOCATE('|{$groupId}|', #groups) AND #state = 'active' AND #canStore = 'yes'");
         cat_products_SharedInFolders::limitQuery($pQuery, $folderId);
-        $pQuery->show('id,name,isPublic,code');
+        $pQuery->show('id,name,isPublic,nameInt,code');
         
         if ($onlyCount === true) {
             

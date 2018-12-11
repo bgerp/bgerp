@@ -366,7 +366,7 @@ class store_InventoryNoteDetails extends doc_Detail
     {
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         
-        $pRec = cat_Products::fetch($rec->productId, 'name,code,isPublic');
+        $pRec = cat_Products::fetch($rec->productId, 'name,code,isPublic,nameInt');
         $row->productId = cat_Products::getVerbal($pRec, 'name');
         $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($pRec->id));
         $row->code = cat_Products::getVerbal($pRec, 'code');

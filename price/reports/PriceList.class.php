@@ -186,7 +186,7 @@ class price_reports_PriceList extends frame2_driver_TableData
            
            // За всеки продаваем стандартен артикул
            foreach ($sellableProducts as $id) {
-               $productRec = cat_Products::fetch($id, 'groups,code,measureId,name,isPublic');
+               $productRec = cat_Products::fetch($id, 'groups,code,measureId,name,isPublic,nameInt');
                
                
                $quantity = 1;

@@ -212,7 +212,7 @@ abstract class deals_DealDetail extends doc_Detail
                 if (isset($listId)) {
                     $allProducts = cat_Listings::getAll($listId);
                     foreach ($allProducts as $o) {
-                        $pRec = cat_Products::fetch($o->productId, 'name,isPublic,code,createdOn');
+                        $pRec = cat_Products::fetch($o->productId, 'name,nameInt,isPublic,code,createdOn');
                         $products[$o->productId] = cat_Products::getRecTitle($pRec, false);
                     }
                 }

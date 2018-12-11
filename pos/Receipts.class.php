@@ -1423,7 +1423,7 @@ class pos_Receipts extends core_Master
         $pQuery->where("#canSell = 'yes' AND #state = 'active'");
         $pQuery->where("#isPublic = 'yes' OR (#isPublic = 'no' AND #folderId = '{$folderId}')");
         $pQuery->where(array("#searchKeywords LIKE '%[#1#]%'", $data->searchString));
-        $pQuery->show('id,name,isPublic,code');
+        $pQuery->show('id,name,isPublic,nameInt,code');
         $pQuery->limit($this->maxSearchProducts);
         $sellable = $pQuery->fetchAll();
         if (!count($sellable)) {

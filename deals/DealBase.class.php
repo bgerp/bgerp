@@ -617,7 +617,7 @@ abstract class deals_DealBase extends core_Master
         
         if (count($productIds)) {
             foreach ($productIds as $productId) {
-                $pRec = cat_Products::fetch($productId, 'measureId,isPublic,code,name,canStore');
+                $pRec = cat_Products::fetch($productId, 'measureId,isPublic,nameInt,code,name,canStore');
                 $expRec = (object) array('code' => ($pRec->code) ? $pRec->code : "Art{$productId}",
                     'productId' => $productId,
                     'measureId' => $pRec->measureId,
