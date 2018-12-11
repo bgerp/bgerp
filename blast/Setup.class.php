@@ -142,6 +142,7 @@ class blast_Setup extends core_ProtoSetup
         'blast_Letters',
         'blast_LetterDetails',
         'blast_EmailSend',
+        'migrate::updateEmailsCnt',
     );
     
     
@@ -215,6 +216,26 @@ class blast_Setup extends core_ProtoSetup
             $rec->sendingDay = date('w', $timeStamp);
             $rec->sendingFrom = date('G', $timeStamp) * 3600;
             $cls->save($rec, 'sendingDay, sendingFrom');
+        }
+    }
+    
+    
+    /**
+     * Обновява броя имейли в списъка
+     */
+    public function updateEmailsCnt()
+    {
+        $bQuery = blast_Emails::getQuery();
+        while ($bRec = $bQuery->fetch()) {
+            $query = blast_EmailSend::getQuery();
+            $query->where("#emailId = '{$bRec->id}'");
+            
+            $bRec->allMailCnt = $query->count();
+            try {
+                blast_Emails::save($bRec, 'allMailCnt');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
         }
     }
 }
