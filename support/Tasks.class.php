@@ -101,7 +101,7 @@ class support_Tasks extends core_Manager
     {
         $data->listFields = array();
         
-        $data->listFields = arr::make('id=№, title=Заглавие, folderId=Папка, progress=Прогрес, timeStart=Времена->Начало, timeEnd=Времена->Край, timeDuration=Времена->Продължителност, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени', true);
+        $data->listFields = arr::make('id=№, title=Заглавие, folderId=Папка, progress=Прогрес, assetResourceId=Ресурс, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени', true);
         
         return $data;
     }
@@ -143,7 +143,13 @@ class support_Tasks extends core_Manager
         
         $data->listFilter->FNC('state', 'enum(, active=Активен, pending=Заявка, stopped=Спрян)', 'caption=Състояние, input, silent, autoFilter, allowEmpty');
         
-        $data->listFilter->showFields = 'search, selectPeriod, state, systemId, maintainers';
+        $data->listFilter->FNC('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,input=input,notNull,value=0, autoFilter');
+        
+        $tRec = new stdClass();
+        $pSuggArr = support_TaskType::getProgressSuggestions($tRec);
+        $data->listFilter->setSuggestions('progress', $pSuggArr);
+        
+        $data->listFilter->showFields = 'search, selectPeriod, state, systemId, maintainers, progress';
         $default = $data->listFilter->getField('maintainers')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('maintainers', $default);
         
@@ -166,6 +172,8 @@ class support_Tasks extends core_Manager
             if ($folderId) {
                 $data->query->where(array("#folderId = '[#1#]'", $folderId));
             }
+            
+            unset($data->listFields['folderId']);
         }
         
         // Филтриране по споделени/възложени потребители
@@ -197,6 +205,10 @@ class support_Tasks extends core_Manager
                 $data->query->where("#state = 'stopped'");
                 $data->query->orWhere("#state = 'closed'");
             }
+        }
+        
+        if ($rec->progress) {
+            $data->query->where(array("#progress = '[#1#]'", $rec->progress));
         }
         
         doc_Threads::restrictAccess($data->query);

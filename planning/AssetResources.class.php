@@ -154,8 +154,19 @@ class planning_AssetResources extends core_Master
         // TODO - ще се премахне след като минат миграциите
         $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
         
+        $this->FNC('codeAndName', 'varchar');
+        
         $this->setDbUnique('code');
         $this->setDbUnique('protocolId');
+    }
+    
+    
+    /**
+     * Изчисляване на името и кода
+     */
+    protected static function on_CalcCodeAndName($mvc, &$rec)
+    {
+        $rec->codeAndName = $rec->code . ' - ' . $rec->name;
     }
     
     

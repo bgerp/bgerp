@@ -85,7 +85,7 @@ class embed_Manager extends core_Master
         
         // Ако няма достъпни драйвери редирект със съобщение
         if (!count($interfaces)) {
-            if($this->mandatoryDriverField === true){
+            if ($this->mandatoryDriverField === true) {
                 followRetUrl(null, '|Липсват възможни видове|* ' . $this->title, 'error');
             } else {
                 $form->setField($this->driverClassField, 'input=none');
@@ -95,7 +95,7 @@ class embed_Manager extends core_Master
             
             // Ако е наличен само един драйвер избираме него
             if (count($interfaces) == 1) {
-                if($this->mandatoryDriverField === true){
+                if ($this->mandatoryDriverField === true) {
                     $form->setDefault($this->driverClassField, key($interfaces));
                     $form->setReadOnly($this->driverClassField);
                 }
@@ -108,7 +108,7 @@ class embed_Manager extends core_Master
             // Ако има съществуващ запис и той е с избран драйвер - полето не може да се сменя
             if (isset($rec->id)) {
                 $exDriverField = $this->fetchField($rec->id, $this->driverClassField);
-                if(!empty($exDriverField)){
+                if (!empty($exDriverField)) {
                     $form->setReadOnly($this->driverClassField);
                 }
             }
@@ -374,6 +374,7 @@ class embed_Manager extends core_Master
                     $driverClass = $args[1]->{$this->driverClassField};
                     break;
                 case 'aftergetthreadstate':
+                case 'aftergeticon':
                     if ($args[1]) {
                         $rec = $this->fetchRec($args[1]);
                         $driverClass = $rec->driverClass;
