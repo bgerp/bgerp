@@ -107,7 +107,7 @@ class marketing_InquiryRouter extends core_Manager
         }
         
         // Форсиране на папка и запис във визитника на лице с посочените данни
-        $folderId = marketing_Router::forcePersonFolder($personNames, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
+        $folderId = marketing_Router::forcePersonFolder($personNames, $email, $countryId, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge);
         colab_FolderToPartners::force($folderId);
         $explained = "Рутиране на лице към нова папка на лице";
         
@@ -190,7 +190,7 @@ class marketing_InquiryRouter extends core_Manager
         }
         
         // Форсиране на папка и визитка на фирма с въведените данни
-        $folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $inCharge);
+        $folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge);
         colab_FolderToPartners::force($folderId);
         $explained = 'Рутиране на фирма към нова папка на фирма';
         
