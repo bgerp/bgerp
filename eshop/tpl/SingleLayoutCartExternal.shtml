@@ -160,10 +160,10 @@
                   <td class="aright">|Адрес|*: </td><td>[#invoiceAddress#]</td>
                </tr>
                <!--ET_END invoiceAddress-->
-            </table>
+
 		 <!--ET_END WITH_INVOICE-->
          <!--ET_END INVOICE_BLOCK-->
-         
+            </table>
          <div id = 'cart-view-total' class="summary-holder [#BORDER_CLASS#] borderBottom" >
             <table>
             	<!--ET_BEGIN amount-->
