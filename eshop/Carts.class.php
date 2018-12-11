@@ -2224,7 +2224,7 @@ class eshop_Carts extends core_Master
      *
      * @param stdClass $rec
      */
-    public static function sendNotificationEmail($rec)
+    private static function sendNotificationEmail($rec)
     {
         // Има ли настройки за изпращане на имейл
         $settings = cms_Domains::getSettings($rec->domainId);
