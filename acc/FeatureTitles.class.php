@@ -47,12 +47,6 @@ class acc_FeatureTitles extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'acc, ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
