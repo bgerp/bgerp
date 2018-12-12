@@ -1644,7 +1644,14 @@ class eshop_Carts extends core_Master
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         $row->domainId = cms_Domains::getHyperlink($rec->domainId);
-            
+        
+        if($fields['-single']){
+            if($rec->state == 'draft'){
+                $delitionTime = self::getDeletionTime($rec);
+                $row->delitionTime = core_Type::getByName('datetime(format=smartTime)')->toVerbal($delitionTime);
+            }
+        }
+        
         $currencyCode = cms_Domains::getSettings($rec->domainId)->currencyId;
         $rec->vatAmount = $rec->total - $rec->totalNoVat;
         
@@ -2103,6 +2110,31 @@ class eshop_Carts extends core_Master
     
     
     /**
+     * Кога количката ще бъде изтрита
+     * 
+     * @param stdClass $rec
+     * @return datetime
+     */
+    private function getDeletionTime($rec)
+    {
+        // Колко е очаквания и 'живот'
+        $settings = cms_Domains::getSettings($rec->domainId);
+        if(empty($rec->productCount)){
+            $lifetime = $settings->lifetimeForEmptyDraftCarts;
+        } else {
+            
+            // Потребителските колички са тези създадени от потребител или тези с въведен имейл за връзка
+            $lifetime = (isset($rec->userId) || !empty($rec->email)) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForNoUserDraftCarts;
+        }
+        
+        // Ако и е изтекла продължителността и е чернова се изтрива
+        $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
+        
+        return $endOfLife;
+    }
+    
+    
+    /**
      * Изтриване на забравните колички
      */
     public function cron_DeleteDraftCarts()
@@ -2115,18 +2147,8 @@ class eshop_Carts extends core_Master
         // За всяка
         while ($rec = $query->fetch()) {
             
-            // Колко е очаквания и 'живот'
             $settings = cms_Domains::getSettings($rec->domainId);
-            if(empty($rec->productCount)){
-                $lifetime = $settings->lifetimeForEmptyDraftCarts;
-            } else {
-                
-                // Потребителските колички са тези създадени от потребител или тези с въведен имейл за връзка
-                $lifetime = (isset($rec->userId) || !empty($rec->email)) ? $settings->lifetimeForUserDraftCarts : $settings->lifetimeForNoUserDraftCarts;
-            }
-           
-            // Ако и е изтекла продължителността и е чернова се изтрива
-            $endOfLife = dt::addSecs($lifetime, $rec->createdOn);
+            $endOfLife = self::getDeletionTime($rec);
             $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $endOfLife);
             
             if ($endOfLife <= $now) {
