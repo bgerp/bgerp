@@ -164,7 +164,7 @@ class eshop_Carts extends core_Master
         $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
         $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none');
         
-        $this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory');
+        $this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
         $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty)', 'caption=Контактни данни->Телефон,hint=Вашият телефон,mandatory');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,mandatory');
@@ -1770,6 +1770,7 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Име');
                 $form->setField('invoiceUicNo', 'caption=Данни за фактура->ЕГН');
                 $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
+                $form->setDefault('invoiceNames', $form->rec->personNames);
             } else {
                 $form->setField('invoiceNames', 'caption=Данни за фактура->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактура->ДДС №||VAT ID');
