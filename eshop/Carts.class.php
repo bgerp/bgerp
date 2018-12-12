@@ -1184,6 +1184,7 @@ class eshop_Carts extends core_Master
         }
         
         $this->requireRightFor('viewexternal', $rec);
+        cms_Domains::setPublicDomain($rec->domainId);
         Mode::set('currentExternalTab', 'eshop_Carts');
         
         $tpl = self::renderView($rec);
