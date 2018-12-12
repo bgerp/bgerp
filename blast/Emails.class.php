@@ -175,7 +175,7 @@ class blast_Emails extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, subject, srcLink, from, sendPerCall, sendingDay, sendingFrom, sendingTo';
+    protected $listFields = 'id, subject, srcLink, from, progress, allMailCnt';
     
     
     /**
@@ -225,6 +225,7 @@ class blast_Emails extends core_Master
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
         $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес, input=none, notNull');
+        $this->FLD('allMailCnt', 'int', 'caption=Брой имейли, input=none, notNull');
         
         //Данни на адресата - антетка
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData, changable');
@@ -769,7 +770,7 @@ class blast_Emails extends core_Master
      *
      * @param object $rec     - Данни за имейла
      * @param array  $detArr  - масив с id на детайлите
-     * @param boolen $sending - Дали ще изпращаме имейла
+     * @param bool $sending - Дали ще изпращаме имейла
      *
      * @return object $body - Обект с тялото на съобщението
      *                string $body->html - HTMl частта
@@ -962,7 +963,7 @@ class blast_Emails extends core_Master
     /**
      * Намира предполагаемия език на текста
      *
-     * @param text        $body - Текста, в който ще се търси
+     * @param string        $body - Текста, в който ще се търси
      * @param NULL|string $lang - Език
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език

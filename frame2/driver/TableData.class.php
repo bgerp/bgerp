@@ -152,7 +152,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $dtpl = $this->renderTable($rec, $data);
             }
             
-            if(!Mode::isReadOnly()){
+            if(!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))){
                 $tabHtml = $tabs->renderHtml('', $data->selectedTab);
                 $tpl->replace($tabHtml, 'TABS');
             } elseif(isset($tabCaption)){
@@ -197,7 +197,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $tpl = new core_ET('');
         
         // Подготовка на пейджъра
-        if (!Mode::isReadOnly()) {
+        if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))) {
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);

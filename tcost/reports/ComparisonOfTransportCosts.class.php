@@ -119,32 +119,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
     {
         $recs = array();
         
-        $sQuery = sales_Sales::getQuery();
-        
-        $sQuery->where("(#state = 'closed') OR (#state = 'active')");
-        
-        $sQuery->where('(#activatedOn IS NOT NULL)');
-        
-        $sQuery->where("(#activatedOn >= '{$rec->from}' AND #activatedOn <= '{$rec->to}') OR (#activatedOn >= '{$fromPreviuos}' AND #activatedOn <= '{$toPreviuos}')");
-        
-        while ($sRec = $sQuery->fetch()) {
-            
-            
-            //филтър по държава
-            if ($rec->country) {
-                $contragentClass = core_Classes::getName($sRec->contragentClassId);
-                $contragentCountryId = $contragentClass::fetchField($sRec->contragentId, 'country');
-                
-                if ($rec->country != $contragentCountryId) {
-                    continue;
-                }
-            }
-            
-            //договори за продажба за периода
-            $salesInPeriod[$sRec->id] = $sRec->id;
-        }
-        
-        
         $iQuery = acc_Items::getQuery();
         
         $classId = core_Classes::getId('sales_Sales');
@@ -155,23 +129,27 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $iQuery->where("(#classId = ${classId})");
         
+        $iQuery->EXT('saleState', 'sales_Sales', 'externalName=state,externalKey=objectId');
+        
+        $iQuery->where("(#saleState = 'closed') OR (#saleState = 'active')");
+        
+        $iQuery->EXT('saleActivatedOn', 'sales_Sales', 'externalName=activatedOn,externalKey=objectId');
+        
+        $iQuery->where('(#saleActivatedOn IS NOT NULL)');
+        
+        $iQuery->where(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
+        $iQuery->orWhere(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $fromPreviuos . ' 00:00:00', $toPreviuos . ' 23:59:59'));
+        
         while ($iRec = $iQuery->fetch()) {
             
-            //договори за продажба които са разходни обекти
-            $itemsDoc[$iRec->id] = $iRec->objectId;
+            //договори за продажба които са разходни обекти за избрания период
+            $salesItems[$iRec->id] = $iRec->objectId;
         }
-        
-        if (is_array($salesInPeriod) && is_array($itemsDoc)) {
-            $salesItems = array_intersect($itemsDoc, $salesInPeriod);
-            
-            if (empty($salesItems)) {
-                
-                return $recs;
-            }
-        } else {
+        if (empty($salesItems)) {
             
             return $recs;
         }
+        
         
         // масив с разходните обекти за проверка
         $salesItemsIds = array_keys($salesItems);
@@ -205,6 +183,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $totalAmountPart = 0;
         
+        $stateArr = array('draft','rejected','pending');
+        
         while ($alocatedCost = $cQuery->fetch()) {
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
@@ -212,8 +192,13 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
             
+            
             if ($className == 'purchase_PurchasesDetails') {
                 if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
+                    continue;
+                }
+                
+                if (in_array($masterClassName::fetchField($detailRec->requestId, 'state'), $stateArr)) {
                     continue;
                 }
                 
@@ -222,10 +207,16 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             if ($className == 'purchase_ServicesDetails') {
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
+                
+                if (in_array($masterClassName::fetchField($detailRec->shipmentId, 'state'), $stateArr)) {
+                    continue;
+                }
             }
             
-            if (is_null($recs[$alocatedCost->expenseItemId]->productId)) {
-                $recs[$alocatedCost->expenseItemId]->productId = $detailRec-> productId;
+            if (is_null($recs[$alocatedCost->expenseItemId]->countryId)) {
+                if (!is_null(cat_Products::fetch($detailRec-> productId)->toCountry)) {
+                    $recs[$alocatedCost->expenseItemId]->countryId = cat_Products::fetch($detailRec-> productId)->toCountry;
+                }
             }
             
             $recs[$alocatedCost->expenseItemId]->className = $className;
@@ -233,11 +224,21 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $recs[$alocatedCost->expenseItemId]->alocatedPart = $alocatedCost-> quantity;
             $recs[$alocatedCost->expenseItemId]->amount = $detailRec-> amount;
-            $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> amount * $alocatedCost-> quantity;
-            $totalAmountPart += $detailRec-> amount * $detailRec-> quantity;
+            $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> price * $alocatedCost-> quantity;
         }
         
         foreach ($recs as $key => $val) {
+            
+            //филтър по държава
+            if ($rec->country) {
+                if (($rec->country != $val->countryId) || is_null($val->countryId)) {
+                    unset($recs[$key]);
+                    continue;
+                }
+            }
+            
+            
+            $totalAmountPart += $val-> amountPart;
             $recs[$key]->difference = $val->expectedTransportCost - $val->amountPart;
         }
         
@@ -245,13 +246,15 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             arr::sortObjects($recs, 'difference', 'asc', 'native');
         }
         
-        $totalArr['total'] = (object) array(
-            'totalAmountPart' => $totalAmountPart,
-            'totalExpectedTransportCost' => $totalExpectedTransportCost,
-            'totalDifference' => $totalExpectedTransportCost - $totalAmountPart
-        );
-        
-        array_unshift($recs, $totalArr['total']);
+        if (!empty($recs)) {
+            $totalArr['total'] = (object) array(
+                'totalAmountPart' => $totalAmountPart,
+                'totalExpectedTransportCost' => $totalExpectedTransportCost,
+                'totalDifference' => $totalExpectedTransportCost - $totalAmountPart
+            );
+            
+            array_unshift($recs, $totalArr['total']);
+        }
         
         return $recs;
     }
@@ -278,7 +281,17 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $fld->FLD('expectedTransportCost', 'varchar', 'caption=Очакванo,tdClass=centered');
             $fld->FLD('amountPart', 'varchar', 'caption=Платено,tdClass=centered');
             $fld->FLD('difference', 'varchar', 'caption=Разлика,tdClass=centered');
-            $fld->FLD('purchaseId', 'varchar', 'caption=Покупка');
+            $fld->FLD('purchaseId', 'varchar', 'caption=Разходен документ');
+            if (!$rec->country) {
+                $fld->FLD('country', 'varchar', 'caption=Държава,tdClass=centered');
+            }
+        } else {
+            $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
+            $fld->FLD('expectedTransportCost', 'double(decimals=2)', 'caption=Очакванo,tdClass=centered');
+            $fld->FLD('amountPart', 'double(decimals=2)', 'caption=Платено,tdClass=centered');
+            $fld->FLD('difference', 'double(decimals=2)', 'caption=Разлика,tdClass=centered');
+            $fld->FLD('purchaseId', 'varchar', 'caption=Разходен документ');
             $fld->FLD('country', 'varchar', 'caption=Държава,tdClass=centered');
         }
         
@@ -319,15 +332,16 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $row->expectedTransportCost = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->expectedTransportCost);
         
         $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
+        $saleState = sales_Sales::fetch($dRec->saleId)->state;
         $saleHandle = sales_Sales::getHandle($dRec->saleId);
         $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
         
-        $row->saleId = ht::createLink(
+        $row->saleId = "<span class= 'state-{$saleState} document-handler' >".ht::createLink(
             "#{$saleHandle}",
             $singleUrl,
             false,
             "ef_icon={$Sale->singleIcon}"
-        );
+            ). '</span>';
         
         $contragentClass = core_Classes::getName($dRec->contragentClassId);
         $row->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
@@ -342,29 +356,26 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $purchaise = explode(',', trim($dRec->purchaseId, ','));
             
             foreach ($purchaise as $v) {
-                $arr = explode('/', $v);
+                list($purId, $detId) = explode('/', $v);
                 
-                $purMasterClassName = cls::get($arr[1])->Master->className;
+                $purMasterClassName = cls::get($detId)->Master->className;
                 
-                $Purchase = doc_Containers::getDocument($purMasterClassName::fetch($arr[0])->containerId);
-                $purchaseHandle = $purMasterClassName::getHandle($arr[0]);
+                $Purchase = doc_Containers::getDocument($purMasterClassName::fetch($purId)->containerId);
+                $purchaseState = $purMasterClassName::fetch($purId)->state;
+                $purchaseHandle = $purMasterClassName::getHandle($purId);
                 $singleUrl = $Purchase->getUrlWithAccess($Purchase->getInstance(), $Purchase->that);
-                $purchaises .= ht::createLink(
+                $purchases .= "<span class= 'state-{$purchaseState} document-handler' >".ht::createLink(
                             "#{$purchaseHandle}",
                             $singleUrl,
                             false,
                             "ef_icon={$Purchase->singleIcon}"
-             ).', ';
+                            ). '</span>'.' ';
             }
             
-            
-            $row->purchaseId = trim($purchaises, ', ');
+            $row->purchaseId = trim($purchases);
         }
-        if (!is_null($dRec->productId)) {
-            $countryId = cat_Products::fetch($dRec->productId)->toCountry;
-            if ($countryId) {
-                $row->country = drdata_Countries::getCountryName($countryId);
-            }
+        if (!is_null($dRec->countryId)) {
+            $row->country = drdata_Countries::getCountryName($dRec->countryId);
         }
         
         return $row;
@@ -432,5 +443,33 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        if ($res->totalAmountPart) {
+            $res->saleId = 'ОБЩО ЗА ПЕРИОДА:';
+            $res->expectedTransportCost = $dRec->totalExpectedTransportCost;
+            $res->amountPart = $dRec->totalAmountPart;
+            $res->difference = $dRec->totalDifference;
+        } else {
+            $saleHandle = sales_Sales::getHandle($dRec->saleId);
+            $res->saleId = $saleHandle;
+            $contragentClass = core_Classes::getName($dRec->contragentClassId);
+            $res->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
+            
+            if (!is_null($dRec->countryId)) {
+                $res->country = drdata_Countries::getCountryName($dRec->countryId);
+            }
+            
+            if (isset($dRec->purchaseId)) {
+                $purchaise = explode(',', trim($dRec->purchaseId, ','));
+                foreach ($purchaise as $v) {
+                    list($purId, $detId) = explode('/', $v);
+                    
+                    $purMasterClassName = cls::get($detId)->Master->className;
+                    
+                    $purchaseHandle .= $purMasterClassName::getHandle($purId).', ';
+                }
+                
+                $res->purchaseId = trim($purchaseHandle, ', ');
+            }
+        }
     }
 }

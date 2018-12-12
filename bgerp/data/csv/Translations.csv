@@ -2633,7 +2633,7 @@ en,"Логнете се,за да видите нишката","Login to see the
 en,"Не, благодаря","No, thanks!"
 en,Отворени сделки,Open deals
 en,Системата,The System
-en,Изпратете запитване за,Send inquiry about
+en,Изпратете запитване за,Send an enquiry about
 en,общо тегло,total weight
 en,тегло на ролка,roll weight
 en,тегло на 1 кв. м,weight per sq. m.
@@ -2816,8 +2816,8 @@ en,"Премахване на всички артикули","Remove all items"
 en,"ч.","h"
 en,Без фактуриране,Without invoice
 en,Титуляр,Holder
-en,"Може да свалите примерно платежно нареждане от","You can download a payment order sample from"
-en,Информация за плащането,Information for the payment
+en,"Може да свалите попълнено платежно нареждане","You can download a filled payment order"
+en,Информация за плащането,Payment information
 en,Поръчката е направена успешно,The order was placed successfully
 en,Вижте също,See also
 en,Фактура на лице,Person invoice
@@ -2825,4 +2825,8 @@ en,Фактура на фирма,Company invoice
 en,Фактуриране,Billing
 en,"Има проблем при изчислението на доставката. Моля, обърнете се към нас","There is a problem with the delivery calculation. Please, contact us"
 en,Липсва двубуквен префикс,Missing two-letter prefix
-ен,"Поръчката ще бъде изпълнена след получаване на плащането","The order will be completed after the payment is received"
+en,"Поръчката ще бъде изпълнена след получаване на плащането","The order will be completed after the payment is received"
+en,Данни за фактуриране,Billing information
+en,Липсват данните за фактуриране,Missing billing information
+en,"Нямате избрани артикули","You haven't selected any items"
+ен,изпращане на запитването,send the enquiry

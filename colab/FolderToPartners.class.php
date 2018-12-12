@@ -810,6 +810,24 @@ class colab_FolderToPartners extends core_Manager
         
         // След събмит ако всичко е наред създаваме потребител, лице и профил
         if ($form->isSubmitted()) {
+            
+            $force = true;
+            
+            // Ако регистрацията ще е към папка на лице
+            if($Class instanceof crm_Persons){
+                if(empty(crm_Profiles::fetch("#personId = {$objectId}"))){
+                    $personEmails = arr::make(type_Emails::toArray($contragentRec->email), true);
+                    if(in_array($form->rec->email, $personEmails)){
+                        
+                        // И потребителя е със същия имейл и име, то ще му се присвои въпросната папка като лична
+                        if(trim($contragentRec->name) == trim($form->rec->names)){
+                            $form->rec->personId = $objectId;
+                            $force = false;
+                        }
+                    }
+                }
+            }
+            
             $uId = $Users->save($form->rec);
             
             if ($Class instanceof crm_Companies) {
@@ -831,7 +849,9 @@ class colab_FolderToPartners extends core_Manager
             }
             
             $folderId = $Class->forceCoverAndFolder($objectId);
-            static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
+            if($force === true){
+                static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
+            }
             
             $Class->logInAct('Регистрация на нов партньор', $objectId);
             vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$companyName}»");

@@ -267,10 +267,10 @@ class email_Incomings extends core_Master
         
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
             if (Request::get('forced') != 'yes' && $time > 0) {
-                if (!$period) {
-                    $period = 60;
+                if (!$accRec->fetchingPeriod) {
+                    $accRec->fetchingPeriod = 60;
                 }
-                $period = round($accRec->period / 30) * 30;
+                $period = round($accRec->fetchingPeriod / 30) * 30;
                 if ($period > 0 && ($time % $period) > 0) {
                     continue;
                 }

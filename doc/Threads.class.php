@@ -2256,8 +2256,16 @@ class doc_Threads extends core_Manager
                     foreach ($managersIds as $classId) {
                         $Cls = cls::get($classId);
                         if ($Cls->haveRightFor('add', (object) array('folderId' => $data->folderId))) {
-                            $btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
-                            $data->toolbar->addBtn($btnTitle, array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+                            $bArr['btnTitle'] = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
+                            $bArr['url'] = array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true);
+                            $bArr['ef_icon'] = $Cls->singleIcon;
+                            $bArr['title'] = 'Създаване на ' . mb_strtolower($Cls->singleTitle);
+                            
+                            if (method_exists($Cls, 'getButtonParamsForNewInFolder')) {
+                                $bArr = array_merge($bArr, (array) $Cls->getButtonParamsForNewInFolder($data->folderId));
+                            }
+                            
+                            $data->toolbar->addBtn($bArr['btnTitle'], $bArr['url'], "ef_icon = {$bArr['ef_icon']},title={$bArr['title']}");
                         }
                     }
                 }

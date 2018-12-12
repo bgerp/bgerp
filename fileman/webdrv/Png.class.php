@@ -32,7 +32,7 @@ class fileman_webdrv_Png extends fileman_webdrv_Image
         $tabsArr = parent::getTabs($fRec);
         
         if (self::canShowTab($fRec->fileHnd, 'barcodes')) {
-            $barcodeUrl = toUrl(array('fileman_webdrv_Png', 'barcodes', $fRec->fileHnd), true);
+            $barcodeUrl = toUrl(array('fileman_webdrv_Png', 'barcodes', $fRec->fileHnd));
             $tabsArr['barcodes'] = new stdClass();
             $tabsArr['barcodes']->title = 'Баркодове';
             $tabsArr['barcodes']->html = "<div class='webdrvTabBody'><div class='legend'>" . tr('Баркодове') . "</div><div class='webdrvFieldset'> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>";
