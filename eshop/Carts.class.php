@@ -1121,52 +1121,6 @@ class eshop_Carts extends core_Master
     
     
     /**
-     * Екшън присвояващ количка без потребител към новия брид
-     */
-    public function act_GrantAccess()
-    {
-        Request::setProtected('accessToken');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetch($id));
-        expect($accessToken = Request::get('accessToken'));
-        expect(str::checkHash($accessToken, 6, eshop_Setup::get('CART_ACCESS_SALT')), 'Невалиден токен за достъп');
-        
-        // Ако има нова текуща количка, редирект към нея
-        if($newCartId = self::force($rec->domainId, null, false)){
-            if($rec->id != $newCartId){
-                redirect(array($this, 'view', $newCartId));
-            }
-        }
-        
-        // Ако количката няма потребител
-        if(empty($rec->userId)){
-            $oldBrid = $rec->brid;
-            
-            // Ако новия брид е различен от стария обновява се
-            $newBrid = log_Browsers::getBrid();
-            $updateFields = array();
-            if($rec->brid != $newBrid){
-                $rec->brid = $newBrid;
-                $updateFields[] = 'brid';
-            }
-            
-            if($cu = core_Users::getCurrent('id', false)){
-                $rec->userId = $cu;
-                $updateFields .= 'userId';
-            }
-            
-            // Така потребителя вече има достъп до количката
-            if(count($updateFields)){
-                $this->save($rec, $updateFields);
-                log_System::add('eshop_Carts', "Присвоена количка:BRID {$oldBrid} -> {$rec->brid}/ #userId = '{$rec->userId}'", $rec->id);
-            }
-        }
-        
-        redirect(array($this, 'view', $rec->id));
-    }
-    
-    
-    /**
      * Екшън за показване на външния изглед на кошницата
      */
     public function act_View()
@@ -1184,10 +1138,49 @@ class eshop_Carts extends core_Master
             redirect(cls::get('eshop_Groups')->getUrlByMenuId(null));
         }
         
+        // Ако има нова текуща количка, редирект към нея
+        if($newCartId = self::force($rec->domainId, null, false)){
+            if($rec->id != $newCartId){
+                redirect(array($this, 'view', $newCartId));
+            }
+        }
+        
         // Редирект към ешопа ако количката е активна
         if ($rec->state == 'active') {
             $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
             redirect($shopUrl);
+        }
+        
+        // Ако има токен за достъп
+        $accessToken = Request::get('accessToken');
+        if(!empty($accessToken)){
+            
+            // И токена е валиден
+            expect($token = str::checkHash($accessToken, 6, eshop_Setup::get('CART_ACCESS_SALT')), 'Невалиден токен за достъп');
+            expect($token == "cart{$id}");
+            
+            // Ако количката няма потребител
+            if(empty($rec->userId)){
+                $oldBrid = $rec->brid;
+                
+                // Ако новия брид е различен от стария обновява се
+                $newBrid = log_Browsers::getBrid();
+                $updateFields = array();
+                if($rec->brid != $newBrid){
+                    $rec->brid = $newBrid;
+                    $updateFields[] = 'brid';
+                }
+                if($cu = core_Users::getCurrent('id', false)){
+                    $rec->userId = $cu;
+                    $updateFields .= 'userId';
+                }
+                
+                // Така потребителя вече има достъп до количката
+                if(count($updateFields)){
+                    $this->save($rec, $updateFields);
+                    log_System::add('eshop_Carts', "Присвоена количка:BRID {$oldBrid} -> {$rec->brid}/ #userId = '{$rec->userId}'", $rec->id);
+                }
+            }
         }
         
         $this->requireRightFor('viewexternal', $rec);
@@ -2366,10 +2359,9 @@ class eshop_Carts extends core_Master
      */
     public static function getGrantAccessUrl($id)
     {
-        $token = str::addHash('token', 6, eshop_Setup::get('CART_ACCESS_SALT'));
-        $url = array('eshop_Carts', 'grantAccess', $id, 'accessToken' => $token);
-        
+        $token = str::addHash("cart{$id}", 6, eshop_Setup::get('CART_ACCESS_SALT'));
         Request::setProtected('accessToken');
+        $url = array('eshop_Carts', 'view', $id, 'accessToken' => $token);
         $url = toUrl($url, 'absolute');
         Request::removeProtected('accessToken');
         
