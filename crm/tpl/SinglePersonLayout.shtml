@@ -19,10 +19,7 @@
                 <div class="groupList">
                     <!--ET_BEGIN egn-->
                     <div><b>[#egn#]</b></div>
-                    <!--ET_END vatId-->
-                    <!--ET_BEGIN vat-->
-                    <div>VAT: <b>[#vatId#]</b></div>
-                    <!--ET_END vatId-->
+                    <!--ET_END egn-->
                     <!--ET_BEGIN birthday-->
                     <div>|Рожден ден|*: <b>[#birthday#]</b></div>
                     <!--ET_END birthday-->
@@ -41,6 +38,9 @@
                     <!--ET_BEGIN tel-->
                     <div>|Тел.|*: <b>[#tel#]</b></div>
                     <!--ET_END tel-->
+                    <!--ET_BEGIN vatId-->
+                    <div>VAT: <b>[#vatId#]</b></div>
+                    <!--ET_END vatId-->
                     <!--ET_BEGIN fax-->
                     <div>|Факс|*: <b>[#fax#]</b></div>
                     <!--ET_END fax--> 
