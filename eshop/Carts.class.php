@@ -2134,10 +2134,10 @@ class eshop_Carts extends core_Master
             } elseif(!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now){
                 
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
-                $isNotified = core_Cache::get('eshop_Carts', "isNotified{$rec->id}");
+                $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
                 if ($isNotified !== 'y') {
                     self::sendNotificationEmail($rec);
-                    core_Cache::set('eshop_Carts', "isNotified{$rec->id}", 'y', 10080);
+                    core_Permanent::set("eshopCartsNotify{$rec->id}", 'y', 10080);
                 }
             }
         }
