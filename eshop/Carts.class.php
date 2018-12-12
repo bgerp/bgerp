@@ -19,7 +19,7 @@ class eshop_Carts extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Кошници на онлайн магазина';
+    public $title = 'Кошници в онлайн магазина';
     
     
     /**
@@ -43,7 +43,7 @@ class eshop_Carts extends core_Master
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = 'Онлайн поръчка';
+    public $singleTitle = 'Кошница';
     
     
     /**
@@ -1677,7 +1677,9 @@ class eshop_Carts extends core_Master
         }
         
         if (isset($rec->saleId)) {
+            $saleState = sales_Sales::fetchField($rec->saleId, 'state');
             $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            $row->saleId = "<span class='state-{$saleState} document-handler'>{$row->saleId}</span>";
         } 
         
         if (isset($rec->termId) && !isset($fields['-external'])) {
