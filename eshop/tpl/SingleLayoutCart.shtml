@@ -35,6 +35,12 @@
                <td>[#activatedOn#]</td>
             </tr>
             <!--ET_END activatedOn-->
+            <!--ET_BEGIN saleId-->
+            <tr>
+               <td class="title-style">|Продажба|*:</td>
+               <td>[#saleId#]</td>
+            </tr>
+            <!--ET_END saleId-->
             <tr>
                <td class="title-style quiet">|Създаване|*:</td>
                <td>|от|* [#createdBy#] |на|* [#createdOn#]</td>
@@ -190,12 +196,6 @@
                <td>[#invoiceAddress#]</td>
             </tr>
             <!--ET_END invoiceAddress-->
-            <!--ET_BEGIN saleId-->
-            <tr>
-               <td class="title-style">|Продажба|*:</td>
-               <td>[#saleId#]</td>
-            </tr>
-            <!--ET_END saleId-->
          </table>
       </div>
    </fieldset>
