@@ -725,8 +725,17 @@ class eshop_Carts extends core_Master
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
         } else {
-            $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : $rec->country;
-            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $rec->invoicePCode, $rec->invoicePlace, $rec->invoiceAddress, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation, $rec->domainId);
+            $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : (isset($rec->deliveryCountry) ? $rec->deliveryCountry : $rec->country);
+            if(!empty($rec->invoicePCode) || !empty($rec->invoicePlace) || !empty($rec->invoiceAddress)){
+                $pCode = $rec->invoicePCode;
+                $place = $rec->invoicePlace;
+                $address = $rec->invoiceAddress;
+            } else {
+                $pCode = $rec->deliveryPCode;
+                $place = $rec->deliveryPlace;
+                $address = $rec->deliveryAddress;
+            }
+            $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $pCode, $place, $address, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation, $rec->domainId);
             $Cover = doc_Folders::getCover($folderId);
         }
         
