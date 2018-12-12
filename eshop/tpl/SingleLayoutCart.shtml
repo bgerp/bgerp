@@ -25,10 +25,6 @@
                <td>[#userId#]</td>
             </tr>
             <!--ET_END userId-->
-            <tr>
-               <td class="title-style">|Брой артикули|*:</td>
-               <td>[#productCount#]</td>
-            </tr>
             <!--ET_BEGIN activatedOn-->
             <tr>
                <td class="title-style quiet">|Активиране|*:</td>
@@ -55,6 +51,10 @@
                <td>[#delitionTime#]</td>
             </tr>
             <!--ET_END delitionTime-->
+            <tr>
+               <td class="title-style">|Брой артикули|*:</td>
+               <td>[#productCount#]</td>
+            </tr>
          </table>
       </div>
    </fieldset>
