@@ -85,13 +85,13 @@ class eshop_Settings extends core_Manager
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_FOOTER_BG = 'Сърдечни поздрави' . "\n" . 'Екипът на [#COMPANY_NAME#]';
+    const DEFAULT_EMAIL_FOOTER_BG = 'Сърдечни поздрави,' . "\n" . 'Екипът на [#COMPANY_NAME#]';
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_FOOTER_EN = 'Kind regards' . "\n" . 'The team of [#COMPANY_NAME#]';
+    const DEFAULT_EMAIL_FOOTER_EN = 'Kind regards,' . "\n" . 'The team of [#COMPANY_NAME#]';
     
     
     /**
