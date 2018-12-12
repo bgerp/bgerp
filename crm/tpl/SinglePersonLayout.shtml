@@ -19,7 +19,10 @@
                 <div class="groupList">
                     <!--ET_BEGIN egn-->
                     <div><b>[#egn#]</b></div>
-                    <!--ET_END egn-->
+                    <!--ET_END vatId-->
+                    <!--ET_BEGIN vat-->
+                    <div>VAT: <b>[#vatId#]</b></div>
+                    <!--ET_END vatId-->
                     <!--ET_BEGIN birthday-->
                     <div>|Рожден ден|*: <b>[#birthday#]</b></div>
                     <!--ET_END birthday-->
