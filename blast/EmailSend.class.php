@@ -124,7 +124,7 @@ class blast_EmailSend extends core_Detail
      */
     public static function updateList($emailId, $dataArr, $emailFieldsArr, $negativeEmailArr = array())
     {
-        $addCnt = $rCnt = 0;
+        $addCnt = $rCnt = $allCnt = 0;
         
         // Обхождаме масива с данните
         foreach ((array) $dataArr as $data) {
@@ -196,7 +196,14 @@ class blast_EmailSend extends core_Detail
                 $addCnt++;
                 blast_BlockedEmails::addEmail($toEmail, false);
             }
+            
+            $allCnt++;
         }
+        
+        $mRec = new stdClass();
+        $mRec->id = $emailId;
+        $mRec->allMailCnt = $allCnt;
+        blast_Emails::save($mRec, 'allMailCnt');
         
         return array('add' => $addCnt, 'remove' => $rCnt);
     }

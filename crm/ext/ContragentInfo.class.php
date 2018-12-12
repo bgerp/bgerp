@@ -326,10 +326,6 @@ class crm_ext_ContragentInfo extends core_manager
                     $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
                 }
                 
-               
-                
-                
-                
                 $total = $sales[$cRec->id]['total'];
                 $overdues = $sales[$cRec->id]['overdue'];
                 
@@ -348,7 +344,7 @@ class crm_ext_ContragentInfo extends core_manager
                     $saveArray[$cRec->id] = $r;
                 }
             }
-           
+            
             // Запис на новите данни
             if (count($saveArray)) {
                 $this->saveArray($saveArray);
@@ -364,7 +360,7 @@ class crm_ext_ContragentInfo extends core_manager
      *
      * @return array $res
      */
-    private function getSalesdata($contragentClassId)
+    private static function getSalesdata($contragentClassId)
     {
         $res = array();
         
@@ -376,7 +372,7 @@ class crm_ext_ContragentInfo extends core_manager
         $saleQuery->where("#state = 'active' OR #state = 'closed'");
         $saleQuery->show('count,amount,contragentId');
         $saleQuery->groupBy('contragentId');
-        while ($sRec = $saleQuery->fetch()){
+        while ($sRec = $saleQuery->fetch()) {
             $res[$sRec->contragentId]['total']['count'] = $sRec->count;
             $res[$sRec->contragentId]['total']['amount'] = $sRec->amount;
         }
@@ -389,7 +385,7 @@ class crm_ext_ContragentInfo extends core_manager
         $saleQuery2->where("#state = 'active' AND #paymentState = 'overdue'");
         $saleQuery2->show('count,amount,contragentId');
         $saleQuery2->groupBy('contragentId');
-        while ($sRec2 = $saleQuery2->fetch()){
+        while ($sRec2 = $saleQuery2->fetch()) {
             $res[$sRec2->contragentId]['overdue']['count'] = $sRec2->count;
             $res[$sRec2->contragentId]['overdue']['amount'] = $sRec2->amount;
         }

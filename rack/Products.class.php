@@ -224,7 +224,7 @@ class rack_Products extends store_Products
             $pQuery->limit($limit);
         }
         
-        $pQuery->show('id,name,code,isPublic,searchFieldXpr');
+        $pQuery->show('id,name,code,isPublic,nameInt,searchFieldXpr');
         
         while ($pRec = $pQuery->fetch()) {
             $products[$pRec->id] = cat_Products::getRecTitle($pRec, false);

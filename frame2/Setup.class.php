@@ -8,6 +8,12 @@ defIfNot('FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS', '4');
 
 
 /**
+ * Как да е форматирана датата
+ */
+defIfNot('FRAME2_MAX_VERSION_HISTORT_COUNT', '10');
+
+
+/**
  * class frame2_Setup
  *
  * Инсталиране/Деинсталиране на пакета frame2
@@ -75,6 +81,7 @@ class frame2_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'FRAME2_CLOSE_LAST_SEEN_BEFORE_MONTHS' => array('int', 'caption=Затваряне на последно видяни справки преди->Месеца'),
+        'FRAME2_MAX_VERSION_HISTORT_COUNT' => array('int', 'caption=Колко версии да се пазят на справките->Брой'),
     );
     
     
@@ -82,7 +89,7 @@ class frame2_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(2.56, 'Обслужване', 'Отчети', 'frame2_Reports', 'default', 'report, ceo, admin'),
+        array(2.56, 'Обслужване', 'Справки', 'frame2_Reports', 'default', 'report, ceo, admin'),
     );
     
     

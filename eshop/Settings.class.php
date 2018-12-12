@@ -71,39 +71,27 @@ class eshop_Settings extends core_Manager
     
     
     /**
-     * Дефолтен шаблон за имейл на български за онлайн поръчка
+     * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nАко желаете в бъдеще да спестите време при покупки от нашия е-Магазин, моля регистрирайте се от тази [#link#], която изтича след 7 дни.\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_INTRODUCTION_BG = 'Здравейте [#NAME#],';
     
     
     /**
-     * Дефолтен шаблон за имейл на български за онлайн поръчка
+     * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG = "\nЗдравейте [#NAME#],\nБлагодарим за вашата покупка [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
+    const DEFAULT_EMAIL_INTRODUCTION_EN = 'Hello [#NAME#],';
     
     
     /**
-     * Дефолтен шаблон за имейл на английски за онлайн поръчка
+     * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\nIf you want to save time in the future purchases of our online shop, please register from this [#link#], which expires in 7 days.\n\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_FOOTER_BG = 'Сърдечни поздрави,' . "\n" . 'Екипът на [#COMPANY_NAME#]';
     
     
     /**
-     * Дефолтен шаблон за имейл на английски за онлайн поръчка
+     * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN = "\nHello [#NAME#],\nThank you for your purchase [#SALE_HANDLER#].\n[#PAYMENT_TEXT#]\n\nKind regards\nThe team of [#domainId#]";
-    
-    
-    /**
-     * Дефолтен шаблон за имейл на български, за уведомление за незавършена поръчка
-     */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG = "\nЗдравейте [#NAME#],\nИмате незавършена поръчка в [#LINK#].\n\nСърдечни поздрави\nЕкипът на [#domainId#]";
-    
-    
-    /**
-     * Дефолтен шаблон за имейл на английски, за уведомление за незавършена поръчка
-     */
-    const DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN = "\nHello [#NAME#],\nYou have unfinished order in [#LINK#].\n\nKind regards\nThe team of [#domainId#]";
+    const DEFAULT_EMAIL_FOOTER_EN = 'Kind regards,' . "\n" . 'The team of [#COMPANY_NAME#]';
     
     
     /**
@@ -180,12 +168,11 @@ class eshop_Settings extends core_Manager
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
         $this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
         $this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
-        $this->FLD('emailBodyWithReg', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->С регистрация');
-        $this->FLD('emailBodyWithoutReg', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Без регистрация');
+        $this->FLD('emailBodyIntroduction', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Увод,oldFieldName=emailBody');
+        $this->FLD('emailBodyFooter', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Футър,oldFieldName=emailRegistrationText');
         $this->FLD('lifetimeForEmptyDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->Празни');
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
-        $this->FLD('emailBodyNotify', 'richtext(rows=3)', 'caption=Нотификация за незавършена поръчка->Имейл');
         $this->FLD('timeBeforeDelete', 'time', 'caption=Нотификация за незавършена поръчка->Изпращане,unit=преди изтриване');
         
         $this->FLD('freeDelivery', 'double', 'caption=Безплатна доставка->Сума');
@@ -206,7 +193,7 @@ class eshop_Settings extends core_Manager
         $rec = &$form->rec;
         if ($form->isSubmitted()) {
             
-            $fieldArray = array('emailBodyWithReg' => array('[#SALE_HANDLER#]', '[#link#]', '[#PAYMENT_TEXT#]'), 'emailBodyWithoutReg' => array('[#SALE_HANDLER#]', '[#PAYMENT_TEXT#]'), 'emailBodyNotify' => array('[#LINK#]'));
+            $fieldArray = array('emailBodyIntroduction' => array('[#NAME#]'), 'emailBodyFooter' => array('[#COMPANY_NAME#]'));
             foreach ($fieldArray as $name => $placeholders){
                 if (!empty($rec->{$name})) {
                     $missing = array();
@@ -215,7 +202,6 @@ class eshop_Settings extends core_Manager
                             $missing[] = $placeholder;
                         }
                     }
-                    
                     if (count($missing)) {
                         $form->setWarning($name, 'Пропуснати са следните плейсхолдъри|*: <b>' . implode(', ', $missing) . '</b>');
                     }
@@ -299,17 +285,12 @@ class eshop_Settings extends core_Manager
         // Добавяне на плейсхолдъри на някои полета
         if (isset($rec->objectId)) {
             $lang = cls::get($rec->classId)->fetchField($rec->objectId, 'lang');
-            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN;
-            $form->setParams('emailBodyWithReg', array('placeholder' => $placeholderValue));
             
-            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
-            $form->setParams('emailBodyWithoutReg', array('placeholder' => $placeholderValue));
+            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_INTRODUCTION_BG : self::DEFAULT_EMAIL_INTRODUCTION_EN;
+            $form->setParams('emailBodyIntroduction', array('placeholder' => $placeholderValue));
             
-            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
-            $form->setParams('addProductText', array('placeholder' => $placeholderValue));
-        
-            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG : self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN;
-            $form->setParams('emailBodyNotify', array('placeholder' => $placeholderValue));
+            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_FOOTER_BG : self::DEFAULT_EMAIL_FOOTER_EN;
+            $form->setParams('emailBodyFooter', array('placeholder' => $placeholderValue));
         }
         
         if(isset($rec->currencyId)){
@@ -391,16 +372,12 @@ class eshop_Settings extends core_Manager
             $lang = cls::get($settingRec->classId)->fetchField($settingRec->objectId, 'lang');
             $settingRec->lg = $lang;
             
-            if (empty($settingRec->emailBodyWithReg)) {
-                $settingRec->emailBodyWithReg = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITH_REGISTRATION_EN;
+            if (empty($settingRec->emailBodyIntroduction)) {
+                $settingRec->emailBodyIntroduction = ($lang == 'bg') ? self::DEFAULT_EMAIL_INTRODUCTION_BG : self::DEFAULT_EMAIL_INTRODUCTION_EN;
             }
             
-            if (empty($settingRec->emailBodyWithoutReg)) {
-                $settingRec->emailBodyWithoutReg = ($lang == 'bg') ? self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_BG : self::DEFAULT_EMAIL_BODY_WITHOUT_REGISTRATION_EN;
-            }
-            
-            if (empty($settingRec->emailBodyNotify)) {
-                $settingRec->emailBodyNotify = ($lang == 'bg') ? self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_BG : self::DEFAULT_EMAIL_NOTIFY_BEFORE_DELETE_EN;
+            if (empty($settingRec->emailBodyFooter)) {
+                $settingRec->emailBodyFooter = ($lang == 'bg') ? self::DEFAULT_EMAIL_FOOTER_BG : self::DEFAULT_EMAIL_FOOTER_EN;
             }
             
             if (empty($settingRec->addProductText)) {

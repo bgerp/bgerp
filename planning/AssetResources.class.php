@@ -69,7 +69,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Оборудване,code,groupId,protocolId=ДА,simultaneity=Едновременност,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,code,groupId,assetFolderId=Център на дейност,systemFolderId=Система,createdOn,createdBy,state';
     
     
     /**
@@ -149,13 +149,24 @@ class planning_AssetResources extends core_Master
         
         $this->FLD('cameras', 'keylist(mvc=cams_Cameras,select=title, allowEmpty)', 'caption=Камери, remember');
         
-        $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Превозно средство, remember');
+        $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Тракер, remember');
         
         // TODO - ще се премахне след като минат миграциите
         $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
         
+        $this->FNC('codeAndName', 'varchar');
+        
         $this->setDbUnique('code');
         $this->setDbUnique('protocolId');
+    }
+    
+    
+    /**
+     * Изчисляване на името и кода
+     */
+    protected static function on_CalcCodeAndName($mvc, &$rec)
+    {
+        $rec->codeAndName = $rec->code . ' - ' . $rec->name;
     }
     
     
@@ -475,7 +486,11 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search,groupId';
+        $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,silent,remember,input,refreshForm');
+        $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
+        $data->listFilter->setOptions('folderId', array('' => '') + $resourceSuggestionsArr);
+        
+        $data->listFilter->showFields = 'search,groupId,folderId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -484,11 +499,16 @@ class planning_AssetResources extends core_Master
         }
         
         $data->listFilter->FLD('type', 'enum(material=Материален, nonMaterial=Нематериален)', 'caption=Тип, input=hidden, silent');
-        $data->listFilter->input('type', true);
+        $data->listFilter->input('type, folderId', true);
         
         if ($data->listFilter->rec->type) {
             $data->query->EXT('type', 'planning_AssetGroups', 'externalName=type,externalKey=groupId');
             $data->query->where(array("#type = '[#1#]'", $data->listFilter->rec->type));
+        }
+        
+        if ($data->listFilter->rec->folderId) {
+            $data->query->likeKeylist('assetFolderId', $data->listFilter->rec->folderId);
+            $data->query->orLikeKeylist('systemFolderId', $data->listFilter->rec->folderId);
         }
         
         $data->query->orderBy('modifiedOn', 'DESC');

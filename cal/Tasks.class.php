@@ -1725,6 +1725,22 @@ class cal_Tasks extends embed_Manager
     
     
     /**
+     * Променяме някои параметри на бутона в папката
+     *
+     * @param int $folderId
+     */
+    public function getButtonParamsForNewInFolder($folderId)
+    {
+        $pArr = array();
+        if (cls::load('support_TaskType', true)) {
+            $pArr = cls::get('support_TaskType')->getButtonParamsForNewInFolder($folderId);
+        }
+        
+        return $pArr;
+    }
+    
+    
+    /**
      * Връща иконата на документа
      */
     public function getIcon_($id)

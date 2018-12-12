@@ -199,7 +199,7 @@ class core_Pager extends core_BaseClass
     {
         // Дали да използва кеширане
         $useCache = $query->useCacheForPager;
-        
+
         if ($useCache) {
             if ($limit = doc_Setup::get('SEARCH_LIMIT')) {
                 $query->limit($limit);
@@ -220,7 +220,7 @@ class core_Pager extends core_BaseClass
         // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
         
-        if (!$useCache) {
+        if (!$useCache && !$query->mvc->simplePaging) {
             $query->addOption('SQL_CALC_FOUND_ROWS');
         } else {
             $resCntCache = core_QueryCnts::getFromChache($qCnt);
@@ -233,6 +233,14 @@ class core_Pager extends core_BaseClass
         
         // Подготовка на заявката за извличане на id
         $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);
+ 
+        if($query->mvc->simplePaging) {
+            $query->limit($limit);
+            $query->startFrom($this->rangeStart);
+            
+            return;
+        }
+
         $query->show('id');
         $rQuery = clone $query;
         $query->limit($limit);

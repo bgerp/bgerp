@@ -2633,7 +2633,7 @@ en,"Логнете се,за да видите нишката","Login to see the
 en,"Не, благодаря","No, thanks!"
 en,Отворени сделки,Open deals
 en,Системата,The System
-en,Изпратете запитване за,Send inquiry about
+en,Изпратете запитване за,Send an enquiry about
 en,общо тегло,total weight
 en,тегло на ролка,roll weight
 en,тегло на 1 кв. м,weight per sq. m.
@@ -2806,8 +2806,27 @@ en,Дълготраен материален актив,Tangible fixed asset,
 en,Дълготраен нематериален актив,Intangible fixed asset,
 en,Дълготрайни нематериални активи,Intangible fixed assets
 en,Търсене на баркод,Search barcodes
-en,"Съгласно избрания начин на плащане, моля преведете сумата за плащане по тази сметка","According to the chosen payment method, please transfer the amount to be paid to this bank account"
+en,"Избрано е плащане по банков път. Моля, преведете дължимата сума по сметка","You've selected bank payment. Please transfer the amount to be paid to the following account"
 en,"Плащането трябва да се извърши по следния начин","Payment must be made in the following way"
 en,"Благодарим за поръчката","Thank you for your order"
 en,"Изпратихме Ви имейл с инструкции за плащането","We've sent you an email with payment instructions"
 en,Нов файл,New file
+en,Без фактура,Without invoice
+en,"Премахване на всички артикули","Remove all items"
+en,"ч.","h"
+en,Без фактуриране,Without invoice
+en,Титуляр,Holder
+en,"Може да свалите попълнено платежно нареждане","You can download a filled payment order"
+en,Информация за плащането,Payment information
+en,Поръчката е направена успешно,The order was placed successfully
+en,Вижте също,See also
+en,Фактура на лице,Person invoice
+en,Фактура на фирма,Company invoice
+en,Фактуриране,Billing
+en,"Има проблем при изчислението на доставката. Моля, обърнете се към нас","There is a problem with the delivery calculation. Please, contact us"
+en,Липсва двубуквен префикс,Missing two-letter prefix
+en,"Поръчката ще бъде изпълнена след получаване на плащането","The order will be completed after the payment is received"
+en,Данни за фактуриране,Billing information
+en,Липсват данните за фактуриране,Missing billing information
+en,"Нямате избрани артикули","You haven't selected any items"
+ен,изпращане на запитването,send the enquiry

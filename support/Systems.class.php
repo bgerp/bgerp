@@ -261,7 +261,7 @@ class support_Systems extends core_Master
     {
         $rec = self::fetch($id);
         
-        $title = tr('Поддръжка на') . ' ' . self::getVerbal($rec, 'name');
+        $title = tr('Поддръжка на') . ' "' . self::getVerbal($rec, 'name') . '"';
         
         return $title;
     }

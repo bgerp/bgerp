@@ -181,7 +181,9 @@ class sales_ProductRelations extends core_Manager
         $rels = self::calcNearProducts();
         
         self::saveRels($rels);
-
-        eshop_Products::saveNearProducts();
+        
+        if(core_Packs::isInstalled('eshop')) {
+            eshop_Products::saveNearProducts();
+        }
     }
 }

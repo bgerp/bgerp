@@ -196,7 +196,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
             // За всеки договорен артикул
             foreach ($agreedProducts as $pId => $pRec) {
                 // ако е нестандартен
-                $productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
+                $productRec = cat_Products::fetch($pId, 'canManifacture,isPublic,nameInt');
                 
                 if ($sRec->closedDocuments != null) {
                     $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
