@@ -164,10 +164,10 @@ class eshop_Carts extends core_Master
         $this->FLD('paidOnline', 'enum(no=Не,yes=Да)', 'caption=Общи данни->Платено,input=none,notNull,value=no');
         $this->FLD('productCount', 'int', 'caption=Общи данни->Брой,input=none');
         
-        $this->FLD('personNames', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
-        $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,hint=Вашият имейл||Your email,mandatory');
-        $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty)', 'caption=Контактни данни->Телефон,hint=Вашият телефон,mandatory');
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,mandatory');
+        $this->FLD('personNames', 'varchar(255)', 'caption=Имена,class=contactData,hint=Вашето име||Your name,mandatory,silent');
+        $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Имейл,hint=Вашият имейл||Your email,mandatory');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty)', 'caption=Телефон,hint=Вашият телефон,mandatory');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory');
         
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData,silent,mandatory');
         $this->FLD('deliveryCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава,hint=Страна за доставка');
@@ -180,16 +180,16 @@ class eshop_Carts extends core_Master
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
-        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактура->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
-        $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактура->Наименование,invoiceData,hint=Име,input=none,mandatory');
+        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry');
+        $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име,input=none,mandatory');
         
-        $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактура->ДДС №||VAT ID,input=hidden,invoiceData');
-        $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактура->ЕИК №,input=hidden,invoiceData');
+        $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
+        $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактуриране->ЕИК №,input=hidden,invoiceData');
         
-        $this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактура->Държава,hint=Държава по регистрация,input=none,invoiceData');
-        $this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактура->П. код,invoiceData,hint=Пощенски код на фирмата,input=none');
-        $this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактура->Град,invoiceData,hint=Населено място: град или село и община,input=none');
-        $this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактура->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none');
+        $this->FLD('invoiceCountry', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Данни за фактуриране->Държава,hint=Държава по регистрация,input=none,invoiceData');
+        $this->FLD('invoicePCode', 'varchar(16)', 'caption=Данни за фактуриране->П. код,invoiceData,hint=Пощенски код на фирмата,input=none');
+        $this->FLD('invoicePlace', 'varchar(64)', 'caption=Данни за фактуриране->Град,invoiceData,hint=Населено място: град или село и община,input=none');
+        $this->FLD('invoiceAddress', 'varchar(255)', 'caption=Данни за фактуриране->Адрес,invoiceData,hint=Адрес на регистрация на фирмата,input=none');
         
         $this->FLD('info', 'richtext(rows=2)', 'caption=Общи данни->Забележка,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активно,closed=Приключено,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
@@ -1776,13 +1776,13 @@ class eshop_Carts extends core_Master
             }
             
             if ($form->rec->makeInvoice == 'person') {
-                $form->setField('invoiceNames', 'caption=Данни за фактура->Име');
-                $form->setField('invoiceUicNo', 'caption=Данни за фактура->ЕГН');
+                $form->setField('invoiceNames', 'caption=Данни за фактуриране->Име');
+                $form->setField('invoiceUicNo', 'caption=Данни за фактуриране->ЕГН');
                 $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
                 $form->setDefault('invoiceNames', $form->rec->personNames);
             } else {
-                $form->setField('invoiceNames', 'caption=Данни за фактура->Фирма');
-                $form->setField('invoiceVatNo', 'caption=Данни за фактура->ДДС №||VAT ID');
+                $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
+                $form->setField('invoiceVatNo', 'caption=Данни за фактуриране->ДДС №||VAT ID');
             }
             
             $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
@@ -1849,7 +1849,7 @@ class eshop_Carts extends core_Master
             }
            
             if (count($emptyFields)) {
-                $form->setError($emptyFields, 'Липсват данни за фактура');
+                $form->setError($emptyFields, 'Липсват данните за фактуриране');
             }
             
             if (!$form->gotErrors()) {

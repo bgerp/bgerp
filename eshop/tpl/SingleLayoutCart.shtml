@@ -135,7 +135,7 @@
    <!--ET_BEGIN paymentInfo-->
    [#paymentInfo#]
    <fieldset class="detail-info">
-      <legend class="groupTitle">|Данни за фактура|*</legend>
+      <legend class="groupTitle">|Данни за фактуриране|*</legend>
       <div class="groupList">
          <table class="noBorder" style='width:99%'>
             <!--ET_BEGIN paymentId-->
