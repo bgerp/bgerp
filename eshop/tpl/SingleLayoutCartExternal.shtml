@@ -199,6 +199,7 @@
                </tr>
                <!--ET_END total-->
             </table>
+            <div class="clearfix21"></div>
          </div>
          <!--ET_BEGIN PAYMENT_TEXT_RIGHT-->
          <div class = 'cart-view-buttons-right' style="margin: 20px 0">
