@@ -125,23 +125,16 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $sQuery->where('(#activatedOn IS NOT NULL)');
         
-        $sQuery->where("(#activatedOn >= '{$rec->from}' AND #activatedOn <= '{$rec->to}') OR (#activatedOn >= '{$fromPreviuos}' AND #activatedOn <= '{$toPreviuos}')");
+       // $sQuery->where("(#activatedOn >= '{$rec->from}' AND #activatedOn <= '{$rec->to}') OR (#activatedOn >= '{$fromPreviuos}' AND #activatedOn <= '{$toPreviuos}')");
+        
+        $sQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
+        $sQuery->orWhere(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $fromPreviuos . ' 00:00:00', $toPreviuos . ' 23:59:59'));
         
         while ($sRec = $sQuery->fetch()) {
             
-            
-            //филтър по държава
-            if ($rec->country) {
-                $contragentClass = core_Classes::getName($sRec->contragentClassId);
-                $contragentCountryId = $contragentClass::fetchField($sRec->contragentId, 'country');
-                
-                if ($rec->country != $contragentCountryId) {
-                    continue;
-                }
-            }
-            
             //договори за продажба за периода
             $salesInPeriod[$sRec->id] = $sRec->id;
+            
         }
         
         
@@ -208,7 +201,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         while ($alocatedCost = $cQuery->fetch()) {
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
-            $detailRec = $className::fetch($alocatedCost-> detailRecId);
+            $detailRec = $className::fetch($alocatedCost-> detailRecId);if ($detailRec->quantity >1)
             
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
             
@@ -230,16 +223,29 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 }
             }
             
+            
             $recs[$alocatedCost->expenseItemId]->className = $className;
             $recs[$alocatedCost->expenseItemId]->purMasterClassName = $masterClassName;
             
             $recs[$alocatedCost->expenseItemId]->alocatedPart = $alocatedCost-> quantity;
             $recs[$alocatedCost->expenseItemId]->amount = $detailRec-> amount;
-            $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> amount * $alocatedCost-> quantity;
-            $totalAmountPart += $detailRec-> amount * $detailRec-> quantity;
+            $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> price * $alocatedCost-> quantity;
+            
+            //$totalAmountPart += $detailRec-> amount * $detailRec-> quantity;
         }
         
         foreach ($recs as $key => $val) {
+                        
+                        //филтър по държава
+            if ($rec->country) {
+                if (($rec->country != $val->countryId) || is_null($val->countryId)) {
+                    unset($recs[$key]);
+                    continue;
+                }
+            }
+            
+            
+            $totalAmountPart += $val-> amountPart;
             $recs[$key]->difference = $val->expectedTransportCost - $val->amountPart;
         }
         
@@ -247,15 +253,16 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             arr::sortObjects($recs, 'difference', 'asc', 'native');
         }
         
-        $totalArr['total'] = (object) array(
-            'totalAmountPart' => $totalAmountPart,
-            'totalExpectedTransportCost' => $totalExpectedTransportCost,
-            'totalDifference' => $totalExpectedTransportCost - $totalAmountPart
-        );
+        if (!empty($recs)) {
+            $totalArr['total'] = (object) array(
+                'totalAmountPart' => $totalAmountPart,
+                'totalExpectedTransportCost' => $totalExpectedTransportCost,
+                'totalDifference' => $totalExpectedTransportCost - $totalAmountPart
+            );
+            
+            array_unshift($recs, $totalArr['total']);
+        }
         
-        array_unshift($recs, $totalArr['total']);
-        
-        //  bp($recs);
         return $recs;
     }
     
