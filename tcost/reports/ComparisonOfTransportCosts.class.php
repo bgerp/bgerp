@@ -197,6 +197,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $totalAmountPart = 0;
         
+        $stateArr = array('draft','rejected','pending');
+        
         while ($alocatedCost = $cQuery->fetch()) {
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
@@ -210,8 +212,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                     continue;
                 }
                 
-                if (($masterClassName::fetchField($detailRec->requestId, 'state') == 'rejected') ||
-                    ($masterClassName::fetchField($detailRec->requestId, 'state') == 'draft')) {
+                if (in_array($masterClassName::fetchField($detailRec->requestId, 'state'),$stateArr)) {
                     continue;
                 }
                 
@@ -221,8 +222,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             if ($className == 'purchase_ServicesDetails') {
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
                 
-                if (($masterClassName::fetchField($detailRec->shipmentId, 'state') == 'rejected') ||
-                    ($masterClassName::fetchField($detailRec->shipmentId, 'state') == 'draft')) {
+                if (in_array($masterClassName::fetchField($detailRec->shipmentId, 'state'),$stateArr)) {
                     continue;
                 }
             }
@@ -371,23 +371,24 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $purchaise = explode(',', trim($dRec->purchaseId, ','));
             
             foreach ($purchaise as $v) {
-                $arr = explode('/', $v);
+               
+                list($purId,$detId) = explode('/', $v);
                 
-                $purMasterClassName = cls::get($arr[1])->Master->className;
+                $purMasterClassName = cls::get($detId)->Master->className;
                 
-                $Purchase = doc_Containers::getDocument($purMasterClassName::fetch($arr[0])->containerId);
-                $purchaseState = $purMasterClassName::fetch($v)->state;
-                $purchaseHandle = $purMasterClassName::getHandle($arr[0]);
+                $Purchase = doc_Containers::getDocument($purMasterClassName::fetch($purId)->containerId);
+                $purchaseState = $purMasterClassName::fetch($purId)->state;
+                $purchaseHandle = $purMasterClassName::getHandle($purId);
                 $singleUrl = $Purchase->getUrlWithAccess($Purchase->getInstance(), $Purchase->that);
-                $purchaises .= "<span class= 'state-{$saleState} document-handler' >".ht::createLink(
+                $purchases .= "<span class= 'state-{$purchaseState} document-handler' >".ht::createLink(
                             "#{$purchaseHandle}",
                             $singleUrl,
                             false,
                             "ef_icon={$Purchase->singleIcon}"
-                            ). '</span>';
+                            ). '</span>'.' ';
             }
             
-            $row->purchaseId = trim($purchaises, ', ');
+            $row->purchaseId = trim($purchases);
         }
         if (!is_null($dRec->countryId)) {
             $row->country = drdata_Countries::getCountryName($dRec->countryId);
@@ -476,11 +477,12 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             if (isset($dRec->purchaseId)) {
                 $purchaise = explode(',', trim($dRec->purchaseId, ','));
                 foreach ($purchaise as $v) {
-                    $arr = explode('/', $v);
                     
-                    $purMasterClassName = cls::get($arr[1])->Master->className;
+                    list($purId,$detId) = explode('/', $v);
                     
-                    $purchaseHandle .= $purMasterClassName::getHandle($arr[0]).', ';
+                    $purMasterClassName = cls::get($detId)->Master->className;
+                    
+                    $purchaseHandle .= $purMasterClassName::getHandle($purId).', ';
                 }
                 
                 $res->purchaseId = trim($purchaseHandle, ', ');
