@@ -172,8 +172,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             } else {
                 $obj = &$recs[$id];
             }
-            
-            $totalExpectedTransportCost += sales_Sales::fetchField($val, 'expectedTransportCost');
         }
         
         
@@ -244,6 +242,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             
             $totalAmountPart += $val-> amountPart;
+            $totalExpectedTransportCost += $val->expectedTransportCost;
             $recs[$key]->difference = $val->expectedTransportCost - $val->amountPart;
         }
         
