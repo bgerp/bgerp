@@ -2124,9 +2124,9 @@ class eshop_Carts extends core_Master
      * Кога количката ще бъде изтрита
      * 
      * @param stdClass $rec
-     * @return datetime
+     * @return string
      */
-    private function getDeletionTime($rec)
+    private static function getDeletionTime($rec)
     {
         // Колко е очаквания и 'живот'
         $settings = cms_Domains::getSettings($rec->domainId);
