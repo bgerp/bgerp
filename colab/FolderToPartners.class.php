@@ -782,8 +782,8 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-            if (core_Users::isForbiddenNick($form->rec->nick)) {
-                $form->setError('nick', 'Вече съществува запис със същите данни');
+            if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
+                $form->setError('nick', $errorMsg);
             }
         }
         
@@ -879,6 +879,7 @@ class colab_FolderToPartners extends core_Manager
         core_Lg::pop();
         
         $Class->logInAct('Разглеждане на формата за регистрация на нов партньор', $objectId, 'read');
+        vislog_History::add("Разглеждане на форма за регистрация на нов партньор");
         
         return $tpl;
     }
