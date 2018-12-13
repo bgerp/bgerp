@@ -823,6 +823,7 @@ class colab_FolderToPartners extends core_Manager
                         if(trim($contragentRec->name) == trim($form->rec->names)){
                             $form->rec->personId = $objectId;
                             $force = false;
+                            crm_Persons::forceGroup($objectId, 'users');
                         }
                     }
                 }
