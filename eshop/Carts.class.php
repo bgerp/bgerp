@@ -1649,6 +1649,15 @@ class eshop_Carts extends core_Master
             if($rec->state == 'draft'){
                 $delitionTime = self::getDeletionTime($rec);
                 $row->delitionTime = core_Type::getByName('datetime(format=smartTime)')->toVerbal($delitionTime);
+                
+                // Кога ще се изпраща имейл за нотифициране
+                if(!empty($rec->email)){
+                    $settings = cms_Domains::getSettings($rec->domainId);
+                    $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $delitionTime);
+                    $row->timeToNotifyBeforeDeletion = core_Type::getByName('datetime(format=smartTime)')->toVerbal($timeToNotifyBeforeDeletion);
+                    $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
+                    $row->isNotified = ($isNotified !== 'y') ? tr('Имейлът е изпратен') : tr('Имейлът не е изпратен');
+                }
             }
         }
         
