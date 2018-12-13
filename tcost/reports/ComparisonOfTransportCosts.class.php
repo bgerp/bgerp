@@ -186,6 +186,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $stateArr = array('draft','rejected','pending');
         
         while ($alocatedCost = $cQuery->fetch()) {
+            $marker = 1;
+            
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
             $detailRec = $className::fetch($alocatedCost-> detailRecId);
@@ -194,23 +196,27 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             
             if ($className == 'purchase_PurchasesDetails') {
-                if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
+                if (in_array($masterClassName::fetchField($detailRec->requestId, 'state'), $stateArr)) {
                     continue;
                 }
                 
-                if (in_array($masterClassName::fetchField($detailRec->requestId, 'state'), $stateArr)) {
+                if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
                     continue;
                 }
                 
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> requestId.'/'.$alocatedCost-> detailClassId.',';
             }
             
-            if ($className == 'purchase_ServicesDetails') {
-                $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
-                
+            if (($className == 'purchase_ServicesDetails') || ($className == 'sales_ServicesDetails')) {
                 if (in_array($masterClassName::fetchField($detailRec->shipmentId, 'state'), $stateArr)) {
                     continue;
                 }
+                
+                if (substr($className, 0, 5) == 'sales') {
+                    $marker = -1;
+                }
+                
+                $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
             }
             
             if (is_null($recs[$alocatedCost->expenseItemId]->countryId)) {
@@ -221,10 +227,9 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $recs[$alocatedCost->expenseItemId]->className = $className;
             $recs[$alocatedCost->expenseItemId]->purMasterClassName = $masterClassName;
-            
             $recs[$alocatedCost->expenseItemId]->alocatedPart = $alocatedCost-> quantity;
             $recs[$alocatedCost->expenseItemId]->amount = $detailRec-> amount;
-            $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> price * $alocatedCost-> quantity;
+            $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> price * $alocatedCost-> quantity * $marker;
         }
         
         foreach ($recs as $key => $val) {
