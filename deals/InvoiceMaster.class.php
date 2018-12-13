@@ -719,7 +719,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $mvc->invoke('Validate' . ucfirst($fName), array($rec, $form));
             }
             
-            if (strlen($rec->contragentVatNo) && !strlen($rec->uicNo)) {
+            if (strlen($rec->contragentVatNo) && !strlen($rec->uicNo) && $rec->contragentClassId == crm_Companies::getClassId()) {
                 $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
             } elseif (!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)) {
                 $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
