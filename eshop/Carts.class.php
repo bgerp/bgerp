@@ -19,7 +19,7 @@ class eshop_Carts extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Кошници на онлайн магазина';
+    public $title = 'Кошници в онлайн магазина';
     
     
     /**
@@ -43,7 +43,7 @@ class eshop_Carts extends core_Master
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = 'Онлайн поръчка';
+    public $singleTitle = 'Кошница';
     
     
     /**
@@ -1649,6 +1649,15 @@ class eshop_Carts extends core_Master
             if($rec->state == 'draft'){
                 $delitionTime = self::getDeletionTime($rec);
                 $row->delitionTime = core_Type::getByName('datetime(format=smartTime)')->toVerbal($delitionTime);
+                
+                // Кога ще се изпраща имейл за нотифициране
+                if(!empty($rec->email)){
+                    $settings = cms_Domains::getSettings($rec->domainId);
+                    $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $delitionTime);
+                    $row->timeToNotifyBeforeDeletion = core_Type::getByName('datetime(format=smartTime)')->toVerbal($timeToNotifyBeforeDeletion);
+                    $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
+                    $row->isNotified = ($isNotified !== 'y') ? tr('Имейлът е изпратен') : tr('Имейлът не е изпратен');
+                }
             }
         }
         
@@ -1677,7 +1686,9 @@ class eshop_Carts extends core_Master
         }
         
         if (isset($rec->saleId)) {
+            $saleState = sales_Sales::fetchField($rec->saleId, 'state');
             $row->saleId = sales_Sales::getLink($rec->saleId, 0);
+            $row->saleId = "<span class='state-{$saleState} document-handler'>{$row->saleId}</span>";
         } 
         
         if (isset($rec->termId) && !isset($fields['-external'])) {
@@ -2113,9 +2124,9 @@ class eshop_Carts extends core_Master
      * Кога количката ще бъде изтрита
      * 
      * @param stdClass $rec
-     * @return datetime
+     * @return string
      */
-    private function getDeletionTime($rec)
+    private static function getDeletionTime($rec)
     {
         // Колко е очаквания и 'живот'
         $settings = cms_Domains::getSettings($rec->domainId);
