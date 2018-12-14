@@ -253,6 +253,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $recs[$key]->difference = $val->expectedTransportCost - $val->amountPart;
         }
         
+        $atest = arr::sumValuesArray($recs, 'amountPart');bp($atest,$totalAmountPart);
+        
         if (!is_null($recs)) {
             arr::sortObjects($recs, 'difference', 'asc', 'native');
         }
@@ -488,11 +490,11 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
     /**
      * Колко е видимия транспорт начислен в сделката
      *
-     * @param stdClass $rec - запис на ред
+     * @param stdClass $docId - запис на ред
      *
      * @return float - сумата на видимия транспорт в основна валута без ДДС
      */
-    private function getVisibleTransportCost($docId)
+    public function getVisibleTransportCost($docId)
     {
         // Извличат се всички детайли и се изчислява сумата на транспорта, ако има
         $query = sales_SalesDetails::getQuery();
