@@ -253,8 +253,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $recs[$key]->difference = $val->expectedTransportCost - $val->amountPart;
         }
         
-        $atest = arr::sumValuesArray($recs, 'amountPart');bp($atest,$totalAmountPart);
-        
         if (!is_null($recs)) {
             arr::sortObjects($recs, 'difference', 'asc', 'native');
         }
