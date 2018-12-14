@@ -470,25 +470,25 @@ class colab_FolderToPartners extends core_Manager
             $dTpl->append($ht, 'addBtn');
         }
         
-        // Само за фирми
-        Request::setProtected(array('companyId', 'className'));
-        
-        if (haveRole('admin')) {
-            // Добавяме бутон за създаването на нов партньор, визитка и профил
-            $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
-            $btns->append($ht);
+        if(cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)){
+            Request::setProtected(array('companyId', 'className'));
+            if (haveRole('admin')) {
+                // Добавяме бутон за създаването на нов партньор, визитка и профил
+                $ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
+                $btns->append($ht);
+            }
+            
+            // Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
+            if ($me->haveRightFor('sendemail', (object) array('className' => $data->masterMvc->className, 'objectId' => $data->masterId))) {
+                $ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
+                $btns->append($ht);
+            } else {
+                $ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
+                $btns->append($ht);
+            }
+            
+            Request::removeProtected(array('companyId', 'className'));
         }
-        
-        // Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
-        if ($me->haveRightFor('sendemail', (object) array('className' => $data->masterMvc->className, 'objectId' => $data->masterId))) {
-            $ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'className' => $data->masterMvc->className, 'ret_url' => true), false, false, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
-            $btns->append($ht);
-        } else {
-            $ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
-            $btns->append($ht);
-        }
-        
-        Request::removeProtected(array('companyId', 'className'));
         
         $dTpl->append($btns, 'PARTNER_BTNS');
         $dTpl->removeBlocks();
@@ -782,8 +782,8 @@ class colab_FolderToPartners extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-            if (core_Users::isForbiddenNick($form->rec->nick)) {
-                $form->setError('nick', 'Вече съществува запис със същите данни');
+            if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
+                $form->setError('nick', $errorMsg);
             }
         }
         
@@ -823,6 +823,7 @@ class colab_FolderToPartners extends core_Manager
                         if(trim($contragentRec->name) == trim($form->rec->names)){
                             $form->rec->personId = $objectId;
                             $force = false;
+                            crm_Persons::forceGroup($objectId, 'users');
                         }
                     }
                 }
@@ -878,6 +879,7 @@ class colab_FolderToPartners extends core_Manager
         core_Lg::pop();
         
         $Class->logInAct('Разглеждане на формата за регистрация на нов партньор', $objectId, 'read');
+        vislog_History::add("Разглеждане на форма за регистрация на нов партньор");
         
         return $tpl;
     }

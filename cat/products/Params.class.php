@@ -467,7 +467,6 @@ class cat_products_Params extends doc_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $mvc->syncWithFeature($rec->paramId, $rec->productId);
-        cls::get($rec->classId)->logInAct('Редактиране', $rec->productId);
     }
     
     
