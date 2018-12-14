@@ -162,6 +162,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         foreach ($salesItems as $key => $val) {
             $id = $key;
             
+            $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $val);
+            $visibleTransportCost = self::getVisibleTransportCost($val);
+            
+            
             // добавяме в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
@@ -170,7 +174,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                     'contragentClassId' => sales_Sales::fetchField($val, 'contragentClassId'),
                     'contragentId' => sales_Sales::fetchField($val, 'contragentId'),
                     'itemId' => $key,
-                    'expectedTransportCost' => sales_Sales::fetchField($val, 'expectedTransportCost')
+                    'expectedTransportCost' => $hiddenTransportCost + $visibleTransportCost
                 );
             } else {
                 $obj = &$recs[$id];
@@ -248,6 +252,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $totalExpectedTransportCost += $val->expectedTransportCost;
             $recs[$key]->difference = $val->expectedTransportCost - $val->amountPart;
         }
+        
+        $atest = arr::sumValuesArray($recs, 'amountPart');bp($atest,$totalAmountPart);
         
         if (!is_null($recs)) {
             arr::sortObjects($recs, 'difference', 'asc', 'native');
@@ -478,5 +484,22 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 $res->purchaseId = trim($purchaseHandle, ', ');
             }
         }
+    }
+    
+    
+    /**
+     * Колко е видимия транспорт начислен в сделката
+     *
+     * @param stdClass $docId - запис на ред
+     *
+     * @return float - сумата на видимия транспорт в основна валута без ДДС
+     */
+    public function getVisibleTransportCost($docId)
+    {
+        // Извличат се всички детайли и се изчислява сумата на транспорта, ако има
+        $query = sales_SalesDetails::getQuery();
+        $query->where("#saleId = {$docId}");
+        
+        return sales_TransportValues::getVisibleTransportCost($query);
     }
 }

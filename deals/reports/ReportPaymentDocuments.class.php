@@ -70,8 +70,12 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
+        
         $accounts = self::getContableAccounts($form->rec);
         $form->setSuggestions('accountId', array('' => '') + $accounts);
+        
+        $casses = self::getContableCases($form->rec);
+        $form->setSuggestions('caseId', array('' => '') + $casses);
         
         $documents = array('cash_Pko','cash_Rko','bank_SpendingDocuments','bank_IncomeDocuments');
         
@@ -98,7 +102,6 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $cu = (!empty($rec->createdBy)) ? $rec->createdBy : core_Users::getCurrent();
         
         $sQuery = bank_OwnAccounts::getQuery();
-        
         $sQuery->where("#state != 'rejected'");
         
         while ($sRec = $sQuery->fetch()) {
@@ -124,6 +127,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         
         $sQuery = cash_Cases::getQuery();
         $sQuery->where("#state != 'rejected'");
+        
         while ($sRec = $sQuery->fetch()) {
             if (bgerp_plg_FLB::canUse('cash_Cases', $sRec, $cu, 'select')) {
                 $res[$sRec->id] = cash_Cases::getTitleById($sRec->id, false);
@@ -145,7 +149,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $docClasses = $caseRecs = $bankRecs = $recs = array();
-       
+        
         $accountsId = isset($rec->accountId) ? keylist::toArray($rec->accountId) : array_keys(self::getContableAccounts($rec));
         
         $casesId = isset($rec->caseId) ? keylist::toArray($rec->caseId) : array_keys(self::getContableCases($rec));
@@ -206,6 +210,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                             'createdBy' => $cRec->createdBy,
                             'ownAccount' => $cRec->ownAccount,
                             'peroCase' => $cRec->peroCase,
+                            'contragentName' => $cRec->contragentName,
                         );
                     }
                 }
@@ -263,6 +268,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                             'createdBy' => $cRec->createdBy,
                             'ownAccount' => $cRec->ownAccount,
                             'peroCase' => $cRec->peroCase,
+                            'contragentName' => $cRec->contragentName,
                         );
                     }
                 }
@@ -294,7 +300,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+        
         $fld->FLD('documentId', 'varchar', 'caption=Документ');
+        $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
         $fld->FLD('payDate', 'date', 'caption=Срок->за плащане');
         $fld->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,smartCenter');
@@ -326,6 +334,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         
         $row = new stdClass();
         $row->documentId = cls::get($dRec->className)->getLink($dRec->documentId, 0);
+        
+        $row->contragentName = $dRec->contragentName;
         
         if (isset($dRec->createdBy)) {
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);

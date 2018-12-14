@@ -454,7 +454,7 @@ class eshop_Groups extends core_Master
         
         // Добавяне на подгрупите
         if(is_array($data->recs) && count($data->recs)) {
-            $groupTpl->append("<div style='background-color:#ddd;padding-top:10px; border:solid 1px #cccccc; clear:both; border-radius:3px; box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);' class='clearfix21'>", 'PRODUCTS');
+            $groupTpl->append("<div class='subgroups clearfix21'>", 'PRODUCTS');
             $groupTpl->append(self::renderAllGroups($data), 'PRODUCTS');
             $groupTpl->append("</div>", 'PRODUCTS');
         }
