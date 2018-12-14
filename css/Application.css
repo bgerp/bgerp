@@ -3080,6 +3080,9 @@ span.sharing-history-title {
     .quantity-input-column input.inputError {
       border-color: red; }
 
+.end-price {
+  font-weight: bold; }
+
 .narrow .quantity-input-column input {
   height: 29px; }
 

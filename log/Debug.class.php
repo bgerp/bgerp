@@ -448,11 +448,13 @@ class log_Debug extends core_Manager
         
         $form->toolbar->addBtn('Отказ', $retUrl, 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ, onclick=self.close();');
         
-        $email = email_Inboxes::getUserEmail();
+        $email = null;
+        if (core_Users::isPowerUser()) {
+            $email = email_Inboxes::getUserEmail();
+        }
         if (!$email) {
             $email = core_Users::getCurrent('email');
         }
-        list($user, $domain) = explode('@', $email);
         $name = core_Users::getCurrent('names');
         
         $form->setDefault('email', $email);

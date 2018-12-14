@@ -1493,6 +1493,7 @@ class eshop_Carts extends core_Master
             
             if (!empty($dRec->discount)) {
                 $discountType = type_Set::toArray($settings->discountType);
+                $row->finalPrice = "<span class='end-price'>{$row->finalPrice}</span>";
                 $row->finalPrice .= "<div class='external-discount'>";
                 
                 if (isset($discountType['amount'])) {
@@ -1517,6 +1518,7 @@ class eshop_Carts extends core_Master
             $fullCode = cat_products::getVerbal($dRec->productId, 'code');
             $row->code = substr($fullCode, 0, 10);
             $row->code = "<span title={$fullCode}>{$row->code}</span>";
+            $row->amount = "<span class='end-price'>{$row->amount}</span>";
             
             $data->rows[$dRec->id] = $row;
         }
