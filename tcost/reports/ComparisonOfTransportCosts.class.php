@@ -61,7 +61,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('currency', 'varchar', 'caption=Валута,after=from,input=none,mandatory');
+        $fieldset->FLD('currency', 'varchar', 'caption=Валута,input=none,mandatory');
         $fieldset->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,placeholder = Всички,after=to,single=none');
     }
     
@@ -204,7 +204,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
                     continue;
                 }
-                $marker = $masterClassName::fetchField($detailRec->requestId, 'currencyRate');
+                
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> requestId.'/'.$alocatedCost-> detailClassId.',';
             }
             
@@ -214,9 +214,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 }
                 
                 if (substr($className, 0, 5) == 'sales') {
-                    $marker = -1 * $masterClassName::fetchField($detailRec->shipmentId, 'currencyRate');
-                } else {
-                    $marker = $masterClassName::fetchField($detailRec->shipmentId, 'currencyRate');
+                    $marker = -1;
                 }
                 
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
