@@ -1181,7 +1181,7 @@ class eshop_Carts extends core_Master
                 }
                 if($cu = core_Users::getCurrent('id', false)){
                     $rec->userId = $cu;
-                    $updateFields .= 'userId';
+                    $updateFields[] = 'userId';
                 }
                 
                 // Така потребителя вече има достъп до количката
