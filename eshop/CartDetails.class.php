@@ -638,7 +638,8 @@ class eshop_CartDetails extends core_Detail
         $rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
         
         // Коя е ценовата политика
-        $listId = $settings->listId;
+        $listId = $oldListId = $settings->listId;
+        
         if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
             $Cover = doc_Folders::getCover($lastActiveFolder);
             $listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
@@ -647,6 +648,18 @@ class eshop_CartDetails extends core_Detail
         // Ако има взема се цената от нея
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
+            
+            // Ако стария лист е различен от новия
+            if($oldListId != $listId){
+                
+                // И старата цена е по-евтина, то се взима тя
+                $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId);
+                if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price))){
+                    $price = $priceOld;
+                    $listId = $oldListId;
+                }
+            }
+            
             $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
