@@ -777,7 +777,8 @@ class colab_FolderToPartners extends core_Manager
         
         if ($form->isSubmitted()) {
             if (!$Users->isUnique($form->rec, $fields)) {
-                $form->setError($fields, 'Вече съществува запис със същите данни');
+                $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
+                $form->setError($fields, 'Има вече такъв потребител. Ако това сте Вие, може да се логнете от|* ' . $loginLink);
             }
         }
         
