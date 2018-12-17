@@ -55,7 +55,7 @@ class crm_ext_Cards extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'contragentId=Контрагент,number=Карта,createdOn,createdBy,state';
+    public $listFields = 'contragentId=Контрагент,number=Карта,createdOn,createdBy,state=Състояние';
     
     
     /**
@@ -128,7 +128,7 @@ class crm_ext_Cards extends core_Manager
     {
         $Contragent = $data->masterMvc;
         $masterRec = $data->masterData->rec;
-        $data->listFields = arr::make('number=Карта,created=Създаване,state=Видимост', true);
+        $data->listFields = arr::make('number=Карта,created=Създаване,state=Състояние', true);
         
         // Подготовка на клиентските карти
         $query = $this->getQuery();

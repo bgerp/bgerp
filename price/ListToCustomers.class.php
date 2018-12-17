@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -75,12 +75,6 @@ class price_ListToCustomers extends core_Manager
      * Предлог в формата за добавяне/редактиране
      */
     public $formTitlePreposition = 'за';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -219,9 +213,6 @@ class price_ListToCustomers extends core_Manager
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = self::recToVerbal($rec);
-            if ($rec->state == 'draft') {
-                $data->displayTools = true;
-            }
         }
         
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
@@ -240,25 +231,16 @@ class price_ListToCustomers extends core_Manager
     public function renderPricelists($data)
     {
         $tpl = new core_ET('');
-        
-        $listFields = $this->listFields;
-        $listFields = arr::make($listFields, true);
-        
-        if ($data->displayTools === true) {
-            $listFields = array('tools' => 'Пулт') + $listFields;
-        }
-        
-        if (!haveRole('debug')) {
-            unset($listFields['state']);
-        }
-        unset($listFields['cClass']);
+        $data->listFields = arr::make('listId=Политика,validFrom=В сила от,created=Създаване,state=Състояние', true);
         
         $table = cls::get('core_TableView', array('mvc' => $this));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tpl->append(tr('Ценови политики'), 'priceListTitle');
-        $tpl->append($table->get($data->rows, $listFields));
+        $tpl->append($table->get($data->rows, $data->listFields));
         
         if ($data->addUrl && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-            $tpl->append(ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Избор на ценова политика'), 'priceListTitle');
+            $addBtn = ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Избор на ценова политика'));
+            $tpl->append($addBtn, 'priceListTitle');
         }
         
         return $tpl;
@@ -538,6 +520,7 @@ class price_ListToCustomers extends core_Manager
         
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         $row->listId = price_Lists::getHyperlink($rec->listId, true);
+        $row->created = tr("|на|* {$row->createdOn} |от|* {$row->createdBy}");
     }
     
     
