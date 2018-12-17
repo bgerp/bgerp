@@ -83,13 +83,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
             
-            if (isset($form->rec->compare) && $form->rec->compare == 'year') {
-                $toLastYear = dt::addDays(-365, $form->rec->to);
-                if ($form->rec->from < $toLastYear) {
-                    $form->setError('compare', 'Периода трябва да е по-малък от 365 дни за да сравнявате с "миналогодишен" период.
-                                                  За да сравнявате периоди по-големи от 1 година, използвайте сравнение с "предходен" период');
-                }
-            }
         }
     }
     
@@ -121,6 +114,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $salesItems = array();
         
         $iQuery = acc_Items::getQuery();
         
@@ -141,8 +135,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $iQuery->where('(#saleActivatedOn IS NOT NULL)');
         
         $iQuery->where(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
-        $iQuery->orWhere(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $fromPreviuos . ' 00:00:00', $toPreviuos . ' 23:59:59'));
-        
+     
         while ($iRec = $iQuery->fetch()) {
             
             //договори за продажба които са разходни обекти за избрания период
