@@ -946,7 +946,7 @@ class pos_Receipts extends core_Master
                 }
                 
                 if ($type1 == 'person') {
-                    if ($Contragent = pos_Cards::getContragent($searchString, crm_Persons::getClassId())) {
+                    if ($Contragent = crm_ext_Cards::getContragent($searchString, crm_Persons::getClassId())) {
                         $data->recs["{$type1}|{$Contragent->that}"] = $Contragent->rec();
                     }
                 }

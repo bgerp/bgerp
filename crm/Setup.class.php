@@ -109,6 +109,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Locations',
         'crm_Formatter',
         'crm_ext_ContragentInfo',
+        'crm_ext_Cards',
     );
     
     

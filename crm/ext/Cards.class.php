@@ -6,15 +6,15 @@
  *
  *
  * @category  bgerp
- * @package   pos
+ * @package   crm
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class pos_Cards extends core_Manager
+class crm_ext_Cards extends core_Manager
 {
     /**
      * Заглавие
@@ -23,9 +23,15 @@ class pos_Cards extends core_Manager
     
     
     /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'pos_Cards';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper, plg_Printing, plg_Search, plg_Sorting, plg_State2, plg_RowTools2';
+    public $loadList = 'crm_Wrapper, plg_Search, plg_Sorting, plg_State2, plg_RowTools2, plg_Created';
     
     
     /**
@@ -37,25 +43,19 @@ class pos_Cards extends core_Manager
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'pos, ceo';
+    public $canWrite = 'ceo, crm';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, pos';
-    
-    
-    /**
-     * Кой има право да контира?
-     */
-    public $canConto = 'pos, ceo';
+    public $canList = 'ceo, crm';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'number, contragentId=Контрагент';
+    public $listFields = 'contragentId=Контрагент,number=Карта,createdOn,createdBy,state';
     
     
     /**
@@ -75,11 +75,11 @@ class pos_Cards extends core_Manager
      */
     public function description()
     {
-        $this->FLD('number', 'varchar(32)', 'caption=Номер, mandatory');
-        $this->FLD('contragentId', 'int', 'input=hidden,silent');
+        $this->FLD('number', 'varchar(32)', 'caption=Номер,mandatory,smartCenter');
+        $this->FLD('contragentId', 'int', 'input=hidden,silent,tdClass=leftCol');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,silent');
         
-        $this->setDbUnique('number,contragentId,contragentClassId');
+        $this->setDbUnique('number');
     }
     
     
@@ -89,7 +89,7 @@ class pos_Cards extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        if (isset($rec->contragentClassId, $rec->contragentId)) {
+        if (isset($rec->contragentClassId) && isset($rec->contragentId)) {
             $data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
         }
     }
@@ -103,8 +103,9 @@ class pos_Cards extends core_Manager
         if (isset($fields['-list'])) {
             $Contragent = cls::get($rec->contragentClassId);
             $row->contragentId = $Contragent->getHyperLink($rec->contragentId, true);
-            $row->contragentId = "<span style='float:left'>{$row->contragentId}</span>";
         }
+        
+        $row->created = tr("|на|* {$row->createdOn} |от|* {$row->createdBy}");
     }
     
     
@@ -116,7 +117,6 @@ class pos_Cards extends core_Manager
         // Добавяме поле във формата за търсене
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
         $data->listFilter->showFields = 'search';
     }
     
@@ -128,14 +128,18 @@ class pos_Cards extends core_Manager
     {
         $Contragent = $data->masterMvc;
         $masterRec = $data->masterData->rec;
+        $data->listFields = arr::make('number=Карта,created=Създаване,state=Видимост', true);
         
+        // Подготовка на клиентските карти
         $query = $this->getQuery();
         $query->where("#contragentClassId = '{$Contragent->getClassId()}' AND #contragentId = {$masterRec->id}");
-        $query->where("#state = 'active'");
+        $query->orderBy("#state");
         while ($rec = $query->fetch()) {
-            $data->rows[$rec->id] = $this->recToVerbal($rec);
+            $row = $this->recToVerbal($rec);
+            $data->rows[$rec->id] = $row;
         }
         
+        // Добавяне на бутон при нужда
         if ($Contragent->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')) {
             $addUrl = array($this, 'add', 'contragentClassId' => $Contragent->getClassId(), 'contragentId' => $data->masterId, 'ret_url' => true);
             $data->addBtn = ht::createLink('', $addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на нова клиентска карта'));
@@ -151,20 +155,14 @@ class pos_Cards extends core_Manager
         $tpl = new core_ET('');
         $tpl->append(tr('Клиентски карти'), 'cardTitle');
         
-        if (isset($data->addBtn)) {
-            $tpl->append($data->addBtn, 'cardTitle');
-        }
+        $table = cls::get('core_TableView');
+        $table->class = 'simpleTable';
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $details = $table->get($data->rows, $data->listFields);
+        $tpl->append($details);
         
-        if (count($data->rows)) {
-            foreach ($data->rows as $id => $row) {
-                $tpl->append("<div style='white-space:normal;font-size:0.9em;'>");
-                
-                $tools = $row->_rowTools->renderHtml();
-                $tpl->append($row->number  . "<span style='position:relative;top:4px'>{$tools}</span>");
-                $tpl->append('</div>');
-            }
-        } else {
-            $tpl->append(tr('Няма записи'));
+        if (isset($data->addBtn)) {
+            $tpl->append($data->addBtn, 'addCardBtn');
         }
         
         return $tpl;
