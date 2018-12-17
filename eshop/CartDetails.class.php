@@ -418,7 +418,7 @@ class eshop_CartDetails extends core_Detail
                 $difference = abs($difference);
                 $difference = currency_CurrencyRates::convertAmount($difference, null, $rec->currencyId, $settings->currencyId);
                 $differenceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($difference);
-                $hint = "Цената е {$caption} с|* {$differenceVerbal}";
+                $hint = "Цената е {$caption} с|* {$differenceVerbal} {$settings->currencyId}";
                 $row->finalPrice = ht::createHint($row->finalPrice, $hint, 'warning');
             }
             
