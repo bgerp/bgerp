@@ -82,7 +82,6 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
-            
         }
     }
     
@@ -128,6 +127,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $iQuery->EXT('saleState', 'sales_Sales', 'externalName=state,externalKey=objectId');
         
+        $iQuery->EXT('saleThreadId', 'sales_Sales', 'externalName=threadId,externalKey=objectId');
+        
+        $iQuery->EXT('saleContoActions', 'sales_Sales', 'externalName=contoActions,externalKey=objectId');
+        
         $iQuery->where("(#saleState = 'closed') OR (#saleState = 'active')");
         
         $iQuery->EXT('saleActivatedOn', 'sales_Sales', 'externalName=activatedOn,externalKey=objectId');
@@ -135,11 +138,23 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $iQuery->where('(#saleActivatedOn IS NOT NULL)');
         
         $iQuery->where(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
-     
+        
+        $ppsQuery = sales_ServicesDetails::getQuery();
+        
+        $ppsQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
+        
+        $ppsQuery->EXT('saleServThreadId', 'sales_Services', 'externalName=threadId,externalKey=shipmentId');
+        
+        while ($ppsRec = $ppsQuery->fetch()) {
+            $ppsArr[$ppsRec->saleServThreadId] += $ppsRec->price;
+        }
+        
         while ($iRec = $iQuery->fetch()) {
             
             //договори за продажба които са разходни обекти за избрания период
-            $salesItems[$iRec->id] = $iRec->objectId;
+            $saleAndThread = $iRec->objectId.'|'.$iRec->saleThreadId.'|'.$iRec->saleContoActions;
+            
+            $salesItems[$iRec->id] = $saleAndThread;
         }
         if (empty($salesItems)) {
             
@@ -154,24 +169,34 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         foreach ($salesItems as $key => $val) {
             $id = $key;
+            list($saleIdItem, $threadIdItem, $salecontoActions) = explode('|', $val);
             
-            $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $val);
-            $visibleTransportCost = self::getVisibleTransportCost($val);
+            $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $saleIdItem);//if ($saleIdItem == 1312)bp($salecontoActions);
+            
+            if (strpos($salecontoActions, 'ship') != false) {
+                $visibleTransportCost = self::getVisibleTransportCost($saleIdItem);
+            }
+            
+            if (in_array($threadIdItem, array_keys($ppsArr))) {
+                $visibleTransportCost += $ppsArr[$threadIdItem];
+            }
             
             
             // добавяме в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
                     
-                    'saleId' => $val,
-                    'contragentClassId' => sales_Sales::fetchField($val, 'contragentClassId'),
-                    'contragentId' => sales_Sales::fetchField($val, 'contragentId'),
+                    'saleId' => $saleIdItem,
+                    'contragentClassId' => sales_Sales::fetchField($saleIdItem, 'contragentClassId'),
+                    'contragentId' => sales_Sales::fetchField($saleIdItem, 'contragentId'),
                     'itemId' => $key,
                     'expectedTransportCost' => $hiddenTransportCost + $visibleTransportCost
                 );
             } else {
                 $obj = &$recs[$id];
             }
+            
+            $visibleTransportCost = $hiddenTransportCost = 0;
         }
         
         
@@ -323,7 +348,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        if ($dRec->totalAmountPart) {
+        if (!is_null($dRec->totalAmountPart)) {
             $row->saleId = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
             $row->expectedTransportCost = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalExpectedTransportCost) . '</b>';
             $row->amountPart = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalAmountPart) . '</b>';
