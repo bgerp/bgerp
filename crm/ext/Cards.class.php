@@ -313,7 +313,7 @@ class crm_ext_Cards extends core_Manager
                $folderId = $info['contragent']->fetchField('folderId');
                if(isset($folderId) && colab_FolderToPartners::count("#folderId = {$folderId}")){
                    
-                   return new Redirect(array('core_Users', 'login', 'ret_url' => true), 'Моля логнете се с вашия потребител');
+                   return new Redirect(array('core_Users', 'login'), 'Моля логнете се с вашия потребител');
                }
                
                // Ако няма, линк към регистрацията на нов партньор от фирмата
