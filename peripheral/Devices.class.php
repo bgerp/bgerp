@@ -126,11 +126,19 @@ class peripheral_Devices extends embed_Manager
         
         if ($brid) {
             $query->where(array("#brid = '[#1#]'", $brid));
+            $query->orWhere("#brid IS NULL");
+        } else {
+            $query->where("#brid IS NULL");
         }
+        $query->orWhere("#brid = ''");
         
         if ($ip) {
             $query->where(array("#ip = '[#1#]'", $ip));
+            $query->orWhere("#ip IS NULL");
+        } else {
+            $query->where("#ip IS NULL");
         }
+        $query->orWhere("#ip = ''");
         
         $query->orderBy('createdOn', 'DESC');
         
