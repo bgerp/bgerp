@@ -71,13 +71,17 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         if ($mvc->scaleWeightFieldName) {
-            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', log_Browsers::getBrid());
-            if (!empty($aDivecesArr)) {
-                $lRec = reset($aDivecesArr);
-                if ($lRec->hostName != 'localhost') {
-                    header('Access-Control-Allow-Origin: *');
-                    header('Vary: Origin');
+            if ($data->form->fields[$mvc->scaleWeightFieldName]) {
+                $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', log_Browsers::getBrid());
+                if (!empty($aDivecesArr)) {
+                    $lRec = reset($aDivecesArr);
+                    if ($lRec->hostName != 'localhost') {
+                        header('Access-Control-Allow-Origin: *');
+                        header('Vary: Origin');
+                    }
                 }
+            } else {
+                $mvc->scaleWeightFieldName = null;
             }
         }
     }
