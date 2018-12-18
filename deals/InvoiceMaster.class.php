@@ -109,7 +109,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
         $mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
         
-        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Плащане->Начин,before=accountId,mandatory');
+        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
     }
     
@@ -1054,7 +1054,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if (haveRole('debug')) {
-                if (isset($rec->autoPaymentType, $rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))) {
+                if (isset($rec->autoPaymentType, $rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash') && !($rec->paymentType == 'postal' && $rec->autoPaymentType == 'bank'))) {
                     $row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
                 }
                 
