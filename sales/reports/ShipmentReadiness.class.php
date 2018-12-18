@@ -87,7 +87,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=title,single=none');
-        $fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Тип потребител,after=dealers,single=none');
+        $fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Потребителят е,after=dealers,single=none,placeholder=Търговец или отговорник');
         $fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealerType,single=none');
         $fieldset->FLD('ignore', 'enum(,yes=Да)', 'caption=Без избраните,after=countries,single=none');
         $fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=ignore');
@@ -325,8 +325,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->[#CAPTION_DEALERS#]: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
         
+        if (!isset($data->rec->dealers)) {
+            $data->row->dealers = tr('Всички');
+            $fieldTpl->append('Потребители', 'CAPTION_DEALERS');
+        }
+        
         foreach (array('dealers', 'countries', 'horizon') as $fld) {
-            if (isset($data->rec->{$fld})) {
+            if (!empty($data->row->{$fld})) {
                 $fieldTpl->append($data->row->{$fld}, $fld);
             }
         }
@@ -558,7 +563,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-        $fld->FLD('dealerId', 'key(mvc=core_Users,select=nick)', 'smartCenter,caption=Търговец');
+        $fld->FLD('dealerId', 'key(mvc=core_Users,select=nick)', 'smartCenter');
+        $userCaption = (empty($rec->dealerType)) ? 'Потребител' : (($rec->dealerType == 'dealer') ? 'Търговец' : 'Отговорник');
+        $fld->setField('dealerId', "caption={$userCaption}");
         
         if ($export === false) {
             $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
