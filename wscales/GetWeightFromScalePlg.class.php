@@ -7,7 +7,7 @@
  *
  * @category  bgerp
  * @package   wscales
- * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -42,7 +42,7 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
     public static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {
         if ($mvc->scaleWeightFieldName) {
-            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', log_Browsers::getBrid());
+            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales', log_Browsers::getBrid(), core_Users::getRealIpAddr());
             if (!empty($aDivecesArr)) {
                 $lRec = reset($aDivecesArr);
                 
