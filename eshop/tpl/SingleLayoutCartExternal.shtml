@@ -201,6 +201,13 @@
             </table>
             <div class="clearfix21"></div>
          </div>
+         <!--ET_BEGIN CARD_LINK-->
+         <div class = 'cart-view-buttons-right' style="margin: 20px 0">
+            <div class="info-block">
+               |Ако имате клиентска карта може да се логнете от|* [#CARD_LINK#]
+            </div>
+         </div>
+         <!--ET_END CARD_LINK-->
          <!--ET_BEGIN PAYMENT_TEXT_RIGHT-->
          <div class = 'cart-view-buttons-right' style="margin: 20px 0">
             <div class="info-block">

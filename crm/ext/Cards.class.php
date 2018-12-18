@@ -47,6 +47,12 @@ class crm_ext_Cards extends core_Manager
     
     
     /**
+     * Кой може да въвежда картата
+     */
+    public $canCheckcard = 'every_one';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, crm';
@@ -71,11 +77,23 @@ class crm_ext_Cards extends core_Manager
     
     
     /**
+     * Константа за несъществуваща карта
+     */
+    const MISSING_STATUS = 'missing';
+    
+    
+    /**
+     * Константа за деактивиран контрагент
+     */
+    const DISABLED_CONTRAGENT = 'disabled';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('number', 'varchar(32)', 'caption=Номер,mandatory,smartCenter');
+        $this->FLD('number', 'varchar(32)', 'caption=Номер,smartCenter,placeholder=Автоматично');
         $this->FLD('contragentId', 'int', 'input=hidden,silent,tdClass=leftCol');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,silent');
         
@@ -92,6 +110,54 @@ class crm_ext_Cards extends core_Manager
         if (isset($rec->contragentClassId) && isset($rec->contragentId)) {
             $data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
         }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()){
+            if(empty($form->rec->number)){
+                $form->rec->number = $mvc->getNewToken();
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща нов неизползван досега номер
+     *
+     * @return string $number - генерираният токен
+     */
+    private function getNewToken()
+    {
+        // Докато не се получи уникален номер, се генерира нов
+        $number = self::generate();
+        while(self::fetch("#number = '{$number}'")){
+            $number = self::generate();
+        }
+        
+        return $number;
+    }
+    
+    
+    /**
+     * Генериане на номер на карта
+     *
+     * @return $number - генерирания номер
+     */
+    public static function generate()
+    {
+        $number = str::getRand('dddddddddddd');
+        $checkSum = substr(crc32($number . EF_SALT), 0, 3);
+        $number .= $checkSum;
+        
+        return $number;
     }
     
     
@@ -170,27 +236,30 @@ class crm_ext_Cards extends core_Manager
     
     
     /**
-     * Връща контрагента отговарящ на номера на картата
+     * Връща информация за картата с този номер
      *
-     * @param string $number     - номер на карта
-     * @param int    $ctrClassId - ид на класа от който трябва да е контрагента
+     * @param string $number - номер на карта
      *
-     * @return FALSE|core_ObjectReference - референция към контрагента
+     * @return array $info - информация за картата
+     *             ['contragent'] - Референция към контрагента от картата
+     *             ['state'] - Състоянието на картата, или MISSING_STATUS ако несъществува
      */
-    public static function getContragent($number, $ctrClassId = null)
+    public static function getInfo($number)
     {
+        $info = array('state' => self::MISSING_STATUS);
+        
         $query = static::getQuery();
-        $query->where("#number = '{$number}'");
-        if (isset($ctrClassId)) {
-            $query->where("#contragentClassId = ${ctrClassId}");
+        $query->where(array("#number = '[#1#]'", $number));
+        if($rec = $query->fetch()){
+            $info['state'] = $rec->state;
+            $info['contragent'] = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+            $contragentState = $info['contragent']->fetchField('state');
+            if(in_array($contragentState, array('closed', 'rejected'))){
+                $info['state'] = 'closed';
+            }
         }
         
-        if ($rec = $query->fetch()) {
-            
-            return new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        }
-        
-        return false;
+        return $info;
     }
     
     
@@ -204,5 +273,85 @@ class crm_ext_Cards extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'checkcard') {
+            if(isset($userId)){
+                $requiredRoles = 'no_one';
+            } elseif(!crm_ext_Cards::count("#state = 'active'")){
+                $requiredRoles = 'no_one';
+            } elseif(!core_Packs::isInstalled('colab')){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    
+    /**
+     * Екшън за въвеждане на клиентска карта
+     */
+    function act_CheckCard()
+    {
+        $this->requireRightFor('checkcard');
+        Mode::set('currentExternalTab', 'eshop_Carts');
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+        
+        // Подготовка на формата
+        $form = cls::get('core_Form');
+        $form->title = "Въвеждане на клиентска карта";
+        $form->FLD('search', 'varchar', 'mandatory,caption=Номер,silent');
+        $form->input(null, 'silent');
+        $form->input();
+        
+        if($form->isSubmitted()){
+            
+            // Извличане на иформацията за картата
+            $info = crm_ext_Cards::getInfo($form->rec->search);
+            if($info['state'] == self::MISSING_STATUS){
+                $form->setError('search', "Несъществуваща карта");
+            } elseif($info['state'] == 'closed'){
+                $form->setError('search', "Картата не е активна");
+            }
+            
+            if(!$form->gotErrors()){
+               
+               // Ако към папката на фирмата има свързани партньори, линк към формата за логване
+               $folderId = $info['contragent']->fetchField('folderId');
+               if(isset($folderId) && colab_FolderToPartners::count("#folderId = {$folderId}")){
+                   
+                   return new Redirect(array('core_Users', 'login', 'ret_url' => true), 'Моля логнете се с вашия потребител');
+               }
+               
+               // Ако няма, линк към регистрацията на нов партньор от фирмата
+               expect($cartId = eshop_Carts::force(null, null, false));
+               $cartRec = eshop_Carts::fetch($cartId, 'personNames,email');
+               
+               Request::setProtected('companyId,rand,className,fromEmail,userNames,email');
+               $redirectUrl = toUrl(array('colab_FolderToPartners', 'Createnewcontractor', 'userNames' => $cartRec->personNames, 'email' => $cartRec->email, 'fromEmail' => true, 'companyId' => $info['contragent']->that, 'className' => $info['contragent']->className, 'rand' => str::getRand()));
+               Request::removeProtected('companyId,rand,className,fromEmail,userNames,email');
+               
+               return new Redirect($redirectUrl);
+            }
+        }
+        
+        // Показване на бутон за сканиране ако се гледа от андроид устройство
+        $userAgent = log_Browsers::getUserAgentOsName();
+        if($userAgent == 'Android'){
+            $scanUrl = toUrl(array($this, 'checkCard', 'search' => '__CODE__'), true);
+            $form->toolbar->addBtn('Сканирай', barcode_Search::getScannerActivateUrl($scanUrl), 'id=scanBtn', 'ef_icon = img/16/scanner.png');
+        }
+        
+        // Подготовка на тулбара
+        $form->toolbar->addSbBtn('Въведи', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
+        $this->unloadPlugin('cms_Wrapper');
+        
+        Mode::set('wrapper', 'cms_page_External');
+        $tpl = $form->renderHtml();
+        core_Form::preventDoubleSubmission($tpl, $form);
+        core_Lg::pop();
+        
+        return $tpl;
     }
 }
+
