@@ -83,9 +83,11 @@ class peripheral_Devices extends embed_Manager
     
     public function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Име, mandatory');
+        $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         $this->FLD('brid', 'varchar(8)', 'caption=Компютър->Браузър');
         $this->FLD('ip', 'ip', 'caption=Компютър->IP');
+        
+        $this->setDbUnique('name, brid, ip');
     }
     
     
