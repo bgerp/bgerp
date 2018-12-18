@@ -83,12 +83,6 @@ class crm_ext_Cards extends core_Manager
     
     
     /**
-     * Константа за деактивиран контрагент
-     */
-    const DISABLED_CONTRAGENT = 'disabled';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
