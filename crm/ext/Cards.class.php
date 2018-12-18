@@ -307,9 +307,9 @@ class crm_ext_Cards extends core_Manager
             // Извличане на иформацията за картата
             $info = crm_ext_Cards::getInfo($form->rec->search);
             if($info['state'] == self::MISSING_STATUS){
-                $form->setError('search', "Несъществуваща карта");
+                $form->setError('search', "Невалиден номер на карта");
             } elseif($info['state'] == 'closed'){
-                $form->setError('search', "Картата не е активна");
+                $form->setError('search', "Картата вече не е активна");
             }
             
             if(!$form->gotErrors()){
