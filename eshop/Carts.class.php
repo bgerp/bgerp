@@ -1266,7 +1266,7 @@ class eshop_Carts extends core_Master
         }
         
         // Ако няма потребител и има клиентски карти, ще се показва бутон за въвеждане на карта
-        if(crm_ext_Cards::haveRightFor('checkcard')){
+        if(crm_ext_Cards::haveRightFor('checkcard', (object)array('domainId' => $rec->domainId))){
             $tpl->replace(ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true)), 'CARD_LINK');
         }
         

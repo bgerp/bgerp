@@ -269,7 +269,12 @@ class crm_ext_Cards extends core_Manager
         }
         
         if ($action == 'checkcard') {
+            $domainId = isset($rec->domainId) ? $rec->domainId : cms_Domains::getPublicDomain()->id;
+            $settings = cms_Domains::getSettings($domainId);
+            
             if(isset($userId)){
+                $requiredRoles = 'no_one';
+            } elseif($settings->canUseCards != 'yes'){
                 $requiredRoles = 'no_one';
             } elseif(!crm_ext_Cards::count("#state = 'active'")){
                 $requiredRoles = 'no_one';
