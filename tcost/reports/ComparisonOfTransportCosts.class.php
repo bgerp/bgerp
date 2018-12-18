@@ -349,7 +349,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $row = new stdClass();
         
         if (!is_null($dRec->totalAmountPart)) {
-            $row->saleId = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
+            $row->contragent = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
             $row->expectedTransportCost = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalExpectedTransportCost) . '</b>';
             $row->amountPart = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalAmountPart) . '</b>';
             $row->difference = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDifference) . '</b>';
