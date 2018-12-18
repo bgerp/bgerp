@@ -406,7 +406,7 @@ class i18n_Charset extends core_MVC
                     $assumedCharsets[$cs] += $step * 0.7;
                 }
             }
-
+            
             $text = preg_replace('/<script.*?<\/script>/u', ' ', $text);
             $text = preg_replace('/<style.*?<\/style>/u', ' ', $text);
             $text = strip_tags($text);
