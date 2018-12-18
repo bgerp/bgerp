@@ -19,7 +19,7 @@ class polygonteam_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'peripheral=0.1';
+    public $depends = 'peripheral=0.1, wscales=0.1';
     
     
     /**
