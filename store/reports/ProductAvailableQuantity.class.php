@@ -16,7 +16,7 @@
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
-    const NUMBER_OF_ITEMS_TO_ADD = 100;
+    const NUMBER_OF_ITEMS_TO_ADD = 250;
     
     const MAX_POST_ART = 50;
     
