@@ -92,6 +92,12 @@ class eshop_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    public $depends = 'cms=0.1';
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(

@@ -201,13 +201,24 @@
             </table>
             <div class="clearfix21"></div>
          </div>
-         <!--ET_BEGIN PAYMENT_TEXT_RIGHT-->
-         <div class = 'cart-view-buttons-right' style="margin: 20px 0">
-            <div class="info-block">
+
+         <!--ET_BEGIN RIGHT_BLOCK-->
+         [#RIGHT_BLOCK#]
+         <div class = 'cart-view-buttons-right'>
+            <!--ET_BEGIN PAYMENT_TEXT_RIGHT-->
+            <div class="info-block" style="margin: 20px 0">
                [#PAYMENT_TEXT_RIGHT#]
             </div>
+            <!--ET_END PAYMENT_TEXT_RIGHT-->
+
+            <!--ET_BEGIN CARD_LINK-->
+            <div style="margin: 20px 0; color: #333; font-style: italic">
+               |Ако имате клиентска карта, може да я въведете от|* [#CARD_LINK#].
+            </div>
+            <!--ET_END CARD_LINK-->
          </div>
-         <!--ET_END PAYMENT_TEXT_RIGHT-->
+         <!--ET_END RIGHT_BLOCK-->
+
          <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
          <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_RIGHT-->

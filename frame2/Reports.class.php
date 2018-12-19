@@ -593,7 +593,7 @@ class frame2_Reports extends embed_Manager
             if (frame2_ReportVersions::log($rec->id, $rec)) {
                 $me->refreshReports[$rec->id] = $rec;
                 if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
-                    core_Statuses::newStatus('Справката е актуализирана');
+                    core_Statuses::newStatus('Справката е актуализирана|*!');
                 }
             }
             

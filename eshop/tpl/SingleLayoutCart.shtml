@@ -63,7 +63,7 @@
             <!--ET_END timeToNotifyBeforeDeletion-->
             <!--ET_BEGIN isNotified-->
             <tr>
-               <td class="title-style quiet">|Състояние|*:</td>
+               <td class="title-style quiet nowrap">|Незавършена поръчка|*:</td>
                <td>[#isNotified#]</td>
             </tr>
             <!--ET_END isNotified-->

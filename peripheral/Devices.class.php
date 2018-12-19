@@ -2,8 +2,8 @@
 
 
 /**
- * 
- * 
+ *
+ *
  * @category  vendors
  * @package   peripheral
  *
@@ -15,7 +15,6 @@
  */
 class peripheral_Devices extends embed_Manager
 {
-    
     /**
      * Заглавие на мениджъра
      */
@@ -37,8 +36,7 @@ class peripheral_Devices extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Sorting, plg_Created, plg_Modified';
-    
+    public $loadList = 'plg_Sorting, plg_Created, plg_Modified, peripheral_Wrapper, plg_RowTools2';
     
     
     /**
@@ -83,32 +81,43 @@ class peripheral_Devices extends embed_Manager
     public $canSingle = 'admin, peripheral';
     
     
-    /**
-     * 
-     */
     public function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Име, mandatory');
+        $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         $this->FLD('brid', 'varchar(8)', 'caption=Компютър->Браузър');
         $this->FLD('ip', 'ip', 'caption=Компютър->IP');
+        
+        $this->setDbUnique('name, brid, ip');
     }
     
     
     /**
      *
      *
-     * @param string $intfName
+     * @param string      $intfName
      * @param null|string $brid
      * @param null|string $ip
      */
     public static function getDevices($intfName, $brid = null, $ip = null)
     {
+        static $cArr = array();
+        
+        $hash = md5($intfName . '|' . $brid . '|' . $ip);
+        
+        if (isset($cArr[$hash])) {
+            
+            return $cArr[$hash];
+        }
+        
         $me = cls::get(get_called_class());
-        $resArr = array();
+        $cArr[$hash] = array();
         
         $clsArr = core_Classes::getOptionsByInterface($intfName);
         
-        if (empty($clsArr)) return $resArr;
+        if (empty($clsArr)) {
+            
+            return $cArr[$hash];
+        }
         
         $clsArr = array_keys($clsArr);
         
@@ -117,15 +126,25 @@ class peripheral_Devices extends embed_Manager
         
         if ($brid) {
             $query->where(array("#brid = '[#1#]'", $brid));
+            $query->orWhere("#brid IS NULL");
+        } else {
+            $query->where("#brid IS NULL");
         }
+        $query->orWhere("#brid = ''");
         
-        if ($brid) {
+        if ($ip) {
             $query->where(array("#ip = '[#1#]'", $ip));
+            $query->orWhere("#ip IS NULL");
+        } else {
+            $query->where("#ip IS NULL");
         }
+        $query->orWhere("#ip = ''");
         
-        $resArr = $query->fetchAll();
+        $query->orderBy('createdOn', 'DESC');
         
-        return $resArr;
+        $cArr[$hash] = $query->fetchAll();
+        
+        return $cArr[$hash];
     }
     
     

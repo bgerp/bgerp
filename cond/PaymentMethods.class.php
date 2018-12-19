@@ -73,7 +73,7 @@ class cond_PaymentMethods extends embed_Manager
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'no_one';
+    public $canEditsysdata = 'ceo, admin';
     
     
     /**
@@ -126,7 +126,7 @@ class cond_PaymentMethods extends embed_Manager
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
         $this->FLD('name', 'varchar', 'caption=Наименование');
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
-        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Вид плащане');
+        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Вид плащане');
         $this->FLD('onlinePaymentDriver', 'class(interface=cond_OnlinePaymentIntf,allowEmpty,select=title)', 'caption=Онлайн плащане->Вид,silent,removeAndRefreshForm=type');
         $this->FLD('onlinePaymentText', 'text(rows=3)', 'caption=Онлайн плащане->Текст');
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
@@ -227,6 +227,12 @@ class cond_PaymentMethods extends embed_Manager
                     $rec->type = $type;
                     $form->setReadOnly('type');
                 }
+            }
+        }
+        
+        if(isset($rec->id) && $rec->createdBy == core_Users::SYSTEM_USER){
+            foreach (array('name', 'type', 'downpayment', 'paymentBeforeShipping', 'discountPeriod', 'paymentOnDelivery', 'discountPercent', 'timeBalancePayment', 'eventBalancePayment') as $fld){
+                $form->setReadOnly($fld);
             }
         }
     }
