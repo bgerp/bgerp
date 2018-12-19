@@ -1079,7 +1079,7 @@ class eshop_Carts extends core_Master
         }
         
         $cartInfo = tr('Всички цени са')  . ' ' . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
-        $tpl->replace($cartInfo, 'VAT_STATUS');
+        $tpl->replace($cartInfo . ".", 'VAT_STATUS');
         
         // Ако има последно активирана кошница да се показва като съобщение
         if ($lastCart = self::getLastActivatedCart()) {
