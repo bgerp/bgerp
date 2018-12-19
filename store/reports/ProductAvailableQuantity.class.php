@@ -99,7 +99,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         if ($form->rec->limmits == 'yes') {
             if (is_string($form->rec->additional)) {
-                $details = json_decode($form->rec->additional);
+                $details = json_decode($form->rec->additional);//bp($details,$form->rec->additional);
             } else {
                 $details = $form->rec->additional;
             }
@@ -173,10 +173,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             if ($prId->productId) {
                                 $measureName = cat_UoM::getTitleById(cat_Products::fetchField($prId->productId, 'measureId'));
                                 
-                                //   $prName = cat_Products::getTitleById($prId->productId,$escaped = true);
-                                $prName = cat_Products::fetchField($prId->productId, 'name');
+                                $prName = $measureName.' | '.cat_Products::fetchField($prId->productId, 'name');
                                 
                                 $grDetails['name'][$k] = $prName;
+                                
                                 $grDetails['measure'][$k] = $measureName;
                             }
                         }
@@ -235,7 +235,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         }
                         
                         // Премахва артикули ако вече са добавени
-                        
                         if (is_array($grDetails['code'])) {
                             foreach ($grDetails['code'] as $k => $v) {
                                 if ($details['code'] && in_array($v, $details['code'])) {
@@ -249,7 +248,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         }
                         
                         // Премахване на нестандартнитв артикули
-                        
                         if (is_array($grDetails['name'])) {
                             foreach ($grDetails['name'] as $k => $v) {
                                 if ($grDetails['code'][$k]) {
@@ -267,7 +265,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         }
                         
                         // Ограничава броя на артикулите за добавяне
-                        
                         $count = 0;
                         $countUnset = 0;
                         
@@ -471,14 +468,20 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
         
         if (isset($dRec->minQuantity)) {
-            $row->minQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->minQuantity);
+            
+            $t = core_Type::getByName('double(smartRound,decimals=3)');
+            $row->minQuantity = $t->fromVerbal($dRec->minQuantity);
+            $row->minQuantity = $t->toVerbal($row->minQuantity);
+            
         }
         
         if (isset($dRec->maxQuantity)) {
-            $row->maxQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->maxQuantity);
+            
+            $t = core_Type::getByName('double(smartRound,decimals=3)');
+            $row->maxQuantity = $t->fromVerbal($dRec->maxQuantity);
+            $row->maxQuantity = $t->toVerbal($row->maxQuantity);
         }
         
-        // bp($dRec->minQuantity);
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
             list($a, $conditionQuantity) = explode('|', $dRec->conditionQuantity);
             
