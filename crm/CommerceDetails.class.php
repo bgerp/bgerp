@@ -32,7 +32,7 @@ class crm_CommerceDetails extends core_Manager
         
         $data->Lists = cls::get('price_ListToCustomers');
         $data->Conditions = cls::get('cond_ConditionsToCustomers');
-        $data->Cards = cls::get('pos_Cards');
+        $data->Cards = cls::get('crm_ext_Cards');
         
         $data->listData = clone $data;
         $data->condData = clone $data;

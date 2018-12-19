@@ -917,7 +917,7 @@ class cms_Articles extends core_Master
         // Всички активни статии към домейна с информация за добавяне във футъра
         $query = self::getQuery();
         $query->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
-        $query->where("#domainId = {$domainId} AND #state = 'active'");
+        $query->where("#domainId = '{$domainId}' AND #state = 'active'");
         $query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
         $query->orderBy('id', 'ASC');
         

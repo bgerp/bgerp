@@ -5,7 +5,7 @@
  *
  *
  * @category  vendors
- * @package   polygonteam
+ * @package   wscales
  *
  * @author    Yusein Yuseino <yyuusenov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
@@ -13,13 +13,13 @@
  *
  * @since     v 0.1
  */
-class polygonteam_Setup extends core_ProtoSetup
+class wscales_Setup extends core_ProtoSetup
 {
     
     /**
      * Необходими пакети
      */
-    public $depends = 'peripheral=0.1, wscales=0.1';
+    public $depends = 'peripheral=0.1';
     
     
     /**
@@ -43,11 +43,17 @@ class polygonteam_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Модули на ПолигонТийм';
+    public $info = 'Везни';
     
     
-    /**
-     * Дефинирани класове, които имат интерфейси
-     */
-    public $defClasses = 'polygonteam_Scales';
+    public function install()
+    {
+        $html = parent::install();
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Четене на данни от електронна везна при производство', 'wscales_GetWeightFromScalePlg', 'planning_ProductionTaskDetails', 'private');
+        cls::get('planning_Jobs')->setupMvc();
+        
+        return $html;
+    }
 }

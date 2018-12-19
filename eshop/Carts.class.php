@@ -1219,6 +1219,7 @@ class eshop_Carts extends core_Master
     private static function renderCartOrderInfo($rec, core_ET &$tpl)
     {
         $rec = self::fetchRec($rec);
+        $cu = core_Users::getCurrent();
         
         $row = self::recToVerbal($rec, cls::get('eshop_Carts')->selectFields());
         $tpl->replace($row->termId, 'termId');
@@ -1262,6 +1263,11 @@ class eshop_Carts extends core_Master
             }
         } else {
             $tpl->replace(tr('Без фактура'), 'NO_INVOICE');
+        }
+        
+        // Ако няма потребител и има клиентски карти, ще се показва бутон за въвеждане на карта
+        if(crm_ext_Cards::haveRightFor('checkcard', (object)array('domainId' => $rec->domainId))){
+            $tpl->replace(ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png '), 'CARD_LINK');
         }
         
         if ($rec->deliveryNoVat < 0) {
@@ -1658,7 +1664,8 @@ class eshop_Carts extends core_Master
                     $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $delitionTime);
                     $row->timeToNotifyBeforeDeletion = core_Type::getByName('datetime(format=smartTime)')->toVerbal($timeToNotifyBeforeDeletion);
                     $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
-                    $row->isNotified = ($isNotified !== 'y') ? tr('Имейлът е изпратен') : tr('Имейлът не е изпратен');
+                    
+                    $row->isNotified = ($isNotified === 'y') ? tr('Имейлът е изпратен') : tr('Имейлът не е изпратен');
                 }
             }
         }

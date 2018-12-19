@@ -109,7 +109,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
         $mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
         
-        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Плащане->Начин,before=accountId,mandatory');
+        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
     }
     
@@ -134,7 +134,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         $data->listFields['paymentType'] = 'Плащане';
-        $data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Начин на плащане,input');
+        $data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Начин на плащане,input');
         $data->listFilter->showFields .= ",payType{$type},countryGroups";
         $data->listFilter->input(null, 'silent');
         
@@ -1049,15 +1049,20 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if (!empty($row->paymentType)) {
-                $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
-                $row->paymentType = tr('Плащане ' . $arr[$rec->paymentType]);
+                
+                if($rec->paymentType == 'postal'){
+                    $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
+                    $row->paymentType = tr('Пощенски паричен превод');
+                } else {
+                    $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
+                    $row->paymentType = tr('Плащане ' . $arr[$rec->paymentType]);
+                }
             }
             
             if (haveRole('debug')) {
-                if (isset($rec->autoPaymentType, $rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))) {
+                if (isset($rec->autoPaymentType, $rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash') && !($rec->paymentType == 'postal' && $rec->autoPaymentType == 'bank'))) {
                     $row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
                 }
-                
                 $row->paymentType = ht::createHint($row->paymentType, "Автоматично '{$rec->autoPaymentType}'", 'img/16/bug.png');
             }
             

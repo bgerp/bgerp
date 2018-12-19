@@ -27,7 +27,6 @@ class pos_Wrapper extends plg_ProtoWrapper
         $this->TAB('pos_Stocks', 'Наличности', 'ceo,pos');
         $this->TAB('pos_Favourites', 'Настройки->Бързи бутони', 'ceo,pos');
         $this->TAB('pos_FavouritesCategories', 'Настройки->Категории', 'ceo,pos');
-        $this->TAB('pos_Cards', 'Настройки->Клиентски карти', 'ceo,pos');
         
         $this->title = 'Точки на продажба';
     }

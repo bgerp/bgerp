@@ -108,6 +108,7 @@ class colab_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Colab за коментар', 'colab_plg_Document', 'doc_Comments', 'private');
         $html .= $Plugins->installPlugin('Colab за бележка', 'colab_plg_Document', 'doc_Notes', 'private');
         $html .= $Plugins->installPlugin('Colab за задачи', 'colab_plg_Document', 'cal_Tasks', 'private');
+        $html .= $Plugins->installPlugin('Colab за регистрация на потребители', 'colab_plg_UserReg', 'core_Users', 'private');
         
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на коментари', 'colab_plg_VisibleForPartners', 'doc_Comments', 'private');
         $html .= $Plugins->installPlugin('Плъгин за споделяне с партньори на бележки', 'colab_plg_VisibleForPartners', 'doc_Notes', 'private');

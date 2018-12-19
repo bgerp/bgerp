@@ -53,6 +53,12 @@ class eshop_Settings extends core_Manager
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'eshop,ceo,admin';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'eshop,ceo,admin';
@@ -163,6 +169,7 @@ class eshop_Settings extends core_Manager
         
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа продукти)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
+        $this->FLD('canUseCards', 'enum(yes=Включено,no=Изключено)', 'caption=Възможност за логване с клиентска карта->Избор,notNull,value=yes');
         $this->FLD('addProductText', 'text(rows=3)', 'caption=Добавяне на артикул към количката->Текст');
         $this->FLD('addToCartBtn', 'varchar(16)', 'caption=Добавяне на артикул към количката->Надпис');
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
@@ -491,5 +498,30 @@ class eshop_Settings extends core_Manager
         });
         
         return $options;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+        $res = '';
+        $domainClassId = cms_Domains::getClassId();
+        
+        $dQuery = cms_Domains::getQuery();
+        while($dRec = $dQuery->fetch()){
+            if(!eshop_Settings::fetch("#classId = {$domainClassId} AND #objectId = {$dRec->id}")){
+                $settingRec = (object)array('classId' => $domainClassId, 'objectId' => $dRec->id, 'listId' => price_ListRules::PRICE_LIST_CATALOG);
+                $settingRec->discountType = 'percent';
+                $settingRec->enableCart = 'no';
+                $settingRec->currencyId = acc_Periods::getBaseCurrencyCode();
+                $settingRec->chargeVat = 'yes';
+                
+                eshop_Settings::save($settingRec);
+            }
+        }
+        
+        return $res;
     }
 }

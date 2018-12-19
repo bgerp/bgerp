@@ -202,12 +202,15 @@ class plg_UserReg extends core_Plugin
                         foreach ($nicks as $n) {
                             $htmlNicks .= ($htmlNicks ? ', ' : '') . "<B>{$n}</B>";
                         }
-                        $form->setError('nick', 'Вече има регистриран потребител с този ник. Изберете друг, например|*: ' . $htmlNicks);
+                        
+                        $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
+                        $form->setError('nick', 'Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от|* ' . $loginLink . '. |Изберете друг, например|*: ' . $htmlNicks);
                     }
                 } else {
                     // проверка дали имейлът не се повтаря
                     if ($mvc->fetch("#email = '{$rec->email}'")) {
-                        $form->setError('email', 'Вече има регистриран потребител с този имейл|*.');
+                        $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
+                        $form->setError('email', 'Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от|* ' . $loginLink . '.');
                     }
                 }
                 

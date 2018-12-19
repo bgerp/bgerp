@@ -334,6 +334,7 @@ class bgerp_Setup extends core_ProtoSetup
                             unset($haveError[$p]);
                         }
                     } catch (core_exception_Expect $exp) {
+                        
                         $force = true;
                         $Packs->alreadySetup[$p . $force] = false;
                         
