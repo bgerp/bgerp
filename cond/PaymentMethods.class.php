@@ -73,7 +73,7 @@ class cond_PaymentMethods extends embed_Manager
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'no_one';
+    public $canEditsysdata = 'ceo, admin';
     
     
     /**
@@ -227,6 +227,12 @@ class cond_PaymentMethods extends embed_Manager
                     $rec->type = $type;
                     $form->setReadOnly('type');
                 }
+            }
+        }
+        
+        if(isset($rec->id) && $rec->createdBy == core_Users::SYSTEM_USER){
+            foreach (array('name', 'type', 'downpayment', 'paymentBeforeShipping', 'discountPeriod', 'paymentOnDelivery', 'discountPercent', 'timeBalancePayment', 'eventBalancePayment') as $fld){
+                $form->setReadOnly($fld);
             }
         }
     }
