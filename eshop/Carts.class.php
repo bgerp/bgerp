@@ -1664,7 +1664,8 @@ class eshop_Carts extends core_Master
                     $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $delitionTime);
                     $row->timeToNotifyBeforeDeletion = core_Type::getByName('datetime(format=smartTime)')->toVerbal($timeToNotifyBeforeDeletion);
                     $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
-                    $row->isNotified = ($isNotified !== 'y') ? tr('Имейлът е изпратен') : tr('Имейлът не е изпратен');
+                    
+                    $row->isNotified = ($isNotified === 'y') ? tr('Имейлът е изпратен') : tr('Имейлът не е изпратен');
                 }
             }
         }
