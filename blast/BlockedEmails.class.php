@@ -75,7 +75,7 @@ class blast_BlockedEmails extends core_Manager
     protected function description()
     {
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
-        $this->FLD('state', 'enum(ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
+        $this->FLD('state', 'enum(,ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
         $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Изпращане, input=none');
         $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
@@ -380,6 +380,10 @@ class blast_BlockedEmails extends core_Manager
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
+        if (!$rec->state) {
+            $rec->state = 'ok';
+        }
+        
         if (!isset($rec->lastSent)) {
             $rec->lastSent = dt::now();
         }
@@ -406,6 +410,30 @@ class blast_BlockedEmails extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('lastSent', 'DESC');
+        
+        $data->listFilter->FNC('emailStr', 'varchar', 'caption=Имейл');
+        
+        // Да се показва полето за търсене
+        $data->listFilter->showFields = 'state, emailStr';
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->setFieldTypeParams('state', 'allowEmpty');
+        
+        $data->listFilter->setDefault('state', '');
+        
+        //Добавяме бутон "Филтрирай"
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->input();
+        
+        if ($data->listFilter->rec->state) {
+            $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->state));
+        }
+        
+        if ($data->listFilter->rec->emailStr) {
+            $data->query->like('email', $data->listFilter->rec->emailStr);
+        }
     }
     
     
