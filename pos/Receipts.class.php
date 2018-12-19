@@ -500,7 +500,6 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('terminal');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-        $this->requireRightFor('terminal', $rec);
         
         // Имаме ли достъп до терминала
         if (!$this->haveRightFor('terminal', $rec)) {

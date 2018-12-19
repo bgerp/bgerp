@@ -3022,13 +3022,18 @@ span.sharing-history-title {
   width: auto; }
 
 .textInfo {
-  padding-top: 20px;
+  margin-top: 10px;
+  display: inline-block;
   line-height: 1.5em;
-  text-align: right;
   color: #222222;
   font-size: 0.9em; }
   .textInfo .richtext-holder .richtext {
     color: #222222 !important; }
+  .textInfo div.attention {
+    font-weight: bold;
+    margin-top: 15px; }
+  .textInfo div {
+    margin-top: 5px; }
 
 .narrow .textInfo {
   padding: 0px 0 10px;
