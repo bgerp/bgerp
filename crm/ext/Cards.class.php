@@ -294,7 +294,7 @@ class crm_ext_Cards extends core_Manager
         Mode::set('currentExternalTab', 'eshop_Carts');
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
-        
+       
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = "Въвеждане на клиентска карта";
@@ -313,6 +313,8 @@ class crm_ext_Cards extends core_Manager
             }
             
             if(!$form->gotErrors()){
+               $domainRec = &Mode::get(cms_Domains::CMS_CURRENT_DOMAIN_REC);
+               $domainRec->clientCardNumber = $form->rec->search;
                
                // Ако към папката на фирмата има свързани партньори, линк към формата за логване
                $folderId = $info['contragent']->fetchField('folderId');
@@ -321,14 +323,10 @@ class crm_ext_Cards extends core_Manager
                    return new Redirect(array('core_Users', 'login'), 'Моля логнете се с вашия потребител');
                }
                
-               // Ако няма, линк към регистрацията на нов партньор от фирмата
-               expect($cartId = eshop_Carts::force(null, null, false));
-               $cartRec = eshop_Carts::fetch($cartId, 'personNames,email');
-               
-               Request::setProtected('companyId,rand,className,fromEmail,userNames,email');
-               $redirectUrl = toUrl(array('colab_FolderToPartners', 'Createnewcontractor', 'userNames' => $cartRec->personNames, 'email' => $cartRec->email, 'fromEmail' => true, 'companyId' => $info['contragent']->that, 'className' => $info['contragent']->className, 'rand' => str::getRand()));
-               Request::removeProtected('companyId,rand,className,fromEmail,userNames,email');
-               
+               $retUrl = array($this, 'checkCard', 'ret_url' => true);
+               $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($info['contragent']->getInstance(), $info['contragent']->that, $retUrl);
+               expect(!empty($redirectUrl));
+                   
                return new Redirect($redirectUrl);
             }
         }
@@ -349,6 +347,7 @@ class crm_ext_Cards extends core_Manager
         $tpl = $form->renderHtml();
         core_Form::preventDoubleSubmission($tpl, $form);
         core_Lg::pop();
+        vislog_History::add("Въвеждане на клиентска карта");
         
         return $tpl;
     }

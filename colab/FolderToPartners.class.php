@@ -861,7 +861,11 @@ class colab_FolderToPartners extends core_Manager
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
             
-            return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+            if($fromEmail){
+                return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+            } else {
+                return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+            }
         }
         
         $form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
@@ -933,5 +937,39 @@ class colab_FolderToPartners extends core_Manager
             
             core_Users::save($uRec, null, 'IGNORE');
         }
+    }
+    
+    
+    /**
+     * Линк за регистрация на нов партньор към контрагент
+     * 
+     * @param mixed $class
+     * @param int $objectId
+     * @param mixed $retUrl
+     * 
+     * @return string|array|string
+     */
+    public static function getRegisterUserUrlByCardNumber($class, $objectId, $retUrl = null)
+    {
+        $Class = cls::get($class);
+        expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
+        
+        $url = array('colab_FolderToPartners', 'Createnewcontractor', 'fromEmail' => true, 'companyId' => $objectId, 'className' => $Class->className, 'rand' => str::getRand());
+        if(isset($retUrl)){
+            $url['ret_url'] = $retUrl;
+        }
+        if(core_Packs::isInstalled('eshop')){
+            if($cartId = eshop_Carts::force(null, null, false)){
+                $cartRec = eshop_Carts::fetch($cartId, 'personNames,email');
+                $url['userNames'] = $cartRec->personNames;
+                $url['email'] = $cartRec->email;
+            }
+        }
+            
+        Request::setProtected('companyId,rand,className,fromEmail,userNames,email');
+        $url = toUrl($url);
+        Request::removeProtected('companyId,rand,className,fromEmail,userNames,email');
+        
+        return $url;
     }
 }
