@@ -516,16 +516,14 @@ class plg_TreeObject extends core_Plugin
                 return ;
             }
             
-            if(isset($mvc->nameFieldEn)){
-                $lg = core_Lg::getCurrent();
+            if (isset($mvc->nameFieldEn)) {
                 $gRec = $mvc->fetchRec($rec, "{$mvc->nameField},{$mvc->nameFieldEn}");
-                
                 $lg = core_Lg::getCurrent();
-                if($lg == 'en' && !empty($gRec->{$mvc->nameFieldEn})){
+                if ($lg == 'en' && !empty($gRec->{$mvc->nameFieldEn})) {
                     $num = $mvc->getVerbal($gRec, $mvc->nameFieldEn);
+                } else {
+                    $num = tr($num);
                 }
-                
-                $num = tr($num);
             }
             
             $parent = $mvc->fetchField($id, $mvc->parentFieldName);
