@@ -542,6 +542,7 @@ class cat_Products extends embed_Manager
             $form->setField('measureId', 'input=hidden');
             $form->setField('code', 'input=hidden');
             $form->setField('name', 'input=hidden');
+            $form->setField('nameInt', 'input=hidden');
             $form->setField('measureId', 'input=hidden');
             $form->setField('info', 'input=hidden');
         }
