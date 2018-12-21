@@ -1386,6 +1386,8 @@ abstract class deals_DealMaster extends deals_DealBase
         // След като формата се изпрати
         if ($form->isSubmitted()) {
             
+            
+            
             // обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
             $rec->contoActions = $form->rec->action;
