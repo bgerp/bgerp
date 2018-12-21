@@ -102,9 +102,9 @@ class plg_UserReg extends core_Plugin
             }
             
             if ($invoker->haveRightFor('registernewuserout')) {
-                $tpl->append("<p>&nbsp;<A HREF='" .
+                $tpl->append("<!--ET_BEGIN NEW_USER--><p>&nbsp;<a HREF='" .
                 toUrl(array($invoker, 'registerNewUser')) .
-                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . '</A>', 'FORM');
+                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . '</a><!--ET_END NEW_USER-->', 'FORM');
             }
         }
     }
