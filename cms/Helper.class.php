@@ -62,7 +62,7 @@ class cms_Helper extends core_BaseClass
         $loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline'>" . tr('тук||here') . '</a>';
         $info->append($loginHtml, 'link');
         
-        $form->info = new core_ET('[#1#][#2#]', $data->form->info, $info);
+        $form->info = new core_ET('[#1#][#2#]', $form->info, $info);
     }
     
     
@@ -117,7 +117,7 @@ class cms_Helper extends core_BaseClass
         // Ако има потребител с този имейл той трябва да е логнат
         if (core_Users::getUserByEmail($email)) {
             
-            //return 'Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се логнете|*.';
+            return 'Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се логнете|*.';
         }
     }
 }
