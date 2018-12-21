@@ -37,10 +37,12 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
             'entries' => array()
         );
         
+        $productArr = array();
         $error = true;
         $dQuery = store_TransfersDetails::getQuery();
         $dQuery->where("#transferId = '{$rec->id}'");
         while ($dRec = $dQuery->fetch()) {
+            $productArr[$dRec->newProductId] = $dRec->newProductId;
             if (empty($dRec->quantity)) {
                 if (Mode::get('saveTransaction')) {
                     continue;
@@ -67,7 +69,14 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
         }
         
         if (Mode::get('saveTransaction')) {
-            if ($error === true) {
+            
+            // Проверка на артикулите
+            $productCheck = deals_Helper::checkProductForErrors($productArr, 'canStore');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са складируеми|*!");
+            } elseif ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
         }

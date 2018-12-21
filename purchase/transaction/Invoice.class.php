@@ -37,7 +37,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         expect($rec = $this->class->fetchRec($id));
         $cloneRec = clone $rec;
         setIfNot($rec->journalDate, $this->class->getDefaultAccDate($rec->date));
-        
+       
         $result = (object) array(
             'reason' => "Входяща фактура №{$rec->number}", // основанието за ордера
             'valior' => $rec->journalDate,   // датата на ордера
@@ -95,6 +95,23 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
+        }
+        
+        if (Mode::get('saveTransaction')) {
+            $productArr = array();
+            $dQuery = purchase_InvoiceDetails::getQuery();
+            $dQuery->where("#invoiceId = {$rec->id}");
+            $dQuery->show('productId');
+            while ($dRec = $dQuery->fetch()) {
+                $productArr[$dRec->productId] = $dRec->productId;
+            }
+            
+            $productCheck = deals_Helper::checkProductForErrors($productArr, 'canBuy');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са купуваеми|*!");
+            }
         }
         
         $result->entries = $entries;

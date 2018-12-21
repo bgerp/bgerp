@@ -56,11 +56,12 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
     {
         $entries = array();
         $errorArr = array();
+        $productsArr = array();
         
         $dQuery = planning_ReturnNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
-            $pInfo = cat_Products::getProductInfo($dRec->productId);
+            $productsArr[$dRec->productId] = $dRec->productId;
             $creditArr = null;
             
             if ($rec->useResourceAccounts == 'yes') {
@@ -107,11 +108,19 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
             $entries[] = $entry;
         }
         
-        // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правимр едирект със съобщението
+        // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
         if (Mode::get('saveTransaction')) {
             if (count($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
+            }
+            
+            // Проверка на артикулите
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canConvert,canStore');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са складируеми и вложими|*!");
             }
         }
         
