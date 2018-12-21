@@ -83,9 +83,33 @@ class docarch_Volumes extends core_Master
         if ($rec->id) {
             $form->setReadOnly('archive');
             $form->setReadOnly('type');
-        }
+        } 
+        
     }
     
+    
+    /**$form->rec->number = self::getNextNumber($archive,$type );
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) { 
+            
+            $type = $form->rec->type;
+            $archive = $form->rec->archive;
+            
+            if (is_null($form->rec->number)) {
+              $form->rec->number = self::getNextNumber($archive,$type );
+            }
+            
+           
+        }
+    }
     
     /**
      * Филтър
@@ -111,4 +135,26 @@ class docarch_Volumes extends core_Master
         $a = docarch_Volumes::getQuery()->fetchAll();
         bp($a);
     }
+    
+    /**
+     * Намира следващия номер на том
+     *
+     * @param int $archive
+     * @param string $type
+     *
+     * @return int
+     */
+    private function getNextNumber($archive,$type)
+    {
+        $query = $this->getQuery();
+        $cond = "#archive = {$archive}";
+        //$cond .= "#type = $type";
+        $query->where($cond);
+        $query->XPR('maxVolNumber', 'int', 'MAX(#number)');
+        $number = $query->fetch()->maxVolNumber;
+        ++$number;
+        
+        return $number;
+    }
+    
 }
