@@ -166,6 +166,10 @@ class sens2_script_Actions extends core_Detail
             
             $row->action = "<div style='font-family: Courier New,monospace !important; font-size:0.8em;'>" . $action->toVerbal($rec->data) . '</div>';
         }
+
+        if(Request::get('order') == $rec->order) {
+            $row->ROW_ATTR['style'] .= 'background-color:yellow !important;';
+        }
     }
     
     
