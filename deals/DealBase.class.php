@@ -324,7 +324,7 @@ abstract class deals_DealBase extends core_Master
         
         // Подготовка на формата за избор на опция
         $form = cls::get('core_Form');
-        $form->title = '|Активиране на|* <b>' . $this->getTitleById($id). '</b>' . ' ?';
+        $form->title = '|Активиране на|* <b>' . $this->getFormTitleLink($id). '</b>' . ' ?';
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
         $form->setSuggestions('closeWith', $options);

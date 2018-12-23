@@ -44,6 +44,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         );
         
         if (Mode::get('saveTransaction')) {
+            $productArr = array();
             $restore = ($rec->state == 'draft') ? false : true;
             if (!$this->class->isAllowedToBePosted($rec, $error, true)) {
                 acc_journal_RejectRedirect::expect(false, $error);
@@ -58,6 +59,8 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             
             // Проверяват се всички артитули имат ли го зададен
             while ($dRec = $dQuery->fetch()) {
+                $productArr[$dRec->productId] = $dRec->productId;
+                
                 if ($exportParamId) {
                     if (!cat_Products::getParams($dRec->productId, $exportParamId)) {
                         $productsWithoutExportParam[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
@@ -117,11 +120,18 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         if (isset($cloneRec->vatAmount)) {
             $entries[] = array(
                 'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
-                
                 'debit' => array('4530', array($origin->className, $origin->that)),
-                
                 'credit' => array('4532'),
             );
+        }
+        
+        // Проверка на артикулите
+        $productCheck = deals_Helper::checkProductForErrors($productArr, 'canSell');
+            
+        if(count($productCheck['notActive'])){
+             acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+        } elseif($productCheck['metasError']){
+             acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
         }
         
         $result->entries = $entries;

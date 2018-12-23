@@ -248,7 +248,8 @@ class bank_InternalMoneyTransfer extends core_Master
         $form->toolbar->addBtn('Отказ', toUrl(array('bank_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close-red.png');
         
         $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
-        if (!doc_Folders::haveRightToObject($folderId)) {
+        $folderRec = doc_Folders::fetch($folderId);
+        if (!doc_Folders::haveRightToObject($folderRec)) {
             $folderId = static::getDefaultFolder(null, false);
         }
         $form->setDefault('folderId', $folderId);

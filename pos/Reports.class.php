@@ -795,7 +795,12 @@ class pos_Reports extends core_Master
                     'contragentId' => $dRec->contragentId,
                     'contragentClassId' => $dRec->contragentClassId,);
                 
-                $r->sellCost = $dRec->amount / $r->quantity;
+                if($r->quantity){
+                    $r->sellCost = $dRec->amount / $r->quantity;
+                } else {
+                    $r->sellCost = 0;
+                    wp($r, $rec);
+                }
                 
                 $dealerId = $rec->dealerId;
                 setIfNot($dealerId, $rec->createdBy);
