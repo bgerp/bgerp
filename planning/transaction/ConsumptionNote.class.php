@@ -55,12 +55,12 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
     private static function getEntries($rec, &$total)
     {
         $entries = array();
-        $errorArr = array();
+        $productsArr = array();
         
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
-            $pInfo = cat_Products::getProductInfo($dRec->productId);
+            $productsArr[$dRec->productId] = $dRec->productId;
             $debitArr = null;
             
             if ($rec->useResourceAccounts == 'yes') {
@@ -84,6 +84,17 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
                     array('cat_Products', $dRec->productId),
                     'quantity' => $dRec->quantity),
                 'reason' => $reason);
+        }
+        
+        if (Mode::get('saveTransaction')) {
+            
+            // Проверка на артикулите
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canConvert,canStore');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са складируеми и вложими|*!");
+            }
         }
         
         // Връщаме ентритата

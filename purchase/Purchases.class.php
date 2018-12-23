@@ -747,4 +747,34 @@ class purchase_Purchases extends deals_DealMaster
         
         return $products;
     }
+    
+    
+    /**
+     * След инпут на формата за избор на действие
+     *
+     * @see deals_DealMaster::act_Chooseaction
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     * @param stdClass  $rec
+     *
+     * @return void
+     */
+    protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
+    {
+        if ($form->isSubmitted()) {
+            $action = type_Set::toArray($form->rec->action);
+            if (isset($action['ship'])) {
+                $dQuery = purchase_PurchasesDetails::getQuery();
+                $dQuery->where("#requestId = {$rec->id}");
+                $dQuery->show('productId');
+                
+                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
+                if($productCheck['metasError']){
+                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                    $form->setError('action', $warning1);
+                }
+            }
+        }
+    }
 }

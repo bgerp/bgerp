@@ -385,14 +385,13 @@ class core_App
      */
     public static function exitScript()
     {
-        // Изтрива дебъг файла, ако няма фатална грешка
         if (defined('DEBUG_FATAL_ERRORS_FILE')) {
-            $errCode = '2';
+            $debugCode = '2';
             $logHit = true;
             if (Request::get('ajax_mode')) {
-                $errCode = '8';
+                $debugCode = '8';
                 $logHit = false;
-                if (Request::get('logAjax')) {
+                if (Request::get('logAjax') || (defined('DEBUG_FATAL_ERRORS_ON_AJAX') && DEBUG_FATAL_ERRORS_ON_AJAX)) {
                     $logHit = true;
                 }
             }
@@ -413,10 +412,10 @@ class core_App
             }
             
             $execTime = str_pad($execTime, 2, '0', STR_PAD_LEFT);
-            $errCode .= $execTime;
+            $debugCode .= $execTime;
             
             if ($logHit) {
-                logHitState($errCode);
+                logHitState($debugCode);
             }
             
             @unlink(DEBUG_FATAL_ERRORS_FILE);

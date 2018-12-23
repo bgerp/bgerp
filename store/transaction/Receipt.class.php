@@ -48,11 +48,18 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             if ($error === true) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
+            
+            // Проверка на артикулите
+            $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($rec->details, 'productId'), 'canStore');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са складируеми|*!");
+            }
         }
         
         $origin = $this->class->getOrigin($rec);
         $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
-        
         
         // Всяка СР трябва да има поне един детайл
         if (count($rec->details) > 0 || count($packRecs) > 0) {

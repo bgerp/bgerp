@@ -74,7 +74,7 @@ class type_Datetime extends type_Date
         
         $attr['value'] = $time;
         $attr['autocomplete'] = 'off';
-        $attr['style'] .= ';vertical-align:top; max-width:4em;';
+        $attr['style'] .= ';vertical-align:top;';
         unset($attr['id']);
         
         if (strlen($time) == 5 || strlen($time) == 0) {
@@ -88,6 +88,7 @@ class type_Datetime extends type_Date
             if (!is_array($ts)) {
                 $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), true);
             }
+            $attr['style'] .= ';max-width:4em;';
         } elseif (strlen($time) == 8) {
             $sugArr = explode('|', '08:00:00|09:00:00|10:00:00|11:00:00|12:00:00|13:00:00|14:00:00|15:00:00|16:00:00|17:00:00|18:00:00');
             $sugArr[] = $time;
@@ -99,6 +100,7 @@ class type_Datetime extends type_Date
             if (!is_array($ts)) {
                 $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), true);
             }
+            $attr['style'] .= ';max-width:6em;';
         } else {
             $ts = array('' => '', $time => $time);
         }

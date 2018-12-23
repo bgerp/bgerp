@@ -176,7 +176,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
             }
         }
         
-        // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правимр едирект със съобщението
+        // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
         if (Mode::get('saveTransaction')) {
             if (count($errorArr)) {
                 $errorArr = implode(', ', $errorArr);

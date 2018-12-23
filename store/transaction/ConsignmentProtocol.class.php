@@ -61,11 +61,13 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
     private function getEntries($rec)
     {
         $entries = array();
+        $productsArr = array();
         
         // Намираме всички предадени артикули
         $sendQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $sendQuery->where("#protocolId = {$rec->id}");
         while ($sendRec = $sendQuery->fetch()) {
+            $productsArr[$sendRec->productId] = $sendRec->productId;
             $quantity = $sendRec->quantityInPack * $sendRec->packQuantity;
             $entries[] = array(
                 'debit' => array('323',
@@ -83,6 +85,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $receivedQuery = store_ConsignmentProtocolDetailsReceived::getQuery();
         $receivedQuery->where("#protocolId = {$rec->id}");
         while ($recRec = $receivedQuery->fetch()) {
+            $productsArr[$sendRec->productId] = $sendRec->productId;
             $quantity = $recRec->quantityInPack * $recRec->packQuantity;
             $entries[] = array(
                 'debit' => array('321',
@@ -95,6 +98,17 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
                     'quantity' => $quantity),
             
             );
+        }
+        
+        if (Mode::get('saveTransaction')) {
+            
+            // Проверка на артикулите
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canStore');
+            if(count($productCheck['notActive'])){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са складируеми и продаваеми|*!");
+            }
         }
         
         // Връщаме записите

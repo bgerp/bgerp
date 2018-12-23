@@ -617,11 +617,18 @@ class sales_TransportValues extends core_Manager
      */
     public static function getDeliveryTermError($deliveryTermId, $deliveryAddress, $contragentClassId, $contragentId, $deliveryLocationId)
     {
+        $deliveryRec = cond_DeliveryTerms::fetchRec($deliveryTermId);
+        $properties = type_Set::toArray($deliveryRec->properties);
+       
         // Ако няма изчисляване на транспорт не се връща нищо
         $Driver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
         if (empty($Driver)) {
-            
-            return false;
+            if(array_key_exists('transport', $properties)){
+                return "|Не може да се изчисли транспорт|*";
+            } else {
+                
+                return false;
+            }
         }
         
         $toPcodeId = $toCountryId = null;

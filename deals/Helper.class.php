@@ -1750,6 +1750,53 @@ abstract class deals_Helper
         } 
         
         return $names;
+    }
+    
+    
+    /**
+     * Проверки за свойствата на документите
+     * 
+     * @param array $productArr
+     * @param mixed $haveMetas
+     * @param mixed $haveNotMetas
+     * @return array
+     */
+    public static function checkProductForErrors($productArr, $haveMetas, $haveNotMetas = null)
+    {
+        $errorNotActive = $errorMetas = array();
+        $productArr = arr::make($productArr, true);
+      
+        if(count($productArr)){
+            $haveMetas = arr::make($haveMetas, true);
+            $haveNotMetas = arr::make($haveNotMetas, true);
+            
+            $pQuery = cat_Products::getQuery();
+            $pQuery->in('id', $productArr);
+            $pQuery->show(implode(',', $haveMetas + $haveNotMetas) . ',state,isPublic,name,nameInt');
+            while($pRec = $pQuery->fetch()){
+                $error = false;
+                foreach ($haveMetas as $meta){
+                    if($pRec->{$meta} != 'yes'){
+                        $error = true;
+                        break;
+                    }
+                }
+                
+                foreach ($haveNotMetas as $meta1){
+                    if($pRec->{$meta1} != 'no'){
+                        $error = true;
+                        break;
+                    }
+                }
+                
+                if($error){
+                    $errorMetas[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+                } elseif($pRec->state != 'active'){
+                    $errorNotActive[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+                }
+            }
+        }
         
+        return array('notActive' => $errorNotActive, 'metasError' => $errorMetas);
     }
 }

@@ -1343,7 +1343,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Подготовка на формата за избор на опция
         $form = cls::get('core_Form');
-        $form->title = '|Активиране на|* <b>' . $this->getTitleById($id). '</b>' . ' ?';
+        $form->title = '|Активиране на|* <b>' . $this->getFormTitleLink($id) . '</b>' . ' ?';
         $form->info = tr('|*<b>|Контиране на извършени на момента действия|*</b> (|опционално|*):');
         
         // Извличане на позволените операции
@@ -1385,6 +1385,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // След като формата се изпрати
         if ($form->isSubmitted()) {
+            
+            
             
             // обновяване на записа с избраните операции
             $form->rec->action = 'activate' . (($form->rec->action) ? ',' : '') . $form->rec->action;
