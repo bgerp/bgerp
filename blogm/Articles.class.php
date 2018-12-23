@@ -241,8 +241,10 @@ class blogm_Articles extends core_Master
         if (!$form->rec->id) {
             $form->setDefault('author', core_Users::getCurrent('nick'));
             $form->setDefault('commentsMode', 'confirmation');
-        }
+        } 
         
+        $mvc->setMenuIdByRec($form->rec);
+
         $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent()));
         
         // Ако сме в тесен режим
@@ -330,14 +332,7 @@ class blogm_Articles extends core_Master
             return $this->act_Browse();
         }
         
-        if($data->rec->categories) {
-            $catId = (int) trim($data->rec->categories, '|');
-            $catRec = blogm_Categories::fetch($catId);
-            if($catRec) {
-                $menuId = cms_Content::getDefaultMenuId($this, $catRec->domainId);
-                cms_Content::setCurrent($menuId);
-            }
-        }
+        $this->setMenuIdByRec($data->rec);
         
         // Определяме езика на статията от първата и категория
         $catArr = keylist::toArray($data->rec->categories);
@@ -425,6 +420,24 @@ class blogm_Articles extends core_Master
         cms_Content::addCanonicalUrl($url, $tpl);
         
         return $tpl;
+    }
+
+
+    /**
+     * Задава menuId от категориите
+     */
+    public function setMenuIdByRec($rec)
+    {
+        if(is_object($rec) && isset($rec->categories)) {
+
+            $catId = (int) trim($rec->categories, '|');
+            $catRec = blogm_Categories::fetch($catId);
+            if($catRec) {
+                $menuId = cms_Content::getDefaultMenuId($this, $catRec->domainId);
+                cms_Content::setCurrent($menuId);
+            }
+        }
+
     }
     
     
