@@ -267,7 +267,7 @@ class sens2_Scripts extends core_Master
         if (!Mode::isReadOnly()) {
             
             // Изчистваме нотификацията за събуждане
-            $url = array($mvc, 'single', $data->rec->id);
+            $url = array($mvc, 'single', $data->rec->id, 'order' => Request::get('order', 'int'));
  
             bgerp_Notifications::clear($url);
         }
