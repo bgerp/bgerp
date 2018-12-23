@@ -8,6 +8,13 @@ defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
 
 
 /**
+ * Дали да се показва бутона за ЧМР, ако не е избрано условие на доставка
+ */
+defIfNot('TRANS_CMR_SHOW_BTN', 'no');
+
+
+
+/**
  * Транспорт
  *
  *
@@ -84,6 +91,7 @@ class trans_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)','caption=ЧМР->13. Инструкции на изпращача'),
+        'TRANS_CMR_SHOW_BTN' => array('enum(yes=Включено,no=Изключено)','caption=При липса на условие на доставка. Да се показва ли бутона за ЧМР->Избор'),
     );
     
     

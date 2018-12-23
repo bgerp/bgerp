@@ -35,7 +35,10 @@ class colab_plg_UserReg extends core_Plugin
                     $newRegUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($info['contragent']->getInstance(), $info['contragent']->that, $retUrl);
                     
                     if(!empty($newRegUrl)){
-                        $tpl->append("<p>&nbsp;<A HREF='{$newRegUrl}' class='login-links' rel='nofollow'>»&nbsp;" . tr('Нов партньор||Create new partner') . '</A>', 'FORM');
+                        $tpl->append("<p>&nbsp;<A HREF='{$newRegUrl}' class='login-links' rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . '</A>', 'FORM');
+                        
+                        // Махане на стария линк за регистрация на нов потребител
+                        $tpl->removeBlock('NEW_USER');
                     }
                 }
             }

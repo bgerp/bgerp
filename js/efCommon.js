@@ -5085,9 +5085,9 @@ function mailServerSettings() {
 		    	server.value = "pop3.abv.bg:995";
 			    protocol.value = "pop3";
 			    security.value = "ssl";
-			    cert.value = "validate";
+			    cert.value = "noValidate";
 			    smtpServer.value = "smtp.abv.bg:465";
-			    smtpSecure.value = "tls";
+			    smtpSecure.value = "ssl";
 			    smtpAuth.value = "LOGIN";
 			    user.value = email.value;
 			    smtpUser.value = email.value;

@@ -542,6 +542,7 @@ class cat_Products extends embed_Manager
             $form->setField('measureId', 'input=hidden');
             $form->setField('code', 'input=hidden');
             $form->setField('name', 'input=hidden');
+            $form->setField('nameInt', 'input=hidden');
             $form->setField('measureId', 'input=hidden');
             $form->setField('info', 'input=hidden');
         }
@@ -2947,6 +2948,7 @@ class cat_Products extends embed_Manager
     public static function setAutoCloneFormFields(&$form, $id, $driverId = null)
     {
         $form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
+        $form->FLD('nameInt', 'varchar', 'caption=Международно,width=100%,after=name');
         $form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');

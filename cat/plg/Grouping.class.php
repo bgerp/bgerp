@@ -87,7 +87,8 @@ class cat_plg_Grouping extends core_Plugin
             if ($selArrCnt == 1) {
                 $id = $selArr[$selOneKey];
                 $metas = $mvc->fetchField($id, 'meta');
-                $form->title = 'Промяна в свойствата на |*<i style="color:#ffffaa">' .  $mvc->getTitleById($selArr[0]) . '</i>';
+                
+                $form->title = 'Промяна в свойствата на |*' . $mvc->getFormTitleLink($selArr[0]);
                 $form->FNC('meta', $mvc->getFieldType('meta'), 'caption=Свойства,input');
                 $form->setDefault('meta', $metas);
             } else {
@@ -111,14 +112,14 @@ class cat_plg_Grouping extends core_Plugin
                 }
             }
             
-            $form->toolbar->addSbBtn('Запис');
+            $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
             if ($selArrCnt == 1) {
                 $retUrl = array($mvc, 'single', $selArr[$selOneKey]);
             } else {
                 $retUrl = array($mvc, 'list');
             }
             
-            $form->toolbar->addBtn('Отказ', $retUrl);
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
             
             $form->input();
             

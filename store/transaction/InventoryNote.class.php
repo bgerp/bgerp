@@ -70,6 +70,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
     {
         $entries = array();
         $errorArr = array();
+        $productsArr = array();
         
         // Намираме тези редове, които няма да се начисляват към МОЛ
         $dQuery = store_InventoryNoteSummary::getQuery();
@@ -79,6 +80,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         core_App::setTimeLimit(600);
         
         while ($dRec = $dQuery->fetch()) {
+            $productsArr[$dRec->productId] = $dRec->productId;
             
             // Ако разликата е положителна, тоест имаме излишък
             if ($dRec->delta > 0) {
@@ -128,11 +130,17 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             
             // Ако има грешки, при контиране прекъсваме
             if (count($errorArr)) {
-                $str = implode(', ', $errorArr);
-                
                 $errorArr = implode(', ', $errorArr);
                 $message = "{$errorArr} |нямат себестойност|*";
                 acc_journal_RejectRedirect::expect(false, $message);
+            }
+            
+            // Проверка на артикулите
+            $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canStore');
+            if(count($productCheck['notActive'])){
+                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['notActive']) . " |не са активни|*!");
+            } elseif($productCheck['metasError']){
+                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(',', $productCheck['metasError']) . " |трябва да са складируеми и продаваеми|*!");
             }
         }
         

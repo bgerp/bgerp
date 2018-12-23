@@ -147,8 +147,8 @@ class crm_ext_Cards extends core_Manager
      */
     public static function generate()
     {
-        $number = str::getRand('dddddddddddd');
-        $checkSum = substr(crc32($number . EF_SALT), 0, 3);
+        $number = str::getRand('dddddd');
+        $checkSum = substr(strtolower(md5($number . EF_SALT)), 0, 2);
         $number .= $checkSum;
         
         return $number;
@@ -352,4 +352,3 @@ class crm_ext_Cards extends core_Manager
         return $tpl;
     }
 }
-

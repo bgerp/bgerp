@@ -101,7 +101,7 @@ class sens2_script_ActionNotify
         $userList = keylist::toArray($rec->users);
         
         foreach ($userList as $userId) {
-            $res = bgerp_Notifications::add($rec->message, array('sens2_Scripts', 'Single', $rec->scriptId), $userId, $rec->priority);
+            $res = bgerp_Notifications::add($rec->message, array('sens2_Scripts', 'Single', $rec->scriptId, 'order' => $rec->order), $userId, $rec->priority);  
         }
         
         
