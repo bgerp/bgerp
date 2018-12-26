@@ -20,11 +20,11 @@ class core_Html
     /**
      * Композира xHTML елемент
      */
-    public static function createElement($name, $attributes = array(), $body = null, $closeTag = false)
+    public static function createElement($name, $attributes = array(), $body = null, $closeTag = false, $translate = true)
     {
         $attrStr = '';
         
-        if ($attributes['title']) {
+        if ($attributes['title'] && $translate) {
             $attributes['title'] = tr($attributes['title']);
         }
         

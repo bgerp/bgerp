@@ -194,10 +194,11 @@ class eshop_Groups extends core_Master
     {
         if (isset($fields['-list'])) {
             $row->name = $mvc->getHyperlink($rec, true);
-
+            
             $row->name = $mvc->saoGetTitle($rec, $row->name, '&nbsp;&nbsp;');
-      //      if($rec->saoLevel > 1) bp($row->name);
-
+            
+            //      if($rec->saoLevel > 1) bp($row->name);
+            
             if (haveRole('powerUser') && $rec->state != 'closed') {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
@@ -255,16 +256,16 @@ class eshop_Groups extends core_Master
             $this->prepareAllGroups($data);
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
             $cRec = cms_Content::fetch($data->menuId);
-            $layout->append("<h1>" . type_Varchar::escape($cRec->title) . "</h1>", 'PAGE_CONTENT');
+            $layout->append('<h1>' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             $seoRec = new stdClass();
-            $seoRec->seoTitle = type_Varchar::escape($cRec->title);
+            $seoRec->seoTitle = $cRec->title;
             cms_Content::setSeo($layout, $seoRec);
         } else {
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
-   
+        
         // Добавя канонично URL
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         cms_Content::addCanonicalUrl($url, $layout);
@@ -283,7 +284,7 @@ class eshop_Groups extends core_Master
         
         // Премахва зададения временно текущ език
         core_Lg::pop();
-         
+        
         return $layout;
     }
     
@@ -358,8 +359,8 @@ class eshop_Groups extends core_Master
     public function prepareAllGroups($data, $groupId = null)
     {
         $query = self::getQuery();
-
-        if($groupId) {
+        
+        if ($groupId) {
             $query->where("#state = 'active' AND #saoParentId = {$groupId}");
         } else {
             $query->where("#state = 'active' AND #menuId = {$data->menuId} AND #saoLevel <= 1");
@@ -398,7 +399,7 @@ class eshop_Groups extends core_Master
         $data->products->groupId = $data->groupId;
         
         $this->prepareAllGroups($data, $data->groupId);
-
+        
         eshop_Products::prepareGroupList($data->products);
     }
     
@@ -422,7 +423,7 @@ class eshop_Groups extends core_Master
      */
     public function renderAllGroups_($data)
     {
-        $all = new ET("");
+        $all = new ET('');
         
         if (is_array($data->recs)) {
             foreach ($data->recs as $rec) {
@@ -438,7 +439,6 @@ class eshop_Groups extends core_Master
             }
         }
         
-        
         return $all;
     }
     
@@ -453,19 +453,21 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         
         // Добавяне на подгрупите
-        if(is_array($data->recs) && count($data->recs)) {
+        if (is_array($data->recs) && count($data->recs)) {
             $groupTpl->append("<div class='subgroups clearfix21'>", 'PRODUCTS');
             $groupTpl->append(self::renderAllGroups($data), 'PRODUCTS');
-            $groupTpl->append("</div>", 'PRODUCTS');
+            $groupTpl->append('</div>', 'PRODUCTS');
         }
-
+        
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
         if (!$data->rec->seoTitle) {
             $data->rec->seoTitle = $data->rec->name;
         }
         
-        cms_Content::setSeo($groupTpl, $data->rec);
+        $rec = $data->rec;
+        
+        cms_Content::setSeo($groupTpl, $rec, array('seoTitle' => $rec->name, 'seoDescription' => $rec->info, 'seoThumb' => $rec->image ? $rec->image : $rec->icon));
         
         return $groupTpl;
     }
@@ -518,7 +520,7 @@ class eshop_Groups extends core_Master
             $parentGroupsArr = array($fRec->id);
             
             $sisCond = '';
-            if($fRec->saoParentId) {
+            if ($fRec->saoParentId) {
                 $sisCond = " OR #saoParentId = {$fRec->saoParentId} ";
             }
             while ($fRec->saoLevel > 1) {
@@ -528,7 +530,7 @@ class eshop_Groups extends core_Master
             $parentGroupsList = implode(',', $parentGroupsArr);
             $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
         } else {
-            $query->where("#saoLevel <= 1");
+            $query->where('#saoLevel <= 1');
         }
         
         $query->where("#menuId = '{$menuId}'");
@@ -821,7 +823,7 @@ class eshop_Groups extends core_Master
         
         return $groups;
     }
-
+    
     
     /**
      * Връща връща масив със обекти, съдържащи връзки към публичните страници, генерирани от този обект
@@ -837,7 +839,7 @@ class eshop_Groups extends core_Master
             $resObj = new stdClass();
             $resObj->loc = $this->getUrl($rec, true);
             $modifiedOn = $rec->modifiedOn ? $rec->modifiedOn : $rec->createdOn;
-
+            
             $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
             $resObj->priority = 1;
             $res[] = $resObj;
