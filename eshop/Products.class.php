@@ -147,7 +147,7 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
         $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none');
-
+        
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти');
@@ -325,13 +325,13 @@ class eshop_Products extends core_Master
         }
         
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
-
-        if(is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
+        
+        if (is_array($rec->nearProducts) && (isset($fields['-single']) || isset($fields['-external']))) {
             $row->nearProducts = '';
-            foreach($rec->nearProducts as $productId => $weight) {
-                $row->nearProducts .= "<li>" . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . "</li>";
+            foreach ($rec->nearProducts as $productId => $weight) {
+                $row->nearProducts .= '<li>' . ht::createLink(eshop_Products::getTitleById($productId), self::getUrl(self::fetch($productId))) . '</li>';
             }
-            $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . "</ul>";
+            $row->nearProducts = '<p  style="margin-bottom: 5px;">' . tr('Вижте също') . ':</p><ul style="margin-top: 0px;">' . $row->nearProducts . '</ul>';
         }
     }
     
@@ -610,22 +610,14 @@ class eshop_Products extends core_Master
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
         $rec = clone($data->rec);
-        if (!$rec->seoTitle) {
-            $rec->seoTitle = $data->row->name;
-        }
         
-        if (!$rec->seoDescription) {
-            $rec->seoDescription = $this->getVerbal($rec, 'info');
-        }
-        
-        cms_Content::setSeo($tpl, $rec);
+        cms_Content::setSeo($tpl, $rec, array('seoDescription' => $rec->info, 'seoTitle' => $rec->name, 'seoThumb' => $rec->image));
         
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
         $url = toUrl(self::getUrl($data->rec, true), 'absolute');
         cms_Content::addCanonicalUrl($url, $tpl);
-        
         
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
@@ -703,8 +695,8 @@ class eshop_Products extends core_Master
         $group = eshop_Groups::getVerbal($groupRec, 'name');
         $groupLink = ht::createLink($group, eshop_Groups::getUrl($groupRec));
         $pgId = $groupRec->saoParentId;
-
-        while($pgId) {
+        
+        while ($pgId) {
             $pGroupRec = eshop_Groups::fetch($pgId);
             $groupLink = ht::createLink(eshop_Groups::getVerbal($pGroupRec, 'name'), eshop_Groups::getUrl($pGroupRec)) . ' » ' . $groupLink;
             $pgId = $pGroupRec->saoParentId;
@@ -737,16 +729,16 @@ class eshop_Products extends core_Master
         }
         
         // Всички детайли на е-артикула
-        if(isset($rec->id)){
+        if (isset($rec->id)) {
             $dQuery = eshop_ProductDetails::getQuery();
             $dQuery->where("#eshopProductId = {$rec->id}");
-            while($dRec = $dQuery->fetch()){
+            while ($dRec = $dQuery->fetch()) {
                 
                 // Извличат се параметрите им и се добавят към ключовите думи
                 $params = cat_Products::getParams($dRec->productId, null, true);
-                foreach ($params as $paramId => $paramValue){
+                foreach ($params as $paramId => $paramValue) {
                     $paramName = cat_Params::getTitleById($paramId);
-                    $searchKeywords .= ' ' . plg_Search::normalizeText($paramName) . " " . plg_Search::normalizeText($paramValue);
+                    $searchKeywords .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText($paramValue);
                 }
             }
         }
@@ -1319,40 +1311,40 @@ class eshop_Products extends core_Master
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Изчислява подобните продукти
-     */ 
+     */
     public static function saveNearProducts()
     {
         $gQuery = eshop_Groups::getQuery();
-        while($gRec = $gQuery->fetch("state = 'active'")) {
+        while ($gRec = $gQuery->fetch("state = 'active'")) {
             $pQuery = eshop_Products::getQuery();
-            while($pRec = $pQuery->fetch("state = 'active' AND #groupId = {$gRec->id}")) {
+            while ($pRec = $pQuery->fetch("state = 'active' AND #groupId = {$gRec->id}")) {
                 $dQuery = eshop_ProductDetails::getQuery();
                 $pArr = array();
-                while($dRec = $dQuery->fetch("#state = 'active' AND #eshopProductId = $pRec->id")) {
+                while ($dRec = $dQuery->fetch("#state = 'active' AND #eshopProductId = {$pRec->id}")) {
                     $pArr[] = $dRec->productId;
                     $map[$gRec->menuId][$dRec->productId] = $pRec->id;
                 }
-                if(count($pArr)) {
+                if (count($pArr)) {
                     $res[$gRec->menuId][$pRec->id] = $pArr;
                 }
             }
         }
         
         $r = array();
-        foreach($res as $menuId => $eshopProducts) {
-            foreach($eshopProducts as $epId => $pArr) {
-                foreach($pArr as $pId) {
-
+        foreach ($res as $menuId => $eshopProducts) {
+            foreach ($eshopProducts as $epId => $pArr) {
+                foreach ($pArr as $pId) {
+                    
                     // Вземаме за този продукт близките му
                     $relData = sales_ProductRelations::fetchField("#productId = {$pId}", 'data');
-                    if(is_array($relData)) {
-                        foreach($relData as $relPid => $weight) {
+                    if (is_array($relData)) {
+                        foreach ($relData as $relPid => $weight) {
                             $relEshopId = $map[$menuId][$relPid];
-                            if(isset($relEshopId) &&  $relEshopId != $epId) {
+                            if (isset($relEshopId) && $relEshopId != $epId) {
                                 $r[$epId][$relEshopId] = $weight;
                             }
                         }
@@ -1362,11 +1354,11 @@ class eshop_Products extends core_Master
                 }
             }
         }
- 
-        foreach($r as $epId => $near) {
+        
+        foreach ($r as $epId => $near) {
             $rec = self::fetch($epId);
-
-            if($rec) {
+            
+            if ($rec) {
                 $rec->nearProducts = $near;
                 self::save($rec, 'nearProducts');
             }

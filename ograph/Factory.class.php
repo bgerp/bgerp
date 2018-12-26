@@ -291,6 +291,54 @@ class ograph_Factory extends core_Master
     
     
     /**
+     * Създава OpenGraphProtocol  обект
+     */
+    public function prepareOgraph($rec)
+    {
+        // Създаваме OGP  обект
+        $rec->ogp = new stdClass();
+        
+        // Добавяме изображението за ографа ако то е дефинирано от потребителя
+        if ($rec->seoThumb) {
+            $fileSrc = $rec->seoThumb;
+        }
+        
+        if (!$fileSrc) {
+            $fileSrc = $conf->CMS_OGRAPH_IMAGE;
+        }
+        
+        if ($fileSrc) {
+            $file = fileman_Files::fetchByFh($fileSrc);
+            $type = fileman_Files::getExt($file->name);
+            
+            $img = new thumb_Img(array($file->fileHnd, 200, 200, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+            $imageURL = $img->getUrl('forced');
+            
+            $rec->ogp->imageInfo = array('url' => $imageURL,
+                'type' => "image/{$type}",
+            );
+        }
+        
+        $lang = cms_Domains::getPublicDomain('lang');
+        
+        // Ако преглеждаме единична статия зареждаме и нейния Ograph
+        $rec->ogp->siteInfo = array('Locale' => ($lang == 'bg') ? 'bg_BG' : 'en_GB',
+            'SiteName' => $_SERVER['HTTP_HOST'],
+            'Title' => $rec->seoTitle,
+            'Description' => $rec->seoDescription,
+            'Type' => 'article',
+            'Url' => toUrl(getCurrentUrl(), 'absolute'),
+            'Determiner' => 'the',);
+        
+        // Създаваме Open Graph Article  обект
+        $rec->ogp->recInfo = array(
+            'published' => $rec->createdOn,
+            'modified' => $rec->modifiedOn,
+            'expiration' => '',);
+    }
+    
+    
+    /**
      * Инстанцираме и генерираме Ографа по зададените данни
      * Enter description here ...
      *
@@ -298,10 +346,10 @@ class ograph_Factory extends core_Master
      *
      * @return core_ET $tpl
      */
-    public static function generateOgraph($data)
+    public static function renderOgraph($tpl, $rec)
     {
         $meta = '';
-        $tpl = new ET('');
+        $data = $rec->ogp;
         
         // OGP обект съдържащ информацията за сайта
         $ogp = static::get($data->siteInfo);
@@ -319,13 +367,10 @@ class ograph_Factory extends core_Master
             $method = 'get' . $type;
             $ogpRec = static::$method($data->recInfo);
             
-            $meta .= "\n{$ogpRec->toHTML()}";
+            $meta .= "\n" . $ogpRec->toHTML();
         }
         
-        $tpl->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
-        $tpl->append($meta, 'META_OGRAPH');
-        
-        // Връщаме готовите мета тагове
-        return $tpl;
+        $tpl->appendOnce(' prefix="og: http://ogp.me/ns#"', 'HTML_ATTR');
+        $tpl->appendOnce($meta, 'HEAD');
     }
 }

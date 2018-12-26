@@ -111,13 +111,13 @@ class blogm_Articles extends core_Master
         $this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory');
         $this->FLD('categories', 'keylist(mvc=blogm_Categories,select=title)', 'caption=Категории,mandatory');
         $this->FLD('body', 'richtext(bucket=' . self::FILE_BUCKET . ')', 'caption=Съдържание,mandatory');
+        $this->FLD('state', 'enum(draft=Чернова,pending=Чакаща,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
         $this->FLD(
             'commentsMode',
             'enum(enabled=Разрешени,confirmation=С потвърждение,disabled=Забранени,stopped=Спрени)',
-            'caption=Коментари->Режим,mandatory,maxRadio=' . (Mode::is('screenMode', 'narrow') ? 2 : 4)
+            'caption=Коментари,mandatory,maxRadio=' . (Mode::is('screenMode', 'narrow') ? 2 : 4)
         );
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,pending=Чакаща,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
         
         $this->setDbUnique('title');
     }
@@ -140,13 +140,18 @@ class blogm_Articles extends core_Master
         $rec->body = trim($rec->body);
         
         if ($fields['-browse']) {
-            $txt = explode("\n", $rec->body, 2);
-            if (count($txt) > 1) {
-                $rec->body = trim($txt[0]);
-                $rec->body .= ' [link=' . toUrl(self::getUrl($rec), 'absolute') . '][' . tr('още') . '][/link]';
-            }
+            $row->annotation = ($rec->seoDescription ? $rec->seoDescription : cms_Content::getSeoDescription($rec->body, 350, 450)) . ' ' .
+                ht::createLink('...', self::getUrl($rec), null, array('title' => tr('Виж цялата статия')));
             
-            $row->body = $mvc->getVerbal($rec, 'body');
+            $thumb = $rec->seoThumb;
+            if (!$thumb) {
+                $thumb = cms_Content::getSeoThumb($rec->body);
+            }
+            if ($thumb) {
+                $img = new thumb_Img(array($thumb, 240, 240, 'fileman'));
+                $imageURL = $img->getUrl();
+                $row->thumb = ht::createLink(ht::createElement('img', array('src' => $imageURL, 'alt' => $row->seoTitle, 'class' => 'blogmBrowseImg')), self::getUrl($rec));
+            }
         }
         
         if ($q = Request::get('q')) {
@@ -241,10 +246,10 @@ class blogm_Articles extends core_Master
         if (!$form->rec->id) {
             $form->setDefault('author', core_Users::getCurrent('nick'));
             $form->setDefault('commentsMode', 'confirmation');
-        } 
+        }
         
         $mvc->setMenuIdByRec($form->rec);
-
+        
         $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent()));
         
         // Ако сме в тесен режим
@@ -275,7 +280,7 @@ class blogm_Articles extends core_Master
         $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
         
         if (!count($categories)) {
-            redirect(array('blogm_categories'), false, '|Моля въведете категории за статиите в блога');
+            redirect(array('blogm_Categories'), false, '|Моля въведете категории за статиите в блога');
         }
         $data->listFilter->setOptions('category', $categories);
         
@@ -301,8 +306,6 @@ class blogm_Articles extends core_Master
      */
     public function act_Article()
     {
-
-
         // Имаме ли въобще права за Article екшън?
         $this->requireRightFor('article');
         
@@ -317,8 +320,8 @@ class blogm_Articles extends core_Master
             
             return $this->act_Browse();
         }
-                 
-
+        
+        
         // Създаваме празен $data обект
         $data = new stdClass();
         $data->query = $this->getQuery();
@@ -383,10 +386,6 @@ class blogm_Articles extends core_Master
             }
         }
         
-        Mode::set('SOC_TITLE', $data->ogp->siteInfo['Title']);
-        Mode::set('SOC_SUMMARY', $data->ogp->siteInfo['Description']);
-        
-        
         // Подготвяме лейаута за статията
         $layout = $this->getArticleLayout($data);
         
@@ -394,17 +393,8 @@ class blogm_Articles extends core_Master
         $tpl = $this->renderArticle($data, $layout);
         
         $rec = clone($data->rec);
-        if (!$rec->seoTitle) {
-            $rec->seoTitle = $data->ogp->siteInfo['Title'];
-        }
-        cms_Content::setSeo($tpl, $rec);
         
-        
-        // Генерираме и заместваме OGP информацията в шаблона
-        $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
-        
-        
-        $tpl->append($ogpHtml);
+        cms_Content::setSeo($tpl, $rec, array('seoTitle' => $rec->title, 'seoDescription' => $rec->body));
         
         // Записваме, че потребителя е разглеждал тази статия
         $this->logRead('Разгледана статия', $id);
@@ -421,23 +411,21 @@ class blogm_Articles extends core_Master
         
         return $tpl;
     }
-
-
+    
+    
     /**
      * Задава menuId от категориите
      */
     public function setMenuIdByRec($rec)
     {
-        if(is_object($rec) && isset($rec->categories)) {
-
+        if (is_object($rec) && isset($rec->categories)) {
             $catId = (int) trim($rec->categories, '|');
             $catRec = blogm_Categories::fetch($catId);
-            if($catRec) {
+            if ($catRec) {
                 $menuId = cms_Content::getDefaultMenuId($this, $catRec->domainId);
                 cms_Content::setCurrent($menuId);
             }
         }
-
     }
     
     
@@ -462,79 +450,6 @@ class blogm_Articles extends core_Master
         
         if ($this->haveRightFor('single', $data->rec)) {
             $data->workshop = array('blogm_Articles', 'edit', $data->rec->id);
-        }
-        
-        // Подготвяме информацията за Статията за Open Graph Protocol
-        $this->prepareOgraph($data);
-    }
-    
-    
-    /**
-     * Създава OpenGraphProtocol  обект
-     */
-    public function prepareOgraph($data)
-    {
-        // Създаваме OGP Image обект
-        $conf = core_Packs::getConfig('cms');
-        $data->ogp = new stdClass();
-        
-        // Добавяме изображението за ографа ако то е дефинирано от потребителя
-        
-        
-        if ($data->rec->body) {
-            $pattern = cms_GalleryRichTextPlg::IMG_PATTERN;
-            
-            preg_match($pattern, $data->rec->body, $matches);
-            
-            if ($iHnd = $matches[1]) {
-                $iRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
-                $fileSrc = $iRec->src;
-            }
-        }
-        
-        if (!$fileSrc) {
-            $fileSrc = $conf->CMS_OGRAPH_IMAGE;
-        }
-        
-        if ($fileSrc) {
-            $file = fileman_Files::fetchByFh($fileSrc);
-            $type = fileman_Files::getExt($file->name);
-            
-            $img = new thumb_Img(array($file->fileHnd, 200, 200, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
-            $imageURL = $img->getUrl('forced');
-            
-            $data->ogp->imageInfo = array('url' => $imageURL,
-                'type' => "image/{$type}",
-            );
-        }
-        
-        if (!$data->rec) {
-            
-            // Създаваме Ограф (Open Graph Protocol) Обект
-            $data->ogp->siteInfo = array('Locale' => 'bg_BG',
-                'SiteName' => $_SERVER['HTTP_HOST'],
-                'Title' => $_SERVER['HTTP_HOST'],
-                'Description' => $this->title,
-                'Type' => 'blog',
-                'Url' => toUrl(getCurrentUrl(), 'absolute'),
-                'Determiner' => 'the',);
-        } else {
-            $richText = cls::get('type_Richtext');
-            $desc = ht::extractText($richText->toHtml($data->rec->body));
-            
-            // Ако преглеждаме единична статия зареждаме и нейния Ograph
-            $data->ogp->siteInfo = array('Locale' => 'bg_BG',
-                'SiteName' => $_SERVER['HTTP_HOST'],
-                'Title' => $data->row->title,
-                'Description' => $desc,
-                'Type' => 'article',
-                'Url' => toUrl(getCurrentUrl(), 'absolute'),
-                'Determiner' => 'the',);
-            
-            // Създаваме Open Graph Article  обект
-            $data->ogp->recInfo = array('published' => $data->rec->createdOn,
-                'modified' => $data->rec->modifiedOn,
-                'expiration' => '',);
         }
     }
     
@@ -637,12 +552,9 @@ class blogm_Articles extends core_Master
         // Добавяме стиловете от темата
         $tpl->push($data->ThemeClass->getStyles(), 'CSS');
         
-        // Генерираме мета таговете на OGP
-        $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
-        $tpl->append($ogpHtml);
-        
-        $row = (object) array('seoTitle' => $data->title);
-        cms_Content::setSeo($tpl, $row);
+        // SEO
+        $rec = new stdClass();
+        cms_Content::setSeo($tpl, $rec, array('seoTitle' => $data->title));
         
         if (core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->title ? str_replace('&nbsp;', ' ', strip_tags($data->title)) : tr('БЛОГ'));
@@ -756,10 +668,7 @@ class blogm_Articles extends core_Master
             }
         }
         
-        
-        // Подготвяме OpenGraphProtocol обекта
-        $this->prepareOgraph($data);
-        
+        // Подготвяме данните за навигацията
         $this->prepareNavigation($data);
     }
     
