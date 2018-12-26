@@ -24,7 +24,7 @@
             [#title#]
         </div>
         <div class='blogm-article-body'>
-            [#body#]
+            [#thumb#][#annotation#]
         </div>
         <div class="clearfix21"></div>
     </div>

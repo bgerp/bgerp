@@ -338,7 +338,7 @@ class cms_Content extends core_Manager
         if ($rec->source && cls::load($rec->source, true) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
-        }  else {
+        } else {
             $url = '';
         }
         
@@ -478,7 +478,7 @@ class cms_Content extends core_Manager
      */
     public static function getDefaultMenuId($class, $domainId = null)
     {
-        if(!$domainId) {
+        if (!$domainId) {
             $domainId = cms_Domains::getPublicDomain('id');
         }
         
@@ -625,31 +625,110 @@ class cms_Content extends core_Manager
     /**
      * Добавя параметрите за SEO оптимизация
      */
-    public static function setSeo($content, $sRec)
+    public static function setSeo($content, $rec, $suggestions = array())
     {
-        expect(is_object($sRec), $sRec);
+        expect(is_object($rec), $rec);
         
-        $rec = clone($sRec);
-        
+        // seoTitle
+        if (!$rec->seoTitle) {
+            $rec->seoTitle = $suggestions['seoTitle'];
+        }
         if ($rec->seoTitle) {
-            $content->prependOnce(type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle)))) . ' » ', 'PAGE_TITLE');
+            $rec->seoTitle = type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle))));
+            $content->prependOnce($rec->seoTitle . ' » ', 'PAGE_TITLE');
         }
         
+        // seoDescription
+        if (!$rec->seoDescription && $suggestions['seoDescription']) {
+            $rec->seoDescription = self::getSeoDescription($suggestions['seoDescription']);
+        }
         if (!$rec->seoDescription) {
             $rec->seoDescription = cms_Domains::getPublicDomain('seoDescription');
         }
-        
         if ($rec->seoDescription) {
-            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription)))), 'META_DESCRIPTION');
+            $rec->seoDescription = ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription))));
+            $content->replace($rec->seoDescription, 'META_DESCRIPTION');
         }
         
+        // seoKeywords
+        if (!$rec->seoKeywords) {
+            $rec->seoKeywords = $suggestions['seoKeywords'];
+        }
         if (!$rec->seoKeywords) {
             $rec->seoKeywords = cms_Domains::getPublicDomain('seoKeywords');
         }
-        
         if ($rec->seoKeywords) {
-            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords)))), 'META_KEYWORDS');
+            $rec->seoKeywords = ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords))));
+            $content->replace($rec->seoKeywords, 'META_KEYWORDS');
         }
+        
+        // seoThumb
+        if (!$rec->seoThumb) {
+            $rec->seoThumb = $suggestions['seoThumb'];
+        }
+        
+        ograph_Factory::prepareOgraph($rec);
+        ograph_Factory::renderOgraph($content, $rec);
+    }
+    
+    
+    /**
+     * Връща началото на дадения текст, като се опитва точни изречения
+     */
+    public static function getSeoDescription($text, $minLen = 280, $maxLen = 350)
+    {
+        $rt = cls::get('type_RichText');
+        $text = $rt->stripTags($rt->toHtml($text));
+        
+        $text = preg_replace("/([\p{L}0-9_]{3,16}\\.) /ui", "$1\n", $text);
+        
+        $lines = explode("\n", $text);
+        
+        $res = '';
+        
+        foreach ($lines as $l) {
+            $res .= ' ' . $l;
+            if (mb_strlen($res) >= $minLen) {
+                break;
+            }
+        }
+        
+        $res = trim($res);
+        
+        if (mb_strlen($res) > $maxLen) {
+            $words = explode(' ', $res);
+            $res = '';
+            foreach ($words as $w) {
+                if (mb_strlen($res) + mb_strlen($w) > $maxLen) {
+                    break;
+                }
+                $res .= ' ' . $w;
+            }
+        }
+        
+        $res = preg_replace('/ +/ui', ' ', trim($res));
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща файла на първата срещната картинка в ричтекста
+     */
+    public static function getSeoThumb($text)
+    {
+        $pattern = cms_GalleryRichTextPlg::IMG_PATTERN;
+        
+        preg_match($pattern, $text, $matches);
+        
+        $fileSrc = null;
+        
+        if ($iHnd = $matches[1]) {
+            $iRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
+            $fileSrc = $iRec->src;
+        }
+        
+        return $fileSrc;
     }
     
     
@@ -721,18 +800,18 @@ class cms_Content extends core_Manager
     public static function getSitemapXml($dRec)
     {
         $dQuery = cms_Domains::getQuery();
-
-        while($d = $dQuery->fetch("#domain = '{$dRec->domain}'") ) {
+        
+        while ($d = $dQuery->fetch("#domain = '{$dRec->domain}'")) {
             $dIds[] = $d->id;
         }
-
+        
         $dIds = implode(',', $dIds);
-
+        
         $query = self::getQuery();
         $query->where("#state = 'active' AND #domainId IN ({$dIds})");
         
         $domainHost = $dRec->domain;
-        if($dRec->domain != 'localhost') {
+        if ($dRec->domain != 'localhost') {
             Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
         }
         
@@ -776,7 +855,7 @@ class cms_Content extends core_Manager
         
         $res .= "\n</urlset>";
         
-        if($dRec->domain != 'localhost') {
+        if ($dRec->domain != 'localhost') {
             Mode::pop('BGERP_CURRENT_DOMAIN');
         }
         
@@ -810,9 +889,11 @@ class cms_Content extends core_Manager
         $dQuery = cms_Domains::getQuery();
         
         $used = array();
-
+        
         while ($dRec = $dQuery->fetch()) {
-            if($used[$dRec->domain]) continue;
+            if ($used[$dRec->domain]) {
+                continue;
+            }
             self::registerSitemap($dRec);
             $used[$dRec->domain] = true;
         }

@@ -28,13 +28,12 @@ class page_Html extends core_ET
             '<!doctype html>' .
             
             (Mode::is('screenMode', 'narrow') ?
-                "\n<html xmlns=\"http://www.w3.org/1999/xhtml\" [#OG_PREFIX#]>" :
-                "\n<html [#OG_PREFIX#]>") .
+                "\n<html xmlns=\"http://www.w3.org/1999/xhtml\"[#HTML_ATTR#]>" :
+                "\n<html[#HTML_ATTR#]>") .
             
             "\n<head>" .
             "\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=2\">" .
             "\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=[#ENCODING#]\">" .
-            '<!--ET_BEGIN META_OGRAPH-->[#META_OGRAPH#]<!--ET_END META_OGRAPH-->'.
             "<!--ET_BEGIN META_DESCRIPTION-->\n<meta name=\"description\" content=\"[#META_DESCRIPTION#]\"><!--ET_END META_DESCRIPTION-->" .
             "<!--ET_BEGIN META_KEYWORDS-->\n<meta name=\"keywords\" content=\"[#META_KEYWORDS#]\"><!--ET_END META_KEYWORDS-->" .
             "<!--ET_BEGIN PAGE_TITLE-->\n<title>[#NOT_CNT#][#PAGE_TITLE#]</title><!--ET_END PAGE_TITLE-->" .
