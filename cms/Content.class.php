@@ -646,6 +646,7 @@ class cms_Content extends core_Manager
             $rec->seoDescription = cms_Domains::getPublicDomain('seoDescription');
         }
         if ($rec->seoDescription) {
+            $descr = $rec->seoDescription;
             $rec->seoDescription = ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription))));
             $content->replace($rec->seoDescription, 'META_DESCRIPTION');
         }
@@ -666,7 +667,10 @@ class cms_Content extends core_Manager
         if (!$rec->seoThumb) {
             $rec->seoThumb = $suggestions['seoThumb'];
         }
-        
+        if (!$rec->seoThumb && $suggestions['seoDescription']) {
+            $rec->seoThumb = cms_Content::getSeoThumb($suggestions['seoDescription']);
+        }
+  
         ograph_Factory::prepareOgraph($rec);
         ograph_Factory::renderOgraph($content, $rec);
     }
