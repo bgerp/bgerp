@@ -148,7 +148,12 @@ class blogm_Articles extends core_Master
                 $thumb = cms_Content::getSeoThumb($rec->body);
             }
             if ($thumb) {
-                $img = new thumb_Img(array($thumb, 240, 240, 'fileman'));
+                if (Mode::is('screenMode', 'narrow')) {
+                    $size = 180;
+                } else {
+                    $size = 240;
+                }
+                $img = new thumb_Img(array($thumb, $size, $size, 'fileman'));
                 $imageURL = $img->getUrl();
                 $row->thumb = ht::createLink(ht::createElement('img', array('src' => $imageURL, 'alt' => $row->seoTitle, 'class' => 'blogmBrowseImg')), self::getUrl($rec));
             }
