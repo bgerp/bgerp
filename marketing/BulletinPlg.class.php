@@ -45,7 +45,7 @@ class marketing_BulletinPlg extends core_Plugin
         $jsLink = marketing_Bulletins::getJsLink($bRec->id);
         
         if ($jsLink) {
-            jquery_Jquery::run($invoker, "$.ajaxSetup({ cache: true }); jQuery.getScript('{$jsLink}');");
+            jquery_Jquery::run($invoker, "$.ajaxSetup({ cache: true }); jQuery.getScript('{$jsLink}', function() { $.ajaxSetup({ cache: false }); });");
         }
     }
 }
