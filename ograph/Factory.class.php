@@ -293,7 +293,7 @@ class ograph_Factory extends core_Master
     /**
      * Създава OpenGraphProtocol  обект
      */
-    public function prepareOgraph($rec)
+    public static function prepareOgraph($rec)
     {
         // Създаваме OGP  обект
         $rec->ogp = new stdClass();
