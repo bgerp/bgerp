@@ -150,13 +150,9 @@ class docarch_Volumes extends core_Master
         
         if ($rec->isCreated !== true) {
             
-            $volume = docarch_Volumes::fetchField($rec->id,'type');
-            $archive = docarch_Volumes::fetchField($rec->id,'archive');
-            
-            log_System::add('docarch_Movements', 'Създаден е контейнер от тип ' .$volume . ' '.' към архив '.
-                                                  docarch_Archives::getTitleById($archive) , null, 'warning');
             // Прави запис в модела на движенията
             $mRec = (object) array('type' => 'creating',);
+            
             docarch_Movements::save($mRec);           
             
         }
