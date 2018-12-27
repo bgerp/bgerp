@@ -960,6 +960,7 @@ class colab_FolderToPartners extends core_Manager
         if(isset($retUrl)){
             $url['ret_url'] = $retUrl;
         }
+        
         if(core_Packs::isInstalled('eshop')){
             if($cartId = eshop_Carts::force(null, null, false)){
                 $cartRec = eshop_Carts::fetch($cartId, 'personNames,email');
@@ -968,6 +969,16 @@ class colab_FolderToPartners extends core_Manager
             }
         }
             
+        if($Class instanceof crm_Persons){
+            $personRec = crm_Persons::fetch($objectId);
+            $url['userNames'] = $personRec->name;
+            
+            $emails = type_Emails::toArray($personRec->email);
+            if(array_key_exists(0, $emails)){
+                $url['email'] = $emails[0];
+            }
+        }
+        
         Request::setProtected('companyId,rand,className,fromEmail,userNames,email');
         $url = toUrl($url);
         Request::removeProtected('companyId,rand,className,fromEmail,userNames,email');
