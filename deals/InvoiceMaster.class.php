@@ -725,7 +725,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 if($rec->contragentClassId != crm_Persons::getClassId()){
                     $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
                 } else {
-                    $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата?*?');
+                    $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата|*?');
                 }
             }
             
