@@ -110,7 +110,7 @@ class docarch_Volumes extends core_Master
             $archive = $form->rec->archive;
             
             if (is_null($form->rec->number)) {
-              $form->rec->number = self::getNextNumber($archive,$type );
+                $form->rec->number = $mvc->getNextNumber($archive,$type);
             }
             
            

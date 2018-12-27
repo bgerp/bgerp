@@ -625,9 +625,9 @@ class cms_Content extends core_Manager
     
     
     /**
-     * Добавя параметрите за SEO оптимизация
+     * Подготвя параметрите за SEO оптимизация
      */
-    public static function setSeo($content, $rec, $suggestions = array())
+    public static function prepareSeo($rec, $suggestions = array())
     {
         expect(is_object($rec), $rec);
         
@@ -637,7 +637,6 @@ class cms_Content extends core_Manager
         }
         if ($rec->seoTitle) {
             $rec->seoTitle = type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle))));
-            $content->prependOnce($rec->seoTitle . ' » ', 'PAGE_TITLE');
         }
         
         // seoDescription
@@ -650,7 +649,6 @@ class cms_Content extends core_Manager
         if ($rec->seoDescription) {
             $descr = $rec->seoDescription;
             $rec->seoDescription = ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription))));
-            $content->replace($rec->seoDescription, 'META_DESCRIPTION');
         }
         
         // seoKeywords
@@ -662,7 +660,6 @@ class cms_Content extends core_Manager
         }
         if ($rec->seoKeywords) {
             $rec->seoKeywords = ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords))));
-            $content->replace($rec->seoKeywords, 'META_KEYWORDS');
         }
         
         // seoThumb
@@ -674,6 +671,33 @@ class cms_Content extends core_Manager
         }
   
         ograph_Factory::prepareOgraph($rec);
+ 
+        Mode::set('SOC_TITLE', $rec->seoTitle);
+        Mode::set('SOC_SUMMARY', $rec->seoDescription);
+    }
+
+
+    /**
+     * Добавя параметрите за SEO оптимизация
+     */
+    public static function renderSeo($content, $rec)
+    {
+        expect(is_object($rec), $rec);
+        
+        if ($rec->seoTitle) {
+            $content->prependOnce($rec->seoTitle . ' » ', 'PAGE_TITLE');
+        }
+        
+        // seoDescription
+        if ($rec->seoDescription) {
+            $content->replace($rec->seoDescription, 'META_DESCRIPTION');
+        }
+        
+        // seoKeywords
+        if ($rec->seoKeywords) {
+            $content->replace($rec->seoKeywords, 'META_KEYWORDS');
+        }
+        
         ograph_Factory::renderOgraph($content, $rec);
     }
     

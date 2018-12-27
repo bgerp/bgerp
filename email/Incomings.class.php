@@ -2837,8 +2837,12 @@ class email_Incomings extends core_Master
     
     /**
      * Връща иконата на документа
+     * 
+     * @param int|null $id
+     * 
+     * @return string|null
      */
-    public function getIcon_($id)
+    public function getIcon_($id = null)
     {
         $rec = self::fetch($id);
         
