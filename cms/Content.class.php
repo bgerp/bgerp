@@ -451,7 +451,7 @@ class cms_Content extends core_Manager
     /**
      * Задава текущото меню
      */
-    public static function setCurrent($menuId = null, $layout = null)
+    public static function setCurrent($menuId = null, $externalPage = true)
     {
         if ($menuId && ($rec = cms_Content::fetch($menuId))) {
             Mode::set('cMenuId', $menuId);
@@ -465,7 +465,9 @@ class cms_Content extends core_Manager
         
         self::setLang($lg);
         
-        Mode::set('wrapper', 'cms_page_External');
+        if($externalPage) {
+            Mode::set('wrapper', 'cms_page_External');
+        }
     }
     
     
