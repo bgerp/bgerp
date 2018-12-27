@@ -722,7 +722,11 @@ abstract class deals_InvoiceMaster extends core_Master
             if (strlen($rec->contragentVatNo) && !strlen($rec->uicNo) && $rec->contragentClassId == crm_Companies::getClassId()) {
                 $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
             } elseif (!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)) {
-                $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
+                if($rec->contragentClassId != crm_Persons::getClassId()){
+                    $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
+                } else {
+                    $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата?*?');
+                }
             }
             
             foreach (array('contragentVatNo', 'uicNo') as $numFld) {
