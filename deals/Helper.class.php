@@ -1482,6 +1482,12 @@ abstract class deals_Helper
             return false;
         }
         
+        $contragentClassId = $firstDoc->fetchField('contragentClassId');
+        if($contragentClassId == crm_Persons::getClassId()) {
+            
+            return true;
+        }
+        
         $makeInvoice = $firstDoc->fetchField('makeInvoice');
         $res = ($makeInvoice == 'yes') ? true : false;
         
