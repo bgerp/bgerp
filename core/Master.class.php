@@ -755,7 +755,7 @@ class core_Master extends core_Manager
      * 
      * @param int|null $id
      * 
-     * return string|null
+     * @return string|null
      */
     public function getIcon_($id = null)
     {
