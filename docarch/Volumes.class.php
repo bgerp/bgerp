@@ -27,10 +27,10 @@ class docarch_Volumes extends core_Master
         $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
-        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Нещоси, pallet=Палет, warehouse=Склад)', 'caption=Тип');
+        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип');
         
         //Това е номера на дадения вид том в дадения архив
-        $this->FLD('number', 'int', 'caption=Номер');
+        $this->FLD('number', 'int', 'caption=Номер,smartCenter');
         
         //Отговорник на този том/контейнер
         $this->FLD('inCharge', 'key(mvc=core_Users)', 'caption=Отговорник');
@@ -39,7 +39,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('isForDocuments', 'enum(yes,no)', 'caption=Съдържа ли документи,input=none');
         
         //Показва в кой по-голям том/контейнер е включен
-        $this->FLD('includeIn', 'key(mvc=docarch_Vlolumes)', 'caption=По-големия том,input=hidden');
+        $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=hidden');
         $this->FLD('position', 'varchar(32)', 'caption=Позиция в по-големия том,input=hidden');
         
         //Състояние
@@ -79,10 +79,16 @@ class docarch_Volumes extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-        
+       
         if ($rec->id) {
+            
+            $rec->isCreated = true;
+            
             $form->setReadOnly('archive');
             $form->setReadOnly('type');
+            $form->setReadOnly('number');
+            
+            
         } 
         
     }
@@ -104,11 +110,53 @@ class docarch_Volumes extends core_Master
             $archive = $form->rec->archive;
             
             if (is_null($form->rec->number)) {
-              $form->rec->number = self::getNextNumber($archive,$type );
+                $form->rec->number = $mvc->getNextNumber($archive,$type);
             }
             
            
         }
+    }
+    
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+       
+        if($rec->type == docarch_Archives::minDefType($rec->archive)){
+            $rec->isForDocuments = 'yes';
+        }else{
+                $rec->isForDocuments = 'no';
+             }
+             
+    }
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id  първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    
+        
+        if ($rec->isCreated !== true) {
+            
+            // Прави запис в модела на движенията
+            $mRec = (object) array('type' => 'creating',);
+            
+            docarch_Movements::save($mRec);           
+            
+        }
+        
     }
     
     /**
@@ -132,8 +180,10 @@ class docarch_Volumes extends core_Master
          */
         requireRole('admin');
         
-        $a = docarch_Volumes::getQuery()->fetchAll();
-        bp($a);
+        $a = (docarch_Volumes::fetchField(9,'type'));
+        $b='pallet';
+        
+        return 'action';
     }
     
     /**
@@ -147,8 +197,8 @@ class docarch_Volumes extends core_Master
     private function getNextNumber($archive,$type)
     {
         $query = $this->getQuery();
-        $cond = "#archive = {$archive}";
-        //$cond .= "#type = $type";
+        $cond = "#archive = {$archive} AND";
+        $cond .= "#type = '{$type}'";
         $query->where($cond);
         $query->XPR('maxVolNumber', 'int', 'MAX(#number)');
         $number = $query->fetch()->maxVolNumber;

@@ -19,7 +19,7 @@ class docarch_Archives extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
     
-    public $listFields = 'id,name,modifiedOn=Модифициране';
+    public $listFields = 'id,name,volType,modifiedOn=Модифициране';
     
     protected function description()
     {
@@ -80,6 +80,21 @@ class docarch_Archives extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         //$data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+    }
+    
+    /**
+     * Най-малкия дефиниран тип за архива
+     * 
+     * @param int $id -id на архива
+     * @return string
+     */
+    public static function minDefType($id)
+    {
+       $typesArr = arr::make(self::fetch($id)->volType,false);
+       
+       $minDefType = $typesArr[0];
+       
+       return $minDefType;
     }
     
     

@@ -1321,6 +1321,7 @@ class eshop_Products extends core_Master
      */
     public static function saveNearProducts()
     {
+        $res = $map = array();
         $gQuery = eshop_Groups::getQuery();
         while ($gRec = $gQuery->fetch("state = 'active'")) {
             $pQuery = eshop_Products::getQuery();
@@ -1352,7 +1353,11 @@ class eshop_Products extends core_Master
                             }
                         }
                     }
-                    arsort($r[$epId]);
+                    
+                    if(is_array($r[$epId])){
+                        arsort($r[$epId]);
+                    }
+                    
                     $r[$epId] = array_slice($r[$epId], 0, 10, true);
                 }
             }

@@ -1742,8 +1742,12 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Връща иконата на документа
+     * 
+     * @param int|null $id
+     * 
+     * @return string|null
      */
-    public function getIcon_($id)
+    public function getIcon_($id = null)
     {
         $rec = self::fetch($id);
         

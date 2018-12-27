@@ -24,7 +24,7 @@ class docarch_Movements extends core_Master
     protected function description()
     {
         //Избор на типа движение в архива
-        $this->FLD('type', 'enum(creating=Създаване на том, archiving=Архивиране на документ, taking=Изваждане на документ, 
+        $this->FLD('type', 'enum(creating=Създаване, archiving=Архивиране, taking=Изваждане, 
                                       destruction=Унищожаване, include=Включване, exclude=Изключване)', 'caption=Действиe');
         
         //Документ - ако движението е на документ
@@ -36,7 +36,7 @@ class docarch_Movements extends core_Master
         //Входящ том участващ в движението
         $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
-        //Потребител извършващ действието
+        //Потребител получил документа или контейнера
         $this->FLD('userID', 'key(mvc=core_Users)', 'caption=Потребител');
     }
     
@@ -80,6 +80,7 @@ class docarch_Movements extends core_Master
     {
     }
     
+   
     
     /**
      * @return string
@@ -91,7 +92,11 @@ class docarch_Movements extends core_Master
          */
         requireRole('admin');
         
-        $a = docarch_Volumes::getQuery()->fetchAll();
-        bp($a);
+        
+        $a = docarch_Archives::getQuery()->fetchAll();
+        $b= docarch_Archives::fetch(1);
+        $c = arr::make($b->volType,false);
+        
+        return 'activ';
     }
 }
