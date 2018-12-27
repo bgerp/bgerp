@@ -2,11 +2,15 @@
 
     <!--ET_BEGIN NAVIGATION-->
     <div   id='cmsNavigation'  style='margin:2%'>
+        [#TOP_NAV#]
         [#NAVIGATION#]
+        [#BOTTOM_NAV#]
     </div>
     <!--ET_END NAVIGATION-->
     <div style='margin:0 2%;'>
+        [#TOP_CONTENT#]
         [#PAGE_CONTENT#]
+        [#BOTTOM_CONTENT#]
         <div class='bulletin-link' style="margin-bottom: 20px;"></div>
     </div>
 </div>

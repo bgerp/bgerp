@@ -4,6 +4,11 @@
         <div class="clearfix21"></div>
     </div>
     <div class="narrowNav">
+        <!--ET_BEGIN WORKSHOP-->
+        <div class='blogm-workshop'>
+            [#WORKSHOP#]
+        </div>
+        <!--ET_END WORKSHOP-->
         <!--ET_BEGIN CATEGORIES-->
         <div class='blogm-categories'>
             <div class='nav_item  level1'>|Категории|*</div>
