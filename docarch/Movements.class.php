@@ -91,12 +91,7 @@ class docarch_Movements extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-        
-        
-        $a = docarch_Archives::getQuery()->fetchAll();
-        $b= docarch_Archives::fetch(1);
-        $c = arr::make($b->volType,false);
-        
-        return 'activ';
+       
+        return 'action';
     }
 }
