@@ -253,7 +253,7 @@ class blogm_Articles extends core_Master
             $form->setDefault('commentsMode', 'confirmation');
         }
         
-        $mvc->setMenuIdByRec($form->rec);
+        $mvc->setMenuIdByRec($form->rec, false);
         
         $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent()));
         
@@ -421,14 +421,14 @@ class blogm_Articles extends core_Master
     /**
      * Задава menuId от категориите
      */
-    public function setMenuIdByRec($rec)
+    public function setMenuIdByRec($rec, $externalPage = true)
     {
         if (is_object($rec) && isset($rec->categories)) {
             $catId = (int) trim($rec->categories, '|');
             $catRec = blogm_Categories::fetch($catId);
             if ($catRec) {
                 $menuId = cms_Content::getDefaultMenuId($this, $catRec->domainId);
-                cms_Content::setCurrent($menuId);
+                cms_Content::setCurrent($menuId, $externalPage);
             }
         }
     }
