@@ -603,15 +603,18 @@ class eshop_Products extends core_Master
         cms_Content::setCurrent($data->groups->rec->menuId);
         
         $this->prepareProduct($data);
-        
+
+        // Подготвяме SEO данните
+        $rec = clone($data->rec);
+        cms_Content::prepareSeo($rec, array('seoDescription' => $rec->info, 'seoTitle' => $rec->name, 'seoThumb' => $rec->image));
+
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
-        $rec = clone($data->rec);
-        
-        cms_Content::setSeo($tpl, $rec, array('seoDescription' => $rec->info, 'seoTitle' => $rec->name, 'seoThumb' => $rec->image));
+        // Поставяме SEO данните
+        cms_Content::renderSeo($tpl, $rec);
         
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         

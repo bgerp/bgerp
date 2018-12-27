@@ -276,11 +276,7 @@ class cms_Articles extends core_Master
         if ($menuId) {
             cms_Content::setCurrent($menuId);
         }
-        
-        
-        Mode::set('SOC_TITLE', $ogp->siteInfo['Title']);
-        Mode::set('SOC_SUMMARY', $ogp->siteInfo['Description']);
-        
+                
         if (!$content) {
             $content = new ET();
         }
@@ -396,15 +392,15 @@ class cms_Articles extends core_Master
                 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
         }
         
+        // Подготвяме SEO елементите
+        cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
+
         if ($cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }
-        
-        expect($rec);
-        
+                
         // Задаване на SEO елементите
-        cms_Content::setSeo($content, $rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
-        
+        cms_Content::renderSeo($content, $rec);
         
         if ($rec && $rec->id) {
             if (core_Packs::fetch("#name = 'vislog'")) {
