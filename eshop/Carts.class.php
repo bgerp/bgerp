@@ -37,7 +37,7 @@ class eshop_Carts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,state,createdOn=Създаване,activatedOn=Активиране,ip,brid,domainId';
+    public $listFields = 'id,productCount=Артикули,total=Сума,saleId,userId,ip,brid,domainId,state,createdOn=Създаване,activatedOn=Активиране';
     
     
     /**
@@ -210,7 +210,7 @@ class eshop_Carts extends core_Master
     {
         $data->query->orderBy('createdOn', 'DESC');
         $data->listFilter->FNC('domain', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,input,silent');
-        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител)', 'caption=Вид,input,silent');
+        $data->listFilter->FNC('type', 'enum(all=Всички,draft=Чернови,active=Активни,empty=Празни,users=От потребител,anonymous=Без потребител,pendingSales=С чакащи продажби)', 'caption=Вид,input,silent');
         $data->listFilter->input();
         
         $data->listFilter->setDefault('type', 'all');
@@ -238,6 +238,10 @@ class eshop_Carts extends core_Master
                         break;
                     case 'anonymous':
                         $data->query->where("#userId IS NULL AND #email IS NULL");
+                        break;
+                    case 'pendingSales':
+                        $data->query->EXT('saleState', 'sales_Sales', 'externalName=state,externalKey=saleId');
+                        $data->query->where("#saleId IS NOT NULL AND #saleState = 'pending'");
                         break;
                 }
             }
