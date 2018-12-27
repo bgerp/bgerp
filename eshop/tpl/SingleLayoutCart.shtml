@@ -2,7 +2,7 @@
 
 <div class="singleView">
    [#SingleToolbar#]
-   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Онлайн поръчка|* <b style="color:green;display:inline-block;word-break:break-all">№[#id#]</b></h2>
+   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Кошница|* <b style="color:green;display:inline-block;word-break:break-all">№[#id#]</b></h2>
    <fieldset class="detail-info">
       <legend class="groupTitle">|Информация|*</legend>
       <div class="groupList">
