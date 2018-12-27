@@ -298,25 +298,15 @@ class ograph_Factory extends core_Master
         // Създаваме OGP  обект
         $rec->ogp = new stdClass();
         
-        // Добавяме изображението за ографа ако то е дефинирано от потребителя
-        if ($rec->seoThumb) {
-            $fileSrc = $rec->seoThumb;
-        }
+        $fileSrc = !empty($rec->seoThumb) ? $rec->seoThumb : cms_Setup::get('OGRAPH_IMAGE');
         
-        if (!$fileSrc) {
-            $fileSrc = $conf->CMS_OGRAPH_IMAGE;
-        }
-        
-        if ($fileSrc) {
+        if (!empty($fileSrc)) {
             $file = fileman_Files::fetchByFh($fileSrc);
             $type = fileman_Files::getExt($file->name);
             
             $img = new thumb_Img(array($file->fileHnd, 200, 200, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
             $imageURL = $img->getUrl('forced');
-            
-            $rec->ogp->imageInfo = array('url' => $imageURL,
-                'type' => "image/{$type}",
-            );
+            $rec->ogp->imageInfo = array('url' => $imageURL, 'type' => "image/{$type}");
         }
         
         $lang = cms_Domains::getPublicDomain('lang');
