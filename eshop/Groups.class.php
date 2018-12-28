@@ -251,14 +251,15 @@ class eshop_Groups extends core_Master
         
         
         if (self::mustShowSideNavigation()) {
-            $seoRec = new stdClass();
-            $seoRec->seoTitle = $cRec->title;
-            cms_Content::prepareSeo($seoRec);
             // Ако имаме поне 4-ри групи продукти
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+            
+            $seoRec = new stdClass();
             $cRec = cms_Content::fetch($data->menuId);
+            $seoRec->seoTitle = $cRec->title;
+            cms_Content::prepareSeo($seoRec);
             $layout->append('<h1>' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
