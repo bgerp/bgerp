@@ -58,8 +58,6 @@ class docarch_Movements extends core_Master
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver
-     *                                      $Driver
      * @param embed_Manager       $Embedder
      * @param stdClass            $data
      */
@@ -67,16 +65,17 @@ class docarch_Movements extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
+        $volumeSuggestionsArr=array();
         
         $volQuery = docarch_Volumes::getQuery();
         $currentUser = core_Users::getCurrent();
         $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'");
-        while ($volume = $volQuery->fetch()){
-            
-            $volumeSuggestionsArr[$volume->id] = $volume->id;
+        
+        while ($vRec = $volQuery->fetch()){
+            $volumeSuggestionsArr[$vRec->id] = $vRec->id;
         }
        
-        $form->setSuggestions('toVolumeId', $volumeSuggestionsArr);
+        $form->setSuggestions('toVolumeId',$volumeSuggestionsArr);
         
     }
     
