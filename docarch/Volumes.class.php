@@ -19,15 +19,18 @@ class docarch_Volumes extends core_Master
     
     public $loadList = 'plg_Created, plg_RowTools2,plg_Modified';
     
+    public $types = '';
+    
     public $listFields = 'number,type,inCharge,archive,createdOn=Създаден,modifiedOn=Модифициране';
     
     protected function description()
     {
         //Определя в кой архив се съхранява конкретния том
-        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив');
+        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
-        $this->FLD('type', 'enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип');
+        $types='folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад';
+        $this->FLD('type', "enum($types)", 'caption=Тип');
         
         //Това е номера на дадения вид том в дадения архив
         $this->FLD('number', 'int', 'caption=Номер,smartCenter');
@@ -39,8 +42,8 @@ class docarch_Volumes extends core_Master
         $this->FLD('isForDocuments', 'enum(yes,no)', 'caption=Съдържа ли документи,input=none');
         
         //Показва в кой по-голям том/контейнер е включен
-        $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=hidden');
-        $this->FLD('position', 'varchar(32)', 'caption=Позиция в по-големия том,input=hidden');
+        $this->FLD('includeIn', 'key(mvc=docarch_Volumes)', 'caption=По-големия том,input=none');
+        $this->FLD('position', 'varchar(32)', 'caption=Позиция в по-големия том,input=none');
         
         //Състояние
         $this->FLD('state', 'enum(active=Активен,rejected=Изтрит,closed=Приключен)', 'caption=Статус,input=none,notSorting');
@@ -80,6 +83,10 @@ class docarch_Volumes extends core_Master
         $form = $data->form;
         $rec = $form->rec;
        
+        
+        
+     
+       
         if ($rec->id) {
             
             $rec->isCreated = true;
@@ -89,12 +96,23 @@ class docarch_Volumes extends core_Master
             $form->setReadOnly('number');
             
             
-        } 
+        }else{
+            
+             if ($form->cmd == 'refresh' && $rec->archive) {
+                  $typesArr= arr::make(docarch_Archives::fetch($rec->archive)->volType,true);
+                  $form->setSuggestions('type',$typesArr);
+              }
+              
+              
+            $form->setDefault('state', 'active');
+            
+            $form->setDefault('archive', null);
+        }
         
     }
     
     
-    /**$form->rec->number = self::getNextNumber($archive,$type );
+    /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
@@ -105,15 +123,18 @@ class docarch_Volumes extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) { 
-            
+           
             $type = $form->rec->type;
             $archive = $form->rec->archive;
             
             if (is_null($form->rec->number)) {
-                $form->rec->number = $mvc->getNextNumber($archive,$type);
+              $form->rec->number = $mvc->getNextNumber($archive,$type );
             }
-            
            
+        }else{
+           
+            
+            
         }
     }
     
@@ -128,7 +149,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-       
+        
         if($rec->type == docarch_Archives::minDefType($rec->archive)){
             $rec->isForDocuments = 'yes';
         }else{
@@ -179,9 +200,6 @@ class docarch_Volumes extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-        
-        $a = (docarch_Volumes::fetchField(9,'type'));
-        $b='pallet';
         
         return 'action';
     }
