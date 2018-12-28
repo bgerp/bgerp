@@ -28,7 +28,7 @@ class docarch_Movements extends core_Master
                                       destruction=Унищожаване, include=Включване, exclude=Изключване)', 'caption=Действиe');
         
         //Документ - ако движението е на документ
-        $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=none');
+        $this->FLD('documentId', 'key(mvc=doc_Containers)', 'caption=Документ,input=hidden,silent');
         
         //Изходящ том участващ в движението
         $this->FLD('fromVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Изходящ том');
@@ -65,6 +65,8 @@ class docarch_Movements extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
+        
+        if (($rec->documentId)) {
         $volumeSuggestionsArr=array();
         
         $volQuery = docarch_Volumes::getQuery();
@@ -72,11 +74,42 @@ class docarch_Movements extends core_Master
         $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'"); 
         
         while ($vRec = $volQuery->fetch()){
-            $volumeSuggestions[] = $vRec->id;
+            if ($vRec->archive == 0) {
+                $arch = 'Сборен';
+            }else {
+                 $arch = docarch_Archives::fetch($vRec->archive)->name;
+            }
+            
+            $volName = docarch_Volumes::getVolumeTypeName($vRec->type);
+       
+            $volumeSuggestionsArr[$vRec->id]=$volName .'-No'.$vRec->number.' / архив: '.$arch;
         }
-      
-     //  $form->setOptions('toVolumeId',array('r'=>'r'));
+       
+        $form->setOptions('toVolumeId',$volumeSuggestionsArr);
         
+     //  if (($rec->documentId)) {
+           $form->setField('fromVolumeId','input=none');
+           $form->setFieldType('type','enum(archiving=Архивиране)');
+           $form->setField('userID','input=none');
+       }
+        
+        
+    }
+    
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        
+        if ($form->isSubmitted()) {
+         
+        }
     }
     
     
@@ -101,7 +134,7 @@ class docarch_Movements extends core_Master
          * Установява необходима роля за да се стартира екшъна
          */
         requireRole('admin');
-       
+      
         return 'action';
     }
 }

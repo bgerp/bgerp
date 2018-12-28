@@ -29,8 +29,7 @@ class docarch_Volumes extends core_Master
         $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
-        $types='folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад';
-        $this->FLD('type', "enum($types)", 'caption=Тип');
+        $this->FLD('type', "enum(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)", 'caption=Тип');
         
         //Това е номера на дадения вид том в дадения архив
         $this->FLD('number', 'int', 'caption=Номер,smartCenter');
@@ -66,15 +65,14 @@ class docarch_Volumes extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Бутон', array($mvc, 'Action'));
+        $data->toolbar->addBtn('Бутон', array('docarch_Movements', 'Add'));
     }
     
     
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver
-     *                                      $Driver
+     * 
      * @param embed_Manager       $Embedder
      * @param stdClass            $data
      */
@@ -82,10 +80,6 @@ class docarch_Volumes extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-       
-        
-        
-     
        
         if ($rec->id) {
             
@@ -98,15 +92,23 @@ class docarch_Volumes extends core_Master
             
         }else{
             
+            
              if ($form->cmd == 'refresh' && $rec->archive) {
+                 
                   $typesArr= arr::make(docarch_Archives::fetch($rec->archive)->volType,true);
-                  $form->setSuggestions('type',$typesArr);
+               
+                  foreach ($typesArr as $key => $v){
+                      $volName = self::getVolumeTypeName($v);
+                      $types .=$key.'='.$volName.','; 
+                  }
+                  
+                  $types = (trim($types,',')); 
+                  $form->setFieldType('type',"enum($types)");
               }
               
               
             $form->setDefault('state', 'active');
             
-            $form->setDefault('archive', null);
         }
         
     }
@@ -125,6 +127,9 @@ class docarch_Volumes extends core_Master
         if ($form->isSubmitted()) { 
            
             $type = $form->rec->type;
+            if (is_null($form->rec->archive)) {
+                $form->rec->archive = 0;
+            }
             $archive = $form->rec->archive;
             
             if (is_null($form->rec->number)) {
@@ -150,10 +155,10 @@ class docarch_Volumes extends core_Master
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         
-        if($rec->type == docarch_Archives::minDefType($rec->archive)){
-            $rec->isForDocuments = 'yes';
+        if($rec->type != docarch_Archives::minDefType($rec->archive) || $rec->archive == 0){
+            $rec->isForDocuments = 'no';
         }else{
-                $rec->isForDocuments = 'no';
+                $rec->isForDocuments = 'yes';
              }
              
     }
@@ -201,6 +206,8 @@ class docarch_Volumes extends core_Master
          */
         requireRole('admin');
         
+        docarch_Movements::Add();
+        
         return 'action';
     }
     
@@ -223,6 +230,17 @@ class docarch_Volumes extends core_Master
         ++$number;
         
         return $number;
+    }
+    
+    /**
+     * Взема името на типа на тома
+     *
+     * @param string $type -ключа на името на типа
+     * @return string
+     */
+    public static function getVolumeTypeName($type)
+    {
+        return docarch_Archives::getArchiveTypeName($type);
     }
     
 }
