@@ -2426,7 +2426,9 @@ class email_Incomings extends core_Master
         $contragentData->email = email_Mime::getAllEmailsFromStr($msg->fromEml);
         
         // Държавата
-        $contragentData->countryId = $msg->country;
+        if(!$contragentData->countryId) {
+            $contragentData->countryId = $msg->country;
+        }
         
         // Името на класа
         $coverClass = strtolower(doc_Folders::fetchCoverClassName($msg->folderId));
