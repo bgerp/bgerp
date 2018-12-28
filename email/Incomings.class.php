@@ -2374,8 +2374,8 @@ class email_Incomings extends core_Master
         $footer = email_Outgoings::getFooter();
         
         $avoid = array('html') + array_filter(explode("\n", str_replace(array('Тел.:', 'Факс:', 'Tel.:', 'Fax:'), array('', '', '', ''), trim($footer))));
-        
-        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml), $avoid);
+ 
+        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml, 'lg' => $msg->lg, 'country' => $msg->country), $avoid);
         
         $headersArr = array();
         
