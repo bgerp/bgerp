@@ -69,13 +69,13 @@ class docarch_Movements extends core_Master
         
         $volQuery = docarch_Volumes::getQuery();
         $currentUser = core_Users::getCurrent();
-        $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'");
+        $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'"); 
         
         while ($vRec = $volQuery->fetch()){
-            $volumeSuggestionsArr[$vRec->id] = $vRec->id;
+            $volumeSuggestions[] = $vRec->id;
         }
-       
-        $form->setSuggestions('toVolumeId',$volumeSuggestionsArr);
+      
+     //  $form->setOptions('toVolumeId',array('r'=>'r'));
         
     }
     

@@ -43,7 +43,7 @@ class plg_Archiving extends core_Plugin
             $currentUser = core_Users::getCurrent();
             $volQuery->where("#isForDocuments = 'yes' AND #inCharge = $currentUser");
             if ($volQuery->count() > 0) {
-                $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add','ret_url' => array($mvc,'single',$data->rec->id)),"ef_icon=img/16/clone.png,row=2");
+                $data->toolbar->addBtn('Архивиране', array('docarch_Movements', 'Add', 'documentId' => $docClassId, 'ret_url' => true),"ef_icon=img/16/clone.png,row=2");
             }
         }
     }
