@@ -921,6 +921,7 @@ class drdata_Address extends core_MVC
         
         if($countryRec) {
             $res->country = $countryRec->commonName;
+            $res->countryId = $countryRec->id;
         }
         
         return $res;
