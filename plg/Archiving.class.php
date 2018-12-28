@@ -25,7 +25,7 @@ class plg_Archiving extends core_Plugin
         $arcivesArr = array();
 
         // има ли архиви дефинирани за документи от този клас , или за всякакви документи
-        $docClassId = $this->getClassId();
+        $docClassId = $mvc->getClassId();
 
         $mQuery = docarch_Archives::getQuery();
         $mQuery->show('documents');
