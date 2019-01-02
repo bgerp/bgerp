@@ -113,6 +113,7 @@ class rack_Movements extends core_Manager
         
         // Палет, позиции и зони
         $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Движение->От,input=hidden,silent,placeholder=Под||Floor,removeAndRefreshForm=position|positionTo,smartCenter');
+        $this->FLD('batch', 'text', 'silent,input=none,before=positionTo');
         $this->FLD('position', 'rack_PositionType', 'caption=Движение->От,input=none');
         $this->FLD('positionTo', 'rack_PositionType', 'caption=Движение->Към,input=none');
         $this->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=10em|10em,validate=rack_Movements::validateZonesTable)', 'caption=Движение->Зони,smartCenter,input=hidden');
@@ -384,10 +385,26 @@ class rack_Movements extends core_Manager
             
             // Показване на допустимото количество
             $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId);
+            
             if (empty($rec->palletId)) {
                 if ($defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId)) {
                     $availableQuantity = min($availableQuantity, $defQuantity);
                 }
+                
+                $BatchClass = batch_Defs::getBatchDef($rec->productId);
+                if ($BatchClass) {
+                    $form->setField('batch', 'input,placeholder=Без партида');
+                    
+                    $batches = batch_Items::getBatches($rec->productId, $rec->storeId, true);
+                    $form->setOptions('batch', array('' => '') + $batches);
+                    
+                    $fieldCaption = $BatchClass->getFieldCaption();
+                    if (!empty($fieldCaption)) {
+                        $form->setField('batch', "caption=Движение->{$fieldCaption}");
+                    }
+                }
+            } else {
+                $form->setField('batch', 'input=none');
             }
             
             if ($availableQuantity > 0) {

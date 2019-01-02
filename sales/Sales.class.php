@@ -1540,9 +1540,13 @@ class sales_Sales extends deals_DealMaster
                 }
                 
                 $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($details, 'productId'), 'canSell');
+                
                 if($productCheck['metasError']){
-                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
-                    $form->setError('action', $warning1);
+                    $error1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                    $form->setError('action', $error1);
+                } elseif($productCheck['notActive']){
+                    $error1 = "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |трябва да са активни|*!";
+                    $form->setError('action', $error1);
                 }
             }
         }
