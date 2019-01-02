@@ -111,10 +111,12 @@ class cat_UoM extends core_Manager
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
+        $this->FLD('isBasic', 'enum(no=Друга,yes=Първична)', 'caption=Тип,notNull,value=no');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,smartCenter');
         $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
+        
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
@@ -166,11 +168,12 @@ class cat_UoM extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $type = core_Request::get('type', 'enum(uom,packaging)');
-        
+       
         if ($type == 'packaging') {
             $mvc->currentTab = 'Мерки->Опаковки';
             $mvc->title = 'Опаковки';
             $data->listFields['name'] = 'Опаковка';
+            arr::placeInAssocArray($data->listFields, array('isBasic' => 'Тип'), 'sysId')
         } else {
             $mvc->currentTab = 'Мерки->Мерки';
         }
@@ -584,6 +587,8 @@ class cat_UoM extends core_Manager
         if ($rec->type == 'packaging') {
             $mvc->currentTab = 'Мерки->Опаковки';
             $data->form->setField('name', 'caption=Опаковка');
+        } else {
+            $data->form->setField('isBasic', 'input=none');
         }
         
         $data->form->setDefault('showContents', 'no');
