@@ -230,7 +230,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALE_INV_VAT_DISPLAY' => array(
             'enum(no=Не,yes=Да)',
-            'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'
+            'caption=Без закръгляне на ДДС за всеки ред от фактурите->Избор'
         ),
         'SALE_INV_MIN_NUMBER1' => array(
             'int(min=0)',

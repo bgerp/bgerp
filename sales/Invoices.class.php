@@ -460,22 +460,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Преди подготовката на обобщението на фактурата
-     */
-    public function on_BeforePrepareSummary($mvc, &$total)
-    {
-        if (count($total->vats) == 1) {
-            $conf = core_Packs::getConfig('sales');
-            
-            // Ако сме задали ддс сумата да е твърд процент от сумата без ддс и всички артикули са със една и съща ставка на ддс
-            if ($conf->SALE_INV_VAT_DISPLAY == 'yes') {
-                $total->vat = $total->amount * key($total->vats);
-            }
-        }
-    }
-    
-    
-    /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
