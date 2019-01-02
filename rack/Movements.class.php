@@ -256,7 +256,7 @@ class rack_Movements extends core_Manager
         // Ако има начална позиция и тя не е пода обновява се палета на нея
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
             try {
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, -1 * $transaction->quantity);
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, -1 * $transaction->quantity, $transaction->batch);
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 
@@ -269,12 +269,12 @@ class rack_Movements extends core_Manager
         if (!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR) {
             try {
                 $restQuantity = $transaction->quantity - $transaction->zonesQuantityTotal;
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->to, $restQuantity);
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->to, $restQuantity, $transaction->batch);
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 
                 // Ако има проблем ревърт на предното движение
-                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity);
+                rack_Pallets::increment($transaction->productId, $transaction->storeId, $transaction->from, $transaction->quantity, $transaction->batch);
                 
                 return false;
             }
@@ -351,6 +351,7 @@ class rack_Movements extends core_Manager
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setField('storeId', 'input=hidden');
         $form->setField('workerId', 'input=none');
+        $form->setDefault('productId', '89');
         
         $defZones = Request::get('defaultZones', 'varchar');
         
@@ -929,7 +930,7 @@ class rack_Movements extends core_Manager
      * @return stdClass $res
      */
     private function validateTransaction($transaction)
-    {
+    {bp($transaction);
         $res = (object) array('transaction' => $transaction, 'errors' => array(), 'errorFields' => array(), 'warnings' => array(), 'warningFields' => array());
         
         if ($transaction->from == $transaction->to && empty($transaction->zonesQuantityTotal)) {
@@ -983,7 +984,7 @@ class rack_Movements extends core_Manager
         
         $toPallet = $toProductId = null;
         if (!empty($transaction->to) && $transaction->to != rack_PositionType::FLOOR) {
-            if (!rack_Racks::checkPosition($transaction->to, $transaction->productId, $transaction->storeId, $error)) {
+            if (!rack_Racks::checkPosition($transaction->to, $transaction->productId, $transaction->storeId, $transaction->batch, $error)) {
                 $res->errors = $error;
                 $res->errorFields[] = 'positionTo,productId';
                 
@@ -1130,6 +1131,7 @@ class rack_Movements extends core_Manager
         $transaction->id = $rec->id;
         $transaction->storeId = $rec->storeId;
         $transaction->productId = $rec->productId;
+        $transaction->batch = (!empty($rec->batch)) ? $rec->batch : null;
         $transaction->quantity = $sign * $rec->quantity;
         $transaction->packagingId = $rec->packagingId;
         $transaction->from = $rec->position;

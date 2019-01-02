@@ -227,8 +227,8 @@ class rack_Racks extends core_Master
      *
      * @return bool
      */
-    public static function checkPosition($position, $productId, $storeId, &$error = null, &$rec = null)
-    {
+    public static function checkPosition($position, $productId, $storeId, $batch = null, &$error = null, &$rec = null)
+    {bp();
         list($num, $row, $col) = explode('-', $position);
         if (!($num && $row && $col)) {
             $error = 'Невалиден синтаксис';
